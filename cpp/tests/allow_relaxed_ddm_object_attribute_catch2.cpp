@@ -6,6 +6,7 @@
 #include <RTI/RTI1516.h>
 
 #include <atomic>
+#include <cstring>
 #include <filesystem>
 #include <memory>
 #include <vector>
@@ -247,8 +248,19 @@ TEST_CASE(
     drainCallbacks(*subscriber);
     if (!relaxedDdmEnabled) {
       ++expectedDiscoveries;
+      // The latest accepted value became visible when this strict subscription
+      // first discovered the object; the next update is a separate reflection.
+      ++expectedReflections;
     }
     REQUIRE(subscriberReports.objectDiscoveryReports.size() == expectedDiscoveries);
+    REQUIRE(subscriberReports.attributeReflectionReports.size() == expectedReflections);
+    if (!relaxedDdmEnabled) {
+      auto const& initialValue = subscriberReports.attributeReflectionReports.back()
+                                     .attributeValues.at(subscriberFlavor);
+      REQUIRE(initialValue.size() == gapValueBytes.size());
+      REQUIRE(std::memcmp(
+                  initialValue.data(), gapValueBytes.data(), gapValueBytes.size()) == 0);
+    }
     std::vector<unsigned char> const strictValueBytes{0x75U, 0x86U};
     AttributeHandleValueMap strictValue;
     strictValue.emplace(

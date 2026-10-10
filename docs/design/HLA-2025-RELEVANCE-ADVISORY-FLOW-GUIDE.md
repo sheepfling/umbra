@@ -16,6 +16,11 @@ well as separate discovery and scope paths.
 implementation and selected test evidence; it makes no claim about the separate
 2010 stream or about full conformance.
 
+**Implementation profiles:** embedded registry planning plus selected
+configured 2025 process-endpoint attribute-relevance paths. Declaration and
+attribute evidence come from distinct profile/test slices; this is not a claim
+of cross-profile equivalence.
+
 The official [IEEE 1516.1-2025 edition page](https://standards.ieee.org/ieee/1516.1/6688/)
 is the normative starting point. Source comments and test names below are
 navigation/evidence pointers, not substitutes for the licensed standard.
@@ -96,7 +101,9 @@ each joining federate's initial values; changing one publisher's switch does
 not mutate another member's setting. The `Advisories Use Known Class` switch
 is a different policy: it is static at federation scope and changes how
 attribute relevance resolves class subscriptions. Do not substitute one switch
-for another.
+for another. The distinct Create-time versus per-member initialization boundary
+is shown in the
+[federation MOM switch-lifecycle flow](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#creation-time-federation-policy-versus-per-member-switch-seeding).
 
 ### Switch-off is not a queued backlog
 
@@ -141,7 +148,6 @@ stateDiagram-v2
   NotRelevant --> Relevant: a known receiver makes the attribute relevant
   Relevant --> NotRelevant: no known receiver remains relevant
   Relevant --> Relevant: effective update-rate designator changes
-  Relevant --> Relevant: no state or rate change, no new advisory
 ```
 
 On the first edge, the owner may receive

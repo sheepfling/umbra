@@ -212,24 +212,214 @@ protection is separate from what the public HLA service permits.
   maximum deadline is reached. Callbacks can consume time inside that window.
 - **Disable is not discard.** Pending tasks survive disable/enable transitions
   unless a lifecycle operation explicitly resets or closes that session.
-- **Exceptions are dispatch-boundary events.** An application callback can
-  throw through the immediate submitter or Evoke call. The immediate drainer
-  releases its election state and preserves later queued work rather than
-  leaving the dispatcher permanently latched.
+- **Exceptions are dispatch-boundary events.** If an exception escapes its
+  callback task, the dispatcher has already removed that task. The session
+  releases its in-flight count and rethrows; there is no automatic retry. The
+  immediate drainer releases its election state and preserves later FIFO work.
+  The Evoke path likewise propagates the exception and leaves later tasks
+  pending. Producer-specific catches can change this path; see the focused
+  [exception boundary](#if-an-exception-escapes-a-callback-task) below.
 - **Time order is specialized.** Receive-order FIFO is not a substitute for
   timestamp ordering. TSO-before-grant ordering, retraction, and loss cutoffs
   are documented in the time-management guide.
 - **Completion callbacks are protocol gates.** Save/restore completion,
   ownership transfer, and time-role changes may commit state at their own
   callback boundaries. Follow their focused guides instead of assuming that
-  all callbacks have identical commit semantics.
+  all callbacks have identical commit semantics. In the embedded
+  FederationSynchronized path below, the registry instead erases the completed
+  point while preparing notifications, before callback dispatch.
+
+## If an exception escapes a callback task
+
+This is the common 2025 dispatcher/session boundary used by callback tasks
+that reach it. It does not claim that every producer lets user exceptions
+escape; both 2025 `ConnectionLost` producer paths catch callback exceptions
+themselves, as traced below. Nor does this low-level flow define each public
+service's exception translation or state-commit behavior.
+
+```mermaid
+flowchart TD
+  A[Dispatcher removes the next task from its FIFO] --> B[CallbackSession enters the borrowed ambassador]
+  B --> C[Run this callback task]
+  C --> D{Does an exception escape the task?}
+  D -->|No| E[Session decrements in-flight count; dispatch continues]
+  D -->|Yes| F[Session decrements in-flight count and rethrows]
+  F --> G{Dispatch model}
+  G -->|HLA_IMMEDIATE| H[Release drainer election; keep later FIFO tasks queued]
+  H --> I[Propagate through the immediate dispatch caller]
+  G -->|HLA_EVOKED| J[Propagate through the Evoke call]
+  J --> K[Keep later tasks queued; no normal Boolean result]
+  I --> L[The removed failing task is consumed; no automatic retry]
+  K --> L
+```
+
+`CallbackDispatcher` takes the task out of the deque before invoking it. The
+session's exceptional path decrements its in-flight count before rethrowing.
+For HLA_IMMEDIATE, `drainImmediate` clears the drainer election on escape and
+does not discard the remaining FIFO backlog. For HLA_EVOKED, `evokeOne` and
+`evokeMultiple` invoke an already-extracted task without a catch/requeue step;
+an escaping exception bypasses the normal return while later queue entries
+remain. In both models the failed task has been consumed, not retried. A
+producer may deliberately catch an exception before it reaches this boundary,
+so treat this as dispatcher evidence rather than a universal RTI error policy.
+
+Cancellation is a separate transition from exception handling or disabling.
+`CallbackDispatcher::reset` clears pending work; the embedded resignation path
+does this after the membership transition and before submitting notifications
+to surviving members. The focused embedded restore/resignation test verifies
+that queued restore callbacks do not reach the departing federate while the
+survivor still receives the terminal restore result. The process-profile path
+has a different, narrower source-observed boundary, shown next; do not infer
+embedded/process parity from either path.
+
+## `ConnectionLost` producer exception containment and backend-specific cleanup
+
+Do not apply the generic escaping-task branch above to this callback: both
+2025 producers catch exceptions thrown by `FederateAmbassador::connectionLost`.
+Their local state transitions differ, so this chart compares only these
+observed adapter paths; it is not a process/embedded parity claim or a 2010
+description. Callback-model timing remains as described in the HLA_IMMEDIATE
+and HLA_EVOKED sections above.
+
+```mermaid
+flowchart TD
+  Loss["Transport failure for a joined federate"] --> Backend{"2025 adapter path"}
+  Backend -->|Process endpoint| P0["Reject duplicate or stale loss; mark local lifecycle Not Connected and endpoint inactive"]
+  P0 --> P1["Deactivate time and clear joined/service state; retain client for its in-flight request to unwind"]
+  P1 --> P2["This handler does not reset the shared callback dispatcher"]
+  P2 --> P3["If a callback session exists, submit the local ConnectionLost task"]
+  Backend -->|Embedded| E0["Apply registry Connection Lost forced-resign transition"]
+  E0 --> E1["Plan member cleanup and survivor notifications using registry state"]
+  E1 --> E2["Mark local lifecycle Not Connected; deactivate time and clear joined state"]
+  E2 --> E3["Reset dispatcher, dropping queued work and re-enabling it; move out the lost member session"]
+  E3 --> E4["Finish post-lock cleanup and notification submission, then queue local ConnectionLost"]
+  P3 --> Invoke["CallbackSession invokes FederateAmbassador.connectionLost"]
+  E4 --> Invoke
+  Invoke --> Throws{"Does application callback throw?"}
+  Throws -->|No| Done["Callback task completes"]
+  Throws -->|Yes| Catch["Producer catch-all swallows the exception; membership transition is not rolled back"]
+  Catch --> Done
+```
+
+The process helper commits its local Not Connected state, clears joined/time
+metadata, and submits the callback without resetting the shared dispatcher in
+that handler. The embedded path first commits registry forced resignation,
+then resets pending callback work before its later local `ConnectionLost`
+submission. In both paths an application exception from `connectionLost` is
+contained before it reaches the generic dispatcher exception boundary. The
+embedded service-report append failure is a different RTI-side error: cleanup
+and callback routing continue before the adapter reports `RTIinternalError`.
+
+Evidence is source-bounded. The focused embedded service-report test encodes
+record-before-callback behavior, but its current local run failed during
+`createFederationExecution` (test line 521), before reaching the callback
+assertions. The cited tests do not inject an exception from
+`connectionLost`; neither that catch behavior nor a process-profile callback
+scenario is claimed as runtime-tested.
+
+## Process-profile Resign and queued callback work
+
+This is a 2025 process-endpoint source trace, not a normative Resign rule and
+not a test assertion about post-Resign delivery. Source shows a possible
+dispatch path for queued work; the projection cancellation is deliberately
+narrower than resetting the shared dispatcher.
+
+```mermaid
+flowchart TD
+  A[Successful process Resign cancels report projections, clears membership, and returns without resetting queue/session] --> B{How can pending work reach dispatch?}
+  B -->|HLA_EVOKED, enabled| C[Public Evoke rejects callback re-entry but has no joined-state gate]
+  B -->|HLA_IMMEDIATE, disabled backlog| D[Enable Callbacks has no joined-state gate and drains pending work]
+  C --> E[Dispatcher selects an existing queue task]
+  D --> E
+  E --> F{Does an event-specific suppression guard apply?}
+  F -->|Yes| G[Projection, retraction, or switch guard may suppress this task]
+  F -->|No| H[Open CallbackSession can invoke the federate ambassador]
+  G --> I[Focused tests do not assert post-Resign backlog behavior]
+  H --> I
+```
+
+On a successful response, the [process client](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L103)
+cancels exception-report projections, not the dispatcher queue. The focused
+bridge test proves that a queued receive event whose exception-report
+projection was invalidated does not reach the projection handler or federate
+callback; a later membership generation can project normally. The ambassador's
+process Resign branch then applies its lifecycle transition, clears its joined
+fields, and returns before the embedded reset site. Unlike this Resign path,
+[`ProcessFederationCallbackBridge::close`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1865)
+closes the callback session and resets the dispatcher.
+
+The source supports a post-Resign dispatch path for work already in the shared
+queue, if the corresponding public callback-control service is called. Public
+Evoke rejects callback re-entry but contains no joined-state check; its process
+poll helper does require joined membership before fetching new process events.
+`Enable Callbacks` has no membership check either, and enabling an immediate
+dispatcher drains its pending queue. Bridge submissions generally check
+`isClosed()` before enqueueing; ordinary task closures capture the session and
+invoke it without a general membership recheck. Some event families have
+specific staleness gates, including exception-report projection generation,
+message retraction, and the Attribute Relevance Advisory switch. The callback
+session itself checks whether it is closed or has lost its recipient (normally
+on Disconnect/destruction), not whether Resign cleared federation membership.
+
+This is an implementation observation, not a claim that post-Resign Evoke or
+callback delivery is normatively permitted. The bridge cancellation tests
+exercise exception-report projection guards, not the full public Resign path.
+The process receive/Evoke integration drains its interaction callbacks before
+resigning both participants, so it does not exercise this edge. The focused
+cases cited here do not assert the post-Resign result for an unrelated pending
+task. Keep that behavioral/test gap visible until the official service
+contract and intended implementation behavior are checked.
+
+## Federation Synchronized after barrier completion
+
+This is a zoom-in on one 2025 embedded callback producer, not another
+synchronization-point state machine. The [synchronization guide](HLA-2025-FEDERATION-SYNCHRONIZATION-FLOW-GUIDE.md#achievement-is-a-fan-in-not-a-per-caller-completion)
+defines who must report and how the failed-to-synchronize set is formed. Here,
+the registry finishes that barrier and returns one notification plan per
+current participant; the ambassador then routes each plan through that
+participant's callback session.
+
+```mermaid
+flowchart TD
+  A[Final synchronizationPointAchieved accepted] --> B[Record result and form failed-to-sync set]
+  B --> C[Erase completed point and prepare per-participant plans]
+  C --> D[Route each notification to its recipient session]
+  D --> E{Recipient service-report sink selected?}
+  E -->|Yes| F[Append FederationSynchronized report]
+  E -->|No| G[Submit callback task to recipient dispatcher]
+  F --> G
+  G --> H{Recipient callback model}
+  H -->|HLA_IMMEDIATE, callbacks enabled| I{Can this thread drain now?}
+  I -->|Yes| J[Invoke inline; may precede service return]
+  I -->|No, another thread owns drainer| K[Queue behind active immediate drainer]
+  H -->|HLA_EVOKED, callbacks enabled| L[Leave task queued]
+  L --> M[Application calls evokeCallback]
+  M --> N[RTI claims one task and invokes callback]
+```
+
+In this embedded path, point removal and notification planning precede the
+per-recipient callback route. A selected FederationSynchronized service-report
+record is appended before that route submits the callback task. The shared
+dispatcher determines whether submission invokes inline, waits behind another
+thread's immediate drainer, or remains queued for an evoke call; it does not
+establish a single total order across different recipients. The exact
+service-specific IMMEDIATE-before-return timing is source-derived rather than
+asserted by the public synchronization-point test.
+The HLA_EVOKED service-report test covers its selected-file record before the
+resignation-triggered callback is evoked. Neither result establishes process
+endpoint parity.
 
 ## Evidence map: implementation versus exercised scenarios
 
 | Topic | Current implementation entry points | Focused test evidence |
 | --- | --- | --- |
 | Queue, dispatch model, and per-ambassador serialization | [dispatcher submission and drain](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L121), [dispatcher API](../../cpp/src/internal/callbacks/callback_dispatcher.hpp#L24), [borrowed ambassador session](../../cpp/src/internal/callbacks/callback_session.hpp#L17) | [immediate synchronous dispatch and FIFO](../../cpp/tests/callback_dispatcher_catch2.cpp#L82), [concurrent immediate producers](../../cpp/tests/callback_dispatcher_catch2.cpp#L98), [evoked one-at-a-time and serialized entry](../../cpp/tests/callback_dispatcher_catch2.cpp#L209) |
+| Escaping callback-task exceptions | [task extraction and immediate exception cleanup](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L244), [evoked task extraction/invocation](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L155), [session cleanup and rethrow](../../cpp/src/internal/callbacks/callback_session.cpp#L45) | Successful immediate and evoked dispatch are covered above; `callback_dispatcher_catch2.cpp` has no focused throwing-task test for task consumption, backlog retention, or drainer recovery. |
+| ConnectionLost producer exception containment | [process local transition and callback catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L104), [embedded forced-loss transition and queue reset](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L167), [dispatcher reset semantics](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L72) | [embedded ConnectionLost report-before-callback case](../../cpp/tests/ieee1516_2025_service_report_catch2.cpp#L506) encodes the normal callback route, but its current local run fails during federation creation before those assertions; the cited tests do not throw from `connectionLost` or establish process-profile parity. |
 | Evoke operations and callback controls | [Evoke Callback and Evoke Multiple Callbacks](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L32), [enable/disable](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L114) | [FIFO through Evoke Multiple](../../cpp/tests/callback_dispatcher_catch2.cpp#L301), [disabled work remains pending](../../cpp/tests/callback_dispatcher_catch2.cpp#L314), [process interaction delivered through Evoke](../../cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp#L457) |
+| Embedded queue cancellation on lifecycle transitions | [embedded Resign reset and survivor notification ordering](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L985), [Disconnect reset and session close](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2403), [session close/wait behavior](../../cpp/src/internal/callbacks/callback_session.cpp#L34) | [embedded evoked restore callbacks dropped for resigning member](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L486), [close drains an external in-flight invocation](../../cpp/tests/callback_dispatcher_catch2.cpp#L325), [close from the active callback](../../cpp/tests/callback_dispatcher_catch2.cpp#L427). |
+| Process-profile Resign and queued work | [process Resign branch and early return](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L818), [client membership clear and projection cancellation](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L103), [Evoke entry points](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L32), [joined gate applies to new process polling](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L125), [Enable Callbacks entry point](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L114), [immediate enable drains pending work](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L81), [ordinary queued task invokes the captured session](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1346), [exception-projection guard](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1197), [retraction guard](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1162), [advisory-switch guard](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1539), [bridge close tears down session and queue](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1865) | [queued exception-report projection cancelled while later generation still works](../../cpp/tests/process_federation_callback_bridge_catch2.cpp#L58), [cancellation after projection but before callback-session entry](../../cpp/tests/process_federation_callback_bridge_catch2.cpp#L131), [process Evoke callbacks drained before test Resign](../../cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp#L720), [test Resign occurs after delivery assertions](../../cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp#L752). The focused cases cited here do not assert unrelated queued-task behavior after Resign. |
+| FederationSynchronized after barrier completion | [registry result and point removal](../../cpp/src/internal/federation/federation_registry.cpp#L262), [achievement service submission](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1380), [recipient report and callback routing](../../cpp/src/internal/runtime/umbra_rti_ambassador_synchronization_notification_dispatch.cpp#L82), [dispatcher submission](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L121) | [public synchronization-point scenarios under both callback models](../../cpp/tests/synchronization_point_catch2.cpp#L242), [generic immediate/evoked dispatcher tests](../../cpp/tests/callback_dispatcher_catch2.cpp#L82), [HLA_EVOKED report before resignation-triggered callback](../../cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp#L131). The synchronization integration does not assert service-specific IMMEDIATE-before-return timing. |
 | Re-entry restrictions and session close | [callback execution guards](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L34), [Connect guard](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L74), [Disconnect guard](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2375), [Join guard](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L371), [Resign guard](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L803) | [Evoke calls rejected inside immediate callback](../../cpp/tests/callback_dispatcher_catch2.cpp#L166), [close waits for external in-flight call](../../cpp/tests/callback_dispatcher_catch2.cpp#L325), [close from active callback](../../cpp/tests/callback_dispatcher_catch2.cpp#L427) |
 | Cross-service ordering evidence | [process callback polling before dispatch](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L125) | [per-recipient process interaction FIFO](../../cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp#L459), [TSO callback/evoke scenarios](../../cpp/tests/ieee1516_2025_connection_timestamped_receive_evoke_catch2.cpp#L457) |
 
@@ -243,14 +433,15 @@ focused evidence table rather than extrapolating from receive-order tests.
 This guide does not define the complete normative call-allowed-from-callback
 matrix, total ordering across different callback producers, transport-wide
 delivery guarantees, error policy for every FederateAmbassador exception, or
-all service-specific callback commit points. It also does not merge 2010 and
-2025 callback semantics. Those require their own exact-standard and
-source/test surveys.
+all service-specific callback commit points. In particular, process-endpoint
+Resign leaves a source-supported path for already-queued tasks to reach public
+Evoke/Enable dispatch, but the exact normative service permission and a focused
+post-Resign regression test are absent. It also does not merge 2010 and 2025
+callback semantics. Those require their own exact-standard and source/test
+surveys.
 
-The next step is a GitHub-compatible render and review pass across every flow
-guide, followed by a bounded edition-boundary audit. Verify each Mermaid
-diagram in its real Markdown context, correct layout/syntax problems, and
-record any guide-specific residual limitation. Then independently survey
-whether 2010 needs parallel guides; create those only as distinct 2010
-documents and never infer equivalence from the 2025 material. Keep the
-Requirements Lab out of scope.
+Next: survey the existing 2025 exception-reporting and service-invocation
+reporting guides against their producer paths and focused tests, prioritizing
+state/ordering edges that are not already diagrammed. Keep source-observed,
+test-observed, and normative claims distinct; do not merge the 2010 stream or
+edit the Requirements Lab.

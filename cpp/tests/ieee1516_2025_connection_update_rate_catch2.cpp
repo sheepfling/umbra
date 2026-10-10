@@ -520,6 +520,7 @@ TEST_CASE(
             !serveExpected(
                 TransportServiceOperation::get_update_rate_value_for_attribute) ||
             !serveExpected(TransportServiceOperation::get_update_rate_value) ||
+            !serveExpected(TransportServiceOperation::report_failed_service_invocation) ||
             !serveExpected(TransportServiceOperation::resign_federation_execution)) {
           throw std::runtime_error(
               "The public process update-rate server lost a query operation.");
@@ -654,6 +655,7 @@ TEST_CASE(
             !serveExpected(TransportServiceOperation::get_update_rate_value) ||
             !serveExpected(TransportServiceOperation::get_update_rate_value) ||
             !serveExpected(TransportServiceOperation::get_update_rate_value) ||
+            !serveExpected(TransportServiceOperation::report_failed_service_invocation) ||
             !serveExpected(TransportServiceOperation::resign_federation_execution)) {
           throw std::runtime_error(
               "The public process named update-rate server lost a query operation.");

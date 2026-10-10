@@ -7,6 +7,7 @@
 #include <RTI/RTI1516.h>
 
 #include <atomic>
+#include <cstring>
 #include <filesystem>
 #include <memory>
 #include <vector>
@@ -216,9 +217,9 @@ TEST_CASE(
       soda,
       mixedPair));
 
-  // The explicit source overlaps only the regional subscriber. The mixed
-  // subscriber's retained ordinary declaration is not allowed to use the
-  // default region while its disjoint explicit declaration exists.
+  // The explicit source overlaps the regional subscriber. The mixed
+  // subscriber's independent ordinary declaration still covers the default
+  // region while its additional regional declaration is disjoint.
   ObjectInstanceHandle objectInstance;
   REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstanceWithRegions(
       soda,
@@ -227,7 +228,8 @@ TEST_CASE(
   drainCallbacks(*mixed);
   REQUIRE(regionalReports.objectDiscoveryReports.size() == 1U);
   REQUIRE(regionalReports.objectDiscoveryReports.back().objectInstance == objectInstance);
-  REQUIRE(mixedReports.objectDiscoveryReports.empty());
+  REQUIRE(mixedReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(mixedReports.objectDiscoveryReports.back().objectInstance == objectInstance);
 
   // Removing the mixed explicit declaration lets its retained ordinary
   // declaration use the default region again and requests fresh discovery.
@@ -253,6 +255,8 @@ TEST_CASE(
       sourcePair));
   drainCallbacks(*regional);
   drainCallbacks(*mixed);
+  REQUIRE(regionalReports.attributeReflectionReports.empty());
+  REQUIRE(mixedReports.attributeReflectionReports.empty());
   REQUIRE_NOTHROW(regional->setConveyRegionDesignatorSetsSwitch(true));
   REQUIRE_NOTHROW(mixed->setConveyRegionDesignatorSetsSwitch(true));
 
@@ -275,7 +279,8 @@ TEST_CASE(
   REQUIRE(mixedReports.attributeReflectionReports.back().sentRegions.empty());
 
   // A later explicit association replaces the default source for this
-  // attribute. Only the matching regional subscriber receives the update.
+  // attribute. The regional subscriber and the mixed subscriber's ordinary
+  // declaration both overlap the explicit source region.
   REQUIRE_NOTHROW(publisher->associateRegionsForUpdates(
       objectInstance,
       sourcePair));
@@ -293,7 +298,15 @@ TEST_CASE(
   REQUIRE(regionalReports.attributeReflectionReports.size() == 2U);
   REQUIRE(regionalReports.attributeReflectionReports.back().sentRegionsSupplied);
   REQUIRE(regionalReports.attributeReflectionReports.back().sentRegions.contains(sourceRegion));
-  REQUIRE(mixedReports.attributeReflectionReports.size() == 1U);
+  REQUIRE(mixedReports.attributeReflectionReports.size() == 2U);
+  REQUIRE(mixedReports.attributeReflectionReports.back().attributeValues.at(flavor).size() ==
+          sizeof(explicitValueBytes));
+  REQUIRE(std::memcmp(
+              mixedReports.attributeReflectionReports.back().attributeValues.at(flavor).data(),
+              explicitValueBytes,
+              sizeof(explicitValueBytes)) == 0);
+  REQUIRE(mixedReports.attributeReflectionReports.back().sentRegionsSupplied);
+  REQUIRE(mixedReports.attributeReflectionReports.back().sentRegions.contains(sourceRegion));
 
   REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(
       objectInstance,
@@ -310,7 +323,7 @@ TEST_CASE(
   drainCallbacks(*regional);
   drainCallbacks(*mixed);
   REQUIRE(regionalReports.attributeReflectionReports.size() == 3U);
-  REQUIRE(mixedReports.attributeReflectionReports.size() == 2U);
+  REQUIRE(mixedReports.attributeReflectionReports.size() == 3U);
   REQUIRE(regionalReports.attributeReflectionReports.back().sentRegionsSupplied);
   REQUIRE(regionalReports.attributeReflectionReports.back().sentRegions.empty());
   REQUIRE(mixedReports.attributeReflectionReports.back().sentRegionsSupplied);

@@ -14,6 +14,10 @@ not the data update; and a callback queued for an old state can become stale.
 and selected tests. It does not claim full standard conformance or equivalence
 with the separate 2010 reference RTI.
 
+**Implementation boundary:** the surveyed 2025 embedded registry/service path
+and the selected public process-endpoint path. The guide keeps those evidence
+sets distinct and does not generalize beyond the cited code and tests.
+
 The official [IEEE 1516.1-2025 edition page](https://standards.ieee.org/ieee/1516.1/6688/)
 is the normative starting point. In the pinned API, the
 [FederateAmbassador declarations](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L333)
@@ -169,8 +173,8 @@ flowchart TD
   H --> I[Queue or route callback work]
   I --> J{At delivery, does current scope match planned direction?}
   J -->|No| K[Drop stale attribute work]
-  J -->|Yes, In| L[attributesInScope(object, attributes)]
-  J -->|Yes, Out| M[attributesOutOfScope(object, attributes)]
+  J -->|Yes, In| L["attributesInScope(object, attributes)"]
+  J -->|Yes, Out| M["attributesOutOfScope(object, attributes)"]
 ~~~
 
 The self-unsubscribe branch applies specifically to the subscription-mutation

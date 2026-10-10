@@ -302,7 +302,7 @@ TEST_CASE(
           TransportServiceOperation::confirm_divestiture,
           "The process Confirm Divestiture assumption server lost Confirm Divestiture.");
       serveExpected(ownerSession, ownerHandler,
-          TransportServiceOperation::report_successful_service_invocation,
+          TransportServiceOperation::report_successful_void_service_invocation,
           "The process Confirm Divestiture assumption server lost its service-report append.");
       serveExpected(
           requesterSession, requesterHandler,

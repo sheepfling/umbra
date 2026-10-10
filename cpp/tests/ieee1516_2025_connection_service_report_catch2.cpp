@@ -2267,8 +2267,6 @@ TEST_CASE(
             "The process service-report file-loss server lost the file-report switch enable.");
       serve(TransportServiceOperation::get_object_class_handle,
             "The process service-report file-loss server lost the report-producing lookup.");
-      serve(TransportServiceOperation::resign_federation_execution,
-            "The process service-report file-loss server lost Resign.");
       service.detach(session);
       connection->close();
     } catch (...) {
@@ -2309,9 +2307,10 @@ TEST_CASE(
         RTIinternalError);
     REQUIRE(reportFiles().empty());
 
-    rti->resignFederationExecution(NO_ACTION);
+    // The server-side append failed before it could produce a success reply;
+    // stop issuing services and let local destruction close the failed session.
+    rti.reset();
     joined = false;
-    rti->disconnect();
   } catch (...) {
     clientError = std::current_exception();
     if (joined) {
@@ -2334,7 +2333,9 @@ TEST_CASE(
   if (clientError) {
     std::rethrow_exception(clientError);
   }
-  REQUIRE_FALSE(serverError);
+  if (serverError) {
+    std::rethrow_exception(serverError);
+  }
   REQUIRE_FALSE(joined);
   std::error_code ignored;
   std::filesystem::remove_all(reportDirectory, ignored);

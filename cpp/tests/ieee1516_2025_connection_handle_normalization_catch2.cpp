@@ -537,17 +537,17 @@ TEST_CASE(
       serveExpected(
           TransportServiceOperation::normalize_object_instance_handle,
           "The process handle-normalization server lost object-instance normalization.");
-      serveExpected(
-          TransportServiceOperation::normalize_federate_handle,
+      umbra::test::serveExpectedFailedInvocationReport(
+          serveExpected, TransportServiceOperation::normalize_federate_handle,
           "The process handle-normalization server lost invalid federate normalization.");
-      serveExpected(
-          TransportServiceOperation::normalize_object_class_handle,
+      umbra::test::serveExpectedFailedInvocationReport(
+          serveExpected, TransportServiceOperation::normalize_object_class_handle,
           "The process handle-normalization server lost invalid object-class normalization.");
-      serveExpected(
-          TransportServiceOperation::normalize_interaction_class_handle,
+      umbra::test::serveExpectedFailedInvocationReport(
+          serveExpected, TransportServiceOperation::normalize_interaction_class_handle,
           "The process handle-normalization server lost invalid interaction normalization.");
-      serveExpected(
-          TransportServiceOperation::normalize_object_instance_handle,
+      umbra::test::serveExpectedFailedInvocationReport(
+          serveExpected, TransportServiceOperation::normalize_object_instance_handle,
           "The process handle-normalization server lost invalid object-instance normalization.");
       serveExpected(
           TransportServiceOperation::resign_federation_execution,

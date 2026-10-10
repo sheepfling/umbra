@@ -543,9 +543,8 @@ TEST_CASE(
           firstHandler,
           TransportServiceOperation::get_federate_name,
           "The process federate-lookup server lost the retained Get Federate Name.");
-      serveExpected(
-          firstSession,
-          firstHandler,
+      umbra::test::serveExpectedFailedInvocationReport(
+          serveExpected, firstSession, firstHandler,
           TransportServiceOperation::get_federate_handle,
           "The process federate-lookup server lost the inactive Get Federate Handle.");
       serveExpected(

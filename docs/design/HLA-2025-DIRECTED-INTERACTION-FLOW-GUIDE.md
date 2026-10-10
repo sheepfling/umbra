@@ -9,7 +9,7 @@ more receiving federates. The target is not a recipient list.
 
 - **Edition:** IEEE 1516.1-2025 only. The 2010 API/runtime is a separate
   compatibility stream; this guide does not infer equivalence or parity.
-- **Umbra profiles surveyed:** embedded federation management and selected
+- **Implementation profiles surveyed:** embedded federation management and selected
   process-endpoint integration paths.
 - **Normative authority:** the [official IEEE 1516.1-2025 Federate Interface
   Specification](https://standards.ieee.org/ieee/1516.1/6688/). The vendored
@@ -82,12 +82,89 @@ interaction's parameters. The public API signatures are in the [2025 RTI
 ambassador header](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L495)
 for publication and [subscription](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L603).
 
+## Unpublishing removes a producer route and fences queued callbacks
+
+Unpublishing is a producer-side declaration change; it does not edit a
+receiver's subscription. In the embedded registry, a supplied non-empty set
+removes those object-class/interaction-class pairs, an explicitly supplied
+empty set removes none, and the whole-class overload removes every pair for
+that object class. Removing the final pair also removes the now-empty
+publisher declaration entry for that object class. The operation is idempotent
+when the requested pair is already absent.
+These are implementation observations, not a claim about every transport
+profile.
+
+```mermaid
+flowchart TD
+  Request[Unpublish object-class directed interactions]
+  Validate{Are supplied handles defined and each supplied pair directed for this object class?}
+  Reject[Report declaration failure; keep publication state]
+  SetForm{Was an interaction-class set supplied?}
+  Whole[Remove every directed pair for this object class]
+  Empty{Is the supplied set empty?}
+  NoPairs[Remove no pairs; publication state is unchanged]
+  Remove[Remove each listed pair; absent pairs are harmless]
+  Prune{Does the object class have any pairs left?}
+  Keep[Keep remaining pair declarations]
+  Erase[Remove the empty object-class entry]
+  Done[Unpublish accepted]
+  Request --> Validate
+  Validate -->|No| Reject
+  Validate -->|Yes| SetForm
+  SetForm -->|No: whole-class overload| Whole --> Done
+  SetForm -->|Yes: explicit set| Empty
+  Empty -->|Yes| NoPairs --> Done
+  Empty -->|No| Remove --> Prune
+  Prune -->|Yes| Keep --> Done
+  Prune -->|No| Erase --> Done
+```
+
+The overload distinction matters: `unpublishObjectClassDirectedInteractions(c)`
+means “remove this class's directed publications,” while
+`unpublishObjectClassDirectedInteractions(c, {})` supplies a set that happens
+to contain no pairs. The service-report test also preserves that distinction
+as `null` versus `[]`; its assertion is about reporting shape, while the
+registry source above establishes the declaration-state behavior.
+
+For receive-order work in the embedded path, a successful send can already
+have queued a callback before the producer withdraws its declaration. The
+callback path checks current declaration state again when the callback is
+evoked: the queued item is suppressed if its producer route has since been
+removed. Republishing permits a **new** send; it does not revive the stale
+queued callback.
+
+```mermaid
+sequenceDiagram
+  participant P as Producer
+  participant R as Embedded registry
+  participant Q as Receiver callback queue
+  P->>R: send directed interaction (published pair exists)
+  R-->>Q: accept and queue callback
+  P->>R: unpublish the object-class / interaction-class pair
+  R-->>P: declaration removed
+  P->>Q: receiver evokes callback
+  Q->>R: recheck sender publication and target route
+  R-->>Q: pair is no longer published
+  Note right of Q: Stale queued event is discarded. Receiver callback is not invoked.
+  P->>R: publish the pair again
+  P->>R: send a fresh directed interaction
+  R-->>Q: fresh work may be queued and delivered
+```
+
+The second diagram is specifically the embedded receive-order behavior
+exercised by the linked test; it does not specify timestamped delivery or
+process-endpoint callback revalidation.
+
 ## Receive-order send: validate, fan out, then dispatch
 
-The receive-order path has two important moments: the registry plans candidate
-recipients at send time, and Umbra rechecks an embedded candidate at callback
-dispatch. That second boundary is why an unsubscribe, target departure, or
-other intervening state change can make queued work stale.
+In the embedded receive-order path, the registry plans candidates at send time
+and rechecks each at callback dispatch. With Delay Subscription Evaluation
+enabled, a joined non-source receiver with a live route may be retained
+route-only when its current target or selector predicate fails. The callback
+recheck is why an unsubscribe, target departure, or other state change can
+make queued work stale.
+The chart shows that directed-specific branch; the [DSE guide](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md)
+explains the cross-service switch behavior.
 
 ```mermaid
 sequenceDiagram
@@ -95,7 +172,7 @@ sequenceDiagram
   actor Sender as Producing application
   participant SRTI as Sender RTI
   participant Registry as Federation registry
-  participant RRTI as Eligible receiver RTI
+  participant RRTI as Candidate receiver RTI
   actor Receiver as Receiver application
 
   Sender->>SRTI: sendDirectedInteraction(class, target, parameters, tag)
@@ -104,22 +181,24 @@ sequenceDiagram
   Registry->>Registry: Check target exists and directed class is valid for target class
   Registry->>Registry: Check producer's applicable object-class publication
   loop Each federation member other than sender
-    Registry->>Registry: Check receiver membership, known target, and callback route
-    Registry->>Registry: Resolve applicable subscription on target-class ancestry
-    alt Universal selector
-      Registry->>RRTI: Add receiver with projected parameters
-    else By-ownership selector and receiver owns any target attribute
-      Registry->>RRTI: Add receiver with projected parameters
-    else No applicable selector or no target ownership
-      Registry->>Registry: Do not add this receiver
+    Registry->>Registry: Check receiver membership and live callback route
+    Registry->>Registry: Evaluate target knowledge and applicable selector
+    alt Known target and universal selector
+      Registry->>RRTI: Retain candidate with current projection
+    else Known target, by-ownership selector, and target attribute ownership
+      Registry->>RRTI: Retain candidate with current projection
+    else DSE enabled
+      Registry->>RRTI: Retain route-only candidate with no projection
+    else No candidate retained for this receiver
+      Registry->>Registry: Omit receiver from this send
     end
   end
-  Note over Sender,Receiver: HLA_IMMEDIATE may call back inline; HLA_EVOKED waits for callback evocation
-  RRTI->>Registry: Recheck recipient and target at callback boundary
-  alt Candidate remains eligible
+  Note over Sender,Receiver: HLA_IMMEDIATE may call back inline, while HLA_EVOKED waits for callback evocation
+  RRTI->>Registry: Re-evaluate full directed-recipient predicate at callback boundary
+  alt Current recipient predicate passes
     Registry-->>RRTI: Current target/class/selector projection
     RRTI-->>Receiver: receiveDirectedInteraction(class, target, values, tag, transport, sender)
-  else Candidate became stale
+  else Still ineligible or candidate became stale
     Registry-->>RRTI: No current projection
     Note over RRTI,Receiver: Suppress stale callback
   end
@@ -179,7 +258,9 @@ rules and already have a separate guide.
 | Scenario | Evidence and bounded observation |
 | --- | --- |
 | Universal versus by-ownership selector | [Embedded selector-kind case](../../cpp/tests/directed_interaction_subscription_kind_catch2.cpp#L112): the target owner and universal subscriber receive; a known non-owner using the default selector does not. It also checks the empty-class-set selector behavior. |
-| Known target, sender excluded, declaration routing | [Embedded known-target case](../../cpp/tests/directed_interaction_known_target_catch2.cpp#L121): validates callback routing, target/payload context, and stale-work cases around declaration changes and target departure. |
+| Receive-order DSE route-only candidate | [Embedded development-profile case](../../cpp/tests/delay_subscription_evaluation_directed_interaction_catch2.cpp#L95): a selector added after send admits a retained route-only candidate only when DSE is enabled; unsubscribe before the next callback suppresses it. Both `HLA_IMMEDIATE` and `HLA_EVOKED` are exercised. |
+| Known target, sender excluded, declaration routing | [Embedded known-target case](../../cpp/tests/directed_interaction_known_target_catch2.cpp#L121): validates callback routing, target/payload context, subscription and publication withdrawal fencing, republish for fresh work, and stale work after target departure. |
+| Unpublish overload shape and service reporting | [Embedded service-report case](../../cpp/tests/ieee1516_2025_unpublish_object_class_directed_interactions_service_report_file_catch2.cpp#L68): distinguishes a supplied set, an explicit empty set, and the whole-class overload in the service-report arguments; the registry's mutation semantics are source-observed above. |
 | Parameter set is checked | [Directed parameter contract case](../../cpp/tests/directed_interaction_known_target_catch2.cpp#L318): rejects unavailable parameters and forwards exactly the supplied values. |
 | Timestamped eligibility can be deferred | [Timestamped Delay Subscription Evaluation case](../../cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp#L129): covers delayed selector evaluation for a TSO directed send. |
 | TSO queue and retraction | [Timestamped directed-interaction retraction case](../../cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp#L150): covers queue-before-grant behavior and retraction in the embedded profile. |
@@ -195,10 +276,13 @@ checking that path's own revalidation code.
 
 - [2025 public directed service declarations](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L495)
 - [Embedded directed declaration and selector rules](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L14)
+- [Embedded directed unpublish state transition](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L333)
 - [Embedded receive-order recipient predicate](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L139)
 - [Embedded receive-order send planning](../../cpp/src/internal/federation/federation_registry.cpp#L1769)
+- [Embedded DSE route-only candidate retention](../../cpp/src/internal/federation/federation_registry.cpp#L1864)
 - [Embedded send service paths](../../cpp/src/internal/runtime/umbra_rti_ambassador_directed_interaction_services.cpp#L44)
-- [Embedded callback-time recipient recheck](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp#L140)
+- [Embedded callback-time recipient recheck](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp#L122)
+- [Embedded unpublish service overloads](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_declaration_services.cpp#L455)
 - [Process directed-send service routing](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L657)
 
 This survey is intentionally bounded to the send/declaration/receiver flow.

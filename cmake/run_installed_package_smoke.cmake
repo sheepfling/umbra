@@ -49,8 +49,12 @@ if(DEFINED UMBRA_EXPECT_PROCESS_PROFILE AND
     )
   endif()
   if(NOT EXISTS "${process_probe_path}")
-    # Single-config generators and non-Windows builds do not place the
-    # executable under a configuration directory or use an .exe suffix.
+    set(process_probe_path
+      "${UMBRA_BINARY_DIRECTORY}/umbra_process_federation_service_probe.exe"
+    )
+  endif()
+  if(NOT EXISTS "${process_probe_path}")
+    # Non-Windows generators do not add the executable suffix.
     set(process_probe_path
       "${UMBRA_BINARY_DIRECTORY}/umbra_process_federation_service_probe"
     )

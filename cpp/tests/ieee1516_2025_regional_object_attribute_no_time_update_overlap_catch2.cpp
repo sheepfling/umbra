@@ -106,6 +106,14 @@ TEST_CASE(
   REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(subscriberReports.objectDiscoveryReports.size() == 1);
   REQUIRE(subscriber->getKnownObjectClassHandle(objectInstance) == soda);
+  // Discovery delivers the most recently accepted value for the newly
+  // relevant attribute before subsequent updates are reflected.
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 1);
+  REQUIRE_FALSE(subscriberReports.attributeReflectionReports.front().sentRegionsSupplied);
+  REQUIRE(
+      variableLengthDataBytes(
+          subscriberReports.attributeReflectionReports.front().attributeValues.at(flavor)) ==
+      std::vector<unsigned char>({0x10, 0x25}));
 
   unsigned char const secondValueBytes[] = {0x20, 0x25};
   AttributeHandleValueMap secondValue;
@@ -117,10 +125,12 @@ TEST_CASE(
       secondValue,
       VariableLengthData()));
   REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE(subscriberReports.attributeReflectionReports.size() == 1);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 2);
   REQUIRE_FALSE(subscriberReports.attributeReflectionReports.front().sentRegionsSupplied);
   REQUIRE(
-      subscriberReports.attributeReflectionReports.front().attributeValues.contains(flavor));
+      variableLengthDataBytes(
+          subscriberReports.attributeReflectionReports.back().attributeValues.at(flavor)) ==
+      std::vector<unsigned char>({0x20, 0x25}));
 
   // The switch is recipient-local and may be changed after a federation has
   // joined.  Enabling it exposes the same update-region realization on the
@@ -136,7 +146,7 @@ TEST_CASE(
       conveyedValue,
       VariableLengthData()));
   REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE(subscriberReports.attributeReflectionReports.size() == 2);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 3);
   REQUIRE(subscriberReports.attributeReflectionReports.back().sentRegionsSupplied);
   REQUIRE(subscriberReports.attributeReflectionReports.back().sentRegions.contains(publisherRegion));
 
@@ -157,7 +167,7 @@ TEST_CASE(
       disjointValue,
       VariableLengthData()));
   REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE(subscriberReports.attributeReflectionReports.size() == 2);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 3);
 
   REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(objectInstance, regionalPair));
   REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(objectInstance, emptyRegionPair));

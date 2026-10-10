@@ -155,12 +155,12 @@ sequenceDiagram
 
   App->>API: Request advance with caller boundary R
   API->>State: Validate and retain R, effective target E, and mode
-  State-->>API: Accepted; request is now pending
+  State-->>API: Accepted, request is now pending
   API->>Coord: Request grant evaluation
   Coord->>Policy: Evaluate one federation snapshot
   alt Not yet safe
     Policy-->>Coord: Wait
-    Note over State,Coord: Keep request pending; re-evaluate after a relevant temporal change
+    Note over State,Coord: Keep request pending and re-evaluate after a relevant temporal change
   else Grant can be dispatched
     Policy-->>Coord: Eligible
     Coord->>Queue: Select recipient messages through the mode's delivery boundary
@@ -231,27 +231,26 @@ and the queue/coordinator tests are in
 
 The effective target E is used below. For NMR/NMRA, remember that E may
 be earlier than the caller boundary R.
+Use this as a high-level gating map; the adjacent matrix defines the exact
+mode-specific strict, inclusive, and queue-bound comparisons.
 
 ```mermaid
 flowchart TD
   A["Accepted pending advance"] --> B{"Is this Flush Queue Request?"}
-  B -- "Yes" --> F["Use FQR actual-grant calculation"]
+  B -- "Yes" --> F["Calculate FQR actual grant"]
+  F --> F1["Flush eligible TSO work"]
+  F1 --> F2["Dispatch Flush Queue Grant"]
   B -- "No" --> C{"Is requester time constrained?"}
-  C -- "No" --> G["Not GALT-bounded by this policy"]
+  C -- "No" --> G["Continue without the GALT constraint"]
   C -- "Yes" --> D{"Is GALT available?"}
-  D -- "Yes" --> E{"Compare E with GALT"}
-  E -- "E < GALT" --> G
-  E -- "E = GALT; TARA or NMRA" --> G
-  E -- "E = queue-derived TSO GALT" --> G
-  E -- "Otherwise E >= GALT" --> W["Keep pending; wait for a safe boundary"]
-  D -- "No; GALT undefined" --> H{"Is NRG enabled?"}
+  D -- "Yes" --> E{"Does the mode-specific boundary rule permit E?"}
+  E -- "Yes" --> G
+  E -- "No" --> W["Keep request pending"]
+  D -- "No" --> H{"Is NRG enabled or is E <= current time?"}
   H -- "Yes" --> G
-  H -- "No" --> I{"Does E make forward progress?"}
-  I -- "No; E <= current time" --> G
-  I -- "Yes" --> W
-  F --> J["Deliver according to FQR behavior; dispatch Flush Queue Grant"]
+  H -- "No" --> W
   G --> K["Dispatch eligible TSO callbacks, then matching grant callback"]
-  W --> L["Re-evaluate after a relevant temporal change"]
+  W --> L["Wait for a relevant temporal change"]
   L --> A
 ```
 
@@ -272,7 +271,7 @@ interpretation.
 | TARA | Caller boundary R | Equality at an available GALT is permitted by the current Available-mode policy. | Uses the currently queued message set; eligible TSO callbacks precede Time Advance Grant. |
 | NMR | Earliest currently queued recipient timestamp at or before R, otherwise R | Same strict ordinary GALT rule as TAR. | The selected timestamp cohort is delivered before Time Advance Grant. Future transport arrivals are not part of target selection. |
 | NMRA | Earliest currently queued recipient timestamp at or before R, otherwise R | Equality at an available GALT is permitted by the current Available-mode policy. | The selected timestamp cohort is delivered before Time Advance Grant. Future transport arrivals are not part of target selection. |
-| FQR | Caller boundary R; actual grant is calculated separately | The policy does not wait for GALT; GALT can still cap the actual grant when defined. | Flushes the currently available recipient TSO work through the flush boundary, then reports Flush Queue Grant with actual and optimistic times. |
+| FQR | Caller boundary R; actual grant is calculated separately | The policy does not wait for GALT; GALT can still cap the actual grant when defined. | In the embedded EVOKED path, extraction starts inside the grant callback and uses the current in-process delivery set through final time; arrivals before evoke can precede FQG even when later than R. The callback reports separate actual and optimistic times. |
 
 The current policy also grants equality for any non-FQR advance mode when the
 selected GALT is itself a known TSO boundary at the effective target. That is
@@ -300,6 +299,52 @@ the callback reports the separately calculated actual grant G and retains O
 for later progress. Do not collapse the delivery frontier, actual grant, and
 optimistic floor into one time value. This bounded path does not wait for
 future transport arrivals.
+
+#### FQR with HLA_EVOKED: request acceptance is not the delivery snapshot
+
+The following is a selected 2025 embedded test path. With the receiver using
+`HLA_EVOKED`, accepting `flushQueueRequest(10)` does not invoke the queued grant
+callback immediately. The publisher can enqueue timestamped interactions
+before the receiver next calls `evokeCallback`; in this path, the dispatcher
+starts the TSO extraction from inside that evoked callback. The tested sends
+arrive at timestamps 9 and 12, and both callbacks precede one Flush Queue
+Grant. The grant reports actual time 5 and optimistic time 9. Since timestamp
+12 is later than the FQR argument 10, do not interpret that argument as a
+snapshot-time queue cutoff for this tested dispatch path. The three values
+remain distinct: request argument 10, delivered message timestamp 12, and
+reported actual/optimistic times 5/9.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Receiver as Evoked receiver application
+  participant RRTI as Receiver RTI
+  participant Dispatcher as Embedded grant dispatcher
+  participant Queue as Federation TSO queue
+  actor Publisher as Publisher application
+  participant PRTI as Publisher RTI
+
+  Receiver->>RRTI: flushQueueRequest(10)
+  RRTI->>Dispatcher: Accept FQR and queue its grant callback
+  Note over Receiver,Queue: No timestamped callback or FQG has run yet
+  Publisher->>PRTI: sendInteraction(timestamp=9)
+  PRTI->>Queue: Enqueue recipient TSO payload at 9
+  Publisher->>PRTI: sendInteraction(timestamp=12)
+  PRTI->>Queue: Enqueue recipient TSO payload at 12
+  Receiver->>RRTI: evokeCallback()
+  RRTI->>Dispatcher: Start the pending FQR grant callback
+  Dispatcher->>Queue: Extract current recipient payloads through final time
+  Queue-->>Dispatcher: TSO payloads at 9 and 12
+  Dispatcher-->>Receiver: receiveInteraction(timestamp=9)
+  Dispatcher-->>Receiver: receiveInteraction(timestamp=12)
+  Dispatcher-->>Receiver: flushQueueGrant(actual=5, optimistic=9)
+```
+
+This establishes the callback-time frontier for the cited embedded EVOKED
+scenario only. It does not establish process-endpoint parity, inclusion of
+messages that arrive after extraction begins, or a general normative rule
+about the FQR argument; use IEEE 1516.1-2025 clause 8.12 as the authority for
+normative interpretation.
 
 ## Worked examples
 
@@ -433,16 +478,157 @@ Do not draw asynchronous delivery as “time regulation off,” “unconstrained
 or “skip GALT.” It changes a receive-order callback gate, not the time roles or
 the TSO grant policy.
 
+The embedded 2025 receive-order gate can be read as a small decision rule:
+deliver when the recipient is unconstrained, has asynchronous delivery enabled,
+or has a pending time advance. Otherwise, retain the callback and try again
+when one of those temporal gates opens. Enabling asynchronous delivery changes
+the switch and flushes already-deferred receive-order work; a later advance
+request can also make deferred receive-order work eligible while the switch
+remains off. The callback dispatcher still applies the selected callback
+model after the temporal gate admits the work.
+
+```mermaid
+flowchart TD
+  A[Receive-order callback reaches the recipient route] --> B{Recipient time-constrained?}
+  B -->|No| G[Submit through the callback dispatcher]
+  B -->|Yes| C{Asynchronous delivery enabled?}
+  C -->|Yes| G
+  C -->|No| D{Time advance pending?}
+  D -->|Yes| G
+  D -->|No| E[Retain in deferred receive-order queue]
+  E --> F{Which temporal gate opens?}
+  F -->|Enable Asynchronous Delivery| H[Enable switch and extract eligible deferred callbacks]
+  F -->|Advance service becomes pending| I[Pending time opens receive-order gate]
+  H --> J[Resubmit saved callback routes]
+  I --> J
+  J --> G
+  G --> K{Callback model}
+  K -->|HLA_IMMEDIATE| L[Callback may run synchronously]
+  K -->|HLA_EVOKED| M[Callback waits for an evoke service]
+```
+
+This is an implementation gate, not a complete normative timing state machine.
+The predicate comes from the 2025 `FederateTimeState`; the adapter flushes
+eligible receive-order closures after opening the asynchronous-delivery gate
+and at supported advance-service boundaries. Receive-order admission does not
+release a timestamped message; TSO work remains governed by its independent
+logical-time policy and grant dispatch.
+
+The focused public test makes the two opening edges concrete:
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Pub as Publisher
+  actor App as Receiver application
+  participant RTI as Receiver RTI
+  participant FA as FederateAmbassador
+
+  Note over App,RTI: Constrained, Time Granted, asynchronous delivery off
+  Pub->>RTI: Send receive-order interaction
+  Note over RTI: Retain callback while the RO gate is closed
+  App->>RTI: enableAsynchronousDelivery
+  Note over RTI: Open gate and extract deferred callback
+  alt HLA_IMMEDIATE
+    RTI->>FA: Invoke interaction callback before enable service returns
+    FA-->>RTI: Callback returns
+    RTI-->>App: Enable service returns
+  else HLA_EVOKED
+    RTI-->>App: Enable service returns with callback pending
+    App->>RTI: evokeCallback
+    RTI->>FA: Invoke interaction callback
+    FA-->>RTI: Callback returns
+    RTI-->>App: Evoke returns
+  end
+  App->>RTI: disableAsynchronousDelivery
+  Pub->>RTI: Send another receive-order interaction
+  Note over RTI: Retain callback until another gate opens
+  App->>RTI: timeAdvanceRequest(1)
+  Note over RTI: Pending advance opens the receive-order gate
+  alt HLA_IMMEDIATE
+    RTI->>FA: Invoke deferred interaction callback in the service path
+  else HLA_EVOKED
+    RTI-->>App: Advance service returns with callback pending
+    App->>RTI: evokeCallback
+    RTI->>FA: Invoke deferred interaction callback
+    FA-->>RTI: Callback returns
+    RTI-->>App: Evoke returns
+  end
+  Note over App,FA: This isolated test observes no Time Advance Grant
+```
+
+The [focused temporal-state test](../../cpp/tests/ieee1516_2025_asynchronous_delivery_temporal_state_catch2.cpp#L5)
+executes this receive-order interaction scenario under both callback models,
+verifies the default-off state, `NotConnected` and
+`FederateNotExecutionMember` preconditions, repeated enable/disable exceptions,
+and the deferred callback after enabling or entering a pending advance. Its
+single-receiver case is not evidence for general cross-federate grant
+eligibility. A separate [regional-interaction test](../../cpp/tests/ieee1516_2025_ddm_regional_async_delivery_catch2.cpp#L4)
+shows that opening this temporal gate preserves the already-selected regional
+interaction's producer, region designator, and user tag; it does not collapse
+DDM relevance into the timing predicate.
+
 ## Lookahead changes and pending operations
 
 Modify Lookahead has a transition of its own:
 
-- A nonnegative increase takes effect immediately in the current implementation.
-- A decrease is retained and applied at the next logical-time advance.
-- Query Lookahead reports the active value; a pending decrease does not replace
-  it until that advance boundary.
-- A pending decrease is part of the temporal state that a grant scheduler and
-  selected restore paths must preserve.
+- An equal or larger request immediately replaces the active value and clears
+  any deferred decrease. Query Lookahead then reports the new active value.
+- A strictly smaller request becomes a pending target. Query Lookahead
+  continues to report the active value, not that target.
+- A Modify Lookahead call made while an advance is already pending is rejected;
+  a lower target is therefore recorded before the subsequent advance request.
+- At a grant boundary, the current implementation measures elapsed logical
+  time and compares it with the remaining reduction from the active value to
+  the pending target. If the elapsed interval is smaller, it reduces the active
+  lookahead by that elapsed amount and retains the target for a later grant. If
+  the elapsed interval reaches or exceeds the remaining reduction, it adopts
+  the target and clears it.
+- Grant preflight failure leaves the advance and deferred target available for
+  retry without partially committing the current time or active lookahead.
+
+This is an Umbra 2025 implementation flow, not a claim about the normative
+meaning of Modify Lookahead. For example, with active lookahead 5 and pending
+target 1, a grant from logical time 0 to 3 leaves active lookahead 2 and target
+1 pending; a later grant consumes the remaining difference. An immediate
+positive change also clears the implementation's exclusive zero-lookahead
+minimum-timestamp marker, while a zero request does not.
+
+The [focused state test](../../cpp/tests/federate_time_state_catch2.cpp#L369)
+forces the first grant attempt to fail while preparing the deferred interval,
+then retries the same advance and verifies current time 3 with active lookahead
+2. It passed locally (18 assertions). A separate [process public-API test](../../cpp/tests/ieee1516_2025_connection_modify_lookahead_grant_catch2.cpp#L458)
+encodes a before-grant query of 5 and after-grant query of 1, but the local run
+failed at the initial client connection with `Unknown exception`, before those
+lookahead assertions; it is not counted here as a passing runtime observation.
+
+```mermaid
+flowchart TD
+  Modify["Modify Lookahead(requested)"] --> Ready{"Active, regulating, and no advance pending?"}
+  Ready -->|No| Reject["Return service error; keep current state"]
+  Ready -->|Yes| Direction{"requested >= active value?"}
+  Direction -->|Yes| Immediate["Set active value; clear deferred target"]
+  Immediate --> Positive{"Requested value is positive?"}
+  Positive -->|Yes| ClearZero["Clear exclusive zero-lookahead marker"]
+  Positive -->|No| KeepZero["Preserve zero-lookahead marker"]
+  ClearZero --> QueryNew["Query reports new active value"]
+  KeepZero --> QueryNew
+  Direction -->|No| Defer["Store lower target; leave active value unchanged"]
+  Defer --> QueryOld["Query still reports active value"]
+  QueryOld --> Grant["A later logical-time grant is attempted"]
+  Grant --> Prepared{"Grant preflight succeeds?"}
+  Prepared -->|No| Retry["Do not commit time or lookahead; retain pending work"]
+  Retry --> Grant
+  Prepared -->|Yes| Elapsed["Compute elapsed time and remaining reduction"]
+  Elapsed --> Reached{"Elapsed >= remaining reduction?"}
+  Reached -->|Yes| ApplyTarget["Set active to target; clear deferred target"]
+  Reached -->|No| ApplyPartial["Reduce active by elapsed; retain target"]
+  ApplyTarget --> Commit["Commit grant time"]
+  ApplyPartial --> Commit
+  Commit --> Pending{"Deferred target remains?"}
+  Pending -->|Yes| Later["Another advance and grant are needed"] --> Grant
+  Pending -->|No| Done["Deferred decrease complete"]
+```
 
 Only describe a lookahead change as effective after checking whether it is
 active or deferred. Recomputing another regulator's bound with the wrong
@@ -488,6 +674,10 @@ The current opt-in development slice has explicit limits:
   bounded public slice. Other time-stamped service families are not implied.
 - The asynchronous-delivery implementation covers bounded receive-order
   callback routes; it does not make TSO delivery asynchronous.
+- The exact normative relationship between FQR's request argument and TSO
+  inputs arriving before an HLA_EVOKED grant callback begins has not been
+  checked against the licensed clause text. The timestamp-12-for-request-10
+  case is implementation/test evidence only.
 - Save/restore cases cover selected temporal snapshots and pending operations;
   they do not establish general time-management persistence or complete
   callback restoration.
@@ -517,9 +707,9 @@ does not assert full coverage of that clause.
 | TARA | 8.9 | [TARA contract](../../compliance/requirements-lab/time-advance-request-available-requirements-contract.json) | [TARA tests](../../cpp/tests/available_time_advance_inclusive_galt_catch2.cpp) |
 | NMR | 8.10.2 | [NMR contract](../../compliance/requirements-lab/next-message-request-requirements-contract.json) | [NMR service](../../cpp/src/internal/runtime/umbra_rti_ambassador_next_message_request.cpp); [NMR tests](../../cpp/tests/ieee1516_2025_connection_time_advance_next_message_queued_tso_catch2.cpp) |
 | NMRA | 8.11, 8.11.3 | [NMRA contract](../../compliance/requirements-lab/next-message-request-available-requirements-contract.json) | [advance service tests](../../cpp/tests/ieee1516_2025_connection_time_advance_available_catch2.cpp) |
-| FQR and FQG | 8.12, 8.12.3 | [FQR contract](../../compliance/requirements-lab/flush-queue-request-requirements-contract.json) | [grant policy/calculator](../../cpp/src/internal/time/federation_time_grant_policy.cpp); [FQR tests](../../cpp/tests/flush_queue_request_optimistic_time_catch2.cpp) |
-| Modify Lookahead | 8.20.4 | [Modify Lookahead contract](../../compliance/requirements-lab/modify-lookahead-requirements-contract.json) | [lookahead tests](../../cpp/tests/ieee1516_2025_connection_modify_lookahead_catch2.cpp) |
-| Asynchronous delivery | 8.15.3, 8.16.5 | [asynchronous-delivery contract](../../compliance/requirements-lab/asynchronous-delivery-requirements-contract.json) | [adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_asynchronous_delivery.cpp); [temporal-state tests](../../cpp/tests/ieee1516_2025_asynchronous_delivery_temporal_state_catch2.cpp) |
+| FQR and FQG | 8.12, 8.12.3 | [FQR contract](../../compliance/requirements-lab/flush-queue-request-requirements-contract.json) | [public API declaration](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1290), [service adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp#L663), [grant dispatcher and final-time extraction](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L224), [grant policy/calculator](../../cpp/src/internal/time/federation_time_grant_policy.cpp), [optimistic-time test](../../cpp/tests/flush_queue_request_optimistic_time_catch2.cpp#L140), [future-input test](../../cpp/tests/flush_queue_future_input_catch2.cpp#L142) |
+| Modify Lookahead | 8.20.4 | [Modify Lookahead contract](../../compliance/requirements-lab/modify-lookahead-requirements-contract.json) | [state transition](../../cpp/src/internal/time/federate_time_state.cpp#L578), [grant-boundary commit](../../cpp/src/internal/time/federate_time_state.cpp#L367), [partial reduction and retry test](../../cpp/tests/federate_time_state_catch2.cpp#L369), [process grant integration](../../cpp/tests/ieee1516_2025_connection_modify_lookahead_grant_catch2.cpp#L458) |
+| Asynchronous delivery | 8.15.3, 8.16.5 | [asynchronous-delivery contract](../../compliance/requirements-lab/asynchronous-delivery-requirements-contract.json) | [pinned API declaration](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1302), [temporal gate](../../cpp/src/internal/time/federate_time_state.cpp#L671), [receive-order callback route](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1062), [enable/disable adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_asynchronous_delivery.cpp#L39), [ordinary-interaction test](../../cpp/tests/ieee1516_2025_asynchronous_delivery_temporal_state_catch2.cpp#L5), and [regional-interaction test](../../cpp/tests/ieee1516_2025_ddm_regional_async_delivery_catch2.cpp#L4) |
 | TSO queue phases and order | Service-specific clauses; see each send/retraction contract | [queue contract](../../compliance/requirements-lab/tso-message-queue-requirements-contract.json) | [queue](../../cpp/src/internal/time/tso_message_queue.cpp); [coordinator](../../cpp/src/internal/time/federation_time_coordinator.cpp); grant dispatcher in umbra_rti_ambassador_time_advance_dispatch.cpp |
 
 ## How to extend or correct this guide

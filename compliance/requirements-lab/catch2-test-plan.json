@@ -1060,7 +1060,7 @@
       "test_case": "Embedded Delay Subscription Evaluation defers timestamped directed interaction eligibility",
       "source_location": "cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp:129",
       "standard_sections": [
-        "hla-1516.1-2025:clause-8.1.10"
+        "hla-1516.1-2025:clause-8.1.8"
       ],
       "tags": [
         "integration",
@@ -9113,52 +9113,6 @@
         "hla-1516.1-2025:clause-11.5.2"
       ],
       "next_action": "This focused embedded public C++ case proves eager filesystem allocation at successful Join, the initial connection/federation/federate record, stable file identity across disable/re-enable cycles for both reporting switches, and a fresh file for a later joined-federate lifetime. The paired joined-federate MOM projection case covers HLAreportServiceFile publication separately. This row remains implementation evidence only; interaction-selected routing, generic return/failure forms, package/JUnit/protected-review evidence, Requirements Lab validation, interoperability, and conformance remain open."
-    },
-    {
-      "id": "umbra-cpp-federation-mom-content-reports-integration",
-      "selected_cpp_api_surface_ids": [
-        "api.2025.cpp.rtiambassador.getinteractionclasshandle.99bb9271fea0",
-        "api.2025.cpp.rtiambassador.getparameterhandle.396bff598c35",
-        "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
-        "api.2025.cpp.rtiambassador.unsubscribeinteractionclass.4d5941b5cddf",
-        "api.2025.cpp.rtiambassador.sendinteraction.18921ac41e4f",
-        "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891",
-        "api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1"
-      ],
-      "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-04-federation-management-page-049-l19-4"
-      ],
-      "test_case": "Embedded federation MOM content reports FOM module and MIM data through a focused lane",
-      "tags": [
-        "integration",
-        "development-profile",
-        "federation-management",
-        "fom",
-        "fom-module-management",
-        "mom",
-        "mom-request-report",
-        "interaction-management",
-        "federation-mom-content-reports",
-        "2025",
-        "rti.service.get-interaction-class-handle",
-        "rti.service.get-parameter-handle",
-        "rti.service.subscribe-interaction-class",
-        "rti.service.unsubscribe-interaction-class",
-        "rti.service.send-interaction",
-        "rti.service.evoke-callback",
-        "federate.callback.receive-interaction"
-      ],
-      "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/federation_mom_current_fdd_catch2.cpp:324",
-      "assertions": 53,
-      "callback_models": [
-        "HLA_EVOKED"
-      ],
-      "standard_sections": [
-        "hla-1516.1-2025:clause-4"
-      ],
-      "requirements_lab_api_surface_status": "The active focused C++ case exercises federation-scoped HLArequestFOMmoduleData and HLArequestMIMdata and observes HLAreportFOMmoduleData and HLAreportMIMdata through the official API. The existing clause-4 requirement and seven API-surface mappings are preserved. This is implementation evidence only; current-FDD reporting beyond this case, remote transport, package/JUnit/protected-review evidence, Requirements Lab validation, interoperability, and conformance remain open.",
-      "next_action": "Keep this evidence scoped to the active development-profile case and its federation-scoped FOM/MIM request/report behavior. Add separate coverage before broadening claims; do not promote this case to Lab-validated, package, interoperability, or conformance evidence."
     },
     {
       "id": "umbra-cpp-restore-terminal-tso-attribute-update-integration",
@@ -24278,6 +24232,61 @@
       "next_action": "This 41-assertion HLA_EVOKED slice is now independently source-located and queryable as m90. It validates the federation-wide HLAsetSwitches Auto Provide parameter, strict HLAswitch decoding, dynamic getter visibility for every member, and future discovery behavior through the standalone C++ target umbra_auto_provide_mom_catch2. The Requirements Lab has no standalone row-level candidate for this federation-wide parameter (RL-032), so the case remains an explicit development-profile disposition with canonical clauses 4, 6.1.10, and 11.4.1 rather than an invented Lab requirement. The separate joined-federate HLAsetSwitches slice covers its own per-member switch values; remaining MOM control/reporting families, package/JUnit/protected-review evidence, and conformance remain open."
     },
     {
+      "id": "umbra-cpp-mom-service-reporting-interlock-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.getservicereportingswitch.36b611e2c94f",
+        "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
+        "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
+        "api.2025.cpp.rtiambassador.unsubscribeinteractionclass.4d5941b5cddf",
+        "api.2025.cpp.rtiambassador.subscribeinteractionclasswithregions.452be558d57a",
+        "api.2025.cpp.rtiambassador.unsubscribeinteractionclasswithregions.3754796e79b3",
+        "api.2025.cpp.rtiambassador.getdimensionhandle.7a343b0ace0a",
+        "api.2025.cpp.rtiambassador.createregion.db9bf691b557",
+        "api.2025.cpp.rtiambassador.setrangebounds.7bcbe0e55f0b",
+        "api.2025.cpp.rtiambassador.commitregionmodifications.e066e7b1c53d"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-099-l132-39",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l103-33",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l60-19"
+      ],
+      "test_case": "Embedded MOM service-reporting state excludes report-service subscriptions",
+      "primary_lane": "service-reporting-interlock",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-reporting",
+        "service-reporting-interlock",
+        "ddm",
+        "support-switches",
+        "rti.service.get-service-reporting-switch",
+        "rti.service.set-service-reporting-switch",
+        "rti.service.subscribe-interaction-class",
+        "rti.service.unsubscribe-interaction-class",
+        "rti.service.subscribe-interaction-class-with-regions",
+        "rti.service.unsubscribe-interaction-class-with-regions",
+        "rti.service.get-dimension-handle",
+        "rti.service.create-region",
+        "rti.service.set-range-bounds",
+        "rti.service.commit-region-modifications"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/mom_service_reporting_interlock_catch2.cpp:50",
+      "assertions": 41,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.10.2",
+        "hla-1516.1-2025:clause-9.10.3",
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "requirements_lab_api_surface_status": "This HLA_EVOKED case verifies that enabling the Service Reporting Switch rejects active and passive ordinary and regional subscriptions to HLAreportServiceInvocation; it also verifies that existing ordinary or regional subscriptions block re-enabling until removed. The three selected 2025 anchors directly cover this bounded service-reporting subscription interlock. This is embedded-profile evidence, not MOM interaction delivery or conformance evidence.",
+      "next_action": "Keep the Service Reporting/Subscription interlock as a separate focused 2025 test. Do not infer service-report interaction delivery or report-file behavior from this case."
+    },
+    {
       "id": "umbra-cpp-mom-federate-set-switches-integration",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.sendinteraction.18921ac41e4f",
@@ -26929,6 +26938,53 @@
       "next_action": "The implementation covers only the non-timestamped, non-region Update Attribute Values overload and no-region Reflect Attribute Values callback, with FOM transport passels limited to HLAreliable and HLAbestEffort. A private wall-clock UpdateRateGate now applies the retained FDD maximum per projected attribute to both bounded receive-order and timestamped attribute callback paths, closes suppressed TSO retraction state, and bypasses reliable transport; focused unit, timestamped, and adjacent integration tests are green. Separate regional attribute and class-level request-response entries cover committed update-region association, recipient-gated sent-region metadata, and one explicit no-time provider response; composed-FDD transportation cases cover ordinary/timestamped regional custom attribute delivery. Remaining default-region forms, cross-cutting producer/subscriber relation evidence, additional regional request edges, ownership transfer, FOM sharing-policy enforcement, save/restore, remote transport, package support, and Lab mapping resolution remain open before any validation claim."
     },
     {
+      "id": "umbra-cpp-receive-order-interaction-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.sendinteraction.18921ac41e4f",
+        "api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l176-57",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l32-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l56-18",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l65-21",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l17-4",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l41-12",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l47-14",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l53-16",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l127-38",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l136-41",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l88-25"
+      ],
+      "test_case": "Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
+      "tags": [
+        "integration",
+        "development-profile",
+        "interaction-management",
+        "interaction-sent-class-preservation",
+        "rti.service.subscribe-interaction-class",
+        "rti.service.send-interaction",
+        "federate.callback.receive-interaction",
+        "callback-evoked",
+        "2025"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/receive_order_interaction_catch2.cpp:98",
+      "assertions": 87,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.3",
+        "hla-1516.1-2025:clause-5.1.4",
+        "hla-1516.1-2025:clause-6.12.4",
+        "hla-1516.1-2025:clause-6.13"
+      ],
+      "requirements_lab_api_surface_status": "The implementation covers only the non-timestamped, non-region Send Interaction overload and no-region Receive Interaction callback. Its selected Requirements Lab rows map declaration/send/receive behavior to clauses 5.1.3, 5.1.4, 6.12.4, and 6.13; this remains source/test traceability only. Add timestamped/retraction behavior, DDM region routing, FOM sharing-policy enforcement, ordering, save/restore, remote transport, package support, and protected/JUnit evidence before making any validation claim.",
+      "next_action": "Keep this as bounded receive-order Send Interaction/Receive Interaction evidence. Add timestamped/retraction behavior, DDM region routing, FOM sharing-policy enforcement, ordering, save/restore, remote transport, package support, and protected/JUnit evidence as separate mapped cases before making any validation or conformance claim."
+    },
+    {
       "id": "umbra-cpp-local-delete-object-instance-integration",
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-06-object-management-page-132-l140-38",
@@ -29296,7 +29352,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-7.8",
         "hla-1516.1-2025:clause-7.15",
-        "hla-1516.1-2025:clause-7.15.1"
+        "hla-1516.1-2025:clause-7.16"
       ],
       "tags": [
         "integration",
@@ -32463,7 +32519,7 @@
         "rti.service.get-transportation-type-name"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "assertions": 26,
+      "assertions": 21,
       "source_location": "cpp/tests/custom_transportation_handle_stability_catch2.cpp:44",
       "callback_models": [
         "HLA_EVOKED"
@@ -38363,6 +38419,33 @@
       "next_action": "This 10-assertion native C++ HLA_EVOKED case is source-located and green. It proves deterministic writer-creation failure surfaces RTIinternalError without a memory fallback and rolls back the attempted membership before a peer reuses the same federate name. Keep production permission/full-disk, cross-process, abrupt-failure, package/JUnit/protected-review, Requirements-Lab validation, interoperability, and conformance evidence separate."
     },
     {
+      "id": "umbra-private-service-report-append-failure-test-seam",
+      "selected_cpp_api_surface_ids": [],
+      "selected_requirements_lab_requirement_ids": [],
+      "test_case": "Service-report append failure surfaces an RTI error without an in-memory fallback",
+      "primary_lane": "service-report-writer-failure",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-report-writer-failure",
+        "service-report-store",
+        "service-reporting",
+        "failure-handling",
+        "rti.service.set-exception-reporting-switch"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence",
+      "source_location": "cpp/tests/service_report_writer_failure_catch2.cpp:132",
+      "assertions": 17,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [],
+      "requirements_lab_api_surface_status": "Internal failure-injection regression through UmbraRtiAmbassador::ServiceReportStoreTestSeam. It proves append exceptions surface as RTIinternalError without replacing the failed writer or falling back to memory storage. IEEE 1516.1-2025 does not specify this injected storage-failure behavior; this case has no standalone normative requirement, standard clause, or conformance claim.",
+      "next_action": "Keep this test as private implementation-quality evidence. Do not assign a normative mapping unless the 2025 standard directly specifies filesystem append-failure behavior."
+    },
+    {
       "id": "umbra-cpp-delay-subscription-evaluation-receive-order-interaction-integration",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.connect.027cac2b3705",
@@ -39582,6 +39665,72 @@
       "next_action": "This bounded default-source/default-region object-update case sends one timestamped passel to three regional subscribers and drives FQR, TARA, and NMRA independently. Each reflection precedes its own grant; FQR reports actual and optimistic time 7, the producer completes TAR at 2, and every callback carries the supplied-empty RegionHandleSet because the ordinary registration has no public source RegionHandle. It does not claim explicit-source replacement while queued, retraction, passive declarations, alternate re-enable, relaxed DDM, ownership/resignation, remote or in-transit transport, save/restore, package/JUnit/protected-review evidence, or conformance."
     },
     {
+      "id": "umbra-cpp-timestamped-regional-attribute-update-tar-nmr-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.updateattributevalues.7f3fa1308884",
+        "api.2025.cpp.rtiambassador.setrangebounds.7bcbe0e55f0b",
+        "api.2025.cpp.rtiambassador.commitregionmodifications.e066e7b1c53d",
+        "api.2025.cpp.rtiambassador.registerobjectinstancewithregions.8a2b3b69ac22",
+        "api.2025.cpp.rtiambassador.subscribeobjectclassattributeswithregions.f022ec0b53a3",
+        "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+        "api.2025.cpp.rtiambassador.nextmessagerequest.da397d231bce",
+        "api.2025.cpp.federateambassador.reflectattributevalues.0a0162364e89",
+        "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-121-l36-10",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l103-31",
+        "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+        "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+        "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+        "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
+        "requirement-candidate-content-clauses-08-time-management-page-197-l50-13",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l89-28"
+      ],
+      "test_case": "Embedded regional timestamped attribute updates deliver before TAR and NMR grants",
+      "tags": [
+        "integration",
+        "development-profile",
+        "object-management",
+        "ddm",
+        "time-management",
+        "timestamped-regional-attribute-update",
+        "timestamped-regional-attribute-update-tar-nmr",
+        "time-axis-independence",
+        "tso",
+        "time-advance-request",
+        "next-message-request",
+        "rti.service.update-attribute-values",
+        "rti.service.set-range-bounds",
+        "rti.service.commit-region-modifications",
+        "rti.service.register-object-instance-with-regions",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.time-advance-request",
+        "rti.service.next-message-request",
+        "federate.callback.reflect-attribute-values",
+        "federate.callback.time-advance-grant"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/timestamped_regional_attribute_update_tar_nmr_catch2.cpp:151",
+      "assertions": 94,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.8.3",
+        "hla-1516.1-2025:clause-8.10.2",
+        "hla-1516.1-2025:clause-9.1.4"
+      ],
+      "requirements_lab_api_surface_status": "The focused official C++ HLA_EVOKED case uses one committed positive-dimensional regional object update and two independent time-management delivery services: ordinary TAR and NMR. Both recipients receive the same overlap-qualified timestamped passel before their respective grants, with the source region and callback metadata preserved. This is bounded development-profile evidence that the DDM overlap effect is independent of the choice between these time-axis advancement services; it does not claim receive-order equivalence, all time-advance modes, retraction, save/restore, transport, validation, or conformance.",
+      "next_action": "Keep this focused time-axis-independence lane green. It covers the independence relation for positive-dimensional regional attribute delivery under TAR and NMR. Keep receive-order equivalence, strict-versus-relaxed boundaries, no-common-dimension, zero-dimensional, passive/active, timestamped/retraction, alternate advances, transport, save/restore, package/JUnit/protected-review evidence, validation, and conformance as separate lanes."
+    },
+    {
       "id": "umbra-cpp-timestamped-regional-attribute-update-integration",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.updateattributevalues.7f3fa1308884",
@@ -40406,7 +40555,9 @@
         "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l35-11"
       ],
       "test_case": "Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association",
-      "source_location": "cpp/tests/ownership_transfer_update_region_catch2.cpp:620",
+      "source_location": "cpp/tests/ownership_transfer_update_region_catch2.cpp:692",
+      "ctest_target": "umbra_ownership_transfer_update_region_catch2",
+      "ctest_filter": "^umbra\\.ownership_transfer_update_region\\.catch2\\.Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association$",
       "assertions": 66,
       "callback_models": [
         "HLA_EVOKED"
@@ -40448,6 +40599,137 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused case closes only the pre-acquisition cancellation boundary: an unassociated non-owner region is not resurrected by ownership acquisition. Add cancellation races with pending ownership work, regular and negotiated transfer, multi-attribute arbitration, region mutation, save/restore, remote transport, package/JUnit/protected-review evidence, and conformance before broadening the claim."
+    },
+    {
+      "id": "umbra-cpp-ownership-transfer-update-region-deferred-integration",
+      "requirements_lab_mapping_id": "m80.mapping.embedded-ownership-transfer-update-region-deferred",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.attributeownershipacquisitionifavailable.8b37c270d6b9",
+        "api.2025.cpp.rtiambassador.attributeownershipdivestitureifwanted.3755f17bccdb",
+        "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+        "api.2025.cpp.rtiambassador.registerobjectinstancewithregions.8a2b3b69ac22",
+        "api.2025.cpp.rtiambassador.associateregionsforupdates.94029e2e8def",
+        "api.2025.cpp.rtiambassador.subscribeobjectclassattributeswithregions.f022ec0b53a3",
+        "api.2025.cpp.rtiambassador.updateattributevalues.e1001477bd23",
+        "api.2025.cpp.federateambassador.discoverobjectinstance.e121e4541b5d",
+        "api.2025.cpp.federateambassador.reflectattributevalues.2e544a0fcd09"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l35-11",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l41-13"
+      ],
+      "test_case": "Embedded ownership transfer activates a non-owner's deferred 2025 update-region association",
+      "source_location": "cpp/tests/ownership_transfer_update_region_catch2.cpp:478",
+      "ctest_target": "umbra_ownership_transfer_update_region_catch2",
+      "ctest_filter": "^umbra\\.ownership_transfer_update_region\\.catch2\\.Embedded ownership transfer activates a non-owner's deferred 2025 update-region association$",
+      "assertions": 51,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "delivery_modes": [
+        "receive-order-regional-ownership-transfer",
+        "pre-acquisition-deferred-update-region",
+        "owner-update-uses-active-region",
+        "ownership-acquisition-promotes-deferred-region",
+        "new-owner-update-uses-deferred-region",
+        "evoked-callback-delivery"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.3.3"
+      ],
+      "requirements_lab_api_surface_status": "The standalone HLA_EVOKED case proves that an update-region association requested by a non-owner is deferred while the current owner continues to route updates using its own active region, then is promoted when ownership transfers and scopes the new owner's subsequent update. The two selected Requirements Lab anchors map directly to §9.1.3.3. Cancellation is covered by the adjacent deferred-cancel case; timestamped, competing-acquirer, save/restore, remote/package, protected-review, Lab-validated, and conformance evidence are not claimed.",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "object-management",
+        "ddm",
+        "ownership-management",
+        "callbacks",
+        "ownership-transfer-update-region",
+        "ownership-transfer-update-region-deferred",
+        "callback-evoked",
+        "rti.service.register-object-instance-with-regions",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.attribute-ownership-acquisition-if-available",
+        "rti.service.attribute-ownership-divestiture-if-wanted",
+        "rti.service.associate-regions-for-updates",
+        "rti.service.update-attribute-values",
+        "federate.callback.discover-object-instance",
+        "federate.callback.attribute-ownership-acquisition-notification",
+        "federate.callback.reflect-attribute-values"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This focused case closes the receive-order deferred-association promotion boundary for one If Available ownership transfer. Keep it distinct from cancellation; add timestamped promotion, competing acquirers, save/restore, remote transport, package/JUnit/protected-review evidence, Lab validation, and conformance before broadening the claim."
+    },
+    {
+      "id": "umbra-cpp-ownership-transfer-update-region-integration",
+      "requirements_lab_mapping_id": "m77.mapping.embedded-ownership-transfer-update-region",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.attributeownershipacquisitionifavailable.8b37c270d6b9",
+        "api.2025.cpp.rtiambassador.attributeownershipdivestitureifwanted.3755f17bccdb",
+        "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+        "api.2025.cpp.rtiambassador.registerobjectinstancewithregions.8a2b3b69ac22",
+        "api.2025.cpp.rtiambassador.associateregionsforupdates.94029e2e8def",
+        "api.2025.cpp.rtiambassador.subscribeobjectclassattributeswithregions.f022ec0b53a3",
+        "api.2025.cpp.rtiambassador.updateattributevalues.e1001477bd23",
+        "api.2025.cpp.federateambassador.reflectattributevalues.2e544a0fcd09"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l26-8",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l50-16",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l56-18",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l17-4",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l175-54",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l178-55",
+        "requirement-candidate-content-clauses-07-ownership-management-page-151-l138-45"
+      ],
+      "test_case": "Embedded ownership transfer clears the former owner's 2025 update-region association",
+      "source_location": "cpp/tests/ownership_transfer_update_region_catch2.cpp:142",
+      "assertions": 106,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "delivery_modes": [
+        "receive-order-regional-ownership-transfer",
+        "if-available-acquisition",
+        "divestiture-if-wanted",
+        "former-owner-region-cleared",
+        "default-region-reflection",
+        "replacement-update-region",
+        "evoked-callback-delivery"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.1.2.1",
+        "hla-1516.1-2025:clause-9.1.3.3",
+        "hla-1516.1-2025:clause-9.5.4",
+        "hla-1516.1-2025:clause-9.6"
+      ],
+      "requirements_lab_api_surface_status": "The standalone C++ HLA_EVOKED case registers one object with an explicit source region, subscribes a new owner and receiver with official regional APIs, queues If Available acquisition, and completes Divestiture If Wanted. It verifies the former owner loses ownership and cannot update, the transfer notification carries the divestiture tag, the former association is not restored when ownership moves to the new owner, the first new-owner update uses the default source realization with an empty conveyed-region set, and a later explicit association routes through the new owner's replacement region. It then transfers ownership back to the original federate, verifies that same-federate reacquisition still uses the default source realization, and proves explicit association recreation is required before the original region is used again. It does not claim Confirm Divestiture, unconditional divestiture, negotiated ownership, timestamped/default-region behavior, scope advisories, save/restore, remote transport, packaging, validation, or conformance.",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "object-management",
+        "ddm",
+        "ownership-management",
+        "callbacks",
+        "ownership-transfer-update-region",
+        "ownership-transfer-update-region-association",
+        "ownership-transfer-update-region-reacquisition",
+        "callback-evoked",
+        "rti.service.register-object-instance-with-regions",
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.attribute-ownership-acquisition-if-available",
+        "rti.service.attribute-ownership-divestiture-if-wanted",
+        "rti.service.associate-regions-for-updates",
+        "rti.service.update-attribute-values",
+        "federate.callback.discover-object-instance",
+        "federate.callback.attribute-ownership-acquisition-notification",
+        "federate.callback.reflect-attribute-values"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "This bounded scenario proves that an explicit object-attribute update-region association is owned by the current attribute owner: If Available followed by Divestiture If Wanted clears the former association, the original association is not restored when that federate reacquires ownership, default-region reflection is used until an explicit association is recreated, and the new owner can replace its source realization with its own region. Confirm Divestiture, unconditional divestiture, unpublish, resignation, direct timestamped-default coverage, scope-advisory completeness, remaining regional transfer forms, package/JUnit/protected-review evidence, and conformance remain open."
     },
     {
       "id": "umbra-cpp-time-advance-request-integration",
@@ -47483,7 +47765,9 @@
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
-        "requirement-candidate-content-clauses-08-time-management-page-197-l50-13"
+        "requirement-candidate-content-clauses-08-time-management-page-197-l50-13",
+        "requirement-candidate-content-clauses-08-time-management-page-198-l177-52",
+        "requirement-candidate-content-clauses-08-time-management-page-199-l40-12"
       ],
       "test_case": "RTIambassador requests next message advances through a configured process endpoint",
       "primary_lane": "process-time-advance-next-message-focused",
@@ -47508,9 +47792,11 @@
         "HLA_EVOKED"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-8.10.2"
+        "hla-1516.1-2025:clause-8.10.2",
+        "hla-1516.1-2025:clause-8.11",
+        "hla-1516.1-2025:clause-8.11.3"
       ],
-      "requirements_lab_api_surface_status": "Focused process-endpoint evidence for Next Message Request and Next Message Request Available, mapped to the two exact 2025 time-management requirement anchors for clause 8.10.2. The configured endpoint and 22 passing assertions demonstrate this implementation slice only, not external interoperability or conformance.",
+      "requirements_lab_api_surface_status": "Focused process-endpoint evidence for Next Message Request and Next Message Request Available, mapped to four exact 2025 time-management requirement anchors across clauses 8.10.2, 8.11, and 8.11.3. The configured endpoint and 22 passing assertions demonstrate this implementation slice only, not external interoperability or conformance.",
       "next_action": "Keep this no-queued-message process request boundary distinct from the queued timestamped-message case."
     },
     {
@@ -47545,11 +47831,10 @@
         "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
         "requirement-candidate-content-clauses-08-time-management-page-192-l63-17",
         "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
-        "requirement-candidate-content-clauses-08-time-management-page-182-l133-42",
-        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
-        "requirement-candidate-content-clauses-08-time-management-page-183-l133-44",
         "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
-        "requirement-candidate-content-clauses-08-time-management-page-197-l50-13"
+        "requirement-candidate-content-clauses-08-time-management-page-197-l50-13",
+        "requirement-candidate-content-clauses-08-time-management-page-198-l177-52",
+        "requirement-candidate-content-clauses-08-time-management-page-199-l40-12"
       ],
       "test_case": "RTIambassadors select queued timestamped process messages for next-message advances",
       "primary_lane": "process-time-advance-next-message-queued-focused",
@@ -47568,6 +47853,7 @@
         "public-endpoint",
         "multi-federate",
         "callbacks",
+        "callback-evoked",
         "callback-immediate",
         "rti.service.send-interaction",
         "rti.service.enable-time-regulation",
@@ -47582,6 +47868,7 @@
       "source_location": "cpp/tests/ieee1516_2025_connection_time_advance_next_message_queued_tso_catch2.cpp:458",
       "assertions": 101,
       "callback_models": [
+        "HLA_EVOKED",
         "HLA_IMMEDIATE"
       ],
       "delivery_modes": [
@@ -47595,17 +47882,17 @@
         "hla-1516.1-2025:clause-5.1.4",
         "hla-1516.1-2025:clause-6.12.4",
         "hla-1516.1-2025:clause-6.13",
-        "hla-1516.1-2025:clause-8",
-        "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.2",
         "hla-1516.1-2025:clause-8.5.5",
         "hla-1516.1-2025:clause-8.6.3",
         "hla-1516.1-2025:clause-8.8.3",
         "hla-1516.1-2025:clause-8.10.2",
+        "hla-1516.1-2025:clause-8.11",
+        "hla-1516.1-2025:clause-8.11.3",
         "hla-1516.1-2025:clause-10.60.6"
       ],
-      "requirements_lab_api_surface_status": "Focused HLA_IMMEDIATE process-endpoint evidence for selecting queued timestamped interaction messages through Next Message Request, with callback-before-grant ordering. The mapping combines the existing process timestamp-delivery baseline with the two clause 8.10.2 Next Message Request anchors, excluding the Query GALT/LITS requirements because this test does not query those services. It is development-profile evidence only, not interoperability or conformance.",
-      "next_action": "Keep this queued-message path separate from evoked process callbacks, multi-message ordering, directed/regional routing, and save/restore variants."
+      "requirements_lab_api_surface_status": "This focused two-federate process case sends timestamped MainCourseServed interactions at logical times 5 and 8, advances the regulating sender to 8, then issues Next Message Request(10) followed by Next Message Request Available(10) from the constrained receiver under both HLA_EVOKED and HLA_IMMEDIATE. The process service selects the earliest queued TSO record for the first request and the later record for the second; each interaction callback is observed before its matching Time Advance Grant, and Query Logical Time confirms 5 then 8. The selected Lab anchors cover the interaction, time-role, timestamp, and NMR/NMRA service surfaces directly exercised here. Inclusive GALT/LITS coordination, directed/regional variants, Flush Queue, retraction, save/restore, package/JUnit/protected-review evidence, validation, interoperability, and conformance remain separate.",
+      "next_action": "Keep this as the bounded queued-TSO process proof across HLA_EVOKED and HLA_IMMEDIATE; extend multi-message ordering, directed/regional routing, callback gating, and save/restore as separately mapped slices."
     },
     {
       "id": "umbra-cpp-public-federation-save-commit-filesystem-process-restart-pending-attribute-value-update-class",
@@ -48758,6 +49045,8 @@
     },
     {
       "id": "umbra-cpp-timestamped-regional-interaction-resignation-integration",
+      "primary_lane": "timestamped-regional-interaction-source-resignation",
+      "focus_lane": "timestamped-regional-interaction-source-resignation",
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
         "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l152-45",
@@ -48792,6 +49081,7 @@
         "explicit-source",
         "tso",
         "resignation",
+        "timestamped-regional-interaction-source-resignation",
         "multi-federate-callback-ordering",
         "rti.service.send-interaction-with-regions",
         "rti.service.resign-federation-execution",
@@ -48800,6 +49090,17 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "source_location": "cpp/tests/timed_live_tso_regional_interaction_source_resignation_catch2.cpp:14",
+      "assertions": 60,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.12",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-9.10",
+        "hla-1516.1-2025:clause-9.12"
+      ],
       "next_action": "This focused native C++ slice accepts one overlap-qualified timestamped Send Interaction With Regions passel, admits the recipient TAR(6), resigns the producer, and releases the recipient through an independent regulator. The callback still arrives once before its matching grant with the original producer, payload, tag, timestamp/order, explicit source RegionHandle, and valid retraction metadata; a post-resignation Retract is rejected by FederateNotExecutionMember. The implementation retains the invocation-time RegionSpecificationSnapshot because the producing federate's live region is released on resignation. This is bounded development-profile evidence, not a complete regional resignation, alternate-advance, save/restore, remote transport, JUnit/protected-review, Lab-validation, or conformance claim; RL-174 records the reproduced consumer regression and mitigation."
     },
     {
@@ -50261,6 +50562,7 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20",
         "hla-1516.1-2025:clause-4.21.1",
         "hla-1516.1-2025:clause-4.22",
@@ -51004,6 +51306,7 @@
       "requirements_lab_mapping_id": "m108.embedded-process-multi-recipient-regional-interaction",
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l18-4",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l27-7",
         "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l36-10",
         "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l152-45",
         "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l161-48",
@@ -51035,7 +51338,7 @@
       ],
       "test_case": "RTIambassadors preserve per-recipient regional interaction scope through a configured process endpoint",
       "source_location": "cpp/tests/ieee1516_2025_connection_multi_recipient_regional_interaction_catch2.cpp:459",
-      "assertions": 126,
+      "assertions": 268,
       "callback_models": [
         "HLA_EVOKED",
         "HLA_IMMEDIATE"
@@ -57841,8 +58144,8 @@
         "hla-1516.1-2025:clause-8.1.6",
         "hla-1516.1-2025:clause-8.22.3",
         "hla-1516.1-2025:clause-8.23.3",
-        "hla-1516.1-2025:clause-9.5",
-        "hla-1516.1-2025:clause-9.6"
+        "hla-1516.1-2025:clause-9.10",
+        "hla-1516.1-2025:clause-9.12"
       ],
       "tags": [
         "integration",
@@ -65218,11 +65521,14 @@
         "requirement-candidate-content-clauses-08-time-management-page-209-l75-19"
       ],
       "test_case": "Embedded public time management preserves the official HLAfloat64Time representation",
+      "primary_lane": "float64-time-representation",
+      "focus_lane": "float64-time-representation",
       "tags": [
         "integration",
         "development-profile",
         "federation-management",
         "time-management",
+        "float64-time-representation",
         "float-time",
         "time-representation",
         "time-factory",

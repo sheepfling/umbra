@@ -68,4 +68,40 @@ inline bool servePrimaryProcessRequest(
   return servePrimaryProcessRequest(session, serviceHandler, serviceHandler);
 }
 
+template <typename ServeExpected>
+inline void serveExpectedFailedInvocationReport(
+    ServeExpected& serveExpected,
+    detail::TransportServiceOperation operation,
+    char const* description) {
+  serveExpected(operation, description);
+  serveExpected(
+      detail::TransportServiceOperation::report_failed_service_invocation,
+      "The public-service fixture lost a failed service report.");
+}
+
+template <typename ServeExpected, typename Session, typename Handler>
+inline void serveExpectedFailedInvocationReport(
+    ServeExpected& serveExpected,
+    Session& session,
+    Handler& handler,
+    detail::TransportServiceOperation operation,
+    char const* description) {
+  serveExpected(session, handler, operation, description);
+  serveExpected(
+      session, handler,
+      detail::TransportServiceOperation::report_failed_service_invocation,
+      "The public-service fixture lost a failed service report.");
+}
+
+template <typename ServeExpected, typename Session, typename Handler>
+inline void serveExpectedSuccessfulVoidInvocationReport(
+    ServeExpected& serveExpected,
+    Session& session,
+    Handler& handler) {
+  serveExpected(
+      session, handler,
+      detail::TransportServiceOperation::report_successful_void_service_invocation,
+      "The public-service fixture lost a successful void service report.");
+}
+
 }  // namespace umbra::test

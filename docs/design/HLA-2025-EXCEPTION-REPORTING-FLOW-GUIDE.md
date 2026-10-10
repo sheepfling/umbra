@@ -24,9 +24,12 @@ and what the report is trying to tell the receiver:
 | `HLAreportMOMexception` | A MOM interaction that is malformed or rejected by MOM/service preconditions. | Subscription to the report interaction, plus the implementation’s recipient/DDM rules. | **No.** |
 
 The last column is about this exception-report route, not about whether the
-original service call succeeds. A caller can still receive its public typed
-exception when a report is suppressed. The report is advisory traffic and must
-not replace that original outcome.
+original service call succeeds. If this route is suppressed, its hook returns
+without changing the service exception. The `noexcept` hook also suppresses
+failures in the exception-report attempt itself. Some public service wrappers
+then attempt a separate `HLAreportServiceInvocation`; that later reporting
+step has its own failure boundary and can affect the public outcome, as shown
+in [the combined process-path trace](#when-both-process-report-routes-apply).
 
 ## A quick decision map
 
@@ -65,36 +68,44 @@ sequenceDiagram
     App->>API: Invoke covered service
     API->>API: Catch original typed exception at covered service boundary
     API->>Hook: Report at instrumented catch site
-    Hook->>Hook: Require joined identity; format exception name and detail
-    alt Not joined, no process client, or report hook unavailable
+    Hook->>Hook: Require joined identity
+    alt Not joined or identity unavailable
         Hook-->>Hook: Stop advisory path
-    else Embedded federation
-        Hook->>Authority: Plan HLAreportException
-        Authority->>Authority: Check member and Exception Reporting switch
-        Authority->>Authority: Select subscribed, DDM-eligible receive-order recipients
-    else Process endpoint
-        Hook->>Authority: report_service_exception(federation, member, service, exception)
-        Authority->>Authority: Recheck authoritative member and switch state
-        Authority->>Authority: Select subscribed, DDM-eligible recipients
+    else Joined
+        alt Embedded federation
+            Hook->>Hook: Format exception name and detail
+            Hook->>Authority: Plan HLAreportException
+            Authority->>Authority: Check reported member and Exception Reporting switch
+            Authority->>Authority: Select subscribed, DDM-eligible receive-order recipients
+        else Process endpoint
+            alt Process client unavailable
+                Hook-->>Hook: Stop advisory path
+            else Process client available
+                Hook->>Hook: Format exception name and detail
+                Hook->>Authority: reportServiceException(federation, member, service, exception)
+                Authority->>Authority: Validate session/member and consult authoritative switch
+                Authority->>Authority: Select subscribed, DDM-eligible recipients
+            end
+        end
+        alt No plan, no recipient, transport failure, or callback recheck suppresses
+            Note over Authority,Observer: No report callback
+        else Recipient remains eligible at callback admission
+            Authority-->>Observer: HLAreportException (receive order, reliable)
+            Observer->>Observer: Invoke receiveInteraction callback
+        end
     end
-    alt No eligible report or no recipients
-        Authority-->>Observer: No callback
-    else Eligible recipient remains at delivery/admission
-        Authority-->>Observer: HLAreportException (receive order, reliable)
-        Observer->>Observer: Invoke receiveInteraction callback
-    end
-    API-->>App: Original typed service exception remains the public outcome
-    Note over API,Observer: Callback scheduling is separate; process push delivery may be observed before its request response.
-    Note over API,Hook: Reporting is best effort; it does not replace the original service exception.
+    API-->>App: Continue unwinding the original typed exception
+    Note over API,Observer: HLA_IMMEDIATE or process push may deliver before the public failure returns. Callback scheduling is separate.
+    Note over API,Hook: This chart isolates the noexcept exception-report hook; a wrapper may do later work before rethrowing.
 ```
 
 ### Read this flow in phases
 
-1. **The service result remains primary.** A covered service catches the
-   public 2025 `Exception` and invokes the report hook. The report hook is
-   `noexcept` and catches failures in its own planning/transport work. The
-   caller still observes the service exception; report delivery is not a
-   second result channel for the caller.
+1. **The exception-report hook is advisory.** A covered service catches the
+   public 2025 `Exception` and invokes the `noexcept` report hook. Failures in
+   that hook's own planning/transport work do not replace the caught service
+   exception. A wrapper may perform additional work after the hook and before
+   its final `throw`; see the process-specific combined trace below.
 2. **The exception switch belongs to the member being reported.** A successful
    report plan requires that member to still belong to the federation and that
    its Exception Reporting switch be on. The default tested state is off.
@@ -114,6 +125,75 @@ sequenceDiagram
    callback admission can suppress a prepared report in the covered process
    path. The report being receive-order does not create a new timestamped
    delivery rule.
+
+### When both process report routes apply
+
+For a joined 2025 process-endpoint caller, a failed `GetObjectClassHandle`
+can enter two distinct report paths when both configurations select them:
+`emitExceptionReport` submits the `HLAreportException` request first, and the
+catch body then submits the failed `HLAreportServiceInvocation` request. The
+two routes consult independent switches and may have different recipients or
+destinations. The sequence shows source/RPC attempt order only; it does not
+establish callback arrival order.
+
+```mermaid
+sequenceDiagram
+    participant App as Calling federate
+    participant API as 2025 ambassador
+    participant Hook as Exception-report hook
+    participant Client as Process client
+    participant Server as Process service
+    participant Observer as Eligible observer
+
+    App->>API: getObjectClassHandle(unknown name)
+    API->>API: Lookup throws NameNotFound
+    API->>Hook: emitExceptionReport
+    Hook->>Client: reportServiceException
+    Client->>Server: report_service_exception
+    Server->>Server: Check exception switch and recipient eligibility
+    alt Exception report routed
+        Server-->>Observer: Admit HLAreportException
+    else Suppressed, unroutable, or report request fails
+        Note over Hook,Server: The noexcept hook suppresses its own reporting failure.
+    end
+    Server-->>Client: Report response
+    Client-->>Hook: Return to service catch
+    API->>Client: reportFailedServiceInvocation
+    Client->>Server: report_failed_service_invocation
+    Server->>Server: Check Service Reporting and selected sink
+    alt Report accepted or suppressed
+        Server-->>Client: Success response
+        Client-->>API: Return
+        API-->>App: Rethrow NameNotFound
+    else Failed invocation report request fails
+        Server-->>Client: Error response
+        Client-->>API: Process client error
+        API->>API: Convert report error to RTIinternalError
+        API-->>App: RTIinternalError, original NameNotFound is not rethrown
+    end
+```
+
+This is source-derived combined behavior, not a tested two-switch scenario.
+The focused [exception-report test](../../cpp/tests/ieee1516_2025_connection_process_mom_service_exception_report_catch2.cpp#L460)
+explicitly enables Exception Reporting but does not configure Service
+Reporting. The focused [failed-GetObjectClassHandle service-report case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L189)
+explicitly enables Service Reporting but does not configure Exception
+Reporting. Neither case asserts both reports, their relative callback
+arrival, or the public exception outcome when the second reporting request
+fails.
+
+The source does establish the catch-body order: the [public service catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_lookup.cpp#L98)
+calls the [exception-report hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L184)
+before the [failed-service-report helper](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L252).
+The [process client](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L429)
+and [server report handlers](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L89)
+keep these as separate requests. The exception hook is `noexcept` and swallows
+its own failures; afterward, the service-report helper converts a failed
+process report request into `RTIinternalError`. Because that conversion
+happens before the catch body's final `throw`, this later failure can replace
+the original `NameNotFound`. A suppressed service report returns normally,
+allowing the original exception to be rethrown. Do not generalize this
+process-path boundary to the embedded writer path or to 2010.
 
 ### `HLAreportException` payload at the callback boundary
 
@@ -192,9 +272,10 @@ The process service-exception case makes the two independent controls visible:
 5. Disable callbacks, create a pending report, unsubscribe before callback
    admission, then re-enable and drain. The stale report is suppressed; a new
    report is delivered after resubscription.
-6. Force the report operation itself to fail. The public failed lookup still
-   exposes the original typed `NameNotFound`, rather than replacing it with
-   report-transport failure.
+6. Force the exception-report operation itself to fail. The public failed
+   lookup still exposes the original typed `NameNotFound`, rather than
+   replacing it with that hook's report-transport failure. This does not test
+   failure of the later `HLAreportServiceInvocation` request described above.
 
 The linked scenario repeats under evoked/immediate callbacks and process
 pull/push event delivery. These are tested combinations, not a proof that every

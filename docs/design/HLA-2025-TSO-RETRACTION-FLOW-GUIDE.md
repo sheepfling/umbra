@@ -31,19 +31,19 @@ text.
 
 ```mermaid
 stateDiagram-v2
-  direction LR
-  [*] --> Pending: Timestamped send admitted for this recipient
-  Pending --> InTransit: Recipient's grant dispatch selects the entry
-  InTransit --> Delivered: Original callback enters user code
-  InTransit --> Suppressed: RTI gate/lifetime check prevents user callback
-  Pending --> Withdrawn: Legal Retract removes queued fan-out
-  Delivered --> RetractionRequested: Legal Retract records recipient as retracted
-  RetractionRequested --> RequestCallbackAdmitted: Recipient is still joined at callback admission
-  RetractionRequested --> RequestCallbackDropped: Recipient resigns/disconnects first
-  Suppressed --> TerminalWithoutRequest: Later Retract does not request undo for an undelivered callback
+  direction TB
+  [*] --> Pending: TSO entry queued
+  Pending --> InTransit: Grant selects entry
+  InTransit --> Delivered: Callback enters user code
+  InTransit --> Suppressed: Runtime gate blocks callback
+  Pending --> Withdrawn: Retract removes pending entry
+  Delivered --> RetractionRequested: Retract marks delivered recipient
+  RetractionRequested --> RequestCallbackAdmitted: Recipient still joined
+  RetractionRequested --> RequestCallbackDropped: Recipient left first
+  Suppressed --> TerminalWithoutRequest: No original callback was delivered
   Withdrawn --> Terminal: Message's recipient entry is retired
   RequestCallbackAdmitted --> Terminal: requestRetraction(handle) runs
-  RequestCallbackDropped --> Terminal: Captured route is no longer valid
+  RequestCallbackDropped --> Terminal: Captured route is invalid
   TerminalWithoutRequest --> Terminal
 ```
 
@@ -74,7 +74,7 @@ Important transitions:
 
 ```mermaid
 flowchart TD
-  A[Timestamped service returned a MessageRetractionHandle] --> B[Producer calls Retract(handle)]
+  A[Timestamped service returned a MessageRetractionHandle] --> B["Producer calls Retract(handle)"]
   B --> C{Handle valid and owned by this joined producer?}
   C -->|No| X[InvalidMessageRetractionHandle or membership failure]
   C -->|Yes| D{Producer is currently time regulating?}
@@ -145,9 +145,9 @@ sequenceDiagram
   P->>RTI: Retract(M handle)
   RTI->>RTI: Validate P's ownership, regulation, and B+L<T
   RTI->>RTI: Remove B's pending TSO entry
-  RTI->>RTI: Mark A retracted; do not mark B delivered
+  RTI->>RTI: Mark A retracted, but do not mark B delivered
   RTI-->>A: Request Retraction callback for M
-  Note over A,B: A can respond to the request; B never receives M
+  Note over A,B: A can respond to the request, but B never receives M
 ```
 
 The callback is a request to account for the already-delivered effect, not a

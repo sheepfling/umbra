@@ -230,6 +230,72 @@ association makes an existing object discoverable. A separate 2025
 exercises the producer's On/Off callbacks as overlapping associations are
 removed and restored, under both evoked and immediate callback models.
 
+### Receive-order value routing after regional overlap changes
+
+The focused no-time-update scenario uses `HLA_EVOKED` and makes the boundary
+between **object knowledge** and **current value relevance** more concrete. A
+registered object can remain undiscovered while source and receiver regions
+are disjoint. Once the receiver commits an overlapping range, discovery
+reports the object and the most recently accepted attribute value; later
+updates are filtered against the current overlap. This is an embedded 2025 test scenario,
+not a complete normative rule for all DDM profiles.
+
+```mermaid
+sequenceDiagram
+  actor P as Publisher
+  participant RTI as Embedded 2025 RTI
+  participant Q as Subscriber EVOKED callback queue
+  actor S as Regional subscriber
+  Note over P,S: Initial source and receiver ranges do not overlap
+  P->>RTI: Register object with source-region association
+  S->>RTI: Subscribe Flavor to receiver region
+  P->>RTI: Add empty region association
+  S->>RTI: Add empty-region subscription
+  P->>RTI: Update value A
+  RTI-->>Q: No discovery or reflection queued while disjoint
+  S->>RTI: evokeMultipleCallbacks()
+  RTI-->>S: No callback
+  P->>RTI: Associate source region again
+  S->>RTI: Move receiver to [0,1), commit, and subscribe again
+  RTI->>Q: Queue discovery and latest-value reflection for A
+  S->>RTI: evokeMultipleCallbacks()
+  Q-->>S: Deliver discovery and value-A reflection
+  P->>RTI: Update value B
+  RTI->>Q: Queue one reflection for value B
+  S->>RTI: evokeMultipleCallbacks()
+  Q-->>S: One Reflect Attribute Values callback
+  Note over RTI,S: Convey Region Designator Sets is off, callback has no sent-region set
+  S->>RTI: Enable Convey Region Designator Sets
+  P->>RTI: Update value C
+  RTI->>Q: Queue one reflection with the associated source-region designator
+  S->>RTI: evokeMultipleCallbacks()
+  Q-->>S: One reflection includes the source-region designator
+  S->>RTI: Move receiver back to disjoint [2,3) and commit
+  P->>RTI: Update value D
+  RTI-->>Q: No regional reflection queued while disjoint
+  S->>RTI: evokeMultipleCallbacks()
+  RTI-->>S: No callback
+```
+
+The [61-assertion focused case](../../cpp/tests/ieee1516_2025_regional_object_attribute_no_time_update_overlap_catch2.cpp#L5)
+explicitly treats the empty-region association and
+subscription calls as no-ops, checks that disjointness suppresses reflections,
+then checks discovery plus the latest value after overlap and one reflection
+for each subsequent accepted update in its exercised setup. It also shows
+`ConveyRegionDesignatorSets` changing callback metadata without changing the
+overlap route. The final disjoint phase asserts no reflection; it does not
+independently query whether the already-known object remains known. It stores
+discovery and reflection callbacks separately, so it does not establish their
+relative callback order; the chart intentionally groups them.
+
+The current local MinGW target was rebuilt from this worktree and passed this
+focused case (1/1). A separate [open privileged-MinGW investigation](../planning/ROADMAP-INDEX.json#L100)
+records duplicate reflections for the same test expectation. That discrepancy
+is unresolved: this local pass is not evidence of cross-configuration or
+process-endpoint parity. The chart is therefore bounded to the named scenario,
+and the environment-specific result remains a follow-up rather than a settled
+implementation guarantee.
+
 ## Interactions: explicit and default-region paths
 
 Interaction routing uses an interaction-class publication, a send-region
@@ -293,6 +359,62 @@ This is an implementation boundary, not a complete TSO routing algorithm.
 Follow the separate [time-management flow guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md)
 for grant and queue state.
 
+### A recipient region can invalidate queued regional TSO delivery
+
+This sequence is one tested 2025 **embedded** path, not a complete rule for
+every timestamped message or RTI. It composes three independent decisions:
+the update is admitted while the committed source and receiver regions
+overlap; connection loss applies the publisher's configured automatic-resign
+directive and last-granted-time cutoff; and the receiver's current regional
+selector is checked again at the TSO callback boundary. The general cutoff and
+forced-resignation state machine is covered in the separate
+[federation lifecycle guide](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md).
+
+In the focused scenario, the source region is `[0,2)` and the receiver region
+starts at `[1,3)`, so they overlap. The publisher sends an attribute update at
+time 6; both members request time 6, and the publisher is granted 6 while the
+receiver's grant is still pending. The publisher then loses its connection
+with `DELETE_OBJECTS` configured. Before resolving its pending time-6 advance,
+the receiver commits `[3,4)`, which is now disjoint from the saved source
+region. The accepted TSO payload remains on the at-or-before-loss cutoff path,
+but the callback-time DDM check suppresses its reflection. The receiver gets
+its time-6 grant without that reflection; on its next request to time 7, it
+observes the independent automatic removal callback and no longer knows the
+object. These are scenario observations, not a general conformance claim.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Publisher as Soon-disconnected publisher
+  participant PRTI as Publisher RTI
+  participant Registry as Federation state
+  participant SRTI as Subscriber RTI
+  actor Subscriber as Surviving subscriber
+
+  Note over Publisher,Registry: Initially source region [0,2) overlaps committed receiver region [1,3)
+  Publisher->>PRTI: updateAttributeValues(object, values, tag, time=6)
+  PRTI->>Registry: Queue TSO payload with source-region snapshot
+  Subscriber->>SRTI: timeAdvanceRequest(6)
+  Publisher->>PRTI: timeAdvanceRequest(6)
+  PRTI->>Registry: Resolve publisher grant
+  Registry-->>Publisher: timeAdvanceGrant(6)
+  Note over SRTI,Subscriber: Subscriber's time-6 grant remains pending
+  Publisher->>PRTI: Transport connection fails
+  PRTI->>Registry: Connection Lost, use DELETE_OBJECTS and capture cutoff at 6
+  Subscriber->>SRTI: Commit receiver region [3,4)
+  SRTI->>Registry: Reach pending TSO callback gate for time 6
+  Note over Registry,SRTI: At callback entry, compare current receiver selector with saved source scope
+  alt Committed regions are disjoint
+    Registry-->>SRTI: Suppress Reflect Attribute Values
+    SRTI-->>Subscriber: timeAdvanceGrant(6)
+  end
+  Subscriber->>SRTI: timeAdvanceRequest(7)
+  SRTI->>Registry: Reach next automatic-removal gate
+  Registry-->>Subscriber: removeObjectInstance(object, empty tag, producer)
+  Subscriber->>SRTI: Query object name
+  SRTI-->>Subscriber: ObjectInstanceNotKnown
+```
+
 ## Focused source and test evidence
 
 - Region creation, pending/committed bounds, validation, and deletion:
@@ -303,6 +425,12 @@ for grant and queue state.
   [association planner](../../cpp/src/internal/federation/federation_registry_update_region_associations.cpp),
   [attribute relevance planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp),
   and the region lifecycle / [relevance transition](../../cpp/tests/ieee1516_2025_connection_regional_attribute_relevance_transition_catch2.cpp) tests.
+- Regional timestamped attribute update across selector mutation and publisher connection loss:
+  [accepted source-region snapshot](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L503),
+  [TSO callback-boundary recheck](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L351),
+  [current receiver projection](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L16),
+  [connection-loss cutoff capture](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L29),
+  and the focused [embedded scenario](../../cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp#L159).
 - Regional interaction send and subscription:
   [send services](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp),
   [subscription services](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_subscription.cpp),

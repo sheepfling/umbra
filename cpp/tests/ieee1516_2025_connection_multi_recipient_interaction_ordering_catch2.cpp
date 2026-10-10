@@ -654,6 +654,8 @@ TEST_CASE(
                 })) {
           throw std::runtime_error(description);
         }
+        umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+            serveExpected, sender, senderHandler);
       };
       serveSend("The multi-recipient process server lost first Send.");
       serveSend("The multi-recipient process server lost second Send.");

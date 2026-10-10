@@ -284,6 +284,12 @@
       umbra::authorizer
       Catch2::Catch2WithMain
     )
+    if(MINGW AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+      # The aggregate runner is only the full-suite dispatcher; focused test
+      # executables retain debug symbols for diagnosis.  Omitting DWARF from
+      # this one image keeps MinGW's linker working set within host limits.
+      target_compile_options(umbra_ieee1516_2025_catch2 PRIVATE -g0)
+    endif()
     if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
       target_compile_definitions(umbra_ieee1516_2025_catch2 PRIVATE
         UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1

@@ -355,6 +355,9 @@ TEST_CASE(
     drain();
     if (!relaxedDdmEnabled) {
       ++expectedDiscoveries;
+      // One delivery is the already-accepted value reflected at discovery;
+      // the Auto Provide callback contributes its own supplied value too.
+      ++expectedReflections;
       ++expectedReflections;
     }
     REQUIRE(requesterReports.objectDiscoveryReports.size() == expectedDiscoveries);
@@ -362,6 +365,14 @@ TEST_CASE(
     REQUIRE(providerRequestAttributes.size() == 1U);
     REQUIRE(providerCallbackCount == 1U);
     REQUIRE(requesterReports.attributeReflectionReports.size() == expectedReflections);
+    if (!relaxedDdmEnabled) {
+      REQUIRE(variableLengthDataBytes(
+                  requesterReports.attributeReflectionReports.front()
+                      .attributeValues.at(requesterAttribute)) == gapValue);
+      REQUIRE(variableLengthDataBytes(
+                  requesterReports.attributeReflectionReports.back()
+                      .attributeValues.at(requesterAttribute)) == providedValue);
+    }
 
     // Strict overlap remains a normal receive-order regional update after the
     // relaxed-only gap was rejected.

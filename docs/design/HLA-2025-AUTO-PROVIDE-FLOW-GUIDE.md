@@ -52,7 +52,7 @@ stateDiagram-v2
   Enabled --> Disabled: HLAsetSwitches(HLAautoProvide=false)
   Disabled --> Enabled: HLAsetSwitches(HLAautoProvide=true)
   Enabled --> Enabled: discovery may plan provider solicitations
-  Disabled --> Disabled: discovery still proceeds; no Auto Provide callback plan
+  Disabled --> Disabled: discovery proceeds without provider solicitation
 ~~~
 
 Changing the switch does not itself rediscover existing objects. In the
@@ -80,12 +80,12 @@ Attributes In/Out Of Scope notifications.
 ~~~mermaid
 sequenceDiagram
   autonumber
-  actor R as Newly discovering federate
+  actor R as Receiver
   participant RTI as 2025 Umbra RTI
-  actor P1 as Current provider A
-  actor P2 as Current provider B
+  actor P1 as Provider A
+  actor P2 as Provider B
 
-  Note over R,RTI: Registration or a subscription/DDM change makes a known object discoverable
+  Note over R,RTI: Registration or subscription/DDM change<br/>makes a known object discoverable
   RTI-->>R: discoverObjectInstance(object, class, name, producer)
   Note over R,RTI: After discovery callback returns, its reentrant changes are visible
   RTI->>RTI: Check federation Auto Provide switch and current object/scope state

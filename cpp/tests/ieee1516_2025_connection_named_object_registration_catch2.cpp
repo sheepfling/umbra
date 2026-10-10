@@ -697,12 +697,15 @@ TEST_CASE(
            !serveExpected(TransportServiceOperation::get_object_class_handle)) ||
           !serveExpected(TransportServiceOperation::register_object_instance) ||
           !serveExpected(TransportServiceOperation::register_object_instance) ||
+          !serveExpected(TransportServiceOperation::report_failed_service_invocation) ||
           !serveExpected(TransportServiceOperation::reserve_object_instance_name) ||
+          !serveExpected(TransportServiceOperation::report_failed_service_invocation) ||
           !serveExpected(TransportServiceOperation::reserve_object_instance_name) ||
           (callbackModel == HLA_IMMEDIATE &&
            !serveExpected(TransportServiceOperation::get_object_class_handle)) ||
           !serveExpected(TransportServiceOperation::release_object_instance_name) ||
           !serveExpected(TransportServiceOperation::release_object_instance_name) ||
+          !serveExpected(TransportServiceOperation::report_failed_service_invocation) ||
           !serveExpected(
               TransportServiceOperation::reserve_multiple_object_instance_names) ||
           (callbackModel == HLA_IMMEDIATE &&
@@ -715,6 +718,7 @@ TEST_CASE(
               TransportServiceOperation::release_multiple_object_instance_names) ||
           !serveExpected(
               TransportServiceOperation::release_multiple_object_instance_names) ||
+          !serveExpected(TransportServiceOperation::report_failed_service_invocation) ||
           !serveExpected(TransportServiceOperation::resign_federation_execution)) {
         throw std::runtime_error(
             "The public process named-registration server lost a required operation.");

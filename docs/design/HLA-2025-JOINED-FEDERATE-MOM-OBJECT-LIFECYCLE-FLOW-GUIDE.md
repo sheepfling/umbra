@@ -81,7 +81,7 @@ sequenceDiagram
   participant O as Subscribed observer
   O->>RTI: Subscribe to HLAmanager.HLAfederate attributes
   S->>RTI: Join Federation Execution
-  RTI->>RTI: Commit member; prepare RTI-owned MOM snapshot
+  RTI->>RTI: Commit member, then prepare RTI-owned MOM snapshot
   RTI-->>O: discoverObjectInstance(HLAfederate)
   RTI-->>O: reflect initial/static attributes
   RTI-->>O: reflect conditional HLAfederateState after discovery
@@ -104,7 +104,9 @@ The initial per-Join values include the federate handle, name and type, host,
 RTI version, the FOM designators supplied at **this member's Join**, and the
 immutable service-report-file path. The Join-scoped module list is not the
 federation's complete FOM list. Switch changes do not replace the object's
-identity or its already selected report-file path.
+identity or its already selected report-file path. For the difference between
+Create-time federation policy and per-member advisory seeding, see the
+[federation MOM switch-lifecycle flow](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#creation-time-federation-policy-versus-per-member-switch-seeding).
 
 Other attributes are derived from the authoritative current federation/member
 ledgers when a value is requested or an update is planned. `HLAfederateState`
@@ -151,7 +153,7 @@ keeping the departed membership active.
 
 ```mermaid
 stateDiagram-v2
-  [*] --> Visible: joined lifetime; eligible receivers may know instance
+  [*] --> Visible: joined lifetime, eligible receivers may know instance
   Visible --> RemovalPending: represented federate resigns
   RemovalPending --> RemovalPending: deliver remove callback to one known survivor
   RemovalPending --> Forgotten: last pending recipient crosses removal boundary

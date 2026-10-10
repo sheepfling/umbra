@@ -15,6 +15,7 @@ TEST_CASE(
     "Embedded queued timestamped regional interaction survives source resignation",
     "[integration][development-profile][interaction-management][ddm][time-management]"
     "[timestamped-regional-interaction][explicit-source][tso][resignation]"
+    "[timestamped-regional-interaction-source-resignation]"
     "[multi-federate-callback-ordering]"
     "[rti.service.send-interaction-with-regions][rti.service.resign-federation-execution]"
     "[rti.service.subscribe-interaction-class-with-regions]"

@@ -272,11 +272,14 @@ TEST_CASE(
                                     .withRtiAddress(
                                         L"tcp://127.0.0.1:" + std::to_wstring(port));
   std::exception_ptr clientError;
+  bool ownerConnected = false;
+  bool requesterConnected = false;
   bool ownerJoined = false;
   bool requesterJoined = false;
   try {
     REQUIRE_NOTHROW(owner->connect(
         ownerReports, HLA_EVOKED, ownerConfiguration));
+    ownerConnected = true;
     REQUIRE_NOTHROW(owner->createFederationExecution(
         federationName,
         fomModule));
@@ -288,6 +291,7 @@ TEST_CASE(
 
     REQUIRE_NOTHROW(requester->connect(
         requesterReports, HLA_EVOKED, requesterConfiguration));
+    requesterConnected = true;
     REQUIRE_NOTHROW(requester->joinFederationExecution(
         L"process-negotiated-divestiture-cancellation-requester",
         L"publisher",
@@ -390,13 +394,17 @@ TEST_CASE(
       } catch (...) {
       }
     }
-    try {
-      requester->disconnect();
-    } catch (...) {
+    if (requesterConnected) {
+      try {
+        requester->disconnect();
+      } catch (...) {
+      }
     }
-    try {
-      owner->disconnect();
-    } catch (...) {
+    if (ownerConnected) {
+      try {
+        owner->disconnect();
+      } catch (...) {
+      }
     }
   }
   if (listener) {
@@ -405,10 +413,12 @@ TEST_CASE(
   if (server.joinable()) {
     server.join();
   }
+  if (serverError) {
+    std::rethrow_exception(serverError);
+  }
   if (clientError) {
     std::rethrow_exception(clientError);
   }
-  REQUIRE_FALSE(serverError);
 }
 
 

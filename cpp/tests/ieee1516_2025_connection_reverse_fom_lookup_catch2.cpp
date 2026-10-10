@@ -544,11 +544,11 @@ TEST_CASE(
         serveExpected(
             TransportServiceOperation::get_interaction_class_name,
             "The process FOM-name lookup server lost interaction-class name lookup.");
-        serveExpected(
-            TransportServiceOperation::get_object_class_name,
+        umbra::test::serveExpectedFailedInvocationReport(
+            serveExpected, TransportServiceOperation::get_object_class_name,
             "The process FOM-name lookup server lost unknown object-class lookup.");
-        serveExpected(
-            TransportServiceOperation::get_interaction_class_name,
+        umbra::test::serveExpectedFailedInvocationReport(
+            serveExpected, TransportServiceOperation::get_interaction_class_name,
             "The process FOM-name lookup server lost unknown interaction-class lookup.");
         serveExpected(
             TransportServiceOperation::resign_federation_execution,

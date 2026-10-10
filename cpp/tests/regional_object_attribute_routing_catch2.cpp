@@ -8,6 +8,7 @@
 #include <RTI/RTI1516.h>
 
 #include <atomic>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -300,6 +301,17 @@ TEST_CASE(
   drainCallbacks(*subscriber);
   REQUIRE(subscriberReports.objectDiscoveryReports.size() == 1);
   REQUIRE(subscriber->getKnownObjectClassHandle(objectInstance) == soda);
+  // Discovery delivers the latest accepted value once when the regional
+  // declaration first makes this object relevant.
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 1);
+  REQUIRE_FALSE(subscriberReports.attributeReflectionReports.front().sentRegionsSupplied);
+  auto const& initialReflectionValue =
+      subscriberReports.attributeReflectionReports.front().attributeValues.at(flavor);
+  REQUIRE(initialReflectionValue.size() == sizeof(firstValueBytes));
+  REQUIRE(std::memcmp(
+              initialReflectionValue.data(),
+              firstValueBytes,
+              sizeof(firstValueBytes)) == 0);
 
   unsigned char const secondValueBytes[] = {0x20, 0x25};
   AttributeHandleValueMap secondValue;
@@ -311,10 +323,15 @@ TEST_CASE(
       secondValue,
       VariableLengthData()));
   drainCallbacks(*subscriber);
-  REQUIRE(subscriberReports.attributeReflectionReports.size() == 1);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 2);
   REQUIRE_FALSE(subscriberReports.attributeReflectionReports.front().sentRegionsSupplied);
-  REQUIRE(
-      subscriberReports.attributeReflectionReports.front().attributeValues.contains(flavor));
+  auto const& secondReflectionValue =
+      subscriberReports.attributeReflectionReports.back().attributeValues.at(flavor);
+  REQUIRE(secondReflectionValue.size() == sizeof(secondValueBytes));
+  REQUIRE(std::memcmp(
+              secondReflectionValue.data(),
+              secondValueBytes,
+              sizeof(secondValueBytes)) == 0);
 
   // The switch is recipient-local and may be changed after a federation has
   // joined. Enabling it exposes the same update-region realization on the
@@ -330,7 +347,7 @@ TEST_CASE(
       conveyedValue,
       VariableLengthData()));
   drainCallbacks(*subscriber);
-  REQUIRE(subscriberReports.attributeReflectionReports.size() == 2);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 3);
   REQUIRE(subscriberReports.attributeReflectionReports.back().sentRegionsSupplied);
   REQUIRE(subscriberReports.attributeReflectionReports.back().sentRegions.contains(publisherRegion));
 
@@ -351,7 +368,7 @@ TEST_CASE(
       disjointValue,
       VariableLengthData()));
   drainCallbacks(*subscriber);
-  REQUIRE(subscriberReports.attributeReflectionReports.size() == 2);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 3);
 
   REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(objectInstance, regionalPair));
 
@@ -687,6 +704,13 @@ TEST_CASE(
   drainCallbacks(*subscriber);
   REQUIRE(subscriberReports.objectDiscoveryReports.size() == 1U);
   REQUIRE(subscriberReports.objectDiscoveryReports.front().objectInstance == objectInstance);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 1U);
+  REQUIRE(subscriberReports.attributeReflectionReports.front().attributeValues.contains(
+      subscriberAttribute));
+  auto const& initialValue = subscriberReports.attributeReflectionReports.front()
+                                 .attributeValues.at(subscriberAttribute);
+  REQUIRE(initialValue.size() == sizeof(firstValueBytes));
+  REQUIRE(std::memcmp(initialValue.data(), firstValueBytes, sizeof(firstValueBytes)) == 0);
 
   unsigned char const secondValueBytes[] = {'m', 'a', 't', 'c', 'h'};
   AttributeHandleValueMap secondValue;
@@ -696,9 +720,14 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->updateAttributeValues(
       objectInstance, secondValue, VariableLengthData()));
   drainCallbacks(*subscriber);
-  REQUIRE(subscriberReports.attributeReflectionReports.size() == 1U);
-  REQUIRE(subscriberReports.attributeReflectionReports.front().attributeValues.contains(
-      subscriberAttribute));
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 2U);
+  auto const& secondReflectedValue = subscriberReports.attributeReflectionReports.back()
+                                         .attributeValues.at(subscriberAttribute);
+  REQUIRE(secondReflectedValue.size() == sizeof(secondValueBytes));
+  REQUIRE(std::memcmp(
+              secondReflectedValue.data(),
+              secondValueBytes,
+              sizeof(secondValueBytes)) == 0);
 
   REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(objectInstance, sourcePair));
   REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributesWithRegions(

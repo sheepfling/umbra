@@ -27,6 +27,7 @@
 #include <iterator>
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -1016,7 +1017,10 @@ TEST_CASE(
                 processSession,
                 [&](umbra::detail::TransportServiceMessage const& request) {
                   if (request.operation != operation) {
-                    throw std::runtime_error(description);
+                    throw std::runtime_error(
+                        std::string(description) + " (received operation " +
+                        std::to_string(static_cast<unsigned>(request.operation)) +
+                        ").");
                   }
                   return handler(request);
                 })) {
@@ -1108,6 +1112,11 @@ TEST_CASE(
           requesterHandler,
           TransportServiceOperation::cancel_attribute_ownership_acquisition,
           "The process ownership-acquisition cancellation server lost Cancellation.");
+      serveExpected(
+          requesterSession,
+          requesterHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The process ownership-acquisition cancellation server lost its successful service report.");
       serveExpected(
           requesterSession,
           requesterHandler,
@@ -1584,7 +1593,7 @@ void runProcessConfirmDivestitureServiceReportScenario(
       serveExpected(
           ownerSession,
           ownerHandler,
-          TransportServiceOperation::report_successful_service_invocation,
+          TransportServiceOperation::report_successful_void_service_invocation,
           "The process Confirm Divestiture server lost its successful service report.");
       if (!selectFileDestination) {
         serveExpected(
@@ -1656,9 +1665,6 @@ void runProcessConfirmDivestitureServiceReportScenario(
                                    .withRtiAddress(
                                        L"tcp://127.0.0.1:" + std::to_wstring(port));
   std::exception_ptr clientError;
-  bool ownerJoined = false;
-  bool requesterJoined = false;
-  bool observerJoined = false;
   try {
     REQUIRE_NOTHROW(owner->connect(
         ownerReports, HLA_EVOKED, ownerConfiguration));
@@ -1670,7 +1676,6 @@ void runProcessConfirmDivestitureServiceReportScenario(
         L"process-confirm-divestiture-owner",
         L"publisher",
         federationName));
-    ownerJoined = true;
 
     REQUIRE_NOTHROW(requester->connect(
         requesterReports, HLA_EVOKED, requesterConfiguration));
@@ -1678,7 +1683,6 @@ void runProcessConfirmDivestitureServiceReportScenario(
         L"process-confirm-divestiture-requester",
         L"publisher",
         federationName));
-    requesterJoined = true;
 
     REQUIRE_NOTHROW(observer->connect(
         observerReports, HLA_EVOKED, observerConfiguration));
@@ -1686,7 +1690,6 @@ void runProcessConfirmDivestitureServiceReportScenario(
         L"process-confirm-divestiture-observer",
         L"observer",
         federationName));
-    observerJoined = true;
     auto const reportClass = observer->getInteractionClassHandle(
         L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
     REQUIRE(reportClass.isValid());
@@ -1859,50 +1862,18 @@ void runProcessConfirmDivestitureServiceReportScenario(
 
     REQUIRE_NOTHROW(requester->resignFederationExecution(
         rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES));
-    requesterJoined = false;
     REQUIRE_NOTHROW(owner->resignFederationExecution(
         rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
-    ownerJoined = false;
     REQUIRE_NOTHROW(observer->resignFederationExecution(
         rti1516_2025::NO_ACTION));
-    observerJoined = false;
     REQUIRE_NOTHROW(owner->disconnect());
     REQUIRE_NOTHROW(requester->disconnect());
     REQUIRE_NOTHROW(observer->disconnect());
   } catch (...) {
     clientError = std::current_exception();
-    if (requesterJoined) {
-      try {
-        requester->resignFederationExecution(
-            rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
-      } catch (...) {
-      }
-    }
-    if (ownerJoined) {
-      try {
-        owner->resignFederationExecution(
-            rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST);
-      } catch (...) {
-      }
-    }
-    if (observerJoined) {
-      try {
-        observer->resignFederationExecution(rti1516_2025::NO_ACTION);
-      } catch (...) {
-      }
-    }
-    try {
-      requester->disconnect();
-    } catch (...) {
-    }
-    try {
-      owner->disconnect();
-    } catch (...) {
-    }
-    try {
-      observer->disconnect();
-    } catch (...) {
-    }
+    requester.reset();
+    owner.reset();
+    observer.reset();
   }
   if (listener) {
     listener.reset();
@@ -1910,10 +1881,12 @@ void runProcessConfirmDivestitureServiceReportScenario(
   if (server.joinable()) {
     server.join();
   }
+  if (serverError) {
+    std::rethrow_exception(serverError);
+  }
   if (clientError) {
     std::rethrow_exception(clientError);
   }
-  REQUIRE_FALSE(serverError);
 
   if (selectFileDestination) {
     std::string confirmationRecord;
@@ -2166,7 +2139,7 @@ TEST_CASE(
           TransportServiceOperation::confirm_divestiture,
           "The push Confirm Divestiture server lost Confirm Divestiture.");
       serveExpected(ownerSession, ownerHandler,
-          TransportServiceOperation::report_successful_service_invocation,
+          TransportServiceOperation::report_successful_void_service_invocation,
           "The push Confirm Divestiture server lost its service-report append.");
       // The requester lookup consumes the pushed acquisition notification.
       serveExpected(requesterSession, requesterHandler,

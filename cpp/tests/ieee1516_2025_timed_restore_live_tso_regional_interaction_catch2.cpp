@@ -32,6 +32,7 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->joinFederationExecution(
       L"timed-regional-receiver", L"subscriber", federationName));
   suppressDeclarationRelevanceAdvisories(*publisher);
+  REQUIRE_NOTHROW(receiver->setConveyRegionDesignatorSetsSwitch(true));
 
   auto const interactionClass = publisher->getInteractionClassHandle(
       fixture_hla::fom::main_course_served);

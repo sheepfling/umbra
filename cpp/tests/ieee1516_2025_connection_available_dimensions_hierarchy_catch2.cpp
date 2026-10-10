@@ -482,7 +482,7 @@ TEST_CASE(
             [](std::wstring) { return false; });
         ProcessTransportSession session(connection);
         auto handler = service.handlerFor(session);
-        std::array<TransportServiceOperation, 16U> const expected{
+        std::array<TransportServiceOperation, 18U> const expected{
             TransportServiceOperation::create_federation_execution,
             TransportServiceOperation::join_federation_execution,
             TransportServiceOperation::get_object_class_handle,
@@ -497,7 +497,9 @@ TEST_CASE(
             TransportServiceOperation::get_available_dimensions_for_interaction_class,
             TransportServiceOperation::get_available_dimensions_for_interaction_class,
             TransportServiceOperation::get_available_dimensions_for_object_class,
+            TransportServiceOperation::report_failed_service_invocation,
             TransportServiceOperation::get_available_dimensions_for_interaction_class,
+            TransportServiceOperation::report_failed_service_invocation,
             TransportServiceOperation::resign_federation_execution};
         std::size_t operationIndex = 0U;
         for (auto const operation : expected) {
@@ -509,9 +511,12 @@ TEST_CASE(
                           "The process available-dimensions server received an unexpected operation.");
                     }
                     auto response = handler(request);
-                    if (response.status != TransportServiceStatus::ok) {
+                    bool const invalidHandleLookup =
+                        operationIndex == 13U || operationIndex == 15U;
+                    if (!invalidHandleLookup &&
+                        response.status != TransportServiceStatus::ok) {
                       throw std::runtime_error(
-                          "The process available-dimensions server returned a failed response at operation " +
+                          "The process available-dimensions server returned an unexpected response status at operation " +
                           std::to_string(operationIndex) + ".");
                     }
                     if (operation == TransportServiceOperation::join_federation_execution) {

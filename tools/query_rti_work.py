@@ -1829,8 +1829,8 @@ def contract_drift_report(
 
     The native C++ source index is the only source of current selectors.  A
     ``cpp/tests/...::Title`` reference is clean only when both path and title
-    still match.  External symbolic references (for example a portable TCK
-    ``main.cpp#scenario``) are counted but never treated as native drift.
+    still match. References outside the indexed C++ test tree (including Java
+    TCK source paths) are counted as external to this native-only guard.
     This is intentionally read-only and does not load or resynchronize the
     Requirements Lab export.
     """
@@ -1941,6 +1941,10 @@ def contract_drift_report(
             if reference in source_locations:
                 clean_reference_count += 1
                 continue
+            reference_path = reference.replace("\\", "/").strip()
+            if "/" in reference_path and not reference_path.startswith("cpp/tests/"):
+                external_reference_count += 1
+                continue
             native_reference_count += 1
             findings.append(
                 {
@@ -2048,9 +2052,11 @@ def mapped_test(
     return {
         "id": test.get("id"),
         "test_case": test.get("test_case"),
+        "ctest_target": test.get("ctest_target"),
         "ctest_filter": test.get("ctest_filter"),
         "source_target": test.get("source_target"),
         "primary_lane": test.get("primary_lane"),
+        "focus_lane": test.get("focus_lane"),
         "requirements_lab_mapping_id": test.get("requirements_lab_mapping_id"),
         "requirements_lab_api_surface_status": test.get(
             "requirements_lab_api_surface_status"
@@ -6271,6 +6277,7 @@ def dashboard_snapshot(
             None,
         )
         next_card = {
+            "active_handoff_id": ready.get("active_handoff_id"),
             "state": ready.get("state"),
             "runnable": ready.get("runnable", True),
             "handoff_kind": ready.get("handoff_kind"),
@@ -7086,11 +7093,11 @@ def indexed_active_handoff_record(
     """Resolve the one deliberately selected next slice from the index.
 
     The normal source/planned queues are intentionally exhaustive.  A small
-    ``active_handoff`` card is therefore allowed to name the next new case
-    without pretending that it already exists in the Catch2 plan.  Its
-    requirement and canonical-section counts come from an existing mapped
-    seed row, so callers get the same direct requirement-to-subsection join
-    used by ``case``/``matrix`` without a Requirements-Lab rescan.
+    ``active_handoff`` card may name either a new case, or an existing mapped
+    case that has a concrete open investigation. New cases borrow traceability
+    from a mapped seed row; existing cases retain their own direct mapping.
+    Both paths use the checked-in index and plan without a Requirements-Lab
+    rescan.
     """
 
     card = index.get("active_handoff")
@@ -7103,13 +7110,87 @@ def indexed_active_handoff_record(
     if not isinstance(test_case, str) or not test_case.strip():
         return None
 
-    # Once the planned row is added, the regular indexed queue becomes the
-    # source of truth and this proposal should no longer shadow it.
-    if any(
-        isinstance(test, dict) and test.get("test_case") == test_case
-        for test in tests
-    ):
-        return None
+    existing = next(
+        (
+            test
+            for test in tests
+            if isinstance(test, dict) and test.get("test_case") == test_case
+        ),
+        None,
+    )
+    if isinstance(existing, dict):
+        plan_id = existing.get("id")
+        declared_plan_id = card.get("plan_id")
+        if declared_plan_id and declared_plan_id != plan_id:
+            return {
+                "found": False,
+                "state": "unavailable",
+                "reason": "active_handoff plan_id does not match its indexed test case",
+                "active_handoff_id": card.get("id"),
+            }
+        summary = test_summary_data(existing)
+        pairs = requirement_section_mapping_rows(existing)
+        lane = card.get("lane") or existing.get("primary_lane") or existing.get("focus_lane")
+        if not all(
+            isinstance(value, str) and value.strip()
+            for value in (
+                card.get("source_target"),
+                card.get("ctest_target"),
+                card.get("ctest_filter"),
+                lane,
+            )
+        ):
+            return {
+                "found": False,
+                "state": "unavailable",
+                "reason": "active_handoff existing-case pointer is missing source, lane, or CTest handles",
+                "active_handoff_id": card.get("id"),
+            }
+        quoted_plan_id = json.dumps(str(plan_id), ensure_ascii=False)
+        return {
+            "found": True,
+            "runnable": True,
+            "handoff_kind": "existing-case",
+            "state": "active-handoff",
+            "active_handoff_id": card.get("id"),
+            "family_id": family_id,
+            "plan_id": plan_id,
+            "plan_id_status": "indexed",
+            "test_case": test_case,
+            "source_location": card.get("source_location") or existing.get("source_location"),
+            "source_target": card.get("source_target"),
+            "source_lane": lane,
+            "lane_pending": False,
+            "ctest_target": card.get("ctest_target"),
+            "ctest_filter": card.get("ctest_filter"),
+            "mapping_status": "mapped-existing-case",
+            "requirement_ids": summary.get("lab_requirement_ids", []),
+            "standard_sections": summary.get("standard_sections", []),
+            "api_surfaces": summary.get("cpp_api_surfaces", []),
+            "requirement_section_pairs": pairs,
+            "requirement_section_pair_count": len(pairs),
+            "assertions": existing.get("assertions"),
+            "status": existing.get("status"),
+            "next_action": card.get("objective"),
+            "acceptance": card.get("acceptance", []),
+            "case_command": (
+                f"python tools/query_rti_work.py case {quoted_plan_id} --summary --compact"
+            ),
+            "matrix_requirement_command": (
+                "python tools/query_rti_work.py matrix "
+                f"{quoted_plan_id} --group-by requirement --summary --compact"
+            ),
+            "matrix_section_command": (
+                "python tools/query_rti_work.py matrix "
+                f"{quoted_plan_id} --group-by section --summary --compact"
+            ),
+            "trace_command": (
+                f"python tools/query_rti_work.py trace {quoted_plan_id} --summary --compact"
+            ),
+            "implementation_command": (
+                f"ctest --test-dir <build-dir> -R {json.dumps(card['ctest_filter'])} --output-on-failure"
+            ),
+        }
 
     seed_id = card.get("mapping_seed_plan_id")
     seed = next(
@@ -7778,7 +7859,9 @@ def ready_slice(
     # card's ``work`` handle aligned with its ``trace``/``focus`` handles.
     record["work_id"] = (
         family_id
-        if record.get("state") in {"planned", "mapping", "new-case-needed"} and family_id
+        if record.get("state")
+        in {"planned", "mapping", "new-case-needed", "active-handoff"}
+        and family_id
         else parent.get("id")
     )
     record["active_work_id"] = active.get("work_id")

@@ -480,6 +480,9 @@ int run(
   if (automaticDeleteObjects) {
     writeText(directory / "automatic-delete-objects.mode", "enabled\n");
   }
+  if (timestamped) {
+    writeText(directory / "timestamped.mode", "enabled\n");
+  }
 
   auto const launch = [&](std::string const& role) {
     auto command = quoted(probe) + " " + role + " " + quoted(directory);
@@ -520,8 +523,6 @@ int run(
   std::unique_ptr<RTIambassador> receiver;
   ReceiverFederateAmbassador senderAmbassador;
   ReceiverFederateAmbassador receiverAmbassador;
-  bool senderJoined = false;
-  bool receiverJoined = false;
   std::exception_ptr clientError;
   try {
     auto const port = readPort(directory / "port.txt");
@@ -562,7 +563,6 @@ int run(
         L"package-process-sender",
         L"package-process-type",
         kFederationName));
-    senderJoined = true;
     if (!saveRestore) {
       auto const receiverHandle = receiver->joinFederationExecution(
           L"package-process-receiver",
@@ -572,7 +572,6 @@ int run(
         throw std::runtime_error(
             "The installed receiver Join returned an invalid handle.");
       }
-      receiverJoined = true;
     }
 
     if (saveRestore) {
@@ -712,7 +711,6 @@ int run(
       }
       writeText(directory / "send.ok", "ok\n");
       sender->resignFederationExecution(NO_ACTION);
-      senderJoined = false;
       sender->disconnect();
     } else if (directedRetraction) {
       // Keep this consumer on the installed public surface: the fixture owns
@@ -876,9 +874,7 @@ int run(
 
       writeText(directory / "send.ok", "ok\n");
       sender->resignFederationExecution(DELETE_OBJECTS);
-      senderJoined = false;
       receiver->resignFederationExecution(NO_ACTION);
-      receiverJoined = false;
       receiver->disconnect();
       sender->disconnect();
     }
@@ -926,9 +922,7 @@ int run(
 
       writeText(directory / "send.ok", "ok\n");
       sender->resignFederationExecution(DELETE_OBJECTS);
-      senderJoined = false;
       receiver->resignFederationExecution(NO_ACTION);
-      receiverJoined = false;
       receiver->disconnect();
       sender->disconnect();
     } else if (objectRegistration) {
@@ -956,9 +950,7 @@ int run(
       // rejected by the registry; exercise the successful delete-on-resign
       // path explicitly for this package lane.
       sender->resignFederationExecution(rti1516_2025::DELETE_OBJECTS);
-      senderJoined = false;
       receiver->resignFederationExecution(NO_ACTION);
-      receiverJoined = false;
       receiver->disconnect();
       sender->disconnect();
     }
@@ -1037,9 +1029,7 @@ int run(
       }
 
       sender->resignFederationExecution(DELETE_OBJECTS);
-      senderJoined = false;
       receiver->resignFederationExecution(NO_ACTION);
-      receiverJoined = false;
       receiver->disconnect();
       sender->disconnect();
     } else if (!saveRestore && !objectRegistration &&
@@ -1115,7 +1105,6 @@ int run(
         throw std::runtime_error(
             "The installed automatic-delete-objects process smoke did not receive Connection Lost.");
       }
-      receiverJoined = false;
       writeText(directory / "receiver-loss.ok", "callback-ok\n");
 
       auto const removalDeadline = std::chrono::steady_clock::now() +
@@ -1142,7 +1131,6 @@ int run(
       }
       writeText(directory / "send.ok", "ok\n");
       sender->resignFederationExecution(NO_ACTION);
-      senderJoined = false;
       sender->disconnect();
     } else if (connectionLoss) {
       // The server has closed this federate's socket and removed its remote
@@ -1180,7 +1168,6 @@ int run(
         throw std::runtime_error(
             "The installed receiver did not receive the process Connection Lost callback.");
       }
-      receiverJoined = false;
       writeText(directory / "receiver-loss.ok", "callback-ok\n");
     }
 
@@ -1291,10 +1278,8 @@ int run(
     }
 
     sender->resignFederationExecution(NO_ACTION);
-    senderJoined = false;
     if (!connectionLoss) {
       receiver->resignFederationExecution(NO_ACTION);
-      receiverJoined = false;
       receiver->disconnect();
     }
     sender->disconnect();
@@ -1302,30 +1287,12 @@ int run(
     }
   } catch (...) {
     clientError = std::current_exception();
-    if (senderJoined && sender) {
-      try {
-        sender->resignFederationExecution(NO_ACTION);
-      } catch (...) {
-      }
-    }
-    if (receiverJoined && receiver) {
-      try {
-        receiver->resignFederationExecution(NO_ACTION);
-      } catch (...) {
-      }
-    }
-    if (receiver) {
-      try {
-        receiver->disconnect();
-      } catch (...) {
-      }
-    }
-    if (sender) {
-      try {
-        sender->disconnect();
-      } catch (...) {
-      }
-    }
+    // Do not issue more public services after an assertion/transport failure:
+    // the fixture may be blocked on the other endpoint's next request. Closing
+    // both ambassadors lets the fixture unwind and preserves the original
+    // client exception instead of turning a useful failure into a test timeout.
+    receiver.reset();
+    sender.reset();
   }
 
   auto const serverStatus = server.get();

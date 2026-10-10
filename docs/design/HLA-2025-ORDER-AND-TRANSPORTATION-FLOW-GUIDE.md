@@ -89,7 +89,7 @@ class.
 ```mermaid
 stateDiagram-v2
   direction LR
-  CurrentType --> PendingChange: request accepted; service returns normally
+  CurrentType --> PendingChange: request accepted, service returns normally
   PendingChange --> PendingChange: duplicate/overlapping request is rejected
   PendingChange --> ConfirmedType: confirmation callback revalidates owner/state
   PendingChange --> CurrentType: object/class no longer valid or requester no longer eligible

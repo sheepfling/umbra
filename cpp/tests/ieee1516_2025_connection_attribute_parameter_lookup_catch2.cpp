@@ -562,10 +562,12 @@ TEST_CASE(
         serveExpected(
             TransportServiceOperation::get_parameter_name,
             "The process attribute/parameter-name lookup server lost parameter name lookup.");
-        serveExpected(
+        umbra::test::serveExpectedFailedInvocationReport(
+            serveExpected,
             TransportServiceOperation::get_attribute_name,
             "The process attribute/parameter-name lookup server lost unknown attribute lookup.");
-        serveExpected(
+        umbra::test::serveExpectedFailedInvocationReport(
+            serveExpected,
             TransportServiceOperation::get_parameter_name,
             "The process attribute/parameter-name lookup server lost unknown parameter lookup.");
         serveExpected(

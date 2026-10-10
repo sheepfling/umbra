@@ -61,9 +61,9 @@ sequenceDiagram
     RTI->>State: Attempt reservation for this federate
     alt name is free
       State->>State: Record name → reserving federate
-      State-->>RTI: Accepted; succeeded = true
+      State-->>RTI: Accepted, succeeded = true
     else name is registered or already reserved (including by this federate)
-      State-->>RTI: Accepted; succeeded = false
+      State-->>RTI: Accepted, succeeded = false
     end
     RTI->>Queue: Queue success or failure outcome for callback-model delivery
     RTI-->>App: Return normally (no result value)
@@ -92,7 +92,7 @@ semantics. Do not infer that “multiple” means the two services commit alike.
 
 ```mermaid
 flowchart TD
-  A[reserveMultipleObjectInstanceNames(name set)] --> B{Set non-empty and every name legal?}
+  A["reserveMultipleObjectInstanceNames(name set)"] --> B{Set non-empty and every name legal?}
   B -->|No| X[Reject whole service call synchronously]
   B -->|Yes| C[Iterate names while holding registry lock]
   C --> D{This name is free?}
@@ -115,7 +115,7 @@ intermediate subset.
 
 ```mermaid
 flowchart TD
-  A[releaseMultipleObjectInstanceNames(name set)] --> B{Every name reserved by this federate?}
+  A["releaseMultipleObjectInstanceNames(name set)"] --> B{Every name reserved by this federate?}
   B -->|No| C[Throw ObjectInstanceNameNotReserved]
   C --> D[Leave every reservation unchanged]
   B -->|Yes| E[Erase every reservation]
@@ -148,12 +148,12 @@ sequenceDiagram
   Peer->>RTI: registerObjectInstance(class, name)
   RTI->>Registry: Check occupancy and reservation owner
   Registry-->>RTI: ObjectInstanceNameNotReserved
-  RTI-->>Peer: Registration fails; reservation remains with Owner
+  RTI-->>Peer: Registration fails, reservation remains with Owner
   Owner->>RTI: registerObjectInstance(class, name)
   RTI->>Registry: Validate class, publication, and name ownership
   alt a registration precondition fails
     Registry-->>RTI: Failure before the commit point
-    RTI-->>Owner: Throw; reservation remains held
+    RTI-->>Owner: Throw, reservation remains held
   else all checks pass
     Registry->>Registry: Commit object-instance and name indexes
     Registry->>Registry: Consume Owner's reservation

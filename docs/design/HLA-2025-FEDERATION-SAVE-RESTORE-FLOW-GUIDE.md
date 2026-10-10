@@ -24,7 +24,7 @@ source of requirements, or a claim of conformance.
   prove only their named scenarios. Internal registry tests are implementation
   evidence, not public-API or conformance evidence.
 
-For related but separate state machines, see the [2025 time-management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md), [attribute ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md), and [DDM/regions guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md). This guide points to those areas where their state affects a save image; it does not merge their rules into save/restore.
+For related but separate state machines, see the [2025 time-management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md), the [core attribute ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md) and its [persistence/resignation companion](HLA-2025-OWNERSHIP-PERSISTENCE-AND-RESIGNATION-FLOW-GUIDE.md), and the [DDM/regions guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md). This guide points to those areas where their state affects a save image; it does not merge their rules into save/restore.
 
 ## The mental model
 
@@ -71,6 +71,113 @@ that boundary.
 `abortFederationSave`, `abortFederationRestore`, and the status query/report
 services are related control paths. They do not replace the per-participant
 completion protocol.
+
+## Status queries are read-only callback snapshots
+
+The 2025 API methods `queryFederationSaveStatus` (§4.25) and
+`queryFederationRestoreStatus` (§4.34) return `void`; their data arrives
+through the distinct `federationSaveStatusResponse` (§4.26) and
+`federationRestoreStatusResponse` (§4.35) callbacks. The pinned
+[save-status query](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L364)
+and [restore-status query](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L413),
+with their [save-status callback](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L124)
+and [restore-status callback](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L166),
+show that service/callback split.
+
+In the current embedded path, a query snapshots the operation ledger for the
+requesting member, releases native locks, and routes one status-response
+callback to that requester. It does not start, advance, complete, or abort a
+save or restore. Save responses are `(federate, save status)` pairs. Restore
+responses carry pre-restore handle, post-restore handle, and restore status;
+with no restore active, the current implementation reports
+`NO_RESTORE_IN_PROGRESS` and an invalid post-restore handle. The opposite
+operation remains a service gate: querying save status while restore is in
+progress, or restore status while save is in progress, is rejected.
+
+In the embedded implementation, the adapter entry points are
+[queryFederationSaveStatus](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L859)
+and
+[queryFederationRestoreStatus](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp#L1511);
+the registry constructs the corresponding [save snapshot](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L958)
+and [restore snapshot](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1038).
+
+The following save sequence is the embedded `HLA_IMMEDIATE` integration
+scenario. It shows three independent snapshots: participants instructed to
+save, participants saving, and no save in progress after the federation save
+finishes. The final `federationSaved` notification remains the operation's
+completion signal; the status query is only an observation.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor App as Save owner application
+  participant RTI as Owner RTI ambassador
+  participant Ledger as Embedded save ledger
+  participant FA as Owner FederateAmbassador
+
+  Note over Ledger: Active save, both members are instructed to save
+  App->>RTI: queryFederationSaveStatus()
+  RTI->>Ledger: Read current member status vector
+  Ledger-->>RTI: owner and peer are FEDERATE_INSTRUCTED_TO_SAVE
+  RTI->>FA: federationSaveStatusResponse(status-pair vector)
+  FA-->>RTI: Callback returns
+  RTI-->>App: Void service returns
+
+  Note over Ledger: Both federates call federateSaveBegun
+  App->>RTI: queryFederationSaveStatus()
+  RTI->>Ledger: Read current member status vector
+  Ledger-->>RTI: owner and peer are FEDERATE_SAVING
+  RTI->>FA: federationSaveStatusResponse(status-pair vector)
+  FA-->>RTI: Callback returns
+  RTI-->>App: Void service returns
+
+  Note over Ledger: Both complete, so the federation save finishes
+  RTI->>FA: federationSaved()
+  App->>RTI: queryFederationSaveStatus()
+  RTI->>Ledger: Read current member status vector
+  Ledger-->>RTI: Each current member is NO_SAVE_IN_PROGRESS
+  RTI->>FA: federationSaveStatusResponse(status-pair vector)
+  FA-->>RTI: Callback returns
+  RTI-->>App: Void service returns
+```
+
+Restore uses a different status descriptor and includes the post-restore
+handle. This embedded `HLA_IMMEDIATE` scenario queries while participants are
+restoring, then again after `federationRestored`:
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor App as Restore owner application
+  participant RTI as Owner RTI ambassador
+  participant Ledger as Embedded restore ledger
+  participant FA as Owner FederateAmbassador
+
+  Note over Ledger: Accepted restore, participants are restoring
+  App->>RTI: queryFederationRestoreStatus()
+  RTI->>Ledger: Read current restore descriptor vector
+  Ledger-->>RTI: Two descriptors, queried member is FEDERATE_RESTORING
+  RTI->>FA: federationRestoreStatusResponse(descriptor vector)
+  FA-->>RTI: Callback returns
+  RTI-->>App: Void service returns
+
+  Note over Ledger: Both participants complete, then RTI reports federationRestored
+  RTI->>FA: federationRestored()
+  App->>RTI: queryFederationRestoreStatus()
+  RTI->>Ledger: Read current restore descriptor vector
+  Ledger-->>RTI: NO_RESTORE_IN_PROGRESS, post-restore handle invalid
+  RTI->>FA: federationRestoreStatusResponse(descriptor vector)
+  FA-->>RTI: Callback returns
+  RTI-->>App: Void service returns
+```
+
+These are current-profile observations, not a complete normative status table.
+The save case checks both members at `FEDERATE_INSTRUCTED_TO_SAVE`, then
+`FEDERATE_SAVING`, then `NO_SAVE_IN_PROGRESS`. The restore case checks two
+restoring members and the post-completion idle result. Each diagram is bounded
+to its named embedded test and `HLA_IMMEDIATE`; the adapter also has a separate
+process-endpoint protocol path, so the diagrams do not assert process/embedded
+parity, HLA_EVOKED callback timing, or all status transitions.
 
 ## Save flow: request, participant work, and the commit barrier
 
@@ -183,14 +290,14 @@ sequenceDiagram
   participant Coord as Federation restore coordinator
   participant P1 as Federate 1 callback/application
   participant P2 as Federate 2 callback/application
-  participant Image as Saved RTI state image
 
   App->>RTI: requestFederationRestore(label)
   RTI->>Coord: resolve label and validate image / current participants
   alt Label, image, or participant set is unacceptable
     Coord-->>App: requestFederationRestoreFailed(label)
-    Note over P1,P2: No federationRestoreBegun or initiateFederateRestore for this rejected request
+    Note over P1,P2: Rejected: no begun/initiate callbacks
   else Request accepted
+    Note over Coord: Embedded profile prefers retained full snapshots. After restart, it uses bounded durable-image restore
     Coord-->>App: requestFederationRestoreSucceeded(label)
     par Per-participant callback lane
       Coord-->>P1: federationRestoreBegun()
@@ -203,9 +310,8 @@ sequenceDiagram
       P2->>P2: Restore application-owned state
       P2->>RTI: federateRestoreComplete() or federateRestoreNotComplete()
     end
-    alt All participants report complete and RTI rehydration succeeds
-      Coord->>Image: apply saved RTI-owned federation state
-      Image-->>Coord: restored state
+    alt All participants report complete and RTI state rehydration succeeds
+      Coord->>Coord: Rehydrate RTI-owned state from the selected source
       Coord-->>P1: federationRestored()
       Coord-->>P2: federationRestored()
     else Participant or RTI restore failure
@@ -300,9 +406,11 @@ do not assume a result in one transport path automatically proves the other.
 
 | Scenario | Test evidence | What it demonstrates—and what it does not |
 | --- | --- | --- |
+| Save status query snapshots | [Embedded save-control integration](../../cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp#L4) | Under `HLA_IMMEDIATE`, checks both members as `FEDERATE_INSTRUCTED_TO_SAVE`, then both as `FEDERATE_SAVING`, then both as `NO_SAVE_IN_PROGRESS`; not every status or transition. |
+| Restore status query snapshots | [Embedded save/restore integration](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L268) | Under `HLA_IMMEDIATE`, checks two active descriptors and the queried member's `FEDERATE_RESTORING` status, then `NO_RESTORE_IN_PROGRESS` and an invalid post-restore handle after completion; not every descriptor value or callback profile. |
 | Timed save waits for constrained delivery and pending requests can be replaced | [Embedded timed federation save integration](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L5) | Development-profile integration evidence for a timed save interaction with constrained time/TSO; not a general proof of all time policies. |
 | Failed restore request, participant failure, abort, and resignation | [Embedded restore failure recovery](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L365) | Shows missing-label failure callback, `FEDERATE_REPORTED_FAILURE_DURING_RESTORE`, `RESTORE_ABORTED`, and survivor notification after resignation. |
-| RTI-owned synchronization-point and region state is reconstituted | [Synchronization/region restore](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L421) | One embedded development-profile image scenario; not an exhaustive snapshot contract. |
+| RTI-owned synchronization-point and region state is reconstituted | [Synchronization/region restore](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L421); [barrier achievement persistence and evidence boundary](HLA-2025-FEDERATION-SYNCHRONIZATION-FLOW-GUIDE.md#save-restore-preserves-an-in-flight-barrier) | The public-API case restores a single-member announced-but-unachieved point; it does not exercise a multi-member barrier with partial achievement. |
 | RTI commit happens before success notification | [Save commit ordering](../../cpp/tests/ieee1516_2025_federation_registry_save_commit_ordering_catch2.cpp#L3) | Internal registry evidence that the store receives a versioned image, including a queued TSO record, before success is reported. |
 | Durable commit failure becomes a failed federation save | [Save commit failure](../../cpp/tests/ieee1516_2025_federation_registry_save_commit_failure_catch2.cpp#L3) | Injected internal storage failure yields an unsuccessful result and `RTI_UNABLE_TO_SAVE`; it is not a storage-engine crash-consistency test. |
 | TSO queued, in-transit, and delivered phases are restored distinctly | [TSO queue phase restore](../../cpp/tests/ieee1516_2025_federation_registry_restore_tso_queue_phase_state_image_catch2.cpp#L3) | Internal state-image evidence for a bounded queue ledger; not proof that every TSO-related callback ledger is restartable. |

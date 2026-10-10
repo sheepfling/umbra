@@ -45,23 +45,20 @@ failed validation, composition, FDD, or time-selection step occurs before the
 registry's create operation, so it must not reserve the federation name.
 
 ```mermaid
-flowchart TD
+flowchart LR
   A[Create Federation Execution request] --> B{At least one FOM module supplied?}
-  B -- No --> X[Reject preparation; registry is not mutated]
-  B -- Yes --> C[Select 2025 MIM and vendored 2025 DIF/FDD resources]
-  C --> D[Validate selected or supplied MIM under DIF]
-  D --> E[Validate each supplied FOM in request order]
-  E --> F{Every module validates?}
-  F -- No --> X
-  F -- Yes --> G[Revalidate and compose complete MIM-first module set]
-  G --> H{Annex C merge, completed-model checks, and FDD validation pass?}
-  H -- No --> X
-  H -- Yes --> I[Select the requested logical-time implementation]
-  I --> J{Time implementation matches the composed model?}
-  J -- No --> X
-  J -- Yes --> K[Prepare immutable FederationDefinition]
-  K --> L[Registry creates federation and reserves its name]
+  B -- No --> X[Reject; registry is unchanged]
+  B -- Yes --> C[Select 2025 MIM and schema resources]
+  C --> D[Validate and compose modules; materialize the FDD]
+  D --> E{Requested logical-time implementation matches?}
+  E -- No --> X
+  E -- Yes --> F[Prepare immutable FederationDefinition]
+  F --> G[Registry creates execution and reserves its name]
 ```
+
+The model-preparation sub-flow is expanded in the composition diagram below.
+This chart emphasizes the public Create transaction boundary: every rejection
+occurs before the registry reserves the federation name.
 
 If the standard MIM is omitted, the coordinator loads Umbra's selected 2025
 standard MIM first. A supplied MIM designator is validated as the MIM input;
@@ -84,18 +81,18 @@ then resolves references against the **whole** merged model.
 
 ```mermaid
 flowchart LR
-  A[2025 standard MIM] --> M[Ordered Annex C merge]
-  B[2025 FOM module 1] --> M
-  C[2025 FOM module 2 ... n] --> M
+  A[Ordered MIM-first 2025 module set] --> B{Every module passes its role-specific 2025 DIF validation?}
+  B -- No --> E[Reject preparation; registry is unchanged]
+  B -- Yes --> M[Ordered Annex C merge]
   M --> D{All modules use the same edition and source profile?}
-  D -- No --> E[Reject inconsistent module set]
+  D -- No --> E
   D -- Yes --> F[Resolve names and references after merge]
   F --> G{Completed-model predicates pass?}
   G -- No --> E
   G -- Yes --> H[Build composed catalog]
   H --> I[Materialize RTI-facing 2025 FDD]
   I --> J{Official 2025 FDD schema accepts artifact?}
-  J -- No --> K[Reject; no prepared definition]
+  J -- No --> E
   J -- Yes --> L[Return catalog, module set, FDD, and warnings]
 ```
 

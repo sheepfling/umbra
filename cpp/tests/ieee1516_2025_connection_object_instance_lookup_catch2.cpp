@@ -544,10 +544,12 @@ TEST_CASE(
         serveExpected(
             TransportServiceOperation::get_object_instance_handle,
             "The process object-instance lookup server lost name-to-handle lookup.");
-        serveExpected(
+        umbra::test::serveExpectedFailedInvocationReport(
+            serveExpected,
             TransportServiceOperation::get_object_instance_handle,
             "The process object-instance lookup server lost unknown-name lookup.");
-        serveExpected(
+        umbra::test::serveExpectedFailedInvocationReport(
+            serveExpected,
             TransportServiceOperation::get_object_instance_name,
             "The process object-instance lookup server lost unknown-handle lookup.");
         serveExpected(

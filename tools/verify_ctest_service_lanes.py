@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 
-CATCH2_TEST_PREFIX = "umbra.ieee1516_2025.catch2."
+CATCH2_TEST_MARKER = ".catch2."
 REQUIRED_LABELS = ("requirements-lab", "api-contract")
 
 
@@ -124,7 +124,7 @@ def main() -> int:
             1
             for test in selected
             if isinstance(test.get("name"), str)
-            and test["name"].startswith(CATCH2_TEST_PREFIX)
+            and CATCH2_TEST_MARKER in test["name"]
         )
         requirements_count = sum(
             1 for test in selected if "requirements-lab" in labels_for(test)

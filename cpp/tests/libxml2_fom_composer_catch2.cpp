@@ -68,6 +68,8 @@ class ScopedTemporaryFile final {
   ~ScopedTemporaryFile() {
     std::error_code ignored;
     std::filesystem::remove(path_, ignored);
+    ignored.clear();
+    std::filesystem::remove(path_.parent_path(), ignored);
   }
 
   [[nodiscard]] std::filesystem::path const& path() const noexcept {
@@ -78,8 +80,23 @@ class ScopedTemporaryFile final {
   std::filesystem::path path_;
 };
 
+std::filesystem::path temporaryFomModulePath(std::string stem) {
+  static std::atomic_uint64_t next{0U};
+  auto const parent = std::filesystem::temp_directory_path();
+  for (;;) {
+    auto const directory = parent / (stem + "-" + std::to_string(++next));
+    std::error_code error;
+    if (std::filesystem::create_directory(directory, error)) {
+      return directory / "module.xml";
+    }
+    if (error && error != std::errc::file_exists) {
+      throw std::filesystem::filesystem_error(
+          "Unable to reserve unique temporary FOM directory", directory, error);
+    }
+  }
+}
+
 ScopedTemporaryFile nrgEnabledRestaurantModule() {
-  static std::atomic_uint64_t counter{0};
   auto const source = resourcePath("examples/RestaurantFOMmodule-2025.xml");
   std::ifstream input(source, std::ios::binary);
   REQUIRE(input.good());
@@ -96,8 +113,7 @@ ScopedTemporaryFile nrgEnabledRestaurantModule() {
       switchesPosition,
       "        <nonRegulatedGrant isEnabled=\"true\"/>\n    ");
 
-  auto const path = std::filesystem::temp_directory_path() /
-      ("umbra-nrg-enabled-" + std::to_string(++counter) + ".xml");
+  auto const path = temporaryFomModulePath("umbra-nrg-enabled");
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   REQUIRE(output.good());
   output << fomText;
@@ -106,7 +122,6 @@ ScopedTemporaryFile nrgEnabledRestaurantModule() {
 }
 
 ScopedTemporaryFile restaurantModuleWithConflictingSynchronizationNote() {
-  static std::atomic_uint64_t counter{0};
   auto const source = resourcePath("examples/RestaurantFOMmodule-2025.xml");
   std::ifstream input(source, std::ios::binary);
   REQUIRE(input.good());
@@ -125,8 +140,7 @@ ScopedTemporaryFile restaurantModuleWithConflictingSynchronizationNote() {
       std::string("<synchronizationPoint>").size(),
       "<synchronizationPoint noteReferences=\"Note1\">");
 
-  auto const path = std::filesystem::temp_directory_path() /
-      ("umbra-sync-duplicate-note-" + std::to_string(++counter) + ".xml");
+  auto const path = temporaryFomModulePath("umbra-sync-duplicate-note");
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   REQUIRE(output.good());
   output << fomText;
@@ -135,7 +149,6 @@ ScopedTemporaryFile restaurantModuleWithConflictingSynchronizationNote() {
 }
 
 ScopedTemporaryFile mimWithConflictingTransportationNote() {
-  static std::atomic_uint64_t counter{0};
   auto const source = resourcePath("mim/HLAstandardMIM-2025.xml");
   std::ifstream input(source, std::ios::binary);
   REQUIRE(input.good());
@@ -154,8 +167,7 @@ ScopedTemporaryFile mimWithConflictingTransportationNote() {
       std::string("<transportation>").size(),
       "<transportation noteReferences=\"MOM1\">");
 
-  auto const path = std::filesystem::temp_directory_path() /
-      ("umbra-transport-duplicate-note-" + std::to_string(++counter) + ".xml");
+  auto const path = temporaryFomModulePath("umbra-transport-duplicate-note");
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   REQUIRE(output.good());
   output << mimText;
@@ -164,7 +176,6 @@ ScopedTemporaryFile mimWithConflictingTransportationNote() {
 }
 
 ScopedTemporaryFile restaurantModuleWithConflictingUpdateRateNote() {
-  static std::atomic_uint64_t counter{0};
   auto const source = resourcePath("examples/RestaurantFOMmodule-2025.xml");
   std::ifstream input(source, std::ios::binary);
   REQUIRE(input.good());
@@ -183,8 +194,7 @@ ScopedTemporaryFile restaurantModuleWithConflictingUpdateRateNote() {
       std::string("<updateRate>").size(),
       "<updateRate noteReferences=\"Note1\">");
 
-  auto const path = std::filesystem::temp_directory_path() /
-      ("umbra-update-rate-duplicate-note-" + std::to_string(++counter) + ".xml");
+  auto const path = temporaryFomModulePath("umbra-update-rate-duplicate-note");
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   REQUIRE(output.good());
   output << fomText;
@@ -193,7 +203,6 @@ ScopedTemporaryFile restaurantModuleWithConflictingUpdateRateNote() {
 }
 
 ScopedTemporaryFile dimensionProviderWithConflictingDimension() {
-  static std::atomic_uint64_t counter{0};
   auto const source = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
       "data" / "dimension-reference-provider-fom.xml";
   std::ifstream input(source, std::ios::binary);
@@ -211,8 +220,7 @@ ScopedTemporaryFile dimensionProviderWithConflictingDimension() {
       std::string("<upperBound>100</upperBound>").size(),
       "<upperBound>101</upperBound>");
 
-  auto const path = std::filesystem::temp_directory_path() /
-      ("umbra-dimension-duplicate-conflict-" + std::to_string(++counter) + ".xml");
+  auto const path = temporaryFomModulePath("umbra-dimension-duplicate-conflict");
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   REQUIRE(output.good());
   output << fomText;
@@ -221,7 +229,6 @@ ScopedTemporaryFile dimensionProviderWithConflictingDimension() {
 }
 
 ScopedTemporaryFile dimensionProviderWithUniqueDimension() {
-  static std::atomic_uint64_t counter{0};
   auto const source = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
       "data" / "dimension-reference-provider-fom.xml";
   std::ifstream input(source, std::ios::binary);
@@ -246,8 +253,7 @@ ScopedTemporaryFile dimensionProviderWithUniqueDimension() {
       "            <value>[0..2)</value>\n"
       "        </dimension>\n");
 
-  auto const path = std::filesystem::temp_directory_path() /
-      ("umbra-dimension-unique-" + std::to_string(++counter) + ".xml");
+  auto const path = temporaryFomModulePath("umbra-dimension-unique");
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   REQUIRE(output.good());
   output << fomText;
@@ -259,7 +265,6 @@ ScopedTemporaryFile restaurantModuleWithNameReplacement(
     std::string_view originalName,
     std::string_view replacement,
     std::string_view label) {
-  static std::atomic_uint64_t counter{0};
   auto const source = resourcePath("examples/RestaurantFOMmodule-2025.xml");
   std::ifstream input(source, std::ios::binary);
   REQUIRE(input.good());
@@ -274,9 +279,8 @@ ScopedTemporaryFile restaurantModuleWithNameReplacement(
       "<name>" + std::string(replacement) + "</name>";
   fomText.replace(position, original.size(), replacementElement);
 
-  auto const path = std::filesystem::temp_directory_path() /
-      ("umbra-fom-name-" + std::string(label) + "-" +
-       std::to_string(++counter) + ".xml");
+  auto const path = temporaryFomModulePath(
+      "umbra-fom-name-" + std::string(label));
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   REQUIRE(output.good());
   output << fomText;
@@ -285,7 +289,6 @@ ScopedTemporaryFile restaurantModuleWithNameReplacement(
 }
 
 ScopedTemporaryFile restaurantModuleWithTimezoneModificationDate() {
-  static std::atomic_uint64_t counter{0};
   auto const source = resourcePath("examples/RestaurantFOMmodule-2025.xml");
   std::ifstream input(source, std::ios::binary);
   REQUIRE(input.good());
@@ -302,8 +305,7 @@ ScopedTemporaryFile restaurantModuleWithTimezoneModificationDate() {
       original.size(),
       "<modificationDate>2025-02-10Z</modificationDate>");
 
-  auto const path = std::filesystem::temp_directory_path() /
-      ("umbra-fom-modification-date-" + std::to_string(++counter) + ".xml");
+  auto const path = temporaryFomModulePath("umbra-fom-modification-date");
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   REQUIRE(output.good());
   output << fomText;
@@ -312,7 +314,6 @@ ScopedTemporaryFile restaurantModuleWithTimezoneModificationDate() {
 }
 
 ScopedTemporaryFile restaurantModuleWithConflictingDimensionNote() {
-  static std::atomic_uint64_t counter{0};
   auto const source = resourcePath("examples/RestaurantFOMmodule-2025.xml");
   std::ifstream input(source, std::ios::binary);
   REQUIRE(input.good());
@@ -331,8 +332,7 @@ ScopedTemporaryFile restaurantModuleWithConflictingDimensionNote() {
       semanticsEnd + std::string("</semantics>").size() - semanticsStart,
       "<semantics>Conflicting dimension normalization note.</semantics>");
 
-  auto const path = std::filesystem::temp_directory_path() /
-      ("umbra-dimension-duplicate-note-conflict-" + std::to_string(++counter) + ".xml");
+  auto const path = temporaryFomModulePath("umbra-dimension-duplicate-note-conflict");
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   REQUIRE(output.good());
   output << fomText;
@@ -419,9 +419,7 @@ TEST_CASE(
   REQUIRE(result.status == FomCompositionStatus::valid);
   REQUIRE(result.fdd);
 
-  static std::atomic_uint64_t counter{0};
-  auto const path = std::filesystem::temp_directory_path() /
-      ("umbra-strict-omt-complete-" + std::to_string(++counter) + ".xml");
+  auto const path = temporaryFomModulePath("umbra-strict-omt-complete");
   ScopedTemporaryFile temporary(path);
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   REQUIRE(output.good());

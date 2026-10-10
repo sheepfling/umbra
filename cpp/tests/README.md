@@ -1777,14 +1777,14 @@ remain separate:
     cmake --build <build-dir> --config Debug --target umbra_service_report_writer_failure_catch2
     ctest --test-dir <build-dir> -C Debug -R "^umbra\\.service_report_writer_failure\\.catch2\\.Service-report writer creation failure rejects the join without an in-memory fallback$" --output-on-failure
 
-The subscription-generation restore case is a separate focused lane at
-`cpp/tests/libxml2_fom_composer_catch2.cpp:1742`. It passes 31 native C++
-unit assertions, maps the §4.32 save/restore candidate to canonical 2025
-clause `4.32`, and records the two official restore API surfaces. The case
-restores declaration state and proves the next subscription mutation consumes
-the saved generation identity; it remains development-profile evidence:
+The subscription-generation restore case is a private registry invariant at
+`cpp/tests/federation_registry_composed_fom_catch2.cpp:926`. It passes 31
+native C++ unit assertions and explicitly has no standalone Requirements-Lab
+requirement, normative clause, or public API mapping. It restores declaration
+state and verifies that the next subscription mutation consumes the saved
+generation identity; keep it as internal implementation evidence:
 
-    python tools/query_rti_work.py trace m92.federation-registry-subscription-generation-restore --summary --compact
+    python tools/query_rti_work.py case umbra-private-federation-registry-subscription-generation-restore-unit --summary --compact
     python tools/query_rti_work.py matrix subscription-generation --summary --compact
     python tools/query_rti_work.py focus subscription-generation --summary --compact
     python tools/query_rti_work.py check --lane subscription-generation --summary --compact

@@ -68,7 +68,7 @@ stateDiagram-v2
   NoPendingRequest --> AcquisitionPending: Acquisition accepted
   NoPendingRequest --> WillingToAcquire: If Available accepted
   AcquisitionPending --> Owns: Acquisition Notification begins
-  WillingToAcquire --> Owns: available at callback recheck; Notification begins
+  WillingToAcquire --> Owns: available at callback recheck, Notification begins
   AcquisitionPending --> NoPendingRequest: Ownership Unavailable begins
   WillingToAcquire --> NoPendingRequest: Ownership Unavailable begins
   AcquisitionPending --> NoPendingRequest: request canceled or instance invalidated
@@ -97,7 +97,7 @@ sequenceDiagram
   actor A as Current owner
 
   B->>RTI: attributeOwnershipAcquisition(attributes, tag)
-  RTI-->>B: Service accepted; requested attributes become pending
+  RTI-->>B: Service accepted, requested attributes become pending
   RTI-->>A: requestAttributeOwnershipRelease(owned subset, acquisition tag)
   Note over B,RTI: Unowned members of the same set can resolve independently
   RTI-->>B: Attribute Ownership Acquisition Notification for eligible unowned member
@@ -107,7 +107,7 @@ sequenceDiagram
     RTI-->>B: attributeOwnershipUnavailable(denied subset, denial tag)
     Note over A: A remains owner of the denied attributes
   else A divests through an applicable transfer path
-    Note over A,RTI: The transfer path can be unconditional or negotiated; exact callbacks differ
+    Note over A,RTI: The transfer path can be unconditional or negotiated, and exact callbacks differ
     RTI-->>B: Attribute Ownership Acquisition Notification
     Note over B: The requester observes ownership at callback dispatch
   end
@@ -144,7 +144,7 @@ sequenceDiagram
   actor A as Current owner
 
   B->>RTI: attributeOwnershipAcquisitionIfAvailable(attributes, tag)
-  RTI-->>B: Service accepted; work is pending
+  RTI-->>B: Service accepted, work is pending
   Note over RTI: A known class and the required publication are preconditions
   alt Attribute is unowned when result work is dispatched
     RTI->>RTI: Revalidate request and commit eligible ownership
@@ -236,6 +236,156 @@ it separately requests acquisition. The search can continue after stale work
 is suppressed; a candidate that republishes can become eligible for a fresh
 offer.
 
+## Query Attribute Ownership reports a snapshot; it does not transfer
+
+The 2025 API separates the request service (§7.17) from its three result
+callbacks (§7.18): `informAttributeOwnership`, `attributeIsNotOwned`, and
+`attributeIsOwnedByRTI`. These callback names and sections are visible in the
+pinned [RTIambassador API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h)
+and [FederateAmbassador API](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h).
+The following diagrams describe the **embedded 2025 path only**. The process
+endpoint takes a separate client/protocol branch in the ambassador and is not
+claimed equivalent here.
+
+The service validates membership, object knowledge, and the supplied
+attribute handles before planning a report. Failures at those gates are
+synchronous service exceptions, not ownership-result callbacks. For an
+ordinary object, the embedded registry groups each nonempty subset by current
+federate owner and places unowned attributes in a separate group. A
+joined-federate MOM object has a separate RTI-owned ledger and produces the
+`attributeIsOwnedByRTI` result rather than fabricating a federate owner. All
+groups route to the querying federate. The query changes no ownership state;
+it reports the classification found by the plan and later rechecked at
+delivery.
+
+```mermaid
+flowchart TD
+  A[Requester calls queryAttributeOwnership] --> B{Connected, operation available, and joined?}
+  B -->|No| X[Synchronous service exception]
+  B -->|Yes| C{Known object and defined requested attributes?}
+  C -->|No| X
+  C -->|Yes| D[Embedded registry plans nonempty result groups]
+  D --> E{RTI-owned joined-federate MOM object?}
+  E -->|Yes| F[Check requester knows MOM object and attributes are effective]
+  F -->|No| X
+  F -->|Yes| G[One RTI-owned result group]
+  E -->|No| H[Check ordinary object is known and not delete-accepted]
+  H -->|No| X
+  H -->|Yes| I[Validate attributes against requester's known object class]
+  I -->|Invalid| X
+  I -->|Valid| J[Group attributes by current federate owner]
+  J --> K[Make a separate unowned group when needed]
+  G --> L[Route each group to the requester]
+  K --> L
+  L --> M{Result group classification}
+  M -->|Federate owner| N[informAttributeOwnership]
+  M -->|Unowned| O[attributeIsNotOwned]
+  M -->|RTI-owned MOM| P[attributeIsOwnedByRTI]
+  N --> Q[Report only; ownership is unchanged]
+  O --> Q
+  P --> Q
+```
+
+In the focused ordinary-object test, querying one owned and one unowned
+attribute produces two distinct requester callbacks after the EVOKED callback
+queue is drained; the owner receives neither callback. The MOM case exercises
+the separate RTI-owned result and confirms that `isAttributeOwnedByFederate`
+remains false for those attributes. These are selected embedded scenarios,
+not an exhaustive exception matrix or a process-profile parity claim.
+
+Planning a group is not a promise that its callback will still be meaningful
+when user code runs. The embedded path records a pending query identity,
+submits its callback route after releasing the registry lock, then consumes
+and validates that identity and recomputes the current projection at callback
+entry. A removed ordinary object, a no-longer-known projection, or attributes
+that no longer match the planned result can suppress that group. The focused
+deletion case shows that an already queued ownership report is suppressed
+after object removal while the removal callback itself is still delivered.
+
+```mermaid
+stateDiagram-v2
+  direction TB
+  [*] --> PlannedGroup: Query plan classifies attributes
+  PlannedGroup --> PendingIdentity: Persist requester, object, kind, owner, and attributes
+  PendingIdentity --> CallbackRoute: Submit after releasing registry lock
+  CallbackRoute --> Recheck: Callback begins
+  Recheck --> Suppressed: Query identity or projection invalid
+  Recheck --> DeliverFederateOwner: Still owned by federate
+  Recheck --> DeliverUnowned: Still unowned
+  Recheck --> DeliverRtiOwned: RTI-owned MOM still known
+  DeliverFederateOwner --> [*]: informAttributeOwnership
+  DeliverUnowned --> [*]: attributeIsNotOwned
+  DeliverRtiOwned --> [*]: attributeIsOwnedByRTI
+  Suppressed --> [*]: No stale ownership callback
+```
+
+The save/restore tests add a separate persistence boundary: selected pending
+unowned and RTI-owned query groups are present in the saved image and can be
+rebound after a fresh embedded registry is created. Those two focused cases
+exercise both `HLA_EVOKED` and `HLA_IMMEDIATE`; they do not establish restore
+coverage for every result kind or every save/restore cut point. The diagrams
+also do not specify ordering among independently planned result groups.
+
+## Accepted object deletion invalidates pending ownership work
+
+For an accepted receive-order `deleteObjectInstance`, the embedded registry
+marks deletion accepted and clears pending ownership-query identities and
+ownership-operation ledgers. Queued query, regular owner-release,
+If-Available, and cancellation callbacks therefore re-enter their callback
+gates against an object/request that is no longer eligible, and the selected
+embedded tests observe those stale ownership callbacks being suppressed. A
+separate receiver-removal reservation is still checked at its own gate; if the
+receiver remains a member that knows the object, Umbra commits that receiver
+to unknown before `removeObjectInstance`. These are separate callback gates,
+not a promise of global ordering among ownership and removal callbacks.
+
+This accepted federation-wide deletion differs from
+`localDeleteObjectInstance`, which refuses the caller's local-forget request
+while its relevant ownership work is still pending; see the distinct
+[local-delete flow](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#local-delete-forgets-one-federates-view-it-does-not-delete-the-instance).
+The diagram's stale-work branches are directly exercised for ownership
+queries, regular owner-release requests, If-Available results, and cancellation
+confirmation. Other cleared ledgers are source-observed here, not individually
+proven by these four deletion scenarios. The focused If-Wanted, negotiated
+divestiture, and Confirm Divestiture test files surveyed for this update had no
+direct delete/removal references. One If-Wanted restore test does stage a
+pending notification and then resigns the owner with
+`CANCEL_THEN_DELETE_THEN_DIVEST` before draining callbacks, but it makes no
+post-deletion callback assertion; treat that as indirect setup evidence, not
+proof of suppression. The Confirm Divestiture candidate-resignation test also
+captures a pending notification before the candidate resigns, then tears down
+the remaining owner without checking a post-delete callback. Deletion
+suppression for these operation families remains source-observed.
+
+```mermaid
+flowchart TD
+  Delete[Receive-order delete is accepted before queued callbacks start] --> Clear[Mark delete accepted and clear pending query and ownership-operation ledgers]
+  Clear --> Query[Queued ownership-query result reaches its callback gate]
+  Query --> QueryCheck[Revalidate request identity and current projection]
+  QueryCheck --> DropQuery[Deleted object invalidates the queued result, suppress callback]
+  Clear --> Operation[Queued regular owner-release request, If-Available result, or cancellation confirmation reaches its gate]
+  Operation --> OperationCheck[Check the pending operation at callback entry]
+  OperationCheck --> DropOperation[Deletion cleared the operation, suppress callback]
+  Delete --> Removal[Process a separate receiver-removal reservation]
+  Removal --> RemovalCheck{Receiver remains a member and knows the object?}
+  RemovalCheck -->|No| Retire[Retire stale removal reservation]
+  RemovalCheck -->|Yes| Commit[Commit receiver to unknown and capture removal snapshot]
+  Commit --> Callback[Dispatch removeObjectInstance]
+```
+
+The registry's [accepted-delete cleanup](../../cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp#L99),
+the [query-result gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp#L20),
+the [If-Available gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp#L79),
+the [regular release-request gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp#L256),
+and the [receiver-removal gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1331)
+establish separate source paths. Focused `HLA_EVOKED` tests demonstrate
+[query-result suppression](../../cpp/tests/attribute_ownership_query_catch2.cpp#L359),
+[regular owner-release suppression](../../cpp/tests/ieee1516_2025_attribute_ownership_acquisition_release_callbacks_catch2.cpp#L201),
+[If-Available suppression](../../cpp/tests/attribute_ownership_acquisition_if_available_catch2.cpp#L353),
+and [cancellation-confirmation suppression](../../cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp#L359),
+each with a receive-order removal callback. They are separate scenarios and do
+not establish all-ledger callback ordering or process-endpoint parity.
+
 ## Edge cases worth remembering
 
 - **Attribute sets are not atomic ownership units.** Track outcomes by each
@@ -255,18 +405,23 @@ offer.
   failures; this is not the complete exception matrix.
 - **Ownership is not update delivery.** Time ordering, region relevance,
   subscription filtering, and update-queue behavior form additional state
-  machines. Read the dedicated timing guide and the upcoming DDM/region guide
+  machines. Read the dedicated [timing guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md)
+  and [DDM/region guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md)
   before inferring whether a new owner has received any particular value.
-- **Persistence and resignation are not modeled here.** Separate tests cover
-  pending ownership across save/restore and resignation actions; they deserve
-  their own flow diagrams rather than being hidden in this core transfer
-  chart.
+- **Persistence and resignation are outside this core transfer guide.** See the
+  [ownership persistence and resignation companion](HLA-2025-OWNERSHIP-PERSISTENCE-AND-RESIGNATION-FLOW-GUIDE.md)
+  for selected pending-work restore and member-scoped cancellation scenarios;
+  those diagrams remain bounded to the cited 2025 implementation and tests.
 
 ## Source and focused evidence
 
 - Public 2025 service adaptation and callback scheduling:
   [ownership services](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp),
   [ownership callback dispatch](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp).
+- Query result planning and callback-time projection:
+  [embedded registry query planning and recipient revalidation](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp),
+  [query callback dispatch](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp#L20),
+  and the public 2025 API headers linked above.
 - State planning and callback-entry revalidation:
   [regular acquisition registry](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp),
   [If-Available registry](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp),
@@ -276,7 +431,11 @@ offer.
   [If Available](../../cpp/tests/ieee1516_2025_attribute_ownership_acquisition_if_available_catch2.cpp),
   [unconditional divestiture and assumption search](../../cpp/tests/ieee1516_2025_unconditional_attribute_ownership_divestiture_catch2.cpp),
   [multiple acquirers after release denial](../../cpp/tests/ieee1516_2025_attribute_ownership_release_denied_multi_acquirer_catch2.cpp),
-  and [process-boundary confirmation with an assumption candidate](../../cpp/tests/ieee1516_2025_confirm_divestiture_process_assumption_catch2.cpp).
+  [process-boundary confirmation with an assumption candidate](../../cpp/tests/ieee1516_2025_confirm_divestiture_process_assumption_catch2.cpp),
+  [embedded query grouping and deletion invalidation](../../cpp/tests/ieee1516_2025_embedded_query_attribute_ownership_catch2.cpp),
+  [RTI-owned MOM query result](../../cpp/tests/ieee1516_2025_rti_owned_mom_ownership_query_catch2.cpp),
+  [pending unowned query restore](../../cpp/tests/ieee1516_2025_public_fresh_registry_pending_unowned_query_attribute_ownership_restore_catch2.cpp),
+  and [pending RTI-owned query restore](../../cpp/tests/ieee1516_2025_public_fresh_registry_pending_rti_owned_query_attribute_ownership_restore_catch2.cpp).
 
 The first acquisition case is indexed as
 umbra-cpp-attribute-ownership-acquisition-integration: 73 assertions, mapped
@@ -292,7 +451,7 @@ transition, or interaction with time and DDM. It describes a set of high-value
 paths whose behavior is visible in current 2025 source and tests. Expand it
 only when a focused source-and-test review can support the added diagram.
 
-The next guide is
-[DDM and region relevance/routing](HLA-BEHAVIOR-FLOW-GUIDES.md#prioritized-guide-backlog).
+For the adjacent delivery-relevance state machines, continue with
+[DDM and region relevance/routing](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md).
 Keep the 2010 stream separate and leave the Requirements Lab unchanged in this
 phase.

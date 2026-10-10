@@ -1134,12 +1134,16 @@ TEST_CASE(
           !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
           !serveExpected(TransportServiceOperation::get_automatic_resign_directive) ||
           !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
           !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
           !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::get_automatic_resign_directive) ||
           !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::get_automatic_resign_directive) ||
           !serveExpected(TransportServiceOperation::resign_federation_execution)) {
         throw std::runtime_error(
@@ -1352,6 +1356,7 @@ TEST_CASE(
           !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
           !serveExpected(TransportServiceOperation::unsubscribe_interaction_class) ||
           !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
           !serveExpected(TransportServiceOperation::subscribe_interaction_class) ||
           !serveExpected(TransportServiceOperation::report_failed_service_invocation) ||
@@ -1548,6 +1553,7 @@ TEST_CASE(
           !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
           !serveExpected(TransportServiceOperation::unsubscribe_interaction_class) ||
           !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
           !serveExpected(TransportServiceOperation::resign_federation_execution)) {
         throw std::runtime_error(

@@ -349,6 +349,8 @@ int runPublicServer(
 
   bool const automaticCancelPendingAcquisition = std::filesystem::exists(
       directory / "automatic-cancel-pending-acquisition.mode");
+  bool const timestamped =
+      std::filesystem::exists(directory / "timestamped.mode");
   bool const automaticDeleteObjects = std::filesystem::exists(
       directory / "automatic-delete-objects.mode");
   bool const federateLostMomReport = std::filesystem::exists(
@@ -429,6 +431,20 @@ int runPublicServer(
                 std::to_string(static_cast<unsigned int>(request.operation)) +
                 " (expected " +
                 std::to_string(static_cast<unsigned int>(operation)) + ").");
+          }
+          return senderHandler(request);
+        });
+  };
+  auto serveExpectedSenderServiceReport = [&] {
+    return umbra::test::servePrimaryProcessRequest(
+        *sender, senderHandler,
+        [&](TransportServiceMessage const& request) {
+          if (request.operation !=
+                  TransportServiceOperation::report_successful_service_invocation &&
+              request.operation !=
+                  TransportServiceOperation::report_successful_void_service_invocation) {
+            throw std::runtime_error(
+                "The installable process profile server expected Send Interaction's service report.");
           }
           return senderHandler(request);
         });
@@ -824,7 +840,11 @@ int runPublicServer(
         !serveNamedSender(TransportServiceOperation::reserve_object_instance_name) ||
         !serveNamedSender(TransportServiceOperation::register_object_instance) ||
         !serveNamedSender(TransportServiceOperation::register_object_instance) ||
-        !serveNamedSender(TransportServiceOperation::reserve_object_instance_name)) {
+        !serveNamedSender(
+            TransportServiceOperation::report_failed_service_invocation) ||
+        !serveNamedSender(TransportServiceOperation::reserve_object_instance_name) ||
+        !serveNamedSender(
+            TransportServiceOperation::report_failed_service_invocation)) {
       throw std::runtime_error(
           "The installable process profile named-registration server lost a public operation.");
     }
@@ -1073,6 +1093,8 @@ int runPublicServer(
     if (automaticDeleteObjects) {
       if (!serveExpectedSenderAfterEvokedPolls(
               TransportServiceOperation::get_object_instance_handle) ||
+          !serveExpectedSender(
+              TransportServiceOperation::report_failed_service_invocation) ||
           !serveExpectedSender(TransportServiceOperation::resign_federation_execution)) {
         throw std::runtime_error(
             "The installable process profile automatic-delete-objects server lost a post-loss operation.");
@@ -1085,9 +1107,10 @@ int runPublicServer(
     // The surviving public sender remains usable after the peer disappears:
     // resolve the class, send a no-recipient interaction, then resign normally.
     if (!serveExpectedSender(TransportServiceOperation::get_interaction_class_handle) ||
-        !serveExpectedSender(TransportServiceOperation::send_interaction)) {
+        !serveExpectedSender(TransportServiceOperation::send_interaction) ||
+        !serveExpectedSenderServiceReport()) {
       throw std::runtime_error(
-          "The installable process profile loss server lost lookup or Send Interaction.");
+          "The installable process profile loss server lost lookup, Send Interaction, or its successful-service report.");
     }
     writeText(directory / "send.ok", "ok\n");
     if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler)) {
@@ -1103,14 +1126,23 @@ int runPublicServer(
   // Keep every public lookup on the service boundary rather than manufacturing
   // handles in the package consumer. The parameterized mode adds the object
   // class and parameter lookups before the shared Send Interaction request.
-  if (!serveExpectedSender(TransportServiceOperation::get_interaction_class_handle) ||
-      (parameterized &&
-       !serveExpectedSender(TransportServiceOperation::get_object_class_handle)) ||
-      (parameterized &&
-       !serveExpectedSender(TransportServiceOperation::get_parameter_handle)) ||
-      !serveExpectedSender(TransportServiceOperation::send_interaction)) {
+  if (!serveExpectedSender(TransportServiceOperation::get_interaction_class_handle)) {
     throw std::runtime_error(
-        "The installable process profile server lost lookup or Send Interaction.");
+        "The installable process profile server lost the interaction-class lookup.");
+  }
+  if (parameterized &&
+      (!serveExpectedSender(TransportServiceOperation::get_object_class_handle) ||
+       !serveExpectedSender(TransportServiceOperation::get_parameter_handle))) {
+    throw std::runtime_error(
+        "The installable process profile parameterized server lost a lookup.");
+  }
+  if (!serveExpectedSender(TransportServiceOperation::send_interaction)) {
+    throw std::runtime_error(
+        "The installable process profile server lost Send Interaction.");
+  }
+  if (!timestamped && !serveExpectedSenderServiceReport()) {
+    throw std::runtime_error(
+        "The installable process profile server lost Send Interaction's successful-service report.");
   }
   // The public receiver's Evoke path first sends the legacy receive poll while
   // draining the pushed event frame.  Answer that poll before accepting the

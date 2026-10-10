@@ -620,11 +620,21 @@ TEST_CASE(
       // admitted through Evoke Multiple.
       serveSend();
       serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The public process evoke server lost the first Send report.");
+      serveExpected(
           receiver,
           receiverHandler,
           TransportServiceOperation::receive_interaction,
           "The public process evoke server lost Receive.");
       serveSend();
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The public process evoke server lost the second Send report.");
       for (std::size_t receiveIndex = 1U; receiveIndex < 3U; ++receiveIndex) {
         serveExpected(
             receiver,
