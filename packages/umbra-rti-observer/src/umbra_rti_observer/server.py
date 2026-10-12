@@ -158,6 +158,7 @@ def create_app(store: ObserverStore | None = None) -> Any:
     async def metrics() -> dict[str, Any]:
         state = observer.state(include_events=False)
         return {
+            "contract_version": OBSERVER_CONTRACT_VERSION,
             "schema_version": OBSERVER_SCHEMA_VERSION,
             "status": state["status"],
             "live_metrics": state["live_metrics"],

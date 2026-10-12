@@ -81,6 +81,16 @@ GET  /api/events/stream
 WS   /ws/events
 ```
 
+Any backend can be checked without provider-specific dependencies:
+
+```powershell
+python -m umbra_rti_observer.probe http://127.0.0.1:8765
+```
+
+The probe validates the advertised contract, capability states, required
+snapshot and metrics fields, and ordered event envelopes. It is useful when a
+Java or vendor-specific service replaces the Python backend.
+
 `GET /api/events?after=42&limit=500` returns `events`, `next_after`,
 `has_more`, and retention fields. Optional comma-separated `event_type`,
 `family`, and `source` filters keep the contract generic while avoiding a

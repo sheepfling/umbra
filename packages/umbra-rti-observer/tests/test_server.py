@@ -48,6 +48,7 @@ def test_http_surface_exposes_cursor_pages_and_derived_views() -> None:
 
     metrics = client.get("/api/metrics")
     assert metrics.status_code == 200
+    assert metrics.json()["contract_version"] == OBSERVER_CONTRACT_VERSION
     assert metrics.json()["live_metrics"]["event_count"] == 2
 
 
