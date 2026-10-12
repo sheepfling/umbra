@@ -71,6 +71,32 @@ def create_app(store: ObserverStore | None = None) -> Any:
         )
 
     observer = store or ObserverStore()
+    observer.set_capabilities(
+        {
+            "http_api": {
+                "state": "available",
+                "reason": "Provided by the FastAPI backend.",
+            },
+            "websocket": {
+                "state": "available",
+                "reason": "Provided by the FastAPI backend.",
+            },
+            "sse": {
+                "state": "available",
+                "reason": "Provided by the FastAPI backend.",
+            },
+        },
+        owner="backend",
+        source="fastapi",
+    )
+
+    def contract_document() -> dict[str, Any]:
+        return build_contract_document(
+            EVENT_TYPES,
+            event_schema_version=OBSERVER_SCHEMA_VERSION,
+            capabilities=observer.capabilities(),
+        )
+
     app = _FastAPI(
         title="Umbra Runtime Observer",
         version=OBSERVER_CONTRACT_VERSION,
@@ -98,6 +124,7 @@ def create_app(store: ObserverStore | None = None) -> Any:
             "schema_version": OBSERVER_SCHEMA_VERSION,
             "event_count": state["live_metrics"]["event_count"],
             "retention": state["retention"],
+            "capabilities": state["capabilities"],
         }
 
     @app.get("/api/catalog")
@@ -106,21 +133,18 @@ def create_app(store: ObserverStore | None = None) -> Any:
             "contract_version": OBSERVER_CONTRACT_VERSION,
             "schema_version": OBSERVER_SCHEMA_VERSION,
             "event_schema": build_event_schema(),
-            "contract": build_contract_document(EVENT_TYPES, event_schema_version=OBSERVER_SCHEMA_VERSION),
+            "contract": contract_document(),
+            "capabilities": observer.capabilities(),
             "features": [
-                "bounded event history",
-                "generic object and interaction inspectors",
-                "federate roster",
-                "cursor-based event pages with gap detection",
-                "adapter lifecycle tracking",
-                "server-sent events",
-                "websocket events",
+                capability["label"]
+                for capability in observer.capabilities().values()
+                if capability["state"] in {"available", "partial"}
             ],
         }
 
     @app.get("/api/contract")
     async def contract() -> dict[str, Any]:
-        return build_contract_document(EVENT_TYPES, event_schema_version=OBSERVER_SCHEMA_VERSION)
+        return contract_document()
 
     @app.get("/api/schema")
     async def schema() -> dict[str, Any]:

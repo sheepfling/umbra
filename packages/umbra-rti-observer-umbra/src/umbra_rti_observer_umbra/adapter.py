@@ -354,6 +354,60 @@ class UmbraRtiAdapter:
 
     name = "umbra-python-rti"
 
+    @property
+    def capabilities(self) -> dict[str, dict[str, Any]]:
+        """Describe the callback surface normalized by this adapter.
+
+        The manifest describes observer coverage, not the complete RTI API.
+        ``partial`` is intentional for broad HLA service families such as MOM;
+        individual providers can expose more or less through another adapter.
+        """
+
+        return {
+            "lifecycle": {
+                "state": "available",
+                "event_types": ["runtime.started", "runtime.stopped", "runtime.error"],
+            },
+            "federates": {
+                "state": "available",
+                "event_types": ["federate.joined", "federate.resigned", "federate.updated"],
+            },
+            "objects": {
+                "state": "available",
+                "event_types": ["object.discovered", "object.updated", "object.removed"],
+            },
+            "attributes": {
+                "state": "available",
+                "event_types": ["object.updated"],
+            },
+            "interactions": {
+                "state": "available",
+                "event_types": ["interaction.received"],
+            },
+            "logical_time": {
+                "state": "available",
+                "event_types": ["object.updated", "object.removed", "interaction.received", "callback.invoked"],
+            },
+            "mom": {
+                "state": "partial",
+                "event_types": ["callback.invoked"],
+                "reason": "Selected management callbacks are normalized; unsupported services remain absent.",
+            },
+            "persistence": {
+                "state": "partial",
+                "event_types": ["callback.invoked"],
+                "reason": "Save and restore lifecycle callbacks are normalized.",
+            },
+            "ownership": {
+                "state": "unsupported",
+                "reason": "Ownership callbacks are not normalized by this adapter yet.",
+            },
+            "regions": {
+                "state": "unsupported",
+                "reason": "Region callbacks are not normalized by this adapter yet.",
+            },
+        }
+
     def __init__(
         self,
         rti_ambassador: Any,

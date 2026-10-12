@@ -14,6 +14,7 @@ from collections import Counter, deque
 from collections.abc import Callable, Iterable, Mapping
 from typing import Any, Protocol
 
+from .capabilities import OBSERVER_CAPABILITIES, merge_capabilities, normalize_capabilities
 from .contract import OBSERVER_CONTRACT_VERSION
 
 OBSERVER_SCHEMA_VERSION = "umbra-runtime-observer-v1"
@@ -52,7 +53,9 @@ class ObserverAdapter(Protocol):
     """Lifecycle contract for a provider-specific adapter package.
 
     The adapter owns all provider imports and callback/session differences. The
-    observer only receives normalized event mappings through ``sink``.
+    observer only receives normalized event mappings through ``sink``. Adapters
+    may additionally expose a ``capabilities`` mapping; older adapters remain
+    valid and are reported as unknown for provider-specific features.
     """
 
     def start(self, sink: EventSink) -> None:
@@ -60,6 +63,14 @@ class ObserverAdapter(Protocol):
 
     def stop(self) -> None:
         """Stop forwarding provider events and release provider resources."""
+
+
+class CapabilitySource(Protocol):
+    """Optional adapter surface for provider capability declarations."""
+
+    @property
+    def capabilities(self) -> Mapping[str, Any]:
+        """Describe provider features available to the observer."""
 
 
 def _jsonable(value: Any) -> Any:
@@ -353,7 +364,13 @@ class ObserverStore:
     tells clients when their cursor has fallen behind the retained window.
     """
 
-    def __init__(self, *, max_events: int = 2_000, max_batch_size: int = 10_000) -> None:
+    def __init__(
+        self,
+        *,
+        max_events: int = 2_000,
+        max_batch_size: int = 10_000,
+        capabilities: Mapping[str, Any] | None = None,
+    ) -> None:
         if max_events < 1:
             raise ValueError("max_events must be at least 1")
         if max_batch_size < 1:
@@ -373,6 +390,12 @@ class ObserverStore:
         self._federates: dict[str, dict[str, Any]] = {}
         self._interactions: deque[dict[str, Any]] = deque(maxlen=250)
         self._adapters: dict[int, tuple[ObserverAdapter, str, str]] = {}
+        self._manual_capabilities = normalize_capabilities(
+            capabilities,
+            owner="application",
+            source="store",
+        )
+        self._adapter_capabilities: dict[int, dict[str, dict[str, Any]]] = {}
         self._condition = threading.Condition()
 
     def set_context(self, **values: Any) -> dict[str, Any]:
@@ -389,6 +412,27 @@ class ObserverStore:
             self._context.update({str(key): _jsonable(value) for key, value in context.items() if value is not None})
             self._condition.notify_all()
             return self._state_locked(include_events=False)
+
+    def set_capabilities(
+        self,
+        capabilities: Mapping[str, Any],
+        *,
+        owner: str = "application",
+        source: str | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Add or replace application/backend capability observations."""
+
+        normalized = normalize_capabilities(capabilities, owner=owner, source=source)
+        with self._condition:
+            self._manual_capabilities.update(normalized)
+            self._condition.notify_all()
+            return self._capabilities_locked()
+
+    def capabilities(self) -> dict[str, dict[str, Any]]:
+        """Return the effective capability manifest for this observer."""
+
+        with self._condition:
+            return self._capabilities_locked()
 
     def publish(self, event: Mapping[str, Any]) -> dict[str, Any]:
         with self._condition:
@@ -425,17 +469,24 @@ class ObserverStore:
 
         key = id(adapter)
         name = _text(getattr(adapter, "name", None)) or type(adapter).__name__
+        adapter_capabilities = normalize_capabilities(
+            getattr(adapter, "capabilities", None),
+            owner="provider",
+            source=name,
+        )
         with self._condition:
             if key in self._adapters:
                 # Attaching the same object twice is harmless and avoids two
                 # provider sessions being opened by a repeated setup call.
                 return
             self._adapters[key] = (adapter, name, "starting")
+            self._adapter_capabilities[key] = adapter_capabilities
         try:
             adapter.start(self.publish)
         except Exception as error:
             with self._condition:
                 self._adapters.pop(key, None)
+                self._adapter_capabilities.pop(key, None)
             try:
                 adapter.stop()
             except Exception:
@@ -465,6 +516,7 @@ class ObserverStore:
         finally:
             with self._condition:
                 self._adapters.pop(key, None)
+                self._adapter_capabilities.pop(key, None)
 
     def close(self) -> None:
         """Stop all attached adapters and mark the store stopped.
@@ -652,11 +704,26 @@ class ObserverStore:
             "next_sequence": self._next_sequence,
         }
 
-    def _adapters_locked(self) -> list[dict[str, str]]:
-        return [
-            {"name": name, "status": status}
-            for _, name, status in sorted(self._adapters.values(), key=lambda entry: entry[1])
-        ]
+    def _adapters_locked(self) -> list[dict[str, Any]]:
+        rows: list[dict[str, Any]] = []
+        for key, (_, name, status) in sorted(self._adapters.items(), key=lambda entry: entry[1][1]):
+            row: dict[str, Any] = {"name": name, "status": status}
+            if self._adapter_capabilities.get(key):
+                row["capabilities"] = sorted(self._adapter_capabilities[key])
+            rows.append(row)
+        return rows
+
+    def _capabilities_locked(self) -> dict[str, dict[str, Any]]:
+        effective = merge_capabilities(
+            OBSERVER_CAPABILITIES,
+            *self._adapter_capabilities.values(),
+        )
+        # Store/application declarations are authoritative. This is what lets
+        # an operator disable a provider feature without changing the adapter
+        # or making the frontend guess whether an empty result is intentional.
+        for name, manifest in self._manual_capabilities.items():
+            effective[name] = merge_capabilities({name: manifest})[name]
+        return dict(sorted(effective.items()))
 
     def _state_locked(self, *, include_events: bool) -> dict[str, Any]:
         events = [_jsonable(event) for event in self._events]
@@ -682,6 +749,7 @@ class ObserverStore:
             },
             "retention": self._retention_locked(),
             "adapters": self._adapters_locked(),
+            "capabilities": self._capabilities_locked(),
             "federate_roster": federates,
             "inspectors": {"objects": objects, "interactions": interactions},
         }
@@ -695,6 +763,8 @@ __all__ = [
     "EventSink",
     "OBSERVER_SCHEMA_VERSION",
     "CallbackEventSource",
+    "CapabilitySource",
+    "OBSERVER_CAPABILITIES",
     "EventSource",
     "ObserverAdapter",
     "ObserverStore",

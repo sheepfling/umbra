@@ -84,6 +84,12 @@ It turns the callback into a plain JSON-compatible event:
 
 The adapter should not send provider callback objects to the browser.
 
+The adapter can also publish a capability manifest next to its event sink. It
+should say whether logical time, MOM, ownership, regions, or other services
+are `available`, `partial`, `disabled`, `unsupported`, or `unknown`. This is
+how a smaller RTI can provide a useful dashboard without pretending to have
+Umbra's complete service surface.
+
 ### Step 3: the observer store normalizes it
 
 `ObserverStore` adds the fields needed by every backend client:
@@ -129,7 +135,7 @@ language produced them.
 
 ## 3. The contract in plain language
 
-The contract has four important rules.
+The contract has five important rules.
 
 ### Rule 1: discover the version first
 
@@ -150,7 +156,32 @@ The response must identify:
 If the version is not supported, the frontend should show a clear failure
 instead of guessing how to interpret the response.
 
-### Rule 2: events are plain JSON
+### Rule 2: capabilities explain what is available
+
+The same contract also reports feature maturity:
+
+```json
+{
+  "logical_time": {"state": "available"},
+  "mom": {"state": "partial", "reason": "Only selected callbacks are observed."},
+  "ownership": {"state": "unsupported"}
+}
+```
+
+The states mean:
+
+```text
+available    supported and enabled
+partial      only part of the feature surface is observed
+disabled     intentionally turned off
+unsupported  the provider or backend cannot provide it
+unknown      no capability declaration was received
+```
+
+An unavailable feature is not an error for the whole dashboard. Its panel
+should say why it is unavailable, while unrelated panels continue to work.
+
+### Rule 3: events are plain JSON
 
 Every event needs:
 
@@ -166,7 +197,7 @@ Additional fields are allowed when they are JSON-compatible. Common optional
 fields include `federate`, `object_key`, `interaction_key`, `attributes`,
 `parameters`, `tag`, and `details`.
 
-### Rule 3: snapshots describe current state
+### Rule 4: snapshots describe current state
 
 `GET /api/state` returns the current dashboard state. It includes:
 
@@ -176,6 +207,7 @@ context
 live_metrics
 retention
 adapters
+capabilities
 federate_roster
 inspectors.objects
 inspectors.interactions
@@ -185,7 +217,7 @@ normalized_events (when include_events=true)
 The dashboard uses this snapshot to paint the page. It does not reconstruct
 live object state by replaying provider callbacks.
 
-### Rule 4: streams use envelopes
+### Rule 5: streams use envelopes
 
 WebSocket and SSE messages use the same message types:
 
@@ -249,8 +281,9 @@ Keep the dashboard file unchanged. Implement the contract in the Java server:
 3. Implement `GET /api/state`.
 4. Implement `GET /api/events` with cursor and gap metadata.
 5. Implement WebSocket or SSE streaming.
-6. Translate Java RTI callback values into normalized JSON events.
-7. Preserve the contract version and field meanings.
+6. Advertise which features are available, partial, disabled, or unsupported.
+7. Translate Java RTI callback values into normalized JSON events.
+8. Preserve the contract version and field meanings.
 
 If the Java service is hosted at another URL, configure the dashboard's
 `observer-api-base` and `observer-stream-path` meta tags and configure CORS/
@@ -265,6 +298,7 @@ WebSocket origin policy as appropriate.
 | FOM loading and subscriptions | Application/federate code |
 | Event sequence numbers | Observer backend/store |
 | Bounded history and gap reporting | Observer backend/store |
+| Capability declarations | Provider adapter and observer backend |
 | HTTP, WebSocket, and SSE routes | Observer backend |
 | Cards, tables, filters, and status display | Frontend |
 | Domain-specific meaning | A separate domain application, not this observer |
@@ -299,6 +333,12 @@ The client was slower than the configured bounded history. This is expected
 behavior, not necessarily a provider failure. Refresh the snapshot; if gaps
 are frequent, increase the backend history limit or improve the consumer.
 
+### A panel says a feature is unsupported
+
+This is a useful result, not a dashboard failure. The adapter or backend has
+declared that the connected RTI cannot provide that feature. Use the remaining
+panels, or connect a richer adapter when that information is needed.
+
 ### A Java backend works at `/api/state` but not in the browser
 
 Check all of the following:
@@ -317,6 +357,8 @@ Before changing the frontend or backend contract:
 2. Keep existing field meanings stable.
 3. Add a contract or integration test.
 4. Update [CONTRACT.md](CONTRACT.md).
-5. Verify the dashboard with the demo backend.
-6. If the change is breaking, create a new contract version instead of
+5. Update capability declarations if the feature surface changed.
+6. Verify the dashboard with the demo backend and an intentionally limited
+   capability manifest.
+7. If the change is breaking, create a new contract version instead of
    silently changing the old one.

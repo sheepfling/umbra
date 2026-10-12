@@ -105,11 +105,50 @@ def test_schema_is_provider_neutral() -> None:
 
 
 def test_contract_is_language_neutral_and_declares_stream_messages() -> None:
-    contract = build_contract_document(["custom.event"])
+    contract = build_contract_document(
+        ["custom.event"],
+        capabilities={"logical_time": {"state": "available", "source": "test"}},
+    )
     assert contract["contract_version"] == OBSERVER_CONTRACT_VERSION
     assert contract["event_types"] == ["custom.event"]
     assert contract["api_paths"]["websocket"] == "/ws/events"
     assert "snapshot" in contract["stream"]["message_types"]
+    assert "unsupported" in contract["capability_schema"]["states"]
+    assert contract["capabilities"]["logical_time"]["state"] == "available"
+
+
+def test_capabilities_distinguish_provider_features_from_observer_features() -> None:
+    store = ObserverStore(
+        capabilities={
+            "logical_time": {
+                "state": "partial",
+                "reason": "Only receive-side timestamps are exposed.",
+            },
+            "mom": "unsupported",
+        }
+    )
+
+    capabilities = store.capabilities()
+
+    assert capabilities["event_history"]["state"] == "available"
+    assert capabilities["logical_time"]["state"] == "partial"
+    assert capabilities["mom"]["state"] == "unsupported"
+
+
+def test_application_capability_state_can_disable_adapter_surface() -> None:
+    class FakeAdapter:
+        capabilities = {"mom": "available"}
+
+        def start(self, sink) -> None:
+            pass
+
+        def stop(self) -> None:
+            pass
+
+    store = ObserverStore(capabilities={"mom": "disabled"})
+    store.attach_adapter(FakeAdapter())
+
+    assert store.capabilities()["mom"]["state"] == "disabled"
 
 
 def test_bounded_history_reports_cursor_gaps_and_filters() -> None:
@@ -174,6 +213,7 @@ def test_callback_source_isolates_sink_failures() -> None:
 def test_adapter_attachment_is_idempotent_and_close_stops_it() -> None:
     class FakeAdapter:
         name = "fake"
+        capabilities = {"logical_time": "available"}
 
         def __init__(self) -> None:
             self.starts = 0
@@ -196,3 +236,30 @@ def test_adapter_attachment_is_idempotent_and_close_stops_it() -> None:
     assert adapter.stops == 1
     assert store.state(include_events=False)["status"] == "stopped"
     assert store.state(include_events=False)["adapters"] == []
+
+
+def test_adapter_capabilities_follow_adapter_lifecycle() -> None:
+    class FakeAdapter:
+        name = "capability-fake"
+        capabilities = {
+            "logical_time": "available",
+            "mom": {"state": "partial", "reason": "limited test surface"},
+        }
+
+        def start(self, sink) -> None:
+            self.sink = sink
+
+        def stop(self) -> None:
+            pass
+
+    adapter = FakeAdapter()
+    store = ObserverStore()
+    store.attach_adapter(adapter)
+
+    capabilities = store.state(include_events=False)["capabilities"]
+    assert capabilities["logical_time"]["state"] == "available"
+    assert capabilities["mom"]["state"] == "partial"
+    assert "capability-fake" in capabilities["mom"]["sources"]
+
+    store.detach_adapter(adapter)
+    assert "logical_time" not in store.state(include_events=False)["capabilities"]

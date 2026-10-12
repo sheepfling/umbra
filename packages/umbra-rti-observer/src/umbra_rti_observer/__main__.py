@@ -6,9 +6,29 @@ import argparse
 
 from .core import ObserverStore
 from .server import create_app
+from .showcase import ShowcaseAdapter
 
 
 def _seed_demo(store: ObserverStore) -> None:
+    store.set_capabilities(
+        {
+            "lifecycle": "available",
+            "federates": "available",
+            "objects": "available",
+            "attributes": "available",
+            "interactions": "available",
+            "logical_time": {
+                "state": "unsupported",
+                "reason": "The provider-neutral demo does not simulate logical time.",
+            },
+            "mom": {
+                "state": "unsupported",
+                "reason": "The provider-neutral demo has no management object model source.",
+            },
+        },
+        owner="demo",
+        source="demo-source",
+    )
     store.set_context(
         connection="demo://local",
         federation="ExampleFederation",
@@ -67,7 +87,21 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--max-events", type=int, default=2_000)
-    parser.add_argument("--demo", action="store_true", help="seed generic events before serving")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--demo", action="store_true", help="seed generic events before serving")
+    mode.add_argument("--showcase", action="store_true", help="run the live observer showcase")
+    parser.add_argument(
+        "--profile",
+        choices=("umbra", "limited"),
+        default="umbra",
+        help="showcase capability profile (default: umbra)",
+    )
+    parser.add_argument(
+        "--interval",
+        type=float,
+        default=1.5,
+        help="seconds between live showcase updates (default: 1.5)",
+    )
     return parser
 
 
@@ -76,15 +110,20 @@ def main(argv: list[str] | None = None) -> int:
     store = ObserverStore(max_events=args.max_events)
     if args.demo:
         _seed_demo(store)
-    app = create_app(store)
+    if args.showcase:
+        store.attach_adapter(ShowcaseAdapter(profile=args.profile, interval=args.interval))
     try:
-        import uvicorn
-    except ImportError as error:  # pragma: no cover - depends on optional extra
-        raise SystemExit(
-            "The dashboard launcher requires optional dependencies; install "
-            "umbra-rti-observer[web]."
-        ) from error
-    uvicorn.run(app, host=args.host, port=args.port)
+        app = create_app(store)
+        try:
+            import uvicorn
+        except ImportError as error:  # pragma: no cover - depends on optional extra
+            raise SystemExit(
+                "The dashboard launcher requires optional dependencies; install "
+                "umbra-rti-observer[web]."
+            ) from error
+        uvicorn.run(app, host=args.host, port=args.port)
+    finally:
+        store.close()
     return 0
 
 

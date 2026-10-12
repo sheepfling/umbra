@@ -28,6 +28,39 @@ The dashboard checks `/api/contract` before consuming state. This makes an
 incompatible backend fail clearly instead of producing a partially populated
 screen.
 
+## Capability discovery
+
+The contract is stable even when the connected RTI is not feature-complete.
+`GET /api/contract` and every state snapshot advertise a `capabilities`
+mapping. Capability names are generic and their values are descriptive:
+
+```json
+{
+  "logical_time": {
+    "state": "available",
+    "label": "Logical time",
+    "description": "Time regulation, constraints, grants, and timestamped delivery.",
+    "owners": ["provider"],
+    "sources": ["umbra-python-rti"]
+  },
+  "mom": {
+    "state": "unsupported",
+    "reason": "The connected provider does not expose management callbacks."
+  }
+}
+```
+
+Valid states are `available`, `partial`, `disabled`, `unsupported`, and
+`unknown`. `available` means the feature is supported and enabled for
+observation; `partial` means only part of the surface is observed. A frontend
+must not treat `unsupported` or `disabled` as an empty result. It should keep
+the rest of the dashboard usable and label that feature accordingly.
+
+Provider adapters own RTI capability declarations. The observer backend owns
+transport capabilities such as event history, metrics, HTTP, WebSocket, and
+SSE. This keeps a provider limitation from disabling unrelated observer
+features.
+
 ## Normalized event envelope
 
 Every event contains these fields:
@@ -65,6 +98,7 @@ frontend change as long as the envelope remains valid.
   "live_metrics": {},
   "retention": {},
   "adapters": [],
+  "capabilities": {},
   "federate_roster": [],
   "inspectors": {"objects": [], "interactions": []},
   "normalized_events": []
@@ -102,10 +136,12 @@ To replace the Python server with Java:
 1. Keep the dashboard static asset unchanged.
 2. Implement `/api/contract`, `/api/state`, `/api/events`, and one streaming
    endpoint with the shapes above.
-3. Translate Java RTI callbacks into the normalized event envelope in a Java
+3. Advertise provider and backend capability states in the contract and state
+   snapshot. Do not silently omit unsupported features.
+4. Translate Java RTI callbacks into the normalized event envelope in a Java
    adapter; do not expose Java RTI callback objects to the dashboard.
-4. Preserve cursor monotonicity and report retention gaps.
-5. Keep provider/FOM/domain-specific names in adapter-produced event fields,
+5. Preserve cursor monotonicity and report retention gaps.
+6. Keep provider/FOM/domain-specific names in adapter-produced event fields,
    not in the dashboard contract.
 
 No Python package, Python callback class, FOM parser, or RTI binding is part

@@ -8,7 +8,8 @@ connection shapes used by Umbra's native provider.
 The dashboard/backend boundary is defined by the observer package's
 [`CONTRACT.md`](../umbra-rti-observer/CONTRACT.md), not by this adapter. A Java
 provider adapter can publish the same normalized events and use the same
-frontend.
+frontend. This adapter also declares its observed capability surface so the
+dashboard can distinguish full, partial, and unsupported RTI services.
 
 The adapter deliberately stops at the provider boundary. It can connect an
 already-created Umbra `RTIambassador` and translate callbacks, but it does not

@@ -35,6 +35,8 @@ def test_umbra_adapter_connects_and_translates_standard_callbacks() -> None:
     )
 
     store.attach_adapter(adapter)
+    assert adapter.capabilities["objects"]["state"] == "available"
+    assert adapter.capabilities["mom"]["state"] == "partial"
     callback, callback_model, kwargs = rti.connected_with
     callback.discoverObjectInstance(Handle("object-1"), Handle("class-1"), "Object One", Handle("federate-1"))
     callback.reflectAttributeValues(

@@ -122,11 +122,26 @@
     .events .row { grid-template-columns: 80px 180px 140px 1fr; }
     pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--muted); font: 11px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; }
     .empty { padding: 19px 12px; color: var(--muted); text-align: center; }
+    .empty strong { display: block; color: var(--ink); font-size: 12px; }
+    .empty span { display: block; margin-top: 4px; }
+    .capability-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+    .capability { min-width: 0; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: rgba(6, 18, 31, .62); }
+    .capability-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .capability strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .capability p { min-height: 32px; margin-top: 6px; color: var(--muted); font-size: 11px; }
+    .capability small { display: block; overflow: hidden; margin-top: 7px; color: var(--faint); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .capability-state { flex: 0 0 auto; padding: 3px 6px; border: 1px solid var(--line-bright); border-radius: 999px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+    .capability-state.available { border-color: rgba(94, 234, 212, .38); color: var(--teal); }
+    .capability-state.partial { border-color: rgba(246, 198, 109, .42); color: var(--amber); }
+    .capability-state.disabled, .capability-state.unsupported { border-color: rgba(251, 143, 143, .35); color: var(--red); }
+    .capability-state.unknown { color: var(--faint); }
+    .metric.unavailable { border-style: dashed; opacity: .66; }
+    .panel[data-capability-state="disabled"], .panel[data-capability-state="unsupported"] { border-style: dashed; }
     .event-toolbar { justify-content: space-between; gap: 10px; margin-bottom: 11px; }
     .event-toolbar .meta { white-space: nowrap; }
     @media (max-width: 1240px) { .metrics { grid-template-columns: repeat(4, minmax(105px, 1fr)); } }
     @media (max-width: 920px) { .app-shell { padding: 20px 16px 44px; } .topbar { align-items: flex-start; flex-direction: column; } .toolbar { justify-content: flex-start; } .hero { grid-template-columns: 1fr; } .dashboard-grid { grid-template-columns: 1fr; } .span-2 { grid-column: auto; } }
-    @media (max-width: 620px) { .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .context-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .hero-meta, .health-list { grid-template-columns: 1fr; } .panel { padding: 14px; } .event-toolbar { align-items: flex-start; flex-direction: column; } }
+    @media (max-width: 620px) { .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .context-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .hero-meta, .health-list, .capability-grid { grid-template-columns: 1fr; } .panel { padding: 14px; } .event-toolbar { align-items: flex-start; flex-direction: column; } }
   </style>
 </head>
 <body>
@@ -161,9 +176,9 @@
 
     <section class="metrics" aria-label="Runtime metrics">
       <div class="metric" data-tone="teal"><div class="metric-top"><span class="metric-label">Events</span><span class="metric-icon">↯</span></div><strong id="event-count">0</strong></div>
-      <div class="metric" data-tone="blue"><div class="metric-top"><span class="metric-label">Federates</span><span class="metric-icon">◌</span></div><strong id="federate-count">0</strong></div>
-      <div class="metric" data-tone="violet"><div class="metric-top"><span class="metric-label">Objects</span><span class="metric-icon">□</span></div><strong id="object-count">0</strong></div>
-      <div class="metric" data-tone="blue"><div class="metric-top"><span class="metric-label">Interactions</span><span class="metric-icon">⌁</span></div><strong id="interaction-count">0</strong></div>
+      <div class="metric" data-tone="blue" data-capability="federates"><div class="metric-top"><span class="metric-label">Federates</span><span class="metric-icon">◌</span></div><strong id="federate-count">0</strong></div>
+      <div class="metric" data-tone="violet" data-capability="objects"><div class="metric-top"><span class="metric-label">Objects</span><span class="metric-icon">□</span></div><strong id="object-count">0</strong></div>
+      <div class="metric" data-tone="blue" data-capability="interactions"><div class="metric-top"><span class="metric-label">Interactions</span><span class="metric-icon">⌁</span></div><strong id="interaction-count">0</strong></div>
       <div class="metric" data-tone="red"><div class="metric-top"><span class="metric-label">Errors</span><span class="metric-icon">!</span></div><strong id="error-count">0</strong></div>
       <div class="metric" data-tone="amber"><div class="metric-top"><span class="metric-label">Event rate</span><span class="metric-icon">◷</span></div><strong id="event-rate">0/s</strong></div>
       <div class="metric" data-tone="teal"><div class="metric-top"><span class="metric-label">Retained</span><span class="metric-icon">▤</span></div><strong id="retained-count">0</strong></div>
@@ -181,6 +196,11 @@
         </div>
       </article>
 
+      <article class="panel span-2">
+        <div class="panel-head"><div><p class="eyebrow">Feature surface</p><h2>Capabilities</h2></div><span id="capability-summary" class="panel-note">waiting for contract</span></div>
+        <div id="capabilities" class="capability-grid"></div>
+      </article>
+
       <article class="panel">
         <div class="panel-head"><div><p class="eyebrow">Health</p><h2>Stream health</h2></div><span class="panel-note">bounded retention</span></div>
         <div class="health-list">
@@ -191,17 +211,17 @@
         </div>
       </article>
 
-      <article class="panel federates">
+      <article class="panel federates" data-capability="federates">
         <div class="panel-head"><div><p class="eyebrow">Participants</p><h2>Federate roster</h2></div><span class="panel-note">explicit events</span></div>
         <div id="federates" class="table"></div>
       </article>
 
-      <article class="panel objects">
+      <article class="panel objects" data-capability="objects">
         <div class="panel-head"><div><p class="eyebrow">State</p><h2>Objects</h2></div><span class="panel-note">generic inspector</span></div>
         <div id="objects" class="table"></div>
       </article>
 
-      <article class="panel interactions span-2">
+      <article class="panel interactions span-2" data-capability="interactions">
         <div class="panel-head"><div><p class="eyebrow">Traffic</p><h2>Interactions</h2></div><span class="panel-note">most recent 250</span></div>
         <div id="interactions" class="table"></div>
       </article>
@@ -270,9 +290,56 @@
     const transport = new ObserverTransport();
     function setConnection(label, live = false, bad = false) { el("status-text").textContent = label; el("status").className = `status ${live ? "live" : ""} ${bad ? "bad" : ""}`; }
     function table(node, headings, rows, renderer) { node.innerHTML = `<div class="row head">${headings.map((h) => `<span>${esc(h)}</span>`).join("")}</div>` + (rows.length ? rows.map(renderer).join("") : `<div class="empty">No data observed yet.</div>`); }
+    const validCapabilityStates = ["available", "partial", "disabled", "unsupported", "unknown"];
+    function capabilityFor(key) {
+      const capabilities = state.payload?.capabilities || state.contract?.capabilities || {};
+      const capability = capabilities[key] || {};
+      return { ...capability, state: validCapabilityStates.includes(capability.state) ? capability.state : "unknown", label: capability.label || key.replaceAll("_", " ") };
+    }
+    function capabilityUsable(capability) { return capability.state === "available" || capability.state === "partial"; }
+    function capabilityExplanation(capability) {
+      if (capability.reason) return capability.reason;
+      if (capability.reasons?.length) return capability.reasons.join(" · ");
+      if (capability.state === "unsupported") return "This provider or backend does not expose the feature.";
+      if (capability.state === "disabled") return "This feature is disabled for this observer.";
+      if (capability.state === "unknown") return "The provider did not advertise support for this feature.";
+      return capability.state === "partial" ? "Only part of this feature surface is available." : "Available for observation.";
+    }
+    function renderCapabilities(capabilities, known = []) {
+      const values = capabilities || {};
+      const keys = [...new Set([...known, ...Object.keys(values)])].sort();
+      const entries = keys.map((key) => [key, values[key] || {state: "unknown", label: key.replaceAll("_", " ")}]);
+      const usable = entries.filter(([, capability]) => capabilityUsable(capability)).length;
+      el("capability-summary").textContent = entries.length ? `${usable} usable · ${entries.length} reported` : "No capabilities advertised";
+      el("capabilities").innerHTML = entries.length ? entries.map(([key, capability]) => {
+        const stateName = validCapabilityStates.includes(capability.state) ? capability.state : "unknown";
+        const label = capability.label || key.replaceAll("_", " ");
+        const owner = capability.owners?.join(", ") || capability.owner || "unknown owner";
+        return `<div class="capability"><div class="capability-head"><strong>${esc(label)}</strong><span class="capability-state ${esc(stateName)}">${esc(stateName)}</span></div><p>${esc(capability.description || "")}</p><small>${esc(capability.reason || owner)}</small></div>`;
+      }).join("") : `<div class="empty">The backend did not advertise capability metadata.</div>`;
+    }
+    function setMetric(id, capabilityKey, value) {
+      const capability = capabilityFor(capabilityKey);
+      const metric = el(id).closest(".metric");
+      const unavailable = !capabilityUsable(capability) && !value;
+      metric.classList.toggle("unavailable", unavailable);
+      el(id).textContent = unavailable ? "—" : String(value ?? 0);
+      el(id).title = unavailable ? capabilityExplanation(capability) : "";
+    }
+    function renderCapabilityTable(node, capabilityKey, headings, rows, renderer) {
+      const capability = capabilityFor(capabilityKey);
+      const panel = node.closest(".panel");
+      panel.dataset.capabilityState = capability.state;
+      if (!rows.length && !capabilityUsable(capability)) {
+        node.innerHTML = `<div class="empty"><strong>${esc(capability.label)}</strong><span>${esc(capabilityExplanation(capability))}</span></div>`;
+        return;
+      }
+      table(node, headings, rows, renderer);
+    }
     function render(payload) {
       state.payload = payload;
       if (payload.normalized_events) state.rows = payload.normalized_events;
+      renderCapabilities(payload.capabilities || state.contract?.capabilities || {}, state.contract?.capability_schema?.known || []);
       const metrics = payload.live_metrics || {};
       const retention = payload.retention || {};
       const context = payload.context || {};
@@ -288,9 +355,9 @@
       el("history-note").textContent = `${retention.retained_events || 0} retained · ${retention.dropped_events || 0} dropped`;
       el("transport").textContent = state.socket ? "websocket" : "polling";
       el("event-count").textContent = metrics.event_count || 0;
-      el("federate-count").textContent = metrics.federate_count || 0;
-      el("object-count").textContent = metrics.object_count || 0;
-      el("interaction-count").textContent = metrics.interaction_count || 0;
+      setMetric("federate-count", "federates", metrics.federate_count || 0);
+      setMetric("object-count", "objects", metrics.object_count || 0);
+      setMetric("interaction-count", "interactions", metrics.interaction_count || 0);
       el("error-count").textContent = metrics.error_count || 0;
       el("event-rate").textContent = `${metrics.event_rate_per_second || 0}/s`;
       el("retained-count").textContent = retention.retained_events || 0;
@@ -300,9 +367,9 @@
       el("source").textContent = context.source || "—";
       el("adapters").textContent = (payload.adapters || []).map((adapter) => `${adapter.name} (${adapter.status})`).join(", ") || "none";
       const inspectors = payload.inspectors || {};
-      table(el("federates"), ["Federate", "Role", "Status", "Source"], payload.federate_roster || [], (row) => `<div class="row"><span>${esc(row.federate)}</span><span>${esc(row.role || "—")}</span><span>${esc(row.status || "—")}</span><span>${esc(row.source || "—")}</span></div>`);
-      table(el("objects"), ["Object", "Class", "Family", "Updates", "Status"], inspectors.objects || [], (row) => `<div class="row"><span>${esc(row.object_name || row.object_key)}</span><span>${esc(row.class_name || "—")}</span><span>${esc(row.family || "generic")}</span><span>${esc(row.update_count || 0)}</span><span>${esc(row.status || "—")}</span></div>`);
-      table(el("interactions"), ["Interaction", "Class", "Source", "Parameters"], inspectors.interactions || [], (row) => `<div class="row"><span>${esc(row.interaction_key)}</span><span>${esc(row.interaction_class || "—")}</span><span>${esc(row.source || "—")}</span><span>${json(row.parameters)}</span></div>`);
+      renderCapabilityTable(el("federates"), "federates", ["Federate", "Role", "Status", "Source"], payload.federate_roster || [], (row) => `<div class="row"><span>${esc(row.federate)}</span><span>${esc(row.role || "—")}</span><span>${esc(row.status || "—")}</span><span>${esc(row.source || "—")}</span></div>`);
+      renderCapabilityTable(el("objects"), "objects", ["Object", "Class", "Family", "Updates", "Status"], inspectors.objects || [], (row) => `<div class="row"><span>${esc(row.object_name || row.object_key)}</span><span>${esc(row.class_name || "—")}</span><span>${esc(row.family || "generic")}</span><span>${esc(row.update_count || 0)}</span><span>${esc(row.status || "—")}</span></div>`);
+      renderCapabilityTable(el("interactions"), "interactions", ["Interaction", "Class", "Source", "Parameters"], inspectors.interactions || [], (row) => `<div class="row"><span>${esc(row.interaction_key)}</span><span>${esc(row.interaction_class || "—")}</span><span>${esc(row.source || "—")}</span><span>${json(row.parameters)}</span></div>`);
       fill(el("family"), unique(state.rows.map((row) => row.family)), "All families");
       fill(el("type"), unique(state.rows.map((row) => row.event_type)), "All event types");
       fill(el("source-filter"), unique(state.rows.map((row) => row.source)), "All sources");

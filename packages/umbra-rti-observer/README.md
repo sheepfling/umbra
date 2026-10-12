@@ -14,6 +14,10 @@ frontend if it implements that contract.
 For a newcomer-friendly explanation of the layers and data flow, see
 [JUNIOR-GUIDE.md](JUNIOR-GUIDE.md).
 
+For a live walkthrough, use the [observer showcase](SHOWCASE.md). It includes
+rich and limited capability profiles so the same frontend can be demonstrated
+against both a mature and a smaller RTI surface.
+
 The package has no runtime dependencies for its core. The HTTP dashboard is an
 optional FastAPI/WebSocket layer:
 
@@ -86,7 +90,13 @@ available for clients that only need the derived inspectors and metrics.
 The event contract uses explicit fields such as `event_type`, `source`,
 `federate`, `object_key`, `interaction_key`, `attributes`, `parameters`, and
 `details`. Unknown fields are retained so provider adapters can add diagnostics
-without changing the dashboard.
+without changing the dashboard. The contract also advertises capability state
+for features such as logical time, MOM, ownership, and regions, so a less
+mature RTI can leave only those panels unavailable while the rest remains useful.
+
+Adapters should publish `available`, `partial`, `disabled`, `unsupported`, or
+`unknown` capability states rather than pretending unsupported features are
+empty data.
 
 Provider adapters may implement `ObserverAdapter.start(sink)` and
 `ObserverAdapter.stop()`, then attach themselves with

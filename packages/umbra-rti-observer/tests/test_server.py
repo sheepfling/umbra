@@ -19,6 +19,7 @@ def test_http_surface_exposes_cursor_pages_and_derived_views() -> None:
     assert contract.status_code == 200
     assert contract.json()["contract_version"] == OBSERVER_CONTRACT_VERSION
     assert contract.headers["x-umbra-observer-contract"] == OBSERVER_CONTRACT_VERSION
+    assert contract.json()["capabilities"]["http_api"]["state"] == "available"
 
     response = client.post(
         "/api/events",
@@ -43,6 +44,7 @@ def test_http_surface_exposes_cursor_pages_and_derived_views() -> None:
     assert state.status_code == 200
     assert "normalized_events" not in state.json()
     assert state.json()["inspectors"]["objects"][0]["object_key"] == "object-1"
+    assert state.json()["capabilities"]["event_history"]["state"] == "available"
 
     metrics = client.get("/api/metrics")
     assert metrics.status_code == 200

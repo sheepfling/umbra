@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from typing import Any
+
+from .capabilities import CAPABILITY_DEFINITIONS, CAPABILITY_STATES, normalize_capabilities
 
 OBSERVER_CONTRACT_VERSION = "umbra-observer-contract-v1"
 OBSERVER_JSON_MEDIA_TYPE = "application/vnd.umbra.observer+json"
@@ -30,6 +32,7 @@ def build_contract_document(
     event_types: Iterable[str],
     *,
     event_schema_version: str = "umbra-runtime-observer-v1",
+    capabilities: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Return the implementation-neutral contract advertised to clients.
 
@@ -43,6 +46,31 @@ def build_contract_document(
         "media_type": OBSERVER_JSON_MEDIA_TYPE,
         "event_schema_version": event_schema_version,
         "api_paths": dict(API_PATHS),
+        "capability_schema": {
+            "states": list(CAPABILITY_STATES),
+            "fields": [
+                "state",
+                "label",
+                "description",
+                "owner",
+                "source",
+                "owners",
+                "sources",
+                "observations",
+                "reason",
+                "reasons",
+                "event_types",
+            ],
+            "known": sorted(CAPABILITY_DEFINITIONS),
+            "state_meanings": {
+                "available": "The feature is supported and enabled for observation.",
+                "partial": "Only some of the feature surface is available.",
+                "disabled": "The feature is supported or configured but turned off.",
+                "unsupported": "The connected provider or backend cannot provide it.",
+                "unknown": "The provider or backend did not advertise its support.",
+            },
+        },
+        "capabilities": normalize_capabilities(capabilities),
         "snapshot": {
             "method": "GET",
             "path": API_PATHS["state"],
@@ -55,6 +83,7 @@ def build_contract_document(
                 "live_metrics",
                 "retention",
                 "adapters",
+                "capabilities",
                 "federate_roster",
                 "inspectors",
             ],
