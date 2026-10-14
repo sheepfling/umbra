@@ -19104,7 +19104,7 @@
         "hla-1516.1-2025:clause-11.4.1"
       ],
       "requirements_lab_api_surface_status": "The process integration sends the federation-level HLAmanager.HLAfederation.HLAadjust.HLAsetSwitches interaction through the official C++ RTIambassador lookup and Send Interaction surfaces. The process service consumes this MOM leaf, decodes HLAautoProvide, and updates federation-wide state; the test harness observes the state transition through its private registry seam because this process profile does not yet expose a process-backed Auto Provide getter. This maps only requirement p.290 l.33 to \u00a711.4.1 and remains development/private-foundation evidence, not conformance.",
-      "next_action": "Keep federation-wide and joined-federate HLAsetSwitches coverage in separate lanes. Next inspect uncovered requirement requirement-candidate-content-clauses-11-management-object-model-page-290-l12-3 with the bounded requirement query; its current local extract is only a fragment, so verify canonical context under RL-257 before implementing. Do not resync unchanged Requirements Lab inputs."
+      "next_action": "Keep federation-wide and joined-federate HLAsetSwitches coverage in separate lanes. Next inspect uncovered requirement requirement-candidate-content-clauses-11-management-object-model-page-290-l12-3 with the bounded requirement query; its current local extract is only a fragment, so verify canonical context under RL-263 before implementing. Do not resync unchanged Requirements Lab inputs."
     },
     {
       "id": "umbra-cpp-process-endpoint-mom-service-report-interlock-integration",
@@ -19180,7 +19180,7 @@
         "hla-1516.1-2025:clause-11.5.1"
       ],
       "requirements_lab_api_surface_status": "The configured process-endpoint C++ case subscribes the joined federate to HLAreportServiceInvocation, rejects a HLAsetSwitches attempt to enable Service Reporting while that subscription exists, verifies no partial switch mutation, then unsubscribes and enables the switch. It now also verifies that an enabled Service Reporting switch rejects a subsequent HLAreportServiceInvocation subscription without mutating the switch. This private-foundation evidence directly maps that reverse-direction behavior to clause 11.5.1; extension subclasses, remaining predefined switch parameters, interaction-failure payload projection, package/JUnit/protected review, interoperability, validation, and conformance remain separate.",
-      "next_action": "This process lane covers both directions of the Service Reporting/HLAreportServiceInvocation subscription interlock. The adjacent HLAsetSwitches extension-parameter lane is already complete; next inspect the p.290 l.12 requirement handle under RL-257, preserving generic rejection versus dedicated MOM interaction-failure evidence as separate claims."
+      "next_action": "This process lane covers both directions of the Service Reporting/HLAreportServiceInvocation subscription interlock. The adjacent HLAsetSwitches extension-parameter lane is already complete; next inspect the p.290 l.12 requirement handle under RL-263, preserving generic rejection versus dedicated MOM interaction-failure evidence as separate claims."
     },
     {
       "id": "umbra-cpp-process-endpoint-mom-exception-report-integration",

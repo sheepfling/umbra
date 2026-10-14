@@ -1371,6 +1371,30 @@
       "reproduction": "python -X utf8 tools/query_rti_work.py requirement requirement-candidate-content-clauses-08-time-management-page-178-l51-14 --summary --compact; compare with topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-178.tex lines 45-54 and content-block-content-15161-page-179.tex lines 25-31.",
       "verification": "The bounded requirement query reproduces the terminal phrase `before granting the joined`. The reconstructed source continues with the joined federate's request and the exclusive `only messages described in this column shall be delivered` sentence, and page 179 Table 1 identifies the TARA row as delivering TSO messages with ts < t_R before grant. The canonical PDF has not been independently checked in this turn, so this records a pinned-export completeness/usability defect, not IEEE errata.",
       "detected": "2026-10-12"
+    },
+    {
+      "id": "RL-314",
+      "status": "open",
+      "kind": "requirements-lab-incomplete-normative-statement",
+      "title": "Page 294 service-report log-format candidate truncates the record subject",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-294-l14-4"
+      ],
+      "exported_clause": "11.5.2.1",
+      "normative_clause": "11.5.2.1",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/11-management-object-model-page-294.tex",
+        "lines": "14-16",
+        "page": 294
+      },
+      "symptom": "The pinned candidate ends `The same JSON formatting used for service report parameters and arguments shall be used for service report`, omitting the subject's continuation `log records.` The local semantic page layout retains the complete sentence; the candidate boundary does not.",
+      "impact": "A bounded requirement query does not identify which output must use the service-report JSON formatting. Mapping a test to the fragment alone could overstate log-record-format coverage.",
+      "workaround": "Keep this candidate uncovered until the Requirements Lab exports the complete sentence and verify the canonical IEEE wording before validation promotion. The existing public C++ service-report-file lifecycle test checks exact concatenated JSON records, but its behavior must not be treated as validation of this clipped candidate.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-content-clauses-11-management-object-model-page-294-l14-4 --json --limit 1; compare the candidate with semantic/content-blocks.json entry content-15161-page-294 in the unchanged Document-Recreation lab.",
+      "recurrence_of": "RL-313",
+      "verification": "The bounded JSON query returns the truncated uncovered candidate under clause 11.5.2.1. The local semantic page layout continues with `log records.` The canonical PDF was not independently checked in this turn, so this records a Lab extraction/usability defect, not IEEE errata. No Lab resynchronization or new normative test mapping was performed.",
+      "detected": "2026-10-14"
     }
   ]
 }
