@@ -28199,6 +28199,7 @@
         "interaction-management",
         "ddm",
         "process-delayed-regional-attribute",
+        "custom-regional-initial-transport",
         "ddm-regional-association-failure",
         "ddm-regional-asynchronous-receive-order",
         "timestamped-regional-interaction-reenable",
@@ -28360,19 +28361,18 @@
         "subscribe-object-class-attributes-default-update-rate",
         "implicit-self-unsubscribe-no-out-of-scope-advisory"
       ],
-      "next_task": "Close the process HLA_IMMEDIATE push-mode Delay Subscription Evaluation callback-entry boundary for regional receive-order attribute updates. Preserve accepted source-region context through disabled/enabled callback dispatch and distinguish late disjoint from late overlapping subscriptions using official 2025 C++ APIs.",
-      "next_action": "Use `umbra-cpp-process-delayed-regional-attribute-receive-fence` as the HLA_EVOKED baseline, then add a separate HLA_IMMEDIATE process case. The current pull-mode result is bounded development evidence only; do not claim full clause 8.1.8 validation or infer timestamped, installed-package, or conformance behavior.",
-      "next_lane": "process-delayed-regional-attribute",
+      "next_task": "After integrating the custom regional initial-reflection transport fix, rebuild the installed 2025 C++ package and rerun the base and contract `cpp-tck.custom-transportation-regional-attribute-delivery` scenarios under HLA_EVOKED and HLA_IMMEDIATE.",
+      "next_action": "Use `umbra-cpp-custom-regional-initial-transport-reflection` as the HLA_EVOKED diagnostic baseline; the existing pre-fix installed package fails all four cells and cannot validate the local correction until rebuilt. If package evidence is green, return to the separate process HLA_IMMEDIATE delayed regional attribute callback-entry gap using `umbra-cpp-process-delayed-regional-attribute-receive-fence` as its evoked baseline. Do not promote complete 6.11, 9.8, or 8.1.8 conformance from these bounded cases.",
+      "next_lane": "custom-regional-initial-transport",
       "next_test_role": "baseline",
-      "next_test_query": "Process delayed regional attribute delivery rechecks the original sent region",
-      "next_ctest_filter": "[process-delayed-regional-attribute]",
+      "next_test_query": "Embedded regional discovery reflects an initial value with its custom FOM transportation",
+      "next_ctest_filter": "[custom-regional-initial-transport]",
       "next_plan_ids": [
-        "umbra-cpp-process-delayed-regional-attribute-receive-fence"
+        "umbra-cpp-custom-regional-initial-transport-reflection"
       ],
       "next_standard_sections": [
-        "hla-1516.1-2025:clause-8.1.8",
-        "hla-1516.1-2025:clause-9.5",
-        "hla-1516.1-2025:clause-9.6"
+        "hla-1516.1-2025:clause-6.11",
+        "hla-1516.1-2025:clause-9.8"
       ]
     },
     {

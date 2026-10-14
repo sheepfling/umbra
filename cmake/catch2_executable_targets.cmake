@@ -433,6 +433,14 @@
         DISCOVERY_MODE POST_BUILD
       )
     endif()
+    if(TARGET umbra_custom_regional_initial_transport_catch2)
+      catch_discover_tests(umbra_custom_regional_initial_transport_catch2
+        TEST_PREFIX "umbra.custom_regional_initial_transport.catch2."
+        ADD_TAGS_AS_LABELS
+        ${_umbra_catch_discovery_properties}
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
     if(TARGET umbra_process_boundary_private_catch2)
       catch_discover_tests(umbra_process_boundary_private_catch2
         TEST_PREFIX "umbra.process_boundary_private.catch2."

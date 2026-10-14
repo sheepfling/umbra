@@ -395,7 +395,8 @@ void queueObjectInstanceDiscovery(
           makeObjectInstanceHandle(objectInstanceHandle),
           attributeValues,
           VariableLengthData{},
-          transportationHandleFromEmbeddedName(
+          ambassadorTransportationHandleFromFederationName(
+              federationName,
               initialReflection.transportationName,
               L"The embedded federation could not reconstruct an initial attribute transportation type."),
           makeFederateHandle(discovery->producingFederateId),

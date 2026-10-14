@@ -110,6 +110,10 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp
     cpp/tests/ieee1516_2025_connection_disjoint_regional_update_catch2.cpp
   )
+  umbra_add_embedded_2025_catch2_target(umbra_custom_regional_initial_transport_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_custom_regional_initial_transport_catch2.cpp
+  )
   target_compile_definitions(umbra_ieee1516_2025_connection_catch2 PRIVATE
     UMBRA_PROCESS_TRANSPORT_PROXY_PROBE_PATH="$<TARGET_FILE:umbra_process_transport_proxy_probe>"
   )

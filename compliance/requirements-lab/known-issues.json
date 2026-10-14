@@ -1420,6 +1420,55 @@
       "reproduction": "Inspect the three affected requirement IDs in .compliance/corpus-bundle.json and compare their statement fields in order; the source locators point to content/clauses/04-federation-management-page-069.tex lines 64-75.",
       "verification": "The pinned bundle independently shows the three truncated statements and common 4.23 semantic group. The canonical licensed PDF was not independently checked in this turn, so this is a pinned-export completeness/usability issue, not IEEE errata.",
       "detected": "2026-10-14"
+    },
+    {
+      "id": "RL-317",
+      "status": "open",
+      "kind": "requirements-lab-incorrect-subsection-label",
+      "title": "Page 122 Reflect Attribute Values preamble candidates are labeled 6.11.1 instead of 6.11",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l79-23"
+      ],
+      "exported_clause": "6.11.1",
+      "normative_clause": "6.11",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/06-object-management-page-122.tex",
+        "lines": "73-80",
+        "page": 122
+      },
+      "symptom": "Both the basic Reflect Attribute Values service rule and the complete transportation-passel sentence are exported as 6.11.1. The pinned reconstructed page places both in the 6.11 service preamble before the 6.11.1 Supplied arguments heading.",
+      "impact": "A direct callback-metadata test is indexed under supplied arguments rather than the service-level transportation rule, obscuring the canonical 2025 section boundary.",
+      "workaround": "Preserve the candidate ID and exported metadata. Apply the explicit source-backed 6.11 crosswalk in custom-regional-initial-transport-requirements-contract.json; do not resynchronize or rewrite the Lab bundle.",
+      "reproduction": "Compare page-122 requirement candidates l61-17 and l79-23 in the pinned corpus bundle with topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-122.tex lines 19-40.",
+      "verification": "Both pinned candidates report 6.11.1; the reconstructed semantic block places their text before the explicit 6.11.1 heading. The canonical PDF was not independently checked in this turn, so this records an extraction/crosswalk issue, not IEEE errata.",
+      "detected": "2026-10-14"
+    },
+    {
+      "id": "RL-318",
+      "status": "open",
+      "kind": "requirements-lab-split-normative-statement",
+      "title": "Page 233 regional-subscription discovery obligation is split across three candidate rows",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l30-7",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l33-8",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l36-9"
+      ],
+      "exported_clause": "9.8",
+      "normative_clause": "9.8",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/09-data-distribution-management-page-233.tex",
+        "lines": "30-41",
+        "page": 233
+      },
+      "symptom": "One continuous Subscribe Object Class Attributes With Regions sentence is exported as three candidate statements ending at `the RTI`, `at least one of`, and a continuation beginning `that object instance's instance attributes is in scope`.",
+      "impact": "No single candidate expresses the complete discovery condition; mapping one fragment alone can falsely suggest full section 9.8 coverage.",
+      "workaround": "Keep all three stable IDs and the pinned bundle unchanged. Read the three as one linked paragraph group when planning a focused discovery test and state the observed subclaim; do not validate any fragment independently or infer whole-clause conformance.",
+      "reproduction": "Compare the three page-233 candidate statements in the pinned corpus bundle with topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-233.tex lines 13-20.",
+      "verification": "The bundle contains three partial statements while the reconstructed semantic page presents the continuous 9.8 discovery rule. The canonical PDF was not independently checked in this turn, so this records a pinned-export usability issue, not IEEE errata.",
+      "detected": "2026-10-14"
     }
   ]
 }

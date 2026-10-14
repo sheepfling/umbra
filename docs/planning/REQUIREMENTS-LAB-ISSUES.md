@@ -336,3 +336,30 @@ paragraph-level condition when a C++ test observes both the callback and the
 completion barrier. The new public multi-member save-commit barrier test maps
 all three. RL-315 is recorded in `known-issues.json`; this is a pinned-export
 usability defect, not a claim of IEEE errata or conformance.
+
+### RL-317 — page-122 Reflect Attribute Values preamble has the wrong subsection
+
+The 2025 candidates `requirement-candidate-content-clauses-06-object-
+management-page-122-l61-17` and `...-l79-23` label the basic Reflect
+Attribute Values rule and complete transportation-passel rule as §6.11.1.
+The pinned reconstructed page places both in the §6.11 preamble, before
+the §6.11.1 Supplied arguments heading.
+
+Workaround: retain the immutable Lab candidate and exported metadata, but use
+the source-backed canonical §6.11 crosswalk in
+`custom-regional-initial-transport-requirements-contract.json`. This is a Lab
+crosswalk issue, not an IEEE erratum; the canonical PDF was not separately
+checked in this turn.
+
+### RL-318 — page-233 regional-discovery rule is split into fragments
+
+The 2025 §9.8 regional-subscription discovery sentence is split across
+`requirement-candidate-content-clauses-09-data-distribution-management-page-
+233-l30-7`, `l33-8`, and `l36-9`. The first two end mid-sentence, and the
+third starts with a continuation. The pinned reconstructed page presents the
+continuous rule.
+
+Workaround: treat the three IDs as one linked paragraph group when planning
+focused evidence; no fragment independently establishes the full obligation.
+The pinned bundle is unchanged. This is an extraction/usability issue, not
+IEEE errata; the canonical PDF was not separately checked in this turn.
