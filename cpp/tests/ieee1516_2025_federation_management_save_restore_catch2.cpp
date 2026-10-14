@@ -484,6 +484,136 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded public multi-member save commits only after the final completion and restores from a new filesystem store",
+    "[integration][development-profile][federation-management][save-restore]"
+    "[durable-save][filesystem][process-restart][multi-federate]"
+    "[public-multi-member-save-commit-barrier][callback-immediate]"
+    "[rti.service.request-federation-save][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][rti.service.request-federation-restore]"
+    "[rti.service.federate-restore-complete]"
+    "[federate.callback.initiate-federate-save][federate.callback.federation-saved]"
+    "[federate.callback.request-federation-restore-succeeded]"
+    "[federate.callback.federation-restore-begun]"
+    "[federate.callback.initiate-federate-restore]"
+    "[federate.callback.federation-restored]") {
+  auto runScenario = [](CallbackModel callbackModel) {
+    auto const saveDirectory = temporaryFederationSaveDirectory();
+    auto const reportDirectory = temporaryServiceReportDirectory();
+    auto configuration =
+        configurationForServiceReportDirectory(reportDirectory.path());
+    configuration.withRtiAddress(L"in-process");
+    auto const federationName = nextFederationName();
+    auto const fomModule =
+        resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+    auto const saveLabel = callbackModel == rti1516_2025::HLA_EVOKED
+        ? std::wstring{L"multi-member-barrier-evoked"}
+        : std::wstring{L"multi-member-barrier-immediate"};
+
+    auto const drainBoth = [](RTIambassador& first, RTIambassador& second) {
+      for (int pass = 0; pass != 32; ++pass) {
+        static_cast<void>(first.evokeCallback(0.0));
+        static_cast<void>(second.evokeCallback(0.0));
+      }
+    };
+
+    {
+      auto const sourceStore =
+          std::make_shared<umbra::detail::FilesystemFederationSaveCommitStore>(
+              saveDirectory.path());
+      auto const sourceRegistry =
+          std::make_shared<umbra::detail::EmbeddedFederationRegistry>(
+              nullptr, sourceStore);
+      ScopedEmbeddedFederationRegistry sourceScope(sourceRegistry);
+      ReportingFederateAmbassador firstReports;
+      ReportingFederateAmbassador secondReports;
+      auto first = makeRti();
+      auto second = makeRti();
+
+      REQUIRE_NOTHROW(first->connect(firstReports, callbackModel, configuration));
+      REQUIRE_NOTHROW(second->connect(secondReports, callbackModel, configuration));
+      REQUIRE_NOTHROW(first->createFederationExecution(
+          federationName, fomModule, standard_hla::mom::integer64_time));
+      REQUIRE_NOTHROW(first->joinFederationExecution(
+          L"barrier-first", L"participant", federationName));
+      REQUIRE_NOTHROW(second->joinFederationExecution(
+          L"barrier-second", L"participant", federationName));
+
+      REQUIRE_NOTHROW(first->requestFederationSave(saveLabel));
+      drainBoth(*first, *second);
+      REQUIRE(firstReports.initiateFederateSaveReports.size() == 1U);
+      REQUIRE(secondReports.initiateFederateSaveReports.size() == 1U);
+      REQUIRE_NOTHROW(first->federateSaveBegun());
+      REQUIRE_NOTHROW(second->federateSaveBegun());
+      REQUIRE_NOTHROW(first->federateSaveComplete());
+      drainBoth(*first, *second);
+      REQUIRE_FALSE(sourceStore->load(federationName, saveLabel).has_value());
+      REQUIRE(firstReports.federationSavedReportCount == 0U);
+      REQUIRE(secondReports.federationSavedReportCount == 0U);
+
+      REQUIRE_NOTHROW(second->federateSaveComplete());
+      drainBoth(*first, *second);
+      auto const durable = sourceStore->load(federationName, saveLabel);
+      REQUIRE(durable.has_value());
+      REQUIRE(durable->memberFederateIds.size() == 2U);
+      REQUIRE(firstReports.federationSavedReportCount == 1U);
+      REQUIRE(secondReports.federationSavedReportCount == 1U);
+
+      REQUIRE_NOTHROW(second->resignFederationExecution(NO_ACTION));
+      REQUIRE_NOTHROW(first->resignFederationExecution(NO_ACTION));
+      REQUIRE_NOTHROW(first->destroyFederationExecution(federationName));
+      REQUIRE_NOTHROW(second->disconnect());
+      REQUIRE_NOTHROW(first->disconnect());
+    }
+
+    {
+      auto const freshStore =
+          std::make_shared<umbra::detail::FilesystemFederationSaveCommitStore>(
+              saveDirectory.path());
+      auto const freshRegistry =
+          std::make_shared<umbra::detail::EmbeddedFederationRegistry>(
+              nullptr, freshStore);
+      ScopedEmbeddedFederationRegistry freshScope(freshRegistry);
+      ReportingFederateAmbassador firstReports;
+      ReportingFederateAmbassador secondReports;
+      auto first = makeRti();
+      auto second = makeRti();
+
+      REQUIRE_NOTHROW(first->connect(firstReports, callbackModel, configuration));
+      REQUIRE_NOTHROW(second->connect(secondReports, callbackModel, configuration));
+      REQUIRE_NOTHROW(first->createFederationExecution(
+          federationName, fomModule, standard_hla::mom::integer64_time));
+      REQUIRE_NOTHROW(first->joinFederationExecution(
+          L"barrier-first", L"participant", federationName));
+      REQUIRE_NOTHROW(second->joinFederationExecution(
+          L"barrier-second", L"participant", federationName));
+
+      REQUIRE_NOTHROW(first->requestFederationRestore(saveLabel));
+      drainBoth(*first, *second);
+      REQUIRE(firstReports.requestFederationRestoreSucceededReports ==
+              std::vector<std::wstring>{saveLabel});
+      REQUIRE(firstReports.federationRestoreBegunReportCount == 1U);
+      REQUIRE(secondReports.federationRestoreBegunReportCount == 1U);
+      REQUIRE(firstReports.initiateFederateRestoreReports.size() == 1U);
+      REQUIRE(secondReports.initiateFederateRestoreReports.size() == 1U);
+      REQUIRE_NOTHROW(first->federateRestoreComplete());
+      REQUIRE_NOTHROW(second->federateRestoreComplete());
+      drainBoth(*first, *second);
+      REQUIRE(firstReports.federationRestoredReportCount == 1U);
+      REQUIRE(secondReports.federationRestoredReportCount == 1U);
+
+      REQUIRE_NOTHROW(second->resignFederationExecution(NO_ACTION));
+      REQUIRE_NOTHROW(first->resignFederationExecution(NO_ACTION));
+      REQUIRE_NOTHROW(first->destroyFederationExecution(federationName));
+      REQUIRE_NOTHROW(second->disconnect());
+      REQUIRE_NOTHROW(first->disconnect());
+    }
+  };
+
+  runScenario(rti1516_2025::HLA_EVOKED);
+  runScenario(rti1516_2025::HLA_IMMEDIATE);
+}
+
+TEST_CASE(
     "Embedded evoked federation restore drops queued callbacks for a resigning participant",
     "[integration][development-profile][federation-management][save-restore][callbacks]"
     "[rti.service.request-federation-save][rti.service.federate-save-begun]"

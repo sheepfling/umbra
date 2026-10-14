@@ -1395,6 +1395,31 @@
       "recurrence_of": "RL-313",
       "verification": "The bounded JSON query returns the truncated uncovered candidate under clause 11.5.2.1. The local semantic page layout continues with `log records.` The canonical PDF was not independently checked in this turn, so this records a Lab extraction/usability defect, not IEEE errata. No Lab resynchronization or new normative test mapping was performed.",
       "detected": "2026-10-14"
+    },
+    {
+      "id": "RL-315",
+      "status": "open",
+      "kind": "requirements-lab-sentence-fragment-split",
+      "title": "Page-069 Federation Saved success condition is split across three incomplete candidates",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l64-15",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l67-16",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17"
+      ],
+      "exported_clause": "4.23",
+      "normative_clause": "4.23",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/04-federation-management-page-069.tex",
+        "lines": "64-75",
+        "page": 69
+      },
+      "symptom": "The Federation Saved success condition is exported as three adjacent requirement candidates. The l64 candidate ends after `complete,`; l67 starts `and it shall` and ends after `indicating success`; l70 starts `shall mean` without the success-indicator antecedent. The three records share semantic group m16.clause.4.23, but no one record contains the complete condition.",
+      "impact": "A standalone l70 lookup does not identify what success means, while treating the fragments as independent complete requirements can overstate save-completion coverage. The inter-federate completion barrier is easy to miss when selecting a test from one candidate alone.",
+      "workaround": "Keep the stable IDs and pinned export unchanged. Read l64, l67, and l70 together as one paragraph-level condition. Map a focused C++ case to all three only when it observes both the Federation Saved callback and the all-participants-complete success barrier; do not infer conformance from development-profile evidence.",
+      "reproduction": "Inspect the three affected requirement IDs in .compliance/corpus-bundle.json and compare their statement fields in order; the source locators point to content/clauses/04-federation-management-page-069.tex lines 64-75.",
+      "verification": "The pinned bundle independently shows the three truncated statements and common 4.23 semantic group. The canonical licensed PDF was not independently checked in this turn, so this is a pinned-export completeness/usability issue, not IEEE errata.",
+      "detected": "2026-10-14"
     }
   ]
 }

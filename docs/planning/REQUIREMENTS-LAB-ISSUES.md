@@ -322,3 +322,17 @@ reconstructed page-178 continuation and the specific Table 1 service row. New
 test evidence is scoped to that TARA boundary only. RL-313 is recorded in
 `known-issues.json`; this turn did not independently verify the canonical PDF,
 so it is a pinned-export completeness/usability issue, not IEEE errata.
+
+### RL-315 — page-069 Federation Saved success condition is fragmented
+
+The pinned 2025 Lab export divides one clause 4.23 Federation Saved success
+condition among page-069 candidates at lines 64, 67, and 70. The last begins
+“shall mean” without the success-indicator antecedent, while the first two
+also stop mid-sentence. A lookup or mapping of the line-70 candidate alone
+does not convey the all-participants-complete condition.
+
+Workaround: retain the stable IDs but read and map all three fragments as one
+paragraph-level condition when a C++ test observes both the callback and the
+completion barrier. The new public multi-member save-commit barrier test maps
+all three. RL-315 is recorded in `known-issues.json`; this is a pinned-export
+usability defect, not a claim of IEEE errata or conformance.

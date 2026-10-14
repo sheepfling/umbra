@@ -28492,7 +28492,8 @@
         "flush-queue-grant-logical-time-gating",
         "restore-pending-flush-queue-request",
         "restore-pending-time-advance-requests",
-        "service-report-time-constrained-no-argument-services"
+        "service-report-time-constrained-no-argument-services",
+        "public-multi-member-save-commit-barrier"
       ],
       "query_tags": [
         "time-management",
@@ -29242,7 +29243,7 @@
       ],
       "latest_completed_slice_id": "umbra-cpp-process-endpoint-mom-resign-removal-order-integration",
       "latest_completed_slice_lane": "process-mom-resign-removal-order",
-      "next_action": "The pending regular ownership-release, pending If Available callback, and pending negotiated owner-confirmation restore cases are now isolated in focused 2025 sources with their exact mappings and CTests #627/#1745, #624/#1742, and #626/#1744. The current top-level handoff targets pending negotiated If Available owner confirmation at cpp/tests/federation_registry_catch2.cpp:1614, preserving nineteen direct requirement-section pairs, fifteen API surfaces, and CTests #625/#1743."
+      "next_action": "The pending regular ownership-release, pending If Available callback, and pending negotiated owner-confirmation restore cases are now isolated in focused 2025 sources with their exact mappings and CTests #627/#1745, #624/#1742, and #626/#1744. The pending negotiated If Available owner-confirmation case is at cpp/tests/ieee1516_2025_federation_registry_pending_negotiated_if_available_owner_confirmation_filesystem_restart_catch2.cpp:4, with nineteen direct requirement-section pairs, fifteen API surfaces, and CTests #625/#1743."
     },
     {
       "id": "annex-c-and-reference-resolution",

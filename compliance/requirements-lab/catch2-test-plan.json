@@ -71547,6 +71547,65 @@
       "next_action": "This internal successful-void formatter case verifies Table 5 Boolean encoding for both false and True (requirement-candidate-table-5-p295-r012), plus the serial, service name, Null return, success indicator, and empty exception fields. Its direct normative mapping is clause 11.5.1; it remains SDK encoding-foundation evidence, not public API, runtime report-routing, file-lifecycle, or conformance evidence."
     },
     {
+      "id": "umbra-cpp-public-multi-member-save-commit-barrier-filesystem-fresh-registry-restore-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.requestfederationsave.32986a607094",
+        "api.2025.cpp.rtiambassador.federatesavebegun.4d2693ce9551",
+        "api.2025.cpp.rtiambassador.federatesavecomplete.e775cf801fae",
+        "api.2025.cpp.rtiambassador.requestfederationrestore.12708949c200",
+        "api.2025.cpp.rtiambassador.federaterestorecomplete.c2567e07cf13",
+        "api.2025.cpp.federateambassador.initiatefederatesave.47c9e9fdb49f",
+        "api.2025.cpp.federateambassador.federationsaved.5c6a41e2de0c",
+        "api.2025.cpp.federateambassador.requestfederationrestoresucceeded.121e786f40ce",
+        "api.2025.cpp.federateambassador.federationrestorebegun.de392bc11dd5",
+        "api.2025.cpp.federateambassador.initiatefederaterestore.18b2594f61f0",
+        "api.2025.cpp.federateambassador.federationrestored.765ce1cad6f3"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24",
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l142-36",
+        "requirement-candidate-content-clauses-04-federation-management-page-068-l115-29",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l64-15",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l67-16",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17",
+        "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2"
+      ],
+      "test_case": "Embedded public multi-member save commits only after the final completion and restores from a new filesystem store",
+      "primary_lane": "public-multi-member-save-commit-barrier",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp:486",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "save-restore",
+        "durable-save",
+        "filesystem",
+        "process-restart",
+        "multi-federate",
+        "public-multi-member-save-commit-barrier",
+        "callback-immediate",
+        "rti.service.request-federation-save",
+        "rti.service.federate-save-begun",
+        "rti.service.federate-save-complete",
+        "rti.service.request-federation-restore",
+        "rti.service.federate-restore-complete",
+        "federate.callback.initiate-federate-save",
+        "federate.callback.federation-saved",
+        "federate.callback.request-federation-restore-succeeded",
+        "federate.callback.federation-restore-begun",
+        "federate.callback.initiate-federate-restore",
+        "federate.callback.federation-restored"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "assertions": 88,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "next_action": "This official 2025 C++ API regression checks that one of two completed federates cannot expose a durable envelope or Federation Saved callback; the final completion publishes both. The three clause 4.23 Lab candidates at page 069 lines 64, 67, and 70 are mapped together because each is an incomplete fragment of the success condition. The test then constructs a new filesystem store and fresh registry and completes restore in both callback models. It does not claim application payload coverage, process transport, Java parity, external review, or conformance."
+    },
+    {
       "id": "umbra-cpp-public-federation-save-commit-filesystem-process-restart-application-value-integration",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.getobjectclasshandle.36d1b269a059",
