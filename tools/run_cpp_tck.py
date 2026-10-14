@@ -445,12 +445,10 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             label="service-report directory",
         )
     else:
-        temp_directory = os.environ.get("TEMP", "") if os.name == "nt" else ""
-        default_report_directory = (
-            Path(temp_directory) / "umbra-cpp-tck-service-reports"
-            if temp_directory
-            else build_directory / "service-reports"
-        )
+        # Windows app sandboxes can make TEMP deep enough that the scenario's
+        # federation and report-file names exceed the legacy path limit. Keep
+        # the default beside the build tree; callers can still override it.
+        default_report_directory = build_directory.parent / "sr"
         service_report_directory = resolve_directory(
             default_report_directory,
             must_exist=False,
