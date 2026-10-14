@@ -1010,13 +1010,65 @@ int runPublicServer(
           !serveExpectedReceiver(TransportServiceOperation::publish_object_class_attributes) ||
           !serveExpectedSender(TransportServiceOperation::subscribe_object_class_attributes) ||
           !serveExpectedReceiver(TransportServiceOperation::register_object_instance) ||
-          !serveExpectedReceiver(TransportServiceOperation::get_object_instance_name) ||
-          !serveExpectedSender(TransportServiceOperation::receive_interaction) ||
-          !serveExpectedReceiver(TransportServiceOperation::set_automatic_resign_directive) ||
-          !serveExpectedReceiver(TransportServiceOperation::get_automatic_resign_directive) ||
-          !serveExpectedSender(TransportServiceOperation::get_object_instance_handle)) {
+          !serveExpectedReceiver(TransportServiceOperation::get_object_instance_name)) {
         throw std::runtime_error(
             "The installable process profile automatic-delete-objects server lost a pre-loss operation.");
+      }
+      // A pushed discovery may be consumed directly by Evoke without a
+      // separate receive poll.  Serve the sender's next request alongside the
+      // receiver's directive calls so either valid ordering can make progress.
+      std::optional<TransportServiceOperation> firstSenderOperation;
+      std::exception_ptr senderError;
+      std::thread senderRequest([&] {
+        try {
+          while (!firstSenderOperation) {
+            if (!umbra::test::servePrimaryProcessRequest(
+                    *sender, senderHandler,
+                    [&](TransportServiceMessage const& request) {
+                      if (request.operation ==
+                              TransportServiceOperation::report_successful_service_invocation ||
+                          request.operation ==
+                              TransportServiceOperation::report_successful_void_service_invocation) {
+                        return senderHandler(request);
+                      }
+                      if (request.operation != TransportServiceOperation::receive_interaction &&
+                          request.operation !=
+                              TransportServiceOperation::get_object_instance_handle) {
+                        throw std::runtime_error(
+                            "The automatic-delete fixture received an unexpected sender request during discovery.");
+                      }
+                      firstSenderOperation = request.operation;
+                      return senderHandler(request);
+                    })) {
+              throw std::runtime_error(
+                  "The automatic-delete fixture lost the sender discovery request.");
+            }
+          }
+        } catch (...) {
+          senderError = std::current_exception();
+        }
+      });
+      try {
+        if (!serveExpectedReceiver(TransportServiceOperation::set_automatic_resign_directive) ||
+            !serveExpectedReceiver(TransportServiceOperation::get_automatic_resign_directive)) {
+          throw std::runtime_error(
+              "The automatic-delete fixture lost the receiver directive requests.");
+        }
+        senderRequest.join();
+        if (senderError) {
+          std::rethrow_exception(senderError);
+        }
+        if (firstSenderOperation == TransportServiceOperation::receive_interaction &&
+            !serveExpectedSender(TransportServiceOperation::get_object_instance_handle)) {
+          throw std::runtime_error(
+              "The automatic-delete fixture lost the sender object-name lookup.");
+        }
+      } catch (...) {
+        if (senderRequest.joinable()) {
+          sender->connection()->close();
+          senderRequest.join();
+        }
+        throw;
       }
     }
     waitForFile(directory / "connection-loss-ready.ok", [](std::filesystem::path const& marker) {

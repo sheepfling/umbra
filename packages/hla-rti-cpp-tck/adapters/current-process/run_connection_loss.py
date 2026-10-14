@@ -86,6 +86,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--attribute", default="Efficiency")
     parser.add_argument("--startup-timeout-s", type=float, default=30.0)
     parser.add_argument("--fixture-timeout-s", type=float, default=30.0)
+    parser.add_argument("--scenario-timeout-s", type=float, default=60.0)
     parser.add_argument("--results", type=Path)
     parser.add_argument("--junit", type=Path)
     return parser.parse_args()
@@ -232,19 +233,26 @@ def run_one(
             [str(arguments.process_fixture), "public-server-loss", str(marker_directory)]
         )
         port = wait_for_port(marker_directory, arguments.startup_timeout_s)
-        tck_result = subprocess.run(
-            tck_command(
-                arguments,
-                callback_model,
-                scenario_id,
-                port,
-                marker,
-                ready_marker,
-                results,
-                junit,
-            ),
-            check=False,
-        )
+        try:
+            tck_result = subprocess.run(
+                tck_command(
+                    arguments,
+                    callback_model,
+                    scenario_id,
+                    port,
+                    marker,
+                    ready_marker,
+                    results,
+                    junit,
+                ),
+                check=False,
+                timeout=arguments.scenario_timeout_s,
+            )
+        except subprocess.TimeoutExpired as error:
+            raise RuntimeError(
+                f"The portable TCK did not finish {scenario_id} [{callback_model}] "
+                f"within {arguments.scenario_timeout_s:g} seconds"
+            ) from error
         payload = json.loads(results.read_text(encoding="utf-8")) if results.is_file() else {}
         junit_root = ET.parse(junit).getroot() if junit.is_file() else ET.Element("testsuite")
         if tck_result.returncode != 0:
