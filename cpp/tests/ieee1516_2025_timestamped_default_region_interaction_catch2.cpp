@@ -316,7 +316,7 @@ TEST_CASE(
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
-  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"grant", "interaction"});
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"interaction", "grant"});
   REQUIRE(receiverReports.timeAdvanceGrantReports.front().value == L"7");
 
   auto const& firstReport = receiverReports.timestampedInteractionReports.front();
@@ -352,7 +352,7 @@ TEST_CASE(
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2U);
   REQUIRE(
       receiverReports.callbackOrder ==
-      std::vector<std::string>{"grant", "interaction", "interaction", "grant"});
+      std::vector<std::string>{"interaction", "grant", "interaction", "grant"});
   REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"9");
 
   auto const& secondReport = receiverReports.timestampedInteractionReports.back();
@@ -672,7 +672,7 @@ TEST_CASE(
   REQUIRE(taraReports.timestampedInteractionReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.front().value == L"7");
-  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"grant", "interaction"});
+  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"interaction", "grant"});
   REQUIRE(nmraReports.timestampedInteractionReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.front().value == L"7");

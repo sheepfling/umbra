@@ -305,7 +305,7 @@ TEST_CASE(
   REQUIRE(taraReports.attributeReflectionReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.front().value == L"7");
-  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"grant", "reflect"});
+  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"reflect", "grant"});
   REQUIRE(nmraReports.attributeReflectionReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.front().value == L"7");

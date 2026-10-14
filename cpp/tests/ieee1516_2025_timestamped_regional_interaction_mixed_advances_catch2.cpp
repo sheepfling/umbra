@@ -94,7 +94,7 @@ TEST_CASE(
   REQUIRE(nmraReports.timestampedInteractionReports.empty());
 
   // All three constrained members see the same regional TSO frontier. FQR
-  // uses request 10, TARA(7) grants before the equal-time interaction, and
+  // uses request 10, TARA(7) delivers the queued equal-time interaction, and
   // NMRA selects the queued timestamp 7; the regulator's request to 2
   // establishes GALT 7 for all.
   REQUIRE_NOTHROW(fqr->flushQueueRequest(rti1516_2025::HLAinteger64Time(10)));
@@ -133,7 +133,7 @@ TEST_CASE(
   REQUIRE(taraReports.timestampedInteractionReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.front().value == L"7");
-  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"grant", "interaction"});
+  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"interaction", "grant"});
   REQUIRE(nmraReports.timestampedInteractionReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.front().value == L"7");

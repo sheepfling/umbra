@@ -211,11 +211,9 @@ void runTimestampedInteractionMixedAdvancesScenario(
       "Timestamped interaction Flush Queue Request granted before delivery");
   require(
       timeAdvanceAvailable.recorder().callbackOrder() ==
-          (equalTaraBoundary
-               ? std::vector<std::string>{"grant", "interaction"}
-               : std::vector<std::string>{"interaction", "grant"}),
+          std::vector<std::string>{"interaction", "grant"},
       equalTaraBoundary
-          ? "Timestamped interaction at the Time Advance Request Available boundary was delivered before the grant"
+          ? "Already-queued timestamped interaction at the Time Advance Request Available boundary was delivered after the grant"
           : equalTarBoundary
               ? "Timestamped interaction at the Time Advance Request boundary was delivered after the grant"
               : "Timestamped interaction before the Time Advance Request Available boundary was delivered after the grant");

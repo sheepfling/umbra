@@ -38,13 +38,6 @@ enum class FederateTimeAdvanceMode {
   flush_queue_request,
 };
 
-// Table 1's "messages delivered before grant" boundary is strict for TARA,
-// while TAR, both NMR forms, and Flush Queue include the selected timestamp.
-[[nodiscard]] constexpr bool includesEqualTsoAtPreGrantBoundary(
-    FederateTimeAdvanceMode mode) noexcept {
-  return mode != FederateTimeAdvanceMode::time_advance_request_available;
-}
-
 struct FederateTimeAdvanceResult {
   FederateTimeAdvanceStatus status = FederateTimeAdvanceStatus::inactive;
   std::uint64_t generation = 0;

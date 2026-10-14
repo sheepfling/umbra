@@ -4955,8 +4955,8 @@
     },
     {
       "id": "umbra-cpp-tara-exclusive-tso-request-boundary-integration",
-      "primary_lane": "tso-tara-exclusive-upper-bound",
-      "focus_lane": "tso-tara-exclusive-upper-bound",
+      "primary_lane": "tso-tara-queued-equal-boundary",
+      "focus_lane": "tso-tara-queued-equal-boundary",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.connect.027cac2b3705",
         "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
@@ -4978,10 +4978,11 @@
         "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-08-time-management-page-178-l51-14"
+        "requirement-candidate-content-clauses-08-time-management-page-195-l137-40",
+        "requirement-candidate-content-clauses-08-time-management-page-195-l164-49"
       ],
-      "test_case": "Embedded TARA delivers a TSO at its exclusive request boundary only after the grant",
-      "source_location": "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp:406",
+      "test_case": "Embedded TARA delivers a queued equal-time TSO before its grant",
+      "source_location": "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp:407",
       "assertions": 30,
       "callback_models": [
         "HLA_EVOKED"
@@ -4996,7 +4997,7 @@
         "time-management",
         "timestamped-interaction",
         "tso",
-        "tso-tara-exclusive-upper-bound",
+        "tso-tara-queued-equal-boundary",
         "rti.service.send-interaction",
         "rti.service.time-advance-request-available",
         "federate.callback.receive-interaction",
@@ -5005,9 +5006,9 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "ctest_target": "umbra_timestamped_send_interaction_retraction_catch2",
-      "ctest_filter": "^umbra\\.timestamped_send_interaction_retraction\\.catch2\\.Embedded TARA delivers a TSO at its exclusive request boundary only after the grant$",
-      "requirements_lab_api_surface_status": "This two-federate HLA_EVOKED case sends a TSO interaction with ts equal to the TARA request time and verifies that the Time Advance Grant callback precedes the interaction callback. This is focused evidence for the TARA row's strict ts < t_R pre-grant boundary; it does not claim every row in Table 1. RL-313 records that the candidate statement is truncated, so the case uses the reconstructed page text and exact page-179 row as supplemental source context. Development-profile evidence, not validation or conformance.",
-      "next_action": "Keep the mapping limited to the equal-time TARA boundary. Continue the C++ portable TCK with another distinct Table 1 row only after checking that row's exact service semantics; do not generalize this result to TAR, NMR, NMRA, or FQR."
+      "ctest_filter": "^umbra\\.timestamped_send_interaction_retraction\\.catch2\\.Embedded TARA delivers a queued equal-time TSO before its grant$",
+      "requirements_lab_api_surface_status": "This two-federate HLA_EVOKED case queues a TSO interaction at the TARA request time before invoking TARA and verifies Receive Interaction before Time Advance Grant. Section 8.9 and Table 1 require already-queued equal-time TSO messages in the pre-grant delivery set, while future equal-time arrivals may follow the grant. RL-316 records that the pinned 8.9 candidate omits its enumerated delivery set; the full pinned section supplies the exact boundary. Development-profile evidence, not validation or conformance.",
+      "next_action": "Keep this mapping limited to already-queued equal-time TARA delivery. Later arrivals at the grant timestamp, cross-process watermark coordination, and other advance forms need independent evidence."
     },
     {
       "id": "umbra-cpp-transportation-type-handle-encoding-unit",
@@ -23894,7 +23895,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "source_location": "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp:536",
-      "next_action": "This bounded default-source/default-region interaction case drives one ordinary timestamped Send Interaction through FQR, TARA, and NMRA recipients. FQR and NMRA deliver the equal-time TSO before their grants; TARA's strict ts < t_R boundary puts the equal-time interaction after its grant. FQR reports actual/optimistic time 7, the producer TAR completes at 2, and Convey Region Designator Sets carries a supplied-empty RegionHandleSet because no public source RegionHandle exists. The callback-ordering slice also drains each recipient separately. This is recipient-local implementation regression coverage, not a cross-service ordering claim. Regional retraction, broader alternate advances, remote transport, save/restore, package/JUnit/protected-review evidence, and conformance remain open."
+      "next_action": "This bounded default-source/default-region interaction case drives one ordinary timestamped Send Interaction through FQR, TARA, and NMRA recipients. All three deliver the already-queued equal-time TSO before their grants; TARA's queued-equality rule comes from full section 8.9. FQR reports actual/optimistic time 7, the producer TAR completes at 2, and Convey Region Designator Sets carries a supplied-empty RegionHandleSet because no public source RegionHandle exists. The callback-ordering slice also drains each recipient separately. This is recipient-local implementation regression coverage, not a cross-service ordering claim. Regional retraction, broader alternate advances, remote transport, save/restore, package/JUnit/protected-review evidence, and conformance remain open."
     },
     {
       "id": "umbra-cpp-timestamped-interaction-mixed-advance-integration",
@@ -38168,7 +38169,7 @@
       "callback_models": [
         "HLA_EVOKED"
       ],
-      "requirements_lab_api_surface_status": "This four-federate HLA_EVOKED embedded case proves one timestamped directed interaction is delivered to three independently constrained target recipients using FQR, TARA, and NMRA. FQR/NMRA deliver the equal-time payload before grant, while TARA invokes its grant before the equal-time directed interaction; target, tag, producer, timestamp/order, transportation, and retraction metadata are preserved. It maps the directed target/declaration and directly exercised §§6.13, 8.1.5, 8.1.6, 8.9, 8.11/8.11.3, 8.12/8.12.3, and 8.22.3 behavior. It does not establish broader alternate-advance combinations, recipient fanout under resignation, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
+      "requirements_lab_api_surface_status": "This four-federate HLA_EVOKED embedded case proves one timestamped directed interaction is delivered to three independently constrained target recipients using FQR, TARA, and NMRA. All three deliver the already-queued equal-time payload before grant; target, tag, producer, timestamp/order, transportation, and retraction metadata are preserved. The TARA boundary follows full section 8.9 with the RL-316 extraction caveat. It maps the directed target/declaration and directly exercised §§6.13, 8.1.5, 8.1.6, 8.9, 8.11/8.11.3, 8.12/8.12.3, and 8.22.3 behavior. It does not establish broader alternate-advance combinations, recipient fanout under resignation, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
       "next_action": "Keep the exact FQR/TARA/NMRA regression green. Preserve its one-message, three-recipient boundary and per-mode callback ordering; do not infer generic alternate-advance composition or broaden the result to remote transport, save/restore, or conformance."
     },
     {
@@ -41581,7 +41582,7 @@
         "federate.callback.time-advance-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This bounded cross-member regional case delivers one overlap-qualified timestamped interaction through three advances in a shared in-process frontier. FQR and NMRA callbacks precede grants; TARA's equal-time interaction follows its grant. FQR actual/optimistic time and each source-region callback are asserted. It does not establish remote/in-transit transport, regional directed/deletion forms, further alternate modes, save/restore, package/JUnit/protected-review evidence, or conformance."
+      "next_action": "This bounded cross-member regional case delivers one overlap-qualified timestamped interaction through three advances in a shared in-process frontier. All three already-queued callbacks precede their grants, including TARA at equal time under section 8.9. FQR actual/optimistic time and each source-region callback are asserted. It does not establish remote/in-transit transport, regional directed/deletion forms, further alternate modes, save/restore, package/JUnit/protected-review evidence, or conformance."
     },
     {
       "id": "umbra-cpp-request-retraction-attribute-update-mixed-fanout-integration",
@@ -42397,6 +42398,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
         "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
         "requirement-candidate-content-clauses-08-time-management-page-195-l110-31",
+        "requirement-candidate-content-clauses-08-time-management-page-195-l137-40",
         "requirement-candidate-content-clauses-08-time-management-page-195-l164-49",
         "requirement-candidate-content-clauses-08-time-management-page-198-l177-52",
         "requirement-candidate-content-clauses-08-time-management-page-199-l40-12",
@@ -42454,7 +42456,7 @@
         "federate.callback.time-advance-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This focused positive non-regional timestamped deletion case sends one time-7 removal to three constrained recipients using FQR, TARA(7), and NMRA(10). It proves FQR/NMRA callbacks precede their grants while TARA's equal-time callback follows its grant, checks object/tag/producer/time/order/retraction metadata, and verifies the producer's TAR(2) plus terminal post-delivery Retract classification. The TARA boundary maps only the Table 1 strict pre-grant delivery rule, not every service row in that table. It does not cover lower-bound rejection, pre-delivery retraction, regional/directed deletion, alternate re-enable, save/restore, transport, conformance, or validation."
+      "next_action": "This focused positive non-regional timestamped deletion case sends one time-7 removal to three constrained recipients using FQR, TARA(7), and NMRA(10). It proves each already-queued callback precedes its grant, including equal-time TARA under full section 8.9, checks object/tag/producer/time/order/retraction metadata, and verifies the producer's TAR(2) plus terminal post-delivery Retract classification. RL-316 records the clipped section 8.9 message-set candidate. It does not cover lower-bound rejection, pre-delivery retraction, regional/directed deletion, alternate re-enable, save/restore, transport, conformance, or validation."
     },
     {
       "id": "umbra-cpp-terminal-timestamped-deletion-tombstone-integration",
@@ -54543,10 +54545,11 @@
     },
     {
       "id": "umbra-cpp-process-tso-tara-exclusive-boundary-integration",
-      "primary_lane": "process-tso-tara-exclusive-boundary",
-      "focus_lane": "process-tso-tara-exclusive-boundary",
+      "primary_lane": "process-tso-tara-queued-equal-boundary",
+      "focus_lane": "process-tso-tara-queued-equal-boundary",
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-08-time-management-page-178-l51-14"
+        "requirement-candidate-content-clauses-08-time-management-page-195-l137-40",
+        "requirement-candidate-content-clauses-08-time-management-page-195-l164-49"
       ],
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.connect.027cac2b3705",
@@ -54569,7 +54572,7 @@
         "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e",
         "api.2025.cpp.rtiambassador.disconnect.72028b809529"
       ],
-      "test_case": "RTIambassador delivers a TSO at the TARA request boundary after grant through a configured process endpoint",
+      "test_case": "RTIambassador delivers a queued TSO at the TARA request boundary before grant through a configured process endpoint",
       "source_location": "cpp/tests/ieee1516_2025_connection_process_tso_tara_boundary_catch2.cpp:607",
       "assertions": 34,
       "callback_models": [
@@ -54578,10 +54581,10 @@
       "delivery_modes": [
         "two-federate-process-endpoint",
         "timestamped-interaction-at-equal-TARA-boundary",
-        "grant-before-receive-callback"
+        "receive-before-grant-callback"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-8"
+        "hla-1516.1-2025:clause-8.9"
       ],
       "tags": [
         "integration",
@@ -54591,7 +54594,7 @@
         "timestamped-interaction",
         "tso",
         "time-advance-request-available",
-        "process-tso-tara-exclusive-boundary",
+        "process-tso-tara-queued-equal-boundary",
         "process-boundary",
         "public-endpoint",
         "multi-federate",
@@ -54602,7 +54605,7 @@
         "2025"
       ],
       "status": "implemented-private-foundation-not-conformance-evidence",
-      "requirements_lab_api_surface_status": "This two-federate HLA_EVOKED process-endpoint case sends one timestamped interaction with ts=t_R and verifies that the receiver's Time Advance Grant callback precedes its receiveInteraction callback. The direct mapping is limited to the IEEE 1516.1-2025 Table 1 TARA strict ts < t_R pre-grant boundary in clause 8. RL-313 records that the extracted candidate text is truncated; the exact reconstructed Table 1 row is retained as supplemental source context. The case is private process-profile evidence, not Requirements Lab validation, interoperability, or conformance.",
+      "requirements_lab_api_surface_status": "This two-federate HLA_EVOKED process-endpoint case queues a ts=t_R interaction before TARA and verifies Receive Interaction before Time Advance Grant. The direct mapping is to section 8.9's already-queued equality rule, confirmed against Table 1. RL-316 records that the pinned candidate omits the enumerated delivery set. This is private process-profile evidence, not Requirements Lab validation, interoperability, or conformance.",
       "next_action": "Keep this process case separate from the embedded equal-boundary test and from the single-federate process grant/report baseline. Add other process TARA/GALT/TSO cases only as separately mapped behaviors; do not generalize the TARA ordering result to TAR, NMR, NMRA, or FQR."
     },
     {

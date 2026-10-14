@@ -170,16 +170,14 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
             grantedTime = cloneAmbassadorReferenceLogicalTime(
                 pendingSnapshot.implementationName,
                 *pendingSnapshot.requestedTime);
+            // Section 8.9 includes TARA's already-queued ts == t_R payloads
+            // in the pre-grant delivery set, just as other advance forms
+            // include their selected grant timestamp.
             auto tso = registry.beginTsoPayloadDelivery(
                 federationName,
                 federateId,
                 *grantedTime,
-                umbra::detail::includesEqualTsoAtPreGrantBoundary(
-                    pendingSnapshot.advanceMode) ||
-                    (pendingSnapshot.advanceMode ==
-                         umbra::detail::FederateTimeAdvanceMode::time_advance_request_available &&
-                     pendingSnapshot.advanceRequestTime &&
-                     *pendingSnapshot.requestedTime < *pendingSnapshot.advanceRequestTime));
+                true);
             if (tso.status != umbra::detail::FederationTsoRegistryStatus::applied ||
                 (tso.deliveryStatus != umbra::detail::FederationTsoDeliveryStatus::applied &&
                  tso.deliveryStatus != umbra::detail::FederationTsoDeliveryStatus::no_messages)) {
@@ -853,9 +851,10 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
           recipient.timeAdvanceGrant(*grantedTime);
         }
 
-        // Table 1 excludes ts == t_R from TARA's pre-grant delivery set.
-        // Once the grant callback has transitioned the federate to Time
-        // Granted, release the retained equal-time messages in callback order.
+        // A TARA grant does not bar new equal-time messages from arriving.
+        // Release any such payloads queued during the grant callback after
+        // the transition to Time Granted; messages already queued at the
+        // request boundary were delivered before the grant above.
         if (!flushQueue && pendingSnapshot.advanceMode ==
                                umbra::detail::FederateTimeAdvanceMode::time_advance_request_available) {
           umbra::detail::FederationTsoPayloadDeliveryRegistryResult postGrantTso;
@@ -871,7 +870,7 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
               (postGrantTso.deliveryStatus != umbra::detail::FederationTsoDeliveryStatus::applied &&
                postGrantTso.deliveryStatus != umbra::detail::FederationTsoDeliveryStatus::no_messages)) {
             throw RTIinternalError(
-                L"The embedded federation could not release equal-time TSO payloads after a TARA grant.");
+                L"The embedded federation could not release newly queued equal-time TSO payloads after a TARA grant.");
           }
           deliverTsoPayloads(postGrantTso.deliveries);
         }

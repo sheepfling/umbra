@@ -369,28 +369,28 @@
       "source_unlocated_actionable_cases": 0,
       "planned_cases": 0,
       "source_only_cases": 0,
-    "direct_requirement_section_pairs": 976,
+    "direct_requirement_section_pairs": 977,
       "standard_requirement_total": 2220,
-    "standard_requirement_coverage_percent": 43.96,
+    "standard_requirement_coverage_percent": 44.01,
     "service_report_store_cases": 19,
       "service_report_store_mapped_cases": 13
     },
     "latest_completed_slice": {
-      "lane": "tso-tara-exclusive-upper-bound",
+      "lane": "tso-tara-queued-equal-boundary",
       "owner": "time-save-restore",
       "plan_id": "umbra-cpp-tara-exclusive-tso-request-boundary-integration",
-      "test_case": "Embedded TARA delivers a TSO at its exclusive request boundary only after the grant",
+      "test_case": "Embedded TARA delivers a queued equal-time TSO before its grant",
       "source_location": "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp:407",
-      "primary_lane": "tso-tara-exclusive-upper-bound",
-      "focus_lane": "tso-tara-exclusive-upper-bound",
+      "primary_lane": "tso-tara-queued-equal-boundary",
+      "focus_lane": "tso-tara-queued-equal-boundary",
       "assertions": 30,
-      "requirements": 1,
+      "requirements": 2,
       "standard_sections": 1,
       "api_surfaces": 18,
       "callback_models": [
         "HLA_EVOKED"
       ],
-      "next_action": "The embedded TARA boundary now has interaction and timestamped-attribute evidence; the complete Available-advance selector passes 27/27. Four promoted portable C++ TCK scenarios also pass in both callback models with validated JSON/JUnit evidence. Direct map: requirement-candidate-content-clauses-08-time-management-page-178-l51-14 -> clause 8; RL-313 records the candidate truncation. Development-profile/TCK evidence only, not overall conformance. Next: extend the process endpoint's Available-advance integration case with one timestamped interaction at ts=t_R and assert grant-before-receive ordering. Keep process and embedded paths distinct and do not generalize TARA semantics to TAR, NMR, NMRA, or FQR."
+      "next_action": "Corrected the embedded and process TARA pre-grant selectors to deliver already-queued ts=t_R payloads before Time Advance Grant, as full IEEE 1516.1-2025 section 8.9 requires. The focused interaction, attribute, regional, directed, deletion, and process C++ cases now assert that boundary; the portable mixed-advance deletion case provides both callback models. Direct mappings select the pinned section-8.9 candidates, with RL-316 recording the clipped enumerated message set. Development-profile/TCK evidence only, not overall conformance. Next: add a distinct future-arrival ts=t_R case after the grant without weakening the queued-at-request requirement; cross-process watermark coordination remains separate."
     },
     "previous_completed_slice": {
       "lane": "unregulated-federate-timestamped-interaction",
@@ -510,7 +510,7 @@
       "evidence_boundary": "Focused C++ development-profile evidence only; no Lab validation, interoperability, package/JUnit, protected-review, or conformance claim."
     },
     "lane_owners": {
-      "tso-tara-exclusive-upper-bound": "time-save-restore",
+      "tso-tara-queued-equal-boundary": "time-save-restore",
       "tso-send-request-boundary": "time-save-restore",
       "process-service-report-send-interaction-success-interaction": "mom-after-base-services",
       "process-service-report-send-interaction-success-file-destination-selection": "mom-after-base-services",
@@ -668,7 +668,7 @@
       "process-modify-lookahead-focused": "transport-and-conformance",
       "process-modify-lookahead-grant-focused": "transport-and-conformance",
       "process-time-advance-available-focused": "transport-and-conformance",
-      "process-tso-tara-exclusive-boundary": "transport-and-conformance",
+      "process-tso-tara-queued-equal-boundary": "transport-and-conformance",
       "process-tso-tara-pregrant-boundary": "transport-and-conformance",
       "process-time-advance-next-message-focused": "transport-and-conformance",
       "process-time-advance-next-message-queued-focused": "transport-and-conformance",
@@ -1028,10 +1028,10 @@
       "process-service-report-dimension-upper-bound-invalid-handle-file-destination-selection": "transport-and-conformance"
     },
     "lane_handles": {
-      "tso-tara-exclusive-upper-bound": {
+      "tso-tara-queued-equal-boundary": {
         "catch2_target": "umbra_timestamped_send_interaction_retraction_catch2",
-        "ctest_filter": "^umbra\\.timestamped_send_interaction_retraction\\.catch2\\.Embedded TARA delivers a TSO at its exclusive request boundary only after the grant$",
-        "ctest_label": "tso-tara-exclusive-upper-bound",
+        "ctest_filter": "^umbra\\.timestamped_send_interaction_retraction\\.catch2\\.Embedded TARA delivers a queued equal-time TSO before its grant$",
+        "ctest_label": "tso-tara-queued-equal-boundary",
         "source": "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp"
       },
       "tso-send-request-boundary": {
@@ -3798,10 +3798,10 @@
         "ctest_label": "process-boundary",
         "source": "cpp/tests/ieee1516_2025_connection_process_tso_tara_boundary_catch2.cpp"
       },
-      "process-tso-tara-exclusive-boundary": {
+      "process-tso-tara-queued-equal-boundary": {
         "catch2_target": "umbra_ieee1516_2025_catch2",
-        "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.RTIambassador delivers a TSO at the TARA request boundary after grant through a configured process endpoint$",
-        "ctest_label": "process-boundary",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.RTIambassador delivers a queued TSO at the TARA request boundary before grant through a configured process endpoint$",
+        "ctest_label": "process-tso-tara-queued-equal-boundary",
         "source": "cpp/tests/ieee1516_2025_connection_process_tso_tara_boundary_catch2.cpp"
       },
       "process-tso-tara-pregrant-boundary": {
@@ -4376,7 +4376,7 @@
       }
     },
     "lane_assertion_counts": {
-      "tso-tara-exclusive-upper-bound": 30,
+      "tso-tara-queued-equal-boundary": 30,
       "tso-send-request-boundary": 29,
       "process-boundary": 6959,
       "process-boundary-federation-lifecycle": 19,
@@ -4401,7 +4401,7 @@
       "process-modify-lookahead-focused": 17,
       "process-modify-lookahead-grant-focused": 34,
       "process-time-advance-available-focused": 15,
-      "process-tso-tara-exclusive-boundary": 1,
+      "process-tso-tara-queued-equal-boundary": 34,
       "process-tso-tara-pregrant-boundary": 1,
       "process-time-advance-next-message-focused": 22,
       "process-time-advance-next-message-queued-focused": 543,
@@ -5749,7 +5749,7 @@
         "hla-1516.1-2025:clause-8.12.3",
         "hla-1516.1-2025:clause-8.22.3"
       ],
-      "requirements": 21,
+      "requirements": 22,
       "api_surfaces": 9,
       "status": "implemented-in-noninstallable-development-profile"
     },
@@ -11803,9 +11803,9 @@
     },
     {
       "plan_id": "umbra-cpp-process-tso-tara-exclusive-boundary-integration",
-      "test_query": "RTIambassador delivers a TSO at the TARA request boundary after grant through a configured process endpoint",
+      "test_query": "RTIambassador delivers a queued TSO at the TARA request boundary before grant through a configured process endpoint",
       "lane_queries": [
-        "process-tso-tara-exclusive-boundary",
+        "process-tso-tara-queued-equal-boundary",
         "process-boundary",
         "time-management",
         "timestamped-interaction",
@@ -11820,10 +11820,10 @@
         "federate.callback.time-advance-grant"
       ],
       "source_location": "cpp/tests/ieee1516_2025_connection_process_tso_tara_boundary_catch2.cpp:607",
-      "assertions": 31,
-      "requirements": 1,
+      "assertions": 34,
+      "requirements": 2,
       "standard_sections": [
-        "hla-1516.1-2025:clause-8"
+        "hla-1516.1-2025:clause-8.9"
       ],
       "api_surfaces": 19,
       "callback_models": [

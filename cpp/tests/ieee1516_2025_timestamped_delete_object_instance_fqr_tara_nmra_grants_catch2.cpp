@@ -87,9 +87,9 @@ TEST_CASE(
 
   // The deletion is accepted at timestamp 7. FQR, TARA, and NMRA use three
   // distinct grant frontiers over the same queued Remove Object Instance:
-  // FQR flushes all queued messages, TARA(7) grants before the equal-time
-  // removal, and NMRA selects the queued timestamp 7 from its request-10
-  // boundary. Table 1 makes TARA's pre-grant TSO bound strict (ts < t_R).
+  // FQR flushes all queued messages, TARA(7) delivers the already-queued
+  // equal-time removal before its grant, and NMRA selects timestamp 7 from
+  // its request-10 boundary (IEEE 1516.1-2025 8.9).
   auto const retraction = publisher->deleteObjectInstance(
       objectInstance,
       tag,
@@ -125,7 +125,7 @@ TEST_CASE(
   REQUIRE(nmraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.front().value == L"7");
   REQUIRE(fqrReports.callbackOrder == std::vector<std::string>{"remove", "flush-grant"});
-  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"grant", "remove"});
+  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"remove", "grant"});
   REQUIRE(nmraReports.callbackOrder == std::vector<std::string>{"remove", "grant"});
 
   auto requireRemoval = [&](auto const& report) {

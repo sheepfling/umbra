@@ -313,15 +313,24 @@ The candidate `requirement-candidate-content-clauses-08-time-management-page-
 178-l51-14` ends at “before granting the joined”, omitting the continuation
 that names the joined federate's time-advance request and says only messages
 listed in Table 1's delivery column may be delivered before grant. The
-reconstructed page-179 table gives TARA's exact pre-grant rule as TSO messages
-with `ts < t_R`; equal-time TSO callbacks therefore follow, rather than
-precede, the TARA grant.
+reconstructed Table 1 TARA row gives all TSO messages with `ts < t_R` and
+already-queued TSO messages with `ts = t_R`. Full §8.9 confirms the queued
+equality rule while allowing later equal-time arrivals after the grant. The
+prior conclusion that every equal-time callback follows the grant was wrong.
 
 Resolution/workaround: retain the pinned candidate ID, but read it with the
-reconstructed page-178 continuation and the specific Table 1 service row. New
-test evidence is scoped to that TARA boundary only. RL-313 is recorded in
+reconstructed page-178 continuation, the specific Table 1 service row, and
+full §8.9. Test evidence is scoped to already-queued TARA equality only.
+RL-313 is recorded in
 `known-issues.json`; this turn did not independently verify the canonical PDF,
 so it is a pinned-export completeness/usability issue, not IEEE errata.
+
+### RL-314 — page-294 service-report log-format subject is truncated
+
+The §11.5.2.1 candidate stops after “service report,” omitting “log records.”
+The pinned Lab layout retains that continuation. Keep the candidate as a Lab
+extraction issue; the existing C++ file-report test does not turn this clipped
+candidate into validated coverage.
 
 ### RL-315 — page-069 Federation Saved success condition is fragmented
 
@@ -336,6 +345,14 @@ paragraph-level condition when a C++ test observes both the callback and the
 completion barrier. The new public multi-member save-commit barrier test maps
 all three. RL-315 is recorded in `known-issues.json`; this is a pinned-export
 usability defect, not a claim of IEEE errata or conformance.
+
+### RL-316 — §8.9 message-set candidate omits its enumerated set
+
+The page-195 §8.9 candidate ends immediately after introducing the messages
+TARA shall deliver. It omits the enumerated items, particularly queued TSO
+messages whose timestamp equals the requested time. Read the pinned full-text
+§8.9 and Table 1 for this boundary. This is an extraction issue, not IEEE
+errata or a conformance claim.
 
 ### RL-317 — page-122 Reflect Attribute Values preamble has the wrong subsection
 

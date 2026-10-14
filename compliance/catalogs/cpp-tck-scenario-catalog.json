@@ -9991,7 +9991,7 @@
     {
       "id": "cpp-tck.timestamped-interaction-tara-equal-boundary",
       "category": "timestamped-interaction-tara-equal-boundary",
-      "title": "Deliver a timestamped interaction at the Time Advance Request Available boundary after the grant",
+      "title": "Deliver an already-queued timestamped interaction at the Time Advance Request Available boundary before the grant",
       "api_methods": [
         "RTIambassador.publishInteractionClass",
         "RTIambassador.changeInteractionOrderType",
@@ -10033,7 +10033,7 @@
     {
       "id": "cpp-tck.timestamped-interaction-tara-equal-boundary-contract",
       "category": "timestamped-interaction-tara-equal-boundary",
-      "title": "Portable standard contract for equal-time TSO delivery after a Time Advance Request Available grant",
+      "title": "Portable standard contract for already-queued equal-time TSO delivery before a Time Advance Request Available grant",
       "api_methods": [
         "RTIambassador.sendInteraction(time)",
         "RTIambassador.timeAdvanceRequestAvailable",

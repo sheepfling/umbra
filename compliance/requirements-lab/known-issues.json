@@ -1367,9 +1367,9 @@
       },
       "symptom": "The requirement candidate ends after `before granting the joined`, omitting the continuation `federate’s request for time advancement; only messages described in this column shall be delivered.` The reconstructed page source confirms that the omitted limiting clause introduces the Table 1 pre-grant delivery restriction.",
       "impact": "The candidate does not preserve the complete normative statement and hides its explicit exclusivity. Query users cannot tell that the third column restricts which messages may be delivered before grant, and a test mapped to the fragment alone can overstate time-advance delivery coverage.",
-      "workaround": "Keep the stable candidate ID and pinned export unchanged. For focused planning, compare the candidate with the reconstructed source at page 178 lines 51-52 and Table 1's exact service row on page 179. Map only behavior the C++ case directly observes, explicitly limit the claim to that row/boundary, and do not infer complete Table 1 coverage or conformance.",
+      "workaround": "Keep the stable candidate ID and pinned export unchanged. For focused planning, compare the candidate with the reconstructed page-178 continuation, Table 1's exact TARA row, and full section 8.9. Already-queued equal-time TSO messages are delivered before a TARA grant, while future equal-time arrivals remain possible. Map only behavior the C++ case directly observes; do not infer complete Table 1 coverage or conformance.",
       "reproduction": "python -X utf8 tools/query_rti_work.py requirement requirement-candidate-content-clauses-08-time-management-page-178-l51-14 --summary --compact; compare with topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-178.tex lines 45-54 and content-block-content-15161-page-179.tex lines 25-31.",
-      "verification": "The bounded requirement query reproduces the terminal phrase `before granting the joined`. The reconstructed source continues with the joined federate's request and the exclusive `only messages described in this column shall be delivered` sentence, and page 179 Table 1 identifies the TARA row as delivering TSO messages with ts < t_R before grant. The canonical PDF has not been independently checked in this turn, so this records a pinned-export completeness/usability defect, not IEEE errata.",
+      "verification": "The bounded requirement query reproduces the terminal phrase `before granting the joined`. The reconstructed source continues with the joined federate's request and the exclusive `only messages described in this column shall be delivered` sentence. The TARA row includes all TSO messages with ts < t_R and already-queued TSO messages with ts = t_R; section 8.9 explicitly lists the queued-equality set and permits later equal-time arrivals. The canonical PDF has not been independently checked in this turn, so this records a pinned-export completeness/usability defect, not IEEE errata.",
       "detected": "2026-10-12"
     },
     {
@@ -1419,6 +1419,30 @@
       "workaround": "Keep the stable IDs and pinned export unchanged. Read l64, l67, and l70 together as one paragraph-level condition. Map a focused C++ case to all three only when it observes both the Federation Saved callback and the all-participants-complete success barrier; do not infer conformance from development-profile evidence.",
       "reproduction": "Inspect the three affected requirement IDs in .compliance/corpus-bundle.json and compare their statement fields in order; the source locators point to content/clauses/04-federation-management-page-069.tex lines 64-75.",
       "verification": "The pinned bundle independently shows the three truncated statements and common 4.23 semantic group. The canonical licensed PDF was not independently checked in this turn, so this is a pinned-export completeness/usability issue, not IEEE errata.",
+      "detected": "2026-10-14"
+    },
+    {
+      "id": "RL-316",
+      "status": "open",
+      "kind": "requirements-lab-incomplete-normative-statement",
+      "title": "Section 8.9 message-set candidate omits the enumerated delivery rules",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-195-l137-40"
+      ],
+      "exported_clause": "8.9",
+      "normative_clause": "8.9",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/08-time-management-page-195.tex",
+        "lines": "137-161",
+        "page": 195
+      },
+      "symptom": "The candidate stops after `Invocation of this service shall cause the following set of messages to be delivered to the joined federate:`. It omits the enumerated RO, earlier-TSO, and queued equal-time TSO items that define the set.",
+      "impact": "A bounded requirement query does not reveal TARA's already-queued equal-time delivery obligation. Reading only the clipped candidate or the first phrase of Table 1 can reverse callback-order expectations.",
+      "workaround": "Keep the pinned candidate ID unchanged. Read the full reconstructed section 8.9 and Table 1 when designing focused C++ tests. Map only the observed queued-equality behavior with an explicit extraction caveat; do not treat development-profile evidence as conformance.",
+      "reproduction": "python -X utf8 tools/query_rti_work.py requirement requirement-candidate-content-clauses-08-time-management-page-195-l137-40 --summary --compact; compare the candidate with the unchanged 1516.1-2025 semantic page-196 layout and Table 1 page-180 layout in Document-Recreation.",
+      "recurrence_of": "RL-313",
+      "verification": "The bounded query returns only the list-introducing sentence. The pinned reconstructed full section 8.9 contains the omitted queued ts = T item. The canonical PDF was not independently checked in this turn; this is a Lab extraction/usability issue, not IEEE errata.",
       "detected": "2026-10-14"
     },
     {

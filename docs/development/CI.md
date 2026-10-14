@@ -198,6 +198,14 @@ A hosted provider needs only to:
    and `ruff`.
 5. Invoke `python -m tools.ci` from the repository root.
 
+On a deeply nested Windows worktree, MinGW can compile a long-named test
+translation unit but fail to open its generated `.obj.d` dependency file with
+`No such file or directory`. This is a path-length failure, not a C++ source
+diagnostic. If a build has already been configured, map the checkout to a
+verified unused drive letter with `subst`, resume Ninja through that short
+alias, and remove the mapping after validation. Keep the original build tree;
+do not delete source or mask genuine compiler errors.
+
 The checked-in GitHub Actions workflow is an example of this contract, not a
 second source of build behavior. An Azure DevOps or other Windows runner can
 fan out the same `python -m tools.ci test ...` commands.

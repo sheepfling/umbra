@@ -441,15 +441,13 @@ TransportServiceMessage ProcessFederationService::handleJoin(
       // Timestamped interaction callbacks precede the matching grant.  Keep
       // the FederateTimeState in Time Advancing until the registry has moved
       // every eligible process payload across its callback boundary.
+      // Section 8.9 includes TARA's already-queued ts == t_R payloads in
+      // its pre-grant delivery set. Future equal-time arrivals may follow.
       dispatchTsoInteractionPayloads(
           federationName,
           federateId,
           *pendingSnapshot.requestedTime,
-          includesEqualTsoAtPreGrantBoundary(pendingSnapshot.advanceMode) ||
-              (pendingSnapshot.advanceMode ==
-                   FederateTimeAdvanceMode::time_advance_request_available &&
-               pendingSnapshot.advanceRequestTime &&
-               *pendingSnapshot.requestedTime < *pendingSnapshot.advanceRequestTime));
+          true);
 
       // An untimed save is normally admitted collectively when every
       // constrained member has a pending TAR, before a later TAR can be
@@ -565,8 +563,9 @@ TransportServiceMessage ProcessFederationService::handleJoin(
       }
       if (pendingSnapshot.advanceMode ==
           FederateTimeAdvanceMode::time_advance_request_available) {
-        // Table 1 excludes ts == t_R from TARA's pre-grant set. Deliver those
-        // retained boundary messages only after the Time Advance Grant event.
+        // A TARA grant permits future equal-time arrivals. Dispatch any
+        // payloads queued while emitting the grant event; already-queued
+        // equal-time payloads were delivered before that event above.
         dispatchTsoInteractionPayloads(
             federationName,
             federateId,

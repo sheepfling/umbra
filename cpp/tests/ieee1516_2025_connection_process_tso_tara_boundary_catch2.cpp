@@ -605,9 +605,9 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "RTIambassador delivers a TSO at the TARA request boundary after grant through a configured process endpoint",
-    "[integration][foundation][interaction-management][time-management][timestamped-interaction][tso][time-advance-request-available][process-tso-tara-exclusive-boundary][process-boundary][public-endpoint][multi-federate][rti.service.send-interaction][rti.service.time-advance-request-available][federate.callback.receive-interaction][federate.callback.time-advance-grant][2025]") {
-  runProcessTaraBoundaryCase(5, {"grant", "interaction"});
+    "RTIambassador delivers a queued TSO at the TARA request boundary before grant through a configured process endpoint",
+    "[integration][foundation][interaction-management][time-management][timestamped-interaction][tso][time-advance-request-available][process-tso-tara-queued-equal-boundary][process-boundary][public-endpoint][multi-federate][rti.service.send-interaction][rti.service.time-advance-request-available][federate.callback.receive-interaction][federate.callback.time-advance-grant][2025]") {
+  runProcessTaraBoundaryCase(5, {"interaction", "grant"});
 }
 
 TEST_CASE(

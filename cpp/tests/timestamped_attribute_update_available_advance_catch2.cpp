@@ -201,8 +201,8 @@ TEST_CASE(
   REQUIRE(first.isValid());
   REQUIRE(receiverReports.attributeReflectionReports.empty());
 
-  // Table 1 excludes ts == t_R from TARA's pre-grant delivery set. The
-  // equal-time reflection follows the matching grant.
+  // TARA delivers an already-queued ts == t_R reflection before its grant.
+  // It does not promise that later equal-time arrivals have been exhausted.
   REQUIRE_NOTHROW(receiver->timeAdvanceRequestAvailable(
       rti1516_2025::HLAinteger64Time(7)));
   REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
@@ -211,7 +211,7 @@ TEST_CASE(
   drainCallbacks(*receiver);
   REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
-  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"grant", "reflect"});
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"reflect", "grant"});
   REQUIRE(receiverReports.attributeReflectionReports.front().objectInstance == objectInstance);
   REQUIRE(receiverReports.attributeReflectionReports.front().producingFederate == publisherHandle);
   REQUIRE(receiverReports.attributeReflectionReports.front().timeValue == L"7");
@@ -235,7 +235,7 @@ TEST_CASE(
   REQUIRE(receiverReports.attributeReflectionReports.size() == 2U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2U);
   REQUIRE(receiverReports.callbackOrder ==
-          std::vector<std::string>{"grant", "reflect", "reflect", "grant"});
+          std::vector<std::string>{"reflect", "grant", "reflect", "grant"});
   REQUIRE(receiverReports.attributeReflectionReports.back().timeValue == L"9");
   REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"9");
   REQUIRE(receiverReports.attributeReflectionReports.back().producingFederate == publisherHandle);

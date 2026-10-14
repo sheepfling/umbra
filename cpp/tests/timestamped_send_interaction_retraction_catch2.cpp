@@ -405,9 +405,9 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Embedded TARA delivers a TSO at its exclusive request boundary only after the grant",
+    "Embedded TARA delivers a queued equal-time TSO before its grant",
     "[integration][development-profile][interaction-management][time-management]"
-    "[timestamped-interaction][tso][tso-tara-exclusive-upper-bound]"
+    "[timestamped-interaction][tso][tso-tara-queued-equal-boundary]"
     "[rti.service.send-interaction][rti.service.time-advance-request-available]"
     "[federate.callback.receive-interaction][federate.callback.time-advance-grant]") {
   ReportingFederateAmbassador publisherReports;
@@ -466,23 +466,26 @@ TEST_CASE(
       rti1516_2025::HLAinteger64Time(2)));
   drainCallbacks(*publisher);
 
-  // Table 1's TARA row permits pre-grant delivery only for ts < t_R.
-  // Dispatch one receiver callback at a time so an equal-time message cannot
-  // be hidden by draining both callbacks before checking their order.
+  // IEEE 1516.1-2025 8.9 requires queued ts == t_R messages before TARA's
+  // grant, although future equal-time messages may arrive after it.
+  // Dispatch one callback at a time to preserve the observed order.
   for (int pass = 0; pass != 128 && receiverReports.timeAdvanceGrantCount == 0U;
        ++pass) {
     static_cast<void>(receiver->evokeCallback(0.0));
   }
   REQUIRE(receiverReports.timeAdvanceGrantCount == 1U);
   REQUIRE_FALSE(receiverReports.callbackOrder.empty());
-  REQUIRE(receiverReports.callbackOrder.front() == "grant");
+  REQUIRE(receiverReports.callbackOrder.front() == "interaction");
   REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
   auto const interactionCallback = std::find(
       receiverReports.callbackOrder.begin(),
       receiverReports.callbackOrder.end(),
       "interaction");
   REQUIRE(interactionCallback != receiverReports.callbackOrder.end());
-  REQUIRE(interactionCallback > receiverReports.callbackOrder.begin());
+  REQUIRE(interactionCallback < std::find(
+      receiverReports.callbackOrder.begin(),
+      receiverReports.callbackOrder.end(),
+      "grant"));
   auto const& report = receiverReports.timestampedInteractionReports.front();
   REQUIRE(report.timeValue == L"6");
   REQUIRE(report.sentOrderType == TIMESTAMP);

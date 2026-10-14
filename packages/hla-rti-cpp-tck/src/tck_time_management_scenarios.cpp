@@ -187,8 +187,8 @@ void scenarioAlternateTimeAdvances(Options const& options, rti::CallbackModel mo
       "Flush Queue Request delivered its grant before the timestamped reflection");
   require(
       timeAdvanceAvailable.recorder().callbackOrder() ==
-          std::vector<std::string>{"grant", "reflect"},
-      "Time Advance Request Available delivered an equal-time TSO before its grant");
+          std::vector<std::string>{"reflect", "grant"},
+      "Time Advance Request Available granted before its already-queued equal-time TSO");
   require(
       nextMessageAvailable.recorder().callbackOrder() ==
           std::vector<std::string>{"reflect", "grant"},
@@ -568,8 +568,8 @@ void scenarioTimestampedDirectedAlternateAdvances(
       "Flush Queue Request delivered its directed interaction after the flush grant");
   require(
       timeAdvanceAvailable.recorder().callbackOrder() ==
-          std::vector<std::string>{"grant", "directed"},
-      "Time Advance Request Available delivered an equal-time directed TSO before its grant");
+          std::vector<std::string>{"directed", "grant"},
+      "Time Advance Request Available granted before its already-queued equal-time directed TSO");
   require(
       nextMessageAvailable.recorder().callbackOrder() ==
           std::vector<std::string>{"directed", "grant"},
@@ -940,8 +940,8 @@ void scenarioAvailableTimeAdvancesInclusiveGalt(
       "inclusive-GALT time-advance-request-available returned the wrong callback counts");
   require(
       receiver.recorder().callbackOrder() ==
-          std::vector<std::string>{"grant", "interaction"},
-      "inclusive-GALT delivered its equal-time TSO before the available grant");
+          std::vector<std::string>{"interaction", "grant"},
+      "inclusive-GALT available advance granted before its already-queued equal-time TSO");
 
   auto assertInteraction = [&](TimedInteractionRecord const& record,
                                std::vector<std::uint8_t> const& expectedValue,

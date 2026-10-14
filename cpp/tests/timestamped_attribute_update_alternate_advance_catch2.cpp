@@ -274,8 +274,8 @@ TEST_CASE(
   REQUIRE(taraReports.attributeReflectionReports.empty());
   REQUIRE(nmraReports.attributeReflectionReports.empty());
 
-  // TARA excludes the equal timestamp-5 cohort from pre-grant delivery; those
-  // reflections follow its grant. NMRA selects the timestamp below its
+  // TARA delivers the already-queued equal timestamp-5 cohort before its
+  // grant. NMRA selects the timestamp below its
   // requested upper limit and delivers the cohort before its grant.
   REQUIRE_NOTHROW(tara->timeAdvanceRequestAvailable(
       rti1516_2025::HLAinteger64Time(5)));
@@ -294,7 +294,7 @@ TEST_CASE(
   REQUIRE(taraReports.timeAdvanceGrantReports.front().value == L"5");
   REQUIRE(nmraReports.timeAdvanceGrantReports.front().value == L"5");
   REQUIRE(taraReports.callbackOrder ==
-          std::vector<std::string>{"grant", "reflect", "reflect"});
+          std::vector<std::string>{"reflect", "reflect", "grant"});
   REQUIRE(nmraReports.callbackOrder ==
           std::vector<std::string>{"reflect", "reflect", "grant"});
   REQUIRE(taraReports.attributeReflectionReports[0].timeValue == L"5");
@@ -337,7 +337,7 @@ TEST_CASE(
   verifyCohort(taraReports, taraEfficiency);
   verifyCohort(nmraReports, nmraEfficiency);
 
-  // The equal timestamp-7 TARA record also follows its grant, while NMRA's
+  // The queued equal timestamp-7 TARA record also precedes its grant, while NMRA's
   // timestamp remains below its requested upper limit and precedes its grant.
   REQUIRE_NOTHROW(tara->timeAdvanceRequestAvailable(
       rti1516_2025::HLAinteger64Time(7)));
@@ -367,7 +367,7 @@ TEST_CASE(
   REQUIRE(taraReports.timeAdvanceGrantReports.back().value == L"7");
   REQUIRE(nmraReports.timeAdvanceGrantReports.back().value == L"7");
   REQUIRE(taraReports.callbackOrder ==
-          std::vector<std::string>{"grant", "reflect", "reflect", "grant", "reflect"});
+          std::vector<std::string>{"reflect", "reflect", "grant", "reflect", "grant"});
   REQUIRE(nmraReports.callbackOrder ==
           std::vector<std::string>{"reflect", "reflect", "grant", "reflect", "grant"});
 

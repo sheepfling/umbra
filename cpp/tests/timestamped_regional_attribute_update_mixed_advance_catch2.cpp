@@ -275,8 +275,8 @@ TEST_CASE(
   REQUIRE(nmraReports.attributeReflectionReports.empty());
 
   // FQR and NMRA admit ts=7 before their grants because their request
-  // boundaries are later; TARA's ts < t_R rule moves its equal-time callback
-  // after the grant. The publisher request to 2 plus lookahead 5 establishes
+  // boundaries are later; TARA delivers its already-queued equal-time
+  // reflection before the grant. The publisher request to 2 plus lookahead 5 establishes
   // GALT 7 for every recipient.
   REQUIRE_NOTHROW(fqr->flushQueueRequest(rti1516_2025::HLAinteger64Time(10)));
   REQUIRE_NOTHROW(tara->timeAdvanceRequestAvailable(
@@ -321,7 +321,7 @@ TEST_CASE(
   REQUIRE(taraReports.attributeReflectionReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.front().value == L"7");
-  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"grant", "reflect"});
+  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"reflect", "grant"});
   REQUIRE(nmraReports.attributeReflectionReports.empty());
   REQUIRE(nmraReports.timeAdvanceGrantReports.empty());
   REQUIRE_FALSE(nmra->evokeCallback(0.0));
