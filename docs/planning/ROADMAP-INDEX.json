@@ -134,9 +134,29 @@
       "Pass four focused CTests and both-model JSON/JUnit validation; record compile metrics without claiming a clean repository-wide bill of health."
     ]
   },
-  "active_handoff_note": "2026-10-14: Completed the bounded process-ingress deployment slice and revalidated the stale FQR handoff. The pinned Requirements Lab text for IEEE 1516.1-2025 §§8.12/8.12.3 defines the TSO set queued at FQR invocation; it does not define a later HLA_EVOKED callback-start cutoff. The prequeued timestamp-12/FQR(10) C++ case now verifies the normative invocation-time rule under both HLA_EVOKED and HLA_IMMEDIATE (69 assertions); the separate post-submission case remains implementation evidence. The previously suggested NMRA Available/save-queue follow-up is already covered by umbra-cpp-restore-pending-tso-nmra-integration. MinGW built the focused target and the two FQR CTests passed. Metrics snapshot 20261014T215419.408675Z-d875a684 is partial; repository-wide source-size/legacy-growth blockers and two source-location gaps prevent a clean bill of health. The next global open family is portable C++ TCK new-case-needed; choose one exact bounded clause gap before implementation. No full-suite, external interoperability, validation, or conformance claim is made.",
+  "active_handoff_note": "2026-10-14 finish-plan selection: the prior process TSO handoff is complete. Re-run the clean installed-package portable C++ TCK before interpreting its six last-documented provider failures. The next active investigation uses the existing mapped public process Service Reporting interlock case as its native anchor; it does not claim the package failure still reproduces. See docs/planning/RTI-2025-FINISH-PLAN.md. No Requirements Lab resync or conformance promotion is implied.",
   "latest_verified_slice": "2026-10-14: MinGW built umbra_flush_queue_future_input_catch2. The public C++ prequeued timestamp-12/FQR(10) test passed under HLA_EVOKED and HLA_IMMEDIATE (69 assertions); its post-submission companion also passed, for 2/2 focused CTests. Direct mappings cover five requirements across §§8.12 and 8.12.3. The Lab defines the queue at FQR invocation and no HLA_EVOKED callback-start cutoff for later arrivals; the later-arrival behavior remains implementation evidence. Build-metrics snapshot 20261014T215419.408675Z-d875a684 is partial: 1,280 translation units, 3,869.6 seconds summed compiler time, 219 unmeasured commands; this target was not separately listed in the target-specific totals. Metrics capture reports repository-wide size/growth blockers and two source-location gaps, so no clean bill of health is claimed. No full-suite, external interoperability, validation, or conformance claim is made.",
   "active_handoff": {
+    "state": "investigation",
+    "family": "portable-cpp-tck-2025",
+    "id": "umbra-cpp-installed-package-service-report-interlock-triage",
+    "plan_id": "umbra-cpp-process-endpoint-mom-service-report-interlock-integration",
+    "mapping_seed_plan_id": "umbra-cpp-process-endpoint-mom-service-report-interlock-integration",
+    "test_case": "RTIambassador preserves the process HLAsetSwitches Service Reporting interlock",
+    "lane": "process-mom-service-report-interlock",
+    "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1295",
+    "source_target": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1295",
+    "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador preserves the process HLAsetSwitches Service Reporting interlock$",
+    "objective": "Run the complete portable C++ TCK against a fresh installed MinGW package in both callback models, retain direct JSON/JUnit, and determine whether the last-documented Service Reporting subscription interlock failure still reproduces. Compare the installed path with this passing native public C++ anchor. If reproduced, isolate and fix the provider discrepancy and add the exact focused C++ regression; otherwise record the fresh pass. Triage the other four last-documented provider-failure outcomes separately. Do not resynchronize unchanged Requirements Lab inputs or claim conformance from raw evidence.",
+    "acceptance": [
+      "The fresh installed-package both-model TCK outcome is recorded with direct JSON/JUnit and catalog validation; no cached result is treated as current.",
+      "The native mapped process interlock anchor builds under MinGW and passes its exact CTest selector and lane mapping check.",
+      "A reproduced provider failure receives an official-API C++ regression and fix; a nonreproduced failure is explicitly marked superseded by fresh evidence.",
+      "Keep all other TCK failures and protected review as separate follow-ups."
+    ]
+  },
+  "last_completed_handoff": {
     "state": "complete",
     "family": "time-save-restore",
     "id": "umbra-cpp-process-tso-cross-process-ingress-proxy-deployment",
@@ -197,6 +217,11 @@
       "id": "implementation-plan",
       "path": "docs/planning/IMPLEMENTATION-PLAN.md",
       "role": "architecture and sequencing plan"
+    },
+    {
+      "id": "rti-2025-finish-plan",
+      "path": "docs/planning/RTI-2025-FINISH-PLAN.md",
+      "role": "bounded C++ 2025 finish lanes, first execution wave, and release gates"
     },
     {
       "id": "cpp-test-plan",
