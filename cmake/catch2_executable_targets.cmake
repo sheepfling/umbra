@@ -425,6 +425,14 @@
         DISCOVERY_MODE POST_BUILD
       )
     endif()
+    if(TARGET umbra_process_delayed_regional_attribute_catch2)
+      catch_discover_tests(umbra_process_delayed_regional_attribute_catch2
+        TEST_PREFIX "umbra.process_delayed_regional_attribute.catch2."
+        ADD_TAGS_AS_LABELS
+        ${_umbra_catch_discovery_properties}
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
     if(TARGET umbra_process_boundary_private_catch2)
       catch_discover_tests(umbra_process_boundary_private_catch2
         TEST_PREFIX "umbra.process_boundary_private.catch2."

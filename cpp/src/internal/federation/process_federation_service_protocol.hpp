@@ -1365,6 +1365,11 @@ struct ProcessFederationAttributeUpdateEvent final {
   // in the official callback. Keep this marker trailing so ordinary process
   // attribute-event aggregates and legacy wire payloads remain compatible.
   bool rtiOwnedMomObject = false;
+  // Server-local receive-fence context, never encoded on the process wire.
+  // The original committed source ranges must survive a producer mutation
+  // between Update Attribute Values and the receiver's Evoke poll.
+  bool recheckAtReceive = false;
+  std::map<std::uint64_t, RegionSpecificationSnapshot> sentRegionSnapshots;
 };
 
 // One accepted object-instance Request Attribute Value Update provider

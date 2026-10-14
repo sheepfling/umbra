@@ -49,6 +49,13 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
   if (plan.status != ReceiveOrderAttributeUpdateStatus::applied) {
     return rejected(request);
   }
+  auto const delaySubscriptionEvaluation =
+      registry_.delaySubscriptionEvaluationSwitchFor(
+          updateRequest.federationName,
+          updateRequest.producingFederateId);
+  if (!delaySubscriptionEvaluation) {
+    return internalError(request);
+  }
 
   auto const producingTimeSnapshot = producingTimeState
       ? producingTimeState->snapshot()
@@ -199,13 +206,24 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
         continue;
       }
       auto recipient = plannedRecipient;
-      if (recipient.receivedAttributeHandles.empty()) {
+      // An evoked process receiver's poll is the actual receive-order
+      // delivery fence. Keep the accepted passel until that fence, even when
+      // the creation-time switch retained a currently ineligible recipient.
+      // Push-mode callbacks need a separate callback-entry fence.
+      bool const recheckAtReceive =
+          !options_.pushReceiveOrderEvents &&
+          !updateRequest.timestamp.has_value();
+      if (!recheckAtReceive && recipient.receivedAttributeHandles.empty()) {
         auto const current = registry_.receiveOrderAttributeUpdateRecipientFor(
             updateRequest.federationName,
             updateRequest.producingFederateId,
             plannedRecipient.federateId,
             updateRequest.objectInstanceHandle,
-            passel.sentAttributeHandles);
+            passel.sentAttributeHandles,
+            passel.sentRegionHandles.empty() ? nullptr : &passel.sentRegionHandles,
+            passel.sentRegionSnapshots.empty()
+                ? nullptr
+                : &passel.sentRegionSnapshots);
         if (!current) {
           continue;
         }
@@ -222,13 +240,18 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
           ? std::nullopt
           : std::optional<std::set<std::uint64_t>>(passel.sentRegionHandles);
       event.defaultRegionUsed = passel.defaultRegionUsed;
+      event.recheckAtReceive = recheckAtReceive;
+      if (recheckAtReceive) {
+        event.sentRegionSnapshots = passel.sentRegionSnapshots;
+      }
       event.timestamp = updateRequest.timestamp;
       if (queueTimestampedAttributeUpdate &&
           passel.preferredOrderType == rti1516_2025::TIMESTAMP) {
         event.retractionMessageId = messageId;
       }
       for (auto const attributeHandle : passel.sentAttributeHandles) {
-        if (!recipient.receivedAttributeHandles.contains(attributeHandle)) {
+        if ((!recheckAtReceive || !*delaySubscriptionEvaluation) &&
+            !recipient.receivedAttributeHandles.contains(attributeHandle)) {
           continue;
         }
         auto const value = std::find_if(

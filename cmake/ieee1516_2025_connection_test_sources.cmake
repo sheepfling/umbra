@@ -26,6 +26,7 @@ set(UMBRA_IEEE1516_2025_CONNECTION_TEST_SOURCES
   cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp
   cpp/tests/ieee1516_2025_connection_region_lifecycle_catch2.cpp
   cpp/tests/ieee1516_2025_connection_regional_subscription_update_catch2.cpp
+  cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp
   cpp/tests/ieee1516_2025_connection_timestamped_regional_update_catch2.cpp
   cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp
   cpp/tests/ieee1516_2025_connection_disjoint_regional_update_catch2.cpp

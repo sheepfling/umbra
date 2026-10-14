@@ -31,6 +31,7 @@
 #include <iterator>
 #include <set>
 #include <utility>
+#include <vector>
 
 namespace umbra::detail {
 using process_federation_payload::parameterVector;
@@ -178,16 +179,47 @@ TransportServiceMessage ProcessFederationService::handleReceiveInteraction(
       }
       if (!result.scopeChangeEvent &&
           !result.attributeRelevanceAdvisoryEvent &&
-          !result.attributeValueUpdateRequestEvent &&
-          !state->second.attributeUpdateEvents.empty()) {
+          !result.attributeValueUpdateRequestEvent) {
         // Keep the original receive-interaction polling operation as the
         // single deterministic receive fence. Attribute reflections use the
         // adjacent result slot so older process clients do not need a second
         // competing poll that would consume a response intended for an
         // interaction test server.
-        result.attributeEvent =
-            std::move(state->second.attributeUpdateEvents.front());
-        state->second.attributeUpdateEvents.pop_front();
+        while (!state->second.attributeUpdateEvents.empty()) {
+          auto event = std::move(state->second.attributeUpdateEvents.front());
+          state->second.attributeUpdateEvents.pop_front();
+          if (event.recheckAtReceive) {
+            std::vector<std::uint64_t> sentAttributeHandles;
+            sentAttributeHandles.reserve(event.attributeValues.size());
+            for (auto const& [attributeHandle, value] : event.attributeValues) {
+              static_cast<void>(value);
+              sentAttributeHandles.push_back(attributeHandle);
+            }
+            auto const current = registry_.receiveOrderAttributeUpdateRecipientFor(
+                receiveRequest.federationName,
+                event.producingFederateId,
+                receiveRequest.receivingFederateId,
+                event.objectInstanceHandle,
+                sentAttributeHandles,
+                event.sentRegionHandles ? &*event.sentRegionHandles : nullptr,
+                event.sentRegionSnapshots.empty()
+                    ? nullptr
+                    : &event.sentRegionSnapshots);
+            if (!current) {
+              continue;
+            }
+            std::erase_if(
+                event.attributeValues,
+                [&](ProcessFederationAttributeValue const& value) {
+                  return !current->receivedAttributeHandles.contains(value.first);
+                });
+            if (event.attributeValues.empty()) {
+              continue;
+            }
+          }
+          result.attributeEvent = std::move(event);
+          break;
+        }
       }
       if (!result.scopeChangeEvent &&
           !result.attributeRelevanceAdvisoryEvent &&

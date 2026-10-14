@@ -28198,6 +28198,7 @@
         "ownership-management",
         "interaction-management",
         "ddm",
+        "process-delayed-regional-attribute",
         "ddm-regional-association-failure",
         "ddm-regional-asynchronous-receive-order",
         "timestamped-regional-interaction-reenable",
@@ -28359,8 +28360,20 @@
         "subscribe-object-class-attributes-default-update-rate",
         "implicit-self-unsubscribe-no-out-of-scope-advisory"
       ],
-      "next_task": "The FOM-preparation atomicity case, untimed save-control baseline, route-free control/temporal restore, pending-TAR/deferred-lookahead restore, one-name reservation restore, synchronization-point filesystem restore, one-region filesystem restore, and object-class declaration filesystem restore are isolated in focused 2025 sources. The private late-join participant-selection test also remains isolated with an explicit non-conformance disposition. The current source-splitting handoff is recorded at the top level; preserve adjacent restore-state boundaries and keep the 2010 stream separate.",
-      "next_action": "The pending attribute and interaction transportation-type restores, corrupt-image failure, published interaction declaration, subscription-only declaration, combined same-class declaration, regional subscription, multi-class publication, independent multi-federate declaration, and committed interaction transportation-type override restores are isolated in focused 2025 sources with exact mappings and focused CTests. The seven private foundation cases remain separately mapped or explicitly dispositioned. The captured regional attribute TSO snapshot, expanded regional-interaction filesystem restore, directed-TSO ownership/retraction restore, by-ownership directed-interaction handoff, and deferred Update Region association restore are now isolated in dedicated 2025 sources; their ten focused CTests passed. The active top-level split handoff is the private-foundation TSO recipient-ledger suppressed-callback terminalization case at cpp/tests/federation_registry_catch2.cpp:578; treat it as implementation evidence only, retain its current direct mappings without claiming conformance, and preserve the 2010 boundary."
+      "next_task": "Close the process HLA_IMMEDIATE push-mode Delay Subscription Evaluation callback-entry boundary for regional receive-order attribute updates. Preserve accepted source-region context through disabled/enabled callback dispatch and distinguish late disjoint from late overlapping subscriptions using official 2025 C++ APIs.",
+      "next_action": "Use `umbra-cpp-process-delayed-regional-attribute-receive-fence` as the HLA_EVOKED baseline, then add a separate HLA_IMMEDIATE process case. The current pull-mode result is bounded development evidence only; do not claim full clause 8.1.8 validation or infer timestamped, installed-package, or conformance behavior.",
+      "next_lane": "process-delayed-regional-attribute",
+      "next_test_role": "baseline",
+      "next_test_query": "Process delayed regional attribute delivery rechecks the original sent region",
+      "next_ctest_filter": "[process-delayed-regional-attribute]",
+      "next_plan_ids": [
+        "umbra-cpp-process-delayed-regional-attribute-receive-fence"
+      ],
+      "next_standard_sections": [
+        "hla-1516.1-2025:clause-8.1.8",
+        "hla-1516.1-2025:clause-9.5",
+        "hla-1516.1-2025:clause-9.6"
+      ]
     },
     {
       "id": "time-save-restore",
