@@ -15,6 +15,7 @@
 #include <RTI/NullFederateAmbassador.h>
 
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <exception>
@@ -963,6 +964,23 @@ int runPublicServer(
   }
 
   if (connectionLoss) {
+    std::thread automaticUnconditionalSender;
+    std::exception_ptr automaticUnconditionalSenderError;
+    std::atomic_bool automaticUnconditionalLossStarted{false};
+    // An exception on the receiver side must not leave a joinable reader or a
+    // blocked socket behind.  Normal completion joins the reader explicitly.
+    struct SenderReaderCleanup final {
+      std::thread& reader;
+      std::shared_ptr<ProcessTransportConnection> connection;
+
+      ~SenderReaderCleanup() {
+        if (reader.joinable()) {
+          connection->close();
+          reader.join();
+        }
+      }
+    } automaticUnconditionalCleanup{
+        automaticUnconditionalSender, sender->connection()};
     bool const evokedCallbacks = std::filesystem::exists(directory / "evoked.mode");
     bool const automaticUnconditional = std::filesystem::exists(
         directory / "automatic-unconditional.mode");
@@ -994,12 +1012,54 @@ int runPublicServer(
           !serveExpectedSender(TransportServiceOperation::publish_object_class_attributes) ||
           !serveExpectedSender(TransportServiceOperation::subscribe_object_class_attributes) ||
           !serveExpectedReceiver(TransportServiceOperation::register_object_instance) ||
-          !serveExpectedReceiver(TransportServiceOperation::get_object_instance_name) ||
-          !serveExpectedSender(TransportServiceOperation::receive_interaction) ||
-          !serveExpectedReceiver(TransportServiceOperation::set_automatic_resign_directive) ||
-          !serveExpectedReceiver(TransportServiceOperation::get_automatic_resign_directive)) {
+          !serveExpectedReceiver(TransportServiceOperation::get_object_instance_name)) {
         throw std::runtime_error(
             "The installable process profile automatic-divestiture server lost a pre-loss operation.");
+      }
+      // Push delivery can finish discovery either with or without an Evoke
+      // receive poll.  One sender reader owns this socket from discovery through
+      // resignation so an optional poll cannot race with post-loss lookups.
+      automaticUnconditionalSender = std::thread([&] {
+        try {
+          std::array const postLossOperations{
+              TransportServiceOperation::get_object_instance_handle,
+              TransportServiceOperation::is_attribute_owned_by_federate,
+              TransportServiceOperation::is_attribute_owned_by_federate,
+              TransportServiceOperation::resign_federation_execution};
+          std::size_t nextOperation = 0U;
+          while (nextOperation < postLossOperations.size()) {
+            if (!umbra::test::servePrimaryProcessRequest(
+                    *sender, senderHandler,
+                    [&](TransportServiceMessage const& request) {
+                      if (request.operation ==
+                              TransportServiceOperation::receive_interaction ||
+                          request.operation ==
+                              TransportServiceOperation::report_successful_service_invocation ||
+                          request.operation ==
+                              TransportServiceOperation::report_successful_void_service_invocation) {
+                        return senderHandler(request);
+                      }
+                      if (!automaticUnconditionalLossStarted.load(
+                              std::memory_order_acquire) ||
+                          request.operation != postLossOperations[nextOperation]) {
+                        throw std::runtime_error(
+                            "The automatic-divestiture fixture received an unexpected survivor operation or a post-loss operation before loss started.");
+                      }
+                      ++nextOperation;
+                      return senderHandler(request);
+                    })) {
+              throw std::runtime_error(
+                  "The automatic-divestiture fixture lost a survivor operation.");
+            }
+          }
+        } catch (...) {
+          automaticUnconditionalSenderError = std::current_exception();
+        }
+      });
+      if (!serveExpectedReceiver(TransportServiceOperation::set_automatic_resign_directive) ||
+          !serveExpectedReceiver(TransportServiceOperation::get_automatic_resign_directive)) {
+        throw std::runtime_error(
+            "The automatic-divestiture fixture lost the receiver directive operations.");
       }
     }
     if (automaticDeleteObjects) {
@@ -1084,6 +1144,9 @@ int runPublicServer(
     // Model a real process/socket loss on the receiver side.  Apply the
     // registry's automatic-resign policy before closing the transport so the
     // surviving sender cannot route a later interaction to a stale member.
+    if (automaticUnconditional) {
+      automaticUnconditionalLossStarted.store(true, std::memory_order_release);
+    }
     bool const lossApplied = federateLostMomReport
         ? service.connectionLost(
               L"process-execution",
@@ -1140,17 +1203,9 @@ int runPublicServer(
     });
 
     if (automaticUnconditional) {
-      if (!serveExpectedSenderAfterEvokedPolls(TransportServiceOperation::get_object_instance_handle) ||
-          !serveExpectedSenderAfterEvokedPolls(TransportServiceOperation::is_attribute_owned_by_federate) ||
-          !serveExpectedSenderAfterEvokedPolls(TransportServiceOperation::is_attribute_owned_by_federate)) {
-        throw std::runtime_error(
-            "The installable process profile automatic-divestiture server lost a post-loss ownership operation.");
-      }
-    }
-    if (automaticUnconditional) {
-      if (!serveExpectedSender(TransportServiceOperation::resign_federation_execution)) {
-        throw std::runtime_error(
-            "The installable process profile automatic-divestiture server lost survivor Resign.");
+      automaticUnconditionalSender.join();
+      if (automaticUnconditionalSenderError) {
+        std::rethrow_exception(automaticUnconditionalSenderError);
       }
       service.detach(*sender);
       sender->connection()->close();
