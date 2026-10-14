@@ -47,11 +47,13 @@ inline ScopedTemporaryDirectory reserveDirectory(std::string_view prefix) {
 }
 
 inline ScopedTemporaryDirectory temporaryServiceReportDirectory() {
-  return reserveDirectory("umbra-public-directed-tso-report");
+  // Keep full report filenames below the legacy Windows path limit when
+  // CTest itself uses a workspace-local temporary root.
+  return reserveDirectory("umbra-rpt");
 }
 
 inline ScopedTemporaryDirectory temporaryFederationSaveDirectory() {
-  return reserveDirectory("umbra-public-directed-tso-save");
+  return reserveDirectory("save");
 }
 
 class ScopedEmbeddedFederationRegistry final {
@@ -79,6 +81,17 @@ class ScopedEmbeddedFederationRegistry final {
     std::filesystem::path const& directory) {
   return umbra::embedded::makeEmbeddedRtiConfiguration(
       umbra::embedded::ServiceReportConfiguration{directory});
+}
+
+[[nodiscard]] inline RtiConfiguration
+configurationForServiceReportAndFederationSaveDirectory(
+    std::filesystem::path const& reportDirectory,
+    std::filesystem::path const& saveDirectory) {
+  auto configuration = configurationForServiceReportDirectory(reportDirectory);
+  configuration.withAdditionalSettings(
+      L"serviceReportDirectory=" + reportDirectory.wstring() +
+      L";federationSaveDirectory=" + saveDirectory.wstring());
+  return configuration;
 }
 
 inline std::vector<std::filesystem::path> serviceReportFiles(

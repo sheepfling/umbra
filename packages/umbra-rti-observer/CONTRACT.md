@@ -28,6 +28,14 @@ The dashboard checks `/api/contract` before consuming state. This makes an
 incompatible backend fail clearly instead of producing a partially populated
 screen.
 
+The maintained dashboard implementation lives in the separate
+`umbra-rti-observer-ui` React/TypeScript package. The reference FastAPI backend
+publishes `/openapi.json`; the UI uses `openapi-typescript` to refresh its
+checked-in REST types. WebSocket/SSE messages use the same contract models but
+are kept in a small adjacent stream-type module because WebSocket operations
+are not represented by OpenAPI. This gives the browser compile-time types
+without making the Python implementation the frontend's runtime dependency.
+
 ## Capability discovery
 
 The contract is stable even when the connected RTI is not feature-complete.
@@ -133,7 +141,7 @@ continuing from the advertised retained cursor.
 
 To replace the Python server with Java:
 
-1. Keep the dashboard static asset unchanged.
+1. Keep the built React dashboard static asset unchanged.
 2. Implement `/api/contract`, `/api/state`, `/api/events`, and one streaming
    endpoint with the shapes above.
 3. Advertise provider and backend capability states in the contract and state
@@ -146,6 +154,34 @@ To replace the Python server with Java:
 
 No Python package, Python callback class, FOM parser, or RTI binding is part
 of the frontend contract.
+
+## Python implementation boundary
+
+The reference Python backend keeps the wire dictionaries at the boundary. Its
+store uses explicit records for normalized events, object/interaction/federate
+inspectors, metrics, retention, adapter status, capability declarations, and
+event pages. Each record has a `to_json()` conversion used by the HTTP and
+streaming layers.
+
+Provider-specific input is intentionally flexible only at the adapter seam:
+an adapter may submit a mapping containing provider extensions, but the store
+normalizes the envelope and retains extensions as JSON-compatible values. New
+backend code should add a model field or an explicit extension field rather
+than passing nested `dict[str, Any]` objects through the store.
+
+The optional FastAPI transport adds a second validation boundary in
+`schemas.py`. Request bodies use named, strict Pydantic models (`EventInput`,
+`EventBatchRequest`, `ContextRequest`, and `StatusRequest`); finite responses
+use named response models; and stream messages are validated before they are
+sent over SSE or WebSocket. Extension fields are collected into an explicit
+`extensions` model field internally, then flattened back to the existing
+top-level event wire shape. Their values must still be recursive JSON values.
+A malformed batch is rejected with HTTP 422 before it reaches the store, so
+validation cannot partially ingest a batch.
+
+The package-level `pyrightconfig.json` and Ruff checks protect this boundary.
+Run the dependency-free core tests plus the optional web extra before swapping
+in another backend implementation.
 
 For a separately hosted backend, the static dashboard can override its
 `observer-api-base` and `observer-stream-path` meta tags with same-origin or

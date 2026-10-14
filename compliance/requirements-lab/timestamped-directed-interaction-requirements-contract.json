@@ -24,7 +24,7 @@
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderDirectedInteraction",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/timestamped_directed_interaction_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
         "cpp/tests/timestamped_directed_interaction_multi_recipient_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
@@ -38,7 +38,7 @@
       "source_symbol": "receiveOrderDirectedInteractionRecipientFor",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/timestamped_directed_interaction_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
         "cpp/tests/timestamped_directed_interaction_multi_recipient_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
@@ -74,7 +74,7 @@
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoDirectedInteraction",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/timestamped_directed_interaction_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
         "cpp/tests/timestamped_directed_interaction_multi_recipient_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
         "cpp/tests/connection_loss_directed_tso_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
@@ -93,7 +93,7 @@
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/timestamped_directed_interaction_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
         "cpp/tests/timestamped_directed_interaction_multi_recipient_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
         "cpp/tests/connection_loss_directed_tso_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
@@ -144,7 +144,7 @@
       "source_symbol": "recipient.receiveDirectedInteraction",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/timestamped_directed_interaction_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
         "cpp/tests/timestamped_directed_interaction_multi_recipient_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
         "cpp/tests/connection_loss_directed_tso_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
@@ -323,7 +323,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::flushQueueRequest",
       "tests": [
-        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/ieee1516_2025_public_directed_tso_alternate_advances_restore_catch2.cpp::Embedded public fresh-registry directed TSO restores through FQR TARA and NMRA under HLA_EVOKED and HLA_IMMEDIATE"
       ],
       "notes": "This entry keeps the two standard alternate-advance families queryable together: a direct pre-save directed interaction baseline and the public fresh-registry companion. Both require the Receive Directed Interaction callback to precede the applicable FQR, TARA, or NMRA grant at the inclusive timestamp frontier; broader mixed fanout, resignation, and directed-DDM combinations remain separate."

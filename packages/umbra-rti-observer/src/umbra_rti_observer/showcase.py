@@ -8,15 +8,15 @@ RTI or pretending that the generated events came from one.
 from __future__ import annotations
 
 import threading
-from typing import Any
 
 from .core import EventSink
+from .models import JsonValue
 
 ShowcaseProfile = str
 
 
-def _profile_capabilities(profile: ShowcaseProfile) -> dict[str, dict[str, Any]]:
-    common = {
+def _profile_capabilities(profile: ShowcaseProfile) -> dict[str, dict[str, JsonValue]]:
+    common: dict[str, dict[str, JsonValue]] = {
         key: {"state": "available"}
         for key in (
             "lifecycle",
@@ -82,7 +82,7 @@ class ShowcaseAdapter:
         _profile_capabilities(profile)
 
     @property
-    def capabilities(self) -> dict[str, dict[str, Any]]:
+    def capabilities(self) -> dict[str, dict[str, JsonValue]]:
         return _profile_capabilities(self.profile)
 
     @property
@@ -111,7 +111,7 @@ class ShowcaseAdapter:
         with self._lock:
             self._thread = None
 
-    def _emit(self, event_type: str, **fields: Any) -> None:
+    def _emit(self, event_type: str, **fields: JsonValue) -> None:
         with self._lock:
             sink = self._sink
         if sink is None:

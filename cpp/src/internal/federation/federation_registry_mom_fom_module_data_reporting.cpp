@@ -1,4 +1,5 @@
 #include "internal/federation/federation_registry.hpp"
+#include "internal/observability/runtime_instrumentation.hpp"
 #include "internal/federation/federation_registry_constants.hpp"
 #include "internal/fom/fom_catalog.hpp"
 

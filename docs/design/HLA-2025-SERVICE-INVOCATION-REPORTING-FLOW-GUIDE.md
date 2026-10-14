@@ -1,9 +1,15 @@
 # IEEE 1516.1-2025 Service Invocation Reporting: Contributor Flow Guide
 
-This guide follows a reportable service call through its switches, selected
-destination, interaction filtering, file lifetime, and callback delivery. Its
-purpose is to explain Umbra's current implementation shape without making a
-reader reconstruct that flow from many service wrappers.
+Treat service-invocation reporting as an observation about a service call, not
+as the service operation itself. Keep the caller's result and state effect
+separate from whether a report is produced, which destination is selected,
+and whether another federate later observes a report interaction. The report's
+subject and its observer are different roles.
+
+This guide traces those questions through selected Umbra behavior, including
+switches, destinations, interaction filtering, file lifetime, and callback
+delivery. The implementation examples are not a universal report-routing
+algorithm or a conformance claim.
 
 ## Scope and authority
 
@@ -24,10 +30,59 @@ reader reconstruct that flow from many service wrappers.
   requirements, a Requirements Lab mapping, or conformance evidence.
 
 The scope here is the `HLAreportServiceInvocation` path and its per-member
-service-report file. It does not attempt to diagram all Management Object Model
-(MOM) state projections, `HLAreportException`, or `HLAreportMOMexception`.
+service-report file. A few failure traces mention an `HLAreportException`
+attempt only to explain its ordering relative to a service report; they are not
+a complete account of exception-report routing. For the separate
+`HLAreportException` and `HLAreportMOMexception` paths, see the
+[exception-reporting guide](HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md). This
+guide also does not attempt to diagram all other Management Object Model
+(MOM) state projections.
+
 For deeper implementation notes, see the [MOM service-reporting design](MOM-SERVICE-REPORTING-DESIGN.md#delivery-and-state-invariants)
 and the separate [callback/service-ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md).
+For a cross-service reasoning aid that separates caller outcome, state commit,
+and optional reporting/observation effects, see the
+[2025 cross-cutting guide](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#a-service-result-committed-state-and-a-report-are-separate-traces).
+
+## Three distinct traces: call outcome, invocation report, requested MOM report
+
+The word “report” covers two different paths here. The 2025 MIM defines
+`HLAreportServiceInvocation` as an RTI report about a service invocation while
+Service Reporting is enabled: its parameters describe the supplied arguments
+and the invocation's returned value or exception
+([MIM class](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1777)).
+For this interaction destination, the pinned 2025 MIM specifies:
+
+| Interaction contract | MIM-defined behavior |
+| --- | --- |
+| Scope and delivery | RTI-originated `HLAreportServiceInvocation`, scoped by `HLAfederate` and `HLAserviceGroup`, sent reliably in receive order. |
+| Successful invocation | Supplied arguments and a true success indicator; the returned value when the service returns one; an empty exception description. |
+| Failed invocation | Supplied arguments and a false success indicator; a null returned argument and a description of the raised exception. |
+| Serial | Starts at zero per joined federate and increments for each report interaction for that member. |
+
+This is the interaction contract, not a complete definition of Umbra's
+per-member report-file format or lifetime.
+
+In Umbra, the subject's switches select a per-member file record or the
+`HLAreportServiceInvocation` interaction. This is not the same as explicitly
+requesting current Federation MOM data with an `HLArequest...` interaction.
+
+| Trace | Trigger | What its result or observation means |
+| --- | --- | --- |
+| Public service outcome | The federate invokes an HLA service. | The return value or synchronous exception is the outcome of that service call; it is not itself a report record or observer callback. See the [cross-service result map](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#a-service-result-committed-state-and-a-report-are-separate-traces). |
+| Per-invocation report | A reportable service is invoked while the subject's Service Reporting switch is enabled. | The MIM-defined report describes that invocation. Umbra routes it to the selected file or interaction sink; source-observed file-append errors can affect the caller-visible outcome in selected wrappers (the cited writer test did not reach its relevant assertions), while interaction observation follows recipient and callback rules below. |
+| Request-driven Federation MOM report | A federate explicitly sends a request such as `HLArequestFOMmoduleData`. | The RTI builds a separate `HLAreport...` interaction from requested MOM/FOM/synchronization state. `sendInteraction` returns or throws for that send call; it does not return the report payload. The report reaches eligible observers as a separate callback. The selected embedded `HLA_EVOKED` case asserts observation only after callback draining ([focused case](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#federation-reports-are-receive-order-interactions)). |
+
+These are distinct triggers, not one synchronous RPC timeline: a MOM
+`HLAreport...` is a separate RTI interaction emitted in response to a request,
+not a return value from that same `sendInteraction`. They also do not imply
+that report failures can never affect a service result: for one embedded
+switch-setting path, an append failure surfaces as `RTIinternalError` after
+the Exception Reporting switch has committed
+([selected failure trace](#a-failed-report-append-leaves-exception-reporting-enabled)).
+That ordering is service-wrapper-specific. The Federation MOM guide's paired
+request/report interactions are a separate receive-order path, not another
+`HLAreportServiceInvocation` record.
 
 ## The mental model: subject, switch, sink, observer
 
@@ -62,13 +117,17 @@ That is a protocol guard, not merely a reporting preference:
 ```mermaid
 stateDiagram-v2
   direction LR
-  ReportingOff --> ReportingOn: enable / no report-service subscription exists
-  ReportingOff --> ReportingOff: enable while subscribed / throw ReportServiceInvocationsAreSubscribed
-  ReportingOff --> ReportingOff: subscribe exact interaction / ordinary, passive, or regional form allowed
-  ReportingOn --> ReportingOn: subscribe exact interaction / throw FederateServiceInvocationsAreBeingReportedViaMOM
-  ReportingOn --> ReportingOff: disable reporting
-  ReportingOff --> ReportingOn: unsubscribe, then enable reporting
+  ReportingOff --> ReportingOn: Enable with no subscription
+  ReportingOff --> ReportingOff: Enable while subscribed, reject
+  ReportingOff --> ReportingOff: Subscribe exact interaction (any form)
+  ReportingOn --> ReportingOn: Subscribe exact interaction, reject
+  ReportingOn --> ReportingOff: Disable reporting
+  ReportingOff --> ReportingOn: Unsubscribe, then enable
 ```
+
+Enabling while subscribed throws `ReportServiceInvocationsAreSubscribed`;
+subscribing while reporting is enabled throws
+`FederateServiceInvocationsAreBeingReportedViaMOM`.
 
 Thus the safe transition when a federate wants to observe service reports is:
 disable its own Service Reporting switch, subscribe, and keep the switch off
@@ -162,19 +221,17 @@ and the separate [callback-ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERIN
 
 The embedded profile allocates a unique report file when a federate joins,
 writes its initial record, and keeps that file identity stable for the joined
-membership. Switch changes affect future invocation records; they do not
-replace the path. Resignation writes the final membership record before the
-membership's writer is retired. A later rejoin is a new membership and gets a
-new file.
+membership. Invocation records append only while reporting is enabled and the
+file sink is selected; disabled intervals add no invocation records. Switch
+changes affect future records, not the path. Resignation writes the final
+membership record before the membership's writer is retired. A later rejoin is
+a new membership and gets a new file.
 
 ```mermaid
 stateDiagram-v2
-  [*] --> JoinedFile: join / allocate unique path and write initial record
-  JoinedFile --> JoinedFile: reporting off / no invocation record
-  JoinedFile --> JoinedFile: reporting on + file sink / append invocation record
-  JoinedFile --> JoinedFile: toggle switches / retain same path
-  JoinedFile --> Resigned: resign / append final record and retire membership writer
-  Resigned --> JoinedFile: later rejoin / allocate a new path
+  [*] --> JoinedFile: Join, allocate path and write initial record
+  JoinedFile --> Resigned: Resign, write final record
+  Resigned --> JoinedFile: Rejoin, allocate a new path
   Resigned --> [*]
 ```
 
@@ -183,40 +240,42 @@ per reporting-switch cycle. The focused [embedded file-lifecycle test](../../cpp
 and [process endpoint file cases](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L142)
 cover distinct paths; they should not be read as one shared file implementation.
 
-## A failed report append does not roll back the switch
+## A failed report append leaves Exception Reporting enabled
 
-With the master Service Reporting switch enabled and the file sink selected,
-the embedded profile has a useful source-visible commit boundary.
-`setExceptionReportingSwitch(true)` first commits the switch in the registry
-and prepares joined-federate MOM work. It then appends its successful
-service-invocation record. If that append fails, the public call reports
-`RTIinternalError`, while the switch remains `true`. The focused injected-writer
-test is written to assert that state, but its current local run failed during
+With the master Service Reporting switch already enabled and the file sink
+selected, the embedded profile has a useful source-visible commit boundary.
+Calling `setExceptionReportingSwitch(true)` first commits the distinct
+Exception Reporting switch in the registry and prepares joined-federate MOM
+work. It then appends that setter's successful service-invocation record. If
+the append fails, the public call reports `RTIinternalError`, but Exception
+Reporting remains `true`; the Service Reporting switch is not the value being
+changed by this call. The focused injected-writer test is written to assert
+that state, but its current local run failed during
 `createFederationExecution` at test line 148, before reaching the switch or
 append-failure assertions:
 
 ```mermaid
 sequenceDiagram
   participant App as Federate
-  participant API as 2025 RTI ambassador
+  participant API as RTI ambassador
   participant Registry as Embedded registry
-  participant File as Member service-report file
+  participant File as Member report file
   participant Hook as Exception-report hook
   App->>API: setExceptionReportingSwitch(true)
-  API->>Registry: Commit switch=true, prepare MOM work
+  API->>Registry: Commit Exception Reporting=true, prepare MOM work
   Registry-->>API: Applied
   API->>File: Append successful invocation record
   File--xAPI: RTIinternalError (injected writer failure)
-  Note over API,Registry: The switch is already committed, so this path does not roll it back.
+  Note over API,Registry: Switch commits before report append
   API->>Hook: Attempt emitExceptionReport (best effort)
   Hook->>Registry: Plan exception report from current member state
-  Note over Registry: Exception Reporting is now true because the earlier commit preceded this failure.
+  Note over Registry: Exception hook reads committed true
   opt An eligible exception-report observer exists
     Registry-->>Hook: Current recipient plan
     Hook->>API: Queue HLAreportException callback
   end
-  Note over Hook: The focused writer test has no reporting peer and makes no callback assertion.
-  Note over API: MOM projection enqueue follows the append and is not reached here.
+  Note over Hook: Test has no peer or callback assertion
+  Note over API: MOM enqueue is skipped after append failure
   API-->>App: Rethrow RTIinternalError
   App->>API: getExceptionReportingSwitch()
   API->>Registry: Read switch
@@ -294,42 +353,63 @@ and only then raises the deferred error. The forced-loss registry route
 reserves a final file serial only; this sequence does not claim a final
 `HLAreportServiceInvocation` interaction for the removed member.
 
+The two sequence views preserve the important ownership boundary: the first
+ends when the registry has committed the resignation and returns its result;
+the second follows RTI-side cleanup, the optional file append, callback
+submission, and deferred error reporting after that commit. The adapter then
+clears connected, time, and join state and resets the old callback queue. If
+the reserved final file append throws, it defers the error, completes cleanup
+and surviving-member notification submission, and raises `RTIinternalError`
+only afterward.
+
+**Registry commit and final report reservation**
+
 ```mermaid
 sequenceDiagram
   autonumber
-  participant Loss as Embedded transport-loss handler
-  participant RTI as 2025 embedded RTI
-  participant Registry as Embedded federation registry
-  participant File as Joined-member report file
-  participant Queue as Local callback dispatcher
-  participant Member as Lost member application
+  participant Loss as Loss handler
+  participant RTI as Embedded RTI
+  participant Registry as Registry
 
   Loss->>RTI: handleEmbeddedTransportFailure(fault)
-  RTI->>Registry: connectionLostWithFinalServiceReportReservation
-  Registry->>Registry: Apply forced resign action and plan cleanup
+  RTI->>Registry: Commit forced resignation and reserve final report serial
+  Registry->>Registry: Plan cleanup
   opt Final Service Reporting route selects file
     Registry->>Registry: Reserve final serial before member erasure
   end
-  Note over Registry: Forced connection loss reserves the final file route only; no final interaction reservation is emitted here.
+  Note over Registry: File route only, no final interaction reservation.
   Registry->>Registry: Erase lost member and commit registry transition
   Registry-->>RTI: Applied result and optional final file serial
-  RTI->>RTI: Apply Not Connected; release time/join state; reset old callback queue
+```
+
+**Post-commit RTI cleanup and delivery**
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant RTI as Embedded RTI
+  participant File as Report file
+  participant Queue as Callback queue
+  participant Member as Lost member
+  participant Loss as Loss handler
+
+  RTI->>RTI: Commit connection loss
   opt A final file serial was reserved
-    RTI->>File: Append successful ConnectionLost record
+    RTI->>File: Append ConnectionLost record
     alt Append succeeds
       File-->>RTI: Record persisted
     else Append throws RTIinternalError
       File--xRTI: Writer error
-      RTI->>RTI: Defer error; do not roll back membership or lifecycle
+      RTI->>RTI: Defer append error
     end
   end
-  RTI->>RTI: Finish cleanup and submit surviving-member notifications
+  RTI->>RTI: Finish cleanup
   opt Lost member callback session exists
     RTI->>Queue: Submit local ConnectionLost callback
-    Queue-->>Member: Invoke callback when the callback model permits
+    Queue-->>Member: Deliver per callback model
   end
   opt File append error was deferred
-    RTI-->>Loss: Raise RTIinternalError after cleanup and callback submission
+    RTI-->>Loss: Raise RTIinternalError
   end
 ```
 
@@ -338,7 +418,7 @@ embedded test, but its current local run failed during
 `createFederationExecution` (test line 521), before reaching those assertions.
 The error branch is source-only: no cited test injects a writer failure
 specifically during `ConnectionLost`. In HLA_IMMEDIATE mode callback submission
-may invoke inline; HLA_EVOKED leaves it for an Evoke service. This chart does
+may invoke inline; HLA_EVOKED leaves it for an Evoke service. These diagrams do
 not determine how a real transport boundary consumes the deferred internal
 exception, and it does not describe 2010 or the process endpoint.
 

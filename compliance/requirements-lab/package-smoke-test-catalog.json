@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "tests": [
+    {
+      "id": "umbra-cpp-installed-package-federation-restart-restore",
+      "kind": "integration-test",
+      "runner": "ctest",
+      "selector": "^umbra_rti_package_federation_restart_consumer$",
+      "result_selector": "umbra_rti_package_federation_restart_consumer",
+      "command": "ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R ^umbra_rti_package_federation_restart_consumer$",
+      "document_id": "hla-1516.1-2025",
+      "implementation_mapping_id": "m16.transition.federate-request-restore",
+      "target": "cpp",
+      "language": "cpp",
+      "symbol": "rti1516_2025::RTIambassador::requestFederationRestore",
+      "api_surface_ids": [
+        "api.2025.cpp.rtiambassador.requestfederationrestore.12708949c200"
+      ],
+      "execution_mode": "real",
+      "notes": "Runs the installed-package consumer across separate save and fresh-provider restore processes, including one pending attribute and one pending interaction transportation-type change in the same saved image. This CTest/JUnit observation is bound here only to the Request Federation Restore API; it supplements the separate Catch2 requirement-to-2025-clause mappings and is not a Catch2 case or external conformance certification."
+    }
+  ]
+}

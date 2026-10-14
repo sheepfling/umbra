@@ -1,0 +1,14 @@
+#pragma once
+
+#include "tck_harness.hpp"
+
+namespace hla_rti_cpp_tck::detail {
+
+void scenarioJoinedFederateMomObjectInstancesReflectedAttribute(
+    Options const& options,
+    rti::CallbackModel model);
+void scenarioJoinedFederateMomObjectInstancesReflectedAttributeContract(
+    Options const& options,
+    rti::CallbackModel model);
+
+}  // namespace hla_rti_cpp_tck::detail

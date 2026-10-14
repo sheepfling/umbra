@@ -4,11 +4,13 @@ import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.AttributeHandleSet;
 import hla.rti1516_2025.AttributeHandleValueMap;
 import hla.rti1516_2025.CallbackModel;
+import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
+import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.encoding.EncoderFactory;
@@ -30,8 +32,11 @@ final class FederationMomFomModuleDesignatorListTck {
    private FederationMomFomModuleDesignatorListTck() {
    }
 
-   static void run(RtiFactory factory, String fom, String mim, String additionalFom,
-         String timeImplementation, CallbackModel callbackModel) throws Exception {
+   static void run(RtiFactory factory, String fom, String mim, String[] additionalFoms,
+         String timeImplementation, CallbackModel callbackModel, String federateType)
+         throws Exception {
+      check(additionalFoms != null && additionalFoms.length > 0,
+         "at least one adapter-supplied additional FOM module is required");
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
       RTIambassador extension = factory.getRtiAmbassador();
@@ -60,10 +65,10 @@ final class FederationMomFomModuleDesignatorListTck {
          owner.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
-         owner.joinFederationExecution("java-tck-designators-owner", "tck-type", federation);
+         owner.joinFederationExecution("java-tck-designators-owner", federateType, federation);
          ownerJoined = true;
          observer.joinFederationExecution(
-            "java-tck-designators-observer", "tck-type", federation);
+            "java-tck-designators-observer", federateType, federation);
          observerJoined = true;
 
          ObjectClassHandle federationClass = observer.getObjectClassHandle(
@@ -101,10 +106,15 @@ final class FederationMomFomModuleDesignatorListTck {
          check(initial.size() == 1,
             "created federation FOM-module designator list had an unexpected size");
 
-         Set<String> allExpected = canonicalize(java.util.Arrays.asList(fom, additionalFom));
+         java.util.List<String> allModules = new ArrayList<>();
+         allModules.add(fom);
+         java.util.Collections.addAll(allModules, additionalFoms);
+         Set<String> allExpected = canonicalize(allModules);
+         check(allExpected.size() == 1 + additionalFoms.length,
+            "base and additional FOM modules must have distinct designators");
          recorder.clearReflection();
-         extension.joinFederationExecution("java-tck-designators-extension", "tck-type",
-            federation, new String[] {additionalFom});
+         extension.joinFederationExecution("java-tck-designators-extension", federateType,
+            federation, additionalFoms);
          extensionJoined = true;
          await(observer, callbackModel, () -> {
             Set<String> value = recorder.currentDesignators(encoder, designatorAttribute);
@@ -112,11 +122,14 @@ final class FederationMomFomModuleDesignatorListTck {
          }, "conditional FOM-module designator refresh after an additional-FOM join");
          Set<String> joinedValue = recorder.currentDesignators(encoder, designatorAttribute);
          check(joinedValue != null && joinedValue.equals(allExpected)
-               && joinedValue.size() == 2,
+               && joinedValue.size() == allExpected.size(),
             "join-triggered designator reflection omitted or duplicated a module");
          check(recorder.reflectedValues.size() == 1
                && reliable.equals(recorder.reflectionTransportation)
-               && recorder.reflectionTag != null && recorder.reflectionTag.length == 0,
+               && recorder.reflectionTag != null && recorder.reflectionTag.length == 0
+               && recorder.reflectionCallbackArity == 6
+               && recorder.reflectionProducer == null
+               && (recorder.reflectionRegions == null || recorder.reflectionRegions.isEmpty()),
             "join-triggered designator reflection returned incomplete or non-standard metadata");
 
          Set<String> requestedAfterJoin = requestDesignators(observer, recorder, encoder,
@@ -165,7 +178,10 @@ final class FederationMomFomModuleDesignatorListTck {
             && recorder.reflectedValues != null
             && recorder.reflectedValues.size() == 1
             && recorder.reflectionTag != null && recorder.reflectionTag.length == 0
-            && reliable.equals(recorder.reflectionTransportation),
+            && reliable.equals(recorder.reflectionTransportation)
+            && recorder.reflectionCallbackArity == 6
+            && recorder.reflectionProducer == null
+            && (recorder.reflectionRegions == null || recorder.reflectionRegions.isEmpty()),
          description + " returned incomplete or non-standard reflection metadata");
       Set<String> actual = recorder.currentDesignators(encoder, designatorAttribute);
       check(expected.equals(actual), description + " returned the wrong designator set");
@@ -248,6 +264,9 @@ final class FederationMomFomModuleDesignatorListTck {
       private volatile Map<AttributeHandle, byte[]> reflectedValues;
       private volatile byte[] reflectionTag;
       private volatile TransportationTypeHandle reflectionTransportation;
+      private volatile FederateHandle reflectionProducer;
+      private volatile RegionHandleSet reflectionRegions;
+      private volatile int reflectionCallbackArity;
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -272,6 +291,11 @@ final class FederationMomFomModuleDesignatorListTck {
                   reflectionTag = arguments[2] instanceof byte[]
                      ? ((byte[]) arguments[2]).clone() : null;
                   reflectionTransportation = (TransportationTypeHandle) arguments[3];
+                  reflectionProducer = arguments.length > 4
+                     ? (FederateHandle) arguments[4] : null;
+                  reflectionRegions = arguments.length > 5
+                     ? (RegionHandleSet) arguments[5] : null;
+                  reflectionCallbackArity = arguments.length;
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(method.getName())) return "Java RTI TCK MOM callbacks";
@@ -287,6 +311,9 @@ final class FederationMomFomModuleDesignatorListTck {
          reflectedValues = null;
          reflectionTag = null;
          reflectionTransportation = null;
+         reflectionProducer = null;
+         reflectionRegions = null;
+         reflectionCallbackArity = 0;
       }
 
       private Set<String> currentDesignators(EncoderFactory encoder, AttributeHandle attribute) {

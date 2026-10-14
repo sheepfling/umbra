@@ -4,6 +4,7 @@
 #include "internal/callbacks/callback_session.hpp"
 #include "internal/federation/embedded_transport.hpp"
 #include "internal/federation/federation_registry.hpp"
+#include "internal/observability/runtime_instrumentation.hpp"
 #include "internal/runtime/umbra_rti_ambassador.hpp"
 
 #include <algorithm>

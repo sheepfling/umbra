@@ -24,7 +24,20 @@ final class OrdinaryEdgesTck {
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
          String objectClassName, String attributeName, String interactionClassName,
-         String parameterName) throws Exception {
+         String parameterName, String parentObjectClassName,
+         String inheritedAttributeName, String parentInteractionClassName,
+         String unrelatedObjectClassName, String unrelatedAttributeName) throws Exception {
+      JavaTckSupport.check(nonEmpty(parentObjectClassName)
+            && nonEmpty(inheritedAttributeName)
+            && nonEmpty(parentInteractionClassName)
+            && nonEmpty(unrelatedObjectClassName)
+            && nonEmpty(unrelatedAttributeName),
+         "adapter must provide the ordinary-edge FOM inheritance and unrelated-class names");
+      JavaTckSupport.check(!objectClassName.equals(parentObjectClassName)
+            && !interactionClassName.equals(parentInteractionClassName)
+            && !objectClassName.equals(unrelatedObjectClassName)
+            && !parentObjectClassName.equals(unrelatedObjectClassName),
+         "ordinary-edge FOM classes must preserve parent, derived, and unrelated roles");
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador evoked = factory.getRtiAmbassador();
       RTIambassador immediate = factory.getRtiAmbassador();
@@ -65,19 +78,24 @@ final class OrdinaryEdgesTck {
 
          ObjectClassHandle objectClass = publisher.getObjectClassHandle(objectClassName);
          AttributeHandle attribute = publisher.getAttributeHandle(objectClass, attributeName);
-         AttributeHandle inherited = publisher.getAttributeHandle(objectClass, "Name");
-         ObjectClassHandle employee = publisher.getObjectClassHandle("HLAobjectRoot.Employee");
-         AttributeHandle employeeInherited = publisher.getAttributeHandle(employee, "Name");
-         ObjectClassHandle drink = publisher.getObjectClassHandle("HLAobjectRoot.Food.Drink");
-         AttributeHandle unrelatedAttribute = publisher.getAttributeHandle(drink, "NumberCups");
+         AttributeHandle inherited = publisher.getAttributeHandle(objectClass,
+            inheritedAttributeName);
+         ObjectClassHandle parentObjectClass = publisher.getObjectClassHandle(parentObjectClassName);
+         AttributeHandle parentInherited = publisher.getAttributeHandle(parentObjectClass,
+            inheritedAttributeName);
+         ObjectClassHandle unrelatedObjectClass =
+            publisher.getObjectClassHandle(unrelatedObjectClassName);
+         AttributeHandle unrelatedAttribute = publisher.getAttributeHandle(
+            unrelatedObjectClass, unrelatedAttributeName);
          InteractionClassHandle interactionClass =
             publisher.getInteractionClassHandle(interactionClassName);
          InteractionClassHandle parentInteraction =
-            publisher.getInteractionClassHandle("HLAinteractionRoot.CustomerTransactions");
+            publisher.getInteractionClassHandle(parentInteractionClassName);
          ParameterHandle parameter = publisher.getParameterHandle(interactionClass, parameterName);
          AttributeHandleSet attributes = JavaTckSupport.attributeSet(
             publisher, attribute, inherited);
-         JavaTckSupport.check(inherited.equals(employeeInherited),
+         JavaTckSupport.check(!objectClass.equals(parentObjectClass)
+               && inherited.equals(parentInherited),
             "inherited attribute lookup did not preserve the parent handle identity");
 
          // Repeated declarations are accepted as idempotent ordinary state.
@@ -97,9 +115,9 @@ final class OrdinaryEdgesTck {
 
          // A valid object gives the negative paths a standard-known identity.
          ObjectInstanceHandle object = publisher.registerObjectInstance(objectClass);
-         publisher.publishObjectClassAttributes(drink,
+         publisher.publishObjectClassAttributes(unrelatedObjectClass,
             JavaTckSupport.attributeSet(publisher, unrelatedAttribute));
-         ObjectInstanceHandle unknownObject = publisher.registerObjectInstance(drink);
+         ObjectInstanceHandle unknownObject = publisher.registerObjectInstance(unrelatedObjectClass);
          JavaTckSupport.drain(evoked);
          JavaTckSupport.check(evokedRecorder.discoveries == 1,
             "ordinary edge subscriber did not receive the known-class discovery callback");
@@ -202,9 +220,9 @@ final class OrdinaryEdgesTck {
          publisher.unpublishObjectClassAttributes(objectClass, attributes);
          publisher.unpublishObjectClass(objectClass);
          publisher.unpublishObjectClass(objectClass);
-         publisher.unpublishObjectClassAttributes(drink,
+         publisher.unpublishObjectClassAttributes(unrelatedObjectClass,
             JavaTckSupport.attributeSet(publisher, unrelatedAttribute));
-         publisher.unpublishObjectClass(drink);
+         publisher.unpublishObjectClass(unrelatedObjectClass);
       } finally {
          if (passiveJoined) resign(passive);
          if (immediateJoined) resign(immediate);
@@ -221,6 +239,10 @@ final class OrdinaryEdgesTck {
          if (evokedConnected) disconnect(evoked);
          if (publisherConnected) disconnect(publisher);
       }
+   }
+
+   private static boolean nonEmpty(String value) {
+      return value != null && !value.trim().isEmpty();
    }
 
    private static void resign(RTIambassador ambassador) {

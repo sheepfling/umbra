@@ -1,25 +1,14 @@
 #include "internal/observability/service_report_store.hpp"
+#include "internal/observability/runtime_instrumentation.hpp"
+#include "internal/platform/filesystem_operations.hpp"
 #include "internal/runtime/utf8_string.hpp"
 
 #include <algorithm>
 #include <atomic>
-#include <cerrno>
 #include <cstddef>
-#include <limits>
 #include <mutex>
 #include <stdexcept>
 #include <string_view>
-
-#if defined(_WIN32)
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
-#else
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#endif
 
 namespace umbra::detail {
 namespace {
@@ -56,122 +45,11 @@ std::string utf8(std::wstring_view value) {
   return *result;
 }
 
-// Reserve a path atomically before opening an iostream. std::ofstream with
-// truncation can overwrite an independently selected same name; the standard
-// requires each joined federate's report file to be unique. The native create
-// primitives provide the necessary no-replacement decision on the real
-// filesystem, including across Umbra processes that happen to share a report
-// directory.
-bool reserveNewFile(std::filesystem::path const& location) {
-#if defined(_WIN32)
-  auto const file = ::CreateFileW(
-      location.c_str(),
-      GENERIC_WRITE,
-      0,
-      nullptr,
-      CREATE_NEW,
-      FILE_ATTRIBUTE_NORMAL,
-      nullptr);
-  if (file == INVALID_HANDLE_VALUE) {
-    auto const error = ::GetLastError();
-    if (error == ERROR_FILE_EXISTS || error == ERROR_ALREADY_EXISTS) {
-      return false;
-    }
-    throw std::runtime_error(
-        "Unable to reserve an Umbra service-report file (Windows error " +
-        std::to_string(error) + "): " + utf8(location.wstring()));
-  }
-  if (::CloseHandle(file) == 0) {
-    std::error_code ignored;
-    std::filesystem::remove(location, ignored);
-    throw std::runtime_error("Unable to finalize an Umbra service-report file reservation.");
-  }
-#else
-  auto const descriptor = ::open(
-      location.c_str(),
-      O_WRONLY | O_CREAT | O_EXCL,
-      S_IRUSR | S_IWUSR);
-  if (descriptor < 0) {
-    if (errno == EEXIST) {
-      return false;
-    }
-    throw std::runtime_error("Unable to reserve an Umbra service-report file.");
-  }
-  if (::close(descriptor) != 0) {
-    std::error_code ignored;
-    std::filesystem::remove(location, ignored);
-    throw std::runtime_error("Unable to finalize an Umbra service-report file reservation.");
-  }
-#endif
-  return true;
-}
-
 void appendUtf8ToExistingFile(
     std::filesystem::path const& location,
     std::string_view contents,
     char const* failureDescription) {
-#if defined(_WIN32)
-  auto const file = ::CreateFileW(
-      location.c_str(),
-      FILE_APPEND_DATA,
-      FILE_SHARE_READ,
-      nullptr,
-      OPEN_EXISTING,
-      FILE_ATTRIBUTE_NORMAL,
-      nullptr);
-  if (file == INVALID_HANDLE_VALUE) {
-    throw std::runtime_error(failureDescription);
-  }
-  try {
-    std::size_t offset = 0U;
-    while (offset < contents.size()) {
-      auto const remaining = contents.size() - offset;
-      auto const requested = static_cast<DWORD>(std::min<std::size_t>(
-          remaining,
-          static_cast<std::size_t>((std::numeric_limits<DWORD>::max)())));
-      DWORD written = 0U;
-      if (::WriteFile(file, contents.data() + offset, requested, &written, nullptr) == 0 ||
-          written != requested) {
-        throw std::runtime_error(failureDescription);
-      }
-      offset += written;
-    }
-  } catch (...) {
-    static_cast<void>(::CloseHandle(file));
-    throw;
-  }
-  if (::CloseHandle(file) == 0) {
-    throw std::runtime_error(failureDescription);
-  }
-#else
-  auto const descriptor = ::open(location.c_str(), O_WRONLY | O_APPEND);
-  if (descriptor < 0) {
-    throw std::runtime_error(failureDescription);
-  }
-  try {
-    std::size_t offset = 0U;
-    while (offset < contents.size()) {
-      auto const remaining = contents.size() - offset;
-      auto const requested = std::min<std::size_t>(
-          remaining,
-          static_cast<std::size_t>(std::numeric_limits<ssize_t>::max()));
-      auto const written = ::write(descriptor, contents.data() + offset, requested);
-      if (written < 0 && errno == EINTR) {
-        continue;
-      }
-      if (written <= 0) {
-        throw std::runtime_error(failureDescription);
-      }
-      offset += static_cast<std::size_t>(written);
-    }
-  } catch (...) {
-    static_cast<void>(::close(descriptor));
-    throw;
-  }
-  if (::close(descriptor) != 0) {
-    throw std::runtime_error(failureDescription);
-  }
-#endif
+  platform::appendToExistingFile(location, contents, failureDescription);
 }
 
 void writeInitialRecord(std::filesystem::path const& location, std::wstring_view initialRecord) {
@@ -250,8 +128,11 @@ std::unique_ptr<ServiceReportWriter> FilesystemServiceReportStore::createForJoin
             InstrumentationLayer::service_reporting,
             "create_writer")
       : RuntimeInstrumentation::Scope{};
+  auto const absoluteDirectory =
+      std::filesystem::absolute(directory_).lexically_normal();
+  auto const directoryForCreation = platform::directoryCreationPath(absoluteDirectory);
   std::error_code error;
-  std::filesystem::create_directories(directory_, error);
+  std::filesystem::create_directories(directoryForCreation, error);
   if (error) {
     throw std::runtime_error("Unable to create the Umbra service-report directory.");
   }
@@ -261,8 +142,10 @@ std::unique_ptr<ServiceReportWriter> FilesystemServiceReportStore::createForJoin
     auto const filename = "umbra-service-report-" + safeComponent(descriptor.federationName) + "-" +
         safeComponent(descriptor.federateName) + "-" + std::to_string(descriptor.federateId) + "-" +
         std::to_string(descriptor.joinIdentifier) + "-" + std::to_string(nextUnique.fetch_add(1)) + ".log";
-    auto const location = std::filesystem::absolute(directory_ / filename).lexically_normal();
-    if (!reserveNewFile(location)) {
+    auto const location = (absoluteDirectory / filename).lexically_normal();
+    if (!platform::reserveFileExclusively(
+            location,
+            "Unable to reserve an Umbra service-report file.")) {
       continue;
     }
     try {
@@ -274,8 +157,7 @@ std::unique_ptr<ServiceReportWriter> FilesystemServiceReportStore::createForJoin
       // This store created the pathname exclusively, so cleanup cannot delete
       // another joined federate's report. Failure still escapes to the caller;
       // cleanup is only to avoid presenting a partial report as a valid file.
-      std::error_code ignored;
-      std::filesystem::remove(location, ignored);
+      platform::removeFileNoThrow(location);
       throw;
     }
   }

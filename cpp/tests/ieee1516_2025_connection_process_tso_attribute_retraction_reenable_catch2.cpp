@@ -619,11 +619,15 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::enable_time_regulation,
           "The process re-enable server lost initial Enable Time Regulation.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
       serveExpected(
           receiver,
           receiverHandler,
           TransportServiceOperation::enable_time_constrained,
           "The process re-enable server lost Enable Time Constrained.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiver, receiverHandler);
       serveExpected(
           sender,
           senderHandler,
@@ -644,6 +648,8 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::disable_time_regulation,
           "The process re-enable server lost Disable Time Regulation.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
       serveExpected(
           sender,
           senderHandler,
@@ -654,6 +660,8 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::enable_time_regulation,
           "The process re-enable server lost re-enable Time Regulation.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
       serveExpected(
           sender,
           senderHandler,

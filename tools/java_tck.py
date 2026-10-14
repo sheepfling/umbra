@@ -129,11 +129,16 @@ def scenario_for_surface(surface: dict[str, Any], scenarios: list[dict[str, Any]
     candidates = [f"{owner}.{name}", name]
     for scenario in scenarios:
         methods = scenario.get("api_methods", [])
-        if "*" in methods or any(candidate in methods for candidate in candidates):
+        if any(candidate in methods for candidate in candidates):
             return scenario
     # The inventory scenario is an explicit catch-all for standard declarations
     # not yet assigned to a behavioral family.
-    return next(item for item in scenarios if item["id"] == "java-tck.api-surface-inventory")
+    return next(
+        item
+        for item in scenarios
+        if "*" in item.get("api_methods", [])
+        or item["id"] == "java-tck.api-surface-inventory"
+    )
 
 
 def load_results(paths: list[Path]) -> list[dict[str, Any]]:

@@ -1,3 +1,12 @@
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstring>
+#include <exception>
+#include <mutex>
+#include <thread>
+#include <vector>
+
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
 TEST_CASE(
@@ -588,5 +597,1332 @@ TEST_CASE(
         [](rti1516_2025::RTIambassador& rti, std::int64_t const value) {
           rti.nextMessageRequestAvailable(rti1516_2025::HLAinteger64Time(value));
         });
+  }
+}
+
+TEST_CASE(
+    "Embedded restore replays a timestamped interaction queued for pending NMR",
+    "[integration][development-profile][federation-management][interaction-management]"
+    "[save-restore][restore-pending-tso-nmr][time-management][tso]"
+    "[next-message-request][multi-federate-callback-ordering]"
+    "[rti.service.send-interaction][rti.service.subscribe-interaction-class]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.next-message-request][rti.service.time-advance-request]"
+    "[rti.service.request-federation-save][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][rti.service.request-federation-restore]"
+    "[rti.service.federate-restore-complete][rti.service.query-logical-time]"
+    "[federate.callback.initiate-federate-save][federate.callback.receive-interaction]"
+    "[federate.callback.time-advance-grant][federate.callback.federation-saved]"
+    "[federate.callback.federation-restored]") {
+  auto runScenario = [](auto const callbackModel) {
+    ReportingFederateAmbassador publisherReports;
+    ReportingFederateAmbassador independentRegulatorReports;
+    ReportingFederateAmbassador receiverReports;
+    auto publisher = makeRti();
+    auto independentRegulator = makeRti();
+    auto receiver = makeRti();
+    auto const federationName = nextFederationName();
+    auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                            "cpp" /
+                            "tests" /
+                            "data" /
+                            "parameter-handle-provider-fom.xml")
+                               .wstring();
+    std::wstring const saveLabel = L"pending-nmr-tso-replay";
+    rti1516_2025::FederateHandle publisherHandle;
+    rti1516_2025::HLAinteger64Time publisherLogicalTime;
+    rti1516_2025::HLAinteger64Time independentRegulatorLogicalTime;
+    rti1516_2025::HLAinteger64Time receiverLogicalTime;
+    unsigned char const identifierBytes[] = {0x4E, 0x4D, 0x52, 0x2D, 0x54, 0x53, 0x4F};
+    unsigned char const tagBytes[] = {0x52, 0x45, 0x53, 0x54, 0x4F, 0x52, 0x45};
+    rti1516_2025::VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+    auto const drain = [](rti1516_2025::RTIambassador& ambassador) {
+      while (ambassador.evokeCallback(0.0)) {
+      }
+    };
+    auto const drainAll = [&] {
+      bool invokedCallback = false;
+      do {
+        auto const publisherInvoked = publisher->evokeCallback(0.0);
+        auto const regulatorInvoked = independentRegulator->evokeCallback(0.0);
+        auto const receiverInvoked = receiver->evokeCallback(0.0);
+        invokedCallback = publisherInvoked || regulatorInvoked || receiverInvoked;
+      } while (invokedCallback);
+    };
+    auto const matchesBytes = [](rti1516_2025::VariableLengthData const& value,
+                                 unsigned char const* expected,
+                                 std::size_t const expectedSize) {
+      return value.size() == expectedSize && value.data() != nullptr &&
+          std::memcmp(value.data(), expected, expectedSize) == 0;
+    };
+
+    REQUIRE_NOTHROW(publisher->connect(publisherReports, callbackModel));
+    REQUIRE_NOTHROW(independentRegulator->connect(independentRegulatorReports, callbackModel));
+    REQUIRE_NOTHROW(receiver->connect(receiverReports, callbackModel));
+    REQUIRE_NOTHROW(publisher->createFederationExecution(
+        federationName,
+        fomModule,
+        standard_hla::mom::integer64_time));
+    REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+        L"restore-pending-nmr-tso-publisher", L"publisher", federationName));
+    REQUIRE_NOTHROW(independentRegulator->joinFederationExecution(
+        L"restore-pending-nmr-tso-independent-regulator", L"regulator", federationName));
+    REQUIRE_NOTHROW(receiver->joinFederationExecution(
+        L"restore-pending-nmr-tso-receiver", L"subscriber", federationName));
+
+    auto const interactionClass = publisher->getInteractionClassHandle(
+        fixture_hla::fom::parameter_fixture_child_interaction);
+    auto const identifier = publisher->getParameterHandle(
+        interactionClass,
+        fixture_hla::fixture::identifier);
+    rti1516_2025::ParameterHandleValueMap parameterValues;
+    parameterValues.emplace(
+        identifier,
+        rti1516_2025::VariableLengthData(identifierBytes, sizeof(identifierBytes)));
+    REQUIRE(interactionClass.isValid());
+    REQUIRE(identifier.isValid());
+    REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+    REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+    REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+    REQUIRE_NOTHROW(publisher->enableTimeConstrained());
+    REQUIRE_NOTHROW(independentRegulator->enableTimeConstrained());
+    REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE(publisherReports.timeConstrainedEnabledReports.size() == 1U);
+    REQUIRE(independentRegulatorReports.timeConstrainedEnabledReports.size() == 1U);
+    REQUIRE(receiverReports.timeConstrainedEnabledReports.size() == 1U);
+    REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    REQUIRE_NOTHROW(independentRegulator->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE(publisherReports.timeRegulationEnabledReports.size() == 1U);
+    REQUIRE(independentRegulatorReports.timeRegulationEnabledReports.size() == 1U);
+
+    // Establish NMR(10) first.  The accepted timestamp-5 interaction then
+    // retargets its pending grant, but the regulator's current GALT keeps the
+    // message queued until all three constrained members reach the save boundary.
+    REQUIRE_NOTHROW(receiver->nextMessageRequest(rti1516_2025::HLAinteger64Time(10)));
+    REQUIRE(receiverReports.timestampedInteractionReports.empty());
+    auto const retraction = publisher->sendInteraction(
+        interactionClass,
+        parameterValues,
+        tag,
+        rti1516_2025::HLAinteger64Time(5));
+    REQUIRE(retraction.isValid());
+    REQUIRE(receiverReports.timestampedInteractionReports.empty());
+    REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+
+    // Saving is requested only after the queued message has been accepted.
+    // Initiate Federate Save runs at the pre-grant boundary, before NMR's TSO
+    // callback drains the saved queue entry.
+    REQUIRE_NOTHROW(receiver->requestFederationSave(saveLabel));
+    REQUIRE(publisherReports.initiateFederateSaveReports.empty());
+    REQUIRE(receiverReports.initiateFederateSaveReports.empty());
+    std::mutex saveBoundaryMutex;
+    std::condition_variable saveBoundary;
+    std::size_t completedSaveParticipants = 0;
+    std::vector<std::exception_ptr> grantThreadExceptions(3U);
+    auto const grantThreadFailed = [&] {
+      return std::any_of(
+          grantThreadExceptions.begin(),
+          grantThreadExceptions.end(),
+          [](std::exception_ptr const& exception) { return static_cast<bool>(exception); });
+    };
+    auto const completeSaveAndWaitForFederation = [&](rti1516_2025::RTIambassador& ambassador) {
+      ambassador.federateSaveBegun();
+      ambassador.federateSaveComplete();
+      {
+        std::scoped_lock lock(saveBoundaryMutex);
+        ++completedSaveParticipants;
+      }
+      saveBoundary.notify_all();
+      if (callbackModel == HLA_EVOKED) {
+        std::unique_lock lock(saveBoundaryMutex);
+        saveBoundary.wait_for(
+            lock,
+            std::chrono::seconds(5),
+            [&] { return completedSaveParticipants == 3U || grantThreadFailed(); });
+      }
+    };
+    publisherReports.onInitiateFederateSave = [&] {
+      completeSaveAndWaitForFederation(*publisher);
+    };
+    independentRegulatorReports.onInitiateFederateSave = [&] {
+      completeSaveAndWaitForFederation(*independentRegulator);
+    };
+    receiverReports.onInitiateFederateSave = [&] {
+      completeSaveAndWaitForFederation(*receiver);
+    };
+    publisherReports.callbackOrder.clear();
+    independentRegulatorReports.callbackOrder.clear();
+    receiverReports.callbackOrder.clear();
+    if (callbackModel == rti1516_2025::HLA_IMMEDIATE) {
+      REQUIRE_NOTHROW(publisher->disableCallbacks());
+      REQUIRE_NOTHROW(independentRegulator->disableCallbacks());
+      REQUIRE_NOTHROW(receiver->disableCallbacks());
+    }
+    REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+    REQUIRE_NOTHROW(
+        independentRegulator->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+    if (callbackModel == rti1516_2025::HLA_IMMEDIATE) {
+      REQUIRE_NOTHROW(publisher->enableCallbacks());
+      REQUIRE_NOTHROW(independentRegulator->enableCallbacks());
+      REQUIRE_NOTHROW(receiver->enableCallbacks());
+    } else {
+      auto const drainOnThread = [&](std::size_t const exceptionIndex,
+                                     rti1516_2025::RTIambassador& ambassador) {
+        try {
+          drain(ambassador);
+        } catch (...) {
+          {
+            std::scoped_lock lock(saveBoundaryMutex);
+            grantThreadExceptions[exceptionIndex] = std::current_exception();
+          }
+          saveBoundary.notify_all();
+        }
+      };
+      std::thread publisherGrantThread([&] { drainOnThread(0U, *publisher); });
+      std::thread regulatorGrantThread(
+          [&] { drainOnThread(1U, *independentRegulator); });
+      std::thread receiverGrantThread([&] { drainOnThread(2U, *receiver); });
+      publisherGrantThread.join();
+      regulatorGrantThread.join();
+      receiverGrantThread.join();
+      for (auto const& exception : grantThreadExceptions) {
+        if (exception) {
+          std::rethrow_exception(exception);
+        }
+      }
+    }
+
+    REQUIRE(publisherReports.initiateFederateSaveReports ==
+            std::vector<std::wstring>{saveLabel});
+    REQUIRE(independentRegulatorReports.initiateFederateSaveReports ==
+            std::vector<std::wstring>{saveLabel});
+    REQUIRE(receiverReports.initiateFederateSaveReports ==
+            std::vector<std::wstring>{saveLabel});
+    REQUIRE(publisherReports.federationSavedReportCount == 1U);
+    REQUIRE(independentRegulatorReports.federationSavedReportCount == 1U);
+    REQUIRE(receiverReports.federationSavedReportCount == 1U);
+    REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 1U);
+    REQUIRE(publisherReports.timeAdvanceGrantReports.back().value == L"5");
+    REQUIRE(independentRegulatorReports.timeAdvanceGrantReports.size() == 1U);
+    REQUIRE(independentRegulatorReports.timeAdvanceGrantReports.back().value == L"5");
+    REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"5");
+    auto const originalDelivery = receiverReports.timestampedInteractionReports.front();
+    REQUIRE(originalDelivery.interactionClass == interactionClass);
+    REQUIRE(originalDelivery.producingFederate == publisherHandle);
+    REQUIRE(originalDelivery.timeValue == L"5");
+    REQUIRE(originalDelivery.sentOrderType == TIMESTAMP);
+    REQUIRE(originalDelivery.receivedOrderType == TIMESTAMP);
+    REQUIRE(originalDelivery.retractionValid);
+    REQUIRE(matchesBytes(originalDelivery.userSuppliedTag, tagBytes, sizeof(tagBytes)));
+    REQUIRE(originalDelivery.parameterValues.size() == 1U);
+    REQUIRE(matchesBytes(
+        originalDelivery.parameterValues.at(identifier),
+        identifierBytes,
+        sizeof(identifierBytes)));
+    auto const originalInteractionCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "interaction");
+    auto const originalGrantCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "grant");
+    REQUIRE(originalInteractionCallback != receiverReports.callbackOrder.end());
+    REQUIRE(originalGrantCallback != receiverReports.callbackOrder.end());
+    REQUIRE(originalInteractionCallback < originalGrantCallback);
+
+    publisherReports.onInitiateFederateSave = {};
+    independentRegulatorReports.onInitiateFederateSave = {};
+    receiverReports.onInitiateFederateSave = {};
+    REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
+    REQUIRE_NOTHROW(
+        independentRegulator->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
+    REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 2U);
+    REQUIRE(independentRegulatorReports.timeAdvanceGrantReports.size() == 2U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"9");
+    REQUIRE_NOTHROW(publisher->queryLogicalTime(publisherLogicalTime));
+    REQUIRE_NOTHROW(independentRegulator->queryLogicalTime(independentRegulatorLogicalTime));
+    REQUIRE_NOTHROW(receiver->queryLogicalTime(receiverLogicalTime));
+    REQUIRE(publisherLogicalTime.getTime() == 9);
+    REQUIRE(independentRegulatorLogicalTime.getTime() == 9);
+    REQUIRE(receiverLogicalTime.getTime() == 9);
+
+    publisherReports.callbackOrder.clear();
+    independentRegulatorReports.callbackOrder.clear();
+    receiverReports.callbackOrder.clear();
+    REQUIRE_NOTHROW(receiver->requestFederationRestore(saveLabel));
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE_NOTHROW(publisher->federateRestoreComplete());
+    REQUIRE_NOTHROW(independentRegulator->federateRestoreComplete());
+    REQUIRE_NOTHROW(receiver->federateRestoreComplete());
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+
+    REQUIRE(publisherReports.federationRestoredReportCount == 1U);
+    REQUIRE(independentRegulatorReports.federationRestoredReportCount == 1U);
+    REQUIRE(receiverReports.federationRestoredReportCount == 1U);
+    REQUIRE(receiverReports.timestampedInteractionReports.size() == 2U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 3U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"5");
+    auto const& replayedDelivery = receiverReports.timestampedInteractionReports.back();
+    REQUIRE(replayedDelivery.interactionClass == originalDelivery.interactionClass);
+    REQUIRE(replayedDelivery.producingFederate == originalDelivery.producingFederate);
+    REQUIRE(replayedDelivery.timeValue == originalDelivery.timeValue);
+    REQUIRE(replayedDelivery.sentOrderType == originalDelivery.sentOrderType);
+    REQUIRE(replayedDelivery.receivedOrderType == originalDelivery.receivedOrderType);
+    REQUIRE(replayedDelivery.retractionValid == originalDelivery.retractionValid);
+    REQUIRE(matchesBytes(replayedDelivery.userSuppliedTag, tagBytes, sizeof(tagBytes)));
+    REQUIRE(replayedDelivery.parameterValues.size() == 1U);
+    REQUIRE(matchesBytes(
+        replayedDelivery.parameterValues.at(identifier),
+        identifierBytes,
+        sizeof(identifierBytes)));
+    auto const restoreCompleteCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "restore-complete");
+    auto const replayCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "interaction");
+    auto const restoredGrantCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "grant");
+    REQUIRE(restoreCompleteCallback != receiverReports.callbackOrder.end());
+    REQUIRE(replayCallback != receiverReports.callbackOrder.end());
+    REQUIRE(restoredGrantCallback != receiverReports.callbackOrder.end());
+    REQUIRE(restoreCompleteCallback < replayCallback);
+    REQUIRE(replayCallback < restoredGrantCallback);
+    REQUIRE_NOTHROW(publisher->queryLogicalTime(publisherLogicalTime));
+    REQUIRE_NOTHROW(independentRegulator->queryLogicalTime(independentRegulatorLogicalTime));
+    REQUIRE_NOTHROW(receiver->queryLogicalTime(receiverLogicalTime));
+    REQUIRE(publisherLogicalTime.getTime() == 5);
+    REQUIRE(independentRegulatorLogicalTime.getTime() == 5);
+    REQUIRE(receiverLogicalTime.getTime() == 5);
+
+    REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(independentRegulator->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(publisher->disconnect());
+    REQUIRE_NOTHROW(independentRegulator->disconnect());
+    REQUIRE_NOTHROW(receiver->disconnect());
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(rti1516_2025::HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "Embedded restore replays a timestamped attribute update queued for pending NMRA at GALT",
+    "[integration][development-profile][federation-management][object-management]"
+    "[save-restore][restore-pending-tso-nmra-attribute-update][time-management][tso]"
+    "[next-message-request-available][timestamped-attribute-update]"
+    "[multi-federate-callback-ordering]"
+    "[rti.service.update-attribute-values][rti.service.subscribe-object-class-attributes]"
+    "[rti.service.publish-object-class-attributes][rti.service.register-object-instance]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.next-message-request-available][rti.service.time-advance-request]"
+    "[rti.service.request-federation-save][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][rti.service.request-federation-restore]"
+    "[rti.service.federate-restore-complete][rti.service.query-logical-time]"
+    "[federate.callback.initiate-federate-save][federate.callback.reflect-attribute-values]"
+    "[federate.callback.time-advance-grant][federate.callback.federation-saved]"
+    "[federate.callback.federation-restored]") {
+  auto runScenario = [](auto const callbackModel) {
+    ReportingFederateAmbassador publisherReports;
+    ReportingFederateAmbassador independentRegulatorReports;
+    ReportingFederateAmbassador receiverReports;
+    auto publisher = makeRti();
+    auto independentRegulator = makeRti();
+    auto receiver = makeRti();
+    auto const federationName = nextFederationName();
+    auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                            "cpp" /
+                            "tests" /
+                            "data" /
+                            "attribute-update-passel-fom.xml")
+                               .wstring();
+    std::wstring const saveLabel = L"pending-nmra-attribute-update-galt-snapshot";
+    rti1516_2025::FederateHandle publisherHandle;
+    rti1516_2025::ObjectClassHandle objectClass;
+    rti1516_2025::AttributeHandle reliableAttribute;
+    rti1516_2025::ObjectInstanceHandle objectInstance;
+    rti1516_2025::HLAinteger64Time publisherLogicalTime;
+    rti1516_2025::HLAinteger64Time independentRegulatorLogicalTime;
+    rti1516_2025::HLAinteger64Time receiverLogicalTime;
+    unsigned char const tagBytes[] = {0x4E, 0x4D, 0x52, 0x41, 0x2D, 0x55, 0x50, 0x44};
+    unsigned char const attributeBytes[] = {0x51, 0x22, 0x73};
+    rti1516_2025::VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+    auto const drain = [](rti1516_2025::RTIambassador& ambassador) {
+      while (ambassador.evokeCallback(0.0)) {
+      }
+    };
+    auto const drainAll = [&] {
+      bool invokedCallback = false;
+      do {
+        auto const publisherInvoked = publisher->evokeCallback(0.0);
+        auto const regulatorInvoked = independentRegulator->evokeCallback(0.0);
+        auto const receiverInvoked = receiver->evokeCallback(0.0);
+        invokedCallback = publisherInvoked || regulatorInvoked || receiverInvoked;
+      } while (invokedCallback);
+    };
+    auto const matchesBytes = [](rti1516_2025::VariableLengthData const& value,
+                                 unsigned char const* expected,
+                                 std::size_t const expectedSize) {
+      return value.size() == expectedSize && value.data() != nullptr &&
+          std::memcmp(value.data(), expected, expectedSize) == 0;
+    };
+
+    REQUIRE_NOTHROW(publisher->connect(publisherReports, callbackModel));
+    REQUIRE_NOTHROW(independentRegulator->connect(independentRegulatorReports, callbackModel));
+    REQUIRE_NOTHROW(receiver->connect(receiverReports, callbackModel));
+    REQUIRE_NOTHROW(publisher->createFederationExecution(
+        federationName,
+        fomModule,
+        standard_hla::mom::integer64_time));
+    REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+        L"restore-pending-nmra-attribute-publisher", L"publisher", federationName));
+    REQUIRE_NOTHROW(independentRegulator->joinFederationExecution(
+        L"restore-pending-nmra-attribute-regulator", L"regulator", federationName));
+    REQUIRE_NOTHROW(receiver->joinFederationExecution(
+        L"restore-pending-nmra-attribute-receiver", L"subscriber", federationName));
+
+    objectClass = publisher->getObjectClassHandle(
+        L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+    reliableAttribute = publisher->getAttributeHandle(objectClass, L"ReliableBaseA");
+    rti1516_2025::AttributeHandleSet const attributes{reliableAttribute};
+    rti1516_2025::AttributeHandleValueMap const attributeValues{
+        {reliableAttribute,
+         rti1516_2025::VariableLengthData(attributeBytes, sizeof(attributeBytes))}};
+    REQUIRE(objectClass.isValid());
+    REQUIRE(reliableAttribute.isValid());
+    REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(objectClass, attributes));
+    REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(objectClass, attributes));
+    REQUIRE_NOTHROW(publisher->changeDefaultAttributeOrderType(
+        objectClass, attributes, rti1516_2025::TIMESTAMP));
+    REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(objectClass));
+    if (callbackModel == rti1516_2025::HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE(publisherReports.objectDiscoveryReports.empty());
+    REQUIRE(receiverReports.objectDiscoveryReports.size() == 1U);
+    REQUIRE(receiverReports.objectDiscoveryReports.front().objectInstance == objectInstance);
+    REQUIRE(receiverReports.objectDiscoveryReports.front().objectClass == objectClass);
+
+    REQUIRE_NOTHROW(publisher->enableTimeConstrained());
+    REQUIRE_NOTHROW(independentRegulator->enableTimeConstrained());
+    REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+    if (callbackModel == rti1516_2025::HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE(publisherReports.timeConstrainedEnabledReports.size() == 1U);
+    REQUIRE(independentRegulatorReports.timeConstrainedEnabledReports.size() == 1U);
+    REQUIRE(receiverReports.timeConstrainedEnabledReports.size() == 1U);
+    REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    REQUIRE_NOTHROW(independentRegulator->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    if (callbackModel == rti1516_2025::HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE(publisherReports.timeRegulationEnabledReports.size() == 1U);
+    REQUIRE(independentRegulatorReports.timeRegulationEnabledReports.size() == 1U);
+
+    // NMRA(10) is pending before the accepted timestamp-5 update. Advancing
+    // both regulators to 4 makes GALT exactly 5 with lookahead 1, preserving
+    // the Available equality boundary while the save captures the queued TSO.
+    REQUIRE_NOTHROW(
+        receiver->nextMessageRequestAvailable(rti1516_2025::HLAinteger64Time(10)));
+    REQUIRE(receiverReports.attributeReflectionReports.empty());
+    auto const retraction = publisher->updateAttributeValues(
+        objectInstance,
+        attributeValues,
+        tag,
+        rti1516_2025::HLAinteger64Time(5));
+    REQUIRE(retraction.isValid());
+    REQUIRE(receiverReports.attributeReflectionReports.empty());
+    REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+
+    REQUIRE_NOTHROW(receiver->requestFederationSave(saveLabel));
+    std::mutex saveBoundaryMutex;
+    std::condition_variable saveBoundary;
+    std::size_t completedSaveParticipants = 0;
+    std::vector<std::exception_ptr> grantThreadExceptions(3U);
+    auto const grantThreadFailed = [&] {
+      return std::any_of(
+          grantThreadExceptions.begin(),
+          grantThreadExceptions.end(),
+          [](std::exception_ptr const& exception) { return static_cast<bool>(exception); });
+    };
+    auto const completeSaveAndWaitForFederation = [&](rti1516_2025::RTIambassador& ambassador) {
+      ambassador.federateSaveBegun();
+      ambassador.federateSaveComplete();
+      {
+        std::scoped_lock lock(saveBoundaryMutex);
+        ++completedSaveParticipants;
+      }
+      saveBoundary.notify_all();
+      if (callbackModel == rti1516_2025::HLA_EVOKED) {
+        std::unique_lock lock(saveBoundaryMutex);
+        saveBoundary.wait_for(
+            lock,
+            std::chrono::seconds(5),
+            [&] { return completedSaveParticipants == 3U || grantThreadFailed(); });
+      }
+    };
+    publisherReports.onInitiateFederateSave = [&] {
+      completeSaveAndWaitForFederation(*publisher);
+    };
+    independentRegulatorReports.onInitiateFederateSave = [&] {
+      completeSaveAndWaitForFederation(*independentRegulator);
+    };
+    receiverReports.onInitiateFederateSave = [&] {
+      completeSaveAndWaitForFederation(*receiver);
+    };
+    publisherReports.callbackOrder.clear();
+    independentRegulatorReports.callbackOrder.clear();
+    receiverReports.callbackOrder.clear();
+    if (callbackModel == rti1516_2025::HLA_IMMEDIATE) {
+      REQUIRE_NOTHROW(publisher->disableCallbacks());
+      REQUIRE_NOTHROW(independentRegulator->disableCallbacks());
+      REQUIRE_NOTHROW(receiver->disableCallbacks());
+    }
+    REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+    REQUIRE_NOTHROW(
+        independentRegulator->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+    if (callbackModel == rti1516_2025::HLA_IMMEDIATE) {
+      REQUIRE_NOTHROW(publisher->enableCallbacks());
+      REQUIRE_NOTHROW(independentRegulator->enableCallbacks());
+      REQUIRE_NOTHROW(receiver->enableCallbacks());
+    } else {
+      auto const drainOnThread = [&](std::size_t const exceptionIndex,
+                                     rti1516_2025::RTIambassador& ambassador) {
+        try {
+          drain(ambassador);
+        } catch (...) {
+          {
+            std::scoped_lock lock(saveBoundaryMutex);
+            grantThreadExceptions[exceptionIndex] = std::current_exception();
+          }
+          saveBoundary.notify_all();
+        }
+      };
+      std::thread publisherGrantThread([&] { drainOnThread(0U, *publisher); });
+      std::thread regulatorGrantThread(
+          [&] { drainOnThread(1U, *independentRegulator); });
+      std::thread receiverGrantThread([&] { drainOnThread(2U, *receiver); });
+      publisherGrantThread.join();
+      regulatorGrantThread.join();
+      receiverGrantThread.join();
+      for (auto const& exception : grantThreadExceptions) {
+        if (exception) {
+          std::rethrow_exception(exception);
+        }
+      }
+    }
+
+    REQUIRE(publisherReports.initiateFederateSaveReports ==
+            std::vector<std::wstring>{saveLabel});
+    REQUIRE(independentRegulatorReports.initiateFederateSaveReports ==
+            std::vector<std::wstring>{saveLabel});
+    REQUIRE(receiverReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+    REQUIRE(publisherReports.federationSavedReportCount == 1U);
+    REQUIRE(independentRegulatorReports.federationSavedReportCount == 1U);
+    REQUIRE(receiverReports.federationSavedReportCount == 1U);
+    REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 1U);
+    REQUIRE(publisherReports.timeAdvanceGrantReports.back().value == L"4");
+    REQUIRE(independentRegulatorReports.timeAdvanceGrantReports.size() == 1U);
+    REQUIRE(independentRegulatorReports.timeAdvanceGrantReports.back().value == L"4");
+    REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"5");
+    auto const originalReflection = receiverReports.attributeReflectionReports.front();
+    REQUIRE(originalReflection.objectInstance == objectInstance);
+    REQUIRE(originalReflection.producingFederate == publisherHandle);
+    REQUIRE(originalReflection.timeImplementationName == L"HLAinteger64Time");
+    REQUIRE(originalReflection.timeValue == L"5");
+    REQUIRE(originalReflection.sentOrderType == rti1516_2025::TIMESTAMP);
+    REQUIRE(originalReflection.receivedOrderType == rti1516_2025::TIMESTAMP);
+    REQUIRE(originalReflection.retractionSupplied);
+    REQUIRE(originalReflection.retractionValid);
+    REQUIRE(matchesBytes(originalReflection.userSuppliedTag, tagBytes, sizeof(tagBytes)));
+    REQUIRE(originalReflection.attributeValues.size() == 1U);
+    REQUIRE(matchesBytes(
+        originalReflection.attributeValues.at(reliableAttribute),
+        attributeBytes,
+        sizeof(attributeBytes)));
+    auto const saveCallback = std::find(
+        receiverReports.callbackOrder.begin(),
+        receiverReports.callbackOrder.end(),
+        "save-initiate");
+    auto const originalReflectionCallback = std::find(
+        receiverReports.callbackOrder.begin(),
+        receiverReports.callbackOrder.end(),
+        "reflect");
+    auto const originalGrantCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "grant");
+    REQUIRE(saveCallback != receiverReports.callbackOrder.end());
+    REQUIRE(originalReflectionCallback != receiverReports.callbackOrder.end());
+    REQUIRE(originalGrantCallback != receiverReports.callbackOrder.end());
+    REQUIRE(saveCallback < originalReflectionCallback);
+    REQUIRE(originalReflectionCallback < originalGrantCallback);
+
+    publisherReports.onInitiateFederateSave = {};
+    independentRegulatorReports.onInitiateFederateSave = {};
+    receiverReports.onInitiateFederateSave = {};
+    REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
+    REQUIRE_NOTHROW(
+        independentRegulator->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
+    REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
+    if (callbackModel == rti1516_2025::HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 2U);
+    REQUIRE(independentRegulatorReports.timeAdvanceGrantReports.size() == 2U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"9");
+
+    publisherReports.callbackOrder.clear();
+    independentRegulatorReports.callbackOrder.clear();
+    receiverReports.callbackOrder.clear();
+    REQUIRE_NOTHROW(receiver->requestFederationRestore(saveLabel));
+    if (callbackModel == rti1516_2025::HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE_NOTHROW(publisher->federateRestoreComplete());
+    REQUIRE_NOTHROW(independentRegulator->federateRestoreComplete());
+    REQUIRE_NOTHROW(receiver->federateRestoreComplete());
+    if (callbackModel == rti1516_2025::HLA_EVOKED) {
+      drainAll();
+    }
+
+    REQUIRE(publisherReports.federationRestoredReportCount == 1U);
+    REQUIRE(independentRegulatorReports.federationRestoredReportCount == 1U);
+    REQUIRE(receiverReports.federationRestoredReportCount == 1U);
+    REQUIRE(receiverReports.attributeReflectionReports.size() == 2U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 3U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"5");
+    auto const& replayedReflection = receiverReports.attributeReflectionReports.back();
+    REQUIRE(replayedReflection.objectInstance == originalReflection.objectInstance);
+    REQUIRE(replayedReflection.producingFederate == originalReflection.producingFederate);
+    REQUIRE(replayedReflection.timeImplementationName == originalReflection.timeImplementationName);
+    REQUIRE(replayedReflection.timeValue == originalReflection.timeValue);
+    REQUIRE(replayedReflection.sentOrderType == originalReflection.sentOrderType);
+    REQUIRE(replayedReflection.receivedOrderType == originalReflection.receivedOrderType);
+    REQUIRE(replayedReflection.retractionSupplied == originalReflection.retractionSupplied);
+    REQUIRE(replayedReflection.retractionValid == originalReflection.retractionValid);
+    REQUIRE(matchesBytes(replayedReflection.userSuppliedTag, tagBytes, sizeof(tagBytes)));
+    REQUIRE(replayedReflection.attributeValues.size() == 1U);
+    REQUIRE(matchesBytes(
+        replayedReflection.attributeValues.at(reliableAttribute),
+        attributeBytes,
+        sizeof(attributeBytes)));
+    auto const restoreCompleteCallback = std::find(
+        receiverReports.callbackOrder.begin(),
+        receiverReports.callbackOrder.end(),
+        "restore-complete");
+    auto const replayCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "reflect");
+    auto const restoredGrantCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "grant");
+    REQUIRE(restoreCompleteCallback != receiverReports.callbackOrder.end());
+    REQUIRE(replayCallback != receiverReports.callbackOrder.end());
+    REQUIRE(restoredGrantCallback != receiverReports.callbackOrder.end());
+    REQUIRE(restoreCompleteCallback < replayCallback);
+    REQUIRE(replayCallback < restoredGrantCallback);
+    REQUIRE_NOTHROW(publisher->queryLogicalTime(publisherLogicalTime));
+    REQUIRE_NOTHROW(independentRegulator->queryLogicalTime(independentRegulatorLogicalTime));
+    REQUIRE_NOTHROW(receiver->queryLogicalTime(receiverLogicalTime));
+    REQUIRE(publisherLogicalTime.getTime() == 4);
+    REQUIRE(independentRegulatorLogicalTime.getTime() == 4);
+    REQUIRE(receiverLogicalTime.getTime() == 5);
+
+    REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+    REQUIRE_NOTHROW(independentRegulator->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(publisher->disconnect());
+    REQUIRE_NOTHROW(independentRegulator->disconnect());
+    REQUIRE_NOTHROW(receiver->disconnect());
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(rti1516_2025::HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "Embedded restore replays a timestamped object deletion queued for pending NMRA at GALT",
+    "[integration][development-profile][federation-management][object-management]"
+    "[save-restore][restore-pending-tso-nmra-delete][time-management][tso]"
+    "[next-message-request-available][timestamped-object-deletion]"
+    "[multi-federate-callback-ordering]"
+    "[rti.service.delete-object-instance][rti.service.subscribe-object-class-attributes]"
+    "[rti.service.publish-object-class-attributes][rti.service.register-object-instance]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.next-message-request-available][rti.service.time-advance-request]"
+    "[rti.service.request-federation-save][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][rti.service.request-federation-restore]"
+    "[rti.service.federate-restore-complete][rti.service.query-logical-time]"
+    "[federate.callback.initiate-federate-save][federate.callback.remove-object-instance]"
+    "[federate.callback.time-advance-grant][federate.callback.federation-saved]"
+    "[federate.callback.federation-restored]") {
+  auto runScenario = [](auto const callbackModel) {
+    ReportingFederateAmbassador publisherReports;
+    ReportingFederateAmbassador independentRegulatorReports;
+    ReportingFederateAmbassador receiverReports;
+    auto publisher = makeRti();
+    auto independentRegulator = makeRti();
+    auto receiver = makeRti();
+    auto const federationName = nextFederationName();
+    auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                            "cpp" /
+                            "tests" /
+                            "data" /
+                            "attribute-update-passel-fom.xml")
+                               .wstring();
+    std::wstring const saveLabel = L"pending-nmra-delete-galt-snapshot";
+    rti1516_2025::FederateHandle publisherHandle;
+    rti1516_2025::ObjectInstanceHandle objectInstance;
+    rti1516_2025::HLAinteger64Time publisherLogicalTime;
+    rti1516_2025::HLAinteger64Time independentRegulatorLogicalTime;
+    rti1516_2025::HLAinteger64Time receiverLogicalTime;
+    unsigned char const tagBytes[] = {0x4E, 0x4D, 0x52, 0x41, 0x2D, 0x44, 0x45, 0x4C};
+    rti1516_2025::VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+    auto const drain = [](rti1516_2025::RTIambassador& ambassador) {
+      while (ambassador.evokeCallback(0.0)) {
+      }
+    };
+    auto const drainAll = [&] {
+      bool invokedCallback = false;
+      do {
+        auto const publisherInvoked = publisher->evokeCallback(0.0);
+        auto const regulatorInvoked = independentRegulator->evokeCallback(0.0);
+        auto const receiverInvoked = receiver->evokeCallback(0.0);
+        invokedCallback = publisherInvoked || regulatorInvoked || receiverInvoked;
+      } while (invokedCallback);
+    };
+    auto const matchesBytes = [](rti1516_2025::VariableLengthData const& value,
+                                 unsigned char const* expected,
+                                 std::size_t const expectedSize) {
+      return value.size() == expectedSize && value.data() != nullptr &&
+          std::memcmp(value.data(), expected, expectedSize) == 0;
+    };
+
+    REQUIRE_NOTHROW(publisher->connect(publisherReports, callbackModel));
+    REQUIRE_NOTHROW(independentRegulator->connect(independentRegulatorReports, callbackModel));
+    REQUIRE_NOTHROW(receiver->connect(receiverReports, callbackModel));
+    REQUIRE_NOTHROW(publisher->createFederationExecution(
+        federationName,
+        fomModule,
+        standard_hla::mom::integer64_time));
+    REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+        L"restore-pending-nmra-delete-publisher", L"publisher", federationName));
+    REQUIRE_NOTHROW(independentRegulator->joinFederationExecution(
+        L"restore-pending-nmra-delete-independent-regulator", L"regulator", federationName));
+    REQUIRE_NOTHROW(receiver->joinFederationExecution(
+        L"restore-pending-nmra-delete-receiver", L"subscriber", federationName));
+
+    auto const objectClass = publisher->getObjectClassHandle(
+        L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+    auto const reliableAttribute = publisher->getAttributeHandle(objectClass, L"ReliableBaseA");
+    auto const bestEffortAttribute = publisher->getAttributeHandle(objectClass, L"BestEffortBase");
+    rti1516_2025::AttributeHandleSet const attributes{
+        reliableAttribute,
+        bestEffortAttribute};
+    REQUIRE(objectClass.isValid());
+    REQUIRE(reliableAttribute.isValid());
+    REQUIRE(bestEffortAttribute.isValid());
+    REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(objectClass, attributes));
+    REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(objectClass, attributes));
+    REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(objectClass));
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE(publisherReports.objectDiscoveryReports.empty());
+    REQUIRE(receiverReports.objectDiscoveryReports.size() == 1U);
+    REQUIRE(receiverReports.objectDiscoveryReports.front().objectInstance == objectInstance);
+    REQUIRE(receiverReports.objectDiscoveryReports.front().objectClass == objectClass);
+
+    REQUIRE_NOTHROW(publisher->enableTimeConstrained());
+    REQUIRE_NOTHROW(independentRegulator->enableTimeConstrained());
+    REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE(publisherReports.timeConstrainedEnabledReports.size() == 1U);
+    REQUIRE(independentRegulatorReports.timeConstrainedEnabledReports.size() == 1U);
+    REQUIRE(receiverReports.timeConstrainedEnabledReports.size() == 1U);
+    REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    REQUIRE_NOTHROW(independentRegulator->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE(publisherReports.timeRegulationEnabledReports.size() == 1U);
+    REQUIRE(independentRegulatorReports.timeRegulationEnabledReports.size() == 1U);
+
+    // NMRA(10) is pending before the accepted timestamp-5 deletion. Advancing
+    // both regulators to 4 makes GALT exactly 5 with lookahead 1, preserving
+    // the Available equality boundary while the save captures the queued TSO.
+    REQUIRE_NOTHROW(
+        receiver->nextMessageRequestAvailable(rti1516_2025::HLAinteger64Time(10)));
+    REQUIRE(receiverReports.objectRemovalReports.empty());
+    auto const retraction = publisher->deleteObjectInstance(
+        objectInstance,
+        tag,
+        rti1516_2025::HLAinteger64Time(5));
+    REQUIRE(retraction.isValid());
+    REQUIRE(receiverReports.objectRemovalReports.empty());
+    REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+
+    REQUIRE_NOTHROW(receiver->requestFederationSave(saveLabel));
+    std::mutex saveBoundaryMutex;
+    std::condition_variable saveBoundary;
+    std::size_t completedSaveParticipants = 0;
+    std::vector<std::exception_ptr> grantThreadExceptions(3U);
+    auto const grantThreadFailed = [&] {
+      return std::any_of(
+          grantThreadExceptions.begin(),
+          grantThreadExceptions.end(),
+          [](std::exception_ptr const& exception) { return static_cast<bool>(exception); });
+    };
+    auto const completeSaveAndWaitForFederation = [&](rti1516_2025::RTIambassador& ambassador) {
+      ambassador.federateSaveBegun();
+      ambassador.federateSaveComplete();
+      {
+        std::scoped_lock lock(saveBoundaryMutex);
+        ++completedSaveParticipants;
+      }
+      saveBoundary.notify_all();
+      if (callbackModel == HLA_EVOKED) {
+        std::unique_lock lock(saveBoundaryMutex);
+        saveBoundary.wait_for(
+            lock,
+            std::chrono::seconds(5),
+            [&] { return completedSaveParticipants == 3U || grantThreadFailed(); });
+      }
+    };
+    publisherReports.onInitiateFederateSave = [&] {
+      completeSaveAndWaitForFederation(*publisher);
+    };
+    independentRegulatorReports.onInitiateFederateSave = [&] {
+      completeSaveAndWaitForFederation(*independentRegulator);
+    };
+    receiverReports.onInitiateFederateSave = [&] {
+      completeSaveAndWaitForFederation(*receiver);
+    };
+    publisherReports.callbackOrder.clear();
+    independentRegulatorReports.callbackOrder.clear();
+    receiverReports.callbackOrder.clear();
+    if (callbackModel == rti1516_2025::HLA_IMMEDIATE) {
+      REQUIRE_NOTHROW(publisher->disableCallbacks());
+      REQUIRE_NOTHROW(independentRegulator->disableCallbacks());
+      REQUIRE_NOTHROW(receiver->disableCallbacks());
+    }
+    REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+    REQUIRE_NOTHROW(
+        independentRegulator->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+    if (callbackModel == rti1516_2025::HLA_IMMEDIATE) {
+      REQUIRE_NOTHROW(publisher->enableCallbacks());
+      REQUIRE_NOTHROW(independentRegulator->enableCallbacks());
+      REQUIRE_NOTHROW(receiver->enableCallbacks());
+    } else {
+      auto const drainOnThread = [&](std::size_t const exceptionIndex,
+                                     rti1516_2025::RTIambassador& ambassador) {
+        try {
+          drain(ambassador);
+        } catch (...) {
+          {
+            std::scoped_lock lock(saveBoundaryMutex);
+            grantThreadExceptions[exceptionIndex] = std::current_exception();
+          }
+          saveBoundary.notify_all();
+        }
+      };
+      std::thread publisherGrantThread([&] { drainOnThread(0U, *publisher); });
+      std::thread regulatorGrantThread(
+          [&] { drainOnThread(1U, *independentRegulator); });
+      std::thread receiverGrantThread([&] { drainOnThread(2U, *receiver); });
+      publisherGrantThread.join();
+      regulatorGrantThread.join();
+      receiverGrantThread.join();
+      for (auto const& exception : grantThreadExceptions) {
+        if (exception) {
+          std::rethrow_exception(exception);
+        }
+      }
+    }
+
+    REQUIRE(publisherReports.initiateFederateSaveReports ==
+            std::vector<std::wstring>{saveLabel});
+    REQUIRE(independentRegulatorReports.initiateFederateSaveReports ==
+            std::vector<std::wstring>{saveLabel});
+    REQUIRE(receiverReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+    REQUIRE(publisherReports.federationSavedReportCount == 1U);
+    REQUIRE(independentRegulatorReports.federationSavedReportCount == 1U);
+    REQUIRE(receiverReports.federationSavedReportCount == 1U);
+    REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 1U);
+    REQUIRE(publisherReports.timeAdvanceGrantReports.back().value == L"4");
+    REQUIRE(independentRegulatorReports.timeAdvanceGrantReports.size() == 1U);
+    REQUIRE(independentRegulatorReports.timeAdvanceGrantReports.back().value == L"4");
+    REQUIRE(receiverReports.objectRemovalReports.size() == 1U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"5");
+    auto const originalRemoval = receiverReports.objectRemovalReports.front();
+    REQUIRE(originalRemoval.objectInstance == objectInstance);
+    REQUIRE(originalRemoval.producingFederate == publisherHandle);
+    REQUIRE(originalRemoval.timeImplementationName == L"HLAinteger64Time");
+    REQUIRE(originalRemoval.timeValue == L"5");
+    REQUIRE(originalRemoval.sentOrderType == TIMESTAMP);
+    REQUIRE(originalRemoval.receivedOrderType == TIMESTAMP);
+    REQUIRE(originalRemoval.retractionSupplied);
+    REQUIRE(originalRemoval.retractionValid);
+    REQUIRE(matchesBytes(originalRemoval.userSuppliedTag, tagBytes, sizeof(tagBytes)));
+    auto const saveCallback = std::find(
+        receiverReports.callbackOrder.begin(),
+        receiverReports.callbackOrder.end(),
+        "save-initiate");
+    auto const originalRemovalCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "remove");
+    auto const originalGrantCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "grant");
+    REQUIRE(saveCallback != receiverReports.callbackOrder.end());
+    REQUIRE(originalRemovalCallback != receiverReports.callbackOrder.end());
+    REQUIRE(originalGrantCallback != receiverReports.callbackOrder.end());
+    REQUIRE(saveCallback < originalRemovalCallback);
+    REQUIRE(originalRemovalCallback < originalGrantCallback);
+
+    publisherReports.onInitiateFederateSave = {};
+    independentRegulatorReports.onInitiateFederateSave = {};
+    receiverReports.onInitiateFederateSave = {};
+    REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
+    REQUIRE_NOTHROW(
+        independentRegulator->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
+    REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 2U);
+    REQUIRE(independentRegulatorReports.timeAdvanceGrantReports.size() == 2U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"9");
+
+    publisherReports.callbackOrder.clear();
+    independentRegulatorReports.callbackOrder.clear();
+    receiverReports.callbackOrder.clear();
+    REQUIRE_NOTHROW(receiver->requestFederationRestore(saveLabel));
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE_NOTHROW(publisher->federateRestoreComplete());
+    REQUIRE_NOTHROW(independentRegulator->federateRestoreComplete());
+    REQUIRE_NOTHROW(receiver->federateRestoreComplete());
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+
+    REQUIRE(publisherReports.federationRestoredReportCount == 1U);
+    REQUIRE(independentRegulatorReports.federationRestoredReportCount == 1U);
+    REQUIRE(receiverReports.federationRestoredReportCount == 1U);
+    REQUIRE(receiverReports.objectRemovalReports.size() == 2U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 3U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"5");
+    auto const& replayedRemoval = receiverReports.objectRemovalReports.back();
+    REQUIRE(replayedRemoval.objectInstance == originalRemoval.objectInstance);
+    REQUIRE(replayedRemoval.producingFederate == originalRemoval.producingFederate);
+    REQUIRE(replayedRemoval.timeImplementationName == originalRemoval.timeImplementationName);
+    REQUIRE(replayedRemoval.timeValue == originalRemoval.timeValue);
+    REQUIRE(replayedRemoval.sentOrderType == originalRemoval.sentOrderType);
+    REQUIRE(replayedRemoval.receivedOrderType == originalRemoval.receivedOrderType);
+    REQUIRE(replayedRemoval.retractionSupplied == originalRemoval.retractionSupplied);
+    REQUIRE(replayedRemoval.retractionValid == originalRemoval.retractionValid);
+    REQUIRE(matchesBytes(replayedRemoval.userSuppliedTag, tagBytes, sizeof(tagBytes)));
+    auto const restoreCompleteCallback = std::find(
+        receiverReports.callbackOrder.begin(),
+        receiverReports.callbackOrder.end(),
+        "restore-complete");
+    auto const replayCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "remove");
+    auto const restoredGrantCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "grant");
+    REQUIRE(restoreCompleteCallback != receiverReports.callbackOrder.end());
+    REQUIRE(replayCallback != receiverReports.callbackOrder.end());
+    REQUIRE(restoredGrantCallback != receiverReports.callbackOrder.end());
+    REQUIRE(restoreCompleteCallback < replayCallback);
+    REQUIRE(replayCallback < restoredGrantCallback);
+    REQUIRE_NOTHROW(publisher->queryLogicalTime(publisherLogicalTime));
+    REQUIRE_NOTHROW(independentRegulator->queryLogicalTime(independentRegulatorLogicalTime));
+    REQUIRE_NOTHROW(receiver->queryLogicalTime(receiverLogicalTime));
+    REQUIRE(publisherLogicalTime.getTime() == 4);
+    REQUIRE(independentRegulatorLogicalTime.getTime() == 4);
+    REQUIRE(receiverLogicalTime.getTime() == 5);
+
+    REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(independentRegulator->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(publisher->disconnect());
+    REQUIRE_NOTHROW(independentRegulator->disconnect());
+    REQUIRE_NOTHROW(receiver->disconnect());
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(rti1516_2025::HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "Embedded restore replays a timestamped interaction queued for pending NMRA at GALT",
+    "[integration][development-profile][federation-management][interaction-management]"
+    "[save-restore][restore-pending-tso-nmra][time-management][tso]"
+    "[next-message-request-available][multi-federate-callback-ordering]"
+    "[rti.service.send-interaction][rti.service.subscribe-interaction-class]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.next-message-request-available][rti.service.time-advance-request]"
+    "[rti.service.request-federation-save][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][rti.service.request-federation-restore]"
+    "[rti.service.federate-restore-complete][rti.service.query-logical-time]"
+    "[federate.callback.initiate-federate-save][federate.callback.receive-interaction]"
+    "[federate.callback.time-advance-grant][federate.callback.federation-saved]"
+    "[federate.callback.federation-restored]") {
+  auto runScenario = [](auto const callbackModel) {
+    ReportingFederateAmbassador publisherReports;
+    ReportingFederateAmbassador independentRegulatorReports;
+    ReportingFederateAmbassador receiverReports;
+    auto publisher = makeRti();
+    auto independentRegulator = makeRti();
+    auto receiver = makeRti();
+    auto const federationName = nextFederationName();
+    auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                            "cpp" /
+                            "tests" /
+                            "data" /
+                            "parameter-handle-provider-fom.xml")
+                               .wstring();
+    std::wstring const saveLabel = L"pending-nmra-tso-available-boundary";
+    rti1516_2025::FederateHandle publisherHandle;
+    rti1516_2025::HLAinteger64Time publisherLogicalTime;
+    rti1516_2025::HLAinteger64Time independentRegulatorLogicalTime;
+    rti1516_2025::HLAinteger64Time receiverLogicalTime;
+    unsigned char const identifierBytes[] = {0x4E, 0x4D, 0x52, 0x41, 0x2D, 0x54, 0x53, 0x4F};
+    unsigned char const tagBytes[] = {0x4E, 0x4D, 0x52, 0x41, 0x2D, 0x52, 0x45, 0x50, 0x4C, 0x41, 0x59};
+    rti1516_2025::VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+    auto const drain = [](rti1516_2025::RTIambassador& ambassador) {
+      while (ambassador.evokeCallback(0.0)) {
+      }
+    };
+    auto const drainAll = [&] {
+      bool invokedCallback = false;
+      do {
+        auto const publisherInvoked = publisher->evokeCallback(0.0);
+        auto const regulatorInvoked = independentRegulator->evokeCallback(0.0);
+        auto const receiverInvoked = receiver->evokeCallback(0.0);
+        invokedCallback = publisherInvoked || regulatorInvoked || receiverInvoked;
+      } while (invokedCallback);
+    };
+    auto const matchesBytes = [](rti1516_2025::VariableLengthData const& value,
+                                 unsigned char const* expected,
+                                 std::size_t const expectedSize) {
+      return value.size() == expectedSize && value.data() != nullptr &&
+          std::memcmp(value.data(), expected, expectedSize) == 0;
+    };
+
+    REQUIRE_NOTHROW(publisher->connect(publisherReports, callbackModel));
+    REQUIRE_NOTHROW(independentRegulator->connect(independentRegulatorReports, callbackModel));
+    REQUIRE_NOTHROW(receiver->connect(receiverReports, callbackModel));
+    REQUIRE_NOTHROW(publisher->createFederationExecution(
+        federationName,
+        fomModule,
+        standard_hla::mom::integer64_time));
+    REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+        L"restore-pending-nmra-tso-publisher", L"publisher", federationName));
+    REQUIRE_NOTHROW(independentRegulator->joinFederationExecution(
+        L"restore-pending-nmra-tso-independent-regulator", L"regulator", federationName));
+    REQUIRE_NOTHROW(receiver->joinFederationExecution(
+        L"restore-pending-nmra-tso-receiver", L"subscriber", federationName));
+
+    auto const interactionClass = publisher->getInteractionClassHandle(
+        fixture_hla::fom::parameter_fixture_child_interaction);
+    auto const identifier = publisher->getParameterHandle(
+        interactionClass,
+        fixture_hla::fixture::identifier);
+    rti1516_2025::ParameterHandleValueMap parameterValues;
+    parameterValues.emplace(
+        identifier,
+        rti1516_2025::VariableLengthData(identifierBytes, sizeof(identifierBytes)));
+    REQUIRE(interactionClass.isValid());
+    REQUIRE(identifier.isValid());
+    REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+    REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+    REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+    REQUIRE_NOTHROW(publisher->enableTimeConstrained());
+    REQUIRE_NOTHROW(independentRegulator->enableTimeConstrained());
+    REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE(publisherReports.timeConstrainedEnabledReports.size() == 1U);
+    REQUIRE(independentRegulatorReports.timeConstrainedEnabledReports.size() == 1U);
+    REQUIRE(receiverReports.timeConstrainedEnabledReports.size() == 1U);
+    REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    REQUIRE_NOTHROW(independentRegulator->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE(publisherReports.timeRegulationEnabledReports.size() == 1U);
+    REQUIRE(independentRegulatorReports.timeRegulationEnabledReports.size() == 1U);
+
+    // NMRA(10) is pending before the accepted TSO at 5. Advancing both
+    // regulators to 4 makes GALT exactly 5 (lookahead 1), so this exercises
+    // the Available-boundary equality while the save captures the queued TSO.
+    REQUIRE_NOTHROW(
+        receiver->nextMessageRequestAvailable(rti1516_2025::HLAinteger64Time(10)));
+    REQUIRE(receiverReports.timestampedInteractionReports.empty());
+    auto const retraction = publisher->sendInteraction(
+        interactionClass,
+        parameterValues,
+        tag,
+        rti1516_2025::HLAinteger64Time(5));
+    REQUIRE(retraction.isValid());
+    REQUIRE(receiverReports.timestampedInteractionReports.empty());
+    REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+
+    REQUIRE_NOTHROW(receiver->requestFederationSave(saveLabel));
+    REQUIRE(publisherReports.initiateFederateSaveReports.empty());
+    REQUIRE(receiverReports.initiateFederateSaveReports.empty());
+    std::mutex saveBoundaryMutex;
+    std::condition_variable saveBoundary;
+    std::size_t completedSaveParticipants = 0;
+    std::vector<std::exception_ptr> grantThreadExceptions(3U);
+    auto const grantThreadFailed = [&] {
+      return std::any_of(
+          grantThreadExceptions.begin(),
+          grantThreadExceptions.end(),
+          [](std::exception_ptr const& exception) { return static_cast<bool>(exception); });
+    };
+    auto const completeSaveAndWaitForFederation = [&](rti1516_2025::RTIambassador& ambassador) {
+      ambassador.federateSaveBegun();
+      ambassador.federateSaveComplete();
+      {
+        std::scoped_lock lock(saveBoundaryMutex);
+        ++completedSaveParticipants;
+      }
+      saveBoundary.notify_all();
+      if (callbackModel == HLA_EVOKED) {
+        std::unique_lock lock(saveBoundaryMutex);
+        saveBoundary.wait_for(
+            lock,
+            std::chrono::seconds(5),
+            [&] { return completedSaveParticipants == 3U || grantThreadFailed(); });
+      }
+    };
+    publisherReports.onInitiateFederateSave = [&] {
+      completeSaveAndWaitForFederation(*publisher);
+    };
+    independentRegulatorReports.onInitiateFederateSave = [&] {
+      completeSaveAndWaitForFederation(*independentRegulator);
+    };
+    receiverReports.onInitiateFederateSave = [&] {
+      completeSaveAndWaitForFederation(*receiver);
+    };
+    publisherReports.callbackOrder.clear();
+    independentRegulatorReports.callbackOrder.clear();
+    receiverReports.callbackOrder.clear();
+    if (callbackModel == rti1516_2025::HLA_IMMEDIATE) {
+      REQUIRE_NOTHROW(publisher->disableCallbacks());
+      REQUIRE_NOTHROW(independentRegulator->disableCallbacks());
+      REQUIRE_NOTHROW(receiver->disableCallbacks());
+    }
+    REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+    REQUIRE_NOTHROW(
+        independentRegulator->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+    if (callbackModel == rti1516_2025::HLA_IMMEDIATE) {
+      REQUIRE_NOTHROW(publisher->enableCallbacks());
+      REQUIRE_NOTHROW(independentRegulator->enableCallbacks());
+      REQUIRE_NOTHROW(receiver->enableCallbacks());
+    } else {
+      auto const drainOnThread = [&](std::size_t const exceptionIndex,
+                                     rti1516_2025::RTIambassador& ambassador) {
+        try {
+          drain(ambassador);
+        } catch (...) {
+          {
+            std::scoped_lock lock(saveBoundaryMutex);
+            grantThreadExceptions[exceptionIndex] = std::current_exception();
+          }
+          saveBoundary.notify_all();
+        }
+      };
+      std::thread publisherGrantThread([&] { drainOnThread(0U, *publisher); });
+      std::thread regulatorGrantThread(
+          [&] { drainOnThread(1U, *independentRegulator); });
+      std::thread receiverGrantThread([&] { drainOnThread(2U, *receiver); });
+      publisherGrantThread.join();
+      regulatorGrantThread.join();
+      receiverGrantThread.join();
+      for (auto const& exception : grantThreadExceptions) {
+        if (exception) {
+          std::rethrow_exception(exception);
+        }
+      }
+    }
+
+    REQUIRE(publisherReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+    REQUIRE(independentRegulatorReports.initiateFederateSaveReports ==
+            std::vector<std::wstring>{saveLabel});
+    REQUIRE(receiverReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+    REQUIRE(publisherReports.federationSavedReportCount == 1U);
+    REQUIRE(independentRegulatorReports.federationSavedReportCount == 1U);
+    REQUIRE(receiverReports.federationSavedReportCount == 1U);
+    REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 1U);
+    REQUIRE(publisherReports.timeAdvanceGrantReports.back().value == L"4");
+    REQUIRE(independentRegulatorReports.timeAdvanceGrantReports.size() == 1U);
+    REQUIRE(independentRegulatorReports.timeAdvanceGrantReports.back().value == L"4");
+    REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"5");
+    auto const originalDelivery = receiverReports.timestampedInteractionReports.front();
+    REQUIRE(originalDelivery.interactionClass == interactionClass);
+    REQUIRE(originalDelivery.producingFederate == publisherHandle);
+    REQUIRE(originalDelivery.timeValue == L"5");
+    REQUIRE(originalDelivery.sentOrderType == TIMESTAMP);
+    REQUIRE(originalDelivery.receivedOrderType == TIMESTAMP);
+    REQUIRE(originalDelivery.retractionValid);
+    REQUIRE(matchesBytes(originalDelivery.userSuppliedTag, tagBytes, sizeof(tagBytes)));
+    REQUIRE(originalDelivery.parameterValues.size() == 1U);
+    REQUIRE(matchesBytes(
+        originalDelivery.parameterValues.at(identifier),
+        identifierBytes,
+        sizeof(identifierBytes)));
+    auto const saveCallback = std::find(
+        receiverReports.callbackOrder.begin(),
+        receiverReports.callbackOrder.end(),
+        "save-initiate");
+    auto const originalInteractionCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "interaction");
+    auto const originalGrantCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "grant");
+    REQUIRE(saveCallback != receiverReports.callbackOrder.end());
+    REQUIRE(originalInteractionCallback != receiverReports.callbackOrder.end());
+    REQUIRE(originalGrantCallback != receiverReports.callbackOrder.end());
+    REQUIRE(saveCallback < originalInteractionCallback);
+    REQUIRE(originalInteractionCallback < originalGrantCallback);
+    REQUIRE_NOTHROW(publisher->queryLogicalTime(publisherLogicalTime));
+    REQUIRE_NOTHROW(independentRegulator->queryLogicalTime(independentRegulatorLogicalTime));
+    REQUIRE_NOTHROW(receiver->queryLogicalTime(receiverLogicalTime));
+    REQUIRE(publisherLogicalTime.getTime() == 4);
+    REQUIRE(independentRegulatorLogicalTime.getTime() == 4);
+    REQUIRE(receiverLogicalTime.getTime() == 5);
+
+    publisherReports.onInitiateFederateSave = {};
+    independentRegulatorReports.onInitiateFederateSave = {};
+    receiverReports.onInitiateFederateSave = {};
+    REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
+    REQUIRE_NOTHROW(
+        independentRegulator->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
+    REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 2U);
+    REQUIRE(independentRegulatorReports.timeAdvanceGrantReports.size() == 2U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"9");
+
+    publisherReports.callbackOrder.clear();
+    independentRegulatorReports.callbackOrder.clear();
+    receiverReports.callbackOrder.clear();
+    REQUIRE_NOTHROW(receiver->requestFederationRestore(saveLabel));
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+    REQUIRE_NOTHROW(publisher->federateRestoreComplete());
+    REQUIRE_NOTHROW(independentRegulator->federateRestoreComplete());
+    REQUIRE_NOTHROW(receiver->federateRestoreComplete());
+    if (callbackModel == HLA_EVOKED) {
+      drainAll();
+    }
+
+    REQUIRE(publisherReports.federationRestoredReportCount == 1U);
+    REQUIRE(independentRegulatorReports.federationRestoredReportCount == 1U);
+    REQUIRE(receiverReports.federationRestoredReportCount == 1U);
+    REQUIRE(receiverReports.timestampedInteractionReports.size() == 2U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 3U);
+    REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"5");
+    auto const& replayedDelivery = receiverReports.timestampedInteractionReports.back();
+    REQUIRE(replayedDelivery.interactionClass == originalDelivery.interactionClass);
+    REQUIRE(replayedDelivery.producingFederate == originalDelivery.producingFederate);
+    REQUIRE(replayedDelivery.timeValue == originalDelivery.timeValue);
+    REQUIRE(replayedDelivery.sentOrderType == originalDelivery.sentOrderType);
+    REQUIRE(replayedDelivery.receivedOrderType == originalDelivery.receivedOrderType);
+    REQUIRE(replayedDelivery.retractionValid == originalDelivery.retractionValid);
+    REQUIRE(matchesBytes(replayedDelivery.userSuppliedTag, tagBytes, sizeof(tagBytes)));
+    REQUIRE(replayedDelivery.parameterValues.size() == 1U);
+    REQUIRE(matchesBytes(
+        replayedDelivery.parameterValues.at(identifier),
+        identifierBytes,
+        sizeof(identifierBytes)));
+    auto const restoreCompleteCallback = std::find(
+        receiverReports.callbackOrder.begin(),
+        receiverReports.callbackOrder.end(),
+        "restore-complete");
+    auto const replayCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "interaction");
+    auto const restoredGrantCallback = std::find(
+        receiverReports.callbackOrder.begin(), receiverReports.callbackOrder.end(), "grant");
+    REQUIRE(restoreCompleteCallback != receiverReports.callbackOrder.end());
+    REQUIRE(replayCallback != receiverReports.callbackOrder.end());
+    REQUIRE(restoredGrantCallback != receiverReports.callbackOrder.end());
+    REQUIRE(restoreCompleteCallback < replayCallback);
+    REQUIRE(replayCallback < restoredGrantCallback);
+    REQUIRE_NOTHROW(publisher->queryLogicalTime(publisherLogicalTime));
+    REQUIRE_NOTHROW(independentRegulator->queryLogicalTime(independentRegulatorLogicalTime));
+    REQUIRE_NOTHROW(receiver->queryLogicalTime(receiverLogicalTime));
+    REQUIRE(publisherLogicalTime.getTime() == 4);
+    REQUIRE(independentRegulatorLogicalTime.getTime() == 4);
+    REQUIRE(receiverLogicalTime.getTime() == 5);
+
+    REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(independentRegulator->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(publisher->disconnect());
+    REQUIRE_NOTHROW(independentRegulator->disconnect());
+    REQUIRE_NOTHROW(receiver->disconnect());
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(rti1516_2025::HLA_IMMEDIATE);
   }
 }

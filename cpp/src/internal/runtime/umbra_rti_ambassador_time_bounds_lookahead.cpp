@@ -42,7 +42,7 @@ bool UmbraRtiAmbassador::queryGALT(LogicalTime &time) {
       federateId = *joinedFederateId_;
     }
     auto const bounds = processClient->queryTimeBounds(
-        std::move(federationName), federateId);
+        federationName, federateId);
     using Status = umbra::detail::ProcessFederationTimeBoundStatus;
     if (bounds.status == Status::requesting_federate_not_registered) {
       throw FederateNotExecutionMember(
@@ -60,8 +60,24 @@ bool UmbraRtiAmbassador::queryGALT(LogicalTime &time) {
       }
       auto galt = decodeAmbassadorProcessLogicalTimeValue(*bounds.galt);
       copyAmbassadorQueriedLogicalTime(time, *galt);
+      appendSuccessfulServiceReportToFileIfSelected(
+          L"QueryGALT",
+          umbra::detail::MomServiceType::time_management,
+          {},
+          {umbra::detail::MomArgumentType::logical_time,
+           L"GALT",
+           umbra::detail::formatMomLogicalTime(*galt)},
+          true);
       return true;
     }
+    appendSuccessfulServiceReportToFileIfSelected(
+        L"QueryGALT",
+        umbra::detail::MomServiceType::time_management,
+        {},
+        {umbra::detail::MomArgumentType::null_value,
+         L"",
+         umbra::detail::formatMomNull()},
+        true);
     return false;
   }
 #endif
@@ -166,8 +182,24 @@ bool UmbraRtiAmbassador::queryLITS(LogicalTime &time) {
     if (bounds.lits) {
       auto lits = decodeAmbassadorProcessLogicalTimeValue(*bounds.lits);
       copyAmbassadorQueriedLogicalTime(time, *lits);
+      appendSuccessfulServiceReportToFileIfSelected(
+          L"QueryLITS",
+          umbra::detail::MomServiceType::time_management,
+          {},
+          {umbra::detail::MomArgumentType::logical_time,
+           L"LITS",
+           umbra::detail::formatMomLogicalTime(*lits)},
+          true);
       return true;
     }
+    appendSuccessfulServiceReportToFileIfSelected(
+        L"QueryLITS",
+        umbra::detail::MomServiceType::time_management,
+        {},
+        {umbra::detail::MomArgumentType::null_value,
+         L"",
+         umbra::detail::formatMomNull()},
+        true);
     return false;
   }
 #endif
@@ -291,6 +323,14 @@ void UmbraRtiAmbassador::queryLookahead(LogicalTimeInterval &interval) {
           auto decoded = decodeAmbassadorProcessLogicalTimeIntervalValue(
               *processResult.lookahead);
           copyAmbassadorQueriedLogicalTimeInterval(interval, *decoded);
+          appendSuccessfulServiceReportToFileIfSelected(
+              L"QueryLookahead",
+              umbra::detail::MomServiceType::time_management,
+              {},
+              {umbra::detail::MomArgumentType::logical_time_interval,
+               L"Lookahead",
+               umbra::detail::formatMomLogicalTimeInterval(*decoded)},
+              true);
         }
         return;
       case umbra::detail::ProcessFederationLookaheadStatus::not_enabled:
@@ -412,6 +452,13 @@ void UmbraRtiAmbassador::modifyLookahead(LogicalTimeInterval const &lookahead) {
     using Status = umbra::detail::ProcessFederationModifyLookaheadStatus;
     switch (processResult.status) {
       case Status::applied:
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"ModifyLookahead",
+            umbra::detail::MomServiceType::time_management,
+            {{umbra::detail::MomArgumentType::logical_time_interval,
+              L"Requested lookahead",
+              umbra::detail::formatMomLogicalTimeInterval(lookahead)}},
+            true);
         return;
       case Status::time_advance_pending:
         throw InTimeAdvancingState(

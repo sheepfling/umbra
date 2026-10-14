@@ -3,6 +3,7 @@
 
 #include "internal/fom/hla_names.hpp"
 #include "internal/handles/federate_handle.hpp"
+#include "internal/observability/pending_service_report_file_cleanup.hpp"
 #include "internal/observability/mom_service_report_encoding.hpp"
 #include "internal/runtime/utf8_string.hpp"
 #include "internal/time/federation_time_grant_policy.hpp"
@@ -23,6 +24,69 @@
 #include <vector>
 
 namespace umbra::detail {
+
+void ProcessFederationService::clearJoinedFederateSessionState(
+    ProcessTransportSession& session,
+    std::uint64_t federateId) noexcept {
+  std::scoped_lock lock(mutex_);
+  auto const state = sessions_.find(&session);
+  if (state == sessions_.end() || state->second.federateId != federateId) {
+    return;
+  }
+  sessionsByFederateId_.erase(federateId);
+  for (auto position = processTsoMessageProducers_.begin();
+       position != processTsoMessageProducers_.end();) {
+    if (position->second == federateId) {
+      pendingPushedRetractionRecipients_.erase(position->first);
+      position = processTsoMessageProducers_.erase(position);
+    } else {
+      ++position;
+    }
+  }
+  state->second.federationName.reset();
+  state->second.federateId = 0U;
+  if (state->second.timeState) {
+    state->second.timeState->deactivate();
+  }
+  state->second.timeState.reset();
+  state->second.serviceReportWriter.reset();
+  state->second.serviceReportLocation.clear();
+  state->second.interactionEvents.clear();
+  state->second.attributeUpdateEvents.clear();
+  state->second.objectInstanceDiscoveryEvents.clear();
+  state->second.objectInstanceRemovalEvents.clear();
+  state->second.objectInstanceScopeChangeEvents.clear();
+  state->second.attributeRelevanceAdvisoryEvents.clear();
+  state->second.attributeTransportationTypeChangeEvents.clear();
+  state->second.attributeTransportationTypeQueryEvents.clear();
+  state->second.interactionTransportationTypeChangeEvents.clear();
+  state->second.interactionTransportationTypeQueryEvents.clear();
+  state->second.attributeOwnershipQueryEvents.clear();
+  state->second.attributeOwnershipAcquisitionIfAvailableEvents.clear();
+  state->second.attributeOwnershipAcquisitionEvents.clear();
+  state->second.attributeOwnershipUnavailableEvents.clear();
+  state->second.synchronizationPointAnnouncementEvents.clear();
+  state->second.federationSynchronizedEvents.clear();
+  state->second.saveEvents.clear();
+  state->second.restoreEvents.clear();
+}
+
+void ProcessFederationService::discardPendingJoinedFederateMomObjectEvents(
+    std::wstring const& federationName,
+    std::uint64_t objectInstanceHandle) noexcept {
+  std::scoped_lock lock(mutex_);
+  for (auto& [session, state] : sessions_) {
+    static_cast<void>(session);
+    if (!state.federationName || *state.federationName != federationName) {
+      continue;
+    }
+    auto const matchesObject = [objectInstanceHandle](auto const& event) {
+      return event.objectInstanceHandle == objectInstanceHandle;
+    };
+    std::erase_if(state.objectInstanceDiscoveryEvents, matchesObject);
+    std::erase_if(state.attributeUpdateEvents, matchesObject);
+  }
+}
 namespace {
 
 constexpr std::wstring_view kProcessRtiVersion = L"Umbra 0.1.0";
@@ -342,7 +406,7 @@ TransportServiceMessage ProcessFederationService::handleJoin(
         // the calculated actual and optimistic values describe the resulting
         // grant and must not be used to suppress payloads admitted by FQR.
         dispatchTsoInteractionPayloads(
-            federationName, federateId, *pendingSnapshot.requestedTime);
+            federationName, federateId, *pendingSnapshot.requestedTime, true);
         auto flushResult = timeState->grantFlushQueue(
             generation,
             std::move(flushQueueCalculation.grantedTime),
@@ -380,7 +444,54 @@ TransportServiceMessage ProcessFederationService::handleJoin(
       dispatchTsoInteractionPayloads(
           federationName,
           federateId,
-          *pendingSnapshot.requestedTime);
+          *pendingSnapshot.requestedTime,
+          includesEqualTsoAtPreGrantBoundary(pendingSnapshot.advanceMode) ||
+              (pendingSnapshot.advanceMode ==
+                   FederateTimeAdvanceMode::time_advance_request_available &&
+               pendingSnapshot.advanceRequestTime &&
+               *pendingSnapshot.requestedTime < *pendingSnapshot.advanceRequestTime));
+
+      // An untimed save is normally admitted collectively when every
+      // constrained member has a pending TAR, before a later TAR can be
+      // rejected as SaveInProgress. This grant-boundary path is the fallback
+      // for any still-pending constrained admission; preserve initiation
+      // before this recipient's grant and enqueue non-constrained callbacks
+      // only after the final constrained admission.
+      auto const immediateSaveAdmission =
+          registry_.admitImmediateFederationSaveAtTimeAdvanceBoundary(
+              federationName,
+              federateId);
+      if (immediateSaveAdmission.status !=
+          FederationSaveControlStatus::applied) {
+        throw std::runtime_error(
+            "The process federation could not admit an untimed save at the time-advance boundary.");
+      }
+      if (immediateSaveAdmission.currentFederateNotification) {
+        ProcessFederationSaveEvent saveEvent;
+        saveEvent.kind = FederationSaveNotificationKind::initiate;
+        saveEvent.receivingFederateId = federateId;
+        saveEvent.label =
+            immediateSaveAdmission.currentFederateNotification->label;
+        ProcessFederationReceiveInteractionResult saveResult;
+        saveResult.saveEvent = std::move(saveEvent);
+        ProcessTransportSession eventSession(processConnection);
+        if (!eventSession.send(TransportServiceMessage{
+                TransportServiceMessageKind::event,
+                TransportServiceOperation::receive_interaction,
+                TransportServiceStatus::ok,
+                0U,
+                encodeProcessFederationReceiveInteractionResult(saveResult)})) {
+          throw std::runtime_error(
+              "The process federation could not deliver the untimed save initiation event.");
+        }
+      }
+      if (!immediateSaveAdmission.notifications.empty() &&
+          !enqueueFederationSaveNotifications(
+              federationName,
+              std::move(immediateSaveAdmission.notifications))) {
+        throw std::runtime_error(
+            "The process federation could not enqueue non-constrained untimed save notifications.");
+      }
 
       // A timestamped federation save has the same pre-grant boundary as the
       // embedded adapter: the constrained recipient must observe Initiate
@@ -452,6 +563,16 @@ TransportServiceMessage ProcessFederationService::handleJoin(
         throw std::runtime_error(
             "The process federation could not deliver a time-advance grant event.");
       }
+      if (pendingSnapshot.advanceMode ==
+          FederateTimeAdvanceMode::time_advance_request_available) {
+        // Table 1 excludes ts == t_R from TARA's pre-grant set. Deliver those
+        // retained boundary messages only after the Time Advance Grant event.
+        dispatchTsoInteractionPayloads(
+            federationName,
+            federateId,
+            *pendingSnapshot.requestedTime,
+            true);
+      }
     };
   };
   FederationJoinResult result;
@@ -485,6 +606,7 @@ TransportServiceMessage ProcessFederationService::handleJoin(
   std::unique_ptr<ServiceReportWriter> serviceReportWriter;
   std::filesystem::path serviceReportLocation;
   std::wstring reportServiceFile;
+  PendingServiceReportFileCleanup pendingServiceReportFileCleanup;
   if (serviceReportStore_) {
     auto rollbackJoinedMembership = [&]() {
       auto const rollback = registry_.resign(
@@ -562,6 +684,10 @@ TransportServiceMessage ProcessFederationService::handleJoin(
             "The process federation service-report store did not return a filesystem location.");
       }
       serviceReportLocation = writer->location();
+      pendingServiceReportFileCleanup.arm(serviceReportLocation);
+      if (options_.afterServiceReportFileAllocatedForTesting) {
+        options_.afterServiceReportFileAllocatedForTesting(serviceReportLocation);
+      }
       reportServiceFile = serviceReportLocation.wstring();
 
       if (!legacyFomCompatibility) {
@@ -598,6 +724,30 @@ TransportServiceMessage ProcessFederationService::handleJoin(
     state.serviceReportLocation = serviceReportLocation;
     sessionsByFederateId_[state.federateId] = &session;
   }
+  auto rollbackInstalledJoin = [&]() {
+    auto const joinedMomObject = registry_.joinedFederateMomObjectFor(
+        joinRequest.federationName,
+        result.membership->id);
+    auto const rollback = registry_.resign(
+        joinRequest.federationName,
+        result.membership->id,
+        rti1516_2025::NO_ACTION);
+    if (joinedMomObject) {
+      discardPendingJoinedFederateMomObjectEvents(
+          joinRequest.federationName,
+          joinedMomObject->objectInstanceHandle);
+    }
+    clearJoinedFederateSessionState(session, result.membership->id);
+    return rollback.status == FederationRegistryStatus::applied;
+  };
+  try {
+    if (options_.afterJoinedFederateSessionInstalledForTesting) {
+      options_.afterJoinedFederateSessionInstalledForTesting();
+    }
+  } catch (...) {
+    (void)rollbackInstalledJoin();
+    return internalError(request);
+  }
   // Join creates the RTI-owned HLAfederate MOM object for this new joined
   // lifetime. Existing class subscribers must discover that object through
   // the same process event path used by the embedded Join implementation;
@@ -611,6 +761,9 @@ TransportServiceMessage ProcessFederationService::handleJoin(
     if (!enqueueObjectInstanceDiscoveries(
             joinRequest.federationName,
             std::move(discoveries))) {
+      if (!rollbackInstalledJoin()) {
+        return internalError(request);
+      }
       return internalError(request);
     }
   }
@@ -623,8 +776,12 @@ TransportServiceMessage ProcessFederationService::handleJoin(
        !enqueueSynchronizationPointAnnouncements(
            joinRequest.federationName,
            std::move(pendingAnnouncements.announcements)))) {
+    if (!rollbackInstalledJoin()) {
+      return internalError(request);
+    }
     return internalError(request);
   }
+  pendingServiceReportFileCleanup.commit();
   return responseFor(
       request,
       TransportServiceStatus::ok,

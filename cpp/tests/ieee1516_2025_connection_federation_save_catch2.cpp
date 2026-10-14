@@ -185,9 +185,21 @@ class ProcessSaveFederateAmbassador final : public NullFederateAmbassador {
     ++timeRegulationEnabledCount;
   }
 
+  void timeConstrainedEnabled(
+      rti1516_2025::LogicalTime const&) override {
+    ++timeConstrainedEnabledCount;
+  }
+
+  void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
+    ++timeAdvanceGrantCount;
+    timeAdvanceGrantValue = time.toString();
+    callbackOrder.push_back("grant");
+  }
+
   void initiateFederateSave(std::wstring const& label) override {
     ++initiateCount;
     initiateLabel = label;
+    callbackOrder.push_back("save-initiate");
   }
 
   void initiateFederateSave(
@@ -199,7 +211,10 @@ class ProcessSaveFederateAmbassador final : public NullFederateAmbassador {
     timedInitiateValue = time.toString();
   }
 
-  void federationSaved() override { ++savedCount; }
+  void federationSaved() override {
+    ++savedCount;
+    callbackOrder.push_back("saved");
+  }
 
   void federationNotSaved(rti1516_2025::SaveFailureReason reason) override {
     ++notSavedCount;
@@ -214,6 +229,10 @@ class ProcessSaveFederateAmbassador final : public NullFederateAmbassador {
   std::size_t initiateCount = 0U;
   std::wstring initiateLabel;
   std::size_t timeRegulationEnabledCount = 0U;
+  std::size_t timeConstrainedEnabledCount = 0U;
+  std::size_t timeAdvanceGrantCount = 0U;
+  std::wstring timeAdvanceGrantValue;
+  std::vector<std::string> callbackOrder;
   std::size_t timedInitiateCount = 0U;
   std::wstring timedInitiateLabel;
   std::wstring timedInitiateImplementation;
@@ -563,11 +582,358 @@ TEST_CASE(
     clientError = std::current_exception();
   }
   if (listener) {
-    listener.reset();
+    listener->close();
   }
   if (server.joinable()) {
     server.join();
   }
+  listener.reset();
+  if (serverError) {
+    std::rethrow_exception(serverError);
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors admit untimed federation saves for multiple constrained recipients through a configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][time-management][transport][process-boundary][public-endpoint][multi-federate][multiple-constrained][2025][untimed-save-time-constrained-admission-process][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.request-federation-save][rti.service.time-advance-request][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-untimed-save-multiple-constrained-execution";
+  constexpr wchar_t const* ownerType = L"process-untimed-save-owner-type";
+  constexpr wchar_t const* firstType = L"process-untimed-save-first-type";
+  constexpr wchar_t const* secondType = L"process-untimed-save-second-type";
+  constexpr wchar_t const* saveLabel = L"process-untimed-save-multiple-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto ownerConnection = listener->accept(
+          nullptr,
+          {"process-untimed-save-multiple-server", 0x9271U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession ownerSession(ownerConnection);
+      auto ownerHandler = service.handlerFor(ownerSession);
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The multi-constrained untimed process-save server lost Create.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The multi-constrained untimed process-save server lost owner Join.");
+
+      auto firstConnection = listener->accept(
+          nullptr,
+          {"process-untimed-save-multiple-server", 0x9272U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession firstSession(firstConnection);
+      auto firstHandler = service.handlerFor(firstSession);
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The multi-constrained untimed process-save server lost first Join.");
+
+      auto secondConnection = listener->accept(
+          nullptr,
+          {"process-untimed-save-multiple-server", 0x9273U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession secondSession(secondConnection);
+      auto secondHandler = service.handlerFor(secondSession);
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The multi-constrained untimed process-save server lost second Join.");
+
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::enable_time_constrained,
+          "The multi-constrained untimed process-save server lost first Enable Time Constrained.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, firstSession, firstHandler);
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::enable_time_constrained,
+          "The multi-constrained untimed process-save server lost second Enable Time Constrained.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, secondSession, secondHandler);
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::enable_time_regulation,
+          "The multi-constrained untimed process-save server lost owner Enable Time Regulation.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, ownerSession, ownerHandler);
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::request_federation_save,
+          "The multi-constrained untimed process-save server lost Request Federation Save.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::time_advance_request,
+          "The multi-constrained untimed process-save server lost first TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, firstSession, firstHandler);
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-constrained untimed process-save server lost owner polling before all constrained members were eligible.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::time_advance_request,
+          "The multi-constrained untimed process-save server lost second TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, secondSession, secondHandler);
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-constrained untimed process-save server lost owner polling after all constrained members were eligible.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The multi-constrained untimed process-save server lost owner Federate Save Begun.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The multi-constrained untimed process-save server lost first Federate Save Begun.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The multi-constrained untimed process-save server lost second Federate Save Begun.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The multi-constrained untimed process-save server lost owner Federate Save Complete.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The multi-constrained untimed process-save server lost first Federate Save Complete.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The multi-constrained untimed process-save server lost second Federate Save Complete.");
+      for (auto* session : {&ownerSession, &firstSession, &secondSession}) {
+        auto const& handler = session == &ownerSession
+                                  ? ownerHandler
+                                  : session == &firstSession ? firstHandler
+                                                             : secondHandler;
+        serveExpected(
+            *session,
+            handler,
+            TransportServiceOperation::receive_interaction,
+            "The multi-constrained untimed process-save server lost completion polling.");
+      }
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The multi-constrained untimed process-save server lost owner Resign.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The multi-constrained untimed process-save server lost first Resign.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The multi-constrained untimed process-save server lost second Resign.");
+      service.detach(secondSession);
+      service.detach(firstSession);
+      service.detach(ownerSession);
+      secondConnection->close();
+      firstConnection->close();
+      ownerConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSaveFederateAmbassador ownerFederate;
+  ProcessSaveFederateAmbassador firstFederate;
+  ProcessSaveFederateAmbassador secondFederate;
+  auto ownerRti = makeRti();
+  auto firstRti = makeRti();
+  auto secondRti = makeRti();
+  auto makeConfiguration = [&](wchar_t const* name) {
+    return RtiConfiguration::createConfiguration()
+        .withConfigurationName(name)
+        .withRtiAddress(L"tcp://127.0.0.1:" + std::to_wstring(port));
+  };
+  auto ownerConfiguration =
+      makeConfiguration(L"process-untimed-save-multiple-owner-client");
+  auto firstConfiguration =
+      makeConfiguration(L"process-untimed-save-multiple-first-client");
+  auto secondConfiguration =
+      makeConfiguration(L"process-untimed-save-multiple-second-client");
+  std::exception_ptr clientError;
+  try {
+    auto const ownerConnectionResult =
+        ownerRti->connect(ownerFederate, HLA_EVOKED, ownerConfiguration);
+    REQUIRE(ownerConnectionResult.addressUsed);
+    REQUIRE_NOTHROW(ownerRti->createFederationExecution(
+        federationName,
+        L"server-owned-process-untimed-federation-save-fom.xml"));
+    REQUIRE(ownerRti->joinFederationExecution(ownerType, federationName)
+                .isValid());
+
+    REQUIRE(firstRti->connect(firstFederate, HLA_EVOKED, firstConfiguration)
+                .addressUsed);
+    REQUIRE(firstRti->joinFederationExecution(firstType, federationName)
+                .isValid());
+    REQUIRE(secondRti->connect(secondFederate, HLA_EVOKED, secondConfiguration)
+                .addressUsed);
+    REQUIRE(secondRti->joinFederationExecution(secondType, federationName)
+                .isValid());
+
+    REQUIRE_NOTHROW(firstRti->enableTimeConstrained());
+    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.timeConstrainedEnabledCount == 1U);
+    REQUIRE_NOTHROW(secondRti->enableTimeConstrained());
+    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.timeConstrainedEnabledCount == 1U);
+    REQUIRE_NOTHROW(ownerRti->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.timeRegulationEnabledCount == 1U);
+
+    ownerFederate.callbackOrder.clear();
+    firstFederate.callbackOrder.clear();
+    secondFederate.callbackOrder.clear();
+    REQUIRE_NOTHROW(ownerRti->requestFederationSave(saveLabel));
+    REQUIRE(ownerFederate.initiateCount == 0U);
+    REQUIRE(firstFederate.initiateCount == 0U);
+    REQUIRE(secondFederate.initiateCount == 0U);
+
+    REQUIRE_NOTHROW(firstRti->timeAdvanceRequest(
+        rti1516_2025::HLAinteger64Time(5)));
+    REQUIRE(firstFederate.initiateCount == 0U);
+    REQUIRE(firstFederate.timeAdvanceGrantCount == 0U);
+    static_cast<void>(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.initiateCount == 0U);
+    REQUIRE(secondFederate.initiateCount == 0U);
+    REQUIRE_NOTHROW(secondRti->timeAdvanceRequest(
+        rti1516_2025::HLAinteger64Time(5)));
+
+    static_cast<void>(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.initiateCount == 1U);
+    REQUIRE(secondFederate.initiateLabel == saveLabel);
+    REQUIRE(secondFederate.timeAdvanceGrantCount == 0U);
+    REQUIRE(secondFederate.callbackOrder ==
+            std::vector<std::string>{"save-initiate"});
+
+    static_cast<void>(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.initiateCount == 1U);
+    REQUIRE(firstFederate.initiateLabel == saveLabel);
+    REQUIRE(firstFederate.timeAdvanceGrantCount == 0U);
+    REQUIRE(firstFederate.callbackOrder ==
+            std::vector<std::string>{"save-initiate"});
+
+    static_cast<void>(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.initiateCount == 1U);
+    REQUIRE(ownerFederate.initiateLabel == saveLabel);
+    REQUIRE(ownerFederate.callbackOrder ==
+            std::vector<std::string>{"save-initiate"});
+
+    REQUIRE_NOTHROW(ownerRti->federateSaveBegun());
+    REQUIRE_NOTHROW(firstRti->federateSaveBegun());
+    REQUIRE_NOTHROW(secondRti->federateSaveBegun());
+    REQUIRE_NOTHROW(ownerRti->federateSaveComplete());
+    REQUIRE_NOTHROW(firstRti->federateSaveComplete());
+    REQUIRE_NOTHROW(secondRti->federateSaveComplete());
+    static_cast<void>(ownerRti->evokeCallback(0.0));
+    static_cast<void>(firstRti->evokeCallback(0.0));
+    static_cast<void>(secondRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.savedCount == 1U);
+    REQUIRE(firstFederate.savedCount == 1U);
+    REQUIRE(secondFederate.savedCount == 1U);
+
+    REQUIRE_NOTHROW(ownerRti->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(firstRti->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(secondRti->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(ownerRti->disconnect());
+    REQUIRE_NOTHROW(firstRti->disconnect());
+    REQUIRE_NOTHROW(secondRti->disconnect());
+  } catch (rti1516_2025::Exception const& error) {
+    auto const name = error.name();
+    auto const message = error.what();
+    clientError = std::make_exception_ptr(std::runtime_error(
+        "RTI exception " + std::string(name.begin(), name.end()) + ": " +
+        std::string(message.begin(), message.end())));
+  } catch (...) {
+    clientError = std::current_exception();
+  }
+  if (clientError) {
+    auto disconnect = [](RTIambassador& client) {
+      try {
+        client.disconnect();
+      } catch (...) {
+      }
+    };
+    std::thread ownerDisconnect([&] { disconnect(*ownerRti); });
+    std::thread firstDisconnect([&] { disconnect(*firstRti); });
+    std::thread secondDisconnect([&] { disconnect(*secondRti); });
+    ownerDisconnect.join();
+    firstDisconnect.join();
+    secondDisconnect.join();
+  }
+  if (listener) {
+    listener->close();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  listener.reset();
   if (clientError) {
     std::rethrow_exception(clientError);
   }
@@ -629,6 +995,9 @@ TEST_CASE(
       serveExpected(
           TransportServiceOperation::enable_time_regulation,
           "The process timestamped-save server lost Enable Time Regulation.");
+      serveExpected(
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The process timestamped-save server lost its successful time-regulation report.");
       serveExpected(
           TransportServiceOperation::request_federation_save,
           "The process timestamped-save server lost Request Federation Save.");
@@ -849,11 +1218,15 @@ TEST_CASE(
           ownerHandler,
           TransportServiceOperation::enable_time_regulation,
           "The timed process-save server lost owner Enable Time Regulation.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, ownerSession, ownerHandler);
       serveExpected(
           receiverSession,
           receiverHandler,
           TransportServiceOperation::enable_time_constrained,
           "The timed process-save server lost receiver Enable Time Constrained.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiverSession, receiverHandler);
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -864,11 +1237,15 @@ TEST_CASE(
           ownerHandler,
           TransportServiceOperation::time_advance_request,
           "The timed process-save server lost owner TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, ownerSession, ownerHandler);
       serveExpected(
           receiverSession,
           receiverHandler,
           TransportServiceOperation::time_advance_request,
           "The timed process-save server lost receiver TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiverSession, receiverHandler);
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -1188,16 +1565,22 @@ TEST_CASE(
           firstHandler,
           TransportServiceOperation::enable_time_constrained,
           "The multi-constrained timed process-save server lost first Enable Time Constrained.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, firstSession, firstHandler);
       serveExpected(
           secondSession,
           secondHandler,
           TransportServiceOperation::enable_time_constrained,
           "The multi-constrained timed process-save server lost second Enable Time Constrained.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, secondSession, secondHandler);
       serveExpected(
           ownerSession,
           ownerHandler,
           TransportServiceOperation::enable_time_regulation,
           "The multi-constrained timed process-save server lost owner Enable Time Regulation.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, ownerSession, ownerHandler);
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -1208,16 +1591,22 @@ TEST_CASE(
           firstHandler,
           TransportServiceOperation::time_advance_request,
           "The multi-constrained timed process-save server lost first TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, firstSession, firstHandler);
       serveExpected(
           secondSession,
           secondHandler,
           TransportServiceOperation::time_advance_request,
           "The multi-constrained timed process-save server lost second TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, secondSession, secondHandler);
       serveExpected(
           ownerSession,
           ownerHandler,
           TransportServiceOperation::time_advance_request,
           "The multi-constrained timed process-save server lost owner TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, ownerSession, ownerHandler);
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -1731,16 +2120,22 @@ TEST_CASE(
           firstHandler,
           TransportServiceOperation::enable_time_constrained,
           "The queued-TSO timed-save server lost first Enable Time Constrained.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, firstSession, firstHandler);
       serveExpected(
           secondSession,
           secondHandler,
           TransportServiceOperation::enable_time_constrained,
           "The queued-TSO timed-save server lost second Enable Time Constrained.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, secondSession, secondHandler);
       serveExpected(
           ownerSession,
           ownerHandler,
           TransportServiceOperation::enable_time_regulation,
           "The queued-TSO timed-save server lost owner Enable Time Regulation.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, ownerSession, ownerHandler);
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -1756,16 +2151,22 @@ TEST_CASE(
           firstHandler,
           TransportServiceOperation::time_advance_request,
           "The queued-TSO timed-save server lost first TAR(5).");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, firstSession, firstHandler);
       serveExpected(
           secondSession,
           secondHandler,
           TransportServiceOperation::time_advance_request,
           "The queued-TSO timed-save server lost second TAR(5).");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, secondSession, secondHandler);
       serveExpected(
           ownerSession,
           ownerHandler,
           TransportServiceOperation::time_advance_request,
           "The queued-TSO timed-save server lost owner TAR(5).");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, ownerSession, ownerHandler);
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -1831,11 +2232,15 @@ TEST_CASE(
           ownerHandler,
           TransportServiceOperation::time_advance_request,
           "The queued-TSO timed-save server lost owner TAR(6).");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, ownerSession, ownerHandler);
       serveExpected(
           firstSession,
           firstHandler,
           TransportServiceOperation::time_advance_request,
           "The queued-TSO timed-save server lost first TAR(6).");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, firstSession, firstHandler);
       serveExpected(
           firstSession,
           firstHandler,
@@ -1844,8 +2249,18 @@ TEST_CASE(
       serveExpected(
           firstSession,
           firstHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The queued-TSO timed-save server lost first Query GALT report.");
+      serveExpected(
+          firstSession,
+          firstHandler,
           TransportServiceOperation::query_time_bounds,
           "The queued-TSO timed-save server lost first Query LITS.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The queued-TSO timed-save server lost first Query LITS report.");
       serveExpected(
           firstSession,
           firstHandler,
@@ -1856,6 +2271,8 @@ TEST_CASE(
           secondHandler,
           TransportServiceOperation::time_advance_request,
           "The queued-TSO timed-save server lost second TAR(6).");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, secondSession, secondHandler);
       serveExpected(
           secondSession,
           secondHandler,
@@ -1864,8 +2281,18 @@ TEST_CASE(
       serveExpected(
           secondSession,
           secondHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The queued-TSO timed-save server lost second Query GALT report.");
+      serveExpected(
+          secondSession,
+          secondHandler,
           TransportServiceOperation::query_time_bounds,
           "The queued-TSO timed-save server lost second Query LITS.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The queued-TSO timed-save server lost second Query LITS report.");
       serveExpected(
           secondSession,
           secondHandler,

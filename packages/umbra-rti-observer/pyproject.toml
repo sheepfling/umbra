@@ -17,8 +17,9 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-web = ["fastapi>=0.115", "uvicorn[standard]>=0.30"]
-test = ["pytest>=8"]
+web = ["fastapi>=0.115", "pydantic>=2.7", "uvicorn[standard]>=0.30"]
+test = ["pytest>=8", "httpx>=0.27"]
+dev = ["fastapi>=0.115", "httpx>=0.27", "pydantic>=2.7", "pyright>=1.1.390", "pytest>=8", "ruff>=0.6", "uvicorn[standard]>=0.30"]
 
 [project.scripts]
 umbra-rti-observer = "umbra_rti_observer.__main__:main"
@@ -27,4 +28,4 @@ umbra-rti-observer = "umbra_rti_observer.__main__:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-umbra_rti_observer = ["static/*.html"]
+umbra_rti_observer = ["py.typed", "static/*.html"]

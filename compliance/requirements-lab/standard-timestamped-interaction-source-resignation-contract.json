@@ -3,17 +3,29 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for a queued timestamped interaction whose producing federate resigns before delivery. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the C++ standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies that a timestamped interaction remains queued after source resignation, that a post-resignation retraction attempt reaches the standard federate-membership boundary, and that the recipient receives exactly one callback with the original timestamp, producer, order, transport, tag, payload, and retraction metadata before its time-advance grant. No DDM, provider-specific name, registry, header, or implementation behavior is part of this contract.",
+  "notes": "This contract pins timestamped Send Interaction to the official IEEE 1516.1-2025 C++ API for the portable source-resignation case. Companion API-reference contracts pin resign, retraction, time advance, and timestamped receive callbacks. The source uses only standard RTIambassador and FederateAmbassador APIs plus the standard library; adapter inputs provide the provider, FOM, endpoint, callback configuration, and logical-time implementation. It verifies queued delivery after producer resignation without asserting provider-specific behavior.",
   "api_surfaces": [
     {
       "id": "standard-cpp-timestamped-interaction-source-resignation",
-      "owner": "IEEE 1516.1 C++ API",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.sendinteraction.dd73a76182aa",
+      "owner": "RTIambassador",
       "language": "cpp",
-      "signature": "RTIambassador timestamped interaction, resignation, retraction, and time-advance services with FederateAmbassador timestamped receive and grant callbacks",
-      "source": "third_party/ieee1516.1-2025/include/RTI",
-      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador timestamped source-resignation declarations",
+      "signature": "virtual MessageRetractionHandle sendInteraction( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag, LogicalTime const & time) = 0",
+      "exception_types": [
+        "InvalidLogicalTime",
+        "InteractionClassNotPublished",
+        "InteractionParameterNotDefined",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "sendInteraction",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedInteractionSourceResignationContract"
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioTimestampedInteractionSourceResignationContractPortable"
       ]
     }
   ]

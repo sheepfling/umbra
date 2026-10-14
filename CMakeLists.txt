@@ -230,6 +230,8 @@ add_library(umbra_rti STATIC
   cpp/src/internal/callbacks/callback_session.cpp
   cpp/src/internal/federation/embedded_transport.cpp
   cpp/src/internal/federation/process_transport.cpp
+  cpp/src/internal/federation/process_transport_proxy_host.cpp
+  cpp/src/internal/federation/process_federation_service_host.cpp
   cpp/src/internal/federation/process_federation_service.cpp
   cpp/src/internal/federation/process_federation_service_region_management.cpp
   cpp/src/internal/federation/process_federation_service_regional_object_association.cpp
@@ -292,6 +294,9 @@ add_library(umbra_rti STATIC
     cpp/src/internal/federation/federation_state_image.cpp
     cpp/src/internal/federation/federation_state_image_decode.cpp
     cpp/src/internal/federation/federation_save_commit_store.cpp
+    cpp/src/internal/platform/filesystem_operations.cpp
+    cpp/src/internal/platform/socket_operations.cpp
+    cpp/src/internal/platform/protected_initialization_data.cpp
   cpp/src/internal/handles/interaction_class_handle_directory.cpp
   cpp/src/internal/observability/mom_service_report_encoding.cpp
   cpp/src/internal/observability/service_report_store.cpp

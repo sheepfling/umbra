@@ -274,9 +274,9 @@ TEST_CASE(
   REQUIRE(taraReports.attributeReflectionReports.empty());
   REQUIRE(nmraReports.attributeReflectionReports.empty());
 
-  // TARA admits the exact timestamp-5 boundary while NMRA selects the next
-  // queued message below its requested upper limit. Both recipients receive
-  // the complete equal-timestamp cohort before their grant.
+  // TARA excludes the equal timestamp-5 cohort from pre-grant delivery; those
+  // reflections follow its grant. NMRA selects the timestamp below its
+  // requested upper limit and delivers the cohort before its grant.
   REQUIRE_NOTHROW(tara->timeAdvanceRequestAvailable(
       rti1516_2025::HLAinteger64Time(5)));
   REQUIRE_NOTHROW(nmra->nextMessageRequestAvailable(
@@ -294,7 +294,7 @@ TEST_CASE(
   REQUIRE(taraReports.timeAdvanceGrantReports.front().value == L"5");
   REQUIRE(nmraReports.timeAdvanceGrantReports.front().value == L"5");
   REQUIRE(taraReports.callbackOrder ==
-          std::vector<std::string>{"reflect", "reflect", "grant"});
+          std::vector<std::string>{"grant", "reflect", "reflect"});
   REQUIRE(nmraReports.callbackOrder ==
           std::vector<std::string>{"reflect", "reflect", "grant"});
   REQUIRE(taraReports.attributeReflectionReports[0].timeValue == L"5");
@@ -337,8 +337,8 @@ TEST_CASE(
   verifyCohort(taraReports, taraEfficiency);
   verifyCohort(nmraReports, nmraEfficiency);
 
-  // The same alternate-advance forms then admit the distinct timestamp-7
-  // record, retaining callback-before-grant ordering for each recipient.
+  // The equal timestamp-7 TARA record also follows its grant, while NMRA's
+  // timestamp remains below its requested upper limit and precedes its grant.
   REQUIRE_NOTHROW(tara->timeAdvanceRequestAvailable(
       rti1516_2025::HLAinteger64Time(7)));
   REQUIRE_NOTHROW(nmra->nextMessageRequestAvailable(
@@ -367,7 +367,7 @@ TEST_CASE(
   REQUIRE(taraReports.timeAdvanceGrantReports.back().value == L"7");
   REQUIRE(nmraReports.timeAdvanceGrantReports.back().value == L"7");
   REQUIRE(taraReports.callbackOrder ==
-          std::vector<std::string>{"reflect", "reflect", "grant", "reflect", "grant"});
+          std::vector<std::string>{"grant", "reflect", "reflect", "grant", "reflect"});
   REQUIRE(nmraReports.callbackOrder ==
           std::vector<std::string>{"reflect", "reflect", "grant", "reflect", "grant"});
 

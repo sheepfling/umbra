@@ -5,8 +5,10 @@ import hla.rti1516_2025.AttributeHandleSet;
 import hla.rti1516_2025.AttributeHandleValueMap;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
+import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
@@ -27,7 +29,7 @@ final class FederationMomStaticIdentityTck {
    }
 
    static void run(RtiFactory factory, String fom, String mim, String timeImplementation,
-         CallbackModel callbackModel) throws Exception {
+         CallbackModel callbackModel, String federateType) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
       Recorder recorder = new Recorder();
@@ -52,9 +54,11 @@ final class FederationMomStaticIdentityTck {
          owner.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
-         owner.joinFederationExecution("java-tck-static-identity-owner", federation);
+         owner.joinFederationExecution(
+            "java-tck-static-identity-owner", federateType, federation);
          ownerJoined = true;
-         observer.joinFederationExecution("java-tck-static-identity-observer", federation);
+         observer.joinFederationExecution(
+            "java-tck-static-identity-observer", federateType, federation);
          observerJoined = true;
 
          federationClass = observer.getObjectClassHandle(FEDERATION_CLASS);
@@ -132,7 +136,8 @@ final class FederationMomStaticIdentityTck {
          "requested standard federation MOM identity values");
       check(recorder.reflectedValues.size() == 4
             && recorder.reflectionTag != null && recorder.reflectionTag.length == 0
-            && reliable.equals(recorder.reflectionTransportation),
+            && reliable.equals(recorder.reflectionTransportation)
+            && recorder.reflectionProducer == null && recorder.reflectionRegionsEmpty,
          "federation MOM identity reflection had incomplete or non-standard metadata");
 
       String actualFederation = decode(encoder, recorder.reflectedValues.get(federationName));
@@ -211,6 +216,8 @@ final class FederationMomStaticIdentityTck {
       private volatile Map<AttributeHandle, byte[]> reflectedValues;
       private volatile byte[] reflectionTag;
       private volatile TransportationTypeHandle reflectionTransportation;
+      private volatile FederateHandle reflectionProducer;
+      private volatile boolean reflectionRegionsEmpty;
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -223,7 +230,7 @@ final class FederationMomStaticIdentityTck {
                   discoveredClass = (ObjectClassHandle) arguments[1];
                   discoveredName = (String) arguments[2];
                } else if ("reflectAttributeValues".equals(method.getName())
-                     && arguments != null && arguments.length >= 4
+                     && arguments != null && arguments.length == 6
                      && arguments[1] instanceof AttributeHandleValueMap) {
                   reflectedObject = (ObjectInstanceHandle) arguments[0];
                   AttributeHandleValueMap source = (AttributeHandleValueMap) arguments[1];
@@ -235,6 +242,9 @@ final class FederationMomStaticIdentityTck {
                   reflectionTag = arguments[2] instanceof byte[]
                      ? ((byte[]) arguments[2]).clone() : null;
                   reflectionTransportation = (TransportationTypeHandle) arguments[3];
+                  reflectionProducer = (FederateHandle) arguments[4];
+                  reflectionRegionsEmpty = arguments[5] == null
+                     || ((RegionHandleSet) arguments[5]).isEmpty();
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(method.getName())) return "Java RTI TCK MOM callbacks";
@@ -259,6 +269,8 @@ final class FederationMomStaticIdentityTck {
          reflectedValues = null;
          reflectionTag = null;
          reflectionTransportation = null;
+         reflectionProducer = null;
+         reflectionRegionsEmpty = false;
       }
    }
 }

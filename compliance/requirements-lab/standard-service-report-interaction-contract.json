@@ -3,17 +3,47 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for a successful ordinary interaction service report. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM data elements, and the standard library; the adapter supplies the provider package, ordinary FOM, standard MIM, endpoint, and callback configuration. It verifies the standard HLAreportServiceInvocation payload and ordinary interaction delivery without provider-specific headers, registries, names, or diagnostics.",
+  "notes": "This contract records portable C++ TCK checks for standard HLAreportServiceInvocation payloads. The scenarios use only official IEEE 1516.1 RTIambassador and FederateAmbassador API surfaces, standard MIM data elements, and the standard library; adapters supply the provider package, FOM, standard MIM, endpoint, and callback configuration.",
   "api_surfaces": [
     {
-      "id": "standard-cpp-service-report-interaction",
-      "owner": "IEEE 1516.1 C++ API",
+      "id": "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
+      "owner": "RTIambassador",
       "language": "cpp",
-      "signature": "RTIambassador service-reporting controls and ordinary SendInteraction delivery with FederateAmbassador callbacks",
-      "source": "third_party/ieee1516.1-2025/include/RTI",
-      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador service-report declarations",
+      "signature": "virtual void setServiceReportingSwitch(bool switchValue) = 0",
+      "exception_types": ["ReportServiceInvocationsAreSubscribed", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "setServiceReportingSwitch",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportInteractionContract"
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportInteractionContract",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioModifyLookaheadServiceReportContractPortable"
+      ]
+    },
+    {
+      "id": "api.2025.cpp.rtiambassador.modifylookahead.a38e532fa913",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.modifylookahead.a38e532fa913",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void modifyLookahead( LogicalTimeInterval const & lookahead) = 0",
+      "exception_types": ["InvalidLookahead", "InTimeAdvancingState", "TimeRegulationIsNotEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "modifyLookahead",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioModifyLookaheadServiceReportContractPortable"
+      ]
+    },
+    {
+      "id": "api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void receiveInteraction( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, const RegionHandleSet * optionalSentRegions) = 0",
+      "exception_types": ["FederateInternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "receiveInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportInteractionContract",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioModifyLookaheadServiceReportContractPortable"
       ]
     }
   ]

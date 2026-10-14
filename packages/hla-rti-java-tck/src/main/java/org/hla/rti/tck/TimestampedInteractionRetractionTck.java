@@ -102,6 +102,15 @@ final class TimestampedInteractionRetractionTck {
          LogicalTime firstReceiverTime = offset(constrained.queryLogicalTime(), lookahead, 3);
          JavaTckSupport.check(firstTime.equals(firstReceiverTime),
             "publisher and constrained receiver began at different logical times");
+         MessageRetractionHandle invalidRetraction =
+            JavaTckSupport.invalidHandle(MessageRetractionHandle.class);
+         JavaTckSupport.expectFailure(() -> publisher.retract(invalidRetraction),
+            "InvalidMessageRetractionHandle", "timestamped interaction retract with invalid handle");
+         InteractionClassHandle invalidInteraction =
+            JavaTckSupport.invalidHandle(InteractionClassHandle.class);
+         JavaTckSupport.expectFailure(() -> publisher.sendInteraction(invalidInteraction,
+               publisher.getParameterHandleValueMapFactory().create(0), new byte[0], firstTime),
+            "InteractionClassNotDefined", "timestamped interaction send with invalid class");
          byte[] firstPayload = new byte[] {0x01, 0x02, 0x03};
          byte[] firstTag = new byte[] {0x11, 0x12};
          MessageRetractionReturn first = send(

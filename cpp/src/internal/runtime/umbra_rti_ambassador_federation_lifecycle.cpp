@@ -2,6 +2,7 @@
 #include "internal/federation/federation_management_coordinator.hpp"
 #include "internal/handles/federate_handle.hpp"
 #include "internal/fom/hla_names.hpp"
+#include "internal/observability/pending_service_report_file_cleanup.hpp"
 #include "internal/runtime/ambassador_federation_lifecycle_support.hpp"
 #include "internal/runtime/ambassador_shared_utilities.hpp"
 #include "internal/runtime/ambassador_string_helpers.hpp"
@@ -48,41 +49,6 @@ std::uint64_t nextServiceReportJoinIdentifier() {
   // collision likelihood without assigning the path format to callers.
   return ticks ^ (sequence + 0x9e3779b97f4a7c15ULL + (ticks << 6U) + (ticks >> 2U));
 }
-
-// A report pathname is allocated before the joined-federate MOM object and
-// service-report routes are committed. Keep that allocation transactional:
-// an exceptional Join path must not leave an orphan file that advertises a
-// joined-federate lifetime which never became visible. Once the lifecycle
-// transition succeeds, commit() deliberately disarms cleanup; resignation
-// keeps the completed lifetime's report file available for the administrator.
-class PendingServiceReportFileCleanup final {
- public:
-  PendingServiceReportFileCleanup() = default;
-  PendingServiceReportFileCleanup(PendingServiceReportFileCleanup const&) = delete;
-  PendingServiceReportFileCleanup& operator=(PendingServiceReportFileCleanup const&) = delete;
-
-  ~PendingServiceReportFileCleanup() {
-    if (!location_) {
-      return;
-    }
-    std::error_code ignored;
-    std::filesystem::remove(*location_, ignored);
-  }
-
-  void arm(std::filesystem::path location) {
-    if (!location.empty()) {
-      location_ = std::move(location);
-    }
-  }
-
-  void commit() noexcept { location_.reset(); }
-
- private:
-  std::optional<std::filesystem::path> location_;
-};
-
-
-
 
 std::vector<std::wstring> firstFomModuleDesignatorsSpecifiedAtJoin(
     std::vector<umbra::detail::PrevalidatedFomModule> const& modules) {
@@ -584,7 +550,7 @@ FederateHandle UmbraRtiAmbassador::joinFederationExecutionImpl(
           L"Umbra could not roll back a joined federate after service-report setup failed.");
       }
     };
-    PendingServiceReportFileCleanup pendingReportFileCleanup;
+    umbra::detail::PendingServiceReportFileCleanup pendingReportFileCleanup;
 
     auto joinedDefinition = embeddedFederationRegistry().definitionFor(federationName);
     auto const autoProvide = embeddedFederationRegistry().autoProvideSwitchFor(

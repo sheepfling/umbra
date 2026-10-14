@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from typing import Any
 
-from .capabilities import CAPABILITY_DEFINITIONS, CAPABILITY_STATES, normalize_capabilities
+from .capabilities import (
+    CAPABILITY_DEFINITIONS,
+    CAPABILITY_STATES,
+    normalize_capabilities,
+)
+from .models import JsonObject, to_json_object
 
 OBSERVER_CONTRACT_VERSION = "umbra-observer-contract-v1"
 OBSERVER_JSON_MEDIA_TYPE = "application/vnd.umbra.observer+json"
@@ -32,8 +36,8 @@ def build_contract_document(
     event_types: Iterable[str],
     *,
     event_schema_version: str = "umbra-runtime-observer-v1",
-    capabilities: Mapping[str, Any] | None = None,
-) -> dict[str, Any]:
+    capabilities: Mapping[str, object] | None = None,
+) -> JsonObject:
     """Return the implementation-neutral contract advertised to clients.
 
     This document is deliberately data-only. A service implemented in Python,
@@ -41,7 +45,7 @@ def build_contract_document(
     frontend without importing this package.
     """
 
-    return {
+    return to_json_object({
         "contract_version": OBSERVER_CONTRACT_VERSION,
         "media_type": OBSERVER_JSON_MEDIA_TYPE,
         "event_schema_version": event_schema_version,
@@ -70,7 +74,10 @@ def build_contract_document(
                 "unknown": "The provider or backend did not advertise its support.",
             },
         },
-        "capabilities": normalize_capabilities(capabilities),
+        "capabilities": {
+            name: capability.to_json()
+            for name, capability in normalize_capabilities(capabilities).items()
+        },
         "snapshot": {
             "method": "GET",
             "path": API_PATHS["state"],
@@ -128,7 +135,7 @@ def build_contract_document(
         },
         "event_types": list(event_types),
         "backend_rule": "Provider and language-specific code ends at normalized events; the frontend consumes only this contract.",
-    }
+    })
 
 
 __all__ = [

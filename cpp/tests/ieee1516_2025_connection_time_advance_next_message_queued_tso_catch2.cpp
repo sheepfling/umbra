@@ -457,7 +457,7 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "RTIambassadors select queued timestamped process messages for next-message advances",
-    "[integration][foundation][interaction-management][time-management][time-advance][next-message-request][next-message-request-available][timestamped-interaction][transport][process-boundary][process-time-advance-next-message-queued-focused][public-endpoint][multi-federate][callbacks][callback-immediate][rti.service.send-interaction][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.time-advance-request][rti.service.next-message-request][rti.service.next-message-request-available][federate.callback.receive-interaction][federate.callback.time-advance-grant]") {
+    "[integration][foundation][interaction-management][time-management][time-advance][next-message-request][next-message-request-available][timestamped-interaction][transport][process-boundary][process-time-advance-next-message-queued-focused][dynamic-future-input][dynamic-future-nmra-input][public-endpoint][multi-federate][callbacks][callback-immediate][rti.service.send-interaction][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.time-advance-request][rti.service.next-message-request][rti.service.next-message-request-available][rti.service-report][federate.callback.receive-interaction][federate.callback.time-advance-grant]") {
   class RecordingFederateAmbassador final : public NullFederateAmbassador {
    public:
     void receiveInteraction(
@@ -508,6 +508,7 @@ TEST_CASE(
   };
 
   auto runScenario = [](CallbackModel callbackModel) {
+  auto const serviceReportDirectory = temporaryServiceReportDirectory();
   constexpr wchar_t const* federationName =
       L"process-next-message-queued-execution";
   constexpr wchar_t const* senderName =
@@ -529,14 +530,19 @@ TEST_CASE(
   std::atomic_uint64_t expectedInteractionClass{0U};
   std::atomic_uint64_t expectedParameter{0U};
   std::exception_ptr serverError;
+  std::shared_ptr<ProcessTransportConnection> senderConnection;
+  std::shared_ptr<ProcessTransportConnection> receiverConnection;
   std::thread server([&] {
     try {
       EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions serviceOptions{
+          callbackModel == HLA_IMMEDIATE};
+      serviceOptions.serviceReportDirectory = serviceReportDirectory;
       ProcessFederationService service(
           registry,
           composedProcessDefinition(),
-          ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
-      auto senderConnection = listener->accept(
+          std::move(serviceOptions));
+      senderConnection = listener->accept(
           nullptr,
           {"process-next-message-queued-server", 0x9214U},
           [](std::wstring) {},
@@ -551,7 +557,11 @@ TEST_CASE(
                 session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
-                    throw std::runtime_error(description);
+                    throw std::runtime_error(
+                        std::string(description) + " Expected operation " +
+                        std::to_string(static_cast<std::uint16_t>(operation)) +
+                        " but received " + std::to_string(
+                            static_cast<std::uint16_t>(request.operation)) + ".");
                   }
                   return handler(request);
                 })) {
@@ -580,7 +590,7 @@ TEST_CASE(
           TransportServiceOperation::join_federation_execution,
           "The queued next-message server lost sender Join.");
 
-      auto receiverConnection = listener->accept(
+      receiverConnection = listener->accept(
           nullptr,
           {"process-next-message-queued-server", 0x9215U},
           [](std::wstring) {},
@@ -623,10 +633,20 @@ TEST_CASE(
           TransportServiceOperation::enable_time_regulation,
           "The queued next-message server lost Enable Time Regulation.");
       serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The queued next-message server lost the Enable Time Regulation report.");
+      serveExpected(
           receiver,
           receiverHandler,
           TransportServiceOperation::enable_time_constrained,
           "The queued next-message server lost Enable Time Constrained.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The queued next-message server lost the Enable Time Constrained report.");
       serveExpected(
           sender,
           senderHandler,
@@ -640,18 +660,57 @@ TEST_CASE(
       serveExpected(
           sender,
           senderHandler,
+          TransportServiceOperation::send_interaction,
+          "The queued next-message server lost third Send Interaction.");
+      serveExpected(
+          sender,
+          senderHandler,
           TransportServiceOperation::time_advance_request,
           "The queued next-message server lost sender TAR.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The queued next-message server lost sender TAR report.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::set_service_reporting_switch,
+          "The queued next-message server lost the service-reporting switch.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::set_send_service_reports_to_file_switch,
+          "The queued next-message server lost the service-report file switch.");
       serveExpected(
           receiver,
           receiverHandler,
           TransportServiceOperation::next_message_request,
           "The queued next-message server lost receiver NMR.");
+      if (callbackModel == HLA_EVOKED) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The queued next-message server lost the successful NMR report.");
+      }
       serveExpected(
           receiver,
           receiverHandler,
           TransportServiceOperation::acknowledge_tso_delivery,
           "The queued next-message server lost first TSO acknowledgement.");
+      if (callbackModel == HLA_IMMEDIATE) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The queued next-message server lost the successful NMR report.");
+      }
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::set_service_reporting_switch,
+          "The queued next-message server lost the report switch reset.");
       serveExpected(
           receiver,
           receiverHandler,
@@ -660,18 +719,209 @@ TEST_CASE(
       serveExpected(
           receiver,
           receiverHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The queued next-message server lost first Query Logical Time report.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::set_service_reporting_switch,
+          "The queued next-message server lost the report switch re-enable.");
+      serveExpected(
+          receiver,
+          receiverHandler,
           TransportServiceOperation::next_message_request_available,
           "The queued next-message server lost receiver NMRA.");
+      if (callbackModel == HLA_EVOKED) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The queued next-message server lost the successful NMRA report.");
+      }
       serveExpected(
           receiver,
           receiverHandler,
           TransportServiceOperation::acknowledge_tso_delivery,
           "The queued next-message server lost second TSO acknowledgement.");
+      if (callbackModel == HLA_IMMEDIATE) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The queued next-message server lost the successful NMRA report.");
+      }
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::set_service_reporting_switch,
+          "The queued next-message server lost the second report switch reset.");
       serveExpected(
           receiver,
           receiverHandler,
           TransportServiceOperation::query_logical_time,
           "The queued next-message server lost second Query Logical Time.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The queued next-message server lost second Query Logical Time report.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::next_message_request_available,
+          "The queued next-message server lost rejected receiver NMRA.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::query_logical_time,
+          "The queued next-message server lost post-rejection Query Logical Time.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The queued next-message server lost post-rejection Query Logical Time report.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::set_service_reporting_switch,
+          "The queued next-message server lost the third-request report switch.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::next_message_request,
+          "The queued next-message server lost receiver third NMR.");
+      if (callbackModel == HLA_EVOKED) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The queued next-message server lost the third NMR report.");
+      }
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::acknowledge_tso_delivery,
+          "The queued next-message server lost third TSO acknowledgement.");
+      if (callbackModel == HLA_IMMEDIATE) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The queued next-message server lost the third NMR report.");
+      }
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::set_service_reporting_switch,
+          "The queued next-message server lost the final report switch reset.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::query_logical_time,
+          "The queued next-message server lost third Query Logical Time.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The queued next-message server lost third Query Logical Time report.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::next_message_request,
+          "The queued next-message server lost future-input receiver NMR.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The queued next-message server lost future-input NMR report.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::send_interaction,
+          "The queued next-message server lost the first future timestamped interaction.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::send_interaction,
+          "The queued next-message server lost the second future timestamped interaction.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::time_advance_request,
+          "The queued next-message server lost the future-input sender TAR.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The queued next-message server lost the future-input sender TAR report.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::query_logical_time,
+          "The queued next-message server lost future-input Query Logical Time.");
+      if (callbackModel == HLA_IMMEDIATE) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::acknowledge_tso_delivery,
+            "The queued next-message server lost immediate future-input TSO acknowledgement.");
+      }
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The queued next-message server lost future-input Query Logical Time report.");
+      if (callbackModel == HLA_EVOKED) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::acknowledge_tso_delivery,
+            "The queued next-message server lost evoked future-input TSO acknowledgement.");
+      }
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::next_message_request_available,
+          "The queued next-message server lost future-input receiver NMRA.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The queued next-message server lost future-input NMRA report.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::time_advance_request,
+          "The queued next-message server lost the future NMRA sender TAR.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The queued next-message server lost the future NMRA sender TAR report.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::query_logical_time,
+          "The queued next-message server lost future-input NMRA Query Logical Time.");
+      if (callbackModel == HLA_IMMEDIATE) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::acknowledge_tso_delivery,
+            "The queued next-message server lost immediate future-input NMRA TSO acknowledgement.");
+      }
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The queued next-message server lost future-input NMRA Query Logical Time report.");
+      if (callbackModel == HLA_EVOKED) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::acknowledge_tso_delivery,
+            "The queued next-message server lost evoked future-input NMRA TSO acknowledgement.");
+      }
       serveExpected(
           sender,
           senderHandler,
@@ -688,6 +938,12 @@ TEST_CASE(
       receiverConnection->close();
     } catch (...) {
       serverError = std::current_exception();
+      if (senderConnection) {
+        senderConnection->close();
+      }
+      if (receiverConnection) {
+        receiverConnection->close();
+      }
     }
   });
 
@@ -767,8 +1023,14 @@ TEST_CASE(
     REQUIRE(integerFactory != nullptr);
     auto timestamp5 = integerFactory->makeLogicalTime(5);
     auto timestamp8 = integerFactory->makeLogicalTime(8);
+    auto timestamp12 = integerFactory->makeLogicalTime(12);
+    auto timestamp15 = integerFactory->makeLogicalTime(15);
+    auto timestamp18 = integerFactory->makeLogicalTime(18);
     REQUIRE(timestamp5);
     REQUIRE(timestamp8);
+    REQUIRE(timestamp12);
+    REQUIRE(timestamp15);
+    REQUIRE(timestamp18);
 
     std::array<std::uint8_t, 2U> encodedParameter{0x01U, 0x00U};
     ParameterHandleValueMap parameterValues;
@@ -777,6 +1039,7 @@ TEST_CASE(
         VariableLengthData(encodedParameter.data(), encodedParameter.size()));
     std::array<std::uint8_t, 3U> firstTag{0x4FU, 0x4EU, 0x45U};
     std::array<std::uint8_t, 3U> secondTag{0x54U, 0x57U, 0x4FU};
+    std::array<std::uint8_t, 4U> thirdTag{0x54U, 0x48U, 0x52U, 0x45U};
     REQUIRE(senderRti->sendInteraction(
                 senderInteraction,
                 parameterValues,
@@ -789,16 +1052,24 @@ TEST_CASE(
                 VariableLengthData(secondTag.data(), secondTag.size()),
                 *timestamp8)
                 .isValid());
+    REQUIRE(senderRti->sendInteraction(
+                senderInteraction,
+                parameterValues,
+                VariableLengthData(thirdTag.data(), thirdTag.size()),
+                *timestamp12)
+                .isValid());
 
     REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
-        rti1516_2025::HLAinteger64Time(8)));
+        rti1516_2025::HLAinteger64Time(12)));
     if (callbackModel == HLA_EVOKED) {
       REQUIRE(senderFederate.timeAdvanceGrantCount == 0U);
       REQUIRE_FALSE(senderRti->evokeCallback(0.0));
     }
     REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
-    REQUIRE(senderFederate.timeAdvanceGrantTimes == std::vector<std::int64_t>{8});
+    REQUIRE(senderFederate.timeAdvanceGrantTimes == std::vector<std::int64_t>{12});
 
+    REQUIRE_NOTHROW(receiverRti->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(receiverRti->setSendServiceReportsToFileSwitch(true));
     REQUIRE_NOTHROW(receiverRti->nextMessageRequest(
         rti1516_2025::HLAinteger64Time(10)));
     if (callbackModel == HLA_EVOKED) {
@@ -816,9 +1087,11 @@ TEST_CASE(
     REQUIRE(receiverFederate.timeAdvanceGrantTimes == std::vector<std::int64_t>{5});
     REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I', 'G'});
 
+    REQUIRE_NOTHROW(receiverRti->setServiceReportingSwitch(false));
     rti1516_2025::HLAinteger64Time afterNmr;
     REQUIRE_NOTHROW(receiverRti->queryLogicalTime(afterNmr));
     REQUIRE(afterNmr.getTime() == 5);
+    REQUIRE_NOTHROW(receiverRti->setServiceReportingSwitch(true));
 
     REQUIRE_NOTHROW(receiverRti->nextMessageRequestAvailable(
         rti1516_2025::HLAinteger64Time(10)));
@@ -840,9 +1113,149 @@ TEST_CASE(
     REQUIRE(receiverFederate.callbackOrder ==
             std::vector<char>{'I', 'G', 'I', 'G'});
 
+    REQUIRE_NOTHROW(receiverRti->setServiceReportingSwitch(false));
     rti1516_2025::HLAinteger64Time afterNmra;
     REQUIRE_NOTHROW(receiverRti->queryLogicalTime(afterNmra));
     REQUIRE(afterNmra.getTime() == 8);
+    REQUIRE_THROWS_AS(
+        receiverRti->nextMessageRequestAvailable(
+            rti1516_2025::HLAinteger64Time(7)),
+        rti1516_2025::LogicalTimeAlreadyPassed);
+    rti1516_2025::HLAinteger64Time afterRejectedNmra;
+    REQUIRE_NOTHROW(receiverRti->queryLogicalTime(afterRejectedNmra));
+    REQUIRE(afterRejectedNmra.getTime() == 8);
+
+    REQUIRE_NOTHROW(receiverRti->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(receiverRti->nextMessageRequest(
+        rti1516_2025::HLAinteger64Time(12)));
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE(receiverFederate.receivedInteractionCount == 2U);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 2U);
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+    }
+    REQUIRE(receiverFederate.receivedInteractionCount == 3U);
+    REQUIRE(receiverFederate.receivedInteractionTimes ==
+            std::vector<std::int64_t>{5, 8, 12});
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 2U);
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+    }
+    REQUIRE(receiverFederate.timeAdvanceGrantCount == 3U);
+    REQUIRE(receiverFederate.timeAdvanceGrantTimes ==
+            std::vector<std::int64_t>{5, 8, 12});
+    REQUIRE(receiverFederate.callbackOrder ==
+            std::vector<char>{'I', 'G', 'I', 'G', 'I', 'G'});
+
+    REQUIRE_NOTHROW(receiverRti->setServiceReportingSwitch(false));
+    rti1516_2025::HLAinteger64Time afterThirdNmr;
+    REQUIRE_NOTHROW(receiverRti->queryLogicalTime(afterThirdNmr));
+    REQUIRE(afterThirdNmr.getTime() == 12);
+
+    // These inputs cross the process transport only after the NMR has been
+    // accepted, and deliberately arrive in reverse timestamp order. The
+    // earlier message retargets the pending NMR to 15; the later timestamp
+    // must remain queued for a subsequent advance rather than being delivered
+    // ahead of the grant at 15.
+    REQUIRE_NOTHROW(receiverRti->nextMessageRequest(
+        rti1516_2025::HLAinteger64Time(20)));
+    REQUIRE(receiverFederate.receivedInteractionCount == 3U);
+    REQUIRE(receiverFederate.timeAdvanceGrantCount == 3U);
+    REQUIRE(senderRti->sendInteraction(
+                senderInteraction,
+                parameterValues,
+                VariableLengthData(secondTag.data(), secondTag.size()),
+                *timestamp18)
+                .isValid());
+    REQUIRE(receiverFederate.receivedInteractionCount == 3U);
+    REQUIRE(receiverFederate.timeAdvanceGrantCount == 3U);
+    REQUIRE(senderRti->sendInteraction(
+                senderInteraction,
+                parameterValues,
+                VariableLengthData(firstTag.data(), firstTag.size()),
+                *timestamp15)
+                .isValid());
+    REQUIRE(receiverFederate.receivedInteractionCount == 3U);
+    REQUIRE(receiverFederate.timeAdvanceGrantCount == 3U);
+    // NMR requires GALT to be strictly greater than the message timestamp;
+    // advance the sole regulator past 15 so the pending request can grant at
+    // the newly arrived message time of 15.
+    REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+        rti1516_2025::HLAinteger64Time(16)));
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
+      static_cast<void>(senderRti->evokeCallback(0.0));
+    }
+    REQUIRE(senderFederate.timeAdvanceGrantCount == 2U);
+    REQUIRE(senderFederate.timeAdvanceGrantTimes ==
+            std::vector<std::int64_t>{12, 16});
+    rti1516_2025::HLAinteger64Time afterFutureNmr;
+    REQUIRE_NOTHROW(receiverRti->queryLogicalTime(afterFutureNmr));
+    REQUIRE(afterFutureNmr.getTime() == 15);
+    if (callbackModel == HLA_EVOKED) {
+      for (int attempt = 0;
+           attempt != 32 && receiverFederate.receivedInteractionCount < 4U;
+           ++attempt) {
+        static_cast<void>(receiverRti->evokeCallback(0.01));
+      }
+      REQUIRE(receiverFederate.receivedInteractionCount == 4U);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 3U);
+      for (int attempt = 0;
+           attempt != 32 && receiverFederate.timeAdvanceGrantCount < 4U;
+           ++attempt) {
+        static_cast<void>(receiverRti->evokeCallback(0.01));
+      }
+    }
+    REQUIRE(receiverFederate.receivedInteractionCount == 4U);
+    REQUIRE(receiverFederate.receivedInteractionTimes ==
+            std::vector<std::int64_t>{5, 8, 12, 15});
+    REQUIRE(receiverFederate.timeAdvanceGrantCount == 4U);
+    REQUIRE(receiverFederate.timeAdvanceGrantTimes ==
+            std::vector<std::int64_t>{5, 8, 12, 15});
+    REQUIRE(receiverFederate.callbackOrder ==
+            std::vector<char>{'I', 'G', 'I', 'G', 'I', 'G', 'I', 'G'});
+
+    // NMRA shares the dynamic retarget path but permits equality at GALT.
+    // The timestamp-18 message was retained behind the earlier NMR grant;
+    // NMRA selects it from the queued process input when the producer reaches
+    // 17 and the zero-lookahead GALT reaches 18.
+    REQUIRE_NOTHROW(receiverRti->nextMessageRequestAvailable(
+        rti1516_2025::HLAinteger64Time(25)));
+    REQUIRE(receiverFederate.receivedInteractionCount == 4U);
+    REQUIRE(receiverFederate.timeAdvanceGrantCount == 4U);
+    REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+        rti1516_2025::HLAinteger64Time(17)));
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE(senderFederate.timeAdvanceGrantCount == 2U);
+      static_cast<void>(senderRti->evokeCallback(0.0));
+    }
+    REQUIRE(senderFederate.timeAdvanceGrantCount == 3U);
+    REQUIRE(senderFederate.timeAdvanceGrantTimes ==
+            std::vector<std::int64_t>{12, 16, 17});
+    rti1516_2025::HLAinteger64Time afterFutureNmra;
+    REQUIRE_NOTHROW(receiverRti->queryLogicalTime(afterFutureNmra));
+    REQUIRE(afterFutureNmra.getTime() == 18);
+    if (callbackModel == HLA_EVOKED) {
+      for (int attempt = 0;
+           attempt != 32 && receiverFederate.receivedInteractionCount < 5U;
+           ++attempt) {
+        static_cast<void>(receiverRti->evokeCallback(0.01));
+      }
+      REQUIRE(receiverFederate.receivedInteractionCount == 5U);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 4U);
+      for (int attempt = 0;
+           attempt != 32 && receiverFederate.timeAdvanceGrantCount < 5U;
+           ++attempt) {
+        static_cast<void>(receiverRti->evokeCallback(0.01));
+      }
+    }
+    REQUIRE(receiverFederate.receivedInteractionCount == 5U);
+    REQUIRE(receiverFederate.receivedInteractionTimes ==
+            std::vector<std::int64_t>{5, 8, 12, 15, 18});
+    REQUIRE(receiverFederate.timeAdvanceGrantCount == 5U);
+    REQUIRE(receiverFederate.timeAdvanceGrantTimes ==
+            std::vector<std::int64_t>{5, 8, 12, 15, 18});
+    REQUIRE(receiverFederate.callbackOrder ==
+            std::vector<char>{'I', 'G', 'I', 'G', 'I', 'G', 'I', 'G', 'I', 'G'});
 
     REQUIRE_NOTHROW(senderRti->resignFederationExecution(
         rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES));
@@ -880,12 +1293,52 @@ TEST_CASE(
   if (server.joinable()) {
     server.join();
   }
+  if (serverError) {
+    std::rethrow_exception(serverError);
+  }
   if (clientError) {
     std::rethrow_exception(clientError);
   }
   REQUIRE_FALSE(serverError);
   REQUIRE_FALSE(senderJoined);
   REQUIRE_FALSE(receiverJoined);
+
+  std::vector<std::string> reportFiles;
+  for (auto const& entry : std::filesystem::directory_iterator(serviceReportDirectory)) {
+    if (!entry.is_regular_file()) {
+      continue;
+    }
+    std::ifstream reportFile(entry.path(), std::ios::binary);
+    reportFiles.emplace_back(
+        std::istreambuf_iterator<char>{reportFile},
+        std::istreambuf_iterator<char>{});
+  }
+  REQUIRE(reportFiles.size() == 2U);
+  auto const receiverReport = std::find_if(
+      reportFiles.begin(), reportFiles.end(), [](std::string const& report) {
+        return report.find(R"("HLAservice":"NextMessageRequest")") !=
+            std::string::npos;
+      });
+  REQUIRE(receiverReport != reportFiles.end());
+  auto countOccurrences = [&](std::string const& needle) {
+    std::size_t count = 0U;
+    std::size_t offset = 0U;
+    while ((offset = receiverReport->find(needle, offset)) != std::string::npos) {
+      ++count;
+      offset += needle.size();
+    }
+    return count;
+  };
+  INFO(*receiverReport);
+  REQUIRE(countOccurrences(R"("HLAservice":"NextMessageRequest")") == 2U);
+  REQUIRE(countOccurrences(
+              R"("HLAservice":"NextMessageRequest","HLAsuppliedArguments":[{"HLAargumentType":31,"HLAargumentName":"Logical time","HLAargumentValue":"10"}],"HLAsuccessIndicator":true,"HLAexception":null})") == 1U);
+  REQUIRE(countOccurrences(
+              R"("HLAservice":"NextMessageRequest","HLAsuppliedArguments":[{"HLAargumentType":31,"HLAargumentName":"Logical time","HLAargumentValue":"12"}],"HLAsuccessIndicator":true,"HLAexception":null})") == 1U);
+  REQUIRE(countOccurrences(
+              R"("HLAservice":"NextMessageRequestAvailable")") == 1U);
+  REQUIRE(countOccurrences(
+              R"("HLAservice":"NextMessageRequestAvailable","HLAsuppliedArguments":[{"HLAargumentType":31,"HLAargumentName":"Logical time","HLAargumentValue":"10"}],"HLAsuccessIndicator":true,"HLAexception":null})") == 1U);
   };
 
   SECTION("HLA_EVOKED") {

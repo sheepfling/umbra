@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the provider- and FOM-independent C++ TCK check for the official IEEE 1516.1 exception hierarchy. It verifies every imported standard derived exception constructor through the public Exception base, name and message accessors, copy and assignment, polymorphic behavior, and stream output. It is an API contract check only and does not claim provider behavior or cross-RTI interoperability.",
+  "notes": "This contract records provider- and FOM-independent API checks for the official IEEE 1516.1 exception hierarchy. The C++ test verifies imported derived-exception construction, name/message accessors, copy/assignment, polymorphism, and stream output. The Java test verifies the 100 same-named standard derived exceptions exposed in the official Java API JAR through RTIexception, name(), and getMessage(). Java copy/assignment and stream behavior are not part of the parity claim, nor are C++ exception types without direct Java counterparts. These are API contract checks only and do not claim provider behavior or cross-RTI interoperability.",
   "api_surfaces": [
     {
       "id": "standard-cpp-exception-hierarchy",
@@ -14,6 +14,17 @@
       "source_symbol": "rti::Exception",
       "tests": [
         "packages/hla-rti-cpp-tck/src/main.cpp::verifyStandardExceptionHierarchyContract"
+      ]
+    },
+    {
+      "id": "standard-java-exception-hierarchy",
+      "owner": "IEEE 1516.1 Java API",
+      "language": "java",
+      "signature": "RTIexception-derived constructors, RTIexception.name, and Throwable.getMessage",
+      "source": "adapter-supplied official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "hla.rti1516_2025.exceptions.RTIexception and common derived exception classes",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/StandardExceptionHierarchyTck.java"
       ]
     }
   ]

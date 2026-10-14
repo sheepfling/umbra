@@ -22,7 +22,8 @@ final class OwnershipTck {
    }
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
-         String objectClassName, String attributeName) throws Exception {
+         String objectClassName, String attributeName, CallbackModel callbackModel)
+         throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador acquirer = factory.getRtiAmbassador();
       Recorder ownerRecorder = new Recorder();
@@ -37,9 +38,9 @@ final class OwnershipTck {
       AttributeHandle ownerAttribute = null;
       AttributeHandle acquirerAttribute = null;
       try {
-         owner.connect(ownerRecorder.proxy(), CallbackModel.HLA_EVOKED);
+         owner.connect(ownerRecorder.proxy(), callbackModel);
          ownerConnected = true;
-         acquirer.connect(acquirerRecorder.proxy(), CallbackModel.HLA_EVOKED);
+         acquirer.connect(acquirerRecorder.proxy(), callbackModel);
          acquirerConnected = true;
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
@@ -60,7 +61,7 @@ final class OwnershipTck {
          acquirer.publishObjectClassAttributes(acquirerClass, acquirerAttributes);
          acquirer.subscribeObjectClassAttributes(acquirerClass, acquirerAttributes);
          object = owner.registerObjectInstance(ownerClass);
-         JavaTckSupport.drain(acquirer);
+         drain(acquirer, callbackModel);
          JavaTckSupport.check(acquirerRecorder.discoveries.contains(object),
             "acquirer did not discover the ownership test object");
          ObjectInstanceHandle acquirerObject = object;
@@ -70,7 +71,7 @@ final class OwnershipTck {
          JavaTckSupport.check(!acquirer.isAttributeOwnedByFederate(acquirerObject,
                acquirerAttribute), "acquirer initially reported ownership of the attribute");
          acquirer.queryAttributeOwnership(acquirerObject, acquirerAttributes);
-         JavaTckSupport.drain(acquirer);
+         drain(acquirer, callbackModel);
          JavaTckSupport.check(acquirerRecorder.information.size() == 1,
             "ownership query did not produce one inform-ownership callback");
          OwnershipInformation information = acquirerRecorder.information.get(0);
@@ -84,19 +85,29 @@ final class OwnershipTck {
             new byte[] {0x10});
          acquirer.attributeOwnershipAcquisition(acquirerObject, acquirerAttributes,
             new byte[] {0x20});
-         JavaTckSupport.drain(owner);
+         drain(owner, callbackModel);
          JavaTckSupport.check(ownerRecorder.divestitureRequests.size() == 1,
             "negotiated acquisition did not request divestiture confirmation");
-         JavaTckSupport.check(Arrays.equals(new byte[] {0x20},
-               ownerRecorder.divestitureRequests.get(0).tag),
-            "divestiture request did not carry the acquisition tag");
+         OwnershipEvent divestitureRequest = ownerRecorder.divestitureRequests.get(0);
+         JavaTckSupport.check(object.equals(divestitureRequest.object)
+               && divestitureRequest.attributes.size() == 1
+               && divestitureRequest.attributes.contains(ownerAttribute)
+               && Arrays.equals(new byte[] {0x20}, divestitureRequest.tag),
+            "divestiture request did not preserve object, attribute set, and acquisition tag");
+         JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerAttribute)
+               && !acquirer.isAttributeOwnedByFederate(acquirerObject, acquirerAttribute)
+               && acquirerRecorder.acquisitions.isEmpty(),
+            "negotiated divestiture transferred ownership before confirmation");
          owner.confirmDivestiture(object, ownerAttributes, new byte[] {0x30});
-         JavaTckSupport.drain(acquirer);
+         drain(acquirer, callbackModel);
          JavaTckSupport.check(acquirerRecorder.acquisitions.size() == 1,
             "confirmed ownership acquisition did not notify the acquirer");
-         JavaTckSupport.check(Arrays.equals(new byte[] {0x30},
-               acquirerRecorder.acquisitions.get(0).tag),
-            "ownership acquisition notification did not carry the confirmation tag");
+         OwnershipEvent acquisition = acquirerRecorder.acquisitions.get(0);
+         JavaTckSupport.check(object.equals(acquisition.object)
+               && acquisition.attributes.size() == 1
+               && acquisition.attributes.contains(acquirerAttribute)
+               && Arrays.equals(new byte[] {0x30}, acquisition.tag),
+            "ownership notification did not preserve object, attribute set, and confirmation tag");
          JavaTckSupport.check(!owner.isAttributeOwnedByFederate(object, ownerAttribute),
             "owner retained ownership after confirmed divestiture");
          JavaTckSupport.check(acquirer.isAttributeOwnedByFederate(acquirerObject,
@@ -107,13 +118,28 @@ final class OwnershipTck {
          JavaTckSupport.check(wanted != null,
             "attributeOwnershipDivestitureIfWanted returned null");
 
+         // If-available acquisition must report an attribute held by another
+         // joined federate as unavailable without changing either owner's state.
+         byte[] unavailableTag = {(byte) 0x32};
+         owner.attributeOwnershipAcquisitionIfAvailable(object, ownerAttributes,
+            unavailableTag);
+         drain(owner, callbackModel);
+         JavaTckSupport.check(ownerRecorder.unavailable.size() == 1
+               && ownerRecorder.unavailable.get(0).object.equals(object)
+               && ownerRecorder.unavailable.get(0).attributes.contains(ownerAttribute)
+               && Arrays.equals(unavailableTag, ownerRecorder.unavailable.get(0).tag),
+            "if-available acquisition of an owned attribute lacked the unavailable callback");
+         JavaTckSupport.check(!owner.isAttributeOwnedByFederate(object, ownerAttribute)
+               && acquirer.isAttributeOwnedByFederate(acquirerObject, acquirerAttribute),
+            "unavailable if-available acquisition changed attribute ownership");
+
          // An unconditional release makes an immediately-available
          // acquisition complete without a negotiated callback.
          acquirer.unconditionalAttributeOwnershipDivestiture(acquirerObject,
             acquirerAttributes, new byte[] {0x40});
          owner.attributeOwnershipAcquisitionIfAvailable(object, ownerAttributes,
             new byte[] {0x50});
-         JavaTckSupport.drain(owner);
+         drain(owner, callbackModel);
          JavaTckSupport.check(ownerRecorder.acquisitions.size() == 1,
             "if-available acquisition did not notify the returning owner");
          JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerAttribute),
@@ -126,14 +152,14 @@ final class OwnershipTck {
          // unavailable callback with the owner's denial tag.
          acquirer.attributeOwnershipAcquisition(acquirerObject, acquirerAttributes,
             new byte[] {0x60});
-         JavaTckSupport.drain(owner);
+         drain(owner, callbackModel);
          JavaTckSupport.check(ownerRecorder.releaseRequests.size() == 1,
             "normal acquisition did not request an ownership release");
          JavaTckSupport.check(Arrays.equals(new byte[] {0x60},
                ownerRecorder.releaseRequests.get(0).tag),
             "ownership release request did not preserve the acquisition tag");
          owner.attributeOwnershipReleaseDenied(object, ownerAttributes, new byte[] {0x70});
-         JavaTckSupport.drain(acquirer);
+         drain(acquirer, callbackModel);
          JavaTckSupport.check(acquirerRecorder.unavailable.size() == 1,
             "ownership release denial did not notify the requester");
          JavaTckSupport.check(Arrays.equals(new byte[] {0x70},
@@ -146,7 +172,7 @@ final class OwnershipTck {
          // service and acknowledged by its standard callback.
          acquirer.attributeOwnershipAcquisition(acquirerObject, acquirerAttributes,
             new byte[] {(byte) 0x80});
-         JavaTckSupport.drain(owner);
+         drain(owner, callbackModel);
          acquirer.cancelAttributeOwnershipAcquisition(acquirerObject, acquirerAttributes);
          JavaTckSupport.drain(acquirer);
          JavaTckSupport.check(acquirerRecorder.cancellations.size() == 1,
@@ -175,6 +201,13 @@ final class OwnershipTck {
          }
          if (acquirerConnected) disconnect(acquirer);
          if (ownerConnected) disconnect(owner);
+      }
+   }
+
+   private static void drain(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      if (callbackModel == CallbackModel.HLA_EVOKED) {
+         JavaTckSupport.drain(ambassador);
       }
    }
 

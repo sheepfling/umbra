@@ -18,6 +18,7 @@
 #include <optional>
 #include <stdexcept>
 #include <set>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -461,6 +462,7 @@ TEST_CASE(
     "[integration][foundation][time-management][galt][lits][multi-federate][callback-immediate][transport][process-boundary][public-endpoint][rti.service.enable-time-regulation][rti.service.query-galt][rti.service.query-lits][federate.callback.time-regulation-enabled][2025]") {
   constexpr wchar_t const* federationName =
       L"process-time-bounds-multi-federate-execution";
+  auto const serviceReportDirectory = temporaryServiceReportDirectory();
 
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
@@ -471,10 +473,10 @@ TEST_CASE(
   std::thread server([&] {
     try {
       EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions serviceOptions{true};
+      serviceOptions.serviceReportDirectory = serviceReportDirectory;
       ProcessFederationService service(
-          registry,
-          composedProcessDefinition(),
-          ProcessFederationServiceOptions{true});
+          registry, composedProcessDefinition(), std::move(serviceOptions));
       auto regulatorConnection = listener->accept(
           nullptr,
           {"process-time-bounds-multi-federate-server", 0x9213U},
@@ -513,6 +515,11 @@ TEST_CASE(
           regulatorHandler,
           TransportServiceOperation::enable_time_regulation,
           "The multi-federate time-bounds server lost Enable Time Regulation.");
+      serveExpected(
+          regulator,
+          regulatorHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The multi-federate time-bounds server lost Enable Time Regulation reporting.");
 
       auto observerConnection = listener->accept(
           nullptr,
@@ -526,6 +533,29 @@ TEST_CASE(
           observerHandler,
           TransportServiceOperation::join_federation_execution,
           "The multi-federate time-bounds server lost observer Join.");
+      for (auto* session : {&regulator, &observer}) {
+        auto const& handler = session == &regulator ? regulatorHandler : observerHandler;
+        serveExpected(
+            *session,
+            handler,
+            TransportServiceOperation::set_service_reporting_switch,
+            "The multi-federate time-bounds server lost service-report enablement.");
+        serveExpected(
+            *session,
+            handler,
+            TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The multi-federate time-bounds server lost file-report enablement.");
+      }
+      serveExpected(
+          regulator,
+          regulatorHandler,
+          TransportServiceOperation::query_lookahead,
+          "The multi-federate time-bounds server lost regulator Query Lookahead.");
+      serveExpected(
+          regulator,
+          regulatorHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The multi-federate time-bounds server lost regulator Query Lookahead reporting.");
       serveExpected(
           regulator,
           regulatorHandler,
@@ -534,8 +564,18 @@ TEST_CASE(
       serveExpected(
           regulator,
           regulatorHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The multi-federate time-bounds server lost regulator Query GALT reporting.");
+      serveExpected(
+          regulator,
+          regulatorHandler,
           TransportServiceOperation::query_time_bounds,
           "The multi-federate time-bounds server lost regulator Query LITS.");
+      serveExpected(
+          regulator,
+          regulatorHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The multi-federate time-bounds server lost regulator Query LITS reporting.");
       serveExpected(
           observer,
           observerHandler,
@@ -544,8 +584,18 @@ TEST_CASE(
       serveExpected(
           observer,
           observerHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The multi-federate time-bounds server lost observer Query GALT reporting.");
+      serveExpected(
+          observer,
+          observerHandler,
           TransportServiceOperation::query_time_bounds,
           "The multi-federate time-bounds server lost observer Query LITS.");
+      serveExpected(
+          observer,
+          observerHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The multi-federate time-bounds server lost observer Query LITS reporting.");
       serveExpected(
           observer,
           observerHandler,
@@ -607,6 +657,14 @@ TEST_CASE(
     REQUIRE(observerHandle.isValid());
     REQUIRE(regulatorHandle != observerHandle);
     observerJoined = true;
+    REQUIRE_NOTHROW(regulator->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(regulator->setSendServiceReportsToFileSwitch(true));
+    REQUIRE_NOTHROW(observer->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(observer->setSendServiceReportsToFileSwitch(true));
+
+    rti1516_2025::HLAinteger64Interval regulatorLookahead(99);
+    REQUIRE_NOTHROW(regulator->queryLookahead(regulatorLookahead));
+    REQUIRE(regulatorLookahead.getInterval() == 1);
 
     rti1516_2025::HLAinteger64Time regulatorGalt(99);
     REQUIRE_FALSE(regulator->queryGALT(regulatorGalt));
@@ -621,6 +679,59 @@ TEST_CASE(
     rti1516_2025::HLAinteger64Time observerLits(101);
     REQUIRE(observer->queryLITS(observerLits));
     REQUIRE(observerLits.getTime() == 1);
+
+    std::vector<std::string> queryGaltRecords;
+    std::vector<std::string> queryLitsRecords;
+    std::vector<std::string> queryLookaheadRecords;
+    for (auto const& entry : std::filesystem::directory_iterator(serviceReportDirectory)) {
+      if (!entry.is_regular_file()) {
+        continue;
+      }
+      std::ifstream reportFile(entry.path(), std::ios::binary);
+      std::string contents{std::istreambuf_iterator<char>{reportFile},
+                           std::istreambuf_iterator<char>{}};
+      std::istringstream lines{contents};
+      std::string line;
+      while (std::getline(lines, line)) {
+        if (line.find(R"("HLAservice":"QueryLookahead")") != std::string::npos) {
+          queryLookaheadRecords.push_back(line);
+        }
+        if (line.find(R"("HLAservice":"QueryGALT")") != std::string::npos) {
+          queryGaltRecords.push_back(line);
+        }
+        if (line.find(R"("HLAservice":"QueryLITS")") != std::string::npos) {
+          queryLitsRecords.push_back(line);
+        }
+      }
+    }
+    REQUIRE(queryGaltRecords.size() == 2U);
+    REQUIRE(queryLitsRecords.size() == 2U);
+    REQUIRE(queryLookaheadRecords.size() == 1U);
+    REQUIRE(std::any_of(
+        queryGaltRecords.begin(), queryGaltRecords.end(), [](auto const& record) {
+          return record.find(R"("HLAsuccessIndicator":true)") != std::string::npos &&
+                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":34,"HLAargumentName":"","HLAargumentValue":null}])") != std::string::npos;
+        }));
+    REQUIRE(std::any_of(
+        queryGaltRecords.begin(), queryGaltRecords.end(), [](auto const& record) {
+          return record.find(R"("HLAsuccessIndicator":true)") != std::string::npos &&
+                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":31,"HLAargumentName":"GALT","HLAargumentValue":"1"}])") != std::string::npos;
+        }));
+    REQUIRE(std::any_of(
+        queryLitsRecords.begin(), queryLitsRecords.end(), [](auto const& record) {
+          return record.find(R"("HLAsuccessIndicator":true)") != std::string::npos &&
+                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":34,"HLAargumentName":"","HLAargumentValue":null}])") != std::string::npos;
+        }));
+    REQUIRE(std::any_of(
+        queryLitsRecords.begin(), queryLitsRecords.end(), [](auto const& record) {
+          return record.find(R"("HLAsuccessIndicator":true)") != std::string::npos &&
+                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":31,"HLAargumentName":"LITS","HLAargumentValue":"1"}])") != std::string::npos;
+        }));
+    REQUIRE(std::any_of(
+        queryLookaheadRecords.begin(), queryLookaheadRecords.end(), [](auto const& record) {
+          return record.find(R"("HLAsuccessIndicator":true)") != std::string::npos &&
+                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":32,"HLAargumentName":"Lookahead","HLAargumentValue":"1"}])") != std::string::npos;
+        }));
 
     REQUIRE_NOTHROW(observer->resignFederationExecution(NO_ACTION));
     observerJoined = false;

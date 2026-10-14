@@ -2043,10 +2043,10 @@ anchors, 10 canonical 2025 sections, and 11 official C++ API surfaces. It is
 queryable without scanning `ieee1516_2025_federation_management_catch2.cpp`:
 
     python tools/query_rti_work.py focus timestamped-directed-interaction-alternate-advance --summary --compact
-    python tools/query_rti_work.py trace "Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants" --summary --compact
-    python tools/query_rti_work.py matrix "Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants" --summary --compact
+    python tools/query_rti_work.py trace "Embedded timestamped directed interaction respects FQR TARA and NMRA grant boundaries" --summary --compact
+    python tools/query_rti_work.py matrix "Embedded timestamped directed interaction respects FQR TARA and NMRA grant boundaries" --summary --compact
     python tools/query_rti_work.py check --lane timestamped-directed-interaction-alternate-advance --summary --compact
-    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants$" --output-on-failure
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded timestamped directed interaction respects FQR TARA and NMRA grant boundaries$" --output-on-failure
 
 The joined-federate MOM `HLAfederateState` save/restore case is a separate
 focused source lane with 152 assertions under HLA_EVOKED and HLA_IMMEDIATE,

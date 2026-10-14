@@ -6,6 +6,7 @@ import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
+import hla.rti1516_2025.InteractionClassHandleSet;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
@@ -36,6 +37,8 @@ final class DirectedInteractionsTck {
       Recorder universalRecorder = new Recorder();
       Recorder unsubscribedRecorder = new Recorder();
       String federation = "java-tck-directed-" + UUID.randomUUID();
+      verifyMembershipBoundaries(factory, CallbackModel.HLA_EVOKED);
+      verifyMembershipBoundaries(factory, CallbackModel.HLA_IMMEDIATE);
       boolean publisherConnected = false;
       boolean targetedConnected = false;
       boolean universalConnected = false;
@@ -92,6 +95,7 @@ final class DirectedInteractionsTck {
             targeted.getInteractionClassHandle(interactionClassName);
          InteractionClassHandle universalInteraction =
             universal.getInteractionClassHandle(interactionClassName);
+         verifyInvalidDeclarationHandles(publisher, targeted, publisherClass, targetedClass);
 
          // Publish the object class from both potential target owners.  The
          // publisher subscribes to the class so it can address the targeted
@@ -112,6 +116,12 @@ final class DirectedInteractionsTck {
             JavaTckSupport.interactionSet(targeted, targetedInteraction));
          universal.subscribeObjectClassDirectedInteractionsUniversally(universalClass,
             JavaTckSupport.interactionSet(universal, universalInteraction));
+
+         JavaTckSupport.expectFailure(
+            () -> publisher.sendDirectedInteraction(publisherInteraction,
+               JavaTckSupport.invalidHandle(ObjectInstanceHandle.class),
+               publisher.getParameterHandleValueMapFactory().create(0), new byte[0]),
+            "ObjectInstanceNotKnown", "directed send with an unknown target object");
 
          ObjectInstanceHandle publisherTarget = publisher.registerObjectInstance(publisherClass);
          ObjectInstanceHandle targetedTarget = targeted.registerObjectInstance(targetedClass);
@@ -205,6 +215,98 @@ final class DirectedInteractionsTck {
          if (targetedConnected) disconnect(targeted);
          if (publisherConnected) disconnect(publisher);
       }
+   }
+
+   private static void verifyMembershipBoundaries(RtiFactory factory,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador lifecycle = factory.getRtiAmbassador();
+      Recorder recorder = new Recorder();
+      ObjectClassHandle invalidObjectClass = JavaTckSupport.invalidHandle(ObjectClassHandle.class);
+      InteractionClassHandle invalidInteraction =
+         JavaTckSupport.invalidHandle(InteractionClassHandle.class);
+      ObjectInstanceHandle invalidObject =
+         JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
+      InteractionClassHandleSet emptyInteractions =
+         JavaTckSupport.interactionSet(lifecycle);
+      ParameterHandleValueMap emptyParameters =
+         lifecycle.getParameterHandleValueMapFactory().create(0);
+      verifyLifecycleFailures(lifecycle, invalidObjectClass, invalidInteraction,
+         invalidObject, emptyInteractions, emptyParameters, "NotConnected", "before connect");
+      lifecycle.connect(recorder.proxy(), callbackModel);
+      try {
+         verifyLifecycleFailures(lifecycle, invalidObjectClass, invalidInteraction,
+            invalidObject, emptyInteractions, emptyParameters, "FederateNotExecutionMember",
+            "after connect before join");
+      } finally {
+         lifecycle.disconnect();
+      }
+   }
+
+   private static void verifyLifecycleFailures(RTIambassador rti,
+         ObjectClassHandle invalidObjectClass, InteractionClassHandle invalidInteraction,
+         ObjectInstanceHandle invalidObject, InteractionClassHandleSet emptyInteractions,
+         ParameterHandleValueMap emptyParameters, String exception, String phase)
+         throws Exception {
+      JavaTckSupport.expectFailure(
+         () -> rti.publishObjectClassDirectedInteractions(invalidObjectClass, emptyInteractions),
+         exception, "publishing directed interactions " + phase);
+      JavaTckSupport.expectFailure(
+         () -> rti.unpublishObjectClassDirectedInteractions(invalidObjectClass),
+         exception, "unpublishing all directed interactions " + phase);
+      JavaTckSupport.expectFailure(
+         () -> rti.unpublishObjectClassDirectedInteractions(invalidObjectClass,
+            emptyInteractions), exception, "unpublishing selected directed interactions " + phase);
+      JavaTckSupport.expectFailure(
+         () -> rti.subscribeObjectClassDirectedInteractions(invalidObjectClass,
+            emptyInteractions), exception, "subscribing directed interactions " + phase);
+      JavaTckSupport.expectFailure(
+         () -> rti.unsubscribeObjectClassDirectedInteractions(invalidObjectClass),
+         exception, "unsubscribing all directed interactions " + phase);
+      JavaTckSupport.expectFailure(
+         () -> rti.unsubscribeObjectClassDirectedInteractions(invalidObjectClass,
+            emptyInteractions), exception, "unsubscribing selected directed interactions " + phase);
+      JavaTckSupport.expectFailure(
+         () -> rti.sendDirectedInteraction(invalidInteraction, invalidObject,
+            emptyParameters, new byte[0]), exception, "sending a directed interaction " + phase);
+   }
+
+   private static void verifyInvalidDeclarationHandles(RTIambassador publisher,
+         RTIambassador subscriber, ObjectClassHandle publisherClass,
+         ObjectClassHandle subscriberClass) throws Exception {
+      ObjectClassHandle invalidObjectClass = JavaTckSupport.invalidHandle(ObjectClassHandle.class);
+      InteractionClassHandle invalidInteraction =
+         JavaTckSupport.invalidHandle(InteractionClassHandle.class);
+      InteractionClassHandleSet empty = JavaTckSupport.interactionSet(publisher);
+      InteractionClassHandleSet invalid =
+         JavaTckSupport.interactionSet(publisher, invalidInteraction);
+      JavaTckSupport.expectFailure(
+         () -> publisher.publishObjectClassDirectedInteractions(invalidObjectClass, empty),
+         "ObjectClassNotDefined", "publishing a directed declaration for an invalid class");
+      JavaTckSupport.expectFailure(
+         () -> publisher.publishObjectClassDirectedInteractions(publisherClass, invalid),
+         "InteractionClassNotDefined", "publishing an invalid directed interaction class");
+      JavaTckSupport.expectFailure(
+         () -> publisher.unpublishObjectClassDirectedInteractions(invalidObjectClass, empty),
+         "ObjectClassNotDefined", "unpublishing a declaration for an invalid class");
+      JavaTckSupport.expectFailure(
+         () -> publisher.unpublishObjectClassDirectedInteractions(publisherClass, invalid),
+         "InteractionClassNotDefined", "unpublishing an invalid directed interaction class");
+      JavaTckSupport.expectFailure(
+         () -> subscriber.subscribeObjectClassDirectedInteractions(invalidObjectClass, empty),
+         "ObjectClassNotDefined", "subscribing a declaration for an invalid class");
+      InteractionClassHandleSet subscriberInvalid = JavaTckSupport.interactionSet(subscriber,
+         invalidInteraction);
+      JavaTckSupport.expectFailure(
+         () -> subscriber.subscribeObjectClassDirectedInteractions(subscriberClass,
+            subscriberInvalid), "InteractionClassNotDefined",
+         "subscribing an invalid directed interaction class");
+      JavaTckSupport.expectFailure(
+         () -> subscriber.unsubscribeObjectClassDirectedInteractions(invalidObjectClass, empty),
+         "ObjectClassNotDefined", "unsubscribing a declaration for an invalid class");
+      JavaTckSupport.expectFailure(
+         () -> subscriber.unsubscribeObjectClassDirectedInteractions(subscriberClass,
+            subscriberInvalid), "InteractionClassNotDefined",
+         "unsubscribing an invalid directed interaction class");
    }
 
    private static void assertDirected(RTIambassador inspector, Directed directed,

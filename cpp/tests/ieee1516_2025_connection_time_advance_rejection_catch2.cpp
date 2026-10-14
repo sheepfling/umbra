@@ -484,7 +484,9 @@ TEST_CASE(
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
-                    "The process time-advance rejection server received an unexpected operation.");
+                    "The process time-advance rejection server expected operation " +
+                    std::to_string(static_cast<unsigned>(operation)) + " but received " +
+                    std::to_string(static_cast<unsigned>(request.operation)) + ".");
               }
               return handler(request);
             });
@@ -492,6 +494,7 @@ TEST_CASE(
       if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
           !serveExpected(TransportServiceOperation::join_federation_execution) ||
           !serveExpected(TransportServiceOperation::time_advance_request) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::time_advance_request) ||
           !serveExpected(TransportServiceOperation::resign_federation_execution)) {
         throw std::runtime_error(
@@ -539,6 +542,9 @@ TEST_CASE(
   }
   if (server.joinable()) {
     server.join();
+  }
+  if (serverError) {
+    std::rethrow_exception(serverError);
   }
   if (clientError) {
     std::rethrow_exception(clientError);

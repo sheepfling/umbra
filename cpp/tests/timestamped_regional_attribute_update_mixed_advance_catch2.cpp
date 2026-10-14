@@ -168,7 +168,7 @@ void drainCallbacks(RTIambassador& rti) {
 }  // namespace
 
 TEST_CASE(
-    "Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
+    "Embedded mixed regional timestamped attribute updates respect FQR TARA and NMRA grant boundaries",
     "[integration][development-profile][object-management][ddm][time-management]"
     "[timestamped-regional-attribute-update]"
     "[timestamped-regional-attribute-update-mixed-advance]"
@@ -274,9 +274,10 @@ TEST_CASE(
   REQUIRE(taraReports.attributeReflectionReports.empty());
   REQUIRE(nmraReports.attributeReflectionReports.empty());
 
-  // FQR is strict at its requested boundary, TARA is inclusive at the
-  // timestamp frontier, and NMRA selects the queued timestamp. The publisher
-  // request to 2 plus lookahead 5 establishes GALT 7 for every recipient.
+  // FQR and NMRA admit ts=7 before their grants because their request
+  // boundaries are later; TARA's ts < t_R rule moves its equal-time callback
+  // after the grant. The publisher request to 2 plus lookahead 5 establishes
+  // GALT 7 for every recipient.
   REQUIRE_NOTHROW(fqr->flushQueueRequest(rti1516_2025::HLAinteger64Time(10)));
   REQUIRE_NOTHROW(tara->timeAdvanceRequestAvailable(
       rti1516_2025::HLAinteger64Time(7)));
@@ -320,7 +321,7 @@ TEST_CASE(
   REQUIRE(taraReports.attributeReflectionReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.front().value == L"7");
-  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"reflect", "grant"});
+  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"grant", "reflect"});
   REQUIRE(nmraReports.attributeReflectionReports.empty());
   REQUIRE(nmraReports.timeAdvanceGrantReports.empty());
   REQUIRE_FALSE(nmra->evokeCallback(0.0));

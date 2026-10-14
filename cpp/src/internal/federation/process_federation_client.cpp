@@ -344,8 +344,11 @@ ProcessFederationClient::ProcessFederationClient(
             {
               std::scoped_lock lock(transactionMutex_);
               pendingTransportFailures_.push_back(std::move(description));
-              dispatchNow = requestDepth_ == 0U;
+              dispatchNow = requestDepth_ == 0U &&
+                  std::this_thread::get_id() != streamReaderId_;
             }
+            responseAvailable_.notify_all();
+            callbackEventsAvailable_.notify_all();
             if (dispatchNow) {
               dispatchTransportFailures();
             }
@@ -357,7 +360,21 @@ ProcessFederationClient::ProcessFederationClient(
       shutdownConnection_(connection_),
       session_(std::make_unique<ProcessTransportSession>(connection_)),
       attributeRelevanceAdvisorySwitchState_(
-          std::make_shared<std::atomic_bool>(true)) {}
+          std::make_shared<std::atomic_bool>(true)) {
+  try {
+    streamReaderThread_ = std::thread([this] { receiveLoop(); });
+    callbackDispatchThread_ = std::thread([this] { dispatchLoop(); });
+  } catch (...) {
+    closing_.store(true, std::memory_order_release);
+    shutdownConnection_->close();
+    responseAvailable_.notify_all();
+    callbackEventsAvailable_.notify_all();
+    if (streamReaderThread_.joinable()) {
+      streamReaderThread_.join();
+    }
+    throw;
+  }
+}
 
 ProcessFederationClient::~ProcessFederationClient() {
   close();
@@ -422,6 +439,7 @@ void ProcessFederationClient::bufferReceiveResult(
   if (result.restoreEvent) {
     pendingEvents_.emplace_back(std::move(*result.restoreEvent));
   }
+  callbackEventsAvailable_.notify_all();
 }
 
 void ProcessFederationClient::bufferEvent(TransportServiceMessage message) {
@@ -505,68 +523,211 @@ TransportServiceMessage ProcessFederationClient::request(
     TransportServiceOperation operation,
     std::vector<std::uint8_t> payload,
     bool dispatchCallbacks) {
-  std::unique_lock lock(transactionMutex_);
-  if (closing_.load(std::memory_order_acquire) || !session_) {
-    throw ProcessFederationClientError(
-        "A process federation request was attempted after client close.");
-  }
-  if (nextRequestId_ == std::numeric_limits<std::uint64_t>::max()) {
-    throw ProcessFederationClientError(
-        "The process federation request identity space is exhausted.");
-  }
-  auto const requestId = ++nextRequestId_;
-  ++requestDepth_;
+  rethrowPendingCallbackException();
+  std::unique_lock exchangeLock(exchangeMutex_);
+  std::uint64_t requestId = 0U;
+  bool requestDepthRegistered = false;
+  bool callbackDispatchSuppressed = false;
   try {
-    TransportServiceMessage requestMessage{
-        TransportServiceMessageKind::request, operation,
-        TransportServiceStatus::ok, requestId, std::move(payload)};
-    if (!session_->send(requestMessage)) {
-      throw ProcessFederationClientError(
-          std::string("Process federation ") + operationName(operation) +
-          " could not send its request.");
-    }
-    while (true) {
-      TransportServiceMessage response;
-      if (!session_->receive(response)) {
+    {
+      std::scoped_lock lock(transactionMutex_);
+      if (closing_.load(std::memory_order_acquire) || !session_) {
+        throw ProcessFederationClientError(
+            "A process federation request was attempted after client close.");
+      }
+      if (nextRequestId_ == std::numeric_limits<std::uint64_t>::max()) {
+        throw ProcessFederationClientError(
+            "The process federation request identity space is exhausted.");
+      }
+      requestId = ++nextRequestId_;
+      ++requestDepth_;
+      requestDepthRegistered = true;
+      TransportServiceMessage requestMessage{
+          TransportServiceMessageKind::request, operation,
+          TransportServiceStatus::ok, requestId, std::move(payload)};
+      if (!session_->send(requestMessage)) {
         throw ProcessFederationClientError(
             std::string("Process federation ") + operationName(operation) +
-            " lost its response.");
+            " could not send its request.");
       }
-      if (response.kind == TransportServiceMessageKind::event) {
-        bufferEvent(std::move(response));
-        continue;
-      }
-      if (response.kind != TransportServiceMessageKind::response ||
-          response.requestId != requestId || response.operation != operation) {
+    }
+
+    TransportServiceMessage response;
+    {
+      std::unique_lock responseLock(responseMutex_);
+      responseAvailable_.wait(responseLock, [this, requestId] {
+        return responses_.contains(requestId) || streamReaderStopped_ ||
+            closing_.load(std::memory_order_acquire);
+      });
+      auto const found = responses_.find(requestId);
+      if (found == responses_.end()) {
+        auto const detail = streamReaderFailure_.empty()
+            ? std::string("lost its response")
+            : streamReaderFailure_;
         throw ProcessFederationClientError(
-            std::string("Process federation client received a response for another request (expected ") +
-            operationName(operation) + "#" + std::to_string(requestId) + ", got " +
-            operationName(response.operation) + "#" +
-            std::to_string(response.requestId) + ").");
+            std::string("Process federation ") + operationName(operation) +
+            " " + detail + ".");
       }
+      response = std::move(found->second);
+      responses_.erase(found);
+    }
+    if (response.kind != TransportServiceMessageKind::response ||
+        response.requestId != requestId || response.operation != operation) {
+      throw ProcessFederationClientError(
+          std::string("Process federation client received a response for another request (expected ") +
+          operationName(operation) + "#" + std::to_string(requestId) +
+          ", got " + operationName(response.operation) + "#" +
+          std::to_string(response.requestId) + ").");
+    }
+
+    {
+      std::scoped_lock lock(transactionMutex_);
       --requestDepth_;
-      lock.unlock();
-      // The complete response belongs to this caller now. In particular an
-      // evoker holding the dispatcher can acquire the stream while a service
-      // thread waits for that dispatcher: no exchange/dispatcher ABBA cycle.
+      requestDepthRegistered = false;
       if (dispatchCallbacks) {
+        ++callbackDispatchSuppressionDepth_;
+        callbackDispatchSuppressed = true;
+      }
+    }
+    callbackEventsAvailable_.notify_all();
+    exchangeLock.unlock();
+
+    if (dispatchCallbacks) {
+      try {
         dispatchPendingPushedEvents();
         flushDeferredTsoDeliveryAcknowledgements();
+      } catch (...) {
+        {
+          std::scoped_lock lock(transactionMutex_);
+          --callbackDispatchSuppressionDepth_;
+          callbackDispatchSuppressed = false;
+        }
+        callbackEventsAvailable_.notify_all();
+        throw;
       }
-      return response;
+      {
+        std::scoped_lock lock(transactionMutex_);
+        --callbackDispatchSuppressionDepth_;
+        callbackDispatchSuppressed = false;
+      }
+      callbackEventsAvailable_.notify_all();
     }
+    return response;
   } catch (...) {
-    if (lock.owns_lock()) {
-      --requestDepth_;
-      lock.unlock();
+    if (requestDepthRegistered || callbackDispatchSuppressed) {
+      std::scoped_lock lock(transactionMutex_);
+      if (requestDepthRegistered) {
+        --requestDepth_;
+        requestDepthRegistered = false;
+      }
+      if (callbackDispatchSuppressed) {
+        --callbackDispatchSuppressionDepth_;
+        callbackDispatchSuppressed = false;
+      }
     }
+    callbackEventsAvailable_.notify_all();
     // A projection hook must release its lifetime lease before any user
-    // callback can tear down the client. Its outer evoke/service boundary
-    // will report a queued transport failure after projection returns.
+    // callback dispatch can tear down the client. Its outer evoke/service
+    // boundary reports any transport failure queued by the reader.
     if (dispatchCallbacks) {
       dispatchTransportFailures();
     }
     throw;
+  }
+}
+
+void ProcessFederationClient::receiveLoop() noexcept {
+  {
+    std::scoped_lock lock(transactionMutex_);
+    streamReaderId_ = std::this_thread::get_id();
+  }
+  ProcessTransportSession readerSession(shutdownConnection_);
+  std::string failure;
+  try {
+    while (!closing_.load(std::memory_order_acquire)) {
+      TransportServiceMessage message;
+      if (!readerSession.receive(message)) {
+        if (!closing_.load(std::memory_order_acquire)) {
+          failure = "lost its pushed event stream";
+        }
+        break;
+      }
+      if (message.kind == TransportServiceMessageKind::event) {
+        {
+          std::scoped_lock lock(transactionMutex_);
+          bufferEvent(std::move(message));
+        }
+        callbackEventsAvailable_.notify_all();
+        continue;
+      }
+      if (message.kind != TransportServiceMessageKind::response ||
+          message.requestId == 0U) {
+        throw ProcessFederationClientError(
+            "Process federation client received an invalid stream frame.");
+      }
+      {
+        std::scoped_lock lock(responseMutex_);
+        if (!responses_.emplace(message.requestId, std::move(message)).second) {
+          throw ProcessFederationClientError(
+              "Process federation client received a duplicate service response.");
+        }
+      }
+      responseAvailable_.notify_all();
+    }
+  } catch (std::exception const& error) {
+    failure = error.what();
+    if (!closing_.load(std::memory_order_acquire)) {
+      shutdownConnection_->close();
+    }
+  } catch (...) {
+    failure = "encountered an unknown pushed-event stream failure";
+    if (!closing_.load(std::memory_order_acquire)) {
+      shutdownConnection_->close();
+    }
+  }
+  {
+    std::scoped_lock lock(responseMutex_);
+    streamReaderFailure_ = std::move(failure);
+    streamReaderStopped_ = true;
+  }
+  responseAvailable_.notify_all();
+  callbackEventsAvailable_.notify_all();
+}
+
+void ProcessFederationClient::dispatchLoop() noexcept {
+  while (true) {
+    {
+      std::unique_lock lock(transactionMutex_);
+      callbackEventsAvailable_.wait(lock, [this] {
+        return closing_.load(std::memory_order_acquire) ||
+            ((callbackBridge_ && !pendingEvents_.empty()) ||
+             !deferredTsoDeliveryAcknowledgements_.empty()) &&
+                requestDepth_ == 0U && callbackDispatchSuppressionDepth_ == 0U;
+      });
+      if (closing_.load(std::memory_order_acquire)) {
+        return;
+      }
+    }
+    try {
+      dispatchPendingPushedEvents();
+      flushDeferredTsoDeliveryAcknowledgements();
+    } catch (...) {
+      std::scoped_lock lock(transactionMutex_);
+      if (!pendingCallbackException_) {
+        pendingCallbackException_ = std::current_exception();
+      }
+    }
+  }
+}
+
+void ProcessFederationClient::rethrowPendingCallbackException() {
+  std::exception_ptr failure;
+  {
+    std::scoped_lock lock(transactionMutex_);
+    failure = std::exchange(pendingCallbackException_, {});
+  }
+  if (failure) {
+    std::rethrow_exception(failure);
   }
 }
 

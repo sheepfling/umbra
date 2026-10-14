@@ -307,9 +307,12 @@ ctest --test-dir .build -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\
 The preceding bounded handoff (configured-process queued NMR/NMRA):
 
 The latest focused process case is independently queryable with the exact
-queued-TSO NMR/NMRA handles. It carries 101 aggregate assertions across
-`HLA_EVOKED` and `HLA_IMMEDIATE`, maps 19 Lab requirements to 12 canonical
-2025 sections, and keeps interaction-before-grant ordering explicit:
+queued-TSO NMR/NMRA handles. It carries 232 aggregate assertions across
+`HLA_EVOKED` and `HLA_IMMEDIATE`, maps 20 Lab requirements to 13 canonical
+2025 sections, and covers queued timestamps 5/8/12 plus future ordinary
+interaction arrivals at 15/18 with strict/inclusive GALT boundaries. A
+separate 54-assertion HLA_EVOKED process case covers future attribute-update
+arrival for NMR; the NMRA attribute companion is separately mapped:
 
 ```powershell
 python tools/query_rti_work.py case umbra-cpp-process-next-message-queued-tso-focused-integration --summary --compact
@@ -1681,12 +1684,17 @@ process-time-advance-available-focused --summary --compact` (or its `trace`,
 `matrix`, `check`, and exact CTest handles); inclusive GALT, queued TSO,
 FQR, multi-federate coordination, save/restore, package/JUnit,
 validation, and conformance remain separate lanes.
-The queued-TSO NMR/NMRA companion is now independently indexed at
-`cpp/tests/ieee1516_2025_connection_catch2.cpp:12600`: 101 aggregate assertions
-across `HLA_EVOKED` and `HLA_IMMEDIATE`, 19 Lab anchors, and 12 canonical 2025 sections. It sends messages
-at 5 and 8, proves NMR(10) selects 5 and NMRA(10) selects 8, and checks each
-interaction callback before its grant. Query
-`process-time-advance-next-message-queued-focused`; GALT/LITS, Flush Queue,
+The queued-TSO NMR/NMRA companion is independently indexed at
+`cpp/tests/ieee1516_2025_connection_time_advance_next_message_queued_tso_catch2.cpp:458`:
+232 aggregate assertions across `HLA_EVOKED` and `HLA_IMMEDIATE`, 20 Lab
+anchors, and 13 canonical 2025 sections. It sends messages at 5, 8, and 12,
+then proves future ordinary-interaction arrivals at 15/18 retarget NMR/NMRA at
+strict/inclusive GALT boundaries. Separate HLA_EVOKED process cases cover
+future ordinary attribute-update arrival (54 assertions for NMR; 59 for NMRA)
+and regional attribute-update arrival (58 for NMR; 63 for NMRA), with the NMRA
+cases retaining callback gating. Directed-interaction and object-deletion
+routes remain separately mapped.
+Query `process-time-advance-next-message-queued-focused`; GALT/LITS, Flush Queue,
 retraction, multi-recipient ordering, save/restore, package/JUnit, review,
 validation, interoperability, and conformance remain separate lanes.
 The latest process object-instance lookup slice is independently indexed at
@@ -2762,15 +2770,30 @@ Umbra-owned replacement public API.
       retained separately for GALT and timestamp validation. This has exact
       Requirements-Lab source/API traceability and Catch2 coverage, including
       a two-federate process companion that proves queued timestamps 5 then 8
-      are selected by NMR/NMRA. It does not claim future transport input,
-      `Flush Queue Request`, or full coordination.
+      are selected by NMR/NMRA. The same process case proves one later
+      ordinary timestamped interaction arriving over transport retargets a
+      pending NMR and NMRA at strict/inclusive GALT boundaries, with each
+      interaction delivered before its grant under both callback models. A
+      separate HLA_EVOKED process case proves future timestamped Update
+      Attribute Values arrivals retarget both NMR and NMRA; the NMR case has
+      54 assertions mapped directly to clauses 6.10 and 8.10.2, and the
+      callback-gated NMRA companion is separately mapped. Process NMRA cases
+      also cover directed interaction and object-deletion TSO arrivals. These
+      selected routes do not establish coverage for every TSO producer,
+      regional DDM arrivals, asynchronous TSO, `Flush Queue Request`, or full
+      network-arrival coordination.
 - [x] Bind the 2025 `Time Advance Request Available` and `Next Message Request
       Available` services in the embedded profile. The Available forms reuse
       the callback-gated grant path, select only currently queued TSO input in
       the development backend, deliver the selected cohort before
       `Time Advance Grant`, and apply an explicit inclusive defined-GALT rule.
       They have separate Requirements-Lab source/API contracts and Catch2
-      coverage. `Flush Queue Request`/`Flush Queue Grant`, future transport
+      coverage. Process future-arrival retargeting now has separate evidence
+      for ordinary Send Interaction under HLA_EVOKED/HLA_IMMEDIATE and
+      timestamped Update Attribute Values under HLA_EVOKED; process directed
+      interaction and object-deletion routes are separately covered for NMRA.
+      Other producer families, including regional DDM paths, remain open.
+      `Flush Queue Request`/`Flush Queue Grant`, broader future transport
       coordination, and full time-management coordination remain future work.
 - [x] Bind the 2025 `Flush Queue Request`/`Flush Queue Grant` pair in the
       embedded profile. The bounded path flushes the current in-process TSO
@@ -2946,13 +2969,20 @@ Umbra-owned replacement public API.
 - [x] Derive and test the private no-TSO TAR eligibility policy: a constrained
       federate is strictly below a defined GALT, while an undefined GALT uses
       the Non-Regulated-Grant switch.
-- [x] Wire that policy into a limited cross-federate TAR scheduler. It queues
-      eligible callback actions only after relevant federation time-state
-      changes, rechecks the policy at delivery, and has Catch2 coverage for
-      strict GALT, disabled/enabled NRG, regulator disable/resignation,
-      static NRG retention across an additional-FOM join, and time-constrained disable.
-      It is not a TSO queue, full time coordinator, package, or conformance
-      claim.
+- [x] Wire that policy into a limited cross-federate TAR/NMR/NMRA scheduler. It
+      queues eligible callback actions only after relevant federation
+      time-state changes, rechecks the policy at delivery, and has Catch2
+      coverage for strict GALT, disabled/enabled NRG, regulator
+      disable/resignation, static NRG retention across an additional-FOM join,
+      and time-constrained disable. A mapped HLA_EVOKED public-API case also
+      proves no-TSO NMR waits at strict GALT equality and NMRA waits above GALT
+      before each is released by a regulator advance. Separate process cases
+      cover future ordinary-interaction arrivals for NMR/NMRA at
+      strict/inclusive boundaries and timestamped attribute-update arrivals
+      for NMR/NMRA; directed-interaction and deletion arrivals are separately
+      exercised under NMRA. Other producer families, regional DDM paths, and
+      general network-arrival coordination remain open. This is not a full
+      time coordinator, package, or conformance claim.
 - [x] Add a private recipient-scoped TSO queue foundation using official
       LogicalTime values. It provides stable equal-timestamp ordering,
       recipient isolation, a stable global pending view, resignation-time

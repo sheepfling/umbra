@@ -39,6 +39,7 @@
 #include "internal/federation/process_transport.hpp"
 #include "internal/federation/process_transport_session.hpp"
 #include "process_public_service_fixture.hpp"
+#include "process_service_report_fixture.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
@@ -665,14 +666,12 @@ TEST_CASE(
           receiverHandler,
           TransportServiceOperation::subscribe_object_class_attributes,
           "The process changed-lookahead server lost Subscribe.");
-      serveExpected(
-          sender,
-          senderHandler,
+      umbra::test::serveExpectedProcessSuccessfulVoidService(
+          serveExpected, sender, senderHandler,
           TransportServiceOperation::enable_time_regulation,
           "The process changed-lookahead server lost initial Enable Time Regulation.");
-      serveExpected(
-          receiver,
-          receiverHandler,
+      umbra::test::serveExpectedProcessSuccessfulVoidService(
+          serveExpected, receiver, receiverHandler,
           TransportServiceOperation::enable_time_constrained,
           "The process changed-lookahead server lost Enable Time Constrained.");
       serveExpected(
@@ -690,41 +689,35 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::update_attribute_values,
           "The process changed-lookahead server lost timestamped Update Attribute Values.");
-      serveExpected(
-          sender,
-          senderHandler,
+      umbra::test::serveExpectedProcessSuccessfulVoidService(
+          serveExpected, sender, senderHandler,
           TransportServiceOperation::disable_time_regulation,
           "The process changed-lookahead server lost Disable Time Regulation.");
-      serveExpected(
-          sender,
-          senderHandler,
+      umbra::test::serveExpectedProcessSuccessfulVoidService(
+          serveExpected, sender, senderHandler,
           TransportServiceOperation::enable_time_regulation,
           "The process changed-lookahead server lost re-enable Time Regulation.");
-      serveExpected(
-          sender,
-          senderHandler,
+      umbra::test::serveExpectedProcessSuccessfulService(
+          serveExpected, sender, senderHandler,
           TransportServiceOperation::query_lookahead,
           "The process changed-lookahead server lost Query Lookahead.");
-      serveExpected(
-          receiver,
-          receiverHandler,
+      umbra::test::serveExpectedProcessSuccessfulVoidService(
+          serveExpected, receiver, receiverHandler,
           TransportServiceOperation::time_advance_request,
           "The process changed-lookahead server lost receiver TAR.");
-      serveExpected(
-          sender,
-          senderHandler,
+      umbra::test::serveExpectedProcessSuccessfulVoidService(
+          serveExpected, sender, senderHandler,
           TransportServiceOperation::time_advance_request,
           "The process changed-lookahead server lost sender TAR.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::query_time_bounds,
-          "The process changed-lookahead server lost in-transit Query GALT.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::query_time_bounds,
-          "The process changed-lookahead server lost in-transit Query LITS.");
+      for (auto const* bound : {"GALT", "LITS"}) {
+        auto const description = std::string(
+            "The process changed-lookahead server lost in-transit Query ") +
+            bound + ".";
+        umbra::test::serveExpectedProcessSuccessfulService(
+            serveExpected, receiver, receiverHandler,
+            TransportServiceOperation::query_time_bounds,
+            description.c_str());
+      }
       serveExpected(
           receiver,
           receiverHandler,

@@ -95,7 +95,7 @@ final class DirectedDerivedObjectTargetTck {
          publisher.publishObjectClassDirectedInteractions(publisherClass,
             JavaTckSupport.interactionSet(publisher, publisherInteraction));
          directedPublished = true;
-         targeted.subscribeObjectClassDirectedInteractions(targetedClass,
+         targeted.subscribeObjectClassDirectedInteractionsUniversally(targetedClass,
             JavaTckSupport.interactionSet(targeted, targetedInteraction));
          directedSubscribed = true;
 

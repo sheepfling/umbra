@@ -493,7 +493,9 @@ TEST_CASE(
           !serveExpected(TransportServiceOperation::join_federation_execution) ||
           !serveExpected(TransportServiceOperation::query_lookahead) ||
           !serveExpected(TransportServiceOperation::enable_time_regulation) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::query_lookahead) ||
+          !serveExpected(TransportServiceOperation::report_successful_service_invocation) ||
           !serveExpected(TransportServiceOperation::resign_federation_execution)) {
         throw std::runtime_error(
             "The process query-lookahead server lost a temporal request.");

@@ -307,7 +307,7 @@ TEST_CASE(
 
   // TARA reaches the exact defined-GALT boundary. The private default source
   // region overlaps the committed receiver region and is conveyed as an
-  // explicit supplied-empty callback set before the matching grant.
+  // explicit supplied-empty callback set after the matching TARA grant.
   REQUIRE_NOTHROW(receiver->timeAdvanceRequestAvailable(
       rti1516_2025::HLAinteger64Time(7)));
   REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
@@ -316,7 +316,7 @@ TEST_CASE(
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
-  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"interaction", "grant"});
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"grant", "interaction"});
   REQUIRE(receiverReports.timeAdvanceGrantReports.front().value == L"7");
 
   auto const& firstReport = receiverReports.timestampedInteractionReports.front();
@@ -340,8 +340,8 @@ TEST_CASE(
   REQUIRE(second.isValid());
 
   // NMRA selects the next queued timestamp while the regulator advances from
-  // 2 to 4, making GALT exactly 9. The second default-region callback again
-  // precedes its grant and retains the supplied-empty region marker.
+  // 2 to 4, making GALT exactly 9. NMRA delivers this equal-time callback
+  // before its grant and retains the supplied-empty region marker.
   REQUIRE_NOTHROW(receiver->nextMessageRequestAvailable(
       rti1516_2025::HLAinteger64Time(10)));
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
@@ -352,7 +352,7 @@ TEST_CASE(
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2U);
   REQUIRE(
       receiverReports.callbackOrder ==
-      std::vector<std::string>{"interaction", "grant", "interaction", "grant"});
+      std::vector<std::string>{"grant", "interaction", "interaction", "grant"});
   REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"9");
 
   auto const& secondReport = receiverReports.timestampedInteractionReports.back();
@@ -534,7 +534,7 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
+    "Embedded mixed default-region timestamped interactions respect FQR TARA and NMRA grant boundaries",
     "[integration][development-profile][interaction-management][ddm][time-management]"
     "[timestamped-default-region-interaction][default-region][tso][multi-federate-callback-ordering]"
     "[flush-queue-request]"
@@ -672,7 +672,7 @@ TEST_CASE(
   REQUIRE(taraReports.timestampedInteractionReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.front().value == L"7");
-  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"interaction", "grant"});
+  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"grant", "interaction"});
   REQUIRE(nmraReports.timestampedInteractionReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.front().value == L"7");

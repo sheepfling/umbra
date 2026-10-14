@@ -43,7 +43,7 @@ TEST_CASE(
   REQUIRE_NOTHROW(second->enableTimeConstrained());
   REQUIRE_FALSE(second->evokeCallback(0.0));
   REQUIRE(secondReports.timeConstrainedEnabledReports.size() == 1);
-  REQUIRE_NOTHROW(owner->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(10)));
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
   REQUIRE_FALSE(owner->evokeCallback(0.0));
   REQUIRE(ownerReports.timeRegulationEnabledReports.size() == 1);
 
@@ -55,25 +55,25 @@ TEST_CASE(
   REQUIRE(firstReports.initiateFederateSaveReports.empty());
   REQUIRE(secondReports.initiateFederateSaveReports.empty());
 
-  // Both constrained federates are now Time Advancing before either grant
-  // callback is dispatched. The first callback must occur before its own
-  // Time Advance Grant, but the non-constrained member must still wait for
-  // the second constrained member to reach the same boundary.
+  // Keep both constrained TARs above the initial GALT so neither grant nor
+  // save can begin before the second member has entered Time Advancing.
   REQUIRE_NOTHROW(first->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
   REQUIRE_NOTHROW(second->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
   static_cast<void>(first->evokeCallback(0.0));
   REQUIRE(firstReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
-  REQUIRE(firstReports.timeAdvanceGrantReports.size() == 1);
-  REQUIRE(firstReports.timeAdvanceGrantReports.back().value == L"5");
-  REQUIRE(firstReports.callbackOrder == std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(firstReports.timeAdvanceGrantReports.empty());
+  REQUIRE(firstReports.callbackOrder == std::vector<std::string>{"save-initiate"});
   REQUIRE(secondReports.initiateFederateSaveReports.empty());
   REQUIRE(ownerReports.initiateFederateSaveReports.empty());
 
+  static_cast<void>(owner->evokeCallback(0.0));
+  REQUIRE(ownerReports.initiateFederateSaveReports.empty());
+  REQUIRE(secondReports.initiateFederateSaveReports.empty());
+
   static_cast<void>(second->evokeCallback(0.0));
   REQUIRE(secondReports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
-  REQUIRE(secondReports.timeAdvanceGrantReports.size() == 1);
-  REQUIRE(secondReports.timeAdvanceGrantReports.back().value == L"5");
-  REQUIRE(secondReports.callbackOrder == std::vector<std::string>{"save-initiate", "grant"});
+  REQUIRE(secondReports.timeAdvanceGrantReports.empty());
+  REQUIRE(secondReports.callbackOrder == std::vector<std::string>{"save-initiate"});
   REQUIRE(ownerReports.initiateFederateSaveReports.empty());
 
   static_cast<void>(owner->evokeCallback(0.0));

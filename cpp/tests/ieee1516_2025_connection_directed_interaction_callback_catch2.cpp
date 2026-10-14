@@ -725,6 +725,8 @@ TEST_CASE(
             senderHandler,
             TransportServiceOperation::enable_time_regulation,
             "The public directed callback server lost sender time-regulation enable.");
+        umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+            serveExpected, sender, senderHandler);
       }
       serveExpected(
           sender,
@@ -896,8 +898,17 @@ TEST_CASE(
       // role through the official API before creating the timestamped
       // designator, and consume the Evoked callback when that callback model
       // is selected.
-      REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
-          rti1516_2025::HLAinteger64Interval(1)));
+      try {
+        senderRti->enableTimeRegulation(
+            rti1516_2025::HLAinteger64Interval(1));
+      } catch (rti1516_2025::Exception const& exception) {
+        auto const name = exception.name();
+        auto const detail = exception.what();
+        FAIL_CHECK(
+            "Enable Time Regulation threw "
+            << std::string(name.begin(), name.end()) << ": "
+            << std::string(detail.begin(), detail.end()));
+      }
       if (callbackModel == HLA_EVOKED) {
         REQUIRE_FALSE(senderRti->evokeCallback(0.0));
       }

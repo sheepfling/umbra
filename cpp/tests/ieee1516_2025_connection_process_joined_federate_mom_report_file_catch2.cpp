@@ -314,9 +314,9 @@ TEST_CASE(
   bool observerJoined = false;
   try {
     rti1516_2025::HLAnoCredentials credentials;
-    REQUIRE(subject->connect(
-                subjectFederate, HLA_IMMEDIATE, configuration, credentials)
-                .addressUsed);
+    auto const subjectConnectionResult = subject->connect(
+        subjectFederate, HLA_IMMEDIATE, configuration, credentials);
+    REQUIRE(subjectConnectionResult.addressUsed);
     subject->createFederationExecution(federationName, L"server-owned-fom.xml");
     REQUIRE(subject->joinFederationExecution(
                 subjectName,
@@ -485,7 +485,6 @@ TEST_CASE(
     REQUIRE(subject->getSendServiceReportsToFileSwitch());
     requestAndCheckStableReportPath(
         subjectReflection->objectInstance, advertisedPath.get());
-
     auto readFile = [](std::filesystem::path const& path) {
       std::ifstream stream(path, std::ios::binary);
       return std::string{
@@ -540,6 +539,14 @@ TEST_CASE(
                 "\"ConfigurationName\":\"public-process-joined-federate-mom-report-client\"") !=
             std::string::npos);
     REQUIRE(readFile(reportPath) == originalFileContents);
+    std::size_t reportFileCount = 0U;
+    for (auto const& entry : std::filesystem::directory_iterator(
+             reportPath.parent_path())) {
+      if (entry.is_regular_file()) {
+        ++reportFileCount;
+      }
+    }
+    REQUIRE(reportFileCount == 3U);
     requestAndCheckStableReportPath(
         rejoinedReflection.objectInstance, rejoinedAdvertisedPath.get());
 
@@ -581,11 +588,12 @@ TEST_CASE(
     }
   }
   if (listener) {
-    listener.reset();
+    listener->close();
   }
   if (server.joinable()) {
     server.join();
   }
+  listener.reset();
   if (clientError) {
     std::rethrow_exception(clientError);
   }

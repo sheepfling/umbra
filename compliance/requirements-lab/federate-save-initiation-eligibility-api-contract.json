@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "standard_sections": [
+    "hla-1516.1-2025:clause-4",
+    "hla-1516.1-2025:clause-4.1.2",
+    "hla-1516.1-2025:clause-4.19",
+    "hla-1516.1-2025:clause-4.19.6",
+    "hla-1516.1-2025:clause-4.20",
+    "hla-1516.1-2025:clause-8.1.7",
+    "hla-1516.1-2025:clause-8.8.3"
+  ],
+  "selected_requirements_lab_requirement_ids": [
+    "requirement-candidate-content-clauses-04-federation-management-page-042-l10-3",
+    "requirement-candidate-content-clauses-04-federation-management-page-043-l65-19",
+    "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24",
+    "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
+    "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
+    "requirement-candidate-content-clauses-08-time-management-page-178-l15-2",
+    "requirement-candidate-content-clauses-08-time-management-page-194-l21-3"
+  ],
+  "requirement_section_mappings": [
+    {
+      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-042-l10-3",
+      "standard_section": "hla-1516.1-2025:clause-4"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-043-l65-19",
+      "standard_section": "hla-1516.1-2025:clause-4.1.2"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24",
+      "standard_section": "hla-1516.1-2025:clause-4.19"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
+      "standard_section": "hla-1516.1-2025:clause-4.19.6"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
+      "standard_section": "hla-1516.1-2025:clause-4.20"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l15-2",
+      "standard_section": "hla-1516.1-2025:clause-8.1.7"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+      "standard_section": "hla-1516.1-2025:clause-8.8.3"
+    }
+  ],
+  "notes": "The portable C++ TCK covers untimed Request Federation Save through the public API with two time-constrained members and a non-time-constrained requester. Full-text §4.19 requires instruction as soon as possible; §4.19.6 gates the non-time-constrained group until all constrained members are eligible; §4.20 limits each constrained callback to that member's Time Advancing state; §8.1.7 defines the interval; and §8.8.3 forbids a TAR while that federate's save is in progress. Both constrained TARs are therefore accepted before the save begins. With targets above initial GALT, the TCK observes both Initiate callbacks while their members are Time Advancing and before any TAG; it then observes requester initiation after constrained eligibility. Clause 4.1.3 is explanatory, not separately mapped. The adapter supplies provider, FOM, endpoint, and logical-time configuration. Both callback models pass; these local results are not conformance evidence.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-save-initiation-eligibility",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador.requestFederationSave, FederateAmbassador.initiateFederateSave, RTIambassador.federateSaveBegun, and RTIambassador.federateSaveComplete",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador save services and FederateAmbassador callback declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp::scenarioFederateSaveInitiationEligibility",
+        "cpp/tests/ieee1516_2025_untimed_save_time_constrained_admission_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries"
+      ]
+    },
+    {
+      "id": "time-constrained-save-initiation-eligibility",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador.enableTimeRegulation, RTIambassador.enableTimeConstrained, RTIambassador.requestFederationSave, RTIambassador.timeAdvanceRequest, FederateAmbassador.initiateFederateSave and timeAdvanceGrant, RTIambassador.federateSaveBegun, and RTIambassador.federateSaveComplete",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 time-management and federation-save services and callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp::scenarioFederateSaveInitiationTimeConstrainedEligibility",
+        "cpp/tests/ieee1516_2025_untimed_save_time_constrained_admission_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries"
+      ]
+    }
+  ]
+}

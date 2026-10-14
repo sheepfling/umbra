@@ -20,6 +20,7 @@
 #include <set>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 #include <RTI/RTI1516.h>
 #include <RTI/NullFederateAmbassador.h>
@@ -39,6 +40,7 @@
 #include "internal/federation/process_transport.hpp"
 #include "internal/federation/process_transport_session.hpp"
 #include "process_public_service_fixture.hpp"
+#include "process_service_report_fixture.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
@@ -590,20 +592,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  auto response = handler(request);
-                  if (response.status != TransportServiceStatus::ok) {
-                    throw std::runtime_error(description);
-                  }
-                  return response;
-                })) {
-          throw std::runtime_error(description);
-        }
+        umbra::test::serveExpectedPrimaryProcessRequest(
+            session, handler, operation, description);
       };
 
       serveExpected(
@@ -700,79 +690,67 @@ TEST_CASE(
           receiverTwoHandler,
           TransportServiceOperation::subscribe_interaction_class,
           "The timestamped fanout process server lost receiver-two Subscribe.");
-      serveExpected(
-          sender,
-          senderHandler,
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, sender, senderHandler,
           TransportServiceOperation::enable_time_regulation,
-          "The timestamped fanout process server lost Enable Time Regulation.");
-      serveExpected(
-          receiverOne,
-          receiverOneHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The timestamped fanout process server lost sender Enable Time Regulation.");
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, receiverOne, receiverOneHandler,
           TransportServiceOperation::enable_time_constrained,
+          TransportServiceOperation::report_successful_void_service_invocation,
           "The timestamped fanout process server lost receiver-one Enable Time Constrained.");
-      serveExpected(
-          receiverTwo,
-          receiverTwoHandler,
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, receiverTwo, receiverTwoHandler,
           TransportServiceOperation::enable_time_constrained,
+          TransportServiceOperation::report_successful_void_service_invocation,
           "The timestamped fanout process server lost receiver-two Enable Time Constrained.");
 
       auto serveSend = [&](char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                sender, senderHandler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation !=
-                      TransportServiceOperation::send_interaction) {
-                    throw std::runtime_error(description);
-                  }
-                  auto response = senderHandler(request);
-                  if (response.status != TransportServiceStatus::ok) {
-                    throw std::runtime_error(description);
-                  }
-                  auto const result =
-                      umbra::detail::decodeProcessFederationSendInteractionResult(
-                          response.payload);
-                  recipientCount.fetch_add(
-                      result.recipientCount, std::memory_order_release);
-                  return response;
-                })) {
-          throw std::runtime_error(description);
-        }
+        umbra::test::serveExpectedPrimaryProcessRequest(
+            sender,
+            senderHandler,
+            TransportServiceOperation::send_interaction,
+            description,
+            [&](TransportServiceMessage const& response) {
+              auto const result =
+                  umbra::detail::decodeProcessFederationSendInteractionResult(
+                      response.payload);
+              recipientCount.fetch_add(
+                  result.recipientCount, std::memory_order_release);
+            });
       };
       serveSend("The timestamped fanout process server lost first Send Interaction.");
       serveSend("The timestamped fanout process server lost second Send Interaction.");
       serveSend("The timestamped fanout process server lost third Send Interaction.");
-      serveExpected(
-          receiverOne,
-          receiverOneHandler,
-          TransportServiceOperation::time_advance_request,
-          "The timestamped fanout process server lost receiver-one TAR.");
-      serveExpected(
-          receiverTwo,
-          receiverTwoHandler,
-          TransportServiceOperation::time_advance_request,
-          "The timestamped fanout process server lost receiver-two TAR.");
-      serveExpected(
-          sender,
-          senderHandler,
-          TransportServiceOperation::time_advance_request,
-          "The timestamped fanout process server lost sender TAR.");
-      for (auto const* receiverDescription : {
-               "The timestamped fanout process server lost receiver-one GALT.",
-               "The timestamped fanout process server lost receiver-one LITS."}) {
-        serveExpected(
-            receiverOne,
-            receiverOneHandler,
-            TransportServiceOperation::query_time_bounds,
-            receiverDescription);
+      for (auto const& receiver : {
+               std::pair{&receiverOne, &receiverOneHandler},
+               std::pair{&receiverTwo, &receiverTwoHandler}}) {
+        umbra::test::serveExpectedProcessServiceReportPair(
+            serveExpected, *receiver.first, *receiver.second,
+            TransportServiceOperation::time_advance_request,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The timestamped fanout process server lost a receiver TAR.");
       }
-      for (auto const* receiverDescription : {
-               "The timestamped fanout process server lost receiver-two GALT.",
-               "The timestamped fanout process server lost receiver-two LITS."}) {
-        serveExpected(
-            receiverTwo,
-            receiverTwoHandler,
-            TransportServiceOperation::query_time_bounds,
-            receiverDescription);
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, sender, senderHandler,
+          TransportServiceOperation::time_advance_request,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The timestamped fanout process server lost sender TAR.");
+      for (auto* receiver : {&receiverOne, &receiverTwo}) {
+        auto const& handler = receiver == &receiverOne
+                                  ? receiverOneHandler
+                                  : receiverTwoHandler;
+        for (auto const* boundDescription : {"GALT", "LITS"}) {
+          auto const description = std::string(
+              "The timestamped fanout process server lost receiver ") +
+              boundDescription + ".";
+          umbra::test::serveExpectedProcessServiceReportPair(
+              serveExpected, *receiver, handler,
+              TransportServiceOperation::query_time_bounds,
+              TransportServiceOperation::report_successful_service_invocation,
+              description.c_str());
+        }
       }
       serveExpected(
           receiverOne,
@@ -794,38 +772,35 @@ TEST_CASE(
           receiverTwoHandler,
           TransportServiceOperation::acknowledge_tso_delivery,
           "The timestamped fanout process server lost receiver-two second TSO acknowledgement.");
-      serveExpected(
-          receiverOne,
-          receiverOneHandler,
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, receiverOne, receiverOneHandler,
           TransportServiceOperation::time_advance_request,
+          TransportServiceOperation::report_successful_void_service_invocation,
           "The timestamped fanout process server lost receiver-one second TAR.");
-      serveExpected(
-          receiverTwo,
-          receiverTwoHandler,
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, receiverTwo, receiverTwoHandler,
           TransportServiceOperation::time_advance_request,
+          TransportServiceOperation::report_successful_void_service_invocation,
           "The timestamped fanout process server lost receiver-two second TAR.");
-      serveExpected(
-          sender,
-          senderHandler,
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, sender, senderHandler,
           TransportServiceOperation::time_advance_request,
+          TransportServiceOperation::report_successful_void_service_invocation,
           "The timestamped fanout process server lost sender second TAR.");
-      for (auto const* receiverDescription : {
-               "The timestamped fanout process server lost receiver-one second GALT.",
-               "The timestamped fanout process server lost receiver-one second LITS."}) {
-        serveExpected(
-            receiverOne,
-            receiverOneHandler,
-            TransportServiceOperation::query_time_bounds,
-            receiverDescription);
-      }
-      for (auto const* receiverDescription : {
-               "The timestamped fanout process server lost receiver-two second GALT.",
-               "The timestamped fanout process server lost receiver-two second LITS."}) {
-        serveExpected(
-            receiverTwo,
-            receiverTwoHandler,
-            TransportServiceOperation::query_time_bounds,
-            receiverDescription);
+      for (auto* receiver : {&receiverOne, &receiverTwo}) {
+        auto const& handler = receiver == &receiverOne
+                                  ? receiverOneHandler
+                                  : receiverTwoHandler;
+        for (auto const* bound : {"GALT", "LITS"}) {
+          auto const description = std::string(
+              "The timestamped fanout process server lost second receiver ") +
+              bound + ".";
+          umbra::test::serveExpectedProcessServiceReportPair(
+              serveExpected, *receiver, handler,
+              TransportServiceOperation::query_time_bounds,
+              TransportServiceOperation::report_successful_service_invocation,
+              description.c_str());
+        }
       }
       serveExpected(
           receiverOne,

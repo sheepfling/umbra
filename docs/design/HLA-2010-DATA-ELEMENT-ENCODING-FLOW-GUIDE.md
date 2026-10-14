@@ -97,11 +97,88 @@ The implementation details stay in separate 2010 translation units:
 [variant records](../../cpp/src/ieee1516_2010_variant_record.cpp#L269).
 The relevant observed cases are grouped in the [2010 composite smoke test](../../cpp/tests/ieee1516_2010_composite_encoding_smoke.cpp#L53).
 
+### Decoding follows the composite shape and validates its placement
+
+The public full-buffer `decode()` calls a shape-specific cursor decoder, then
+rejects any bytes left over. The 2010 source has distinct validation branches
+for the count-prefixed variable array, field/element padding, and a variant
+whose discriminant is not mapped. The diagram is source-derived profile
+behavior; the smoke assertions below are narrower than every branch shown.
+
+```mermaid
+flowchart TB
+  subgraph SHAPES["Choose the configured composite shape"]
+    direction TB
+    subgraph FIXED_ARRAY["Fixed array"]
+      direction LR
+      FA_COUNT["Use configured element count"] --> FA_DECODE["Decode slots in order"] --> FA_PADDING["Check zero padding between slots"]
+    end
+    subgraph VARIABLE_ARRAY["Variable array"]
+      direction LR
+      VA_COUNT["Read signed 32-bit BE count"] --> VA_NEGATIVE{"Count negative?"}
+      VA_NEGATIVE -->|Yes| VA_ERROR["EncoderException"]
+      VA_NEGATIVE -->|No| VA_ZERO{"Count zero?"}
+      VA_ZERO -->|Yes| VA_DONE["Finish after count prefix"]
+      VA_ZERO -->|No| VA_ITEMS["Validate leading alignment;<br/>decode elements and check zero padding"]
+    end
+    subgraph FIXED_RECORD["Fixed record"]
+      direction LR
+      FR_FIELDS["Decode fields in declared order"] --> FR_PADDING["Check zero padding before each next field"]
+    end
+    subgraph VARIANT_RECORD["Variant record"]
+      direction LR
+      VR_DISC["Decode discriminant"] --> VR_MAPPED{"Alternative mapped?"}
+      VR_MAPPED -->|No| VR_UNKNOWN["Consume discriminant only"]
+      VR_MAPPED -->|Yes| VR_ALT["Validate placement padding;<br/>decode selected alternative"]
+    end
+  end
+```
+
+The public full-buffer decode methods require the cursor to consume the entire
+input; leftover bytes throw `EncoderException`. Truncated elements/fields and
+invalid padding also throw. For a variable array, the zero-count path stops
+after the count prefix without element-placement padding. For an unmapped
+variant discriminant, the cursor stops after the discriminant, so extra bytes
+are rejected by the full-buffer check.
+
+The composite smoke source round-trips a fixed array and checks the decoded
+element's encoded length; it round-trips a variable array and checks its
+decoded count; and it rejects a fixed record with nonzero inter-field padding.
+Those assertions do not cover negative variable-array counts, truncated
+composite components, trailing bytes, or decoding an unmapped variant
+discriminant. Those latter branches are visible in the separate 2010 sources
+([fixed array decode](../../cpp/src/ieee1516_2010_fixed_array.cpp#L193),
+[variable array decode](../../cpp/src/ieee1516_2010_variable_array.cpp#L234),
+[fixed record decode](../../cpp/src/ieee1516_2010_fixed_record.cpp#L160),
+[variant record decode](../../cpp/src/ieee1516_2010_variant_record.cpp#L294)),
+not independently asserted by this smoke test.
+
 ## Keep the edition boundary explicit
 
 The 2010 basic-element wrappers, composite translation units, and smoke tests
 are distinct from the 2025 ones. Both streams call the same small
 [unsigned-octet byte-order primitive](../../cpp/src/internal/encoding/byte_order.hpp#L15),
-but a common low-level helper is not evidence of API or composite parity. Keep
-changes and explanations edition-scoped, and consult the [separate 2025 guide](HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md)
-for its own sources and focused tests.
+but a common low-level helper is not evidence of API or composite parity.
+There is also a narrowly shared internal composite layer: the separate
+[`composite_2010.hpp`](../../cpp/src/internal/encoding/composite_2010.hpp)
+and [`composite_2025.hpp`](../../cpp/src/internal/encoding/composite_2025.hpp)
+adapters import checked-size, range, and padding helpers from
+[`composite_primitives.hpp`](../../cpp/src/internal/encoding/composite_primitives.hpp).
+The 2010 codecs call those operations through the 2010 namespace; their codec
+translation units and smoke assertions remain edition-specific. This shared
+type-free utility does not establish composite-format parity. Keep changes and
+explanations edition-scoped, and consult the [separate 2025 guide](HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md)
+for its own sources and focused tests. In particular, do not project its
+`HLAextendableVariantRecord`, `HLAlogicalTime`, or
+`HLAlogicalTimeInterval` DataElement wrappers backward into the 2010 encoding
+API. The 2010 [`LogicalTime`](../../third_party/ieee1516.1-2010/include/RTI/LogicalTime.h),
+[`LogicalTimeInterval`](../../third_party/ieee1516.1-2010/include/RTI/LogicalTimeInterval.h),
+and [`LogicalTimeFactory`](../../third_party/ieee1516.1-2010/include/RTI/LogicalTimeFactory.h)
+interfaces are separate API surfaces, not those 2025 DataElement wrappers.
+
+The pinned 2010 [`DataElement` declaration](../../third_party/ieee1516.1-2010/include/RTI/encoding/DataElement.h#L36)
+also makes its C++ ownership/signature boundary explicit: `clone()` returns
+`std::auto_ptr<DataElement>`, and full-buffer `decode()` returns `void`. The
+2025 companion records the separate 2025 declaration. These method signatures
+do not select or prove an encoded value format; the byte-layout observations
+above are specific to the 2010 implementation and smoke cases.

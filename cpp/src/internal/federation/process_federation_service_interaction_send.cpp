@@ -611,6 +611,16 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
       }
     }
   }
+  if (messageId != 0U && queueTimestampedInteraction) {
+    auto const scheduled = registry_.reevaluateTimeAdvanceGrants(
+        sendRequest.federationName);
+    if (scheduled.status != FederationTimeGrantStatus::applied) {
+      return internalError(request);
+    }
+    dispatchTimeAdvanceGrants(
+        sendRequest.federationName,
+        std::move(scheduled.dispatches));
+  }
   return responseFor(
       request,
       TransportServiceStatus::ok,
@@ -893,6 +903,16 @@ TransportServiceMessage ProcessFederationService::handleSendDirectedInteraction(
         return internalError(request);
       }
     }
+  }
+  if (messageId != 0U && queueTimestampedDirectedInteraction) {
+    auto const scheduled = registry_.reevaluateTimeAdvanceGrants(
+        sendRequest.federationName);
+    if (scheduled.status != FederationTimeGrantStatus::applied) {
+      return internalError(request);
+    }
+    dispatchTimeAdvanceGrants(
+        sendRequest.federationName,
+        std::move(scheduled.dispatches));
   }
   return responseFor(
       request,

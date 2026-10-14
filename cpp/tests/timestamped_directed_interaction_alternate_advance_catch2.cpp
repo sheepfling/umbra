@@ -162,7 +162,7 @@ std::unique_ptr<RTIambassador> makeRti() {
 }  // namespace
 
 TEST_CASE(
-    "Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+    "Embedded timestamped directed interaction respects FQR TARA and NMRA grant boundaries",
     "[integration][development-profile][interaction-management][directed][time-management]"
     "[timestamped-directed-interaction][tso][flush-queue-request]"
     "[time-advance-request-available][next-message-request-available]"
@@ -314,7 +314,7 @@ TEST_CASE(
   REQUIRE(taraReports.directedInteractionReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.front().value == L"7");
-  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"directed", "grant"});
+  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"grant", "directed"});
   REQUIRE(nmraReports.directedInteractionReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.front().value == L"7");

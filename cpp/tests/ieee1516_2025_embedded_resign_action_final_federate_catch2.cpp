@@ -5,7 +5,8 @@ TEST_CASE(
     "Embedded final-federate resignation applies directive two regardless of the supplied action",
     "[integration][development-profile][federation-management][object-management]"
     "[resign-action-final-federate]"
-    "[rti.service.resign-federation-execution][federate.callback.object-instance-name-reservation-succeeded]") {
+    "[rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.object-instance-name-reservation-succeeded]") {
   ReportingFederateAmbassador ownerReports;
   auto owner = makeRti();
   auto const federationName = nextFederationName();

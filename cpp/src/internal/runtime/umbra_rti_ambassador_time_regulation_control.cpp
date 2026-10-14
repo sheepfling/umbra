@@ -63,6 +63,11 @@ void UmbraRtiAmbassador::enableTimeRegulation(LogicalTimeInterval const& lookahe
       throw InvalidLookahead(
           L"The requested lookahead cannot be encoded by the selected implementation.");
     }
+    auto const reportLookaheadArgument = umbra::detail::MomServiceArgument{
+        umbra::detail::MomArgumentType::logical_time_interval,
+        L"Lookahead",
+        umbra::detail::formatMomLogicalTimeInterval(lookahead),
+    };
 
     umbra::detail::ProcessFederationEnableTimeRegulationResult processResult;
     try {
@@ -90,6 +95,11 @@ void UmbraRtiAmbassador::enableTimeRegulation(LogicalTimeInterval const& lookahe
         } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
           throw RTIinternalError(wideAscii(error.what()));
         }
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"EnableTimeRegulation",
+            umbra::detail::MomServiceType::time_management,
+            {reportLookaheadArgument},
+            true);
         return;
       case umbra::detail::ProcessFederationTimeEnableStatus::time_advance_pending:
         throw InTimeAdvancingState(
@@ -280,6 +290,11 @@ void UmbraRtiAmbassador::disableTimeRegulation() {
     }
     switch (processResult.status) {
       case umbra::detail::ProcessFederationTimeDisableStatus::applied:
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"DisableTimeRegulation",
+            umbra::detail::MomServiceType::time_management,
+            {},
+            true);
         return;
       case umbra::detail::ProcessFederationTimeDisableStatus::not_enabled:
         throw TimeRegulationIsNotEnabled(

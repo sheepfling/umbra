@@ -1377,5 +1377,8 @@ int main(int argc, char** argv) {
   } catch (std::exception const& error) {
     std::cerr << error.what() << '\n';
     return 1;
+  } catch (rti1516_2025::Exception const& error) {
+    std::wcerr << error.name() << L": " << error.what() << L'\n';
+    return 1;
   }
 }

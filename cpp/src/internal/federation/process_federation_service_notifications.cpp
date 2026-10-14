@@ -221,15 +221,27 @@ bool ProcessFederationService::enqueueSynchronizationPointAnnouncements(
             planned.userSuppliedTag.begin(), planned.userSuppliedTag.end())};
     if (options_.pushReceiveOrderEvents) {
       pushedEvents.emplace_back(receivingSession, std::move(event));
+      if (options_.failAfterSynchronizationPointAnnouncementQueuedForTesting &&
+          options_.failAfterSynchronizationPointAnnouncementQueuedForTesting(
+              planned.label)) {
+        return false;
+      }
       continue;
     }
-    std::scoped_lock lock(mutex_);
-    auto const state = sessions_.find(receivingSession);
-    if (state != sessions_.end() && state->second.federationName.has_value() &&
-        *state->second.federationName == federationName &&
-        state->second.federateId == planned.receivingFederateId) {
-      state->second.synchronizationPointAnnouncementEvents.push_back(
-          std::move(event));
+    {
+      std::scoped_lock lock(mutex_);
+      auto const state = sessions_.find(receivingSession);
+      if (state != sessions_.end() && state->second.federationName.has_value() &&
+          *state->second.federationName == federationName &&
+          state->second.federateId == planned.receivingFederateId) {
+        state->second.synchronizationPointAnnouncementEvents.push_back(
+            std::move(event));
+      }
+    }
+    if (options_.failAfterSynchronizationPointAnnouncementQueuedForTesting &&
+        options_.failAfterSynchronizationPointAnnouncementQueuedForTesting(
+            planned.label)) {
+      return false;
     }
   }
   if (!options_.pushReceiveOrderEvents) {

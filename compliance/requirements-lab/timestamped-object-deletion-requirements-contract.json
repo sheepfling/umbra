@@ -13,7 +13,7 @@
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoObjectDeletion",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
-        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_tar_nmr_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before TAR and NMR grants",
         "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded timed federation restore restores a live timestamped object deletion at the save boundary",
         "cpp/tests/timestamped_remove_object_instance_service_report_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
@@ -29,7 +29,7 @@
       "source_symbol": "EmbeddedFederationRegistry::planTsoObjectInstanceDeletion",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
-        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time"
       ]
@@ -42,7 +42,7 @@
       "source_symbol": "EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
-        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded timed federation restore restores a live timestamped object deletion at the save boundary",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time",
@@ -67,7 +67,7 @@
       "source_symbol": "UmbraRtiAmbassador::deleteObjectInstance",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
-        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_tar_nmr_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before TAR and NMR grants",
         "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded timed federation restore restores a live timestamped object deletion at the save boundary",
         "cpp/tests/timestamped_remove_object_instance_service_report_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
@@ -83,7 +83,7 @@
       "source_symbol": "recipient.removeObjectInstance",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
-        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded timed federation restore restores a live timestamped object deletion at the save boundary",
         "cpp/tests/timestamped_remove_object_instance_service_report_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
@@ -99,7 +99,7 @@
       "source_symbol": "queueTimestampedObjectInstanceRemoval",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
-        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_tar_nmr_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before TAR and NMR grants",
         "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded timed federation restore restores a live timestamped object deletion at the save boundary",
         "cpp/tests/timestamped_remove_object_instance_service_report_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
@@ -116,7 +116,7 @@
       "source_symbol": "recipient.removeObjectInstance",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
-        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_tar_nmr_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before TAR and NMR grants",
         "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded timed federation restore restores a live timestamped object deletion at the save boundary",
         "cpp/tests/timestamped_remove_object_instance_service_report_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
@@ -133,7 +133,7 @@
       "source_symbol": "EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
-        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants"
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance respects FQR TARA and NMRA grant boundaries"
       ]
     },
     {

@@ -32,9 +32,11 @@ EXPECTED_ADAPTER_MANAGED_SKIPS = {
 }
 STANDARD_HEADERS = {
     "algorithm",
+    "atomic",
     "chrono",
     "cmath",
     "condition_variable",
+    "cstddef",
     "cstdint",
     "cstdlib",
     "exception",
@@ -54,7 +56,60 @@ STANDARD_HEADERS = {
     "string",
     "thread",
     "type_traits",
+    "utility",
     "vector",
+}
+LOCAL_TCK_HEADERS = {
+    "pending_negotiated_restore_tck.hpp",
+    "service_report_creation_failure_tck.hpp",
+    "tck_harness.hpp",
+    "tck_data_encoding.hpp",
+    "tck_api_foundation.hpp",
+    "tck_configuration_authorization.hpp",
+    "tck_federation_mom_save_conditionals.hpp",
+    "tck_federation_mom_save_status.hpp",
+    "tck_factory_identity.hpp",
+    "tck_timestamped_interaction_boundary_scenarios.hpp",
+    "tck_joined_federate_mom_state_save_restore.hpp",
+    "tck_joined_federate_mom_galt_lits_periodic.hpp",
+    "tck_joined_federate_mom_tso_length_periodic.hpp",
+    "tck_joined_federate_mom_removed_object_count.hpp",
+    "tck_joined_federate_mom_updates_sent_counts.hpp",
+    "tck_joined_federate_mom_updates_sent_mim_attribute.hpp",
+    "tck_joined_federate_mom_object_instances_updated_mim_attribute.hpp",
+    "tck_joined_federate_mom_object_instances_reflected_mim_attribute.hpp",
+    "tck_joined_federate_mom_reflections_received_mim_attribute.hpp",
+    "tck_joined_federate_mom_object_instances_discovered_mim_attribute.hpp",
+    "tck_joined_federate_mom_object_instances_removed_mim_attribute.hpp",
+    "tck_joined_federate_mom_object_instances_deleted_mim_attribute.hpp",
+    "tck_joined_federate_mom_object_lifecycle.hpp",
+    "tck_joined_federate_mom_deletable_object_report.hpp",
+    "tck_joined_federate_mom_updated_object_report.hpp",
+    "tck_joined_federate_mom_updated_timestamped_object_report.hpp",
+    "tck_joined_federate_mom_updated_multi_class_object_report.hpp",
+    "tck_joined_federate_mom_updated_null_object_report.hpp",
+    "tck_joined_federate_mom_reflected_null_object_report.hpp",
+    "tck_joined_federate_mom_reflected_object_report.hpp",
+    "tck_joined_federate_mom_reflected_timestamped_object_report.hpp",
+    "tck_joined_federate_mom_reflected_multi_class_object_report.hpp",
+    "tck_joined_federate_mom_deletable_object_count.hpp",
+    "tck_receive_order_attribute_update.hpp",
+    "tck_joined_federate_mom_interactions_received_counts.hpp",
+    "tck_joined_federate_mom_directed_interactions_received_counts.hpp",
+    "tck_joined_federate_mom_interactions_sent_counts.hpp",
+    "tck_joined_federate_mom_directed_interactions_sent_counts.hpp",
+    "tck_mom_transportation_type_change_request.hpp",
+    "tck_joined_federate_mom_reflection_counts.hpp",
+    "tck_joined_federate_mom_updated_object_count_periodic.hpp",
+    "tck_joined_federate_mom_discovered_object_count_periodic.hpp",
+    "tck_joined_federate_mom_deleted_object_count_periodic.hpp",
+    "tck_joined_federate_mom_time_state_durations.hpp",
+    "tck_order_type_controls.hpp",
+    "tck_joined_federate_mom_reflections_received_counts.hpp",
+    "tck_main_scenarios.hpp",
+    "tck_region_lifecycle_scenarios.hpp",
+    "tck_logical_time.hpp",
+    "tck_options.hpp",
 }
 OFFICIAL_API_HEADERS = {
     "RTI/Enums.h",
@@ -240,7 +295,10 @@ def validate_sources() -> list[str]:
             delimiter, include = match.groups()
             if (
                 delimiter == '"'
-                and not (path.name == "portable_tck.cpp" and include == "main.cpp")
+                and not (
+                    (path.name == "portable_tck.cpp" and include == "main.cpp")
+                    or include in LOCAL_TCK_HEADERS
+                )
             ):
                 findings.append(f"portable C++ TCK uses a local include at {path}:{line_number}: {include}")
             elif (

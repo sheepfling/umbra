@@ -1,4 +1,5 @@
 #include "internal/federation/federation_registry.hpp"
+#include "internal/observability/runtime_instrumentation.hpp"
 #include "internal/federation/federation_registry_constants.hpp"
 #include "internal/federation/federation_registry_value_helpers.hpp"
 #include "internal/federation/federation_state_image.hpp"
@@ -95,6 +96,19 @@ EmbeddedFederationRegistry::EmbeddedFederationRegistry(
       saveCommitStore_(
           saveCommitStore ? std::move(saveCommitStore)
                           : std::make_shared<MemoryFederationSaveCommitStore>()) {}
+
+bool EmbeddedFederationRegistry::configureSaveCommitStoreBeforeFederations(
+    std::shared_ptr<FederationSaveCommitStore> saveCommitStore) {
+  if (!saveCommitStore) {
+    return false;
+  }
+  std::scoped_lock lock(mutex_);
+  if (!federations_.empty()) {
+    return false;
+  }
+  saveCommitStore_ = std::move(saveCommitStore);
+  return true;
+}
 
 RuntimeInstrumentationSnapshot
 EmbeddedFederationRegistry::runtimeInstrumentationSnapshotForTesting() const {

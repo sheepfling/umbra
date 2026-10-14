@@ -14,19 +14,23 @@ test fixture, or a different RTI. That separation is the feature we protect.
 
 ### Frontend
 
-The frontend is the browser dashboard:
+The maintained frontend is the browser dashboard package:
 
 ```text
-packages/umbra-rti-observer/src/umbra_rti_observer/static/dashboard.html
+packages/umbra-rti-observer-ui/src/
 ```
+
+It is React and TypeScript. The old single-file dashboard at
+`packages/umbra-rti-observer/src/umbra_rti_observer/static/dashboard.html`
+remains as a zero-build fallback for small deployments.
 
 It contains the visual layout, CSS, and browser JavaScript. Its job is to:
 
 1. Discover which observer contract the server supports.
 2. Request a state snapshot.
 3. Listen for new events.
-4. Render generic metrics, participants, objects, interactions, and event
-   history.
+4. Render generic metrics, participants, objects, interactions, charts, and
+   event history.
 
 The frontend must not import an RTI library, parse a FOM, call a Python
 callback class, or understand a Java object. It only understands JSON fields
@@ -46,10 +50,30 @@ The backend's job is to:
 1. Receive normalized events from an adapter or another producer.
 2. Keep bounded history and live inspector state.
 3. Expose the versioned HTTP and streaming contract.
-4. Serve the static dashboard file.
+4. Serve the built React dashboard, or fall back to the zero-build dashboard.
 
 The backend is not required to be Python. The Python service is simply the
 first implementation.
+
+The FastAPI layer has named, strict Pydantic models at its edge. For example,
+`EventBatchRequest` validates the batch shape before calling
+`ObserverStore.publish_many`, and `StateResponse` validates the snapshot on
+the way out. Event and capability extensions have an explicit `extensions`
+field inside the Python model; serialization flattens that field so the
+browser keeps the existing contract. This is separate from the core typed
+records: Pydantic protects the HTTP boundary, while the core remains usable
+without FastAPI or Pydantic. The browser therefore sees the same contract
+whether the producer behind it is Python, Java, or a limited RTI with only a
+subset of capabilities.
+
+### The Python boundary in one sentence
+
+The adapter may receive provider-shaped values, but `ObserverStore` does not
+store arbitrary nested dictionaries. It stores typed observer records and only
+turns them into JSON objects when returning a snapshot, event page, or stream
+message. This is why replacing the Python backend with Java does not require
+the dashboard to learn Python types—and why changes to the Python internals
+should preserve the existing JSON contract.
 
 ## 2. The complete flow
 
@@ -128,10 +152,11 @@ The full protocol is in [CONTRACT.md](CONTRACT.md).
 
 ### Step 5: the frontend renders the result
 
-The browser's `ObserverTransport` handles URLs, contract discovery, snapshot
-loading, WebSocket connection, reconnect state, and stream messages. The
-rendering code consumes the returned contract fields and does not care which
-language produced them.
+The browser's `ObserverClient` and `useObserver` hook handle URLs, contract
+discovery, snapshot loading, WebSocket connection, polling fallback, and
+stream messages. The rendering code consumes generated OpenAPI types and does
+not care which language produced them. `LiveCharts` derives generic series
+from the event stream; it does not require RTI-specific chart data.
 
 ## 3. The contract in plain language
 
@@ -250,6 +275,19 @@ http://127.0.0.1:8765/
 The demo is intentionally provider-neutral. It proves that the frontend can
 work before an RTI adapter exists.
 
+For the maintained React dashboard, run the backend first and then from
+`packages/umbra-rti-observer-ui`:
+
+```powershell
+pnpm install
+pnpm generate:api
+pnpm dev
+```
+
+The Vite server proxies `/api` and `/ws` to the Python backend. For a
+production build, run `pnpm build` and set `UMBRA_OBSERVER_UI_DIST` to the
+resulting `dist` directory; FastAPI will serve it at `/`.
+
 For a quick manual check, inspect these URLs:
 
 ```text
@@ -274,9 +312,9 @@ Java RTI callbacks -> Java adapter -> POST /api/events -> Python observer -> das
 
 ### Replace the backend too
 
-Keep the dashboard file unchanged. Implement the contract in the Java server:
+Keep the built React dashboard unchanged. Implement the contract in the Java server:
 
-1. Serve the static `dashboard.html`.
+1. Serve the built React dashboard (or the zero-build fallback).
 2. Implement `GET /api/contract`.
 3. Implement `GET /api/state`.
 4. Implement `GET /api/events` with cursor and gap metadata.
@@ -360,5 +398,6 @@ Before changing the frontend or backend contract:
 5. Update capability declarations if the feature surface changed.
 6. Verify the dashboard with the demo backend and an intentionally limited
    capability manifest.
-7. If the change is breaking, create a new contract version instead of
+7. Refresh the generated TypeScript API snapshot and run the React typecheck.
+8. If the change is breaking, create a new contract version instead of
    silently changing the old one.

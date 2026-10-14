@@ -26,41 +26,52 @@ final class SupportServicesTck {
    private SupportServicesTck() {
    }
 
-   static void run(RtiFactory factory, String fom, String timeImplementation,
-         String objectClassName, String attributeName, String interactionClassName,
-         String parameterName, String dimensionName) throws Exception {
-      RTIambassador unjoined = factory.getRtiAmbassador();
-      RTIambassador member = factory.getRtiAmbassador();
-      FederateAmbassador unjoinedCallbacks = noOpFederateAmbassador();
-      FederateAmbassador memberCallbacks = noOpFederateAmbassador();
-      String federation = "java-tck-support-" + UUID.randomUUID();
-      boolean unjoinedConnected = false;
-      boolean memberConnected = false;
-      boolean joined = false;
-      boolean created = false;
+   static void lifecycle(RtiFactory factory, CallbackModel callbackModel,
+         String objectClassName, String interactionClassName, String dimensionName)
+         throws Exception {
+      RTIambassador ambassador = factory.getRtiAmbassador();
+      boolean connected = false;
       try {
-         JavaTckSupport.expectFailure(
-            () -> unjoined.getOrderType("Receive"),
-            "NotConnected", "order lookup before connect");
-         JavaTckSupport.expectFailure(
-            () -> unjoined.getTransportationTypeHandle("HLAreliable"),
-            "NotConnected", "transportation lookup before connect");
-
-         unjoined.connect(unjoinedCallbacks, CallbackModel.HLA_EVOKED);
-         unjoinedConnected = true;
-         JavaTckSupport.expectFailure(
-            () -> unjoined.getOrderType("Receive"),
-            "FederateNotExecutionMember", "order lookup before joining");
+         assertLookupLifecycle(ambassador, "NotConnected", "before connect",
+            objectClassName, interactionClassName, dimensionName);
+         ambassador.connect(noOpFederateAmbassador(), callbackModel);
+         connected = true;
+         assertLookupLifecycle(ambassador, "FederateNotExecutionMember",
+            "after connect before join", objectClassName, interactionClassName,
+            dimensionName);
          // Handle factories are part of the connected support surface on some
          // providers and the joined surface on others.  Their required
          // lifecycle behavior is asserted below through decode, after a
          // concrete handle has been obtained.
-         JavaTckSupport.check(unjoined.getFederateHandleFactory() != null,
+         JavaTckSupport.check(ambassador.getFederateHandleFactory() != null,
             "federate handle factory was unavailable after connection");
+      } finally {
+         if (connected) {
+            try {
+               ambassador.disconnect();
+            } catch (Exception ignored) {
+            }
+         }
+      }
+   }
 
-         member.connect(memberCallbacks, CallbackModel.HLA_EVOKED);
+   static void run(RtiFactory factory, String fom, String mim, String timeImplementation,
+         String objectClassName, String attributeName, String interactionClassName,
+         String parameterName, String dimensionName, CallbackModel callbackModel)
+         throws Exception {
+      RTIambassador member = factory.getRtiAmbassador();
+      FederateAmbassador memberCallbacks = noOpFederateAmbassador();
+      String federation = "java-tck-support-" + UUID.randomUUID();
+      boolean memberConnected = false;
+      boolean joined = false;
+      boolean created = false;
+      try {
+         lifecycle(factory, callbackModel, objectClassName, interactionClassName,
+            dimensionName);
+         member.connect(memberCallbacks, callbackModel);
          memberConnected = true;
-         member.createFederationExecution(federation, fom, timeImplementation);
+         member.createFederationExecutionWithMIM(federation, new String[] {fom}, mim,
+            timeImplementation);
          created = true;
          FederateHandle federate = member.joinFederationExecution(
             "java-tck-support", federation);
@@ -85,6 +96,32 @@ final class SupportServicesTck {
          JavaTckSupport.check(dimension != null && dimension.encodedLength() > 0,
             "dimension support lookup returned an invalid handle");
 
+         JavaTckSupport.expectFailure(
+            () -> member.getFederateHandle(uniqueMissingName("JavaTckMissingFederate")),
+            "NameNotFound", "unknown federate name was accepted");
+         JavaTckSupport.expectFailure(
+            () -> member.getObjectClassHandle(
+               uniqueMissingName("HLAobjectRoot.JavaTckMissingObject")),
+            "NameNotFound", "unknown object-class name was accepted");
+         JavaTckSupport.expectFailure(
+            () -> member.getObjectInstanceHandle(uniqueMissingName("JavaTckMissingObject")),
+            "ObjectInstanceNotKnown", "unknown object-instance name was accepted");
+         JavaTckSupport.expectFailure(
+            () -> member.getInteractionClassHandle(
+               uniqueMissingName("HLAinteractionRoot.JavaTckMissingInteraction")),
+            "NameNotFound", "unknown interaction-class name was accepted");
+         JavaTckSupport.expectFailure(
+            () -> member.getAttributeHandle(objectClass,
+               uniqueMissingName("JavaTckMissingAttribute")),
+            "NameNotFound", "unknown attribute name was accepted");
+         JavaTckSupport.expectFailure(
+            () -> member.getParameterHandle(interactionClass,
+               uniqueMissingName("JavaTckMissingParameter")),
+            "NameNotFound", "unknown parameter name was accepted");
+         JavaTckSupport.expectFailure(
+            () -> member.getUpdateRateValue(uniqueMissingName("JavaTckMissingRate")),
+            "InvalidUpdateRateDesignator", "unknown update-rate designator was accepted");
+
          OrderType receive = member.getOrderType("Receive");
          OrderType timestamp = member.getOrderType("TimeStamp");
          JavaTckSupport.check(receive == OrderType.RECEIVE,
@@ -96,7 +133,7 @@ final class SupportServicesTck {
          JavaTckSupport.check("TimeStamp".equals(member.getOrderName(timestamp)),
             "TIMESTAMP order name did not round-trip");
          JavaTckSupport.expectFailure(
-            () -> member.getOrderType("JavaTckMissingOrder"),
+            () -> member.getOrderType(uniqueMissingName("JavaTckMissingOrder")),
             "InvalidOrderName", "unknown order name was accepted");
 
          TransportationTypeHandle reliable =
@@ -113,7 +150,8 @@ final class SupportServicesTck {
             member.getTransportationTypeName(bestEffort)),
             "HLAbestEffort name did not round-trip");
          JavaTckSupport.expectFailure(
-            () -> member.getTransportationTypeHandle("JavaTckMissingTransportation"),
+            () -> member.getTransportationTypeHandle(
+               uniqueMissingName("JavaTckMissingTransportation")),
             "InvalidTransportationName", "unknown transportation name was accepted");
 
          JavaTckSupport.check(dimensionName.equals(member.getDimensionName(dimension)),
@@ -230,13 +268,46 @@ final class SupportServicesTck {
             } catch (Exception ignored) {
             }
          }
-         if (unjoinedConnected) {
-            try {
-               unjoined.disconnect();
-            } catch (Exception ignored) {
-            }
-         }
       }
+   }
+
+   private static void assertLookupLifecycle(RTIambassador ambassador,
+         String expectedException, String phase, String objectClassName,
+         String interactionClassName, String dimensionName) throws Exception {
+      JavaTckSupport.expectFailure(
+         () -> ambassador.getFederateHandle(uniqueMissingName("JavaTckMissingFederate")),
+         expectedException, "federate lookup " + phase);
+      JavaTckSupport.expectFailure(
+         () -> ambassador.getObjectClassHandle(objectClassName),
+         expectedException, "object-class lookup " + phase);
+      JavaTckSupport.expectFailure(
+         () -> ambassador.getObjectInstanceHandle(uniqueMissingName("JavaTckMissingObject")),
+         expectedException, "object-instance lookup " + phase);
+      JavaTckSupport.expectFailure(
+         () -> ambassador.getInteractionClassHandle(interactionClassName),
+         expectedException, "interaction-class lookup " + phase);
+      JavaTckSupport.expectFailure(
+         () -> ambassador.getDimensionHandle(dimensionName),
+         expectedException, "dimension lookup " + phase);
+      JavaTckSupport.expectFailure(
+         () -> ambassador.getOrderType("Receive"),
+         expectedException, "order-type lookup " + phase);
+      JavaTckSupport.expectFailure(
+         () -> ambassador.getOrderName(OrderType.RECEIVE),
+         expectedException, "order-name lookup " + phase);
+      JavaTckSupport.expectFailure(
+         () -> ambassador.getTransportationTypeHandle("HLAreliable"),
+         expectedException, "transportation lookup " + phase);
+      JavaTckSupport.expectFailure(
+         () -> ambassador.normalizeServiceGroup(ServiceGroup.SUPPORT_SERVICES),
+         expectedException, "service-group normalization " + phase);
+      JavaTckSupport.expectFailure(
+         () -> ambassador.getUpdateRateValue(JavaTckSupport.updateRateName()),
+         expectedException, "update-rate lookup " + phase);
+   }
+
+   private static String uniqueMissingName(String prefix) {
+      return prefix + UUID.randomUUID().toString().replace("-", "");
    }
 
    private static void assertHandleRoundTrip(HandleDecoder decoder, int length,

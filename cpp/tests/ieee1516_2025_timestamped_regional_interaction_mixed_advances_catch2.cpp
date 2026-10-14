@@ -1,7 +1,7 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
 TEST_CASE(
-    "Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+    "Embedded mixed regional TSO advances respect FQR TARA and NMRA grant boundaries",
     "[integration][development-profile][interaction-management][ddm][time-management]"
     "[timestamped-regional-interaction][tso][flush-queue-request]"
     "[time-advance-request-available][next-message-request-available]"
@@ -94,8 +94,9 @@ TEST_CASE(
   REQUIRE(nmraReports.timestampedInteractionReports.empty());
 
   // All three constrained members see the same regional TSO frontier. FQR
-  // uses request 10, TARA reaches 7 inclusively, and NMRA selects the queued
-  // timestamp 7; the regulator's request to 2 establishes GALT 7 for all.
+  // uses request 10, TARA(7) grants before the equal-time interaction, and
+  // NMRA selects the queued timestamp 7; the regulator's request to 2
+  // establishes GALT 7 for all.
   REQUIRE_NOTHROW(fqr->flushQueueRequest(rti1516_2025::HLAinteger64Time(10)));
   REQUIRE_NOTHROW(tara->timeAdvanceRequestAvailable(
       rti1516_2025::HLAinteger64Time(7)));
@@ -132,7 +133,7 @@ TEST_CASE(
   REQUIRE(taraReports.timestampedInteractionReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.front().value == L"7");
-  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"interaction", "grant"});
+  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"grant", "interaction"});
   REQUIRE(nmraReports.timestampedInteractionReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.front().value == L"7");

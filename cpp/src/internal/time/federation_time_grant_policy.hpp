@@ -54,8 +54,9 @@ struct FederationFlushQueueGrantCalculation {
 // Applies the bounded IEEE 1516.1 time-advance rules to a requesting
 // federate's immutable state and a GALT/NRG calculation made for that same
 // federate. Ordinary TAR/NMR forms are strict at an ordinary defined GALT;
-// every advance form may use an equal queued TSO boundary, Available forms
-// are additionally inclusive at an ordinary GALT, and Flush Queue bypasses
+// an equal queued TSO boundary may still make a request safe to grant, while
+// pre-grant delivery inclusivity is decided separately from the request mode.
+// Available forms are inclusive at an ordinary GALT, and Flush Queue bypasses
 // waiting for another federate's GALT while computing its bounded grant at
 // callback time. When GALT is undefined, NRG decides whether a time-
 // constrained federate may advance beyond its current time. A non-time-

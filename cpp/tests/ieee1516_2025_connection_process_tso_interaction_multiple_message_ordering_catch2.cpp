@@ -39,6 +39,7 @@
 #include "internal/federation/process_transport.hpp"
 #include "internal/federation/process_transport_session.hpp"
 #include "process_public_service_fixture.hpp"
+#include "process_service_report_fixture.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
@@ -322,12 +323,8 @@ using umbra::detail::ProcessFederationService;
 using umbra::detail::ProcessFederationServiceOptions;
 using umbra::detail::ProcessTransportConnection;
 using umbra::detail::ProcessTransportListener;
-using umbra::detail::ProcessTransportServiceDispatcher;
 using umbra::detail::ProcessTransportSession;
-using umbra::detail::TransportServiceMessage;
-using umbra::detail::TransportServiceMessageKind;
 using umbra::detail::TransportServiceOperation;
-using umbra::detail::TransportServiceStatus;
 
 std::filesystem::path processResourcePath(
     std::filesystem::path const& relative) {
@@ -584,16 +581,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
-        }
+        umbra::test::serveExpectedPrimaryProcessRequest(
+            session, handler, operation, description);
       };
 
       serveExpected(
@@ -660,11 +649,15 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::enable_time_regulation,
           "The process interaction-ordering server lost Enable Time Regulation.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
       serveExpected(
           receiver,
           receiverHandler,
           TransportServiceOperation::enable_time_constrained,
           "The process interaction-ordering server lost Enable Time Constrained.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiver, receiverHandler);
       serveExpected(
           sender,
           senderHandler,
@@ -680,11 +673,15 @@ TEST_CASE(
           receiverHandler,
           TransportServiceOperation::time_advance_request,
           "The process interaction-ordering server lost receiver TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiver, receiverHandler);
       serveExpected(
           sender,
           senderHandler,
           TransportServiceOperation::time_advance_request,
           "The process interaction-ordering server lost sender TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
       serveExpected(
           receiver,
           receiverHandler,

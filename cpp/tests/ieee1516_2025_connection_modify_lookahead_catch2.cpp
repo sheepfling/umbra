@@ -457,9 +457,10 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "RTIambassador modifies lookahead through a configured process endpoint",
-    "[integration][foundation][time-management][time-role][lookahead][modify-lookahead][transport][process-boundary][process-modify-lookahead-focused][public-endpoint][rti.service.modify-lookahead][rti.service.enable-time-regulation][rti.service.query-lookahead]") {
+    "[integration][foundation][time-management][time-role][lookahead][modify-lookahead][transport][process-boundary][process-modify-lookahead-focused][public-endpoint][rti.service.modify-lookahead][rti.service.enable-time-regulation][rti.service.query-lookahead][rti.service-report]") {
   constexpr wchar_t const* federationName =
       L"process-modify-lookahead-execution";
+  auto const serviceReportDirectory = temporaryServiceReportDirectory();
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
   auto const port = listener->address().port;
@@ -469,8 +470,10 @@ TEST_CASE(
   std::thread server([&] {
     try {
       EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions serviceOptions{true};
+      serviceOptions.serviceReportDirectory = serviceReportDirectory;
       ProcessFederationService service(
-          registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+          registry, composedProcessDefinition(), std::move(serviceOptions));
       auto connection = listener->accept(
           nullptr,
           {"process-modify-lookahead-server", 0x9206U},
@@ -493,10 +496,17 @@ TEST_CASE(
           !serveExpected(TransportServiceOperation::join_federation_execution) ||
           !serveExpected(TransportServiceOperation::modify_lookahead) ||
           !serveExpected(TransportServiceOperation::enable_time_regulation) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
+          !serveExpected(TransportServiceOperation::set_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::set_send_service_reports_to_file_switch) ||
           !serveExpected(TransportServiceOperation::modify_lookahead) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::query_lookahead) ||
+          !serveExpected(TransportServiceOperation::report_successful_service_invocation) ||
           !serveExpected(TransportServiceOperation::modify_lookahead) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::query_lookahead) ||
+          !serveExpected(TransportServiceOperation::report_successful_service_invocation) ||
           !serveExpected(TransportServiceOperation::resign_federation_execution)) {
         throw std::runtime_error(
             "The process modify-lookahead server lost a temporal request.");
@@ -532,6 +542,8 @@ TEST_CASE(
     REQUIRE(federate.timeRegulationEnabledCount == 0U);
     REQUIRE_FALSE(rti->evokeCallback(0.0));
     REQUIRE(federate.timeRegulationEnabledCount == 1U);
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
 
     REQUIRE_NOTHROW(
         rti->modifyLookahead(rti1516_2025::HLAinteger64Interval(5)));
@@ -546,6 +558,33 @@ TEST_CASE(
     REQUIRE(deferred.getInterval() == 5);
     rti->resignFederationExecution(NO_ACTION);
     rti->disconnect();
+
+    std::string reportContents;
+    for (auto const& entry : std::filesystem::directory_iterator(serviceReportDirectory)) {
+      if (!entry.is_regular_file()) {
+        continue;
+      }
+      std::ifstream reportFile(entry.path(), std::ios::binary);
+      reportContents.append(
+          std::istreambuf_iterator<char>{reportFile},
+          std::istreambuf_iterator<char>{});
+    }
+    auto countOccurrences = [&](std::string const& needle) {
+      std::size_t count = 0U;
+      std::size_t offset = 0U;
+      while ((offset = reportContents.find(needle, offset)) != std::string::npos) {
+        ++count;
+        offset += needle.size();
+      }
+      return count;
+    };
+    REQUIRE(countOccurrences(R"("HLAservice":"ModifyLookahead")") == 2U);
+    REQUIRE(countOccurrences(
+                R"("HLAsuccessIndicator":true,"HLAexception":null})") == 4U);
+    REQUIRE(countOccurrences(
+                R"("HLAargumentType":32,"HLAargumentName":"Requested lookahead","HLAargumentValue":"5"})") == 1U);
+    REQUIRE(countOccurrences(
+                R"("HLAargumentType":32,"HLAargumentName":"Requested lookahead","HLAargumentValue":"1"})") == 1U);
   } catch (...) {
     clientError = std::current_exception();
   }

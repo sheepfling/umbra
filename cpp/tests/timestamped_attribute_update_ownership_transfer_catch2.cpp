@@ -307,6 +307,7 @@ TEST_CASE(
               acquisitionTagBytes,
               acquisitionTagBytes + sizeof(acquisitionTagBytes)));
   REQUIRE(acquirer->isAttributeOwnedByFederate(objectInstance, acquirerAttribute));
+  REQUIRE_FALSE(owner->isAttributeOwnedByFederate(objectInstance, ownerAttribute));
 
   REQUIRE_NOTHROW(acquirer->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
   REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));

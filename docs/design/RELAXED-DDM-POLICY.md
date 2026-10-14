@@ -2,9 +2,29 @@
 
 ## Status
 
-Implemented for the embedded IEEE 1516.1-2025 development profile. This is an
+Implemented in the embedded IEEE 1516.1-2025 development profile and exercised
+through one configured process-endpoint regional-interaction case. This is an
 Umbra implementation policy, not a claim that every conforming RTI uses the
-same relaxation.
+same relaxation or that the two 2025 profiles have broad behavioral parity.
+
+## Configuration and scope
+
+The pinned 2025 [`RTIambassador`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2248)
+exposes `getAllowRelaxedDDMSwitch()` as a query; it has no per-federate setter.
+In the current embedded implementation, the FOM composer reads
+`allowRelaxedDDM` from `<switches>` into the model catalogue, and federation
+state copies that value when initialized from the composed definition
+([parser](../../cpp/src/internal/fom/libxml2_fom_composer.cpp#L1805),
+[state initialization](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L130)).
+The focused cases construct separate enabled/disabled federation
+configurations and assert that both participants observe the same getter
+value. This is an implementation mapping of FOM-selected federation policy;
+the presence of the public getter alone does not establish process-profile
+boundary-routing behavior. A separate configured process-endpoint interaction
+case composes enabled and disabled FDDs, checks the sender and both receivers'
+getter values, and exercises one-dimensional per-recipient routing under
+HLA_EVOKED and HLA_IMMEDIATE. That establishes only the selected endpoint path,
+not profile-wide parity.
 
 ## Standard basis
 
@@ -46,12 +66,11 @@ interaction and object-attribute planners use the same decision.
 
 ## Evidence and limits
 
-`Embedded Allow Relaxed DDM expands only touching regional interaction ranges`,
-`Embedded Allow Relaxed DDM expands only touching regional object-attribute
-ranges`, and `Embedded regional Auto Provide applies Allow Relaxed DDM to
-touching source projections and suppresses positive gaps under HLA_EVOKED and
-HLA_IMMEDIATE` use a standard Restaurant FOM (or the isolated regional
-ownership fixture) plus an isolated FOM switch module. Together they prove:
+The focused embedded [regional interaction test](../../cpp/tests/ieee1516_2025_allow_relaxed_ddm_regional_interaction_boundary_catch2.cpp#L5),
+[object-attribute test](../../cpp/tests/allow_relaxed_ddm_object_attribute_catch2.cpp#L103),
+and [regional Auto Provide test](../../cpp/tests/regional_auto_provide_response_catch2.cpp#L149)
+use a standard Restaurant FOM (or the isolated regional ownership fixture)
+plus an isolated FOM switch module. Their assertions cover:
 
 1. exact boundary-touching ranges deliver only with the switch enabled;
 2. a positive gap never delivers; and
@@ -71,8 +90,15 @@ known by a relaxed boundary stops receiving after a nonzero gap, and that a
 strict-overlap change discovers the previously filtered recipient in the
 disabled configuration.
 
-The evidence is limited to receive-order regional interaction,
-object-attribute delivery, and receive-order Auto Provide discovery/response
-in the embedded profile. Broader
-multi-dimension, timestamped, advisory, update-rate, transport, package, and
-conformance matrices remain separate work.
+The exact-touch examples in these three embedded tests use one shared dimension
+each. A separate configured [process-endpoint multi-recipient interaction
+test](../../cpp/tests/ieee1516_2025_connection_multi_recipient_regional_interaction_catch2.cpp#L459)
+also uses one dimension and exercises touch-versus-gap recipient selection
+under HLA_EVOKED and HLA_IMMEDIATE. The source predicate checks every shared
+dimension, but mixed multi-dimension strict/touch/gap combinations remain
+source-derived, not directly tested. Evidence is limited to embedded
+receive-order regional interaction, object-attribute delivery, and Auto Provide
+discovery/response, plus this selected process-endpoint interaction route. It
+does not establish broad embedded/process parity. Broader timestamped,
+advisory, update-rate, transport, package, and conformance matrices remain
+separate work.

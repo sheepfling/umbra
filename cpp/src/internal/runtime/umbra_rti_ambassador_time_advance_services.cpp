@@ -12,6 +12,7 @@
 #include "internal/time/federation_time_grant_policy.hpp"
 
 #include <cstdint>
+#include <exception>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -22,6 +23,25 @@ namespace rti1516_2025::umbra_binding_detail {
 using namespace service_failure_translation;
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+namespace {
+
+std::unique_ptr<LogicalTime> decodeRequestedProcessLogicalTimeForReport(
+    umbra::detail::ProcessFederationLogicalTime const& value) {
+  try {
+    return decodeAmbassadorProcessLogicalTimeValue(value);
+  } catch (InvalidLogicalTime const&) {
+    throw;
+  } catch (Exception const&) {
+    throw InvalidLogicalTime(
+        L"The requested logical time is invalid for the selected implementation.");
+  } catch (std::exception const&) {
+    throw InvalidLogicalTime(
+        L"The requested logical time is invalid for the selected implementation.");
+  }
+}
+
+}  // namespace
+
 // Private 2025 process-endpoint time-advance translation.
 void UmbraRtiAmbassador::requestProcessTimeAdvance(
     LogicalTime const &time,
@@ -74,6 +94,24 @@ void UmbraRtiAmbassador::requestProcessTimeAdvance(
         L"The requested logical time cannot be encoded by the selected implementation.");
   }
 
+  std::optional<std::wstring> reportService;
+  if (mode == umbra::detail::FederateTimeAdvanceMode::next_message_request) {
+    reportService = L"NextMessageRequest";
+  } else if (mode ==
+             umbra::detail::FederateTimeAdvanceMode::next_message_request_available) {
+    reportService = L"NextMessageRequestAvailable";
+  }
+  std::optional<umbra::detail::MomServiceArgument> reportTimeArgument;
+  if (reportService) {
+    auto reportTimeForReport =
+        decodeRequestedProcessLogicalTimeForReport(requestedTime);
+    reportTimeArgument = umbra::detail::MomServiceArgument{
+        umbra::detail::MomArgumentType::logical_time,
+        L"Logical time",
+        umbra::detail::formatMomLogicalTime(*reportTimeForReport),
+    };
+  }
+
   umbra::detail::ProcessFederationTimeAdvanceResult processResult;
   try {
     switch (mode) {
@@ -110,6 +148,13 @@ void UmbraRtiAmbassador::requestProcessTimeAdvance(
   using Status = umbra::detail::ProcessFederationTimeAdvanceStatus;
   switch (processResult.status) {
       case Status::applied:
+      if (reportService && reportTimeArgument) {
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            *reportService,
+            umbra::detail::MomServiceType::time_management,
+            {*reportTimeArgument},
+            true);
+      }
       if (processResult.optimisticTime && processResult.grantedTime) {
         try {
           processClient->dispatchFlushQueueGrant(
@@ -205,6 +250,13 @@ void UmbraRtiAmbassador::timeAdvanceRequest(LogicalTime const &time) {
       throw InvalidLogicalTime(
           L"The requested logical time cannot be encoded by the selected implementation.");
     }
+    auto reportTimeForReport =
+        decodeRequestedProcessLogicalTimeForReport(requestedTime);
+    auto const reportTimeArgument = umbra::detail::MomServiceArgument{
+        umbra::detail::MomArgumentType::logical_time,
+        L"Logical time",
+        umbra::detail::formatMomLogicalTime(*reportTimeForReport),
+    };
 
     umbra::detail::ProcessFederationTimeAdvanceResult processResult;
     try {
@@ -219,6 +271,11 @@ void UmbraRtiAmbassador::timeAdvanceRequest(LogicalTime const &time) {
     using Status = umbra::detail::ProcessFederationTimeAdvanceStatus;
     switch (processResult.status) {
       case Status::applied:
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"TimeAdvanceRequest",
+            umbra::detail::MomServiceType::time_management,
+            {reportTimeArgument},
+            true);
         // An already-eligible request may carry its grant in the response.
         // Deferred/cross-federate grants arrive as unsolicited process events;
         // the client request path has already queued them through the same
@@ -370,6 +427,7 @@ void UmbraRtiAmbassador::timeAdvanceRequest(LogicalTime const &time) {
   // constrained TAR until strict GALT/NRG policy allows delivery. Every action
   // is submitted only after the calling thread has released its runtime locks.
   flushAmbassadorAsynchronousReceiveCallbacks(timeState);
+  submitAmbassadorTimeAdvanceSaveAdmissions(federationName);
   submitAmbassadorTimeAdvanceGrantDispatches(std::move(scheduled.dispatches));
   } catch (Exception const &exception) {
     emitExceptionReport(L"Time Advance Request", exception);
@@ -475,7 +533,8 @@ void UmbraRtiAmbassador::requestAvailableTimeAdvance(
     }
 
     if (mode == umbra::detail::FederateTimeAdvanceMode::time_advance_request_available) {
-      result = timeState->requestAdvanceAvailable(std::move(requestedTime));
+      result = timeState->requestAdvanceAvailable(
+          std::move(requestedTime), std::move(effectiveTime));
     } else if (mode == umbra::detail::FederateTimeAdvanceMode::next_message_request_available) {
       result = timeState->requestNextMessageAvailableAdvance(
           std::move(requestedTime),
@@ -546,6 +605,7 @@ void UmbraRtiAmbassador::requestAvailableTimeAdvance(
   // the ordinary Time Advance Grant callback. With no selected message, the
   // effective target remains the caller's supplied request.
   flushAmbassadorAsynchronousReceiveCallbacks(timeState);
+  submitAmbassadorTimeAdvanceSaveAdmissions(federationName);
   submitAmbassadorTimeAdvanceGrantDispatches(std::move(scheduled.dispatches));
 }
 
@@ -600,6 +660,13 @@ void UmbraRtiAmbassador::timeAdvanceRequestAvailable(LogicalTime const &time) {
       throw InvalidLogicalTime(
           L"The requested logical time cannot be encoded by the selected implementation.");
     }
+    auto reportTimeForReport =
+        decodeRequestedProcessLogicalTimeForReport(requestedTime);
+    auto const reportTimeArgument = umbra::detail::MomServiceArgument{
+        umbra::detail::MomArgumentType::logical_time,
+        L"Logical time",
+        umbra::detail::formatMomLogicalTime(*reportTimeForReport),
+    };
 
     umbra::detail::ProcessFederationTimeAdvanceResult processResult;
     try {
@@ -614,6 +681,11 @@ void UmbraRtiAmbassador::timeAdvanceRequestAvailable(LogicalTime const &time) {
     using Status = umbra::detail::ProcessFederationTimeAdvanceStatus;
     switch (processResult.status) {
       case Status::applied:
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"TimeAdvanceRequestAvailable",
+            umbra::detail::MomServiceType::time_management,
+            {reportTimeArgument},
+            true);
         if (processResult.grantedTime) {
           try {
             processClient->dispatchTimeAdvanceGrant(
@@ -652,7 +724,7 @@ void UmbraRtiAmbassador::timeAdvanceRequestAvailable(LogicalTime const &time) {
   requestAvailableTimeAdvance(
       time,
       umbra::detail::FederateTimeAdvanceMode::time_advance_request_available,
-      false,
+      true,
       L"Time Advance Request Available");
   } catch (Exception const &exception) {
     emitExceptionReport(L"Time Advance Request Available", exception);
@@ -771,6 +843,7 @@ void UmbraRtiAmbassador::flushQueueRequest(LogicalTime const &time) {
   // Flush Queue Grant dispatch is callback-gated just like Time Advance Grant,
   // but computes the actual and optimistic times at the delivery boundary.
   flushAmbassadorAsynchronousReceiveCallbacks(timeState);
+  submitAmbassadorTimeAdvanceSaveAdmissions(federationName);
   submitAmbassadorTimeAdvanceGrantDispatches(std::move(scheduled.dispatches));
   } catch (Exception const &exception) {
     emitExceptionReport(L"Flush Queue Request", exception);
@@ -833,7 +906,18 @@ void UmbraRtiAmbassador::queryLogicalTime(LogicalTime &time) {
       throw RTIinternalError(
           L"The process endpoint returned an invalid logical-time value.");
     }
-      copyAmbassadorQueriedLogicalTime(time, *decoded);
+    copyAmbassadorQueriedLogicalTime(time, *decoded);
+    auto const returnedTime = umbra::detail::MomServiceArgument{
+        umbra::detail::MomArgumentType::logical_time,
+        L"Logical time",
+        umbra::detail::formatMomLogicalTime(*decoded),
+    };
+    appendSuccessfulServiceReportToFileIfSelected(
+        L"QueryLogicalTime",
+        umbra::detail::MomServiceType::time_management,
+        {},
+        returnedTime,
+        true);
     return;
   }
 #endif

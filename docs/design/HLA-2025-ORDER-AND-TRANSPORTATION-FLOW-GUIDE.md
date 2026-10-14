@@ -19,10 +19,23 @@ standard before deriving requirements.
 
 ## First separate the two questions
 
-| Property | It answers | Current 2025 values in this profile | Public observation |
-| --- | --- | --- | --- |
-| Order type | Is this delivery receive-order or timestamp-order? | `RECEIVE` or `TIMESTAMP` | Callback sent/received order values; timestamp-ordered callbacks also carry logical time and may carry a retraction handle. |
-| Transportation type | Which FOM-declared transportation category is selected for this attribute or interaction? | Federation-scoped `TransportationTypeHandle`, including standard and FOM-defined names | Reflection/interaction callbacks carry the selected transportation handle; query services report it through callbacks. |
+- **Order** (`RECEIVE` or `TIMESTAMP`; see the
+  [pinned 2025 enum](../../third_party/ieee1516.1-2025/include/RTI/Enums.h#L28))
+  answers whether delivery follows receive-order or timestamp-order.
+  Sent/received callbacks report the order; timestamp-ordered callbacks also
+  carry logical time and may carry a retraction handle.
+- **Transportation type** selects a FOM-declared category for an attribute or
+  interaction. The standard names are `HLAreliable` and `HLAbestEffort`;
+  FOMs may define additional categories. A federation-scoped
+  `TransportationTypeHandle` identifies the selected category. Reflection
+  and interaction callbacks carry that handle, and query services report it
+  through callbacks.
+
+The [pinned 2025 standard MIM](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2751)
+describes `HLAreliable` as reliable delivery and `HLAbestEffort` as best-effort
+delivery, using TCP/IP and UDP as analogies. Those names describe HLA
+transportation categories; they do not establish which network protocol an
+RTI uses or measured delivery behavior in a particular deployment.
 
 Neither value substitutes for the other. A `TIMESTAMP` order selection does not
 say which transportation type is selected; a custom transportation handle
@@ -31,6 +44,66 @@ decides which receivers are relevant, and time management still gates TSO
 delivery. See the separate [time-management](HLA-2025-TIME-MANAGEMENT-GUIDE.md)
 and [DDM/regions](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md)
 guides for those state machines.
+
+Callback observation is a separate boundary after the service-specific rules
+make an effect due for a federate (and any TSO time gate permits it).
+`HLA_IMMEDIATE` allows the RTI to enter the callback while the inducing
+service is executing; under `HLA_EVOKED`, the application dispatches callbacks
+through an evoke service. Callback model does not select the recipient or
+replace either the event's order or transportation type. See the separate
+[callback and service-ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md)
+for callback entry and ordering boundaries.
+
+## A delivery map: keep the questions separate
+
+“Timestamped” can refer to the service overload that accepts a logical-time
+argument, the sender's effective order designation, or a receiver's
+timestamp-order delivery. Do not treat those as interchangeable. Recipient
+eligibility, transportation category, time-management eligibility, and
+application callback observation are separate questions too.
+
+```mermaid
+flowchart TD
+  SEND["Federate invokes an update or interaction service"]
+  SEND --> FORM["Service form<br/>overload without or with LogicalTime"]
+  SEND --> ORDER["Effective sending-order designation for this data<br/>RECEIVE or TIMESTAMP"]
+  SEND --> TRANSPORT["Effective transportation type<br/>FOM-declared category"]
+  SEND --> ELIGIBLE{"Is this receiver eligible under<br/>publication/subscription and applicable DDM rules?"}
+  ELIGIBLE -->|No| NONE["No update/interaction delivery callback<br/>for this event and receiver"]
+  ELIGIBLE -->|Yes| RULES["Apply HLA delivery rules<br/>for this receiver"]
+  FORM -. "call form alone is not the order result" .-> RULES
+  ORDER -. "sender-side designation is a separate input" .-> RULES
+  RULES --> RECEIVED{"Receiver's delivery order"}
+  RECEIVED -->|RECEIVE| RO["Receive-order path<br/>not gated by a TSO time grant"]
+  RECEIVED -->|TIMESTAMP| TSO["Timestamp-order path<br/>subject to HLA time-management rules"]
+  RO --> DUE["A callback effect is due for this receiver"]
+  TSO --> DUE
+  TRANSPORT -. "category metadata accompanies delivery" .-> DUE
+  DUE --> MODEL{"Callback communication model"}
+  MODEL -->|HLA_IMMEDIATE| IMMEDIATE["RTI can invoke callback while the inducing service runs,<br/>as the service rules permit"]
+  MODEL -->|HLA_EVOKED| EVOKED["Federate dispatches through an evoke service"]
+  IMMEDIATE --> OBSERVE["Application observes callback"]
+  EVOKED --> OBSERVE
+```
+
+Read the dashed links as relationships between questions, not as a complete
+execution schedule or a normative decision table. The pinned 2025 callback API
+has ordinary and time-bearing overloads: the latter exposes `LogicalTime`,
+`sentOrderType`, `receivedOrderType`, and an optional retraction handle; both
+forms carry the transportation type ([attribute callback overloads](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L238),
+[interaction callback overloads](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L264)). Those distinct fields do not, by themselves,
+establish every normative condition that maps a sender's order to a receiver's
+delivery path.
+
+The existing embedded order-control case makes the distinction concrete: after
+changing the interaction's effective order to `RECEIVE`, it invokes the
+timestamped `sendInteraction` overload with a logical-time argument and
+observes `RECEIVE` for both order fields plus an invalid retraction handle
+([case](../../cpp/tests/order_type_control_catch2.cpp#L301)). This is a bounded
+implementation observation, not the full standard rule. The exact
+sender-to-receiver mapping remains subject to the licensed IEEE text; the
+separate [time-management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md) explains
+the TSO gate once a delivery is timestamp-ordered.
 
 ## Who controls what, and when does it take effect?
 
@@ -45,8 +118,8 @@ class.
 | Instance attribute order | Owned attributes on a known object via `changeAttributeOrderType` | Synchronous service update | Changes future updates for only that object/attribute set. |
 | Published interaction order | An interaction class via `changeInteractionOrderType` | Synchronous service update | Changes future sends for that publisher/class. |
 | Default attribute transportation | Attribute set on an object class via `changeDefaultAttributeTransportationType` | Synchronous service update | Later registered instances use the new default; existing instances are not rewritten. |
-| Instance attribute transportation | Owned attributes on a known object via `requestAttributeTransportationTypeChange` | **Confirmation callback** `confirmAttributeTransportationTypeChange` | The accepted request stays pending; the selected value becomes effective at the confirmation boundary. |
-| Published interaction transportation | A published interaction class via `requestInteractionTransportationTypeChange` | **Confirmation callback** `confirmInteractionTransportationTypeChange` | The accepted request stays pending; future sends use the confirmed value. |
+| Instance attribute transportation | Owned attributes on a known object via `requestAttributeTransportationTypeChange` | RTI dispatch revalidates and commits before `confirmAttributeTransportationTypeChange` | The request stays pending until its confirmation work runs; the public callback reports the committed setting. |
+| Published interaction transportation | A published interaction class via `requestInteractionTransportationTypeChange` | RTI dispatch revalidates and commits before `confirmInteractionTransportationTypeChange` | The request stays pending until its confirmation work runs; future sends use the committed setting. |
 
 The **default** and **instance** rows are different state locations and have
 different lifetimes. For order, both class-default and instance changes apply
@@ -73,41 +146,98 @@ flowchart TD
 ```
 
 The self-loop emphasizes the non-retroactive edge: changing a class default
-does not rewrite an already registered object's order. In the focused test, an
-FOM-default timestamp-ordered object, a later receive-order default, and a
-per-instance timestamp override produce different results even though the
-publisher invokes the timestamped update service for each object.
+does not rewrite an already registered object's order while its ownership
+remains unchanged. In the focused test, an FOM-default timestamp-ordered
+object, a later receive-order default, and a per-instance timestamp override
+produce different results even though the publisher invokes the timestamped
+update service for each object.
 
-## 2. Transportation overrides are callback-gated
+### Attribute ownership can reseed sender settings (Umbra source observation)
 
-An accepted request is not yet the new effective value. Umbra records pending
-state and commits the selected transportation when it processes the matching
-confirmation callback. Attribute requests are scoped to an object and set of
-owned attributes; interaction requests are scoped to a published interaction
-class.
+An attribute's sender changes when ownership changes, so the existing owner's
+per-instance order and transportation entries are not necessarily carried
+forward. In the inspected embedded 2025 acquisition-of-an-unowned-attribute
+and Confirm Divestiture paths, Umbra resolves the new owner's current class
+defaults and writes those values into the instance state; order falls back to
+the new owner's default when there is no explicit instance entry.
+Unconditional divestiture clears the stored per-instance order and
+transportation entries while the attribute is unowned. This describes selected
+Umbra paths, not a claim about the normative transfer rule or the separate
+2010 stream.
+
+```mermaid
+flowchart TD
+  Held["Attribute owned by A<br/>A's effective order and transportation"]
+  Held -->|Embedded Confirm Divestiture| Transfer["Owner changes to a new owner"]
+  Transfer --> Defaults["Resolve the new owner's current class defaults<br/>for future sends of this attribute"]
+  Held -->|Unconditional divestiture| Unowned["Attribute becomes unowned<br/>stored instance entries are cleared"]
+  Unowned -->|Embedded acquisition completes| Transfer
+```
+
+The selected [acquisition](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L354)
+and [Confirm Divestiture](../../cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp#L471)
+paths seed settings from the new owner; [unconditional divestiture](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L205)
+clears them, and the [effective order](../../cpp/src/internal/federation/federation_registry_catalog_queries.cpp#L842)
+and [transportation](../../cpp/src/internal/federation/federation_registry_catalog_queries.cpp#L932)
+resolvers fall back to defaults associated with the current owner. The focused
+order and transportation cases reviewed here do not combine a successful
+ownership transfer with an assertion of the new owner's effective values.
+The focused [TSO ownership-transfer case](../../cpp/tests/timestamped_attribute_update_ownership_transfer_catch2.cpp#L191)
+delivers A's already accepted update to B with its original timestamp-order
+metadata; it does not test a new send from B or query B's current settings. For
+that separate event-lifetime timeline, see the [TSO retraction guide's
+ownership boundary](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md#ownership-changes-and-an-accepted-tso-update-are-separate-timelines).
+For the public ownership-service flows, see the
+[2025 attribute-ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md);
+this source note complements, rather than replaces, that HLA-facing guide.
+
+## 2. Transportation change requests have a pending lifecycle
+
+For the 2025 embedded path, admission records a pending request; Umbra applies
+the selected transportation while processing its confirmation work. That
+work rechecks the live target and requester eligibility, commits the change,
+and only then invokes the public confirmation callback. Attribute requests
+are scoped to an object and set of owned attributes; interaction requests
+are scoped to a published interaction class.
 
 ```mermaid
 stateDiagram-v2
-  direction LR
-  CurrentType --> PendingChange: request accepted, service returns normally
-  PendingChange --> PendingChange: duplicate/overlapping request is rejected
-  PendingChange --> ConfirmedType: confirmation callback revalidates owner/state
-  PendingChange --> CurrentType: object/class no longer valid or requester no longer eligible
-  ConfirmedType --> PendingChange: later request accepted
-  PendingChange --> PendingChange: save/restore preserves pending request
+  direction TB
+  [*] --> Pending: admitted and recorded
+  [*] --> Rejected: admission fails
+  Pending --> Committed: embedded task rechecks and commits before callback
+  Pending --> Discarded: cancelled or stale before dispatch
+  Pending --> Pending: save and restore retain the pending request
+  Committed --> [*]
+  Rejected --> [*]
+  Discarded --> [*]
 ```
 
 For an attribute request, Umbra rejects a new request if one of its attributes
 is already participating in a pending transportation change. For an
 interaction class, a second request while a change is pending is rejected.
-Before committing from pending to confirmed, the registry rechecks live
-membership and ownership/publication state; stale work is discarded rather
-than applied to a departed or no-longer-eligible sender.
+The RTI's registry rechecks membership and the relevant live eligibility before
+commit: attribute ownership for each requested attribute, or publication of
+the interaction class. If the request is cancelled or no longer eligible,
+Umbra drops it without delivering a confirmation; ownership changes can also
+clear an attribute's current override, so this path does not promise the old
+effective value remains in force.
 
-Focused save/restore tests also exercise a pending attribute or interaction
-transportation change across restoration. This documents the tested restore
-paths; it does not claim every process restart, persistence backend, or
-callback-scheduling interleaving is covered.
+In the embedded implementation, the registry writes the selected value while
+processing confirmation work, immediately before invoking the public callback
+([attribute commit](../../cpp/src/internal/federation/federation_registry_transportation_order_services.cpp#L52),
+[interaction commit](../../cpp/src/internal/federation/federation_registry_transportation_order_services.cpp#L412),
+[callback route](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1362)).
+The confirmation callback remains the federate-visible boundary; this
+internal write ordering does not establish an earlier portable or normative
+effective time. Under `HLA_EVOKED`, the work waits for callback dispatch; under
+`HLA_IMMEDIATE`, it can run inline while the request service is still active,
+so the pending interval need not be visible after the service returns.
+The focused [attribute restore case](../../cpp/tests/ieee1516_2025_public_pending_attribute_transportation_type_change_restore_catch2.cpp)
+and [interaction restore case](../../cpp/tests/ieee1516_2025_public_pending_interaction_transportation_type_change_restore_catch2.cpp)
+exercise pending-state restoration under both callback models. They do not
+claim every process restart, persistence backend, or callback-scheduling
+interleaving is covered.
 
 ## 3. Delivery carries both properties; routing and time stay separate
 
@@ -125,6 +255,7 @@ sequenceDiagram
 
   Sender->>SRTI: updateAttributeValues(...) or sendInteraction(...)
   SRTI->>State: Resolve sender's effective order and transportation
+  Note over Sender,State: Embedded 2025 test: timestamped service + effective RECEIVE<br/>yielded receive-order metadata and no valid retraction handle.
   State->>State: Apply publication, subscription, and DDM relevance
   alt no eligible recipient
     State-->>SRTI: No receiver callback is planned
@@ -138,6 +269,11 @@ sequenceDiagram
   end
 ```
 
+The callback arrows mark an eligible callback effect, not necessarily the
+instant when application code enters the callback. `HLA_IMMEDIATE` and
+`HLA_EVOKED` govern that separate observation boundary; they do not alter the
+delivery-order branch or transportation metadata.
+
 In callback observations, `sentOrderType` and `receivedOrderType` describe
 order; the separate transportation handle describes the selected category.
 Tests include ordinary and timestamped updates/interactions with a FOM-defined
@@ -149,8 +285,9 @@ One subtle result in the order-control test is that a timestamped send/update
 overload does not by itself prove the delivered event is TSO. The publisher's
 current order setting matters: the test changes an interaction to `RECEIVE`,
 supplies a logical-time argument, and observes receive-order values with no
-valid retraction handle. Read both callback order fields and time-management
-state; do not infer the result from the service overload alone.
+valid retraction handle. This is a focused embedded 2025 observation, not an
+independent normative ruling. Read both callback order fields and
+time-management state; do not infer the result from the service overload alone.
 
 ## 4. Queries report the effective setting through callbacks
 
@@ -215,7 +352,17 @@ evidence for that stream.
   message retraction, or 2010 behavior. Follow the linked guides for those
   boundaries.
 
-The next bounded survey should examine whether publication/subscription
-advisories and relevance transitions have a distinct learner-facing lifecycle
-not already covered by the DDM and object-information guides. Keep the result
-in Umbra documentation and preserve the explicit 2010/2025 separation.
+The adjacent [declaration and attribute relevance guide](HLA-2025-RELEVANCE-ADVISORY-FLOW-GUIDE.md)
+and [attribute scope guide](HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md)
+already distinguish publisher-facing class relevance, owner-facing
+per-object-attribute relevance, and receiver-local scope. Keep those advisory
+lifecycles separate from order and transportation; neither delivery property
+implies an advisory. For the portable timing gate, continue to the
+[time-management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md); for receiver
+selection, use the [DDM/regions guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md);
+for callback observation, use the [callback/service-ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md).
+The exact normative mapping between sender designation and receiver order
+still needs authorized 1516.1-2025 clause text; callback fields and a focused
+implementation case do not settle it. This 2025 guide is not evidence for the
+separate 2010 stream. Follow the [current documentation handoff](../planning/ROADMAP-INDEX.json)
+for the next cross-guide review rather than relying on an older topic pointer.

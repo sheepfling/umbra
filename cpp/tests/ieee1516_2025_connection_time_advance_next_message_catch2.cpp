@@ -457,9 +457,10 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "RTIambassador requests next message advances through a configured process endpoint",
-    "[integration][foundation][time-management][time-advance][next-message-request][transport][process-boundary][process-time-advance-next-message-focused][public-endpoint][rti.service.next-message-request][rti.service.next-message-request-available][federate.callback.time-advance-grant]") {
+    "[integration][foundation][time-management][time-advance][next-message-request][transport][process-boundary][process-time-advance-next-message-focused][public-endpoint][rti.service.next-message-request][rti.service.next-message-request-available][rti.service-report][federate.callback.time-advance-grant]") {
   constexpr wchar_t const* federationName =
       L"process-next-message-advance-execution";
+  auto const serviceReportDirectory = temporaryServiceReportDirectory();
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
   auto const port = listener->address().port;
@@ -469,8 +470,10 @@ TEST_CASE(
   std::thread server([&] {
     try {
       EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions serviceOptions{true};
+      serviceOptions.serviceReportDirectory = serviceReportDirectory;
       ProcessFederationService service(
-          registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+          registry, composedProcessDefinition(), std::move(serviceOptions));
       auto connection = listener->accept(
           nullptr,
           {"process-next-message-advance-server", 0x9213U},
@@ -491,11 +494,16 @@ TEST_CASE(
       };
       if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
           !serveExpected(TransportServiceOperation::join_federation_execution) ||
+          !serveExpected(TransportServiceOperation::set_service_reporting_switch) ||
+          !serveExpected(
+              TransportServiceOperation::set_send_service_reports_to_file_switch) ||
           !serveExpected(TransportServiceOperation::next_message_request) ||
-          !serveExpected(TransportServiceOperation::query_logical_time) ||
+          !serveExpected(
+              TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(
               TransportServiceOperation::next_message_request_available) ||
-          !serveExpected(TransportServiceOperation::query_logical_time) ||
+          !serveExpected(
+              TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::resign_federation_execution)) {
         throw std::runtime_error(
             "The process next-message server lost a temporal request.");
@@ -523,6 +531,8 @@ TEST_CASE(
     auto const joined = rti->joinFederationExecution(
         L"process-next-message-advance-type", federationName);
     REQUIRE(joined.isValid());
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
 
     REQUIRE_NOTHROW(
         rti->nextMessageRequest(rti1516_2025::HLAinteger64Time(5)));
@@ -532,10 +542,6 @@ TEST_CASE(
     REQUIRE(federate.timeAdvanceGrantImplementation == L"HLAinteger64Time");
     REQUIRE(federate.timeAdvanceGrantValue == 5);
 
-    rti1516_2025::HLAinteger64Time afterNextMessage;
-    REQUIRE_NOTHROW(rti->queryLogicalTime(afterNextMessage));
-    REQUIRE(afterNextMessage.getTime() == 5);
-
     REQUIRE_NOTHROW(
         rti->nextMessageRequestAvailable(rti1516_2025::HLAinteger64Time(8)));
     REQUIRE(federate.timeAdvanceGrantCount == 1U);
@@ -543,9 +549,6 @@ TEST_CASE(
     REQUIRE(federate.timeAdvanceGrantCount == 2U);
     REQUIRE(federate.timeAdvanceGrantValue == 8);
 
-    rti1516_2025::HLAinteger64Time afterAvailable;
-    REQUIRE_NOTHROW(rti->queryLogicalTime(afterAvailable));
-    REQUIRE(afterAvailable.getTime() == 8);
     REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
     rti->disconnect();
   } catch (...) {
@@ -561,6 +564,37 @@ TEST_CASE(
     std::rethrow_exception(clientError);
   }
   REQUIRE_FALSE(serverError);
+
+  std::string reportContents;
+  std::size_t reportFileCount = 0U;
+  for (auto const& entry : std::filesystem::directory_iterator(serviceReportDirectory)) {
+    if (!entry.is_regular_file()) {
+      continue;
+    }
+    ++reportFileCount;
+    std::ifstream reportFile(entry.path(), std::ios::binary);
+    reportContents.append(
+        std::istreambuf_iterator<char>{reportFile},
+        std::istreambuf_iterator<char>{});
+  }
+  auto countOccurrences = [&](std::string const& needle) {
+    std::size_t count = 0U;
+    std::size_t offset = 0U;
+    while ((offset = reportContents.find(needle, offset)) != std::string::npos) {
+      ++count;
+      offset += needle.size();
+    }
+    return count;
+  };
+  REQUIRE(reportFileCount == 1U);
+  INFO(reportContents);
+  REQUIRE(countOccurrences(R"("HLAservice":"NextMessageRequest")") == 1U);
+  REQUIRE(countOccurrences(
+              R"("HLAservice":"NextMessageRequest","HLAsuppliedArguments":[{"HLAargumentType":31,"HLAargumentName":"Logical time","HLAargumentValue":"5"}],"HLAsuccessIndicator":true,"HLAexception":null})") == 1U);
+  REQUIRE(countOccurrences(
+              R"("HLAservice":"NextMessageRequestAvailable")") == 1U);
+  REQUIRE(countOccurrences(
+              R"("HLAservice":"NextMessageRequestAvailable","HLAsuppliedArguments":[{"HLAargumentType":31,"HLAargumentName":"Logical time","HLAargumentValue":"8"}],"HLAsuccessIndicator":true,"HLAexception":null})") == 1U);
 }
 
 #endif

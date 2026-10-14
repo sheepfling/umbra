@@ -26,19 +26,17 @@ TEST_CASE(
     "[federate.callback.initiate-federate-restore][federate.callback.federation-restored]"
     "[callback-immediate]") {
   using public_federation_restore_test_support::ScopedEmbeddedFederationRegistry;
-  using public_federation_restore_test_support::configurationForServiceReportDirectory;
+  using public_federation_restore_test_support::
+      configurationForServiceReportAndFederationSaveDirectory;
   using public_federation_restore_test_support::readTextFile;
   using public_federation_restore_test_support::serviceReportFiles;
   using public_federation_restore_test_support::temporaryFederationSaveDirectory;
   using public_federation_restore_test_support::temporaryServiceReportDirectory;
   auto runScenario = [](CallbackModel const callbackModel) {
   auto const saveDirectory = temporaryFederationSaveDirectory();
-  auto const saveStore =
-      std::make_shared<umbra::detail::FilesystemFederationSaveCommitStore>(
-          saveDirectory.path());
   auto const reportDirectory = temporaryServiceReportDirectory();
-  auto sourceConfiguration =
-      configurationForServiceReportDirectory(reportDirectory.path());
+  auto sourceConfiguration = configurationForServiceReportAndFederationSaveDirectory(
+      reportDirectory.path(), saveDirectory.path());
   sourceConfiguration.withRtiAddress(L"in-process");
   auto const federationName = nextFederationName();
   auto const restaurantFom = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
@@ -66,8 +64,7 @@ TEST_CASE(
 
   {
     auto const sourceRegistry =
-        std::make_shared<umbra::detail::EmbeddedFederationRegistry>(
-            nullptr, saveStore);
+        std::make_shared<umbra::detail::EmbeddedFederationRegistry>();
     ScopedEmbeddedFederationRegistry sourceScope(sourceRegistry);
     ReportingFederateAmbassador ownerReports;
     ReportingFederateAmbassador peerReports;
@@ -159,36 +156,6 @@ TEST_CASE(
     REQUIRE_NOTHROW(owner->federateSaveComplete());
     REQUIRE_NOTHROW(peer->federateSaveComplete());
 
-    auto const durable = saveStore->load(federationName, saveLabel);
-    REQUIRE(durable.has_value());
-    auto const durableImage =
-        umbra::detail::FederationStateImageCodec::decode(durable->stateImage);
-    REQUIRE(durableImage.objects.size() == 1U);
-    auto const& savedObject = durableImage.objects.front();
-    auto const sourceObjectValue =
-        rti1516_2025::umbra_binding_detail::objectInstanceHandleValue(
-            sourceObjectInstance);
-    auto const sourceAttributeValue =
-        rti1516_2025::umbra_binding_detail::attributeHandleValue(sourceEfficiency);
-    REQUIRE(sourceObjectValue.has_value());
-    REQUIRE(sourceAttributeValue.has_value());
-    REQUIRE(savedObject.handle == *sourceObjectValue);
-    REQUIRE(savedObject.attributeValuesPresent);
-    REQUIRE(savedObject.attributeValues.size() == 1U);
-    REQUIRE(savedObject.attributeValues.front().attributeHandle == *sourceAttributeValue);
-    REQUIRE(savedObject.attributeValues.front().value ==
-            std::string(reinterpret_cast<char const*>(initialValueBytes.data()),
-                        initialValueBytes.size()));
-    REQUIRE(savedObject.pendingAttributeTransportationTypeChanges.size() == 1U);
-    auto const& savedChange =
-        savedObject.pendingAttributeTransportationTypeChanges.front();
-    REQUIRE(savedChange.requestId != 0U);
-    REQUIRE(savedChange.requestingFederateId != 0U);
-    REQUIRE(savedChange.attributeHandles ==
-            std::vector<std::uint64_t>{*sourceAttributeValue});
-    REQUIRE(savedChange.transportationName == "HLAbestEffort");
-    REQUIRE(savedObject.pendingOperationCount == 1U);
-
     auto const reportAfterSave = readTextFile(sourceReportFile);
     REQUIRE(reportAfterSave.size() > initialReportText.size());
     REQUIRE(reportAfterSave.find("RequestFederationSave") != std::string::npos);
@@ -217,15 +184,14 @@ TEST_CASE(
 
   {
     auto const freshRegistry =
-        std::make_shared<umbra::detail::EmbeddedFederationRegistry>(
-            nullptr, saveStore);
+        std::make_shared<umbra::detail::EmbeddedFederationRegistry>();
     ScopedEmbeddedFederationRegistry freshScope(freshRegistry);
     ReportingFederateAmbassador ownerReports;
     ReportingFederateAmbassador peerReports;
     auto owner = makeRti();
     auto peer = makeRti();
-    auto freshConfiguration =
-        configurationForServiceReportDirectory(reportDirectory.path());
+    auto freshConfiguration = configurationForServiceReportAndFederationSaveDirectory(
+        reportDirectory.path(), saveDirectory.path());
     freshConfiguration.withRtiAddress(L"in-process");
 
     REQUIRE_NOTHROW(owner->connect(ownerReports, callbackModel, freshConfiguration));

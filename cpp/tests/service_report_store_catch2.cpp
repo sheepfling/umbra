@@ -1,12 +1,21 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "internal/observability/mom_service_report_encoding.hpp"
+#include "internal/observability/pending_service_report_file_cleanup.hpp"
+#include "internal/observability/runtime_instrumentation.hpp"
 #include "internal/observability/service_report_store.hpp"
 
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
 #include <RTI/encoding/EncodingExceptions.h>
 #include <umbra/embedded_profile_configuration.hpp>
+
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 
 #include <algorithm>
 #include <atomic>
@@ -25,6 +34,20 @@ std::filesystem::path temporaryDirectory() {
   return std::filesystem::temp_directory_path() /
       ("umbra-service-report-store-" + std::to_string(++next));
 }
+
+#if defined(_WIN32)
+std::wstring extendedWindowsPath(std::filesystem::path path) {
+  path.make_preferred();
+  auto const native = path.native();
+  if (native.starts_with(L"\\\\?\\")) {
+    return native;
+  }
+  if (native.starts_with(L"\\\\")) {
+    return L"\\\\?\\UNC\\" + native.substr(2U);
+  }
+  return L"\\\\?\\" + native;
+}
+#endif
 
 #ifndef UMBRA_SOURCE_DIRECTORY
 #error "The service-report lifecycle test requires the Umbra source directory."
@@ -236,9 +259,43 @@ TEST_CASE(
   std::ifstream input(first->location(), std::ios::binary);
   std::string contents{std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
   REQUIRE(contents == "{\"initial\":true}{\"record\":1}");
+  input.close();
 
   std::error_code ignored;
   std::filesystem::remove_all(directory, ignored);
+  REQUIRE_FALSE(ignored);
+
+  SECTION("file reservation and append work beyond the Windows MAX_PATH limit") {
+    auto const longDirectoryRoot = temporaryDirectory();
+    auto longDirectory = longDirectoryRoot;
+    std::string const component{"long-service-report-directory-component"};
+    while (longDirectory.native().size() <= 270U) {
+      longDirectory /= component;
+    }
+    REQUIRE(longDirectory.native().size() > 260U);
+
+    umbra::detail::FilesystemServiceReportStore longPathStore(longDirectory);
+    auto longPathWriter = longPathStore.createForJoinedFederate(descriptor());
+    REQUIRE(longPathWriter->location().native().size() > 260U);
+    REQUIRE_NOTHROW(longPathWriter->append(L"{\"longPath\":true}"));
+
+#if defined(_WIN32)
+    auto const reportPath = extendedWindowsPath(longPathWriter->location());
+    REQUIRE(::DeleteFileW(reportPath.c_str()) != 0);
+    auto directoryToRemove = longDirectory;
+    while (directoryToRemove != longDirectoryRoot) {
+      auto const nativeDirectory = extendedWindowsPath(directoryToRemove);
+      REQUIRE(::RemoveDirectoryW(nativeDirectory.c_str()) != 0);
+      directoryToRemove = directoryToRemove.parent_path();
+    }
+    auto const nativeRoot = extendedWindowsPath(longDirectoryRoot);
+    REQUIRE(::RemoveDirectoryW(nativeRoot.c_str()) != 0);
+#else
+    std::error_code longPathCleanupError;
+    std::filesystem::remove_all(longDirectoryRoot, longPathCleanupError);
+    REQUIRE_FALSE(longPathCleanupError);
+#endif
+  }
 }
 
 TEST_CASE(
@@ -295,6 +352,51 @@ TEST_CASE(
 
   std::error_code ignored;
   std::filesystem::remove_all(directory, ignored);
+}
+
+TEST_CASE(
+    "Filesystem service-report writers fail without replacing an unwritable joined-federate file",
+    "[internal][mom][service-report-store][service-reporting]"
+    "[service-report-file-unwritable][unit]") {
+  auto const directory = temporaryDirectory();
+  umbra::detail::FilesystemServiceReportStore store(directory);
+  auto writer = store.createForJoinedFederate(descriptor());
+  auto const location = writer->location();
+  auto const initialContents = readTextFile(location);
+  constexpr auto writePermissions =
+      std::filesystem::perms::owner_write |
+      std::filesystem::perms::group_write |
+      std::filesystem::perms::others_write;
+
+  std::error_code permissionError;
+  std::filesystem::permissions(
+      location,
+      writePermissions,
+      std::filesystem::perm_options::remove,
+      permissionError);
+  REQUIRE_FALSE(permissionError);
+
+  bool appendFailed = false;
+  try {
+    writer->append(L"{\"record\":\"unwritable\"}");
+  } catch (std::runtime_error const&) {
+    appendFailed = true;
+  }
+
+  permissionError.clear();
+  std::filesystem::permissions(
+      location,
+      writePermissions,
+      std::filesystem::perm_options::add,
+      permissionError);
+  REQUIRE_FALSE(permissionError);
+  REQUIRE(appendFailed);
+  REQUIRE(std::filesystem::is_regular_file(location));
+  REQUIRE(readTextFile(location) == initialContents);
+
+  std::error_code cleanupError;
+  std::filesystem::remove_all(directory, cleanupError);
+  REQUIRE_FALSE(cleanupError);
 }
 
 TEST_CASE(
@@ -495,4 +597,38 @@ TEST_CASE(
       true, true, static_cast<AdditionalSettingsResultCode>(99), L"invalid"};
   REQUIRE_THROWS_AS(
       umbra::detail::formatMomConfigurationResult(invalid), EncoderException);
+}
+
+TEST_CASE(
+    "Pending service-report file cleanup discards rolled-back joins only",
+    "[internal][unit][service-report-store][join-transaction][filesystem]") {
+  auto const directory = temporaryDirectory();
+  std::filesystem::create_directories(directory);
+  auto const rolledBackPath = directory / "rolled-back.log";
+  auto const committedPath = directory / "committed.log";
+  {
+    std::ofstream file(rolledBackPath, std::ios::binary);
+    file << "initial";
+  }
+  {
+    std::ofstream file(committedPath, std::ios::binary);
+    file << "initial";
+  }
+
+  {
+    umbra::detail::PendingServiceReportFileCleanup cleanup;
+    cleanup.arm(rolledBackPath);
+  }
+  REQUIRE_FALSE(std::filesystem::exists(rolledBackPath));
+
+  {
+    umbra::detail::PendingServiceReportFileCleanup cleanup;
+    cleanup.arm(committedPath);
+    cleanup.commit();
+  }
+  REQUIRE(std::filesystem::is_regular_file(committedPath));
+
+  std::error_code ignored;
+  std::filesystem::remove_all(directory, ignored);
+  REQUIRE_FALSE(ignored);
 }

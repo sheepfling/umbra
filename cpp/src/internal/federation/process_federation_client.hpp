@@ -5,8 +5,10 @@
 
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <cstdint>
 #include <deque>
+#include <exception>
 #include <functional>
 #include <map>
 #include <memory>
@@ -1023,14 +1025,18 @@ class ProcessFederationClient final {
   void bufferEvent(TransportServiceMessage message);
   void bufferReceiveResult(ProcessFederationReceiveInteractionResult result);
   void dispatchTransportFailures();
+  void receiveLoop() noexcept;
+  void dispatchLoop() noexcept;
+  void rethrowPendingCallbackException();
   template <typename Event> [[nodiscard]] Event receivePendingEvent(bool receiveFromStream = false);
   template <typename Event> [[nodiscard]] std::size_t pendingEventCount() const noexcept;
 
-  // This mutex owns each complete stream exchange, its request identity and
-  // buffered state. No bridge/user callback is invoked while it is held.
-  // Recursive acquisition is limited to internal queue/ACK helpers; callback
-  // reentry begins only after the outer exchange releases ownership.
+  // The exchange gate serializes service request/response pairs. The state
+  // mutex is never held while waiting for the reader thread, so unsolicited
+  // events can be admitted while a request is in flight.
+  mutable std::mutex exchangeMutex_;
   mutable std::recursive_mutex transactionMutex_;
+  std::condition_variable_any callbackEventsAvailable_;
   std::atomic_bool closing_{false};
   FailureHandler failureHandler_;
   std::deque<std::wstring> pendingTransportFailures_;
@@ -1039,6 +1045,14 @@ class ProcessFederationClient final {
   // exchange without first acquiring transactionMutex_.
   std::shared_ptr<ProcessTransportConnection> const shutdownConnection_;
   std::unique_ptr<ProcessTransportSession> session_;
+  std::thread streamReaderThread_;
+  std::thread callbackDispatchThread_;
+  std::thread::id streamReaderId_;
+  mutable std::mutex responseMutex_;
+  std::condition_variable responseAvailable_;
+  std::map<std::uint64_t, TransportServiceMessage> responses_;
+  bool streamReaderStopped_ = false;
+  std::string streamReaderFailure_;
   std::shared_ptr<ProcessFederationCallbackBridge> callbackBridge_;
   std::shared_ptr<std::atomic_bool> attributeRelevanceAdvisorySwitchState_;
   struct PendingRequestRetraction final { std::uint64_t messageId; };
@@ -1086,6 +1100,11 @@ class ProcessFederationClient final {
   // outer request has received its response so the single process connection
   // never carries a nested request/response pair.
   std::size_t requestDepth_ = 0U;
+  // The public request thread drains events received with its own response
+  // before releasing this gate. It prevents the background dispatcher from
+  // racing the established synchronous HLA_IMMEDIATE service boundary.
+  std::size_t callbackDispatchSuppressionDepth_ = 0U;
+  std::exception_ptr pendingCallbackException_;
   std::uint64_t nextRequestId_ = 0U;
 };
 

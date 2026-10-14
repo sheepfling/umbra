@@ -1,9 +1,19 @@
 # IEEE 1516.1-2025 Exception-Reporting Flow Guide
 
-This guide explains two RTI-originated MOM interactions that are easy to
-conflate: `HLAreportException` and `HLAreportMOMexception`. It is a contributor
-orientation to the current Umbra implementation, not a substitute for the
-standard, a complete service-coverage inventory, or a conformance claim.
+An HLA report is a separate observation path from the service or management
+event it describes. Ask three questions independently: what result did the
+calling federate observe, was a report produced, and which federate could
+observe that report and when? The absence of an observed report does not
+establish service success: switches, recipient eligibility, and callback
+delivery are separate gates. Interpret a received report according to its
+type rather than as a generic exception signal. The similarly named
+`HLAreportException` and `HLAreportMOMexception` interactions describe distinct
+paths; `HLAreportServiceInvocation` is a third, separately configured report
+path.
+
+This guide explains those distinctions through selected Umbra behavior. It is
+not a substitute for the standard, a complete service-coverage inventory, or a
+conformance claim.
 
 **Edition:** IEEE 1516.1-2025 / IEEE 1516.2-2025 MIM only. This guide does not
 describe the 2010 reference-RTI stream or imply cross-edition equivalence.
@@ -12,16 +22,43 @@ describe the 2010 reference-RTI stream or imply cross-edition equivalence.
 embedded-federation and process-endpoint paths where noted. Branches and test
 observations below are scoped to the linked implementation and cases.
 
-## The three report paths to keep distinct
+## The C++ API boundary
+
+Read the caller's service result from that service's declared contract. For
+example, `RTIambassador::getObjectClassHandle` returns an
+`ObjectClassHandle` or throws the typed `NameNotFound` exception. A report is
+not a second return value: an eligible observer receives a MOM interaction
+through `FederateAmbassador::receiveInteraction`. These are distinct API
+directions even when an immediate callback is dispatched before the original
+service call finishes unwinding. Callback timing changes when the observer
+runs; it does not turn the observer's report into the caller's service result.
+
+The pinned [2025 service signature and throws](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1702),
+[typed exception contract](../../third_party/ieee1516.1-2025/include/RTI/Exception.h#L20),
+and [interaction callback overloads](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L262)
+make this API boundary concrete. The callback timing examples below remain
+profile-specific; see the separate [callback/service-ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md).
+
+## The three report paths relevant to exception reporting
 
 The word “exception report” is often used loosely. First identify what failed
 and what the report is trying to tell the receiver:
 
 | Path | What it describes | Selection rule in the covered Umbra paths | Does the reported member’s Exception Reporting switch gate it? |
 | --- | --- | --- | --- |
-| `HLAreportServiceInvocation` | A service invocation record (success or failure), optionally routed to the file or interaction sink. | Service-reporting configuration and destination/subscription rules; see the [service-invocation guide](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md). | No; this is a separate reporting feature. |
+| `HLAreportServiceInvocation` | A service invocation record (success or failure), optionally routed to the file or interaction sink. | Service-reporting configuration and destination/subscription rules; see the [service-invocation trace comparison](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#three-distinct-traces-call-outcome-invocation-report-requested-mom-report). | No; this is a separate reporting feature. |
 | `HLAreportException` | An exception raised by a covered public RTI service call. | The reported member’s Exception Reporting switch must be enabled; an observer must also be eligible for the report interaction. | **Yes.** |
 | `HLAreportMOMexception` | A MOM interaction that is malformed or rejected by MOM/service preconditions. | Subscription to the report interaction, plus the implementation’s recipient/DDM rules. | **No.** |
+
+This is the set of report paths relevant to exception reporting, not a catalog
+of every `HLAreport...` interaction in the MIM. A valid explicit request such
+as federation-scoped `HLArequestFOMmoduleData` can produce a separate
+`HLAreportFOMmoduleData` interaction about requested state
+([MIM request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2586),
+[paired report](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2657)).
+That request-driven report is neither a failed service-invocation report nor
+`HLAreportMOMexception`; see the distinct
+[Federation MOM request/report flow](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#federation-reports-are-receive-order-interactions).
 
 The last column is about this exception-report route, not about whether the
 original service call succeeds. If this route is suppressed, its hook returns
@@ -30,6 +67,10 @@ failures in the exception-report attempt itself. Some public service wrappers
 then attempt a separate `HLAreportServiceInvocation`; that later reporting
 step has its own failure boundary and can affect the public outcome, as shown
 in [the combined process-path trace](#when-both-process-report-routes-apply).
+
+For a portable reasoning lens that separates a service result, committed
+state, report path, and observer visibility, see the
+[cross-cutting state/event/observation guide](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#a-service-result-committed-state-and-a-report-are-separate-traces).
 
 ## A quick decision map
 
@@ -57,49 +98,100 @@ specific such sites and MOM inputs.
 
 ## Route A: a covered public service raises an exception
 
+Exception origin and report routing are separate questions. Under
+HLA_IMMEDIATE, an API exception thrown by application callback code may
+unwind into the producer's public-service catch; `HLAreportException` then
+depends on that wrapper's explicit hook site. Under HLA_EVOKED, the original
+producer service has returned and the callback exception instead unwinds from
+the active Evoke call in the inspected path. See the callback guide's
+[call-stack example](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#which-public-call-is-active-when-the-callback-throws)
+for one source-bounded embedded Send Interaction case. This does not claim
+that every callback exception is reportable or that all services share this
+catch behavior.
+
+For a recipient-side process callback exception that reaches a request-backed
+service wrapper, see the Callback and Service Ordering guide's
+[concrete `getInteractionClassHandle` example](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#one-public-wrapper-process-getinteractionclasshandle).
+That is an implementation case study, not a rule that every public service
+uses the same catch/report sequence.
+
+The next two traces share the same HLAreportException outcome but keep the
+embedded registry route separate from the process endpoint request/event
+path. They do not imply shared internal scheduling or profile parity.
+
+### Embedded federation route
+
 ```mermaid
 sequenceDiagram
-    participant App as Calling federate
-    participant API as Umbra 2025 API
-    participant Hook as emitExceptionReport
-    participant Authority as Embedded registry or process service
-    participant Observer as Eligible subscribed federate
+    participant App as Caller
+    participant API as 2025 API
+    participant Hook as Exception hook
+    participant Registry as Registry
+    participant Observer as Report observer
 
     App->>API: Invoke covered service
-    API->>API: Catch original typed exception at covered service boundary
-    API->>Hook: Report at instrumented catch site
+    API->>API: Catch typed exception
+    API->>Hook: Enter hook at covered catch site
     Hook->>Hook: Require joined identity
     alt Not joined or identity unavailable
         Hook-->>Hook: Stop advisory path
     else Joined
-        alt Embedded federation
-            Hook->>Hook: Format exception name and detail
-            Hook->>Authority: Plan HLAreportException
-            Authority->>Authority: Check reported member and Exception Reporting switch
-            Authority->>Authority: Select subscribed, DDM-eligible receive-order recipients
-        else Process endpoint
-            alt Process client unavailable
-                Hook-->>Hook: Stop advisory path
-            else Process client available
-                Hook->>Hook: Format exception name and detail
-                Hook->>Authority: reportServiceException(federation, member, service, exception)
-                Authority->>Authority: Validate session/member and consult authoritative switch
-                Authority->>Authority: Select subscribed, DDM-eligible recipients
-            end
-        end
-        alt No plan, no recipient, transport failure, or callback recheck suppresses
-            Note over Authority,Observer: No report callback
-        else Recipient remains eligible at callback admission
-            Authority-->>Observer: HLAreportException (receive order, reliable)
-            Observer->>Observer: Invoke receiveInteraction callback
+        Hook->>Hook: Format exception name/detail
+        Hook->>Registry: Plan HLAreportException
+        Registry->>Registry: Check member and exception switch
+        Registry->>Registry: Select subscribed DDM-eligible receivers
+        alt Route, transport, or recipient gate fails
+            Note over Registry,Observer: No report callback
+        else Recipient remains eligible
+            Registry-->>Observer: Deliver receive-order HLAreportException
+            Observer->>Observer: Dispatch receiveInteraction
         end
     end
-    API-->>App: Continue unwinding the original typed exception
-    Note over API,Observer: HLA_IMMEDIATE or process push may deliver before the public failure returns. Callback scheduling is separate.
-    Note over API,Hook: This chart isolates the noexcept exception-report hook; a wrapper may do later work before rethrowing.
+    API-->>App: Unwind original typed exception
+    Note over API,Observer: HLA_IMMEDIATE may deliver before failure returns
+    Note over API,Hook: Pre-rethrow wrapper work is outside the noexcept hook
 ```
 
-### Read this flow in phases
+### Process endpoint route
+
+```mermaid
+sequenceDiagram
+    participant App as Caller
+    participant API as 2025 API
+    participant Hook as Exception hook
+    participant Client as Process client
+    participant Server as Process service
+    participant Observer as Report observer
+
+    App->>API: Invoke covered service
+    API->>API: Catch typed exception
+    API->>Hook: Enter hook at covered catch site
+    Hook->>Hook: Require joined identity
+    alt Not joined or identity unavailable
+        Hook-->>Hook: Stop advisory path
+    else Joined
+        alt Process client unavailable
+            Hook-->>Hook: Stop advisory path
+        else Process client available
+            Hook->>Hook: Format exception name/detail
+            Hook->>Client: reportServiceException(...)
+            Client->>Server: report_service_exception
+            Server->>Server: Validate session, member, and switch
+            Server->>Server: Select subscribed DDM-eligible receivers
+            alt Route, transport, or recipient gate fails
+                Note over Server,Observer: No report callback
+            else Recipient remains eligible
+                Server-->>Observer: Deliver receive-order HLAreportException
+                Observer->>Observer: Dispatch receiveInteraction
+            end
+        end
+    end
+    API-->>App: Unwind original typed exception
+    Note over API,Observer: Process push may deliver before failure returns
+    Note over API,Hook: Pre-rethrow wrapper work is outside the noexcept hook
+```
+
+### Read the exception-report path in phases
 
 1. **The exception-report hook is advisory.** A covered service catches the
    public 2025 `Exception` and invokes the `noexcept` report hook. Failures in
@@ -126,6 +218,66 @@ sequenceDiagram
    path. The report being receive-order does not create a new timestamped
    delivery rule.
 
+### If the exception-report callback itself throws
+
+Keep the exception that caused the report (`E0`) separate from an application
+exception thrown while handling the resulting `HLAreportException` callback
+(`E1`). `HLA_IMMEDIATE` may nest callback execution in an active service call;
+`HLA_EVOKED` moves callback entry to a later Evoke call. The callback model
+describes delivery policy, not a universal catch or translation rule: the
+active call stack and the particular RTI wrapper determine which exception
+reaches the application.
+
+The `noexcept` [`emitExceptionReport` hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L184)
+also contains an application exception only when that exception unwinds back
+through this report attempt. In the embedded path, [`queueExceptionReport`](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L30)
+submits recipient routes one at a time, and the [immediate dispatcher](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122)
+can invoke a task before submission returns. If an enabled `HLA_IMMEDIATE`
+`receiveInteraction` runs inline on the submitting thread and throws, the hook's
+outer catch suppresses that callback exception; the synchronous recipient loop
+also stops at that submission, so later planned routes are not submitted by
+that attempt. This preserves the original service exception at this hook, but
+does not promise complete report fan-out.
+
+A callback deferred by the recipient's receive-order/time gate, queued behind
+another immediate drainer, delivered by a different process client's
+request/pump, or run later by `HLA_EVOKED` is not unwinding through this hook's
+call stack. Its exception follows the ordinary callback dispatch boundary in
+the [callback guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#which-public-call-is-active-when-the-callback-throws).
+Umbra's [receive-order helper](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1097)
+applies the separate recipient time-state gate described in the
+[time-management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md); that deferral does
+not make this report timestamped.
+For the process profile, keep the report request/response and the recipient's
+event/callback exchange distinct; only a callback exception that propagates
+back through this same hook call is caught here.
+
+```mermaid
+sequenceDiagram
+    participant Service as Failing service
+    participant Hook as noexcept hook
+    participant Recipient as Report observer
+
+    Service->>Hook: Report original exception E0
+    alt E1 unwinds through inline report
+        Hook->>Recipient: Dispatch receiveInteraction inline
+        Recipient--xHook: Throw callback exception E1
+        Note over Hook: Hook consumes E1, embedded fan-out stops
+    else E1 is deferred or on another stack
+        Note over Hook,Recipient: The hook cannot catch E1 on another stack
+    end
+    Hook-->>Service: Return to service catch
+    Service->>Service: Continue catch-body work
+    Service-->>Service: Rethrow E0 if catch work succeeds
+```
+
+This is source-derived boundary behavior, not a normative callback rule. The
+focused [process exception-report scenario](../../cpp/tests/ieee1516_2025_connection_process_mom_service_exception_report_catch2.cpp#L461)
+uses a recording, non-throwing receiver across its callback-model and event
+transport sections; it does not test this exception path. In the process
+combined-report case below, a later failed service-report request can still
+replace the original service exception after this hook returns.
+
 ### When both process report routes apply
 
 For a joined 2025 process-endpoint caller, a failed `GetObjectClassHandle`
@@ -138,29 +290,29 @@ establish callback arrival order.
 
 ```mermaid
 sequenceDiagram
-    participant App as Calling federate
-    participant API as 2025 ambassador
-    participant Hook as Exception-report hook
+    participant App as Caller
+    participant API as 2025 API
+    participant Hook as Exception hook
     participant Client as Process client
     participant Server as Process service
-    participant Observer as Eligible observer
+    participant Observer as Report observer
 
-    App->>API: getObjectClassHandle(unknown name)
+    App->>API: getObjectClassHandle(missing name)
     API->>API: Lookup throws NameNotFound
     API->>Hook: emitExceptionReport
     Hook->>Client: reportServiceException
     Client->>Server: report_service_exception
-    Server->>Server: Check exception switch and recipient eligibility
+    Server->>Server: Check exception switch and recipients
     alt Exception report routed
         Server-->>Observer: Admit HLAreportException
     else Suppressed, unroutable, or report request fails
-        Note over Hook,Server: The noexcept hook suppresses its own reporting failure.
+        Note over Hook,Server: Noexcept hook suppresses its own report failure
     end
     Server-->>Client: Report response
     Client-->>Hook: Return to service catch
     API->>Client: reportFailedServiceInvocation
     Client->>Server: report_failed_service_invocation
-    Server->>Server: Check Service Reporting and selected sink
+    Server->>Server: Check service-report switch and sink
     alt Report accepted or suppressed
         Server-->>Client: Success response
         Client-->>API: Return
@@ -169,7 +321,7 @@ sequenceDiagram
         Server-->>Client: Error response
         Client-->>API: Process client error
         API->>API: Convert report error to RTIinternalError
-        API-->>App: RTIinternalError, original NameNotFound is not rethrown
+        API-->>App: RTIinternalError replaces NameNotFound
     end
 ```
 
@@ -329,7 +481,7 @@ interleaving or callback scheduler has identical behavior.
 - The guide does not claim every public service catch site is instrumented or
   that every public service exception should generate `HLAreportException`.
 - It does not cover the full `HLAreportServiceInvocation` payload/file/report
-  lifecycle; use its separate [guide](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md).
+  lifecycle; use its [three-trace comparison](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#three-distinct-traces-call-outcome-invocation-report-requested-mom-report).
 - Focused MOM tests do not cover every MOM interaction family, malformed
   encoding, rejection policy, remote failure, or all concurrency schedules.
 - Callback ordering observed in the tests is Umbra behavior for those cases;

@@ -29,6 +29,9 @@ void authorizeAmbassadorConnectIfConfigured(
 std::filesystem::path configuredAmbassadorServiceReportDirectory(
     RtiConfiguration const* configuration,
     bool& settingsApplied);
+std::filesystem::path configuredAmbassadorFederationSaveDirectory(
+    RtiConfiguration const* configuration,
+    bool& settingsApplied);
 umbra::detail::FomStandardEdition configuredAmbassadorFomStandardEdition(
     RtiConfiguration const* configuration,
     bool& settingsApplied,

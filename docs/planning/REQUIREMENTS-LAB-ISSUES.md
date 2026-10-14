@@ -306,3 +306,19 @@ Resolution: updated only implementation-source paths in the MOM service-
 report and interaction-region contracts, plus the single stale test selector.
 Requirement IDs, clauses, API mappings, and IEEE 1516.1-2010 records are
 unchanged. CTests #1920, #1921, #1953, #48, #263, #881, and #1242 pass.
+
+### RL-313 — page-178 pre-grant delivery statement is truncated
+
+The candidate `requirement-candidate-content-clauses-08-time-management-page-
+178-l51-14` ends at “before granting the joined”, omitting the continuation
+that names the joined federate's time-advance request and says only messages
+listed in Table 1's delivery column may be delivered before grant. The
+reconstructed page-179 table gives TARA's exact pre-grant rule as TSO messages
+with `ts < t_R`; equal-time TSO callbacks therefore follow, rather than
+precede, the TARA grant.
+
+Resolution/workaround: retain the pinned candidate ID, but read it with the
+reconstructed page-178 continuation and the specific Table 1 service row. New
+test evidence is scoped to that TARA boundary only. RL-313 is recorded in
+`known-issues.json`; this turn did not independently verify the canonical PDF,
+so it is a pinned-export completeness/usability issue, not IEEE errata.

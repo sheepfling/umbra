@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-contract",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract maps equal-time timestamped interaction delivery under Time Advance Request Available to the pinned 2025 service semantics. The pre-grant set is strict: a TSO at t_R is delivered after the grant, unlike a TSO with timestamp less than t_R. It does not generalize this result to TAR, NMR, NMRA, or Flush Queue Request, and it is not Requirements Lab validation or conformance evidence.",
+  "requirements": [
+    {
+      "id": "umbra-tso-tara-equal-time-boundary-grant-before-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l51-14",
+      "clause_id": "clause-8.9",
+      "source": "packages/hla-rti-cpp-tck/src/tck_timestamped_interaction_boundary_scenarios.cpp",
+      "source_symbol": "runTimestampedInteractionMixedAdvancesScenario",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioTimestampedInteractionTaraEqualBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioTimestampedInteractionTaraEqualBoundaryContractPortable",
+        "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded TARA delivers a TSO at its exclusive request boundary only after the grant"
+      ],
+      "notes": "The TCK case sets the TSO timestamp and TARA request boundary to logical time 5, then verifies the grant callback precedes receiveInteraction. Its strict-less-than companion uses timestamp 5 and request boundary 6. The Catch2 reference is one HLA_EVOKED embedded implementation case and is not conformance evidence. RL-313 records the Lab candidate's truncation; the exact reconstructed row is used only as traceability context."
+    }
+  ]
+}

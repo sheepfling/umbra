@@ -571,11 +571,15 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::enable_time_regulation,
           "The queued-TSO bounds server lost Enable Time Regulation.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
       serveExpected(
           receiver,
           receiverHandler,
           TransportServiceOperation::enable_time_constrained,
           "The queued-TSO bounds server lost Enable Time Constrained.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiver, receiverHandler);
       serveExpected(
           sender,
           senderHandler,
@@ -586,6 +590,8 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::disable_time_regulation,
           "The queued-TSO bounds server lost Disable Time Regulation.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
       serveExpected(
           receiver,
           receiverHandler,
@@ -594,8 +600,18 @@ TEST_CASE(
       serveExpected(
           receiver,
           receiverHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The queued-TSO bounds server lost receiver Query GALT report.");
+      serveExpected(
+          receiver,
+          receiverHandler,
           TransportServiceOperation::query_time_bounds,
           "The queued-TSO bounds server lost receiver Query LITS.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The queued-TSO bounds server lost receiver Query LITS report.");
       serveExpected(
           receiver,
           receiverHandler,

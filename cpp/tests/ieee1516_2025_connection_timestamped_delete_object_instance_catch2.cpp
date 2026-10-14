@@ -30,6 +30,8 @@
 #include <RTI/time/HLAlogicalTimeFactoryFactory.h>
 #include <RTI/encoding/BasicDataElements.h>
 
+#include "process_timestamped_delete_object_instance_scenario.hpp"
+
 #include <umbra/embedded_profile_configuration.hpp>
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
@@ -454,13 +456,13 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 
 }  // namespace
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-TEST_CASE(
-    "RTIambassador routes timestamped Delete Object Instance and removal callback through a configured process endpoint",
-    "[integration][foundation][object-management][time-management][transport][process-boundary][public-endpoint][timestamped-delete-object-instance][rti.service.delete-object-instance][federate.callback.remove-object-instance]") {
-  auto runScenario = [](CallbackModel callbackModel,
-                        bool regulateSender,
-                        bool constrainReceiver = false,
-                        bool preferReceiveOrder = false) {
+void verifyTimestampedDeleteObjectInstanceProcessScenario(
+    CallbackModel callbackModel,
+    bool regulateSender,
+    bool constrainReceiver,
+    bool preferReceiveOrder,
+    bool gateNmraCallbacks,
+    bool requestNmr) {
   class RecordingFederateAmbassador final : public NullFederateAmbassador {
    public:
     void discoverObjectInstance(
@@ -468,11 +470,13 @@ TEST_CASE(
         rti1516_2025::ObjectClassHandle const& objectClass,
         std::wstring const& objectInstanceName,
         rti1516_2025::FederateHandle const& producingFederate) override {
+      std::scoped_lock lock(callbackMutex);
       discovered = true;
       discoveredObjectInstance = objectInstance;
       discoveredObjectClass = objectClass;
       discoveredObjectInstanceName = objectInstanceName;
       discoveredProducingFederate = producingFederate;
+      callbackChanged.notify_all();
     }
 
     void removeObjectInstance(
@@ -483,7 +487,9 @@ TEST_CASE(
         rti1516_2025::OrderType sentOrder,
         rti1516_2025::OrderType receivedOrder,
         rti1516_2025::MessageRetractionHandle const* optionalRetraction) override {
+      std::scoped_lock lock(callbackMutex);
       removed = true;
+      callbackOrder.push_back('R');
       removedObjectInstance = objectInstance;
       removedProducingFederate = producingFederate;
       removedSentOrder = sentOrder;
@@ -502,8 +508,56 @@ TEST_CASE(
             static_cast<std::uint8_t const*>(userSuppliedTag.data());
         removedTag.assign(first, first + userSuppliedTag.size());
       }
+      callbackChanged.notify_all();
     }
 
+    void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
+      std::scoped_lock lock(callbackMutex);
+      callbackOrder.push_back('G');
+      ++timeAdvanceGrantCount;
+      recordTimeAdvanceGrant(time);
+      callbackChanged.notify_all();
+    }
+
+    void recordTimeAdvanceGrant(rti1516_2025::LogicalTime const& time) {
+      auto const encoded = time.encode();
+      grantTimestampEncoding.clear();
+      if (encoded.size() != 0U) {
+        auto const* first = static_cast<std::uint8_t const*>(encoded.data());
+        grantTimestampEncoding.assign(first, first + encoded.size());
+      }
+    }
+
+    bool waitForDiscovery() {
+      std::unique_lock lock(callbackMutex);
+      return callbackChanged.wait_for(
+          lock, std::chrono::seconds(2), [this] { return discovered; });
+    }
+
+    bool waitForRemoval(bool requireGrant) {
+      std::unique_lock lock(callbackMutex);
+      return callbackChanged.wait_for(lock, std::chrono::seconds(2), [this, requireGrant] {
+        return removed && (!requireGrant || timeAdvanceGrantCount == 1U);
+      });
+    }
+
+    bool hasDiscovered() {
+      std::scoped_lock lock(callbackMutex);
+      return discovered;
+    }
+
+    bool hasRemoved() {
+      std::scoped_lock lock(callbackMutex);
+      return removed;
+    }
+
+    std::vector<char> observedCallbackOrder() {
+      std::scoped_lock lock(callbackMutex);
+      return callbackOrder;
+    }
+
+    std::mutex callbackMutex;
+    std::condition_variable callbackChanged;
     bool discovered = false;
     rti1516_2025::ObjectInstanceHandle discoveredObjectInstance;
     rti1516_2025::ObjectClassHandle discoveredObjectClass;
@@ -518,6 +572,9 @@ TEST_CASE(
     std::wstring timestampImplementationName;
     std::vector<std::uint8_t> timestampEncoding;
     std::vector<std::uint8_t> removedTag;
+    std::vector<std::uint8_t> grantTimestampEncoding;
+    std::vector<char> callbackOrder;
+    std::size_t timeAdvanceGrantCount = 0U;
   } receiverFederate;
 
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
@@ -588,15 +645,40 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
+        for (;;) {
+          bool expectedServed = false;
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  session, [&](TransportServiceMessage const& request) {
+                    bool const isReportOperation =
+                        request.operation ==
+                            TransportServiceOperation::report_service_exception ||
+                        request.operation ==
+                            TransportServiceOperation::report_failed_service_invocation ||
+                        request.operation ==
+                            TransportServiceOperation::report_successful_service_invocation ||
+                        request.operation ==
+                            TransportServiceOperation::report_successful_void_service_invocation ||
+                        request.operation ==
+                            TransportServiceOperation::recheck_exception_report;
+                    if (isReportOperation && request.operation != operation) {
+                      auto response = handler(request);
+                      if (response.status != TransportServiceStatus::ok) {
+                        throw std::runtime_error(
+                            "The public timestamped delete fixture rejected a service report.");
+                      }
+                      return response;
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(description);
+                    }
+                    expectedServed = true;
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(description);
+          }
+          if (expectedServed) {
+            return;
+          }
         }
       };
 
@@ -638,6 +720,45 @@ TEST_CASE(
               std::memory_order_release);
         }
         return response;
+      };
+      auto serveOptionalReceivePollUntilTsoAcknowledgement = [&] {
+        for (;;) {
+          bool acknowledgementServed = false;
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  receiver, [&](TransportServiceMessage const& request) {
+                    bool const isReportOperation =
+                        request.operation ==
+                            TransportServiceOperation::report_service_exception ||
+                        request.operation ==
+                            TransportServiceOperation::report_failed_service_invocation ||
+                        request.operation ==
+                            TransportServiceOperation::report_successful_service_invocation ||
+                        request.operation ==
+                            TransportServiceOperation::report_successful_void_service_invocation ||
+                        request.operation ==
+                            TransportServiceOperation::recheck_exception_report;
+                    if (isReportOperation) {
+                      return receiverHandler(request);
+                    }
+                    if (request.operation ==
+                        TransportServiceOperation::receive_interaction) {
+                      return receiverHandler(request);
+                    }
+                    if (request.operation !=
+                        TransportServiceOperation::acknowledge_tso_delivery) {
+                      throw std::runtime_error(
+                          "The public timestamped process delete server expected an optional callback poll or TSO acknowledgement.");
+                    }
+                    acknowledgementServed = true;
+                    return receiverHandler(request);
+                  })) {
+            throw std::runtime_error(
+                "The public timestamped process delete server lost its callback poll or TSO acknowledgement.");
+          }
+          if (acknowledgementServed) {
+            return;
+          }
+        }
       };
       serveExpected(
           receiver,
@@ -686,13 +807,7 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::register_object_instance,
           "The public timestamped process delete server lost sender Register.");
-      if (callbackModel == HLA_IMMEDIATE) {
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::get_object_class_handle,
-            "The public timestamped process delete server lost immediate discovery polling.");
-      } else {
+      if (callbackModel == HLA_EVOKED) {
         serveExpected(
             receiver,
             receiverHandler,
@@ -712,6 +827,14 @@ TEST_CASE(
             senderHandler,
             TransportServiceOperation::enable_time_regulation,
             "The public timestamped process delete server lost sender time-regulation enable.");
+        // EnableTimeRegulation performs a second synchronous process request
+        // to report successful void invocation. A fixed-order fixture must
+        // drain it on the sender stream before switching to the receiver.
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The public timestamped process delete server lost the sender time-regulation report.");
       }
       if (constrainReceiver) {
         serveExpected(
@@ -721,11 +844,30 @@ TEST_CASE(
             "The public timestamped process delete server lost receiver time-constrained enable.");
       }
       if (constrainReceiver) {
+        auto const requestOperation = gateNmraCallbacks
+            ? TransportServiceOperation::next_message_request_available
+            : requestNmr ? TransportServiceOperation::next_message_request
+                         : TransportServiceOperation::time_advance_request;
+        auto const requestName = gateNmraCallbacks
+            ? "The public timestamped process delete server lost receiver NMRA."
+            : requestNmr
+                ? "The public timestamped process delete server lost receiver NMR."
+                : "The public timestamped process delete server lost receiver TAR.";
+        auto const requestReportName = gateNmraCallbacks
+            ? "The public timestamped process delete server lost receiver NMRA report."
+            : requestNmr
+                ? "The public timestamped process delete server lost receiver NMR report."
+                : "The public timestamped process delete server lost the receiver TAR report.";
         serveExpected(
             receiver,
             receiverHandler,
-            TransportServiceOperation::time_advance_request,
-            "The public timestamped process delete server lost receiver TAR.");
+            requestOperation,
+            requestName);
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            requestReportName);
       }
       serveExpected(
           sender,
@@ -738,26 +880,28 @@ TEST_CASE(
             senderHandler,
             TransportServiceOperation::time_advance_request,
             "The public timestamped process delete server lost sender TAR.");
-      }
-      if (callbackModel == HLA_IMMEDIATE) {
         serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::get_object_class_handle,
-            "The public timestamped process delete server lost immediate removal polling.");
-      } else {
+            sender,
+            senderHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The public timestamped process delete server lost the sender TAR report.");
+      }
+      if (constrainReceiver) {
+        if (callbackModel == HLA_EVOKED) {
+          serveOptionalReceivePollUntilTsoAcknowledgement();
+        } else {
+          serveExpected(
+              receiver,
+              receiverHandler,
+              TransportServiceOperation::acknowledge_tso_delivery,
+              "The public timestamped process delete server lost receiver TSO acknowledgement.");
+        }
+      } else if (callbackModel == HLA_EVOKED) {
         serveExpected(
             receiver,
             receiverHandler,
             TransportServiceOperation::receive_interaction,
             "The public timestamped process delete server lost receiver removal poll.");
-      }
-      if (constrainReceiver) {
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::acknowledge_tso_delivery,
-            "The public timestamped process delete server lost receiver TSO acknowledgement.");
       }
 
       auto const receiverMember = registry.memberByName(
@@ -861,15 +1005,15 @@ TEST_CASE(
     auto const objectInstance = senderRti->registerObjectInstance(senderObjectClass);
     REQUIRE(objectInstance.isValid());
     if (callbackModel == HLA_IMMEDIATE) {
-      static_cast<void>(receiverRti->getObjectClassHandle(objectClassNameWide));
+      REQUIRE(receiverFederate.waitForDiscovery());
     } else {
       for (std::size_t evokeCount = 0U;
-           evokeCount < 4U && !receiverFederate.discovered;
+           evokeCount < 4U && !receiverFederate.hasDiscovered();
            ++evokeCount) {
         static_cast<void>(receiverRti->evokeCallback(0.0));
       }
     }
-    REQUIRE(receiverFederate.discovered);
+    REQUIRE(receiverFederate.hasDiscovered());
     REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
 
     if (preferReceiveOrder) {
@@ -893,9 +1037,12 @@ TEST_CASE(
     if (constrainReceiver) {
       REQUIRE(regulateSender);
       REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
-      REQUIRE_FALSE(receiverFederate.removed);
+      REQUIRE_FALSE(receiverFederate.hasRemoved());
       if (callbackModel == HLA_EVOKED) {
         REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+      }
+      if (gateNmraCallbacks) {
+        REQUIRE_NOTHROW(receiverRti->disableCallbacks());
       }
     }
 
@@ -909,9 +1056,17 @@ TEST_CASE(
     auto const expectedTimestampEncoding = timestamp->encode();
     std::vector<std::uint8_t> const expectedTag{0x54U, 0x44U, 0x4FU};
     if (constrainReceiver) {
-      REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
-          rti1516_2025::HLAinteger64Time(5)));
-      REQUIRE_FALSE(receiverFederate.removed);
+      if (gateNmraCallbacks) {
+        REQUIRE_NOTHROW(receiverRti->nextMessageRequestAvailable(
+            rti1516_2025::HLAinteger64Time(10)));
+      } else if (requestNmr) {
+        REQUIRE_NOTHROW(receiverRti->nextMessageRequest(
+            rti1516_2025::HLAinteger64Time(10)));
+      } else {
+        REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
+            rti1516_2025::HLAinteger64Time(5)));
+      }
+      REQUIRE_FALSE(receiverFederate.hasRemoved());
     }
     auto const retraction = senderRti->deleteObjectInstance(
         objectInstance,
@@ -928,16 +1083,25 @@ TEST_CASE(
         REQUIRE_FALSE(senderRti->evokeCallback(0.0));
       }
     }
+    if (gateNmraCallbacks) {
+      REQUIRE_FALSE(receiverFederate.hasRemoved());
+      REQUIRE(receiverFederate.observedCallbackOrder().empty());
+      REQUIRE_NOTHROW(receiverRti->enableCallbacks());
+    }
     if (callbackModel == HLA_IMMEDIATE) {
-      static_cast<void>(receiverRti->getObjectClassHandle(objectClassNameWide));
+      REQUIRE(receiverFederate.waitForRemoval(
+          constrainReceiver || gateNmraCallbacks || requestNmr));
     } else {
       for (std::size_t evokeCount = 0U;
-           evokeCount < 4U && !receiverFederate.removed;
+           evokeCount < 6U &&
+           (gateNmraCallbacks || requestNmr
+                ? receiverFederate.observedCallbackOrder().size() < 2U
+                : !receiverFederate.hasRemoved());
            ++evokeCount) {
         static_cast<void>(receiverRti->evokeCallback(0.0));
       }
     }
-    REQUIRE(receiverFederate.removed);
+    REQUIRE(receiverFederate.hasRemoved());
     REQUIRE(receiverFederate.removedObjectInstance == objectInstance);
     REQUIRE(receiverFederate.removedProducingFederate ==
             receiverFederate.discoveredProducingFederate);
@@ -959,6 +1123,11 @@ TEST_CASE(
                                : rti1516_2025::RECEIVE));
     REQUIRE(receiverFederate.hasOptionalRetraction ==
             (regulateSender && !preferReceiveOrder));
+    if (gateNmraCallbacks || requestNmr) {
+      REQUIRE(receiverFederate.observedCallbackOrder() == std::vector<char>{'R', 'G'});
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
+      REQUIRE(receiverFederate.grantTimestampEncoding == expectedTimestampBytes);
+    }
     REQUIRE_FALSE(senderFederate.removed);
 
     senderRti->resignFederationExecution(DELETE_OBJECTS);
@@ -1010,31 +1179,67 @@ TEST_CASE(
   REQUIRE(registeredObject.load(std::memory_order_acquire) != 0U);
   REQUIRE_FALSE(senderJoined);
   REQUIRE_FALSE(receiverJoined);
-  };
+}
 
+TEST_CASE(
+    "RTIambassador routes timestamped Delete Object Instance and removal callback through a configured process endpoint",
+    "[integration][foundation][object-management][time-management][transport][process-boundary][public-endpoint][timestamped-delete-object-instance][rti.service.delete-object-instance][federate.callback.remove-object-instance]") {
   SECTION("HLA_EVOKED") {
-    runScenario(HLA_EVOKED, true);
+    verifyTimestampedDeleteObjectInstanceProcessScenario(HLA_EVOKED, true);
   }
   SECTION("HLA_IMMEDIATE") {
-    runScenario(HLA_IMMEDIATE, true);
+    verifyTimestampedDeleteObjectInstanceProcessScenario(HLA_IMMEDIATE, true);
   }
   SECTION("HLA_EVOKED without time regulation") {
-    runScenario(HLA_EVOKED, false);
+    verifyTimestampedDeleteObjectInstanceProcessScenario(HLA_EVOKED, false);
   }
   SECTION("HLA_IMMEDIATE without time regulation") {
-    runScenario(HLA_IMMEDIATE, false);
+    verifyTimestampedDeleteObjectInstanceProcessScenario(HLA_IMMEDIATE, false);
   }
   SECTION("HLA_EVOKED queued time-constrained recipient") {
-    runScenario(HLA_EVOKED, true, true);
+    verifyTimestampedDeleteObjectInstanceProcessScenario(HLA_EVOKED, true, true);
   }
   SECTION("HLA_IMMEDIATE queued time-constrained recipient") {
-    runScenario(HLA_IMMEDIATE, true, true);
+    verifyTimestampedDeleteObjectInstanceProcessScenario(HLA_IMMEDIATE, true, true);
   }
   SECTION("HLA_EVOKED preferred receive-order timestamped deletion") {
-    runScenario(HLA_EVOKED, true, false, true);
+    verifyTimestampedDeleteObjectInstanceProcessScenario(
+        HLA_EVOKED, true, false, true);
   }
   SECTION("HLA_IMMEDIATE preferred receive-order timestamped deletion") {
-    runScenario(HLA_IMMEDIATE, true, false, true);
+    verifyTimestampedDeleteObjectInstanceProcessScenario(
+        HLA_IMMEDIATE, true, false, true);
+  }
+}
+
+TEST_CASE(
+    "RTIambassadors retarget a pending process NMRA to timestamped object deletion while callbacks are disabled",
+    "[integration][foundation][object-management][time-management][time-advance][callbacks][callback-gating][transport][process-boundary][public-endpoint][timestamped-delete-object-instance][process-tso-object-deletion-callback-gating][rti.service.delete-object-instance][rti.service.next-message-request-available][rti.service.disable-callbacks][rti.service.enable-callbacks][rti.service.evoke-callback][federate.callback.remove-object-instance][federate.callback.time-advance-grant][2025]") {
+  SECTION("HLA_EVOKED") {
+    verifyTimestampedDeleteObjectInstanceProcessScenario(
+        HLA_EVOKED, true, true, false, true);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    verifyTimestampedDeleteObjectInstanceProcessScenario(
+        HLA_IMMEDIATE, true, true, false, true);
+  }
+}
+
+TEST_CASE(
+    "RTIambassadors retarget a pending process NMR to timestamped object deletion",
+    "[integration][foundation][object-management][time-management][time-advance][transport]"
+    "[process-boundary][public-endpoint][timestamped-delete-object-instance]"
+    "[process-tso-object-deletion-nmr-future-arrival][process-tso-immediate-no-follow-up-poll]"
+    "[process-time-advance-next-message-queued-focused]"
+    "[rti.service.delete-object-instance][rti.service.next-message-request]"
+    "[federate.callback.remove-object-instance][federate.callback.time-advance-grant][2025]") {
+  SECTION("HLA_EVOKED") {
+    verifyTimestampedDeleteObjectInstanceProcessScenario(
+        HLA_EVOKED, true, true, false, false, true);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    verifyTimestampedDeleteObjectInstanceProcessScenario(
+        HLA_IMMEDIATE, true, true, false, false, true);
   }
 }
 #endif

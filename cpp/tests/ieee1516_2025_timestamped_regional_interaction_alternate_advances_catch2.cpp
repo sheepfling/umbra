@@ -78,7 +78,7 @@ TEST_CASE(
   REQUIRE(receiverReports.timestampedInteractionReports.empty());
 
   // TARA reaches the exact defined-GALT boundary and carries the explicit
-  // source RegionHandle through the callback before the matching grant.
+  // source RegionHandle through the callback after the matching TARA grant.
   REQUIRE_NOTHROW(receiver->timeAdvanceRequestAvailable(
       rti1516_2025::HLAinteger64Time(7)));
   REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
@@ -87,7 +87,7 @@ TEST_CASE(
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
-  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"interaction", "grant"});
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"grant", "interaction"});
   REQUIRE(receiverReports.timeAdvanceGrantReports.front().value == L"7");
 
   auto const& firstReport = receiverReports.timestampedInteractionReports.front();
@@ -123,7 +123,7 @@ TEST_CASE(
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2U);
   REQUIRE(
       receiverReports.callbackOrder ==
-      std::vector<std::string>{"interaction", "grant", "interaction", "grant"});
+      std::vector<std::string>{"grant", "interaction", "interaction", "grant"});
   REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"9");
 
   auto const& secondReport = receiverReports.timestampedInteractionReports.back();

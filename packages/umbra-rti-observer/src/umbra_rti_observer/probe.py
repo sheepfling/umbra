@@ -11,14 +11,15 @@ import argparse
 import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Any
+from typing import cast
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from .capabilities import CAPABILITY_STATES
 from .contract import OBSERVER_CONTRACT_VERSION
+from .models import JsonObject, JsonValue
 
-PayloadFetcher = Callable[[str], tuple[int, Any]]
+PayloadFetcher = Callable[[str], tuple[int, JsonValue]]
 
 
 @dataclass(frozen=True)
@@ -29,7 +30,7 @@ class ProbeCheck:
     passed: bool
     detail: str
 
-    def as_dict(self) -> dict[str, Any]:
+    def as_dict(self) -> JsonObject:
         return {"name": self.name, "passed": self.passed, "detail": self.detail}
 
 
@@ -44,7 +45,7 @@ class ProbeResult:
     def passed(self) -> bool:
         return all(check.passed for check in self.checks)
 
-    def as_dict(self) -> dict[str, Any]:
+    def as_dict(self) -> JsonObject:
         return {
             "base_url": self.base_url,
             "passed": self.passed,
@@ -112,16 +113,16 @@ class ObserverContractProbe:
 
         return ProbeResult(self.base_url, tuple(checks))
 
-    def _fetch_http(self, path: str) -> tuple[int, Any]:
+    def _fetch_http(self, path: str) -> tuple[int, JsonValue]:
         request = Request(self.base_url + path, headers={"Accept": "application/json"})
         with urlopen(request, timeout=self.timeout) as response:
             body = response.read().decode("utf-8")
-            return int(response.status), json.loads(body)
+            return int(response.status), cast(JsonValue, json.loads(body))
 
-    def _get_json(self, name: str, path: str, checks: list[ProbeCheck]) -> Mapping[str, Any] | None:
+    def _get_json(self, name: str, path: str, checks: list[ProbeCheck]) -> Mapping[str, JsonValue] | None:
         try:
             status, payload = self._fetcher(path)
-        except Exception as error:  # pragma: no cover - exercised by CLI/network use
+        except Exception as error:  # noqa: BLE001 - transport failures become failed checks
             checks.append(ProbeCheck(name, False, f"request failed: {error}"))
             return None
         if status != 200:
@@ -134,7 +135,7 @@ class ObserverContractProbe:
         return payload
 
     @staticmethod
-    def _check_contract(contract: Mapping[str, Any], checks: list[ProbeCheck]) -> None:
+    def _check_contract(contract: Mapping[str, JsonValue], checks: list[ProbeCheck]) -> None:
         version = contract.get("contract_version")
         checks.append(
             ProbeCheck(
@@ -165,19 +166,19 @@ class ObserverContractProbe:
         )
 
     @staticmethod
-    def _check_version(name: str, payload: Mapping[str, Any], expected: Any, checks: list[ProbeCheck]) -> None:
+    def _check_version(name: str, payload: Mapping[str, JsonValue], expected: JsonValue, checks: list[ProbeCheck]) -> None:
         if expected is None:
             return
         actual = payload.get("contract_version")
         checks.append(ProbeCheck(f"{name}_version", actual == expected, f"advertised {actual!r}"))
 
     @staticmethod
-    def _check_fields(name: str, payload: Mapping[str, Any], fields: tuple[str, ...], checks: list[ProbeCheck]) -> None:
+    def _check_fields(name: str, payload: Mapping[str, JsonValue], fields: tuple[str, ...], checks: list[ProbeCheck]) -> None:
         missing = [field for field in fields if field not in payload]
         checks.append(ProbeCheck(f"{name}_fields", not missing, "missing: " + ", ".join(missing) if missing else "all required fields present"))
 
     @staticmethod
-    def _check_capabilities(name: str, capabilities: Any, checks: list[ProbeCheck]) -> None:
+    def _check_capabilities(name: str, capabilities: JsonValue, checks: list[ProbeCheck]) -> None:
         valid = isinstance(capabilities, Mapping) and all(
             isinstance(value, Mapping) and value.get("state") in CAPABILITY_STATES
             for value in capabilities.values()
@@ -185,7 +186,7 @@ class ObserverContractProbe:
         checks.append(ProbeCheck(f"{name}_capabilities", valid, "capability entries use declared states"))
 
     @staticmethod
-    def _check_event_page(payload: Mapping[str, Any], checks: list[ProbeCheck]) -> None:
+    def _check_event_page(payload: Mapping[str, JsonValue], checks: list[ProbeCheck]) -> None:
         fields = (
             "contract_version",
             "events",
@@ -207,7 +208,8 @@ class ObserverContractProbe:
             and isinstance(event.get("sequence"), int)
             for event in events
         )
-        sequences = [event["sequence"] for event in events] if valid_envelopes else []
+        event_rows = [event for event in events if isinstance(event, Mapping)] if isinstance(events, list) else []
+        sequences = cast(list[int], [event["sequence"] for event in event_rows]) if valid_envelopes else []
         ordered = valid_envelopes and sequences == sorted(sequences)
         checks.append(ProbeCheck("event_envelopes", ordered, f"{len(sequences)} ordered event envelope(s)"))
 

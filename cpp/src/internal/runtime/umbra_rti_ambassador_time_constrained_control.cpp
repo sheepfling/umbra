@@ -69,6 +69,11 @@ void UmbraRtiAmbassador::enableTimeConstrained() {
         } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
           throw RTIinternalError(wideAscii(error.what()));
         }
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"EnableTimeConstrained",
+            umbra::detail::MomServiceType::time_management,
+            {},
+            true);
         return;
       case umbra::detail::ProcessFederationTimeEnableStatus::time_advance_pending:
         throw InTimeAdvancingState(
@@ -229,6 +234,11 @@ void UmbraRtiAmbassador::disableTimeConstrained() {
     }
     switch (processResult.status) {
       case umbra::detail::ProcessFederationTimeDisableStatus::applied:
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"DisableTimeConstrained",
+            umbra::detail::MomServiceType::time_management,
+            {},
+            true);
         return;
       case umbra::detail::ProcessFederationTimeDisableStatus::not_enabled:
         throw TimeConstrainedIsNotEnabled(

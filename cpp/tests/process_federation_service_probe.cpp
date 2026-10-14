@@ -422,18 +422,33 @@ int runPublicServer(
   auto const survivorMember = registry.memberByName(
       L"process-execution", L"package-process-receiver-survivor");
   auto serveExpectedSender = [&](TransportServiceOperation operation) {
-    return umbra::test::servePrimaryProcessRequest(
-        *sender, senderHandler,
-        [&](TransportServiceMessage const& request) {
-          if (request.operation != operation) {
-            throw std::runtime_error(
-                "The installable process profile server received an unexpected sender operation " +
-                std::to_string(static_cast<unsigned int>(request.operation)) +
-                " (expected " +
-                std::to_string(static_cast<unsigned int>(operation)) + ").");
-          }
-          return senderHandler(request);
-        });
+    while (true) {
+      bool expected = false;
+      if (!umbra::test::servePrimaryProcessRequest(
+              *sender, senderHandler,
+              [&](TransportServiceMessage const& request) {
+                if (request.operation ==
+                        TransportServiceOperation::report_successful_service_invocation ||
+                    request.operation ==
+                        TransportServiceOperation::report_successful_void_service_invocation) {
+                  return senderHandler(request);
+                }
+                if (request.operation != operation) {
+                  throw std::runtime_error(
+                      "The installable process profile server received an unexpected sender operation " +
+                      std::to_string(static_cast<unsigned int>(request.operation)) +
+                      " (expected " +
+                      std::to_string(static_cast<unsigned int>(operation)) + ").");
+                }
+                expected = true;
+                return senderHandler(request);
+              })) {
+        return false;
+      }
+      if (expected) {
+        return true;
+      }
+    }
   };
   auto serveExpectedSenderServiceReport = [&] {
     return umbra::test::servePrimaryProcessRequest(

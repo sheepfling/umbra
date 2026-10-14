@@ -799,6 +799,578 @@
       "recurrence_of": "RL-282",
       "verification": "Corrected 23 validator source pointers to libxml2_fom_composer_validators.cpp; CTest #1825 passes. Requirement IDs, clause mappings, pinned Lab inputs, and IEEE 1516.1-2010 source or mapping are unchanged.",
       "detected": "2026-10-09"
+    },
+    {
+      "id": "RL-285",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-plan-target-selector-drift",
+      "title": "Published-interaction case card inherited a stale registry-lane selector",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-publication-unit"
+      },
+      "symptom": "The plan row named the removed umbra_federation_registry_catch2 target and retained an escaped per-word selector under umbra.federation_registry.catch2, while CTest registers this case under umbra.ieee1516_2025.catch2. Running the suggested selector returned no tests.",
+      "impact": "A focused, mapped 2025 case appeared runnable in the query output but its suggested command silently selected zero CTests, slowing verification and making the handoff misleading.",
+      "workaround": "Update only the plan row's CTest target and exact filter to its currently registered aggregate Catch2 target. Preserve the seven requirement IDs, six canonical clause mappings, API-surface IDs, and pinned Requirements Lab inputs; do not resynchronize the Lab export.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-publication-unit --summary --compact; run its suggested CTest selector against out/mgw/embedded.",
+      "recurrence_of": "RL-282",
+      "verification": "Corrected the target and exact registered per-case selector and added a query regression. CTest #608 passes with the corrected selector; the query regression verifies the case card remains exact. Requirement, clause, API mappings and IEEE 1516.1-2010 behavior are unchanged.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-286",
+      "status": "resolved-in-umbra",
+      "kind": "roadmap-search-active-handoff-shadowing",
+      "title": "Generic roadmap queries were shadowed by substring matches in the active handoff",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "tools/query_rti_work.py",
+        "lines": "roadmap_inventory active-handoff family selection"
+      },
+      "symptom": "The active handoff shortcut treated any substring of the handoff lane, case title, or objective as an exact owner query. A broad query such as roadmap process selected time-save-restore from the lane name public-process-restart-interaction-transportation-type-change and suppressed the transport-and-conformance family whose title and tags matched the query.",
+      "impact": "Broad roadmap discovery returned the wrong family and hid a relevant open implementation/evidence lane, encouraging repeated searches and making next work harder to find.",
+      "workaround": "Use the active family shortcut only for an exact handoff id, family id, or lane id. Preserve exact lane-owner behavior and allow broad terms to search indexed family titles, anchors, and tags.",
+      "reproduction": "python tools/query_rti_work.py roadmap process --status open --summary --compact",
+      "verification": "Tightened active-handoff matching to exact identifiers. The query regression now requires the broad process search to return transport-and-conformance and the exact handoff lane to remain queryable. No Requirements Lab export, requirement/section mapping, or IEEE 1516.1-2010 behavior changed.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-287",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-plan-target-selector-drift",
+      "title": "Subscription-restore plan row retained the removed registry target and selector",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-subscription-unit"
+      },
+      "symptom": "The subscription restore case still named umbra_federation_registry_catch2 and escaped every space in a selector under umbra.federation_registry.catch2, but the registered case uses umbra.ieee1516_2025.catch2.",
+      "impact": "The indexed exact case suggested a CTest command selecting zero tests, despite a focused mapped test being registered and runnable.",
+      "workaround": "Update only this row's CTest target and exact filter to the current aggregate target; preserve its seven requirements, six canonical clause mappings, API surfaces, and pinned Requirements Lab input.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-subscription-unit --summary --compact; run the suggested CTest selector against out/mgw/embedded.",
+      "recurrence_of": "RL-285",
+      "verification": "Corrected the plan row and added it to the exact-selector query regression. Its corrected selector resolves to the registered CTest. Requirement, clause, API mappings and IEEE 1516.1-2010 behavior are unchanged; the Requirements Lab export was not resynchronized.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-288",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-plan-target-selector-drift",
+      "title": "Same-class declaration-restore row retained the stale registry target and selector",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-publication-subscription-unit"
+      },
+      "symptom": "The combined publication/subscription restore row pointed to umbra_federation_registry_catch2 and a per-word escaped selector under umbra.federation_registry.catch2; the registered case is under umbra.ieee1516_2025.catch2.",
+      "impact": "The query-generated focused CTest command selected no test for an otherwise implemented, mapped declaration restore case.",
+      "workaround": "Correct only this row's target and exact CTest selector. Preserve all eight requirement IDs, seven clause mappings, API surfaces, and pinned Requirements Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-publication-subscription-unit --summary --compact; run the suggested CTest selector against out/mgw/embedded.",
+      "recurrence_of": "RL-285",
+      "verification": "Corrected the target and exact selector and added it to the query regression. The focused CTest passes; requirement, clause, API mappings and IEEE 1516.1-2010 behavior are unchanged; no Lab resync occurred.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-289",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-plan-target-selector-drift",
+      "title": "Multiple-interaction declaration restore row retained its obsolete CTest target",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-multiple-publications-unit"
+      },
+      "symptom": "The multiple-declaration restore case still pointed to umbra_federation_registry_catch2 and an escaped per-word selector under umbra.federation_registry.catch2, although CTest registers it under umbra.ieee1516_2025.catch2.",
+      "impact": "The exact query card's CTest handle selected zero tests for a mapped 2025 restore case.",
+      "workaround": "Correct this plan row's target and selector only. Preserve the seven requirement IDs, six canonical clause mappings, API surfaces, and pinned Requirements Lab input.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-multiple-publications-unit --summary --compact; run the suggested CTest selector against out/mgw/embedded.",
+      "recurrence_of": "RL-285",
+      "verification": "Corrected the target/filter and added the exact case to the query regression. Its focused CTest passes; requirement, clause, API mappings and IEEE 1516.1-2010 behavior are unchanged, and no Lab resync occurred.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-290",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-plan-target-selector-drift",
+      "title": "Multi-federate interaction declaration restore retained its obsolete CTest target",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-multi-federate-unit"
+      },
+      "symptom": "The multi-federate declaration restore row named umbra_federation_registry_catch2 and a word-escaped selector under umbra.federation_registry.catch2 instead of the registered aggregate Catch2 target and name.",
+      "impact": "The case's copyable focused test command selected zero tests despite a mapped source case existing.",
+      "workaround": "Correct only this row's target and exact selector. Preserve its seven requirements, six canonical clause mappings, API surfaces, and pinned Requirements Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-multi-federate-unit --summary --compact; run the suggested CTest selector against out/mgw/embedded.",
+      "recurrence_of": "RL-285",
+      "verification": "Corrected the target/filter, registered it in the exact-selector query regression, and confirmed the new selector identifies one CTest. Requirement, clause, API mappings and IEEE 1516.1-2010 behavior are unchanged; no Lab resync occurred.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-291",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-plan-target-selector-drift",
+      "title": "Committed interaction-transport override restore retained the obsolete test target",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-transportation-type-override-unit"
+      },
+      "symptom": "The committed interaction-transport override restore row pointed to umbra_federation_registry_catch2 and an escaped selector under umbra.federation_registry.catch2, but the current registered case is under umbra.ieee1516_2025.catch2.",
+      "impact": "The exact query card's copied CTest command selected zero tests for a mapped restore behavior.",
+      "workaround": "Correct only this row's target and exact CTest selector. Preserve its 16 requirement IDs, nine canonical clause mappings, API surfaces, and pinned Requirements Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-transportation-type-override-unit --summary --compact; run the suggested CTest selector against out/mgw/embedded.",
+      "recurrence_of": "RL-285",
+      "verification": "Corrected the target/filter, added it to the exact-selector query regression, and confirmed one registered test matches. The focused CTest is the next handoff; no test pass is claimed yet. Requirement, clause, API mappings and IEEE 1516.1-2010 behavior are unchanged; no Lab resync occurred.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-292",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-plan-target-selector-drift",
+      "title": "Regional interaction subscription restore retained the obsolete registry test target",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-regional-subscription-unit"
+      },
+      "symptom": "The regional interaction-subscription restore row used umbra_federation_registry_catch2 and a word-escaped filter under umbra.federation_registry.catch2; the registered test uses umbra.ieee1516_2025.catch2.",
+      "impact": "The copyable case-card selector found no CTest for a mapped 2025 regional-declaration restore case.",
+      "workaround": "Correct only this row's target and exact filter. Preserve its 11 requirement IDs, nine canonical clause mappings, API surfaces, and pinned Requirements Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-regional-subscription-unit --summary --compact; run its suggested CTest selector against out/mgw/embedded.",
+      "recurrence_of": "RL-285",
+      "verification": "Corrected the target/filter, included the case in the exact-selector query regression, and confirmed its corrected selector resolves to the registered CTest. The test remains the next handoff and is not claimed passed. Requirement, clause, API mappings and IEEE 1516.1-2010 behavior are unchanged; no Lab resync occurred.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-293",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-case-card-lane-selector-drift",
+      "title": "Regional interaction snapshot case inherited a lane selector that matches no CTest",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-regional-interaction-tso-ddm-unit"
+      },
+      "symptom": "The case row omitted per-case CTest target/filter, so its card inherited the federation-registry lane selector. The emitted prefix matched zero tests; the actual registered test is named under umbra.ieee1516_2025.catch2.",
+      "impact": "A mapped regional TSO/DDM restore vector was difficult to run from its exact case card despite a focused registered test existing.",
+      "workaround": "Add the exact aggregate-target selector to this case row and protect it with the query-card regression. Preserve all 15 requirement IDs, 12 canonical clause mappings, API surfaces, and pinned Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-regional-interaction-tso-ddm-unit --summary --compact; compare the suggested selector and the exact registered CTest under out/mgw/embedded.",
+      "recurrence_of": "RL-285",
+      "verification": "Confirmed the old lane prefix selects zero tests and the exact case title selects CTest #577. Added the exact target/filter and query regression. Requirement/clause/API mappings and IEEE 1516.1-2010 behavior are unchanged; no Lab resync occurred.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-294",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-case-card-lane-selector-drift",
+      "title": "Directed interaction declaration restore case inherited a stale registry-lane selector",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-directed-interaction-declaration-unit"
+      },
+      "symptom": "The case row named the removed umbra_federation_registry_catch2 target and used an escaped per-word selector under umbra.federation_registry.catch2, while CTest registers the case as a 2025 aggregate test under umbra.ieee1516_2025.catch2.",
+      "impact": "The mapped directed-interaction declaration restore vector appeared runnable from its case card but selected zero CTests, obscuring available behavioral coverage.",
+      "workaround": "Correct only this plan row's target and exact selector, and add the case to the query-card selector regression. Preserve all nine requirement IDs, seven canonical clause mappings, API surfaces, and pinned Requirements Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-directed-interaction-declaration-unit --summary --compact; compare the emitted selector to the registered CTest under out/mgw/embedded.",
+      "recurrence_of": "RL-285",
+      "verification": "Updated the plan row to the aggregate 2025 CTest target and exact registered case selector, and added the case to the query regression. Exact CTest #598 passed (1/1); requirement, clause, API mappings and IEEE 1516.1-2010 behavior are unchanged; no Requirements Lab resync occurred.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-295",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-plan-source-location-drift",
+      "title": "Directed interaction declaration restore case pointed beyond its current source location",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and cpp/tests/federation_registry_catch2.cpp",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-directed-interaction-declaration-unit"
+      },
+      "symptom": "The plan row named source line 9251, but the case card resolves this test to line 712 and the current test title is at line 713.",
+      "impact": "A direct plan lookup sent contributors to an unrelated location instead of the mapped case source.",
+      "workaround": "Correct only the plan row source_location to the current function location and preserve its nine requirement mappings, seven canonical clause mappings, API surfaces, and pinned Lab inputs.",
+      "reproduction": "Compare source_location for the directed-interaction declaration restore row with python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-directed-interaction-declaration-unit --summary --compact and rg -n for the test title in cpp/tests/federation_registry_catch2.cpp.",
+      "verification": "Updated source_location to cpp/tests/federation_registry_catch2.cpp:712; the current case title is at line 713, and exact CTest #598 passed (1/1). Requirement, clause, API mappings and IEEE 1516.1-2010 behavior are unchanged; no Requirements Lab resync occurred.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-296",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-case-card-lane-selector-drift",
+      "title": "Directed interaction routing restore case inherited a stale registry-lane selector",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-directed-interaction-routing-unit"
+      },
+      "symptom": "The case row named the removed umbra_federation_registry_catch2 target and used an escaped selector under umbra.federation_registry.catch2, while the actual CTest is registered under umbra.ieee1516_2025.catch2.",
+      "impact": "The mapped target-object directed-interaction routing restore test appeared runnable from its case card but selected zero CTests.",
+      "workaround": "Correct only the plan row's target and exact selector and add this case to the query-card selector regression. Preserve all 16 requirement IDs, 10 canonical clause mappings, API surfaces, and pinned Requirements Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-directed-interaction-routing-unit --summary --compact; compare its selector with the registered CTest under out/mgw/embedded.",
+      "recurrence_of": "RL-285",
+      "verification": "Updated the row to the exact 2025 aggregate CTest target/filter and registered it in the query regression. Exact CTest #599 passed (1/1); requirement, clause, API mappings and IEEE 1516.1-2010 behavior are unchanged; no Requirements Lab resync occurred.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-297",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-case-card-lane-selector-drift",
+      "title": "Pending attribute transportation restore case inherited a stale registry-lane selector",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-attribute-transportation-type-change-unit"
+      },
+      "symptom": "The row used the removed umbra_federation_registry_catch2 target and an escaped per-word selector under umbra.federation_registry.catch2, while the registered case belongs to the 2025 aggregate Catch2 target.",
+      "impact": "The focused pending attribute transportation-type restore case selected zero tests through its emitted case-card command.",
+      "workaround": "Update only this plan row's target and exact selector and include it in the query-card selector regression. Preserve its 16 direct requirement-section pairs, API surfaces, and pinned Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-attribute-transportation-type-change-unit --summary --compact; compare the suggested selector with the registered CTest under out/mgw/embedded.",
+      "recurrence_of": "RL-285",
+      "verification": "Corrected the row to the 2025 aggregate target and exact CTest title and added it to the query regression. Exact CTest #605 passed (1/1); requirement, clause, API mappings and IEEE 1516.1-2010 behavior are unchanged; no Requirements Lab resync occurred.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-298",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-case-card-lane-selector-drift",
+      "title": "Pending interaction transportation restore case inherited a stale registry-lane selector",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-transportation-type-change-unit"
+      },
+      "symptom": "The plan row referred to the removed umbra_federation_registry_catch2 target and a lane-prefixed escaped selector; CTest registers the pending interaction transportation case under the 2025 aggregate test executable.",
+      "impact": "The exact case card suggested a focused CTest command that selected zero tests for a mapped 2025 transportation-state restore behavior.",
+      "workaround": "Correct the row's target and exact registered selector and protect it with the query-card regression. Preserve all 16 requirement IDs, nine canonical clause mappings, API surfaces, and pinned Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-transportation-type-change-unit --summary --compact; compare its selector with the registered CTest under out/mgw/embedded.",
+      "recurrence_of": "RL-285",
+      "verification": "Updated the row to the exact 2025 aggregate CTest target/filter and added it to the query regression. Exact CTest #606 passed (1/1); requirement, clause, API mappings and IEEE 1516.1-2010 behavior are unchanged; no Requirements Lab resync occurred.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-299",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-case-card-lane-selector-drift",
+      "title": "Pending ownership release restore case had no exact CTest selector",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-pending-ownership-acquisition-unit"
+      },
+      "symptom": "The row omitted ctest_target and ctest_filter, so the case card emitted a generic federation-registry selector instead of the registered 2025 aggregate Catch2 selector.",
+      "impact": "The focused pending regular ownership-release restore case could not be invoked reliably from its exact case card.",
+      "workaround": "Set the owning target and exact test filter and include the plan row in the selector regression. Preserve all 13 requirement IDs, eight canonical clause mappings, API surfaces, and pinned Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-pending-ownership-acquisition-unit --summary --compact; compare the emitted CTest command with ctest -N for the exact case title.",
+      "recurrence_of": "RL-285",
+      "verification": "Updated the row to the 2025 aggregate target and exact registered selector and added it to the regression map. Exact CTest #624 passed (1/1), and the full query regression passed.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-300",
+      "status": "resolved-in-umbra",
+      "kind": "query-regression-active-handoff-family-hardcoded",
+      "title": "Scoped-ready regression assumed the active handoff always belonged to time-save-restore",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "tools/query_rti_work_regression.py",
+        "lines": "assert_bounded_discovery_output"
+      },
+      "symptom": "Changing the active handoff to a different valid roadmap family caused the scoped-ready regression to query time-save-restore and report that the active handoff was lost.",
+      "impact": "The regression blocked valid handoffs across roadmap families and encouraged keeping stale ownership metadata rather than following the case's actual owner.",
+      "workaround": "Read the current active-handoff family from ROADMAP-INDEX.json, query that family, and assert the emitted family/id/lane against the same handoff.",
+      "reproduction": "Set active_handoff.family to the indexed owner of a mapped case outside time-save-restore and run python tools/query_rti_work_regression.py.",
+      "verification": "Updated the scoped-ready regression to query the active handoff's declared family. The full query regression passed with the handoff in object-ddm-ownership.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-301",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-case-card-missing-exact-selector",
+      "title": "Pending If Available ownership restore case lacked its exact CTest handle",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-pending-ownership-if-available-unit"
+      },
+      "symptom": "The plan row omitted ctest_target and ctest_filter, so the generated case-card command used a generic federation-registry selector rather than the exact registered 2025 test.",
+      "impact": "The mapped pending If Available restore case was not directly runnable through its focused case card.",
+      "workaround": "Add the aggregate 2025 target and exact title selector and protect the row in query_rti_work_regression.py. Preserve all 11 requirement IDs, seven canonical clause mappings, API surfaces, and pinned Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-pending-ownership-if-available-unit --summary --compact; compare with ctest -N for the exact registered test title.",
+      "recurrence_of": "RL-285",
+      "verification": "Updated the plan row to the 2025 aggregate target and exact CTest filter and added the case to the selector regression. Exact CTest #621 passed (1/1), and the full query regression passed with this row included.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-302",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-case-card-missing-exact-selector",
+      "title": "Pending negotiated owner confirmation restore case lacked its exact CTest handle",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-pending-negotiated-owner-confirmation-unit"
+      },
+      "symptom": "The plan row had no CTest target or filter, so its generated command used a generic registry-lane prefix despite one exact 2025 aggregate test being registered.",
+      "impact": "The 18-requirement pending negotiated owner-confirmation restore vector did not have a reliable copyable focused test handle.",
+      "workaround": "Set the aggregate target and exact case filter and protect this row in the query regression. Preserve all 18 requirement IDs, 11 canonical clause mappings, API surfaces, and pinned Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-pending-negotiated-owner-confirmation-unit --summary --compact; compare with ctest -N for the exact title.",
+      "recurrence_of": "RL-285",
+      "verification": "Updated the row to the 2025 aggregate target and exact registered selector; CTest #623 passed (1/1), and the full query regression passed.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-303",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-case-card-missing-exact-selector",
+      "title": "Pending negotiated If Available owner-confirmation restore case lacked an exact CTest handle",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-pending-negotiated-if-available-owner-confirmation-unit"
+      },
+      "symptom": "The plan row omitted its CTest target and filter, causing its exact case card to emit a generic registry-lane selector instead of the one registered 2025 aggregate case.",
+      "impact": "The mapped 19-requirement negotiated If Available owner-confirmation restore case did not have a reliable focused command.",
+      "workaround": "Add the current aggregate target and exact case title selector, and protect the row in query_rti_work_regression.py. Preserve its 19 requirement IDs, 12 canonical clause mappings, API surfaces, and pinned Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-pending-negotiated-if-available-owner-confirmation-unit --summary --compact; compare the command against ctest -N for the exact test title.",
+      "recurrence_of": "RL-285",
+      "verification": "Updated the row to the aggregate 2025 target and exact registered selector and added it to the query regression. Exact CTest #622 passed (1/1); no Requirements Lab resync occurred.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-304",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-case-card-missing-exact-selector",
+      "title": "Asymmetric mixed negotiated confirmation case had no exact CTest target/filter",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-negotiated-mixed-confirmation-asymmetric-unit-recovered-source-mapping"
+      },
+      "symptom": "The case row omitted its CTest target and filter, so the generated card used a generic registry-lane selector even though one exact 2025 aggregate case is registered.",
+      "impact": "A mapped 19-requirement asymmetric mixed negotiated-confirmation restore vector lacked a reliable focused test command.",
+      "workaround": "Set the aggregate target and exact registered case selector, then protect the row in query_rti_work_regression.py. Preserve its 19 requirement IDs, 12 canonical clause mappings, API surfaces, and pinned Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-negotiated-mixed-confirmation-asymmetric-unit-recovered-source-mapping --summary --compact; compare with ctest -N for the exact test title.",
+      "recurrence_of": "RL-285",
+      "verification": "Updated the plan row to the exact aggregate 2025 target and registered selector and added it to the query regression. Exact CTest #611 passed (1/1).",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-305",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-case-card-missing-exact-selector",
+      "title": "Delivered mixed negotiated confirmation case lacked a focused CTest handle",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-negotiated-mixed-confirmation-delivered-unit"
+      },
+      "symptom": "The row omitted ctest_target and ctest_filter, causing the exact case card to fall back to a broad federation-registry selector despite a unique 2025 aggregate test being registered.",
+      "impact": "The mapped 19-requirement test for delivered regular and If Available negotiated confirmations had no reliable focused test command.",
+      "workaround": "Add the current 2025 aggregate target and exact selector and add the case to the query-card regression. Preserve all 19 requirement IDs, 12 canonical clause mappings, API surfaces, and pinned Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-negotiated-mixed-confirmation-delivered-unit --summary --compact; compare with ctest -N for the exact registered title.",
+      "recurrence_of": "RL-285",
+      "verification": "Updated the row to the exact 2025 aggregate target/filter and protected it with a query regression entry. Exact CTest #595 passed (1/1).",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-306",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-case-card-lane-selector-drift",
+      "title": "Delivered negotiated If Available confirmation case emitted a stale registry selector",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-negotiated-if-available-confirmation-delivered-unit"
+      },
+      "symptom": "The case row used the obsolete federation-registry CTest prefix and omitted its aggregate 2025 target, while CTest registers the case under umbra.ieee1516_2025.catch2.",
+      "impact": "The mapped delivered-confirmation restore case did not have a copyable selector for focused lane verification.",
+      "workaround": "Update the row to the exact 2025 aggregate target and title filter and protect it through query_rti_work_regression.py. Preserve all 19 requirements, 12 canonical clauses, API surfaces, and pinned Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-negotiated-if-available-confirmation-delivered-unit --summary --compact; compare its selector to CTest #593.",
+      "recurrence_of": "RL-285",
+      "verification": "Updated the case row to the exact aggregate target and selector and added the query regression. Exact CTest #593 passed (1/1), and the query regression passed.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-307",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-case-card-missing-exact-selector",
+      "title": "Delivered regular negotiated confirmation case had no exact CTest target/filter",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-negotiated-confirmation-delivered-unit"
+      },
+      "symptom": "The row omitted its CTest target and filter, so the case card emitted a broad registry-lane selector instead of the unique 2025 aggregate test selector.",
+      "impact": "The mapped 18-requirement delivered negotiated confirmation restore case could not be launched reliably from its case card.",
+      "workaround": "Add the aggregate 2025 target and exact test title filter and protect the row in query_rti_work_regression.py. Preserve all 18 requirements, 11 canonical clauses, API surfaces, and pinned Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-negotiated-confirmation-delivered-unit --summary --compact; compare with ctest -N for its exact title.",
+      "recurrence_of": "RL-285",
+      "verification": "Updated the row to the exact aggregate 2025 target/filter and added the query regression. Exact CTest #594 passed (1/1), and the query regression passed.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-308",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-case-card-missing-exact-selector",
+      "title": "Malformed mixed negotiated restore case lacked an exact CTest handle",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json and tools/query_rti_work.py",
+        "lines": "plan row umbra-cpp-federation-save-commit-filesystem-process-restart-malformed-mixed-confirmation-unit"
+      },
+      "symptom": "The mapped malformed-state row omitted its aggregate CTest target/filter, so its case card emitted a generic registry-lane selector instead of the one registered 2025 test.",
+      "impact": "The 19-requirement failure-path restore regression lacked a reliable focused command despite an exact CTest being registered.",
+      "workaround": "Add the 2025 aggregate target and exact title filter, then include it in the query-card regression. Preserve all requirement IDs, canonical clause mappings, API surfaces, and pinned Lab inputs.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-process-restart-malformed-mixed-confirmation-unit --summary --compact; compare with ctest -N for the exact case title.",
+      "recurrence_of": "RL-285",
+      "verification": "Corrected the plan row and selector regression entry; ctest -N resolves the exact case to CTest #558. Focused CTest #558 is the active handoff.",
+      "detected": "2026-10-10"
+    },
+    {
+      "id": "RL-309",
+      "status": "open",
+      "kind": "requirements-lab-incomplete-normative-statement",
+      "title": "Page 148 ownership paragraph is split between l94 and l100 requirement candidates",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l94-29",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l100-31",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l103-32",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l106-33"
+      ],
+      "exported_clause": "7",
+      "normative_clause": "7",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/07-ownership-management-page-148.tex",
+        "lines": "94-111",
+        "page": 148
+      },
+      "symptom": "The l94 query ends mid-sentence at `new instance attributes of an`; l100 begins that continuation and ends at `Upon`. Later, l103 ends the discovery condition at `that`, and l106 begins with `object instance.` before stating the acquisition-notification invariant. The reconstructed page presents all four records within one continuous ownership paragraph.",
+      "impact": "The paragraph's registration, FOM-merge, discovery, and acquisition-notification conditions are fragmented across adjacent records without an explicit cross-record relation. A direct map to only l94 or l103 can falsely appear to cover the complete condition when it tests only one behavior.",
+      "workaround": "Keep the stable requirement IDs and pinned export unchanged. Until the Lab repairs the split, map all four affected candidates only as a group to a focused test that verifies registration ownership, merge-created unowned attributes, discovery ownership, and ownership only after acquisition notification; never mark an isolated fragment as complete. Continue implementing against verified IEEE 1516.1-2025 wording and do not infer conformance from this grouped development-profile evidence.",
+      "reproduction": "Query requirement candidates requirement-candidate-content-clauses-07-ownership-management-page-148-l94-29, l100-31, l103-32, and l106-33; compare with the page-148 text in topics/ieee/hla-1516.1-2025/semantic/content-elements.json.",
+      "verification": "The bounded queries reproduce each split. The reconstructed semantic page transcription confirms the complete combined wording in one continuous ownership paragraph. The canonical PDF has not been independently checked in this turn, so this records a pinned-export completeness/usability defect, not IEEE errata.",
+      "detected": "2026-10-12"
+    },
+    {
+      "id": "RL-310",
+      "status": "open",
+      "kind": "semantic-extraction-incomplete-list",
+      "title": "Page 148 RTI ownership-control exception requirement omits its MOM interaction list",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l124-39"
+      ],
+      "exported_clause": "7",
+      "normative_clause": "7",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/07-ownership-management-page-148.tex",
+        "lines": "124-132",
+        "page": 148
+      },
+      "symptom": "The requirement query ends at the colon introducing `the following MOM interactions:` and omits the enumerated exceptions. The reconstructed page text lists HLAmodifyAttributeState, HLAunpublishObjectClassAttributes, HLAunconditionalAttributeOwnershipDivestiture, and HLAresignFederationExecution.",
+      "impact": "The candidate alone does not identify which RTI/MOM mechanisms are permitted to change ownership without ordinary joined-federate consent, preventing a complete test crosswalk and making a partial exception test easy to overstate.",
+      "workaround": "Keep the stable requirement ID and pinned export unchanged. Leave it unmapped until the Lab preserves the exception list or models the list as linked records. Implement against verified IEEE 1516.1-2025 wording and do not infer the list from the partial candidate.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-content-clauses-07-ownership-management-page-148-l124-39; compare with the page-148 text in topics/ieee/hla-1516.1-2025/semantic/content-elements.json.",
+      "verification": "The bounded requirement query reproduces the terminal colon with no list. The reconstructed semantic page transcription includes the four interactions. The canonical PDF has not been independently checked in this turn, so this records a pinned-export completeness/usability defect, not IEEE errata.",
+      "detected": "2026-10-12"
+    },
+    {
+      "id": "RL-311",
+      "status": "open",
+      "kind": "requirements-lab-incomplete-normative-statement",
+      "title": "Page 148 ownership-transfer rule is truncated across l112 and l121",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l112-35",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l121-38"
+      ],
+      "exported_clause": "7",
+      "normative_clause": "7",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/07-ownership-management-page-148.tex",
+        "lines": "112-123",
+        "page": 148
+      },
+      "symptom": "The l112 requirement candidate ends mid-sentence at `being`. The l121 candidate begins with the continuation `divested by its owner or acquired by a non-owner` and ends mid-sentence at `only as a`; l124 then begins the continuation and introduces a separate MOM-exception list that is itself omitted (tracked by RL-310).",
+      "impact": "Neither candidate preserves the complete normative ownership-transfer condition on its own. Mapping either fragment alone can overstate evidence for the rule governing explicit transfer and joined-federate consent.",
+      "workaround": "Keep the stable requirement IDs and pinned export unchanged. Do not map l112 or l121 independently as complete requirements. If using them for test planning, treat l112, l121, and l124 as one linked paragraph group and require evidence for explicit acquisition/divestiture plus the full exception list before claiming group coverage. Do not infer conformance from Umbra development-profile tests.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-content-clauses-07-ownership-management-page-148-l112-35; python tools/query_rti_work.py requirement requirement-candidate-content-clauses-07-ownership-management-page-148-l121-38; compare with content/clauses/07-ownership-management-page-148.tex lines 112-132.",
+      "verification": "The bounded requirement candidates reproduce both truncations. RL-310 separately records that l124 omits the four interactions following its terminal colon. The canonical PDF has not been independently checked in this turn, so this records a pinned-export completeness/usability defect, not IEEE errata.",
+      "detected": "2026-10-12"
+    },
+    {
+      "id": "RL-312",
+      "status": "open",
+      "kind": "requirements-lab-table-fragment-and-math-artifacts",
+      "title": "Page 178 TAR timestamp-boundary candidate contains TeX artifacts and mixes adjacent table columns",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-178-l45-12"
+      ],
+      "exported_clause": "8",
+      "normative_clause": "8",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/08-time-management-page-178.tex",
+        "lines": "45-54",
+        "page": 178
+      },
+      "symptom": "The candidate renders the request-time symbol with embedded font-size TeX (`t7.98pt9.48pt R`) and continues from the zero-lookahead TAR prohibition into `The third column` before truncating. With the default Windows CP1252 stdout the query also raises UnicodeEncodeError while printing the `≤` symbol; `python -X utf8` prints it successfully.",
+      "impact": "The excerpt obscures the mathematical boundary and combines the second-column send restriction with the start of the separate pre-grant delivery rule, making it easy to claim more table coverage than a focused test proves.",
+      "workaround": "Keep the stable candidate ID and pinned export unchanged. A focused test may map only the explicit zero-lookahead TAR rule `ts <= t_R`; do not infer the third/fourth-column delivery or post-grant rules from that test. Use `python -X utf8` for this query on Windows until stdout handling is corrected. Do not infer conformance from Umbra development-profile evidence.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-content-clauses-08-time-management-page-178-l45-12 --summary --compact; on Windows, compare with `python -X utf8 tools/query_rti_work.py requirement requirement-candidate-content-clauses-08-time-management-page-178-l45-12 --summary --compact` and page 178 lines 45-54 in the reconstructed source.",
+      "verification": "The default query emits UnicodeEncodeError under CP1252. The UTF-8 query reproduces the TeX artifacts and truncated third-column phrase. The focused boundary case maps only the stated no-send-at-or-below-t_R subclaim; the canonical PDF has not been independently checked in this turn, so this records extraction/usability defects, not IEEE errata.",
+      "detected": "2026-10-12"
+    },
+    {
+      "id": "RL-313",
+      "status": "open",
+      "kind": "requirements-lab-incomplete-normative-statement",
+      "title": "Page 178 pre-grant delivery rule is truncated before its limiting clause",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-178-l51-14"
+      ],
+      "exported_clause": "8",
+      "normative_clause": "8",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/08-time-management-page-178.tex",
+        "lines": "51-52",
+        "page": 178
+      },
+      "symptom": "The requirement candidate ends after `before granting the joined`, omitting the continuation `federate’s request for time advancement; only messages described in this column shall be delivered.` The reconstructed page source confirms that the omitted limiting clause introduces the Table 1 pre-grant delivery restriction.",
+      "impact": "The candidate does not preserve the complete normative statement and hides its explicit exclusivity. Query users cannot tell that the third column restricts which messages may be delivered before grant, and a test mapped to the fragment alone can overstate time-advance delivery coverage.",
+      "workaround": "Keep the stable candidate ID and pinned export unchanged. For focused planning, compare the candidate with the reconstructed source at page 178 lines 51-52 and Table 1's exact service row on page 179. Map only behavior the C++ case directly observes, explicitly limit the claim to that row/boundary, and do not infer complete Table 1 coverage or conformance.",
+      "reproduction": "python -X utf8 tools/query_rti_work.py requirement requirement-candidate-content-clauses-08-time-management-page-178-l51-14 --summary --compact; compare with topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-178.tex lines 45-54 and content-block-content-15161-page-179.tex lines 25-31.",
+      "verification": "The bounded requirement query reproduces the terminal phrase `before granting the joined`. The reconstructed source continues with the joined federate's request and the exclusive `only messages described in this column shall be delivered` sentence, and page 179 Table 1 identifies the TARA row as delivering TSO messages with ts < t_R before grant. The canonical PDF has not been independently checked in this turn, so this records a pinned-export completeness/usability defect, not IEEE errata.",
+      "detected": "2026-10-12"
     }
   ]
 }

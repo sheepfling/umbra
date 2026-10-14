@@ -21,8 +21,17 @@ final class RelevanceAdvisoryTck {
    }
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
-         String objectClassName, String attributeName, String interactionClassName)
+         String objectClassName, String nameAttributeName, String rateAttributeName,
+         String attributeName, String namedUpdateRateName, String interactionClassName,
+         CallbackModel callbackModel)
          throws Exception {
+      JavaTckSupport.check(!nameAttributeName.equals(rateAttributeName)
+            && !nameAttributeName.equals(attributeName)
+            && !rateAttributeName.equals(attributeName),
+         "relevance-advisory FOM attribute names must be distinct");
+      JavaTckSupport.check(namedUpdateRateName != null
+            && !namedUpdateRateName.trim().isEmpty(),
+         "adapter must provide a non-empty named update-rate label");
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador subscriber = factory.getRtiAmbassador();
       Recorder publisherRecorder = new Recorder();
@@ -34,9 +43,9 @@ final class RelevanceAdvisoryTck {
       boolean publisherJoined = false;
       boolean subscriberJoined = false;
       try {
-         publisher.connect(publisherRecorder.proxy(), CallbackModel.HLA_EVOKED);
+         publisher.connect(publisherRecorder.proxy(), callbackModel);
          publisherConnected = true;
-         subscriber.connect(subscriberRecorder.proxy(), CallbackModel.HLA_EVOKED);
+         subscriber.connect(subscriberRecorder.proxy(), callbackModel);
          subscriberConnected = true;
          publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
@@ -47,13 +56,16 @@ final class RelevanceAdvisoryTck {
 
          ObjectClassHandle publisherClass = publisher.getObjectClassHandle(objectClassName);
          ObjectClassHandle subscriberClass = subscriber.getObjectClassHandle(objectClassName);
-         AttributeHandle publisherName = publisher.getAttributeHandle(publisherClass, "Name");
-         AttributeHandle publisherPayRate = publisher.getAttributeHandle(publisherClass, "PayRate");
+         AttributeHandle publisherName = publisher.getAttributeHandle(
+            publisherClass, nameAttributeName);
+         AttributeHandle publisherPayRate = publisher.getAttributeHandle(
+            publisherClass, rateAttributeName);
          AttributeHandle publisherAttribute = publisher.getAttributeHandle(publisherClass,
             attributeName);
-         AttributeHandle subscriberName = subscriber.getAttributeHandle(subscriberClass, "Name");
+         AttributeHandle subscriberName = subscriber.getAttributeHandle(
+            subscriberClass, nameAttributeName);
          AttributeHandle subscriberPayRate = subscriber.getAttributeHandle(subscriberClass,
-            "PayRate");
+            rateAttributeName);
          AttributeHandle subscriberAttribute = subscriber.getAttributeHandle(subscriberClass,
             attributeName);
          AttributeHandleSet publisherNameSet = JavaTckSupport.attributeSet(publisher, publisherName);
@@ -89,17 +101,17 @@ final class RelevanceAdvisoryTck {
          // idempotent and does not repeat the advisory.
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberNameSet);
          publisher.publishObjectClassAttributes(publisherClass, publisherAllSet);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.starts.size() == 1
                && publisherRecorder.starts.get(0).equals(publisherClass),
             "active object subscription did not produce one start-registration advisory");
          publisher.publishObjectClassAttributes(publisherClass, publisherAllSet);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.starts.size() == 1,
             "repeated object publication repeated start-registration advisory");
 
          subscriber.unsubscribeObjectClassAttributes(subscriberClass, subscriberNameSet);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.stops.size() == 1
                && publisherRecorder.stops.get(0).equals(publisherClass),
             "removing active object subscription did not produce one stop-registration advisory");
@@ -107,16 +119,16 @@ final class RelevanceAdvisoryTck {
          // Passive declarations are intentionally not relevant.  Promoting
          // that same declaration to active produces the transition.
          subscriber.subscribeObjectClassAttributesPassively(subscriberClass, subscriberNameSet);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.starts.size() == 1
                && publisherRecorder.stops.size() == 1,
             "passive object subscription changed registration relevance");
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberNameSet);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.starts.size() == 2,
             "active promotion did not produce start-registration advisory");
          subscriber.unsubscribeObjectClassAttributes(subscriberClass, subscriberNameSet);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.stops.size() == 2,
             "active demotion did not produce stop-registration advisory");
          subscriber.unsubscribeObjectClass(subscriberClass);
@@ -125,29 +137,29 @@ final class RelevanceAdvisoryTck {
          // passive boundary, with its own typed callback.
          subscriber.subscribeInteractionClass(subscriberInteraction);
          publisher.publishInteractionClass(publisherInteraction);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.interactionsOn.size() == 1
                && publisherRecorder.interactionsOn.get(0).equals(publisherInteraction),
             "active interaction subscription did not produce turn-on advisory");
          publisher.publishInteractionClass(publisherInteraction);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.interactionsOn.size() == 1,
             "repeated interaction publication repeated turn-on advisory");
          subscriber.unsubscribeInteractionClass(subscriberInteraction);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.interactionsOff.size() == 1
                && publisherRecorder.interactionsOff.get(0).equals(publisherInteraction),
             "removing active interaction subscription did not produce turn-off advisory");
          subscriber.subscribeInteractionClassPassively(subscriberInteraction);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.interactionsOn.size() == 1,
             "passive interaction subscription changed interaction relevance");
          subscriber.subscribeInteractionClass(subscriberInteraction);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.interactionsOn.size() == 2,
             "active interaction promotion did not produce turn-on advisory");
          subscriber.unsubscribeInteractionClass(subscriberInteraction);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.interactionsOff.size() == 2,
             "active interaction demotion did not produce turn-off advisory");
          subscriber.unsubscribeInteractionClass(subscriberInteraction);
@@ -157,7 +169,7 @@ final class RelevanceAdvisoryTck {
          // exercises the non-regional turn-updates callbacks.
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberNameSet);
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
-         JavaTckSupport.drain(subscriber);
+         drain(subscriber, callbackModel);
          JavaTckSupport.check(subscriberRecorder.discoveries.size() == 1
                && subscriberRecorder.discoveries.get(0).equals(object),
             "active object subscriber did not discover the registered instance");
@@ -165,7 +177,7 @@ final class RelevanceAdvisoryTck {
          publisherRecorder.updatesOff.clear();
 
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberPayRateSet);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.updatesOn.size() == 1,
             "new active attribute subscription did not produce turn-updates-on");
          UpdateAdvisory initial = publisherRecorder.updatesOn.get(0);
@@ -175,7 +187,7 @@ final class RelevanceAdvisoryTck {
             "unnamed turn-updates-on advisory did not preserve instance and attributes");
 
          subscriber.unsubscribeObjectClassAttributes(subscriberClass, subscriberPayRateSet);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.updatesOff.size() == 1,
             "active attribute removal did not produce turn-updates-off");
          JavaTckSupport.check(object.equals(publisherRecorder.updatesOff.get(0).object)
@@ -183,17 +195,17 @@ final class RelevanceAdvisoryTck {
             "turn-updates-off advisory did not preserve instance and attributes");
 
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberAttributeSet,
-            "High");
-         JavaTckSupport.drain(publisher);
+            namedUpdateRateName);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.updatesOn.size() == 2,
             "named active attribute subscription did not produce turn-updates-on");
          UpdateAdvisory named = publisherRecorder.updatesOn.get(1);
          JavaTckSupport.check(object.equals(named.object)
                && named.attributes.contains(publisherAttribute)
-               && "High".equals(named.updateRate),
+               && namedUpdateRateName.equals(named.updateRate),
             "named turn-updates-on advisory did not preserve its update rate");
          subscriber.unsubscribeObjectClassAttributes(subscriberClass, subscriberAttributeSet);
-         JavaTckSupport.drain(publisher);
+         drain(publisher, callbackModel);
          JavaTckSupport.check(publisherRecorder.updatesOff.size() == 2,
             "named active attribute removal did not produce turn-updates-off");
 
@@ -223,6 +235,13 @@ final class RelevanceAdvisoryTck {
          "FOM did not enable attribute relevance advisories");
       JavaTckSupport.check(ambassador.getInteractionRelevanceAdvisorySwitch(),
          "FOM did not enable interaction relevance advisories");
+   }
+
+   private static void drain(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      if (callbackModel == CallbackModel.HLA_EVOKED) {
+         JavaTckSupport.drain(ambassador);
+      }
    }
 
    private static void resign(RTIambassador ambassador) {

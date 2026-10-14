@@ -63,6 +63,14 @@ cataloged test. Resign is exercised only by the embedded development
 profile, so it remains outside the catalog until its service and package scope
 are stable enough for a reproducible JUnit evidence submission.
 
+Installed-package CTest observations use the separate
+`package-smoke-test-catalog.json` and `runner: "ctest"`; they do not become
+Catch2 plan rows or share the Catch2-only test catalog. The package federation
+restart consumer is cataloged only against the Lab's selected
+`Request Federation Restore` C++ surface. Its result does not replace the
+direct requirement-to-2025-clause mapping in the corresponding Catch2 case or
+constitute external conformance certification.
+
 ## 3. Produce raw evidence
 
 After the existing build runs its mapped Catch2 tests and writes JUnit XML:
@@ -79,6 +87,21 @@ catalog, keeping all missing work visible without claiming complete scope.
 
 The JUnit artifact contains only catalog-tagged tests; baseline and private unit
 tests remain useful but do not enter the raw compliance manifest.
+
+For an installed-package CTest observation, retain its runner-specific result
+artifact and use only its separate catalog:
+
+~~~powershell
+ctest --test-dir out/mgw/embedded/package-smoke-consumer -C Debug -R "^umbra_rti_package_federation_restart_consumer$" --output-on-failure --output-junit "$PWD\.compliance\package-smoke-federation-restart.xml"
+& $python tools/requirements_lab_sidecar.py raw --python $python --catalog compliance/requirements-lab/package-smoke-test-catalog.json --results .compliance/package-smoke-federation-restart.xml --output .compliance/package-smoke-federation-restart-raw.json
+~~~
+
+This records one real, unreviewed Request Federation Restore API-binding
+observation from the installed package. The consumer also exercises the
+combined pending attribute and interaction transportation-type restore path;
+that broader behavior remains covered by its mapped Catch2 rows and is not
+promoted by this single package binding. This does not add a Catch2 row or
+claim external conformance certification.
 
 ## 4. Review and verify
 

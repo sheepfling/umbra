@@ -59,6 +59,10 @@ final class InteractionPublicationSendTransitionTck {
          byte[] value = new byte[] {0x50, 0x54};
          byte[] tag = new byte[] {0x54, 0x31};
          send(publisher, publisherInteraction, publisherParameter, value, tag);
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            JavaTckSupport.check(receiverRecorder.interactions.isEmpty(),
+               "published interaction arrived before callback servicing in evoked mode");
+         }
          awaitCount(receiver, receiverRecorder, 1,
             "published interaction did not arrive before unpublication");
          assertInteraction(receiverRecorder.interactions.get(0), receiverInteraction,

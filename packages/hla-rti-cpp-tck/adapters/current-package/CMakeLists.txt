@@ -173,6 +173,16 @@ set(HLA_RTI_TCK_ADAPTER_CALLBACK_MODEL "both"
   CACHE STRING "Callback model supplied by this provider adapter")
 set(HLA_RTI_TCK_ADAPTER_TIMEOUT_MS "10000"
   CACHE STRING "Per-scenario timeout passed to the portable TCK")
+if(WIN32 AND DEFINED ENV{TEMP} AND NOT "$ENV{TEMP}" STREQUAL "")
+  set(_tck_default_service_report_directory
+    "$ENV{TEMP}/umbra-cpp-tck-service-reports")
+else()
+  set(_tck_default_service_report_directory
+    "${CMAKE_CURRENT_BINARY_DIR}/service-reports")
+endif()
+set(HLA_RTI_TCK_ADAPTER_SERVICE_REPORT_DIRECTORY
+  "${_tck_default_service_report_directory}"
+  CACHE PATH "Embedded-profile service-report directory for package scenarios")
 set(HLA_RTI_TCK_ADAPTER_SCENARIO_SET "verified"
   CACHE STRING "Scenario set for the CTest matrix: verified or all")
 set(HLA_RTI_TCK_ADAPTER_PROVIDER_ID "installed-package"
@@ -416,6 +426,8 @@ set(_tck_common_arguments
   --time-implementation "${HLA_RTI_TCK_ADAPTER_TIME_IMPLEMENTATION}"
   --provider-id "${HLA_RTI_TCK_ADAPTER_PROVIDER_ID}"
   --timeout-ms "${HLA_RTI_TCK_ADAPTER_TIMEOUT_MS}")
+list(APPEND _tck_common_arguments
+  --service-report-directory "${HLA_RTI_TCK_ADAPTER_SERVICE_REPORT_DIRECTORY}")
 foreach(_additional_fom IN LISTS HLA_RTI_TCK_ADAPTER_ADDITIONAL_FOM_MODULES)
   list(APPEND _tck_common_arguments --additional-fom "${_additional_fom}")
 endforeach()

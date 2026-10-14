@@ -1,4 +1,5 @@
 #include "internal/federation/federation_registry.hpp"
+#include "internal/observability/runtime_instrumentation.hpp"
 #include "internal/federation/federation_state_image.hpp"
 #include "internal/time/federation_time_bounds.hpp"
 #include "internal/time/federation_time_grant_policy.hpp"
@@ -114,10 +115,10 @@ FederationSaveControlResult EmbeddedFederationRegistry::requestFederationSave(
     return result;
   }
 
-  // A time-constrained member may receive Initiate Federate Save only at its
-  // Time Advancing boundary. Validate every route before replacing a pending
-  // timed request, then retain this untimed request until the grant dispatcher
-  // can invoke the constrained callbacks directly before their grants.
+  // A time-constrained member may receive Initiate Federate Save only while
+  // it is Time Advancing. Validate every route before replacing a pending
+  // timed request, then retain this untimed request until each constrained
+  // member enters that state.
   for (auto const& [federateId, member] : federation->second.members) {
     static_cast<void>(member);
     auto const route = federation->second.interactionCallbackRoutes.find(federateId);
@@ -132,6 +133,77 @@ FederationSaveControlResult EmbeddedFederationRegistry::requestFederationSave(
   federation->second.nextSaveName =
       federation->second.pendingImmediateSave->label;
   federation->second.nextSaveTime.reset();
+  return result;
+}
+
+FederationSaveAdmissionPlan
+EmbeddedFederationRegistry::planImmediateFederationSaveTimeAdvanceAdmissions(
+    std::wstring const& federationName) {
+  FederationSaveAdmissionPlan result;
+
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    result.status = FederationSaveControlStatus::federation_does_not_exist;
+    return result;
+  }
+  if (federation->second.restoreOperation.has_value()) {
+    result.status = FederationSaveControlStatus::restore_in_progress;
+    return result;
+  }
+
+  auto const hasPendingImmediateSave =
+      federation->second.pendingImmediateSave.has_value();
+  auto const& saveOperation = federation->second.saveOperation;
+  if (!hasPendingImmediateSave &&
+      (!saveOperation.has_value() ||
+       !saveOperation->directTimeConstrainedInitiation)) {
+    return result;
+  }
+
+  auto const execution = makeTimeSnapshot(federation->second);
+  if (!execution) {
+    result.status = FederationSaveControlStatus::inconsistent_temporal_state;
+    return result;
+  }
+
+  // A Time Advance Request has a "federate save not in progress" precondition.
+  // Do not admit the federation save on only a subset of constrained members:
+  // that would make the remaining members' TARs unavailable before they can
+  // enter Time Advancing and become eligible for Initiate Federate Save.
+  if (hasPendingImmediateSave) {
+    for (auto const& member : execution->federates) {
+      if (member.time.timeConstrained &&
+          !member.time.timeAdvancePending) {
+        return result;
+      }
+    }
+  }
+
+  for (auto const& member : execution->federates) {
+    if (!member.time.timeConstrained) {
+      continue;
+    }
+    if (!hasPendingImmediateSave &&
+        !saveOperation->pendingTimeConstrainedInitiations.contains(
+            member.membership.id)) {
+      continue;
+    }
+    if (!member.time.timeAdvancePending) {
+      continue;
+    }
+
+    auto const route = federation->second.interactionCallbackRoutes.find(
+        member.membership.id);
+    if (route == federation->second.interactionCallbackRoutes.end() ||
+        !route->second) {
+      result.status = FederationSaveControlStatus::callback_route_missing;
+      result.constrainedMembers.clear();
+      return result;
+    }
+    result.constrainedMembers.push_back(
+        {member.membership.id, route->second});
+  }
   return result;
 }
 
@@ -186,23 +258,19 @@ EmbeddedFederationRegistry::admitImmediateFederationSaveAtTimeAdvanceBoundary(
       return result;
     }
 
-    // The source requires a constrained member to receive the callback in
-    // Time Advancing. Do not create the operation until every constrained
-    // member is simultaneously at such a callback-capable boundary. This
-    // lets the later per-recipient dispatch invoke each constrained callback
-    // before it changes that federate to Time Granted.
-    bool everyConstrainedMemberIsTimeAdvancing = true;
-    for (auto const& candidate : execution->federates) {
-      if (candidate.time.timeConstrained && !candidate.time.timeAdvancePending) {
-        everyConstrainedMemberIsTimeAdvancing = false;
-        break;
-      }
-    }
-    if (!everyConstrainedMemberIsTimeAdvancing) {
-      return result;
-    }
     if (!current->time.timeConstrained || !current->time.timeAdvancePending) {
       return result;
+    }
+
+    // Every constrained member must already be in Time Advancing before the
+    // first save callback starts the federation save. A later TAR is forbidden
+    // once that save begins, so admit this untimed save only after the full
+    // constrained set has reached its callback-capable boundary.
+    for (auto const& candidate : execution->federates) {
+      if (candidate.time.timeConstrained &&
+          !candidate.time.timeAdvancePending) {
+        return result;
+      }
     }
 
     for (auto const& [memberId, member] : federation->second.members) {
@@ -247,15 +315,38 @@ EmbeddedFederationRegistry::admitImmediateFederationSaveAtTimeAdvanceBoundary(
   operation.pendingTimeConstrainedInitiations.erase(federateId);
   result.currentFederateLabel = operation.label;
 
+  auto const currentRoute =
+      federation->second.interactionCallbackRoutes.find(federateId);
+  if (currentRoute == federation->second.interactionCallbackRoutes.end() ||
+      !currentRoute->second) {
+    result.status = FederationSaveControlStatus::callback_route_missing;
+    return result;
+  }
+  FederationSaveNotification currentNotification;
+  currentNotification.kind = FederationSaveNotificationKind::initiate;
+  currentNotification.receivingFederateId = federateId;
+  currentNotification.label = operation.label;
+  currentNotification.callbackRoute = currentRoute->second;
+  auto const currentReportRoute =
+      federation->second.serviceReportRoutes.find(federateId);
+  if (currentReportRoute != federation->second.serviceReportRoutes.end()) {
+    currentNotification.serviceReportRoute = currentReportRoute->second;
+  }
+  auto const currentPublicReportRoute =
+      federation->second.publicServiceReportRoutes.find(federateId);
+  if (currentPublicReportRoute != federation->second.publicServiceReportRoutes.end()) {
+    currentNotification.publicServiceReportRoute = currentPublicReportRoute->second;
+  }
+  result.currentFederateNotification = std::move(currentNotification);
+
   if (!operation.pendingTimeConstrainedInitiations.empty()) {
     return result;
   }
 
   // The standard permits the non-time-constrained members to be instructed
   // only after every constrained member has become eligible. At this point
-  // every constrained member has reached a direct Time Advancing callback
-  // boundary, so queue the remaining ordinary callbacks after releasing the
-  // federation lock.
+  // every constrained member has received its initiation while Time Advancing,
+  // so queue the remaining ordinary callbacks after releasing the lock.
   operation.directTimeConstrainedInitiation = false;
   for (auto& [memberId, status] : operation.statuses) {
     if (status != rti1516_2025::NO_SAVE_IN_PROGRESS) {

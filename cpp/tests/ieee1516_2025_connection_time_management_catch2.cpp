@@ -491,8 +491,11 @@ TEST_CASE(
       if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
           !serveExpected(TransportServiceOperation::join_federation_execution) ||
           !serveExpected(TransportServiceOperation::enable_time_regulation) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::query_time_bounds) ||
+          !serveExpected(TransportServiceOperation::report_successful_service_invocation) ||
           !serveExpected(TransportServiceOperation::query_time_bounds) ||
+          !serveExpected(TransportServiceOperation::report_successful_service_invocation) ||
           !serveExpected(TransportServiceOperation::resign_federation_execution)) {
         throw std::runtime_error(
             "The process time-bounds server lost a temporal request.");
@@ -575,7 +578,9 @@ TEST_CASE(
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
-                    "The process time-constrained server received an unexpected operation.");
+                    "The process time-constrained server expected operation " +
+                    std::to_string(static_cast<unsigned>(operation)) + " but received " +
+                    std::to_string(static_cast<unsigned>(request.operation)) + ".");
               }
               return handler(request);
             });
@@ -583,7 +588,9 @@ TEST_CASE(
       if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
           !serveExpected(TransportServiceOperation::join_federation_execution) ||
           !serveExpected(TransportServiceOperation::enable_time_constrained) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::disable_time_constrained) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::disable_time_constrained) ||
           !serveExpected(TransportServiceOperation::resign_federation_execution)) {
         throw std::runtime_error(
@@ -632,6 +639,9 @@ TEST_CASE(
   if (server.joinable()) {
     server.join();
   }
+  if (serverError) {
+    std::rethrow_exception(serverError);
+  }
   if (clientError) {
     std::rethrow_exception(clientError);
   }
@@ -675,7 +685,9 @@ TEST_CASE(
       if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
           !serveExpected(TransportServiceOperation::join_federation_execution) ||
           !serveExpected(TransportServiceOperation::time_advance_request) ||
+          !serveExpected(TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(TransportServiceOperation::query_logical_time) ||
+          !serveExpected(TransportServiceOperation::report_successful_service_invocation) ||
           !serveExpected(TransportServiceOperation::resign_federation_execution)) {
         throw std::runtime_error(
             "The process time-advance server lost a temporal request.");
@@ -725,6 +737,9 @@ TEST_CASE(
   }
   if (server.joinable()) {
     server.join();
+  }
+  if (serverError) {
+    std::rethrow_exception(serverError);
   }
   if (clientError) {
     std::rethrow_exception(clientError);

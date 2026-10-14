@@ -1,0 +1,9 @@
+{
+  "include": ["src"],
+  "typeCheckingMode": "standard",
+  "executionEnvironments": [
+    {
+      "root": "src"
+    }
+  ]
+}

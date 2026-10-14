@@ -4,12 +4,21 @@
 
 namespace {
 TEST_CASE(
-    "Embedded public fresh-registry restore rebinds pending interaction transportation-type change and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
+    "Embedded public fresh-registry restore rebinds pending attribute and interaction transportation-type changes and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
     "[integration][development-profile][federation-management][interaction-management]"
     "[transportation-management][save-restore][durable-save][filesystem][process-restart][restore]"
-    "[interaction-transportation-type-change][process-restart-interaction-transportation-type-change]"
+    "[attribute-transportation-type-change][interaction-transportation-type-change]"
+    "[process-restart-attribute-transportation-type-change]"
+    "[process-restart-interaction-transportation-type-change]"
+    "[public-process-restart-attribute-transportation-type-change]"
     "[public-process-restart-interaction-transportation-type-change]"
-    "[rti.service.get-interaction-class-handle][rti.service.get-transportation-type-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-object-class-handle]"
+    "[rti.service.get-attribute-handle][rti.service.get-transportation-type-handle]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.register-object-instance][rti.service.update-attribute-values]"
+    "[rti.service.request-attribute-transportation-type-change]"
+    "[rti.service.query-attribute-transportation-type]"
     "[rti.service.publish-interaction-class][rti.service.subscribe-interaction-class]"
     "[rti.service.send-interaction][rti.service.request-interaction-transportation-type-change]"
     "[rti.service.query-interaction-transportation-type]"
@@ -17,6 +26,10 @@ TEST_CASE(
     "[rti.service.federate-save-complete][rti.service.request-federation-restore]"
     "[rti.service.federate-restore-complete][rti.service.resign-federation-execution]"
     "[federate.callback.receive-interaction]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.reflect-attribute-values]"
+    "[federate.callback.confirm-attribute-transportation-type-change]"
+    "[federate.callback.report-attribute-transportation-type]"
     "[federate.callback.confirm-interaction-transportation-type-change]"
     "[federate.callback.report-interaction-transportation-type]"
     "[federate.callback.initiate-federate-save][federate.callback.federation-saved]"
@@ -48,6 +61,9 @@ TEST_CASE(
   std::wstring const saveLabel =
       L"public-interaction-transportation-process-restart";
   FederateHandle sourceOwnerHandle;
+  ObjectInstanceHandle sourceObject;
+  ObjectClassHandle sourceServer;
+  AttributeHandle sourceEfficiency;
   InteractionClassHandle sourceTakeOrder;
   std::filesystem::path sourceReportFile;
 
@@ -99,12 +115,50 @@ TEST_CASE(
         fixture_hla::fom::server_take_order);
     auto const peerTakeOrder = peer->getInteractionClassHandle(
         fixture_hla::fom::server_take_order);
+    sourceServer = owner->getObjectClassHandle(fixture_hla::fom::employee_server);
+    auto const peerServer = peer->getObjectClassHandle(fixture_hla::fom::employee_server);
+    sourceEfficiency = owner->getAttributeHandle(
+        sourceServer,
+        fixture_hla::fixture::efficiency);
+    auto const peerEfficiency = peer->getAttributeHandle(
+        peerServer,
+        fixture_hla::fixture::efficiency);
     auto const reliable = owner->getTransportationTypeHandle(standard_hla::mom::reliable);
     auto const bestEffort = owner->getTransportationTypeHandle(standard_hla::mom::best_effort);
     REQUIRE(sourceTakeOrder.isValid());
     REQUIRE(peerTakeOrder.isValid());
+    REQUIRE(sourceServer.isValid());
+    REQUIRE(peerServer.isValid());
+    REQUIRE(sourceEfficiency.isValid());
+    REQUIRE(peerEfficiency.isValid());
     REQUIRE(reliable.isValid());
     REQUIRE(bestEffort.isValid());
+    AttributeHandleSet const ownerEfficiencyOnly{sourceEfficiency};
+    AttributeHandleSet const peerEfficiencyOnly{peerEfficiency};
+    REQUIRE_NOTHROW(peer->subscribeObjectClassAttributes(
+        peerServer,
+        peerEfficiencyOnly));
+    REQUIRE_NOTHROW(owner->publishObjectClassAttributes(
+        sourceServer,
+        ownerEfficiencyOnly));
+    REQUIRE_NOTHROW(sourceObject = owner->registerObjectInstance(sourceServer));
+    REQUIRE(sourceObject.isValid());
+    REQUIRE_FALSE(peer->evokeMultipleCallbacks(0.0, 0.0));
+    REQUIRE(peerReports.objectDiscoveryReports.size() == 1U);
+    REQUIRE(peerReports.objectDiscoveryReports.front().objectInstance == sourceObject);
+    std::vector<unsigned char> const initialValueBytes{0x4aU, 0x06U};
+    AttributeHandleValueMap initialValues;
+    initialValues.emplace(
+        sourceEfficiency,
+        VariableLengthData(initialValueBytes.data(), initialValueBytes.size()));
+    REQUIRE_NOTHROW(owner->updateAttributeValues(
+        sourceObject,
+        initialValues,
+        VariableLengthData{}));
+    drainAll(*owner, *peer);
+    REQUIRE(peerReports.attributeReflectionReports.size() == 1U);
+    REQUIRE(peerReports.attributeReflectionReports.front().transportationType == reliable);
+    peerReports.attributeReflectionReports.clear();
     REQUIRE_NOTHROW(owner->publishInteractionClass(sourceTakeOrder));
     REQUIRE_NOTHROW(peer->subscribeInteractionClass(peerTakeOrder));
 
@@ -121,6 +175,11 @@ TEST_CASE(
 
     // Leave the accepted change callback pending while the durable image is
     // committed. The saved operation must be rebound to the fresh route.
+    REQUIRE_NOTHROW(owner->requestAttributeTransportationTypeChange(
+        sourceObject,
+        ownerEfficiencyOnly,
+        bestEffort));
+    REQUIRE(ownerReports.attributeTransportationTypeChangeReports.empty());
     REQUIRE_NOTHROW(owner->requestInteractionTransportationTypeChange(
         sourceTakeOrder,
         bestEffort));
@@ -158,6 +217,9 @@ TEST_CASE(
         ownerDeclaration->pendingInteractionTransportationTypeChanges.front();
     REQUIRE(savedChange.interactionClassHandle == *sourceTakeOrderValue);
     REQUIRE(savedChange.value == "HLAbestEffort");
+    REQUIRE(durableImage.objects.size() == 1U);
+    REQUIRE(durableImage.objects.front().pendingAttributeTransportationTypeChanges.size() ==
+            1U);
 
     auto const peerDeclaration = std::find_if(
         durableImage.interactionDeclarations.begin(),
@@ -184,6 +246,13 @@ TEST_CASE(
     REQUIRE(ownerReports.interactionTransportationTypeChangeReports.front().interactionClass ==
             sourceTakeOrder);
     REQUIRE(ownerReports.interactionTransportationTypeChangeReports.front().transportationType ==
+            bestEffort);
+    REQUIRE(ownerReports.attributeTransportationTypeChangeReports.size() == 1U);
+    REQUIRE(ownerReports.attributeTransportationTypeChangeReports.front().objectInstance ==
+            sourceObject);
+    REQUIRE(ownerReports.attributeTransportationTypeChangeReports.front().attributes ==
+            ownerEfficiencyOnly);
+    REQUIRE(ownerReports.attributeTransportationTypeChangeReports.front().transportationType ==
             bestEffort);
 
     REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
@@ -235,9 +304,15 @@ TEST_CASE(
 
     auto const freshTakeOrder = owner->getInteractionClassHandle(
         fixture_hla::fom::server_take_order);
+    auto const freshServer = owner->getObjectClassHandle(fixture_hla::fom::employee_server);
+    auto const freshEfficiency = owner->getAttributeHandle(
+        freshServer,
+        fixture_hla::fixture::efficiency);
     auto const freshReliable = owner->getTransportationTypeHandle(standard_hla::mom::reliable);
     auto const freshBestEffort = owner->getTransportationTypeHandle(standard_hla::mom::best_effort);
     REQUIRE(freshTakeOrder.isValid());
+    REQUIRE(freshServer.isValid());
+    REQUIRE(freshEfficiency.isValid());
     REQUIRE(freshReliable.isValid());
     REQUIRE(freshBestEffort.isValid());
 
@@ -260,6 +335,24 @@ TEST_CASE(
         ownerReports.interactionTransportationTypeChangeReports.front();
     REQUIRE(restoredChange.interactionClass == freshTakeOrder);
     REQUIRE(restoredChange.transportationType == freshBestEffort);
+    REQUIRE(ownerReports.attributeTransportationTypeChangeReports.size() == 1U);
+    auto const& restoredAttributeChange =
+        ownerReports.attributeTransportationTypeChangeReports.front();
+    REQUIRE(restoredAttributeChange.objectInstance == sourceObject);
+    REQUIRE(restoredAttributeChange.attributes == AttributeHandleSet{freshEfficiency});
+    REQUIRE(restoredAttributeChange.transportationType == freshBestEffort);
+
+    REQUIRE_NOTHROW(owner->queryAttributeTransportationType(
+        sourceObject,
+        freshEfficiency));
+    REQUIRE_FALSE(owner->evokeCallback(0.0));
+    REQUIRE(ownerReports.attributeTransportationTypeReports.size() == 1U);
+    REQUIRE(ownerReports.attributeTransportationTypeReports.front().objectInstance ==
+            sourceObject);
+    REQUIRE(ownerReports.attributeTransportationTypeReports.front().attribute ==
+            freshEfficiency);
+    REQUIRE(ownerReports.attributeTransportationTypeReports.front().transportationType ==
+            freshBestEffort);
 
     FederateHandle const restoredOwnerHandle = freshOwnerHandle;
     REQUIRE_NOTHROW(peer->queryInteractionTransportationType(
@@ -283,6 +376,26 @@ TEST_CASE(
     REQUIRE(peerReports.interactionReports.size() == 1U);
     REQUIRE(peerReports.interactionReports.front().interactionClass == freshTakeOrder);
     REQUIRE(peerReports.interactionReports.front().transportationType == freshBestEffort);
+
+    std::vector<unsigned char> const restoredValueBytes{0x4bU, 0x07U};
+    AttributeHandleValueMap restoredValues;
+    restoredValues.emplace(
+        freshEfficiency,
+        VariableLengthData(restoredValueBytes.data(), restoredValueBytes.size()));
+    REQUIRE_NOTHROW(owner->updateAttributeValues(
+        sourceObject,
+        restoredValues,
+        VariableLengthData{}));
+    drainAll(*owner, *peer);
+    REQUIRE(peerReports.attributeReflectionReports.size() == 1U);
+    REQUIRE(peerReports.attributeReflectionReports.front().objectInstance == sourceObject);
+    REQUIRE(peerReports.attributeReflectionReports.front().attributeValues.contains(
+        freshEfficiency));
+    REQUIRE(peerReports.attributeReflectionReports.front().transportationType ==
+            freshBestEffort);
+    REQUIRE(variableLengthDataBytes(
+                peerReports.attributeReflectionReports.front().attributeValues.at(
+                    freshEfficiency)) == restoredValueBytes);
 
     auto const filesAfterRestore = serviceReportFiles(reportDirectory.path());
     REQUIRE(filesAfterRestore == filesAfterFreshJoin);

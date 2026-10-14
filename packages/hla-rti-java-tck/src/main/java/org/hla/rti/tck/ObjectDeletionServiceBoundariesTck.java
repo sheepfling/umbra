@@ -39,6 +39,7 @@ final class ObjectDeletionServiceBoundariesTck {
       AttributeHandle ownerAttribute = null;
       AttributeHandle receiverAttribute = null;
       String federation = "java-tck-object-deletion-boundaries-" + UUID.randomUUID();
+      verifyLifecycleBoundaries(factory, callbackModel);
       try {
          expectFailure(() -> owner.getObjectClassHandle(objectClassName), "NotConnected",
             "object-class lookup before connection");
@@ -72,6 +73,11 @@ final class ObjectDeletionServiceBoundariesTck {
          receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
          subscribed = true;
 
+         ObjectInstanceHandle invalidObject =
+            JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
+         expectFailure(() -> owner.deleteObjectInstance(invalidObject, new byte[0]),
+            "ObjectInstanceNotKnown", "deleting an unknown object instance");
+
          ObjectInstanceHandle locallyDeleted = owner.registerObjectInstance(ownerClass);
          ObjectInstanceHandle remotelyDeleted = owner.registerObjectInstance(ownerClass);
          ObjectInstanceHandle deletedOnResign = owner.registerObjectInstance(ownerClass);
@@ -91,14 +97,23 @@ final class ObjectDeletionServiceBoundariesTck {
 
          ownerCallbacks.clearRemovals();
          receiverCallbacks.clearRemovals();
-         owner.localDeleteObjectInstance(locallyDeleted);
+         receiver.localDeleteObjectInstance(locallyDeleted);
          JavaTckSupport.check(ownerCallbacks.removals().isEmpty()
                && receiverCallbacks.removals().isEmpty(),
-            "local object deletion produced a remote removal callback");
+            "receiver-local object deletion produced a removal callback");
+         expectFailure(() -> receiver.getObjectInstanceName(locallyDeleted),
+            "ObjectInstanceNotKnown", "receiver name lookup after local deletion");
+         expectFailure(() -> receiver.getObjectInstanceHandle(localName),
+            "ObjectInstanceNotKnown", "receiver handle lookup after local deletion");
+         JavaTckSupport.check(owner.getObjectInstanceHandle(localName).equals(locallyDeleted),
+            "receiver-local deletion removed the object from the owning federate");
+         owner.deleteObjectInstance(locallyDeleted, new byte[0]);
+         JavaTckSupport.drain(owner);
+         JavaTckSupport.drain(receiver);
          expectFailure(() -> owner.getObjectInstanceName(locallyDeleted),
-            "ObjectInstanceNotKnown", "name lookup after local deletion");
-         expectFailure(() -> owner.getObjectInstanceHandle(localName),
-            "ObjectInstanceNotKnown", "handle lookup after local deletion");
+            "ObjectInstanceNotKnown", "owner lookup after deleting a locally forgotten object");
+         ownerCallbacks.clearRemovals();
+         receiverCallbacks.clearRemovals();
 
          byte[] tag = new byte[] {(byte) 0x6a, (byte) 0xb7, (byte) 0xc4};
          owner.deleteObjectInstance(remotelyDeleted, tag);
@@ -164,6 +179,30 @@ final class ObjectDeletionServiceBoundariesTck {
             catch (Exception ignored) { }
          }
       }
+   }
+
+   private static void verifyLifecycleBoundaries(RtiFactory factory,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador lifecycle = factory.getRtiAmbassador();
+      Recorder callbacks = new Recorder();
+      ObjectInstanceHandle invalidObject =
+         JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
+      verifyLifecycleFailures(lifecycle, invalidObject, "NotConnected", "before connect");
+      lifecycle.connect(callbacks.proxy(), callbackModel);
+      try {
+         verifyLifecycleFailures(lifecycle, invalidObject, "FederateNotExecutionMember",
+            "after connect before join");
+      } finally {
+         lifecycle.disconnect();
+      }
+   }
+
+   private static void verifyLifecycleFailures(RTIambassador rti,
+         ObjectInstanceHandle invalidObject, String expected, String phase) throws Exception {
+      expectFailure(() -> rti.deleteObjectInstance(invalidObject, new byte[0]),
+         expected, "deleting an object " + phase);
+      expectFailure(() -> rti.localDeleteObjectInstance(invalidObject),
+         expected, "locally deleting an object " + phase);
    }
 
    private static void expectFailure(CheckedCall call, String expectedSimpleName,

@@ -412,6 +412,33 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Federate time state marks deferred zero lookahead exclusive at its forward grant",
+    "[unit][kernel][time-management][modify-lookahead][zero-lookahead][boundary-state]") {
+  auto state = integerTimeState();
+  auto regulation = state->requestTimeRegulation(
+      std::make_shared<HLAinteger64Interval>(2));
+  REQUIRE(regulation.status == FederateTimeEnableStatus::applied);
+  REQUIRE(state->grantTimeRegulation(regulation.generation));
+
+  REQUIRE(
+      state->modifyLookahead(std::make_shared<HLAinteger64Interval>(0)) ==
+      umbra::detail::FederateTimeModifyLookaheadStatus::applied);
+  auto beforeGrant = state->snapshot();
+  REQUIRE_FALSE(beforeGrant.minimumTimestampIsExclusive);
+  REQUIRE(beforeGrant.pendingModifiedLookahead);
+  REQUIRE(asIntegerInterval(beforeGrant.lookahead).getInterval() == 2);
+
+  auto advance = state->requestAdvance(std::make_shared<HLAinteger64Time>(5));
+  REQUIRE(advance.status == FederateTimeAdvanceStatus::applied);
+  REQUIRE(state->grant(advance.generation));
+
+  auto afterGrant = state->snapshot();
+  REQUIRE_FALSE(afterGrant.pendingModifiedLookahead);
+  REQUIRE(afterGrant.minimumTimestampIsExclusive);
+  REQUIRE(asIntegerInterval(afterGrant.lookahead).getInterval() == 0);
+}
+
+TEST_CASE(
     "Federate time state keeps a Flush Queue request target when deferred lookahead cloning fails",
     "[unit][kernel][time-management][flush-queue-request][modify-lookahead]"
     "[exception-safety]") {

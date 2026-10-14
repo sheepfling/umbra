@@ -14,10 +14,10 @@ import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /** Directed-interaction delivery, callback ordering, and target deletion lifecycle. */
 final class DirectedInteractionTargetLifecycleTck {
@@ -29,21 +29,30 @@ final class DirectedInteractionTargetLifecycleTck {
          CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador receiver = factory.getRtiAmbassador();
+      RTIambassador immediate = factory.getRtiAmbassador();
       Recorder publisherRecorder = new Recorder();
       Recorder receiverRecorder = new Recorder();
+      Recorder immediateRecorder = new Recorder();
       String federation = "java-tck-directed-target-lifecycle-" + UUID.randomUUID();
-      boolean publisherConnected = false, receiverConnected = false, created = false;
-      boolean publisherJoined = false, receiverJoined = false;
+      boolean publisherConnected = false, receiverConnected = false;
+      boolean immediateConnected = false, created = false;
+      boolean publisherJoined = false, receiverJoined = false, immediateJoined = false;
       boolean publisherAttributesPublished = false, receiverAttributesSubscribed = false;
+      boolean immediateAttributesSubscribed = false;
       boolean interactionsPublished = false, interactionsSubscribed = false;
-      ObjectClassHandle publisherClass = null, receiverClass = null;
+      boolean immediateInteractionsSubscribed = false;
+      ObjectClassHandle publisherClass = null, receiverClass = null, immediateClass = null;
       AttributeHandleSet publisherAttributes = null, receiverAttributes = null;
+      AttributeHandleSet immediateAttributes = null;
       InteractionClassHandle publisherInteraction = null, receiverInteraction = null;
+      InteractionClassHandle immediateInteraction = null;
       try {
          publisher.connect(publisherRecorder.proxy(), callbackModel);
          publisherConnected = true;
          receiver.connect(receiverRecorder.proxy(), callbackModel);
          receiverConnected = true;
+         immediate.connect(immediateRecorder.proxy(), CallbackModel.HLA_IMMEDIATE);
+         immediateConnected = true;
          publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          FederateHandle producer = publisher.joinFederationExecution(
@@ -51,35 +60,51 @@ final class DirectedInteractionTargetLifecycleTck {
          publisherJoined = true;
          receiver.joinFederationExecution("java-tck-directed-target-receiver", federation);
          receiverJoined = true;
+         immediate.joinFederationExecution("java-tck-directed-target-immediate", federation);
+         immediateJoined = true;
 
          publisherClass = publisher.getObjectClassHandle(objectClassName);
          receiverClass = receiver.getObjectClassHandle(objectClassName);
+         immediateClass = immediate.getObjectClassHandle(objectClassName);
          AttributeHandle publisherAttribute = publisher.getAttributeHandle(
             publisherClass, attributeName);
          AttributeHandle receiverAttribute = receiver.getAttributeHandle(
             receiverClass, attributeName);
+         AttributeHandle immediateAttribute = immediate.getAttributeHandle(
+            immediateClass, attributeName);
          publisherAttributes = JavaTckSupport.attributeSet(publisher, publisherAttribute);
          receiverAttributes = JavaTckSupport.attributeSet(receiver, receiverAttribute);
+         immediateAttributes = JavaTckSupport.attributeSet(immediate, immediateAttribute);
          publisherInteraction = publisher.getInteractionClassHandle(interactionClassName);
          receiverInteraction = receiver.getInteractionClassHandle(interactionClassName);
+         immediateInteraction = immediate.getInteractionClassHandle(interactionClassName);
          InteractionClassHandle sendInteraction = publisherInteraction;
 
          publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
          publisherAttributesPublished = true;
          receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
          receiverAttributesSubscribed = true;
+         immediate.subscribeObjectClassAttributes(immediateClass, immediateAttributes);
+         immediateAttributesSubscribed = true;
          publisher.publishObjectClassDirectedInteractions(publisherClass,
             JavaTckSupport.interactionSet(publisher, publisherInteraction));
          interactionsPublished = true;
          receiver.subscribeObjectClassDirectedInteractions(receiverClass,
             JavaTckSupport.interactionSet(receiver, receiverInteraction));
          interactionsSubscribed = true;
+         immediate.subscribeObjectClassDirectedInteractions(immediateClass,
+            JavaTckSupport.interactionSet(immediate, immediateInteraction));
+         immediateInteractionsSubscribed = true;
 
          ObjectInstanceHandle target = publisher.registerObjectInstance(publisherClass);
          await(receiver, () -> receiverRecorder.discoveries.contains(target),
             "directed target was not discovered");
+         awaitImmediate(() -> immediateRecorder.discoveries.contains(target),
+            "immediate directed-target observer did not receive discovery");
          JavaTckSupport.check(receiver.getKnownObjectClassHandle(target).equals(receiverClass),
             "receiver reported the wrong known class for the directed target");
+         JavaTckSupport.check(immediate.getKnownObjectClassHandle(target).equals(immediateClass),
+            "immediate observer reported the wrong known class for the directed target");
 
          byte[] firstTag = new byte[] {0x41, 0x11};
          publisher.sendDirectedInteraction(publisherInteraction, target,
@@ -88,16 +113,26 @@ final class DirectedInteractionTargetLifecycleTck {
             JavaTckSupport.check(receiverRecorder.directed.isEmpty(),
                "evoked directed callback arrived before callback servicing");
          }
+         awaitImmediateCount(immediateRecorder, 1,
+            "independent immediate observer did not receive the first directed interaction");
          await(receiver, () -> receiverRecorder.directed.size() == 1,
             "directed interaction was not delivered to the object target");
          assertDirected(receiver, receiverRecorder.directed.get(0), receiverInteraction,
             target, firstTag, producer);
+         assertDirected(immediate, immediateRecorder.directed.get(0), immediateInteraction,
+            target, firstTag, producer);
+         int immediateDelivered = 1;
 
          if (callbackModel == CallbackModel.HLA_EVOKED) {
             int delivered = receiverRecorder.directed.size();
             byte[] queuedAtUnsubscribe = new byte[] {0x42, 0x22};
             publisher.sendDirectedInteraction(publisherInteraction, target,
                publisher.getParameterHandleValueMapFactory().create(0), queuedAtUnsubscribe);
+            awaitImmediateCount(immediateRecorder, immediateDelivered + 1,
+               "independent immediate observer missed the send queued at unsubscribe");
+            assertDirected(immediate, immediateRecorder.directed.get(immediateDelivered),
+               immediateInteraction, target, queuedAtUnsubscribe, producer);
+            ++immediateDelivered;
             receiver.unsubscribeObjectClassDirectedInteractions(receiverClass,
                JavaTckSupport.interactionSet(receiver, receiverInteraction));
             JavaTckSupport.drain(receiver);
@@ -110,6 +145,11 @@ final class DirectedInteractionTargetLifecycleTck {
             int afterResubscribeCount = delivered + 1;
             publisher.sendDirectedInteraction(publisherInteraction, target,
                publisher.getParameterHandleValueMapFactory().create(0), afterResubscribe);
+            awaitImmediateCount(immediateRecorder, immediateDelivered + 1,
+               "independent immediate observer missed delivery after resubscription");
+            assertDirected(immediate, immediateRecorder.directed.get(immediateDelivered),
+               immediateInteraction, target, afterResubscribe, producer);
+            ++immediateDelivered;
             await(receiver, () -> receiverRecorder.directed.size() == afterResubscribeCount,
                "directed data was not delivered after resubscription");
             assertDirected(receiver, receiverRecorder.directed.get(delivered),
@@ -119,6 +159,11 @@ final class DirectedInteractionTargetLifecycleTck {
             byte[] queuedAtUnpublication = new byte[] {0x44, 0x44};
             publisher.sendDirectedInteraction(publisherInteraction, target,
                publisher.getParameterHandleValueMapFactory().create(0), queuedAtUnpublication);
+            awaitImmediateCount(immediateRecorder, immediateDelivered + 1,
+               "independent immediate observer missed the send before unpublication");
+            assertDirected(immediate, immediateRecorder.directed.get(immediateDelivered),
+               immediateInteraction, target, queuedAtUnpublication, producer);
+            ++immediateDelivered;
             publisher.unpublishObjectClassDirectedInteractions(publisherClass,
                JavaTckSupport.interactionSet(publisher, publisherInteraction));
             JavaTckSupport.drain(receiver);
@@ -131,6 +176,11 @@ final class DirectedInteractionTargetLifecycleTck {
             int afterRepublicationCount = delivered + 1;
             publisher.sendDirectedInteraction(publisherInteraction, target,
                publisher.getParameterHandleValueMapFactory().create(0), afterRepublication);
+            awaitImmediateCount(immediateRecorder, immediateDelivered + 1,
+               "independent immediate observer missed delivery after republication");
+            assertDirected(immediate, immediateRecorder.directed.get(immediateDelivered),
+               immediateInteraction, target, afterRepublication, producer);
+            ++immediateDelivered;
             await(receiver, () -> receiverRecorder.directed.size() == afterRepublicationCount,
                "directed data was not delivered after republication");
             assertDirected(receiver, receiverRecorder.directed.get(delivered),
@@ -141,6 +191,11 @@ final class DirectedInteractionTargetLifecycleTck {
          int deliveriesBeforeDeletion = receiverRecorder.directed.size();
          publisher.sendDirectedInteraction(publisherInteraction, target,
             publisher.getParameterHandleValueMapFactory().create(0), deletionTag);
+         awaitImmediateCount(immediateRecorder, immediateDelivered + 1,
+            "independent immediate observer missed delivery immediately before target deletion");
+         assertDirected(immediate, immediateRecorder.directed.get(immediateDelivered),
+            immediateInteraction, target, deletionTag, producer);
+         ++immediateDelivered;
          publisher.deleteObjectInstance(target, deletionTag);
          await(receiver, () -> receiverRecorder.removals.size() == 1,
             "target deletion callback was not delivered");
@@ -162,6 +217,10 @@ final class DirectedInteractionTargetLifecycleTck {
             try { receiver.unsubscribeObjectClassDirectedInteractions(receiverClass); }
             catch (Exception ignored) { }
          }
+         if (immediateInteractionsSubscribed && immediateJoined) {
+            try { immediate.unsubscribeObjectClassDirectedInteractions(immediateClass); }
+            catch (Exception ignored) { }
+         }
          if (interactionsPublished && publisherJoined) {
             try { publisher.unpublishObjectClassDirectedInteractions(publisherClass); }
             catch (Exception ignored) { }
@@ -170,12 +229,20 @@ final class DirectedInteractionTargetLifecycleTck {
             try { receiver.unsubscribeObjectClass(receiverClass); }
             catch (Exception ignored) { }
          }
+         if (immediateAttributesSubscribed && immediateJoined) {
+            try { immediate.unsubscribeObjectClass(immediateClass); }
+            catch (Exception ignored) { }
+         }
          if (publisherAttributesPublished && publisherJoined) {
             try { publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes); }
             catch (Exception ignored) { }
          }
          if (receiverJoined) {
             try { receiver.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (immediateJoined) {
+            try { immediate.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
          }
          if (publisherJoined) {
@@ -188,6 +255,9 @@ final class DirectedInteractionTargetLifecycleTck {
          }
          if (receiverConnected) {
             try { receiver.disconnect(); } catch (Exception ignored) { }
+         }
+         if (immediateConnected) {
+            try { immediate.disconnect(); } catch (Exception ignored) { }
          }
          if (publisherConnected) {
             try { publisher.disconnect(); } catch (Exception ignored) { }
@@ -203,6 +273,17 @@ final class DirectedInteractionTargetLifecycleTck {
          Thread.yield();
       }
       JavaTckSupport.check(condition.ok(), message);
+   }
+
+   private static void awaitImmediate(Check condition, String message) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (System.nanoTime() < deadline && !condition.ok()) Thread.yield();
+      JavaTckSupport.check(condition.ok(), message);
+   }
+
+   private static void awaitImmediateCount(Recorder recorder, int count, String message)
+         throws Exception {
+      awaitImmediate(() -> recorder.directed.size() == count, message);
    }
 
    private static void assertDirected(RTIambassador inspector, Directed received,
@@ -258,9 +339,9 @@ final class DirectedInteractionTargetLifecycleTck {
    }
 
    private static final class Recorder {
-      private final List<Directed> directed = new ArrayList<>();
-      private final List<ObjectInstanceHandle> discoveries = new ArrayList<>();
-      private final List<Removal> removals = new ArrayList<>();
+      private final List<Directed> directed = new CopyOnWriteArrayList<>();
+      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Removal> removals = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(

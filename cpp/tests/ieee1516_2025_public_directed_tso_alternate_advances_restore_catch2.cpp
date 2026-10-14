@@ -458,7 +458,7 @@ TEST_CASE(
     REQUIRE(fqrReports.callbackOrder ==
             std::vector<std::string>{"directed", "flush-grant"});
     REQUIRE(taraReports.callbackOrder ==
-            std::vector<std::string>{"directed", "grant"});
+            std::vector<std::string>{"grant", "directed"});
     REQUIRE(nmraReports.callbackOrder ==
             std::vector<std::string>{"directed", "grant"});
 

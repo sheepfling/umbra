@@ -9,9 +9,11 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import shlex
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -20,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TCK_ROOT = ROOT / "packages" / "hla-rti-java-tck"
 SOURCE_ROOT = TCK_ROOT / "src" / "main" / "java"
 DEFAULT_CLASSES = ROOT / "out" / "java-tck" / "classes"
+DEFAULT_API_PACKAGE_PREFIX = "hla.rti1516_2025"
 
 
 class RunnerError(ValueError):
@@ -80,28 +83,61 @@ def java_sources() -> list[Path]:
     return sources
 
 
+def validate_api_package_prefix(value: str) -> str:
+    if not re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_$]*(\.[A-Za-z_$][A-Za-z0-9_$]*)*", value):
+        raise RunnerError(f"invalid Java API package prefix: {value!r}")
+    return value
+
+
 def build_tck(
     *,
     api_jar: Path,
     classes_directory: Path,
     javac: str,
+    api_package_prefix: str = DEFAULT_API_PACKAGE_PREFIX,
 ) -> int:
     classes_directory.mkdir(parents=True, exist_ok=True)
-    command = [
-        javac,
-        "-encoding",
-        "UTF-8",
-        "-source",
-        "11",
-        "-target",
-        "11",
-        "-cp",
-        str(api_jar),
-        "-d",
-        str(classes_directory),
-        *(str(path) for path in java_sources()),
-    ]
-    return run_command(command, cwd=ROOT)
+    api_package_prefix = validate_api_package_prefix(api_package_prefix)
+    with tempfile.TemporaryDirectory(prefix="java-tck-javac-") as temporary:
+        temporary_path = Path(temporary)
+        sources = java_sources()
+        if api_package_prefix != DEFAULT_API_PACKAGE_PREFIX:
+            generated_source_root = temporary_path / "src"
+            generated_sources = []
+            for source in sources:
+                generated = generated_source_root / source.relative_to(SOURCE_ROOT)
+                generated.parent.mkdir(parents=True, exist_ok=True)
+                text = source.read_text(encoding="utf-8")
+                generated.write_text(
+                    text.replace(DEFAULT_API_PACKAGE_PREFIX, api_package_prefix),
+                    encoding="utf-8",
+                    newline="\n",
+                )
+                generated_sources.append(generated)
+            sources = generated_sources
+
+        arguments = [
+            "-encoding",
+            "UTF-8",
+            "-source",
+            "11",
+            "-target",
+            "11",
+            "-cp",
+            str(api_jar),
+            "-d",
+            str(classes_directory),
+            *(str(path) for path in sources),
+        ]
+        # Windows command lines have a relatively small size limit. Keep the
+        # full source inventory in a javac argument file.
+        argument_file = temporary_path / "javac.args"
+        quoted_arguments = []
+        for argument in arguments:
+            portable = argument.replace("\\", "/")
+            quoted_arguments.append('"' + portable.replace('"', '\\"') + '"')
+        argument_file.write_text("\n".join(quoted_arguments) + "\n", encoding="utf-8")
+        return run_command([javac, "@" + str(argument_file)], cwd=ROOT)
 
 
 def add_property(command: list[str], name: str, value: str | None) -> None:
@@ -128,6 +164,7 @@ def run_tck(
     provider_id: str = "",
     jvm_arguments: Iterable[str] = (),
     skip_build: bool = False,
+    api_package_prefix: str = DEFAULT_API_PACKAGE_PREFIX,
 ) -> int:
     if not provider_jars:
         raise RunnerError("at least one provider JAR is required")
@@ -140,6 +177,7 @@ def run_tck(
             api_jar=api_jar,
             classes_directory=classes_directory,
             javac=javac,
+            api_package_prefix=api_package_prefix,
         )
         if result != 0:
             return result
@@ -189,6 +227,11 @@ def add_common_run_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--fom-path", required=True, help="adapter-supplied FOM module")
     parser.add_argument("--mim-path", default="", help="optional adapter-supplied MIM module")
     parser.add_argument("--factory-name", default="", help="standard factory name")
+    parser.add_argument(
+        "--api-package-prefix",
+        default=DEFAULT_API_PACKAGE_PREFIX,
+        help="standard API package prefix used by the adapter",
+    )
     parser.add_argument("--time-implementation", default="HLAinteger64Time")
     parser.add_argument("--capability-profile", default="")
     parser.add_argument("--scenario", default="", help="run only this catalog scenario ID")
@@ -227,6 +270,7 @@ def build_parser() -> argparse.ArgumentParser:
         help=f"compiled classes directory (default: {DEFAULT_CLASSES})",
     )
     build.add_argument("--javac", default="javac", help="javac executable")
+    build.add_argument("--api-package-prefix", default=DEFAULT_API_PACKAGE_PREFIX)
 
     run = commands.add_parser("run", help="compile and run one provider configuration")
     add_common_run_arguments(run)
@@ -321,13 +365,28 @@ def run_matrix(arguments: argparse.Namespace) -> int:
         base=configurations[0][1],
         label="matrix API JAR",
     )
+    first_api_package_prefix = validate_api_package_prefix(
+        str(configurations[0][0].get("apiPackagePrefix", DEFAULT_API_PACKAGE_PREFIX))
+    )
     if not arguments.skip_build:
-        result = build_tck(api_jar=first_api, classes_directory=classes, javac=arguments.javac)
+        result = build_tck(
+            api_jar=first_api,
+            classes_directory=classes,
+            javac=arguments.javac,
+            api_package_prefix=first_api_package_prefix,
+        )
         if result != 0:
             return result
 
     for index, (configuration, base) in enumerate(configurations, start=1):
         identifier = str(required_matrix_value(configuration, "id", index))
+        api_package_prefix = validate_api_package_prefix(
+            str(configuration.get("apiPackagePrefix", DEFAULT_API_PACKAGE_PREFIX))
+        )
+        if api_package_prefix != first_api_package_prefix:
+            raise RunnerError(
+                "all matrix entries must use the same apiPackagePrefix because they share compiled classes"
+            )
         api = resolve_path(
             required_matrix_value(configuration, "apiJar", index),
             base=base,
@@ -386,6 +445,7 @@ def run_matrix(arguments: argparse.Namespace) -> int:
             provider_id=identifier,
             jvm_arguments=jvm_arguments,
             skip_build=True,
+            api_package_prefix=api_package_prefix,
         )
         if result != 0:
             raise RunnerError(f"Java TCK failed for provider {identifier!r} with exit code {result}")
@@ -442,6 +502,7 @@ def run_single(arguments: argparse.Namespace) -> int:
         provider_id=arguments.provider_id,
         jvm_arguments=arguments.jvm_argument,
         skip_build=arguments.skip_build,
+        api_package_prefix=arguments.api_package_prefix,
     )
 
 
@@ -455,7 +516,12 @@ def main(argv: list[str] | None = None) -> int:
                 must_exist=False,
                 label="output directory",
             )
-            return build_tck(api_jar=api, classes_directory=output, javac=arguments.javac)
+            return build_tck(
+                api_jar=api,
+                classes_directory=output,
+                javac=arguments.javac,
+                api_package_prefix=arguments.api_package_prefix,
+            )
         if arguments.command == "run":
             return run_single(arguments)
         if arguments.command == "matrix":

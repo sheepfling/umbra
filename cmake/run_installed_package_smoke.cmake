@@ -9,7 +9,8 @@ foreach(required_variable IN ITEMS
   endif()
 endforeach()
 
-function(umbra_run_checked)
+function(umbra_run_checked stage)
+  message(STATUS "Installed-package smoke: ${stage}")
   execute_process(
     COMMAND ${ARGN}
     RESULT_VARIABLE result
@@ -38,37 +39,26 @@ if(DEFINED UMBRA_EXPECT_PROCESS_PROFILE AND
    "${UMBRA_EXPECT_PROCESS_PROFILE}" STREQUAL "ON")
   # The process fixture is intentionally a source-tree test executable.  It
   # is built for the package smoke, but is not installed as public runtime.
-  list(APPEND runtime_build_command umbra_process_federation_service_probe)
-  if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
-    set(process_probe_path
-      "${UMBRA_BINARY_DIRECTORY}/${UMBRA_CONFIGURATION}/umbra_process_federation_service_probe.exe"
-    )
-  else()
-    set(process_probe_path
-      "${UMBRA_BINARY_DIRECTORY}/umbra_process_federation_service_probe.exe"
-    )
-  endif()
-  if(NOT EXISTS "${process_probe_path}")
-    set(process_probe_path
-      "${UMBRA_BINARY_DIRECTORY}/umbra_process_federation_service_probe.exe"
-    )
-  endif()
-  if(NOT EXISTS "${process_probe_path}")
-    # Non-Windows generators do not add the executable suffix.
-    set(process_probe_path
-      "${UMBRA_BINARY_DIRECTORY}/umbra_process_federation_service_probe"
-    )
-  endif()
-  if(NOT EXISTS "${process_probe_path}")
+  if(NOT DEFINED UMBRA_PROCESS_SERVICE_PROBE_PATH OR
+     "${UMBRA_PROCESS_SERVICE_PROBE_PATH}" STREQUAL "")
     message(FATAL_ERROR
-      "Embedded profile package smoke could not find its process fixture: ${process_probe_path}"
+      "The embedded package smoke requires the configured service-probe target path."
     )
   endif()
+  set(process_probe_path "${UMBRA_PROCESS_SERVICE_PROBE_PATH}")
+  list(APPEND runtime_build_command umbra_process_federation_service_probe)
 endif()
 if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
   list(APPEND runtime_build_command --config "${UMBRA_CONFIGURATION}")
 endif()
-umbra_run_checked(${runtime_build_command})
+umbra_run_checked("build runtime targets" ${runtime_build_command})
+if(DEFINED UMBRA_EXPECT_PROCESS_PROFILE AND
+   "${UMBRA_EXPECT_PROCESS_PROFILE}" STREQUAL "ON" AND
+   NOT EXISTS "${process_probe_path}")
+  message(FATAL_ERROR
+    "Embedded profile package smoke could not find its configured process fixture: ${process_probe_path}"
+  )
+endif()
 
 set(install_prefix "${UMBRA_BINARY_DIRECTORY}/package-smoke-install")
 set(consumer_binary_directory "${UMBRA_BINARY_DIRECTORY}/package-smoke-consumer")
@@ -86,7 +76,7 @@ set(install_command
 if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
   list(APPEND install_command --config "${UMBRA_CONFIGURATION}")
 endif()
-umbra_run_checked(${install_command})
+umbra_run_checked("install package" ${install_command})
 
 # Validate the installed profile manifest before compiling the downstream
 # consumer.  The manifest is the reproducible record of which optional runtime
@@ -143,7 +133,7 @@ set(installed_resource_root
 set(installed_resource_manifest
   "${install_prefix}/share/umbra_rti/ieee1516.2-2025/resource-digests.json"
 )
-umbra_run_checked(
+umbra_run_checked("verify installed standards resources"
   "${UMBRA_PYTHON_EXECUTABLE}"
   "${UMBRA_SOURCE_DIRECTORY}/tools/ieee_1516_2_resources.py"
   --check
@@ -170,7 +160,7 @@ if(DEFINED UMBRA_EXPECT_PROCESS_PROFILE AND
     "-DUMBRA_PROCESS_SERVICE_PROBE_PATH=${process_probe_path}"
   )
 endif()
-umbra_run_checked(${configure_command})
+umbra_run_checked("configure downstream consumer" ${configure_command})
 
 set(build_command
   "${UMBRA_CMAKE_COMMAND}"
@@ -179,7 +169,7 @@ set(build_command
 if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
   list(APPEND build_command --config "${UMBRA_CONFIGURATION}")
 endif()
-umbra_run_checked(${build_command})
+umbra_run_checked("build downstream consumer" ${build_command})
 
 # The embedded profile exposes eight independently runnable process-package
 # projections.  Verify their exact CTest names and labels against the indexed
@@ -197,7 +187,7 @@ if(DEFINED UMBRA_EXPECT_PROCESS_PROFILE AND
   if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
     list(APPEND package_lane_catalog_command --config "${UMBRA_CONFIGURATION}")
   endif()
-  umbra_run_checked(${package_lane_catalog_command})
+  umbra_run_checked("verify package lane catalog" ${package_lane_catalog_command})
 endif()
 
 set(ctest_command
@@ -213,7 +203,7 @@ list(APPEND ctest_command --output-junit "${package_junit_artifact}")
 if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
   list(APPEND ctest_command -C "${UMBRA_CONFIGURATION}")
 endif()
-umbra_run_checked(${ctest_command})
+umbra_run_checked("run downstream consumer tests" ${ctest_command})
 
 if(DEFINED UMBRA_EXPECT_PROCESS_PROFILE AND
    "${UMBRA_EXPECT_PROCESS_PROFILE}" STREQUAL "ON")
@@ -239,5 +229,5 @@ if(DEFINED UMBRA_EXPECT_PROCESS_PROFILE AND
   if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
     list(APPEND package_junit_verify_command --config "${UMBRA_CONFIGURATION}")
   endif()
-  umbra_run_checked(${package_junit_verify_command})
+  umbra_run_checked("verify downstream JUnit evidence" ${package_junit_verify_command})
 endif()

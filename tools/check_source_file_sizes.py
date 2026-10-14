@@ -68,6 +68,13 @@ def _classify(path: Path) -> tuple[str, Policy] | None:
         return "cmake", Policy(soft=3000, hard=10000)
     if relative.startswith("cpp/tests/") and suffix in {".cpp", ".inc"}:
         return "test_cpp", Policy(soft=3000, hard=10000)
+    if relative.startswith("packages/hla-rti-cpp-tck/") and suffix in {
+        ".cpp",
+        ".cc",
+        ".cxx",
+        ".inc",
+    }:
+        return "test_cpp", Policy(soft=3000, hard=10000)
     if relative.startswith("cpp/src/") and suffix == ".inc":
         return "production_cpp", Policy(soft=3000, hard=10000)
     if relative.startswith("cpp/") and suffix in {".cpp", ".cc", ".cxx"}:

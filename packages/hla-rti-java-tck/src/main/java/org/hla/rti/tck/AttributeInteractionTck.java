@@ -27,14 +27,12 @@ import java.util.UUID;
  * callback-control surface that can be moved to another 1516.1-2025 provider.
  */
 final class AttributeInteractionTck {
-   private static final String HIGH_UPDATE_RATE = "High";
-
    private AttributeInteractionTck() {
    }
 
    static void ordinaryRoutes(RtiFactory factory, String fom, String timeImplementation,
          String objectClassName, String attributeName, String interactionClassName,
-         String parameterName) throws Exception {
+         String parameterName, String updateRateName) throws Exception {
       RTIambassador disconnected = factory.getRtiAmbassador();
       RTIambassador unjoined = factory.getRtiAmbassador();
       RTIambassador publisher = factory.getRtiAmbassador();
@@ -47,6 +45,8 @@ final class AttributeInteractionTck {
       CallbackRecorder immediateRecorder = new CallbackRecorder();
       CallbackRecorder passiveRecorder = new CallbackRecorder();
       String federation = "java-tck-attribute-interaction-" + UUID.randomUUID();
+      ParameterHandleValueMap emptyParameters =
+         disconnected.getParameterHandleValueMapFactory().create(0);
       boolean unjoinedConnected = false;
       boolean publisherConnected = false;
       boolean evokedConnected = false;
@@ -65,6 +65,11 @@ final class AttributeInteractionTck {
          expectFailure(
             () -> disconnected.getInteractionClassHandle(interactionClassName),
             "NotConnected", "interaction-class lookup before interaction routing connect");
+         expectFailure(
+            () -> disconnected.sendInteraction(
+               JavaTckSupport.invalidHandle(InteractionClassHandle.class),
+               emptyParameters, new byte[0]),
+            "NotConnected", "interaction send before connect");
 
          ConfigurationResult unjoinedConfiguration = unjoined.connect(
             unjoinedRecorder.proxy(), CallbackModel.HLA_EVOKED);
@@ -78,6 +83,11 @@ final class AttributeInteractionTck {
             () -> unjoined.getInteractionClassHandle(interactionClassName),
             "FederateNotExecutionMember",
             "interaction-class lookup before interaction routing join");
+         expectFailure(
+            () -> unjoined.sendInteraction(
+               JavaTckSupport.invalidHandle(InteractionClassHandle.class),
+               emptyParameters, new byte[0]),
+            "FederateNotExecutionMember", "interaction send after connect before join");
 
          ConfigurationResult publisherConfiguration = publisher.connect(
             publisherRecorder.proxy(), CallbackModel.HLA_EVOKED);
@@ -174,19 +184,24 @@ final class AttributeInteractionTck {
          check(parameterName.equals(publisher.getParameterName(
                publisherInteraction, publisherParameter)),
             "parameter name did not round-trip through the standard API");
-         check(publisher.getUpdateRateValue(HIGH_UPDATE_RATE) > 0.0,
+         check(publisher.getUpdateRateValue(updateRateName) > 0.0,
             "named attribute update-rate lookup did not return a positive FOM value");
+         String missingNameSuffix = UUID.randomUUID().toString().replace("-", "");
          expectFailure(
-            () -> publisher.getObjectClassHandle(objectClassName + ".Missing"),
+            () -> publisher.getObjectClassHandle(
+               objectClassName + ".TckMissing" + missingNameSuffix),
             "NameNotFound", "missing object-class lookup in attribute route");
          expectFailure(
-            () -> publisher.getInteractionClassHandle(interactionClassName + ".Missing"),
+            () -> publisher.getInteractionClassHandle(
+               interactionClassName + ".TckMissing" + missingNameSuffix),
             "NameNotFound", "missing interaction-class lookup in interaction route");
          expectFailure(
-            () -> publisher.getAttributeHandle(publisherClass, attributeName + ".Missing"),
+            () -> publisher.getAttributeHandle(
+               publisherClass, "TckMissingAttribute" + missingNameSuffix),
             "NameNotFound", "missing attribute lookup in attribute route");
          expectFailure(
-            () -> publisher.getParameterHandle(publisherInteraction, parameterName + ".Missing"),
+            () -> publisher.getParameterHandle(
+               publisherInteraction, "TckMissingParameter" + missingNameSuffix),
             "NameNotFound", "missing parameter lookup in interaction route");
 
          AttributeHandleSet publisherAttributes =
@@ -215,16 +230,21 @@ final class AttributeInteractionTck {
             "InteractionClassNotPublished", "interaction send before publication");
          publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
          publisher.publishInteractionClass(publisherInteraction);
+         expectFailure(
+            () -> publisher.sendInteraction(
+               JavaTckSupport.invalidHandle(InteractionClassHandle.class),
+               publisher.getParameterHandleValueMapFactory().create(0), new byte[0]),
+            "InteractionClassNotDefined", "interaction send with an invalid class");
          evokedSubscriber.subscribeObjectClassAttributes(
             evokedClass, evokedAttributes);
          evokedSubscriber.subscribeObjectClassAttributes(
-            evokedClass, evokedAttributes, HIGH_UPDATE_RATE);
+            evokedClass, evokedAttributes, updateRateName);
          immediateSubscriber.subscribeObjectClassAttributes(
-            immediateClass, immediateAttributes, HIGH_UPDATE_RATE);
+            immediateClass, immediateAttributes, updateRateName);
          passiveSubscriber.subscribeObjectClassAttributesPassively(
             passiveClass, passiveAttributes);
          passiveSubscriber.subscribeObjectClassAttributesPassively(
-            passiveClass, passiveAttributes, HIGH_UPDATE_RATE);
+            passiveClass, passiveAttributes, updateRateName);
          evokedSubscriber.subscribeInteractionClass(evokedInteraction);
          immediateSubscriber.subscribeInteractionClass(immediateInteraction);
          passiveSubscriber.subscribeInteractionClassPassively(passiveInteraction);
@@ -339,7 +359,7 @@ final class AttributeInteractionTck {
          // ownership without replaying an already delivered object. The
          // promoted declarations continue to receive subsequent data.
          passiveSubscriber.subscribeObjectClassAttributes(
-            passiveClass, passiveAttributes, HIGH_UPDATE_RATE);
+            passiveClass, passiveAttributes, updateRateName);
          drain(passiveSubscriber);
          check(passiveRecorder.discoveryReports == 1,
             "active promotion replayed ordinary object discovery");

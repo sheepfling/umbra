@@ -10,7 +10,15 @@ produce a result.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
+from typing import cast
+
+from .models import (
+    CapabilityRecord,
+    CapabilityState,
+    JsonObject,
+    JsonValue,
+    to_json_value,
+)
 
 CAPABILITY_STATES = (
     "available",
@@ -87,7 +95,7 @@ CAPABILITY_DEFINITIONS: dict[str, dict[str, str]] = {
     },
 }
 
-OBSERVER_CAPABILITIES: dict[str, dict[str, Any]] = {
+OBSERVER_CAPABILITIES: dict[str, dict[str, JsonValue]] = {
     "event_history": {
         "state": "available",
         "owner": "observer",
@@ -106,22 +114,12 @@ OBSERVER_CAPABILITIES: dict[str, dict[str, Any]] = {
 }
 
 
-def _jsonable(value: Any) -> Any:
-    if value is None or isinstance(value, (bool, int, float, str)):
-        return value
-    if isinstance(value, Mapping):
-        return {str(key): _jsonable(item) for key, item in value.items()}
-    if isinstance(value, (list, tuple, set, frozenset)):
-        return [_jsonable(item) for item in value]
-    return str(value)
-
-
 def normalize_capabilities(
-    capabilities: Mapping[str, Any] | None,
+    capabilities: Mapping[str, object] | None,
     *,
     owner: str = "provider",
     source: str | None = None,
-) -> dict[str, dict[str, Any]]:
+) -> dict[str, CapabilityRecord]:
     """Normalize a capability manifest into the wire-compatible shape."""
 
     if capabilities is None:
@@ -131,19 +129,19 @@ def normalize_capabilities(
     if "capabilities" in capabilities and isinstance(capabilities["capabilities"], Mapping):
         capabilities = capabilities["capabilities"]
 
-    normalized: dict[str, dict[str, Any]] = {}
+    normalized: dict[str, CapabilityRecord] = {}
     for raw_name, raw_value in capabilities.items():
         name = str(raw_name).strip()
         if not name:
             raise ValueError("capability names must not be empty")
         if isinstance(raw_value, str):
-            item: dict[str, Any] = {"state": raw_value}
+            item: JsonObject = {"state": raw_value}
         elif isinstance(raw_value, bool):
             item = {"state": "available" if raw_value else "disabled"}
         elif raw_value is None:
             item = {"state": "unknown"}
         elif isinstance(raw_value, Mapping):
-            item = {str(key): _jsonable(value) for key, value in raw_value.items()}
+            item = {str(key): to_json_value(value) for key, value in raw_value.items()}
         else:
             raise TypeError(f"capability {name!r} must be a state or mapping")
 
@@ -163,14 +161,56 @@ def normalize_capabilities(
             if isinstance(value, str):
                 item["event_types"] = [value]
             elif isinstance(value, (list, tuple, set, frozenset)):
-                item["event_types"] = sorted({str(event_type) for event_type in value})
+                item["event_types"] = [
+                    str(event_type)
+                    for event_type in sorted({str(event_type) for event_type in value})
+                ]
             else:
                 raise TypeError(f"capability {name!r} event_types must be a sequence")
-        normalized[name] = item
+        known_keys = {
+            "state",
+            "label",
+            "description",
+            "owner",
+            "source",
+            "owners",
+            "sources",
+            "observations",
+            "reason",
+            "reasons",
+            "event_types",
+        }
+        event_types_value = item.get("event_types", [])
+        reasons_value = item.get("reasons", [])
+        event_types = (
+            (event_types_value,)
+            if isinstance(event_types_value, str)
+            else tuple(str(value) for value in event_types_value)
+            if isinstance(event_types_value, list)
+            else ()
+        )
+        reasons = (
+            (reasons_value,)
+            if isinstance(reasons_value, str)
+            else tuple(str(value) for value in reasons_value)
+            if isinstance(reasons_value, list)
+            else ()
+        )
+        normalized[name] = CapabilityRecord(
+            state=cast(CapabilityState, state),
+            label=str(item["label"]),
+            description=str(item["description"]),
+            owner=str(item["owner"]),
+            source=str(item["source"]) if item.get("source") is not None else None,
+            event_types=event_types,
+            reason=str(item["reason"]) if item.get("reason") is not None else None,
+            reasons=reasons,
+            extensions={key: value for key, value in item.items() if key not in known_keys},
+        )
     return normalized
 
 
-def _aggregate_state(states: list[str]) -> str:
+def _aggregate_state(states: list[CapabilityState]) -> CapabilityState:
     unique = set(states)
     if len(unique) == 1:
         return states[0]
@@ -181,50 +221,52 @@ def _aggregate_state(states: list[str]) -> str:
     return "partial"
 
 
-def merge_capabilities(*manifests: Mapping[str, Any] | None) -> dict[str, dict[str, Any]]:
+def merge_capabilities(*manifests: Mapping[str, object] | None) -> dict[str, CapabilityRecord]:
     """Merge capability observations while preserving their provenance."""
 
-    observations: dict[str, list[dict[str, Any]]] = {}
+    observations: dict[str, list[CapabilityRecord]] = {}
     for manifest in manifests:
         for name, item in normalize_capabilities(manifest).items():
             observations.setdefault(name, []).append(item)
 
-    merged: dict[str, dict[str, Any]] = {}
+    merged: dict[str, CapabilityRecord] = {}
     for name, entries in observations.items():
         first = entries[0]
-        states = [str(entry["state"]) for entry in entries]
-        result: dict[str, Any] = {
-            "state": _aggregate_state(states),
-            "label": first["label"],
-            "description": first["description"],
-            "owners": sorted({str(entry.get("owner", "provider")) for entry in entries}),
-            "observations": [
-                {
-                    key: entry[key]
-                    for key in ("state", "owner", "source", "reason", "event_types")
-                    if key in entry
-                }
-                for entry in entries
-            ],
-        }
-        sources = sorted({str(entry["source"]) for entry in entries if entry.get("source")})
-        if sources:
-            result["sources"] = sources
+        states: list[CapabilityState] = [entry.state for entry in entries]
+        sources = sorted({entry.source for entry in entries if entry.source})
         event_types = sorted(
             {
                 str(event_type)
                 for entry in entries
-                for event_type in entry.get("event_types", [])
+                for event_type in entry.event_types
             }
         )
-        if event_types:
-            result["event_types"] = event_types
-        reasons = sorted({str(entry["reason"]) for entry in entries if entry.get("reason")})
+        reasons = sorted({entry.reason for entry in entries if entry.reason})
         if len(reasons) == 1:
-            result["reason"] = reasons[0]
-        elif reasons:
-            result["reasons"] = reasons
-        merged[name] = result
+            reason = reasons[0]
+            multiple_reasons: tuple[str, ...] = ()
+        else:
+            reason = None
+            multiple_reasons = tuple(reasons)
+        merged[name] = CapabilityRecord(
+            state=_aggregate_state(states),
+            label=first.label,
+            description=first.description,
+            owner=first.owner,
+            owners=tuple(sorted({entry.owner for entry in entries})),
+            sources=tuple(sources),
+            observations=tuple(
+                {
+                    key: value
+                    for key, value in entry.to_json().items()
+                    if key in {"state", "owner", "source", "reason", "event_types"}
+                }
+                for entry in entries
+            ),
+            reason=reason,
+            reasons=multiple_reasons,
+            event_types=tuple(event_types),
+        )
     return dict(sorted(merged.items()))
 
 

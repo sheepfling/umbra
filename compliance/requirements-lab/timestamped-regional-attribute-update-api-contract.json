@@ -26,8 +26,8 @@
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
         "cpp/tests/timestamped_regional_attribute_update_tar_nmr_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants",
-        "cpp/tests/timestamped_regional_attribute_update_mixed_advance_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
-        "cpp/tests/timestamped_default_region_attribute_update_mixed_advance_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_regional_attribute_update_mixed_advance_catch2.cpp::Embedded mixed regional timestamped attribute updates respect FQR TARA and NMRA grant boundaries",
+        "cpp/tests/timestamped_default_region_attribute_update_mixed_advance_catch2.cpp::Embedded mixed default-region timestamped attribute updates respect FQR TARA and NMRA grant boundaries",
         "cpp/tests/timestamped_regional_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
         "cpp/tests/ieee1516_2025_timestamped_regional_no_overlap_retraction_designator_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
         "cpp/tests/ieee1516_2025_suppressed_timestamped_regional_attribute_callback_retraction_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
@@ -65,8 +65,8 @@
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
         "cpp/tests/timestamped_regional_attribute_update_tar_nmr_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants",
-        "cpp/tests/timestamped_regional_attribute_update_mixed_advance_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
-        "cpp/tests/timestamped_default_region_attribute_update_mixed_advance_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_regional_attribute_update_mixed_advance_catch2.cpp::Embedded mixed regional timestamped attribute updates respect FQR TARA and NMRA grant boundaries",
+        "cpp/tests/timestamped_default_region_attribute_update_mixed_advance_catch2.cpp::Embedded mixed default-region timestamped attribute updates respect FQR TARA and NMRA grant boundaries",
         "cpp/tests/timestamped_regional_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
         "cpp/tests/ieee1516_2025_suppressed_timestamped_regional_attribute_callback_retraction_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
         "cpp/tests/ieee1516_2025_suppressed_timestamped_regional_attribute_through_grant_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
@@ -109,8 +109,8 @@
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
       "tests": [
         "cpp/tests/timestamped_regional_attribute_update_tar_nmr_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants",
-        "cpp/tests/timestamped_regional_attribute_update_mixed_advance_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
-        "cpp/tests/timestamped_default_region_attribute_update_mixed_advance_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_regional_attribute_update_mixed_advance_catch2.cpp::Embedded mixed regional timestamped attribute updates respect FQR TARA and NMRA grant boundaries",
+        "cpp/tests/timestamped_default_region_attribute_update_mixed_advance_catch2.cpp::Embedded mixed default-region timestamped attribute updates respect FQR TARA and NMRA grant boundaries",
         "cpp/tests/timestamped_regional_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
         "cpp/tests/ieee1516_2025_timestamped_regional_no_overlap_retraction_designator_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
         "cpp/tests/ieee1516_2025_suppressed_timestamped_regional_attribute_through_grant_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",

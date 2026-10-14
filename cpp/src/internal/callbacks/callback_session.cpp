@@ -1,4 +1,5 @@
 #include "internal/callbacks/callback_session.hpp"
+#include "internal/observability/runtime_instrumentation.hpp"
 
 #include "internal/callbacks/callback_dispatcher.hpp"
 

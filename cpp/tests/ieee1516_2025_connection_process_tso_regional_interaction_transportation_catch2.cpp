@@ -756,16 +756,22 @@ TEST_CASE(
             senderHandler,
             TransportServiceOperation::enable_time_regulation,
             "The timestamped regional transportation server lost Enable Time Regulation.");
+        umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+            serveExpected, sender, senderHandler);
         serveExpected(
             receiver,
             receiverHandler,
             TransportServiceOperation::enable_time_constrained,
             "The timestamped regional transportation server lost Enable Time Constrained.");
+        umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+            serveExpected, receiver, receiverHandler);
         serveExpected(
             receiver,
             receiverHandler,
             TransportServiceOperation::time_advance_request,
             "The timestamped regional transportation server lost receiver TAR.");
+        umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+            serveExpected, receiver, receiverHandler);
         serveExpected(
             receiver,
             receiverHandler,
@@ -799,6 +805,8 @@ TEST_CASE(
             senderHandler,
             TransportServiceOperation::time_advance_request,
             "The timestamped regional transportation server lost sender TAR.");
+        umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+            serveExpected, sender, senderHandler);
         serveExpected(
             receiver,
             receiverHandler,

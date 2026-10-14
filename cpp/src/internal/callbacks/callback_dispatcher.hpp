@@ -1,6 +1,6 @@
 #pragma once
 
-#include "internal/observability/runtime_instrumentation.hpp"
+#include "internal/observability/runtime_instrumentation_fwd.hpp"
 
 #include <chrono>
 #include <condition_variable>
@@ -58,7 +58,7 @@ class CallbackDispatcher final {
  private:
   struct QueuedCallback final {
     CallbackTask callback;
-    RuntimeInstrumentation::Clock::time_point submittedAt;
+    std::chrono::steady_clock::time_point submittedAt;
   };
 
   static std::chrono::milliseconds nonNegative(std::chrono::milliseconds value) noexcept;

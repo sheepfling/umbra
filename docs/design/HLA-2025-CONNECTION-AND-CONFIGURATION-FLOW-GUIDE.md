@@ -14,12 +14,21 @@ claim.
 
 ## The short mental model
 
-`Connect` establishes a local relationship between an unjoined federate and an
-RTI ambassador. It is not `Join Federation Execution`: a connected ambassador
-can still be unjoined. `Disconnect` is legal only after that ambassador has
-left the execution. Connection loss is a different RTI-initiated event that
-also cleans up membership; that path stays in the
-[federation and federate lifecycle guide](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md).
+`Connect` establishes the local RTI-ambassador session; it does not perform
+`Join Federation Execution`. A connected ambassador can still be unjoined.
+Likewise, `Disconnect` is not a shortcut for `Resign`: the pinned
+[§4.3 API declaration](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L110)
+lists `FederateIsExecutionMember` for Disconnect, and Umbra's exercised path
+rejects Disconnect while joined. This is a membership boundary, not a claim
+that the federation execution itself has ended. The
+[federation lifecycle guide's three-lifetime model](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#three-lifetimes-not-one)
+keeps the ambassador session, federation membership, and execution lifetime
+separate; it also records a selected embedded case where the same connected
+ambassador rejoins after Resign. Connection loss is a different RTI-initiated
+event that also cleans up membership; that path stays in the lifecycle guide.
+Its [service precondition comparison](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#the-api-distinguishes-connection-failures-from-membership-failures)
+also distinguishes connected-but-unjoined federation services from Join and
+Resign membership transitions.
 
 The public interface offers four overloads, combining optional
 `RtiConfiguration` and `Credentials`. They converge on the same internal
@@ -29,29 +38,37 @@ connection; callback queueing and service re-entry rules are described in the
 
 ## 1. Connect validates first, prepares, then commits
 
-The ordering matters. Umbra rejects a reentrant call and an already-connected
-ambassador before it prepares caller-supplied configuration. It validates the
-callback model and authorization policy, prepares the callback session and
-profile-specific connection resources, and only then commits the local
-`not_connected` → `not_joined` transition.
+The ordering matters. The shared Umbra path rejects callback re-entry, then
+validates the callback model, then checks whether the ambassador is already
+connected. Only after those gates does it evaluate authorization and prepare
+caller configuration, callback/session resources, and the selected endpoint.
+In a final locked section it repeats the connection-state check, applies the
+local `not_connected` → `not_joined` transition, then installs the prepared
+callback/session and connection fields before returning. That last ordering is
+source-observed Umbra finalization, not a separate HLA-visible protocol step.
+In this source path an unsupported callback model therefore takes precedence
+over `AlreadyConnected` if both conditions are present. This is observed Umbra
+validation order, not a claim about normative exception priority. The
+[unsupported-model test](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L445)
+and [AlreadyConnected-before-invalid-settings test](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L415)
+exercise the conditions separately; neither tests that combined-invalid case.
 
 ```mermaid
 flowchart TD
     A["Choose a Connect overload"] --> B{"Inside a callback?"}
     B -- "yes" --> C["CallNotAllowedFromWithinCallback"]
-    B -- "no" --> D{"Already connected?"}
-    D -- "yes" --> E["AlreadyConnected before settings"]
-    D -- "no" --> F{"Callback model supported?"}
-    F -- "no" --> G["UnsupportedCallbackModel"]
-    F -- "yes" --> H["Apply authorization and credential policy"]
+    B -- "no" --> D{"Callback model supported?"}
+    D -- "no" --> E["UnsupportedCallbackModel"]
+    D -- "yes" --> F{"Already connected?"}
+    F -- "yes" --> G["AlreadyConnected before configuration"]
+    F -- "no" --> H["Apply authorization and credential policy"]
     H --> I{"Connect is authorized?"}
     I -- "no" --> J["Authorization or credentials rejected"]
     I -- "yes" --> K["Validate settings, prepare callback and endpoint"]
     K --> L{"Preparation succeeds?"}
     L -- "no" --> M["Report the specific setup failure"]
-    L -- "yes" --> N["Commit not_connected to not_joined"]
-    N --> O["Install callbacks and connection state"]
-    O --> P["Return ConfigurationResult"]
+    L -- "yes" --> N["Final locked section:<br/>apply not_connected → not_joined,<br/>then install callbacks and connection state"]
+    N --> P["Return ConfigurationResult"]
 ```
 
 An invalid callback model or rejected credentials do not establish a
@@ -110,6 +127,16 @@ are independent: for example, an optional malformed FOM-edition value can
 produce `SETTINGS_FAILED_TO_PARSE` while Connect still succeeds on the default
 2025 model-compatibility path.
 
+The embedded profile accepts the implementation-specific
+`federationSaveDirectory=<directory>` token in `RtiConfiguration` additional
+settings. When selected, Umbra creates filesystem-backed save commits for the
+embedded RTI process; every ambassador that selects a directory must use the
+same normalized path, and the setting must be applied before the first
+federation is created. Reusing that path in a later RTI process makes the
+committed save images available to restore. If omitted, the embedded registry
+keeps its process-local in-memory store. This storage choice is an Umbra
+extension, not an IEEE 1516.1-2025 conformance requirement.
+
 ### Factory construction is not Connect-time profile selection
 
 The standard factory call creates the ambassador object; in Umbra's 2025
@@ -124,10 +151,10 @@ Umbra-specific, not standard-defined configuration behavior.
 ```mermaid
 sequenceDiagram
   participant App as Application
-  participant Factory as RTIambassadorFactory
-  participant RTI as 2025 RTI ambassador
-  participant Env as Process environment
-  participant RID as Umbra RTI Initialization Data
+  participant Factory as Factory
+  participant RTI as RTI ambassador
+  participant Env as Environment
+  participant RID as Umbra RID file
 
   App->>Factory: createRTIambassador()
   Factory->>RTI: Construct UmbraRtiAmbassador
@@ -140,13 +167,13 @@ sequenceDiagram
     RTI->>RTI: No RID authorizer factory
   else RID path is configured
     RTI->>RID: Validate protected files and parse authorization profile
-    RID-->>RTI: Profile set; select configurationName or default
+    RID-->>RTI: Profile set, select configurationName or default
     alt RID or selected profile is invalid
       RTI-->>App: RTIinternalError before connection commit
     else No authorization service is selected
       RID-->>RTI: No authorizer factory
     else Profile selects HLAauthorizer
-      RID-->>RTI: Factory configuration; resolve relative password path from RID directory
+    RID-->>RTI: Store HLAauthorizer config, resolve password relative to RID directory
     end
   end
   RTI->>RTI: Apply authorization policy and prepare connection
@@ -168,8 +195,8 @@ reference-RTI explanation in its own guide.
 
 The public Disconnect operation is not a shortcut for resignation. Umbra
 rejects it while the ambassador is joined. After the local transition succeeds,
-connection-owned state is detached under the lock; scheduler and callback/
-transport shutdown happen after leaving that critical section.
+connection-owned state is moved out and reset under the lock; scheduler and
+callback/transport shutdown happen after leaving that critical section.
 
 ```mermaid
 flowchart TD
@@ -179,18 +206,42 @@ flowchart TD
     D -- "not_connected" --> E["NotConnected"]
     D -- "joined" --> F["FederateIsExecutionMember, resign first"]
     D -- "not_joined" --> G["Commit disconnect transition under lock"]
-    G --> H["Detach resources and reset connection state"]
+    G --> H["Move connection-owned state and reset local callbacks under lock"]
     H --> I["Release ambassador lock"]
     I --> J["Stop periodic MOM scheduler"]
-    J --> K["Close callback session, wait for external work"]
-    K --> L["Close embedded transport or process client"]
-    L --> M["Disconnect returns"]
+    J --> K["Close adapter CallbackSession; drain external invocation"]
+    K --> L{"Connected profile"}
+    L -- "embedded" --> M["Close embedded transport"]
+    L -- "process" --> N["Process client sets closing and closes its socket"]
+    N --> O["Clear client queues and joined identity; close process callback bridge"]
+    M --> P["Public Disconnect returns"]
+    O --> P
+    N -. "peer can observe EOF" .-> Q["Remote transport owner exits its session loop"]
+    Q -. "if that owner is wired to this service" .-> R["ProcessFederationService::detach(session)"]
+    R -.-> S["Remove server session and cached retraction routes"]
 ```
 
-The callback session is closed outside the ambassador lock so an external
-callback already in flight can finish without deadlocking on a reentrant RTI
-call. `CallbackSession::close` marks the session closed before waiting, so new
-invocations cannot begin; its same-session path avoids waiting on itself.
+The adapter `CallbackSession` is closed outside the ambassador lock so an
+external callback already in flight can finish without deadlocking on a
+reentrant RTI call. `CallbackSession::close` marks the session closed before
+waiting, so new invocations cannot begin; its same-session path avoids waiting
+on itself. The process client has a separate callback bridge: its `close`
+signals shutdown and closes the socket first (to release a blocked request),
+then clears client-side pending events and joined identity, and closes the
+bridge outside the transaction lock. Do not treat those two callback objects
+as one teardown step.
+
+Server-side `ProcessFederationService::detach` is another boundary, not a
+Disconnect request sent by the RTI ambassador. In the process profile, public
+Disconnect calls `ProcessFederationClient::close`; it does not send a
+Disconnect service message. The client closes its socket locally. The service
+header assigns `detach` to the transport owner after the serving loop exits;
+that method removes the session and cached pushed-retraction routes, but does
+not resign a federate. The bounded source scan found no production callsite
+for this service cleanup in the checkout. The configured process-endpoint
+lifecycle test calls `detach` explicitly in its server fixture after serving
+its planned requests, so it does not establish that public Disconnect
+synchronously causes that call.
 Connection loss remains a separate forced-resignation path; see the lifecycle
 guide rather than inferring it from this voluntary Disconnect sequence.
 
@@ -234,8 +285,11 @@ Umbra implementation:
 - [Process endpoint address selection](../../cpp/src/internal/runtime/ambassador_connection_support.cpp#L45),
   [credential policy](../../cpp/src/internal/runtime/ambassador_connection_support.cpp#L130),
   and [optional FOM-edition parsing](../../cpp/src/internal/runtime/ambassador_connection_support.cpp#L196)
-- [Disconnect preconditions and post-lock cleanup](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2373)
+- [Disconnect preconditions and post-lock cleanup](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2413)
 - [Callback-session close and in-flight invocation wait](../../cpp/src/internal/callbacks/callback_session.cpp#L34)
+- [Process client close: socket shutdown, client-queue clearing, then bridge close](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L550), and [transport socket close](../../cpp/src/internal/federation/process_transport.cpp#L221)
+- [Process transport service-operation enum](../../cpp/src/internal/federation/transport_service_protocol.hpp#L21); it has no public Disconnect request operation.
+- [Process service Detach contract](../../cpp/src/internal/federation/process_federation_service.hpp#L87) and [server-session/retraction-route cleanup](../../cpp/src/internal/federation/process_federation_service.cpp#L61)
 - [Local lifecycle transitions](../../cpp/src/internal/federation/federate_lifecycle.cpp#L11)
 
 Focused tests (citations identify scenario evidence; see the factory/RID run
@@ -254,12 +308,17 @@ result above):
 - [Optional setting parse failure with successful Connect](../../cpp/tests/ieee1516_2025_connection_configuration_additional_settings_catch2.cpp#L459)
 - [Malformed process address rejected before connection](../../cpp/tests/ieee1516_2025_connection_address_validation_catch2.cpp#L457)
 - [Successful configured TCP process-endpoint Connect and result flags](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L41)
+- [Public process-endpoint lifecycle through Resign and Disconnect; server fixture calls Detach separately](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L98)
+- [CallbackSession close drains an external in-flight invocation](../../cpp/tests/callback_dispatcher_catch2.cpp#L327)
 
 ## Known gaps and boundaries
 
-- The focused sources and tests primarily exercise the embedded profile; they
-  do not prove full process/embedded equivalence for configuration, callback
-  shutdown, or error mapping.
+- Most focused connection and cleanup assertions exercise the embedded
+  profile. The configured process-endpoint lifecycle test does call public
+  Disconnect, but its server fixture invokes `ProcessFederationService::detach`
+  separately; it does not assert that the API call caused server-side session
+  cleanup. The sources therefore do not prove full process/embedded equivalence
+  for configuration, callback shutdown, or error mapping.
 - Umbra's source and test report `NotConnected` when Disconnect is called on an
   absent connection, but the pinned `RTIambassador.h` 4.3 `@throws` list does
   not include that exception. Treat this as an API/source discrepancy to

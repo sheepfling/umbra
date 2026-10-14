@@ -258,11 +258,41 @@ FederateTimeAdvanceResult FederateTimeState::requestNextMessageAdvance(
       FederateTimeAdvanceMode::next_message_request);
 }
 
+bool FederateTimeState::retargetPendingNextMessageAdvance(
+    std::shared_ptr<rti1516_2025::LogicalTime const> messageTime) {
+  if (!messageTime) {
+    return false;
+  }
+  std::scoped_lock lock(mutex_);
+  if (!active_ || !currentTime_ || !pendingTime_ || !pendingAdvanceRequestTime_ ||
+      (advanceMode_ != FederateTimeAdvanceMode::next_message_request &&
+       advanceMode_ != FederateTimeAdvanceMode::next_message_request_available) ||
+      messageTime->implementationName() != implementationName_) {
+    return false;
+  }
+  try {
+    if (*messageTime < *currentTime_ || *messageTime > *pendingAdvanceRequestTime_ ||
+        *messageTime >= *pendingTime_) {
+      return false;
+    }
+  } catch (rti1516_2025::Exception const&) {
+    return false;
+  }
+  pendingTime_ = cloneLogicalTime(messageTime, implementationName_);
+  return true;
+}
+
 FederateTimeAdvanceResult FederateTimeState::requestAdvanceAvailable(
     std::shared_ptr<rti1516_2025::LogicalTime> requestedTime) {
+  return requestAdvanceAvailable(std::move(requestedTime), nullptr);
+}
+
+FederateTimeAdvanceResult FederateTimeState::requestAdvanceAvailable(
+    std::shared_ptr<rti1516_2025::LogicalTime> requestedTime,
+    std::shared_ptr<rti1516_2025::LogicalTime> effectiveTime) {
   return requestAdvanceImpl(
       std::move(requestedTime),
-      nullptr,
+      std::move(effectiveTime),
       FederateTimeAdvanceMode::time_advance_request_available);
 }
 
@@ -393,6 +423,7 @@ std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grantImpl(
   // lookahead if one of those operations failed.
   std::shared_ptr<rti1516_2025::LogicalTimeInterval> revisedLookahead;
   bool applyPendingLookahead = false;
+  bool appliesZeroLookaheadAtForwardGrant = false;
   if (pendingModifiedLookahead_ && lookahead_ && currentTime_) {
     try {
       auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
@@ -410,6 +441,8 @@ std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grantImpl(
       *remaining -= *pendingModifiedLookahead_;
       if (*elapsed >= *remaining) {
         applyPendingLookahead = true;
+        appliesZeroLookaheadAtForwardGrant =
+            pendingModifiedLookahead_->isZero() && !elapsed->isZero();
       } else {
         revisedLookahead = cloneLogicalTimeInterval(lookahead_, implementationName_);
         if (!revisedLookahead) {
@@ -432,6 +465,13 @@ std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grantImpl(
     if (applyPendingLookahead) {
       lookahead_ = std::move(pendingModifiedLookahead_);
       pendingModifiedLookahead_.reset();
+      if (appliesZeroLookaheadAtForwardGrant) {
+        // The new zero lookahead becomes effective at this grant boundary.
+        // Preserve the exclusive lower timestamp bound for subsequent
+        // federation scheduling just as a regulator that advanced while
+        // already at zero does.
+        minimumTimestampIsExclusive_ = true;
+      }
     } else {
       lookahead_ = std::move(revisedLookahead);
     }

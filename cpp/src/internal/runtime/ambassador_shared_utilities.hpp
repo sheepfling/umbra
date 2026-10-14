@@ -489,6 +489,10 @@ std::optional<bool> ambassadorTransportationTypeReliableForFederation(
 void submitAmbassadorFederationSaveNotifications(
     std::wstring const& federationName,
     std::vector<umbra::detail::FederationSaveNotification> notifications);
+void recordAmbassadorFederationSaveInitiationReports(
+    umbra::detail::FederationSaveNotification const& notification);
+void submitAmbassadorTimeAdvanceSaveAdmissions(
+    std::wstring const& federationName);
 void submitAmbassadorFederationRestoreNotifications(
     std::wstring const& federationName,
     std::vector<umbra::detail::FederationRestoreNotification> notifications);

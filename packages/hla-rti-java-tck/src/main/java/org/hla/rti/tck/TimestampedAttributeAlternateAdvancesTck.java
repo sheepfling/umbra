@@ -32,6 +32,19 @@ final class TimestampedAttributeAlternateAdvancesTck {
    static void run(RtiFactory factory, String fom, String timeImplementation,
          String objectClassName, String attributeName, CallbackModel callbackModel)
          throws Exception {
+      run(factory, fom, timeImplementation, objectClassName, attributeName, null, callbackModel);
+   }
+
+   static void runCustomTransportation(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String attributeName, String transportationName,
+         CallbackModel callbackModel) throws Exception {
+      run(factory, fom, timeImplementation, objectClassName, attributeName,
+         transportationName, callbackModel);
+   }
+
+   private static void run(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String attributeName, String expectedTransportationName,
+         CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador flushReceiver = factory.getRtiAmbassador();
       RTIambassador taraReceiver = factory.getRtiAmbassador();
@@ -76,6 +89,17 @@ final class TimestampedAttributeAlternateAdvancesTck {
          ObjectClassHandle publisherClass = publisher.getObjectClassHandle(objectClassName);
          AttributeHandle publisherAttribute =
             publisher.getAttributeHandle(publisherClass, attributeName);
+         if (expectedTransportationName != null) {
+            TransportationTypeHandle transportation =
+               publisher.getTransportationTypeHandle(expectedTransportationName);
+            JavaTckSupport.check(objectClassName.equals(
+                  publisher.getObjectClassName(publisherClass))
+                  && attributeName.equals(publisher.getAttributeName(
+                     publisherClass, publisherAttribute))
+                  && expectedTransportationName.equals(
+                     publisher.getTransportationTypeName(transportation)),
+               "adapter FOM publisher class, attribute, or custom transportation name did not round-trip");
+         }
          AttributeHandleSet published = publisher.getAttributeHandleSetFactory().create();
          published.add(publisherAttribute);
          publisher.publishObjectClassAttributes(publisherClass, published);
@@ -92,6 +116,16 @@ final class TimestampedAttributeAlternateAdvancesTck {
          for (RTIambassador receiver : receivers) {
             ObjectClassHandle objectClass = receiver.getObjectClassHandle(objectClassName);
             AttributeHandle attribute = receiver.getAttributeHandle(objectClass, attributeName);
+            if (expectedTransportationName != null) {
+               TransportationTypeHandle transportation =
+                  receiver.getTransportationTypeHandle(expectedTransportationName);
+               JavaTckSupport.check(objectClassName.equals(
+                     receiver.getObjectClassName(objectClass))
+                     && attributeName.equals(receiver.getAttributeName(objectClass, attribute))
+                     && expectedTransportationName.equals(
+                        receiver.getTransportationTypeName(transportation)),
+                  "adapter FOM receiver class, attribute, or custom transportation name did not round-trip");
+            }
             AttributeHandleSet subscribed = receiver.getAttributeHandleSetFactory().create();
             subscribed.add(attribute);
             receiver.subscribeObjectClassAttributes(objectClass, subscribed);
@@ -169,13 +203,13 @@ final class TimestampedAttributeAlternateAdvancesTck {
 
          checkReceiver(flushRecorder, receiverAttributes.get(0),
             object, producer, payload, tag, messageTime, retraction.handle,
-            flushReceiver, "Flush Queue receiver");
+            flushReceiver, expectedTransportationName, "Flush Queue receiver");
          checkReceiver(taraRecorder, receiverAttributes.get(1),
             object, producer, payload, tag, messageTime, retraction.handle,
-            taraReceiver, "TARA receiver");
+            taraReceiver, expectedTransportationName, "TARA receiver");
          checkReceiver(nmraRecorder, receiverAttributes.get(2),
             object, producer, payload, tag, messageTime, retraction.handle,
-            nmraReceiver, "NMRA receiver");
+            nmraReceiver, expectedTransportationName, "NMRA receiver");
 
          JavaTckSupport.check(publisherRecorder.timeAdvanceGrantTimes.size() == 1
                && publisherTarget.equals(publisherRecorder.timeAdvanceGrantTimes.get(0)),
@@ -211,6 +245,20 @@ final class TimestampedAttributeAlternateAdvancesTck {
                && messageTime.equals(nmraReceiver.queryLogicalTime())
                && publisherTarget.equals(publisher.queryLogicalTime()),
             "logical-time queries disagreed with their respective grants");
+         LogicalTime pastBoundary = offset(initial, epsilon, 1);
+         JavaTckSupport.check(compareTime(flushReceiver.queryLogicalTime(), pastBoundary) > 0
+               && compareTime(taraReceiver.queryLogicalTime(), pastBoundary) > 0
+               && compareTime(nmraReceiver.queryLogicalTime(), pastBoundary) > 0,
+            "backward-time boundary was not earlier than every alternate-advance grant");
+         expectException(() -> flushReceiver.flushQueueRequest(pastBoundary),
+            "LogicalTimeAlreadyPassed",
+            "Flush Queue Request with a logical time before the current time");
+         expectException(() -> taraReceiver.timeAdvanceRequestAvailable(pastBoundary),
+            "LogicalTimeAlreadyPassed",
+            "Time Advance Request Available with a logical time before the current time");
+         expectException(() -> nmraReceiver.nextMessageRequestAvailable(pastBoundary),
+            "LogicalTimeAlreadyPassed",
+            "Next Message Request Available with a logical time before the current time");
          expectException(() -> publisher.retract(retraction.handle),
             "MessageCanNoLongerBeRetracted",
             "retracting an update delivered through an alternate advance");
@@ -280,7 +328,8 @@ final class TimestampedAttributeAlternateAdvancesTck {
          ObjectInstanceHandle expectedObject,
          FederateHandle expectedProducer, byte[] expectedPayload, byte[] expectedTag,
          LogicalTime<?, ?> expectedTime, MessageRetractionHandle expectedRetraction,
-         RTIambassador ambassador, String description) throws Exception {
+         RTIambassador ambassador, String expectedTransportationName, String description)
+         throws Exception {
       JavaTckSupport.check(recorder.reflections.size() == 1,
          description + " received the wrong number of reflections");
       Reflection reflection = recorder.reflections.get(0);
@@ -296,9 +345,12 @@ final class TimestampedAttributeAlternateAdvancesTck {
       JavaTckSupport.check(reflection.sentOrder == OrderType.TIMESTAMP
             && reflection.receivedOrder == OrderType.TIMESTAMP,
          description + " did not report timestamp order at both boundaries");
+      String transportationName = reflection.transportation == null ? ""
+         : ambassador.getTransportationTypeName(reflection.transportation);
       JavaTckSupport.check(expectedRetraction.equals(reflection.retraction)
-            && reflection.transportation != null
-            && !ambassador.getTransportationTypeName(reflection.transportation).isEmpty(),
+            && reflection.transportation != null && !transportationName.isEmpty()
+            && (expectedTransportationName == null
+               || expectedTransportationName.equals(transportationName)),
          description + " returned an invalid retraction or transportation handle");
    }
 

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-test-not-conformance-evidence",
+  "notes": "This reference maps the portable C++ TCK and focused C++ Catch2 coverage to the clause-4 application-participation requirement. The TCK exercises the public 2025 API with two federation executions and multiple joined federates. Its local Umbra adapter results do not establish external-provider validation or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-one-application-multiple-federate-executions",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-039-l4-1",
+      "clause_id": "clause-4",
+      "source": "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp",
+      "source_symbol": "scenarioFederateApplicationMultipleExecutions",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp::scenarioFederateApplicationMultipleExecutions",
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp::scenarioFederateApplicationMultipleExecutionsContract",
+        "cpp/tests/ieee1516_2025_federation_application_multiple_executions_catch2.cpp::One application may join multiple federates across multiple federation executions"
+      ]
+    }
+  ]
+}

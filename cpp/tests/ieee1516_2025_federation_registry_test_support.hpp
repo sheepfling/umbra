@@ -4,6 +4,7 @@
 
 #include "internal/federation/federation_registry.hpp"
 #include "internal/federation/federation_state_image.hpp"
+#include "internal/observability/runtime_instrumentation.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
 

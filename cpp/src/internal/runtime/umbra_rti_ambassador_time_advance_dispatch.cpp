@@ -108,6 +108,8 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
         std::shared_ptr<LogicalTime> flushQueueOptimisticTime;
         std::vector<umbra::detail::TsoPayloadDelivery> tsoDeliveries;
         std::optional<std::wstring> immediateSaveLabel;
+        std::optional<umbra::detail::FederationSaveNotification>
+            immediateSaveNotification;
         if (!flushQueue) {
           {
             std::scoped_lock lock(ambassadorFederationManagementMutex());
@@ -128,6 +130,8 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                   L"The embedded federation could not admit an untimed save at the time-advance boundary.");
             }
             immediateSaveLabel = std::move(admission.currentFederateLabel);
+            immediateSaveNotification =
+                std::move(admission.currentFederateNotification);
             immediateSaveNotifications = std::move(admission.notifications);
           }
 
@@ -138,6 +142,10 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
           // this recipient's Time Advance Grant.
           if (immediateSaveLabel.has_value()) {
             nextSaveConditionalsChanged = true;
+            if (immediateSaveNotification) {
+              recordAmbassadorFederationSaveInitiationReports(
+                  *immediateSaveNotification);
+            }
             recipient.initiateFederateSave(*immediateSaveLabel);
             queueAmbassadorJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
                 federationName,
@@ -166,7 +174,12 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                 federationName,
                 federateId,
                 *grantedTime,
-                true);
+                umbra::detail::includesEqualTsoAtPreGrantBoundary(
+                    pendingSnapshot.advanceMode) ||
+                    (pendingSnapshot.advanceMode ==
+                         umbra::detail::FederateTimeAdvanceMode::time_advance_request_available &&
+                     pendingSnapshot.advanceRequestTime &&
+                     *pendingSnapshot.requestedTime < *pendingSnapshot.advanceRequestTime));
             if (tso.status != umbra::detail::FederationTsoRegistryStatus::applied ||
                 (tso.deliveryStatus != umbra::detail::FederationTsoDeliveryStatus::applied &&
                  tso.deliveryStatus != umbra::detail::FederationTsoDeliveryStatus::no_messages)) {
@@ -244,7 +257,8 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
         // TSO callbacks are delivered before the matching Time Advance Grant
         // callback. Each entry is completed even when user code throws, so a
         // callback exception cannot leave a private in-transit reservation.
-        for (auto const& delivery : tsoDeliveries) {
+        auto deliverTsoPayloads = [&](auto const& deliveries) {
+        for (auto const& delivery : deliveries) {
           try {
             std::visit(
                 [&recipient, &federationName, federateId](auto const& typedDelivery) {
@@ -700,6 +714,8 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
             postGrantObjectRemovals.push_back(std::move(removal));
           }
         }
+        };
+        deliverTsoPayloads(tsoDeliveries);
 
         if (!flushQueue) {
           std::optional<std::wstring> timedSaveLabel;
@@ -835,6 +851,29 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
           recipient.flushQueueGrant(*grantedTime, *optimisticTime);
         } else {
           recipient.timeAdvanceGrant(*grantedTime);
+        }
+
+        // Table 1 excludes ts == t_R from TARA's pre-grant delivery set.
+        // Once the grant callback has transitioned the federate to Time
+        // Granted, release the retained equal-time messages in callback order.
+        if (!flushQueue && pendingSnapshot.advanceMode ==
+                               umbra::detail::FederateTimeAdvanceMode::time_advance_request_available) {
+          umbra::detail::FederationTsoPayloadDeliveryRegistryResult postGrantTso;
+          {
+            std::scoped_lock lock(ambassadorFederationManagementMutex());
+            postGrantTso = embeddedFederationRegistry().beginTsoPayloadDelivery(
+                federationName,
+                federateId,
+                *grantedTime,
+                true);
+          }
+          if (postGrantTso.status != umbra::detail::FederationTsoRegistryStatus::applied ||
+              (postGrantTso.deliveryStatus != umbra::detail::FederationTsoDeliveryStatus::applied &&
+               postGrantTso.deliveryStatus != umbra::detail::FederationTsoDeliveryStatus::no_messages)) {
+            throw RTIinternalError(
+                L"The embedded federation could not release equal-time TSO payloads after a TARA grant.");
+          }
+          deliverTsoPayloads(postGrantTso.deliveries);
         }
 
       });

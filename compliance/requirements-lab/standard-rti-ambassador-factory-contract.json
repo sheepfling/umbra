@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the provider- and FOM-independent C++ TCK check for the official IEEE 1516.1 RTIambassadorFactory construction surface. It verifies that the standard factory can be constructed and can create usable RTIambassador objects without asserting provider-specific configuration, endpoint, FOM, or service behavior.",
+  "notes": "This contract records provider- and FOM-independent API checks for standard RTI ambassador construction. The C++ test verifies the official RTIambassadorFactory can create multiple RTIambassador objects; the Java test verifies the discovered standard RtiFactory can do the same. Neither asserts provider-specific configuration, endpoint, FOM, or service behavior.",
   "api_surfaces": [
     {
       "id": "standard-cpp-rti-ambassador-factory",
@@ -14,6 +14,17 @@
       "source_symbol": "IEEE 1516.1 RTIambassadorFactory declarations",
       "tests": [
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRTIambassadorFactoryPortableContract"
+      ]
+    },
+    {
+      "id": "standard-java-rti-ambassador-factory",
+      "owner": "IEEE 1516.1 Java API",
+      "language": "java",
+      "signature": "RtiFactory.getRtiAmbassador reusability",
+      "source": "adapter-supplied official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "hla.rti1516_2025.RtiFactory",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java#factoryDiscovery"
       ]
     }
   ]

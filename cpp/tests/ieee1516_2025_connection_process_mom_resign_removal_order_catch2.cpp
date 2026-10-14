@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <atomic>
 #include <exception>
 #include <filesystem>
 #include <optional>
@@ -82,8 +83,15 @@ TEST_CASE(
       callbackEvents.push_back({CallbackKind::removal, objectInstance});
     }
 
+    void announceSynchronizationPoint(
+        std::wstring const& label,
+        rti1516_2025::VariableLengthData const&) override {
+      synchronizationAnnouncements.push_back(label);
+    }
+
     std::vector<CallbackEvent> callbackEvents;
     std::vector<Reflection> reflections;
+    std::vector<std::wstring> synchronizationAnnouncements;
   } observerFederate;
 
   using umbra::detail::EmbeddedFederationRegistry;
@@ -99,6 +107,8 @@ using umbra::detail::TransportServiceOperation;
   auto const port = listener->address().port;
   REQUIRE(port != 0U);
   auto const reportDirectory = temporaryServiceReportDirectory();
+  std::atomic_bool failNextJoinedMomDiscovery{false};
+  std::atomic_bool failNextSyncAnnouncement{false};
   constexpr wchar_t const* federationName =
       L"public-process-mom-resign-removal-order-execution";
   constexpr wchar_t const* subjectName = L"public-process-mom-removal-subject";
@@ -110,6 +120,16 @@ using umbra::detail::TransportServiceOperation;
       EmbeddedFederationRegistry registry;
       ProcessFederationServiceOptions options;
       options.serviceReportDirectory = reportDirectory;
+      options.failAfterJoinedFederateMomDiscoveryQueuedForTesting =
+          [&](std::uint64_t, std::uint64_t) {
+            return failNextJoinedMomDiscovery.exchange(
+                false, std::memory_order_acq_rel);
+          };
+      options.failAfterSynchronizationPointAnnouncementQueuedForTesting =
+          [&](std::wstring const&) {
+            return failNextSyncAnnouncement.exchange(
+                false, std::memory_order_acq_rel);
+          };
       ProcessFederationService service(
           registry, composedProcessDefinition(), std::move(options));
       auto serveExpected = [&](ProcessTransportSession& session,
@@ -178,10 +198,41 @@ using umbra::detail::TransportServiceOperation;
                       "The process MOM lifecycle server lost the subject Resign.");
         serveExpected(subjectSession, subjectHandler,
                       TransportServiceOperation::join_federation_execution,
-                      "The process MOM lifecycle server lost the subject rejoin.");
+                      "The process MOM lifecycle server lost the injected failed subject rejoin.");
+        serveExpected(subjectSession, subjectHandler,
+                      TransportServiceOperation::join_federation_execution,
+                      "The process MOM lifecycle server lost the retried subject rejoin.");
         serveExpected(subjectSession, subjectHandler,
                       TransportServiceOperation::resign_federation_execution,
-                      "The process MOM lifecycle server lost the final subject Resign.");
+                      "The process MOM lifecycle server lost the second subject Resign.");
+        serveExpected(subjectSession, subjectHandler,
+                      TransportServiceOperation::join_federation_execution,
+                      "The process MOM lifecycle server lost the failed sync-point rejoin.");
+        serveExpected(subjectSession, subjectHandler,
+                      TransportServiceOperation::join_federation_execution,
+                      "The process MOM lifecycle server lost the sync-point retry.");
+        bool finalResignServed = false;
+        if (!umbra::test::servePrimaryProcessRequest(
+                subjectSession, subjectHandler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation ==
+                      TransportServiceOperation::resign_federation_execution) {
+                    finalResignServed = true;
+                  } else if (request.operation !=
+                             TransportServiceOperation::receive_interaction) {
+                    throw std::runtime_error(
+                        "The process MOM lifecycle server lost the retry announcement delivery or final subject Resign.");
+                  }
+                  return subjectHandler(request);
+                })) {
+          throw std::runtime_error(
+              "The process MOM lifecycle server lost the retry announcement delivery or final subject Resign.");
+        }
+        if (!finalResignServed) {
+          serveExpected(subjectSession, subjectHandler,
+                        TransportServiceOperation::resign_federation_execution,
+                        "The process MOM lifecycle server lost the final subject Resign.");
+        }
       } catch (...) {
         observerConnection->close();
         if (observerServer.joinable()) {
@@ -204,7 +255,7 @@ using umbra::detail::TransportServiceOperation;
     }
   });
 
-  NullFederateAmbassador subjectFederate;
+  RecordingFederateAmbassador subjectFederate;
   auto subject = makeRti();
   auto observer = makeRti();
   auto configuration = RtiConfiguration::createConfiguration()
@@ -240,6 +291,9 @@ using umbra::detail::TransportServiceOperation;
     REQUIRE(federateNameAttribute.isValid());
     REQUIRE_NOTHROW(observer->subscribeObjectClassAttributes(
         momClass, rti1516_2025::AttributeHandleSet{federateNameAttribute}));
+    constexpr wchar_t const* syncPointLabel = L"process-late-join-rollback-point";
+    REQUIRE_NOTHROW(observer->registerFederationSynchronizationPoint(
+        syncPointLabel, rti1516_2025::VariableLengthData{}));
 
     auto subjectReflectionForName = [&](
                                            std::optional<rti1516_2025::ObjectInstanceHandle>
@@ -269,12 +323,43 @@ using umbra::detail::TransportServiceOperation;
       static_cast<void>(observer->evokeCallback(0.0));
     }
     REQUIRE(observerFederate.reflections.size() >= 2U);
+    REQUIRE(std::count(
+                observerFederate.synchronizationAnnouncements.begin(),
+                observerFederate.synchronizationAnnouncements.end(),
+                syncPointLabel) == 1);
     auto const initialSubjectReflection = subjectReflectionForName();
     REQUIRE(initialSubjectReflection != observerFederate.reflections.end());
     auto const resignedObject = initialSubjectReflection->objectInstance;
 
     subject->resignFederationExecution(NO_ACTION);
     subjectJoined = false;
+
+    // Drain the old lifetime's removal before injecting a late-Join discovery
+    // failure, so any callback observed below belongs to the failed lifetime.
+    for (std::size_t pass = 0U; pass != 64U; ++pass) {
+      if (!observer->evokeCallback(0.0)) {
+        break;
+      }
+    }
+    auto const callbacksBeforeFailedJoin = observerFederate.callbackEvents.size();
+    auto const reflectionsBeforeFailedJoin = observerFederate.reflections.size();
+    failNextJoinedMomDiscovery.store(true, std::memory_order_release);
+    REQUIRE_THROWS_AS(
+        subject->joinFederationExecution(
+            subjectName, federateType, federationName),
+        rti1516_2025::RTIinternalError);
+
+    // The process service had already queued the new MOM discovery and initial
+    // reflection for the observer. Rollback must discard both before returning
+    // Join failure, not leak a phantom joined-federate object.
+    for (std::size_t pass = 0U; pass != 64U; ++pass) {
+      if (!observer->evokeCallback(0.0)) {
+        break;
+      }
+    }
+    REQUIRE(observerFederate.callbackEvents.size() == callbacksBeforeFailedJoin);
+    REQUIRE(observerFederate.reflections.size() == reflectionsBeforeFailedJoin);
+
     REQUIRE(subject->joinFederationExecution(
                 subjectName, federateType, federationName)
                 .isValid());
@@ -329,6 +414,50 @@ using umbra::detail::TransportServiceOperation;
     REQUIRE(rejoinedReflection != observerFederate.callbackEvents.end());
     REQUIRE(removal < rejoinedDiscovery);
     REQUIRE(rejoinedDiscovery < rejoinedReflection);
+
+    subject->resignFederationExecution(NO_ACTION);
+    subjectJoined = false;
+
+    // Fail after the late-Join announcement has entered the joining session's
+    // queue. The failed member must be removed from the registry's expanded
+    // synchronization set so retry announces the point exactly once.
+    for (std::size_t pass = 0U; pass != 64U; ++pass) {
+      if (!observer->evokeCallback(0.0)) {
+        break;
+      }
+    }
+    auto const callbacksBeforeSyncFailure = observerFederate.callbackEvents.size();
+    auto const reflectionsBeforeSyncFailure = observerFederate.reflections.size();
+    auto const announcementsBeforeSyncFailure = static_cast<std::size_t>(std::count(
+        subjectFederate.synchronizationAnnouncements.begin(),
+        subjectFederate.synchronizationAnnouncements.end(),
+        syncPointLabel));
+    failNextSyncAnnouncement.store(true, std::memory_order_release);
+    REQUIRE_THROWS_AS(
+        subject->joinFederationExecution(
+            subjectName, federateType, federationName),
+        rti1516_2025::RTIinternalError);
+    for (std::size_t pass = 0U; pass != 64U; ++pass) {
+      if (!observer->evokeCallback(0.0)) {
+        break;
+      }
+    }
+    REQUIRE(observerFederate.callbackEvents.size() == callbacksBeforeSyncFailure);
+    REQUIRE(observerFederate.reflections.size() == reflectionsBeforeSyncFailure);
+    REQUIRE(static_cast<std::size_t>(std::count(
+                subjectFederate.synchronizationAnnouncements.begin(),
+                subjectFederate.synchronizationAnnouncements.end(),
+                syncPointLabel)) == announcementsBeforeSyncFailure);
+
+    REQUIRE(subject->joinFederationExecution(
+                subjectName, federateType, federationName)
+                .isValid());
+    subjectJoined = true;
+    static_cast<void>(subject->evokeCallback(0.0));
+    REQUIRE(static_cast<std::size_t>(std::count(
+                subjectFederate.synchronizationAnnouncements.begin(),
+                subjectFederate.synchronizationAnnouncements.end(),
+                syncPointLabel)) == announcementsBeforeSyncFailure + 1U);
 
     subject->resignFederationExecution(NO_ACTION);
     subjectJoined = false;

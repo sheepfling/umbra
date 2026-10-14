@@ -11,7 +11,7 @@
 #include "internal/handles/object_class_handle_directory.hpp"
 #include "internal/handles/parameter_handle_directory.hpp"
 #include "internal/handles/transportation_type_handle_directory.hpp"
-#include "internal/observability/runtime_instrumentation.hpp"
+#include "internal/observability/runtime_instrumentation_fwd.hpp"
 
 #include <RTI/Enums.h>
 #include <RTI/Typedefs.h>
@@ -43,6 +43,11 @@ class EmbeddedFederationRegistry final {
   explicit EmbeddedFederationRegistry(
       std::shared_ptr<RuntimeInstrumentation> instrumentation = {},
       std::shared_ptr<FederationSaveCommitStore> saveCommitStore = {});
+
+  // Runtime configuration may select persistent save storage before any
+  // federation exists. Test seams may still inject a store at construction.
+  [[nodiscard]] bool configureSaveCommitStoreBeforeFederations(
+      std::shared_ptr<FederationSaveCommitStore> saveCommitStore);
 
   [[nodiscard]] RuntimeInstrumentationSnapshot
   runtimeInstrumentationSnapshotForTesting() const;
@@ -178,12 +183,17 @@ class EmbeddedFederationRegistry final {
       std::wstring label,
       std::shared_ptr<rti1516_2025::LogicalTime const> timestamp);
 
-  // Admits one pending untimed save at a Time Advance Grant boundary. The
-  // adapter calls this after the grant has passed federation scheduling but
-  // before it mutates the recipient's FederateTimeState to Time Granted, so
-  // the returned direct callback observes the IEEE 1516.1-2025-required Time
-  // Advancing state. This is intentionally separate from the timed-save
-  // scheduler, whose timestamp/TSO admission remains a different slice.
+  // Returns callback routes for all still-uninstructed constrained members
+  // once every constrained member has an advance request pending. This is a
+  // non-mutating plan; adapters may admit the group at this collective
+  // boundary or preserve per-recipient admission at its pre-grant boundary.
+  [[nodiscard]] FederationSaveAdmissionPlan
+  planImmediateFederationSaveTimeAdvanceAdmissions(
+      std::wstring const& federationName);
+
+  // Admits one constrained member while it is Time Advancing. The adapter can
+  // call this from the planned recipient callback or directly at that member's
+  // pre-grant boundary. Timed-save timestamp/TSO admission remains separate.
   [[nodiscard]] FederationSaveAdmission
   admitImmediateFederationSaveAtTimeAdvanceBoundary(
       std::wstring const& federationName,
@@ -2182,7 +2192,7 @@ class EmbeddedFederationRegistry final {
       std::uint64_t messageId) const;
 
  private:
-  [[nodiscard]] RuntimeInstrumentation::Scope beginInstrumentation(
+  [[nodiscard]] InstrumentationScope beginInstrumentation(
       std::string_view operation) const;
 
   [[nodiscard]] FederationSaveAdmission admitTimedFederationSaveAtGrantBoundary(

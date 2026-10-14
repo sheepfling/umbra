@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import subprocess
 import tempfile
@@ -15,7 +16,88 @@ except ImportError:
     import run_cpp_tck
 
 
+def verify_portable_dispatch_direct_evidence() -> None:
+    scenario_id = "cpp-tck.pending-negotiated-ownership-package-filesystem-restore"
+    with tempfile.TemporaryDirectory(prefix="cpp-tck-portable-dispatch-regression-") as directory:
+        root = Path(directory)
+        results = root / "results.json"
+        junit = root / "junit.xml"
+        scenario = {"id": scenario_id, "runner_id": scenario_id}
+        attempted: list[str] = []
+
+        def direct_arguments(
+            arguments: argparse.Namespace,
+            _inputs: dict[str, object],
+            selected: list[dict[str, str]],
+            result_path: Path | None,
+            junit_path: Path | None,
+        ) -> list[str]:
+            if result_path is not None or junit_path is not None:
+                raise AssertionError("portable dispatch forwarded unsupported result switches")
+            return [
+                "--scenario",
+                selected[0]["runner_id"],
+                "--callback-model",
+                arguments.callback_model,
+            ]
+
+        def fake_run(
+            command: list[str],
+            *,
+            cwd: Path,
+            text: bool,
+            capture_output: bool,
+            check: bool,
+        ) -> subprocess.CompletedProcess[str]:
+            if cwd != run_cpp_tck.ROOT or not text or not capture_output or check:
+                raise AssertionError("portable dispatch did not capture the child result")
+            model = command[command.index("--callback-model") + 1]
+            attempted.append(model)
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                stdout=f"passed {scenario_id} [{model}]\n",
+                stderr="",
+            )
+
+        with (
+            patch.object(run_cpp_tck, "is_portable_dispatch_scenario", return_value=True),
+            patch.object(run_cpp_tck, "direct_arguments", direct_arguments),
+            patch.object(run_cpp_tck.subprocess, "run", fake_run),
+        ):
+            run_cpp_tck.run_executable_direct(
+                argparse.Namespace(callback_model="both"),
+                {"build_directory": root},
+                root / "provider.exe",
+                [scenario],
+                results,
+                junit,
+            )
+
+        if attempted != ["evoked", "immediate"]:
+            raise AssertionError(f"portable dispatch callback matrix was wrong: {attempted}")
+        payload = json.loads(results.read_text(encoding="utf-8"))
+        if payload.get("kind") != "hla-rti-cpp-tck-evidence":
+            raise AssertionError("portable dispatch JSON evidence has the wrong kind")
+        result_pairs = {
+            (result.get("id"), result.get("callback_model"), result.get("status"))
+            for result in payload.get("results", [])
+        }
+        expected_pairs = {
+            (scenario_id, "evoked", "passed"),
+            (scenario_id, "immediate", "passed"),
+        }
+        if result_pairs != expected_pairs:
+            raise AssertionError(f"portable dispatch JSON evidence was incomplete: {result_pairs}")
+        junit_root = ET.parse(junit).getroot()
+        if junit_root.attrib.get("tests") != "2" or junit_root.attrib.get("failures") != "0":
+            raise AssertionError("portable dispatch JUnit did not preserve both passing models")
+        if len(junit_root.findall("testcase")) != 2:
+            raise AssertionError("portable dispatch JUnit omitted callback-model cases")
+
+
 def main() -> int:
+    verify_portable_dispatch_direct_evidence()
     scenario_ids = ["cpp-tck.first", "cpp-tck.provider-failure", "cpp-tck.last"]
     failed_scenario = scenario_ids[1]
 

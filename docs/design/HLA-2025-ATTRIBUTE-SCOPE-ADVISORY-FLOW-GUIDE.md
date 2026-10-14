@@ -153,11 +153,16 @@ A later commit, unsubscribe, switch change, resignation, or object deletion
 can therefore make previously planned work ineligible.
 
 That means “the RTI planned an In callback” is not the same claim as “the
-application will receive that callback.” The embedded stale-In test commits a
-receiver-region move before callback entry and verifies that the obsolete In
-report is suppressed while the valid Out report remains. The process test
-separately checks switch, subscription, association, and public endpoint
-behavior in both callback models.
+application will receive that callback.” In the embedded **HLA_EVOKED** test
+branch, the receiver-region move occurs before callback dispatch, so the
+queued In is stale and is suppressed while the current Out report remains. In
+the **HLA_IMMEDIATE** branch, the In callback is entered before that later
+region move; it is valid at callback entry, and the subsequent move produces
+the Out report. The process endpoint test separately exercises the enabled
+scope-switch setup, regional unsubscribe, owner-side association changes, and
+public In/Out callbacks under both callback models, but it does not stage a
+queued-stale race. Process stale-event filtering is therefore supported by
+source inspection, not that focused test.
 
 ## Decision flow for one planned change
 
@@ -182,6 +187,16 @@ planner. Other mutations should be evaluated by their own transition path;
 for example, removing the owner's overlapping source association can produce
 an Out advisory for a still-subscribed receiver.
 
+The switch-off branch is supported by implementation checks but is not
+isolated by the cited switch-off test scenario. In that embedded segment, the
+receiver disables the switch and removes its own final regional subscription;
+the self-final-unsubscribe exception already suppresses Out independently of
+the switch. The process-endpoint test keeps the switch enabled. Thus the
+source paths show the switch being checked during embedded enqueue/callback
+revalidation and process enqueue/receive revalidation, but a focused test of
+an otherwise-reportable transition suppressed solely by disabling the scope
+switch remains open.
+
 ## Implementation and test evidence
 
 | Concern | Current 2025 implementation | Focused test evidence |
@@ -190,8 +205,8 @@ an Out advisory for a still-subscribed receiver.
 | Pre/post association comparison and recipient/object/direction grouping | [Association planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L517); [region-association service](../../cpp/src/internal/federation/federation_registry_update_region_associations.cpp#L190) | [Embedded region movement, grouped attributes, and stale evoked callback](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L201) |
 | Pre/post receiver-region commit comparison | [Committed region planner](../../cpp/src/internal/federation/federation_registry_regions.cpp#L255) | [Embedded committed-region moves](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L209) |
 | Subscription transition and the final-self-unsubscribe Out exception | [Subscription planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L577) | [Embedded exception and switch scenario](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L238); [process endpoint exception](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L457) |
-| Embedded switch gate, callback-time filtering, and callback dispatch | [Scope callback route](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1190) | [Embedded test runs HLA_EVOKED and HLA_IMMEDIATE](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L334) |
-| Process boundary queue and receive-time stale-work filtering | [Process event planning](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L147); [receive path](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L125) | [Public process endpoint test, including both callback models](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L457) |
+| Embedded switch gate, callback-time filtering, and callback dispatch | [Scope callback route](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1190) | [Stale-In transition and callback-model cases](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L201); [switch-off segment coincides with the final-unsubscribe exception](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L302) |
+| Process boundary queue and receive-time stale-work filtering | [Process event planning](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L147); [receive path](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L125) | [Public process endpoint test for self-unsubscribe and owner-side Out/In callbacks in both callback models; no stale-queue race](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L457) |
 | Public callback names and API clauses | [Pinned 2025 FederateAmbassador](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L333) | Both tests record callback object and attribute count; the embedded test also checks exact attribute-set equality. |
 
 The embedded test is a focused regional transition scenario: it checks
@@ -217,7 +232,11 @@ race, transport failure, or interleaving with time-managed callbacks.
 - The cited source and tests are all the IEEE 1516.1-2025 stream. The
   [separate 2010 reference-RTI guide](HLA-2010-REFERENCE-RTI-FLOW-GUIDE.md)
   describes a different profile; this guide makes no cross-edition claim.
-- These diagrams have passed static source/link review only. The current
-  workstation does not have a local Mermaid renderer, so verify visual
-  rendering in GitHub's Markdown preview (or an approved local renderer)
-  before treating the guide as visually reviewed.
+- GitHub's Markdown preview at commit
+  `5392bde4f41e7da33a03835ff16a78c663d62022` rendered all three diagrams.
+  The state chart and mutation sequence were individually visually reviewed
+  on 2026-10-09. The repaired decision flow was screenshot-inspected on
+  2026-10-11: it is a tall, scrollable chart, but its branches and callback
+  outcomes remain readable. This closes the earlier parse/render check for
+  that chart; the preview is evidence for this revision, not a guarantee about
+  later edits.

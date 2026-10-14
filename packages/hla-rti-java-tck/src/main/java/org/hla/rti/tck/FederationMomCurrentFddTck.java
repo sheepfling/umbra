@@ -5,8 +5,10 @@ import hla.rti1516_2025.AttributeHandleSet;
 import hla.rti1516_2025.AttributeHandleValueMap;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
+import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
@@ -26,7 +28,11 @@ final class FederationMomCurrentFddTck {
    }
 
    static void run(RtiFactory factory, String fom, String mim, String additionalFom,
-         String timeImplementation, CallbackModel callbackModel) throws Exception {
+         String timeImplementation, CallbackModel callbackModel, String federateType,
+         String baseDeclaration, String extensionDeclaration) throws Exception {
+      check(baseDeclaration != null && !baseDeclaration.isEmpty()
+            && extensionDeclaration != null && !extensionDeclaration.isEmpty(),
+         "current-FDD declaration markers must be adapter-configured and non-empty");
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
       RTIambassador extension = factory.getRtiAmbassador();
@@ -54,9 +60,9 @@ final class FederationMomCurrentFddTck {
          owner.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
-         owner.joinFederationExecution("java-tck-fdd-owner", federation);
+         owner.joinFederationExecution(federateType, federation);
          ownerJoined = true;
-         observer.joinFederationExecution("java-tck-fdd-observer", federation);
+         observer.joinFederationExecution(federateType, federation);
          observerJoined = true;
 
          ObjectClassHandle federationClass = observer.getObjectClassHandle(
@@ -94,22 +100,22 @@ final class FederationMomCurrentFddTck {
          String baseFdd = requestCurrentFdd(observer, observerRecorder, encoder,
             callbackModel, federationObject, currentFddAttribute, currentFddAttributes,
             reliable, "base current-FDD request");
-         check(baseFdd.contains("TckObject"),
+         check(baseFdd.contains(baseDeclaration),
             "base current-FDD value omitted the adapter FOM declaration");
-         check(!baseFdd.contains("TckExtensionObject"),
+         check(!baseFdd.contains(extensionDeclaration),
             "base current-FDD value already contained the extension declaration");
 
          observerRecorder.clearReflection();
-         extension.joinFederationExecution("java-tck-fdd-extension", "tck-type", federation,
+         extension.joinFederationExecution("java-tck-fdd-extension", federateType, federation,
             new String[] {additionalFom});
          extensionJoined = true;
          await(observer, callbackModel, () -> {
             String current = observerRecorder.currentFdd(encoder, currentFddAttribute);
-            return current != null && current.contains("TckExtensionObject");
+            return current != null && current.contains(extensionDeclaration);
          }, "current-FDD refresh following an additional-FOM join");
          String refreshedFdd = observerRecorder.currentFdd(encoder, currentFddAttribute);
-         check(refreshedFdd != null && refreshedFdd.contains("TckObject")
-               && refreshedFdd.contains("TckExtensionObject")
+         check(refreshedFdd != null && refreshedFdd.contains(baseDeclaration)
+               && refreshedFdd.contains(extensionDeclaration)
                && refreshedFdd.length() > baseFdd.length(),
             "refreshed current-FDD value omitted the composed extension declaration");
 
@@ -146,12 +152,15 @@ final class FederationMomCurrentFddTck {
       Map<AttributeHandle, byte[]> values = recorder.reflectedValues;
       byte[] tag = recorder.reflectionTag;
       check(federationObject.equals(recorder.reflectedObject)
-            && values != null && values.containsKey(currentFddAttribute),
+            && values != null && values.size() == 1
+            && values.containsKey(currentFddAttribute),
          description + " reported the wrong MOM object or attribute");
       check(tag != null && tag.length == 0,
          description + " returned a non-empty MOM callback tag");
       check(reliable.equals(recorder.reflectionTransportation),
          description + " returned a non-reliable transportation type");
+      check(recorder.reflectionProducer == null && recorder.reflectionRegionsEmpty,
+         description + " returned a producing federate or region metadata");
       return recorder.currentFdd(encoder, currentFddAttribute);
    }
 
@@ -210,6 +219,8 @@ final class FederationMomCurrentFddTck {
       private volatile Map<AttributeHandle, byte[]> reflectedValues;
       private volatile byte[] reflectionTag;
       private volatile TransportationTypeHandle reflectionTransportation;
+      private volatile FederateHandle reflectionProducer;
+      private volatile boolean reflectionRegionsEmpty;
       private volatile ObjectInstanceHandle reportedTransportationObject;
       private volatile AttributeHandle reportedTransportationAttribute;
       private volatile TransportationTypeHandle reportedTransportation;
@@ -225,7 +236,7 @@ final class FederationMomCurrentFddTck {
                   discoveredClass = (ObjectClassHandle) arguments[1];
                   discoveredName = (String) arguments[2];
                } else if ("reflectAttributeValues".equals(method.getName())
-                     && arguments != null && arguments.length >= 4
+                     && arguments != null && arguments.length == 6
                      && arguments[1] instanceof AttributeHandleValueMap) {
                   reflectedObject = (ObjectInstanceHandle) arguments[0];
                   AttributeHandleValueMap source = (AttributeHandleValueMap) arguments[1];
@@ -237,6 +248,9 @@ final class FederationMomCurrentFddTck {
                   reflectionTag = arguments[2] instanceof byte[]
                      ? ((byte[]) arguments[2]).clone() : null;
                   reflectionTransportation = (TransportationTypeHandle) arguments[3];
+                  reflectionProducer = (FederateHandle) arguments[4];
+                  reflectionRegionsEmpty = arguments[5] == null
+                     || ((RegionHandleSet) arguments[5]).isEmpty();
                } else if ("reportAttributeTransportationType".equals(method.getName())
                      && arguments != null && arguments.length >= 3) {
                   reportedTransportationObject = (ObjectInstanceHandle) arguments[0];
@@ -263,6 +277,8 @@ final class FederationMomCurrentFddTck {
          reflectedValues = null;
          reflectionTag = null;
          reflectionTransportation = null;
+         reflectionProducer = null;
+         reflectionRegionsEmpty = false;
       }
 
       private String currentFdd(EncoderFactory encoder, AttributeHandle attribute) {

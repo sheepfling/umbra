@@ -132,6 +132,13 @@ bool ProcessFederationService::enqueueObjectInstanceDiscoveries(
         pushedMomAttributeEvents.emplace_back(
             receivingSession, std::move(*initialMomValues));
       }
+      if (planned.rtiOwnedMomObject &&
+          options_.failAfterJoinedFederateMomDiscoveryQueuedForTesting &&
+          options_.failAfterJoinedFederateMomDiscoveryQueuedForTesting(
+              planned.receivingFederateId,
+              planned.objectInstanceHandle)) {
+        return false;
+      }
       continue;
     }
 
@@ -147,6 +154,13 @@ bool ProcessFederationService::enqueueObjectInstanceDiscoveries(
       if (initialMomValues) {
         state->second.attributeUpdateEvents.push_back(std::move(*initialMomValues));
       }
+    }
+    if (planned.rtiOwnedMomObject &&
+        options_.failAfterJoinedFederateMomDiscoveryQueuedForTesting &&
+        options_.failAfterJoinedFederateMomDiscoveryQueuedForTesting(
+            planned.receivingFederateId,
+            planned.objectInstanceHandle)) {
+      return false;
     }
   }
 

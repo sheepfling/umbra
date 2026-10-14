@@ -1,4 +1,5 @@
 #include "internal/federation/embedded_transport.hpp"
+#include "internal/observability/runtime_instrumentation.hpp"
 
 #include <utility>
 

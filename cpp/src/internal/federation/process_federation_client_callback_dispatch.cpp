@@ -11,7 +11,7 @@
 namespace umbra::detail {
 
 void ProcessFederationClient::dispatchPushedReceiveOrder() {
-  dispatchReceiveOrder(receivePushedEvent());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchReceiveOrder(
@@ -27,7 +27,7 @@ void ProcessFederationClient::dispatchAttributeUpdate(
 }
 
 void ProcessFederationClient::dispatchPushedAttributeUpdate() {
-  dispatchAttributeUpdate(receivePushedAttributeUpdate());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchAttributeValueUpdateRequest(
@@ -37,7 +37,7 @@ void ProcessFederationClient::dispatchAttributeValueUpdateRequest(
 }
 
 void ProcessFederationClient::dispatchPushedAttributeValueUpdateRequest() {
-  dispatchAttributeValueUpdateRequest(receivePendingEvent<ProcessFederationAttributeValueUpdateRequestEvent>());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchAttributeOwnershipQuery(
@@ -47,7 +47,7 @@ void ProcessFederationClient::dispatchAttributeOwnershipQuery(
 }
 
 void ProcessFederationClient::dispatchPushedAttributeOwnershipQuery() {
-  dispatchAttributeOwnershipQuery(receivePendingEvent<ProcessFederationAttributeOwnershipQueryEvent>());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchAttributeOwnershipAcquisitionIfAvailable(
@@ -58,7 +58,7 @@ void ProcessFederationClient::dispatchAttributeOwnershipAcquisitionIfAvailable(
 }
 
 void ProcessFederationClient::dispatchPushedAttributeOwnershipAcquisitionIfAvailable() {
-  dispatchAttributeOwnershipAcquisitionIfAvailable(receivePendingEvent<ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent>());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchAttributeOwnershipAcquisition(
@@ -68,7 +68,7 @@ void ProcessFederationClient::dispatchAttributeOwnershipAcquisition(
 }
 
 void ProcessFederationClient::dispatchPushedAttributeOwnershipAcquisition() {
-  dispatchAttributeOwnershipAcquisition(receivePendingEvent<ProcessFederationAttributeOwnershipAcquisitionEvent>());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchAttributeOwnershipUnavailable(
@@ -78,7 +78,7 @@ void ProcessFederationClient::dispatchAttributeOwnershipUnavailable(
 }
 
 void ProcessFederationClient::dispatchPushedAttributeOwnershipUnavailable() {
-  dispatchAttributeOwnershipUnavailable(receivePendingEvent<ProcessFederationAttributeOwnershipUnavailableEvent>());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchObjectInstanceDiscovery(
@@ -88,7 +88,7 @@ void ProcessFederationClient::dispatchObjectInstanceDiscovery(
 }
 
 void ProcessFederationClient::dispatchPushedObjectInstanceDiscovery() {
-  dispatchObjectInstanceDiscovery(receivePushedObjectInstanceDiscovery());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchObjectInstanceRemoval(
@@ -98,7 +98,7 @@ void ProcessFederationClient::dispatchObjectInstanceRemoval(
 }
 
 void ProcessFederationClient::dispatchPushedObjectInstanceRemoval() {
-  dispatchObjectInstanceRemoval(receivePushedObjectInstanceRemoval());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchObjectInstanceScopeChange(
@@ -108,7 +108,7 @@ void ProcessFederationClient::dispatchObjectInstanceScopeChange(
 }
 
 void ProcessFederationClient::dispatchPushedObjectInstanceScopeChange() {
-  dispatchObjectInstanceScopeChange(receivePushedObjectInstanceScopeChange());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchAttributeRelevanceAdvisory(
@@ -118,8 +118,7 @@ void ProcessFederationClient::dispatchAttributeRelevanceAdvisory(
 }
 
 void ProcessFederationClient::dispatchPushedAttributeRelevanceAdvisory() {
-  dispatchAttributeRelevanceAdvisory(
-      receivePushedAttributeRelevanceAdvisory());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchAttributeTransportationTypeChange(
@@ -129,7 +128,7 @@ void ProcessFederationClient::dispatchAttributeTransportationTypeChange(
 }
 
 void ProcessFederationClient::dispatchPushedAttributeTransportationTypeChange() {
-  dispatchAttributeTransportationTypeChange(receivePushedAttributeTransportationTypeChange());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchAttributeTransportationTypeQuery(
@@ -139,7 +138,7 @@ void ProcessFederationClient::dispatchAttributeTransportationTypeQuery(
 }
 
 void ProcessFederationClient::dispatchPushedAttributeTransportationTypeQuery() {
-  dispatchAttributeTransportationTypeQuery(receivePushedAttributeTransportationTypeQuery());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchInteractionTransportationTypeChange(
@@ -149,7 +148,7 @@ void ProcessFederationClient::dispatchInteractionTransportationTypeChange(
 }
 
 void ProcessFederationClient::dispatchPushedInteractionTransportationTypeChange() {
-  dispatchInteractionTransportationTypeChange(receivePushedInteractionTransportationTypeChange());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchInteractionTransportationTypeQuery(
@@ -159,7 +158,7 @@ void ProcessFederationClient::dispatchInteractionTransportationTypeQuery(
 }
 
 void ProcessFederationClient::dispatchPushedInteractionTransportationTypeQuery() {
-  dispatchInteractionTransportationTypeQuery(receivePushedInteractionTransportationTypeQuery());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchSynchronizationPointRegistrationSucceeded(
@@ -184,8 +183,7 @@ void ProcessFederationClient::dispatchSynchronizationPointAnnouncement(
 }
 
 void ProcessFederationClient::dispatchPushedSynchronizationPointAnnouncement() {
-  dispatchSynchronizationPointAnnouncement(
-      receivePushedSynchronizationPointAnnouncement());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchFederationSynchronized(
@@ -195,7 +193,7 @@ void ProcessFederationClient::dispatchFederationSynchronized(
 }
 
 void ProcessFederationClient::dispatchPushedFederationSynchronized() {
-  dispatchFederationSynchronized(receivePushedFederationSynchronized());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchFederationSave(
@@ -205,7 +203,7 @@ void ProcessFederationClient::dispatchFederationSave(
 }
 
 void ProcessFederationClient::dispatchPushedFederationSave() {
-  dispatchFederationSave(receivePushedFederationSave());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchFederationRestore(
@@ -215,7 +213,7 @@ void ProcessFederationClient::dispatchFederationRestore(
 }
 
 void ProcessFederationClient::dispatchPushedFederationRestore() {
-  dispatchFederationRestore(receivePushedFederationRestore());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchTimeRegulationEnabled(
@@ -237,7 +235,7 @@ void ProcessFederationClient::dispatchTimeAdvanceGrant(
 }
 
 void ProcessFederationClient::dispatchPushedTimeAdvanceGrant() {
-  dispatchTimeAdvanceGrant(receivePushedTimeAdvanceGrant());
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::dispatchFlushQueueGrant(
@@ -249,9 +247,7 @@ void ProcessFederationClient::dispatchFlushQueueGrant(
 }
 
 void ProcessFederationClient::dispatchPushedFlushQueueGrant() {
-  auto event = receivePushedFlushQueueGrant();
-  dispatchFlushQueueGrant(
-      std::move(event.grantedTime), std::move(event.optimisticTime));
+  dispatchPendingPushedEvents();
 }
 
 void ProcessFederationClient::setTimeRoleEnableCompletionHandlers(
@@ -492,6 +488,7 @@ void ProcessFederationClient::attachCallbackBridge(
       [this](ProcessFederationInteractionEvent event) {
         return recheckExceptionReport(std::move(event));
       });
+  callbackEventsAvailable_.notify_all();
 }
 
 void ProcessFederationClient::attachCallbackBridge(
@@ -513,6 +510,7 @@ void ProcessFederationClient::attachCallbackBridge(
       [this](ProcessFederationInteractionEvent event) {
         return recheckExceptionReport(std::move(event));
       });
+  callbackEventsAvailable_.notify_all();
 }
 
 bool ProcessFederationClient::evokeOne(
@@ -555,6 +553,18 @@ void ProcessFederationClient::close() noexcept {
   auto const shutdownConnection = shutdownConnection_;
   if (shutdownConnection) {
     shutdownConnection->close();
+  }
+  responseAvailable_.notify_all();
+  callbackEventsAvailable_.notify_all();
+
+  auto const currentThread = std::this_thread::get_id();
+  if (streamReaderThread_.joinable() &&
+      streamReaderThread_.get_id() != currentThread) {
+    streamReaderThread_.join();
+  }
+  if (callbackDispatchThread_.joinable() &&
+      callbackDispatchThread_.get_id() != currentThread) {
+    callbackDispatchThread_.join();
   }
 
   std::shared_ptr<ProcessFederationCallbackBridge> bridge;

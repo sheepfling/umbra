@@ -43,7 +43,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--source",
         type=Path,
-        default=Path("packages/hla-rti-cpp-tck/src/main.cpp"),
+        default=Path("packages/hla-rti-cpp-tck/src"),
     )
     return parser.parse_args()
 
@@ -75,7 +75,18 @@ def main() -> int:
     header_text = args.header.read_text(encoding="utf-8")
     federate_header_text = args.federate_header.read_text(encoding="utf-8")
     catalog = json.loads(args.catalog.read_text(encoding="utf-8"))
-    source_text = args.source.read_text(encoding="utf-8")
+    source_paths = (
+        sorted(
+            path
+            for path in args.source.rglob("*")
+            if path.is_file() and path.suffix in {".cpp", ".hpp"}
+        )
+        if args.source.is_dir()
+        else [args.source]
+    )
+    if not source_paths:
+        raise SystemExit(f"no C++ source files found under {args.source}")
+    source_text = "\n".join(path.read_text(encoding="utf-8") for path in source_paths)
 
     official = official_methods(header_text)
     official_callbacks = official_methods(federate_header_text)

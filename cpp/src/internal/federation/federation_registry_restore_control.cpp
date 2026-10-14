@@ -1,4 +1,5 @@
 #include "internal/federation/federation_registry.hpp"
+#include "internal/observability/runtime_instrumentation.hpp"
 #include "internal/federation/federation_state_image.hpp"
 #include "internal/federation/federation_registry_state_image_validation.hpp"
 

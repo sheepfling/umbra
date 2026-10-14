@@ -480,15 +480,33 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return umbra::test::servePrimaryProcessRequest(
-            session, handler,
-            [&](TransportServiceMessage const& request) {
-              if (request.operation != operation) {
-                throw std::runtime_error(
-                    "The process Flush Queue server received an unexpected operation.");
-              }
-              return handler(request);
-            });
+        while (true) {
+          bool expectedOperation = false;
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation ==
+                            TransportServiceOperation::report_successful_service_invocation ||
+                        request.operation ==
+                            TransportServiceOperation::report_successful_void_service_invocation) {
+                      return handler(request);
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          "The process Flush Queue server received an unexpected operation " +
+                          std::to_string(static_cast<unsigned int>(request.operation)) +
+                          " while waiting for " +
+                          std::to_string(static_cast<unsigned int>(operation)) + ".");
+                    }
+                    expectedOperation = true;
+                    return handler(request);
+                  })) {
+            return false;
+          }
+          if (expectedOperation) {
+            return true;
+          }
+        }
       };
       if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
           !serveExpected(TransportServiceOperation::join_federation_execution) ||
@@ -533,7 +551,19 @@ TEST_CASE(
     REQUIRE(federate.flushQueueGrantOptimisticValue == 5);
 
     rti1516_2025::HLAinteger64Time queriedTime;
-    REQUIRE_NOTHROW(rti->queryLogicalTime(queriedTime));
+    try {
+      rti->queryLogicalTime(queriedTime);
+    } catch (rti1516_2025::Exception const& exception) {
+      std::string message = "Query Logical Time threw ";
+      for (auto const character : exception.name()) {
+        message.push_back(character < 128 ? static_cast<char>(character) : '?');
+      }
+      message += ": ";
+      for (auto const character : exception.what()) {
+        message.push_back(character < 128 ? static_cast<char>(character) : '?');
+      }
+      FAIL(message);
+    }
     REQUIRE(queriedTime.getTime() == 5);
     rti->resignFederationExecution(NO_ACTION);
     rti->disconnect();
@@ -541,11 +571,12 @@ TEST_CASE(
     clientError = std::current_exception();
   }
   if (listener) {
-    listener.reset();
+    listener->close();
   }
   if (server.joinable()) {
     server.join();
   }
+  listener.reset();
   if (clientError) {
     std::rethrow_exception(clientError);
   }

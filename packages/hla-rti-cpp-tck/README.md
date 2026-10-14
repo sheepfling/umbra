@@ -341,9 +341,10 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.service-report-delete-object-instance-failure-contract` | Standard adapter-backed object-deletion failure-report contract using the official MIM, object, and standard data-element callbacks |
 | `java-tck.logical-time-factory` | Pre-connect and pre-join `getTimeFactory` lifecycle boundaries, standard `HLAinteger64Time`/`HLAfloat64Time` value and factory checks, concrete time/interval copy and assignment independence, zero/epsilon mutators, interval differences, direct interval encoding, default/named/unknown logical-time factory selection, adapter-selected logical-time values and zero/epsilon intervals, public `HLAlogicalTime`/`HLAlogicalTimeInterval` data-element round trips, nested-buffer boundaries, clone/copy independence, incompatible-type rejection, variable-length and direct-buffer encode/decode parity, encoded-length checks, truncated-buffer rejection, boundary transitions, comparison, interval arithmetic/order, and illegal underflow/overflow boundaries |
 | `java-tck.time-advance` | Time-service `NotConnected`/`FederateNotExecutionMember` boundaries, Time Regulation/Constrained roles, pre-membership lookahead boundaries, logical-time and lookahead queries, deferred lookahead decrease, all alternate advance entry points, asynchronous-delivery controls, Time Advance Request/Grant, standard duplicate-role, in-progress, backward-time, and duplicate-disable failure boundaries, and role shutdown |
-| `cpp-tck.time-advance-contract` | Standard adapter-backed time-role, logical-time query, advance, asynchronous-delivery, grant, and negative-boundary contract |
-| `cpp-tck.modify-lookahead` | Query and modify the standard time-regulation lookahead, including pre-regulation failures, valid increase, incompatible-interval rejection, deferred decrease, and post-grant application |
-| `cpp-tck.modify-lookahead-contract` | Pure standard C++ contract for Query Lookahead and Modify Lookahead across the deferred-decrease boundary |
+| `cpp-tck.time-advance-contract` | Standard adapter-backed time-role, logical-time query, advance, asynchronous-delivery, grant, and negative-boundary contract; under `HLA_EVOKED`, verifies both federates retain their prior logical time while their advance requests are pending, until Time Advance Grant is dispatched |
+| `cpp-tck.modify-lookahead` | Query and modify the standard time-regulation lookahead, including pre-regulation failures, valid increase, incompatible-interval rejection, evoked-mode rejection during a pending advance, deferred decrease, and post-grant application |
+| `cpp-tck.modify-lookahead-contract` | Pure standard C++ contract for Query Lookahead and Modify Lookahead, including per-grant gradual decrease and the zero-lookahead boundary |
+| `cpp-tck.modify-lookahead-service-report-contract` | Standard MOM report of an accepted deferred Modify Lookahead request; the observer receives it through `HLAreportServiceInvocation` |
 | `java-tck.support-services` | Full public federate, object, attribute, interaction, parameter, object-instance, and dimension name/handle lookup in both directions with pre-connect/pre-join lifecycle boundaries, standard invalid-name/handle boundaries, order/transport/update-rate/normalization lookup lifecycle boundaries, all public handle decoder lifecycle boundaries, ordinary handle encode/decode, direct-buffer and `VariableLengthData&` handle encoding, encoded-length and truncated-buffer checks, copied-handle equality/hash/ordering stability, valid `AttributeHandleSet` copy/assignment/lookup/erase semantics, independent `AttributeHandleValueMap` and `ParameterHandleValueMap` value storage, normalization stability, available-dimension boundaries, and order/transportation handles |
 | `cpp-tck.support-services-contract` | Standard adapter-backed support-service contract for public lookup, normalization, handle encoding/decoding, available dimensions, order, transportation, update-rate, and lifecycle-boundary behavior |
 | `cpp-tck.handle-normalization-membership-boundaries` | For the standard service-group normalizer and all four handle-normalization services, checks `NotConnected` before connect and `FederateNotExecutionMember` before join and after resignation while connected; peer handles are valid (§§10.29–10.33) |
@@ -2291,8 +2292,10 @@ time-advance behavior remains in `java-tck.logical-time-factory` and
 The promoted `cpp-tck.modify-lookahead` scenario and its pure contract twin
 split the lookahead service into an independently selectable standard slice:
 they verify the pre-regulation exception boundary, Query Lookahead after
-enablement, a valid increase, InvalidLookahead rejection, deferred decrease,
-and application of that decrease after a shared time-advance grant. The
+enablement, a valid increase, InvalidLookahead rejection, evoked-mode
+InTimeAdvancingState rejection while a TAR is pending without changing the
+active interval, deferred decrease, and application of that decrease after a
+shared time-advance grant. The
 provider package, FOM, endpoint, logical-time implementation, and callback
 model remain adapter inputs.
 The promoted `cpp-tck.exception-hierarchy-contract` runner exposes the complete
@@ -5126,11 +5129,78 @@ CTests as part of the 12/12 total). The Java implementation compiles against
 the official 1516.1-2025 API, but remains unsupported until a Java provider and
 FOM adapter supply behavioral evidence.
 
-Next bounded handoff: resolve
-`requirement-candidate-content-clauses-08-time-management-page-178-l15-2` from
-the pinned requirement ledger and compare it against the existing portable
-time-role/time-bounds scenarios. Add a case only if the canonical clause
-establishes a distinct observable behavior; preserve the two-consumer,
-two-callback-model gate and do not resync unchanged Requirements Lab inputs.
-Java provider execution remains separately unsupported until an adapter
-supplies a compatible 2025 Java RTI.
+The pinned IEEE 1516.1-2025 clause-8 requirement
+`requirement-candidate-content-clauses-08-time-management-page-178-l15-2`
+states that logical time is not advanced until the corresponding Time Advance
+Grant or Flush Queue Grant service invocation. `cpp-tck.time-advance-contract`
+now queries both federates under `HLA_EVOKED` while their requests are pending
+and verifies that neither logical time has changed. Two independent GCC 15.2 /
+Ninja installed-package consumers passed both callback models (4/4 focused
+CTest cases total); direct-run JSON and JUnit evidence are in
+`out/mgw/evidence/time-advance-contract-{a,b}-20261010.{json,xml}`. This is
+portable standard-API evidence against Umbra's embedded provider, not external
+conformance certification.
+
+The cataloged `cpp-tck.timestamped-interaction-mixed-advances` scenario was
+also verified without source changes against the same two independent package
+consumers. Both `HLA_EVOKED` and `HLA_IMMEDIATE` passed in each consumer (4/4
+focused CTests total); the five referenced timestamped-interaction and advance
+Requirements-Lab contracts all validate against the pinned bundle. Its
+direct-run JSON and JUnit artifacts are in
+`out/mgw/evidence/timestamped-interaction-mixed-advances-{a,b}-20261010.{json,xml}`.
+
+The portable `cpp-tck.modify-lookahead-contract` now checks the gradual
+three-epsilon to one-epsilon decrease over successive grants and the zero
+lookahead boundary. The embedded grant commit preserves an exclusive timestamp
+floor when a deferred zero becomes active. Two fresh GCC 15.2/Ninja consumers
+passed both callback models (4/4 CTests each); direct JSON/JUnit audits and the
+1,020-scenario catalog audit are clean. API and clause-8.20.4 requirement
+contracts validate against the pinned bundle. Build history records 40.85s and
+36.39s compile times for the TCK translation unit; the quality capture still
+reports six pre-existing source-size blockers.
+
+The `cpp-tck.modify-lookahead-service-report-contract` case now observes the
+accepted deferred lower-lookahead request through the standard
+`HLAreportServiceInvocation` interaction, verifies its service/argument/result
+records and federate identity, and confirms the active lookahead is unchanged
+until advancement. Its pinned Requirements Lab contracts and 1,021-case
+catalog validate. Both callback models passed in two fresh GNU 15.2/Ninja
+installed-package consumers (2/2 focused CTests each). This is local Umbra
+package evidence, not external-provider certification; the scenario is
+explicitly marked as having no Java counterpart.
+
+The timestamped interaction mixed-advance scenario and standard-contract
+companion passed in two fresh GNU 15.2/Ninja consumers of the October 10
+installed package. Both callback models passed in each consumer (4/4 focused
+CTest cases per consumer); direct JSON/JUnit, the 1,021-case catalog, Java
+parity, and standard API-surface audits validate. The Java counterpart is
+`java-tck.timestamped-interaction-mixed-advances`. This is local package
+evidence, not external-provider certification.
+
+The timestamped interaction Flush Queue/future-input pair also passed without
+source changes in two fresh GNU 15.2/Ninja consumers of the October 10
+installed package, under both callback models (4/4 focused CTests per
+consumer). The direct outputs are
+`out/mgw/cpp-tck-flush-future-input-{a,b}-20261010.{json,xml}`; both validate
+against the 1,021-case catalog. Its API-reference contract was repaired to
+name the exact official timestamped Send Interaction signature, and the
+pinned contract check passes. This remains local package evidence, not
+external-provider certification.
+
+The timestamped interaction TSO-designator terminalization, cross-producer
+ordering, and retraction-fanout pairs also passed in two independent GNU
+15.2/Ninja consumers, with both callback models green (4/4 focused CTests per
+consumer per pair). Direct JSON/JUnit artifacts are retained under
+`out/mgw/cpp-tck-{tso-terminalization,cross-producer-order,retraction-fanout}-{a,b}-20261010.{results.json,junit.xml}`
+and validate against the 1,021-scenario catalog. Cross-producer ordering
+resolves to Java parity ID `java-tck.timestamped-interaction-cross-producer-order`.
+The three API-reference contracts were corrected to the exact standard
+timestamped Send Interaction declaration and validate against the pinned Lab
+bundle; no upstream resync occurred.
+
+Next bounded handoff: verify
+`cpp-tck.timestamped-interaction-no-fanout` and its
+standard-contract companion in two independent installed-package consumers,
+preserving both callback models and any declared Java parity link.
+Keep the TCK provider-neutral and do not resync unchanged Requirements Lab
+inputs.

@@ -513,6 +513,8 @@ TEST_CASE(
           regulatorHandler,
           TransportServiceOperation::enable_time_regulation,
           "The zero-lookahead process server lost Enable Time Regulation.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, regulator, regulatorHandler);
 
       auto observerConnection = listener->accept(
           nullptr,
@@ -531,6 +533,8 @@ TEST_CASE(
           regulatorHandler,
           TransportServiceOperation::time_advance_request,
           "The zero-lookahead process server lost regulator TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, regulator, regulatorHandler);
       serveExpected(
           observer,
           observerHandler,
@@ -539,8 +543,18 @@ TEST_CASE(
       serveExpected(
           observer,
           observerHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The zero-lookahead process server lost the successful Query GALT report.");
+      serveExpected(
+          observer,
+          observerHandler,
           TransportServiceOperation::query_time_bounds,
           "The zero-lookahead process server lost observer Query LITS.");
+      serveExpected(
+          observer,
+          observerHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The zero-lookahead process server lost the successful Query LITS report.");
       serveExpected(
           observer,
           observerHandler,

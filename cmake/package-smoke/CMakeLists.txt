@@ -12,6 +12,23 @@ target_link_libraries(umbra_rti_package_smoke PRIVATE
   umbra::authorizer
 )
 
+get_filename_component(UMBRA_PACKAGE_RESTAURANT_FOM
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/ieee1516.2-2025/resources/examples/RestaurantFOMmodule-2025.xml"
+  ABSOLUTE)
+get_filename_component(UMBRA_PACKAGE_SWITCH_FOM
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../cpp/tests/data/switch-support-enabled-fom.xml"
+  ABSOLUTE)
+add_executable(umbra_rti_package_federation_restart_smoke federation_restart_smoke.cpp)
+target_compile_features(umbra_rti_package_federation_restart_smoke PRIVATE cxx_std_20)
+target_compile_definitions(umbra_rti_package_federation_restart_smoke PRIVATE
+  UMBRA_PACKAGE_RESTAURANT_FOM="${UMBRA_PACKAGE_RESTAURANT_FOM}"
+  UMBRA_PACKAGE_SWITCH_FOM="${UMBRA_PACKAGE_SWITCH_FOM}"
+)
+target_link_libraries(umbra_rti_package_federation_restart_smoke PRIVATE
+  umbra::rti
+  umbra::fedtime
+)
+
 if(UMBRA_PACKAGE_PROCESS_SMOKE)
   if(NOT DEFINED UMBRA_PROCESS_SERVICE_PROBE_PATH OR
      "${UMBRA_PROCESS_SERVICE_PROBE_PATH}" STREQUAL "")
@@ -33,6 +50,13 @@ endif()
 include(CTest)
 if(BUILD_TESTING)
   add_test(NAME umbra_rti_package_consumer COMMAND umbra_rti_package_smoke)
+  add_test(
+    NAME umbra_rti_package_federation_restart_consumer
+    COMMAND umbra_rti_package_federation_restart_smoke
+  )
+  set_tests_properties(umbra_rti_package_federation_restart_consumer
+    PROPERTIES LABELS "package-save-restore-restart;public-process-restart-attribute-transportation-type-change;public-process-restart-interaction-transportation-type-change"
+  )
   if(UMBRA_PACKAGE_PROCESS_SMOKE)
     add_test(
       NAME umbra_rti_package_process_consumer

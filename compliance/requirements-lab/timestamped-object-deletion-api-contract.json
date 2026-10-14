@@ -25,7 +25,7 @@
       "source_symbol": "UmbraRtiAmbassador::deleteObjectInstance",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
-        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_tar_nmr_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before TAR and NMR grants",
         "cpp/tests/timestamped_object_deletion_source_resignation_fanout_catch2.cpp::Embedded queued timestamped object deletion survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_time_constrained_reenable_catch2.cpp::Embedded timestamped Delete Object Instance survives time-constrained re-enable",
@@ -59,7 +59,7 @@
       "source_symbol": "recipient.removeObjectInstance",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
-        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_tar_nmr_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before TAR and NMR grants",
         "cpp/tests/timestamped_object_deletion_source_resignation_fanout_catch2.cpp::Embedded queued timestamped object deletion survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_time_constrained_reenable_catch2.cpp::Embedded timestamped Delete Object Instance survives time-constrained re-enable",

@@ -26,7 +26,89 @@ if(NOT HLA_RTI_TCK_API_INCLUDE_DIR)
     "HLA_RTI_TCK_API_INCLUDE_DIR must point at the official RTI headers")
 endif()
 
-add_executable(hla_rti_cpp_tck src/portable_tck.cpp)
+add_executable(hla_rti_cpp_tck
+  src/main.cpp
+  src/tck_connection_lifecycle.cpp
+  src/portable_tck.cpp
+  src/tck_api_foundation.cpp
+  src/tck_configuration_authorization.cpp
+  src/tck_federation_mom_save_conditionals.cpp
+  src/tck_federation_mom_save_status.cpp
+  src/tck_joined_federate_mom_state_save_restore.cpp
+  src/tck_joined_federate_mom_galt_lits_periodic.cpp
+  src/tck_joined_federate_mom_tso_length_periodic.cpp
+  src/tck_joined_federate_mom_removed_object_count.cpp
+  src/tck_joined_federate_mom_updates_sent_counts.cpp
+  src/tck_joined_federate_mom_updates_sent_mim_attribute.cpp
+  src/tck_joined_federate_mom_object_instances_updated_mim_attribute.cpp
+  src/tck_joined_federate_mom_object_instances_reflected_mim_attribute.cpp
+  src/tck_joined_federate_mom_reflections_received_mim_attribute.cpp
+  src/tck_joined_federate_mom_object_instances_discovered_mim_attribute.cpp
+  src/tck_joined_federate_mom_object_instances_removed_mim_attribute.cpp
+  src/tck_joined_federate_mom_object_instances_deleted_mim_attribute.cpp
+  src/tck_joined_federate_mom_object_lifecycle.cpp
+  src/tck_joined_federate_mom_deletable_object_report.cpp
+  src/tck_joined_federate_mom_updated_object_report.cpp
+  src/tck_joined_federate_mom_updated_timestamped_object_report.cpp
+  src/tck_joined_federate_mom_updated_multi_class_object_report.cpp
+  src/tck_joined_federate_mom_updated_null_object_report.cpp
+  src/tck_joined_federate_mom_reflected_null_object_report.cpp
+  src/tck_joined_federate_mom_reflected_object_report.cpp
+  src/tck_joined_federate_mom_reflected_timestamped_object_report.cpp
+  src/tck_joined_federate_mom_reflected_multi_class_object_report.cpp
+  src/tck_joined_federate_mom_deletable_object_count.cpp
+  src/tck_receive_order_attribute_update.cpp
+  src/tck_joined_federate_mom_interactions_received_counts.cpp
+  src/tck_joined_federate_mom_interactions_sent_counts.cpp
+  src/tck_joined_federate_mom_directed_interactions_sent_counts.cpp
+  src/tck_mom_transportation_type_change_request.cpp
+  src/tck_joined_federate_mom_reflection_counts.cpp
+  src/tck_joined_federate_mom_updated_object_count_periodic.cpp
+  src/tck_joined_federate_mom_discovered_object_count_periodic.cpp
+  src/tck_joined_federate_mom_deleted_object_count_periodic.cpp
+  src/tck_joined_federate_mom_time_state_durations.cpp
+  src/tck_order_type_controls.cpp
+  src/tck_joined_federate_mom_directed_interactions_received_counts.cpp
+  src/tck_joined_federate_mom_reflections_received_counts.cpp
+  src/tck_factory_identity.cpp
+  src/tck_timestamped_attribute_scenarios.cpp
+  src/tck_timestamped_interaction_scenarios.cpp
+  src/tck_timestamped_interaction_boundary_scenarios.cpp
+  src/tck_time_management_scenarios.cpp
+  src/tck_service_report_scenarios.cpp
+  src/tck_service_report_lookup_failure_scenarios.cpp
+  src/tck_service_report_lookup_scenarios.cpp
+  src/tck_service_report_interaction_scenarios.cpp
+  src/tck_service_report_failure_scenarios.cpp
+  src/tck_service_report_timestamped_attribute_failure_scenarios.cpp
+  src/tck_service_report_timestamped_delete_failure_scenarios.cpp
+  src/tck_service_report_attribute_update_scenarios.cpp
+  src/tck_service_report_request_attribute_value_update_scenarios.cpp
+  src/tck_service_report_local_delete_scenarios.cpp
+  src/tck_service_report_name_release_scenarios.cpp
+  src/tck_service_report_name_reservation_scenarios.cpp
+  src/tck_service_report_object_lifecycle_scenarios.cpp
+  src/tck_service_report_timestamped_interaction_scenarios.cpp
+  src/tck_service_report_timestamped_directed_interaction_scenarios.cpp
+  src/tck_service_report_regional_interaction_scenarios.cpp
+  src/tck_service_report_interaction_execution_scenarios.cpp
+  src/tck_service_report_object_attribute_declaration_scenarios.cpp
+  src/tck_support_services_scenarios.cpp
+  src/tck_declaration_management_scenarios.cpp
+  src/tck_object_attribute_subscription_lifecycle_scenarios.cpp
+  src/tck_object_publication_registration_fence_scenarios.cpp
+  src/tck_object_registration_discovery_scenarios.cpp
+  src/tck_object_management_scenarios.cpp
+  src/tck_ownership_management_scenarios.cpp
+  src/tck_region_lifecycle_scenarios.cpp
+  src/tck_federation_save_restore_interlocks.cpp
+  src/tck_data_encoding.cpp
+  src/tck_logical_time.cpp
+  src/pending_negotiated_restore_tck.cpp
+  src/service_report_creation_failure_tck.cpp
+)
+set_source_files_properties(src/main.cpp PROPERTIES
+  COMPILE_DEFINITIONS "main=hla_rti_cpp_tck_original_main")
 target_compile_features(hla_rti_cpp_tck PRIVATE cxx_std_17)
 if(MSVC)
   target_compile_options(hla_rti_cpp_tck PRIVATE /bigobj)
@@ -34,12 +116,9 @@ endif()
 target_include_directories(hla_rti_cpp_tck PRIVATE
   "${HLA_RTI_TCK_API_INCLUDE_DIR}"
 )
-if(MINGW)
-  # The official IEEE encoding headers select Microsoft's _int64 spelling
-  # for all Windows compilers. GCC's Windows target provides the equivalent
-  # __int64 type, but does not define the Microsoft alias itself.
-  target_compile_definitions(hla_rti_cpp_tck PRIVATE _int64=__int64)
-endif()
+# Keep platform-specific API spelling on the provider target (or in
+# HLA_RTI_TCK_PROVIDER_COMPILE_DEFINITIONS) so the TCK does not conflict with
+# aliases already exported by an installed provider package.
 target_compile_definitions(hla_rti_cpp_tck PRIVATE
   ${HLA_RTI_TCK_PROVIDER_COMPILE_DEFINITIONS}
 )

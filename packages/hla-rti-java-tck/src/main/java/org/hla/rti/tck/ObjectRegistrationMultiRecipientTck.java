@@ -23,6 +23,16 @@ final class ObjectRegistrationMultiRecipientTck {
 
    static void run(RtiFactory factory, String fom, String objectClassName,
          String attributeName, CallbackModel callbackModel) throws Exception {
+      run(factory, fom, objectClassName, attributeName, callbackModel, false);
+   }
+
+   static void runNamed(RtiFactory factory, String fom, String objectClassName,
+         String attributeName, CallbackModel callbackModel) throws Exception {
+      run(factory, fom, objectClassName, attributeName, callbackModel, true);
+   }
+
+   private static void run(RtiFactory factory, String fom, String objectClassName,
+         String attributeName, CallbackModel callbackModel, boolean named) throws Exception {
       RTIambassador[] rti = new RTIambassador[3];
       Recorder[] recorders = new Recorder[3];
       boolean[] connected = new boolean[3];
@@ -71,16 +81,40 @@ final class ObjectRegistrationMultiRecipientTck {
          rti[2].subscribeObjectClassAttributes(classes[2], secondAttributes);
          subscribed[2] = true;
 
-         ObjectInstanceHandle firstObject = rti[0].registerObjectInstance(classes[0]);
-         ObjectInstanceHandle secondObject = rti[0].registerObjectInstance(classes[0]);
+         String firstName;
+         String secondName;
+         ObjectInstanceHandle firstObject;
+         ObjectInstanceHandle secondObject;
+         if (named) {
+            firstName = federation + "-named-first";
+            secondName = federation + "-named-second";
+            recorders[0].reservations.clear();
+            rti[0].reserveObjectInstanceName(firstName);
+            await(rti[0], () -> recorders[0].reservations.contains(firstName),
+               "publisher did not receive first named-registration reservation callback");
+            recorders[0].reservations.clear();
+            rti[0].reserveObjectInstanceName(secondName);
+            await(rti[0], () -> recorders[0].reservations.contains(secondName),
+               "publisher did not receive second named-registration reservation callback");
+            firstObject = rti[0].registerObjectInstance(classes[0], firstName);
+            secondObject = rti[0].registerObjectInstance(classes[0], secondName);
+         } else {
+            firstObject = rti[0].registerObjectInstance(classes[0]);
+            secondObject = rti[0].registerObjectInstance(classes[0]);
+            firstName = rti[0].getObjectInstanceName(firstObject);
+            secondName = rti[0].getObjectInstanceName(secondObject);
+         }
          JavaTckSupport.check(firstObject != null && secondObject != null
                && !firstObject.equals(secondObject),
             "multi-recipient registration returned invalid or duplicate object handles");
-         String firstName = rti[0].getObjectInstanceName(firstObject);
-         String secondName = rti[0].getObjectInstanceName(secondObject);
          JavaTckSupport.check(firstName != null && !firstName.isEmpty()
                && secondName != null && !secondName.isEmpty() && !firstName.equals(secondName),
             "multi-recipient registration returned invalid or duplicate object names");
+         JavaTckSupport.check(firstObject.equals(rti[0].getObjectInstanceHandle(firstName))
+               && secondObject.equals(rti[0].getObjectInstanceHandle(secondName))
+               && firstName.equals(rti[0].getObjectInstanceName(firstObject))
+               && secondName.equals(rti[0].getObjectInstanceName(secondObject)),
+            "publisher named-registration identity lookup did not round-trip");
 
          await(rti[1], () -> recorders[1].discoveries().size() >= 2,
             "first subscriber did not discover both registered objects before the deadline");
@@ -138,6 +172,9 @@ final class ObjectRegistrationMultiRecipientTck {
       List<Discovery> events = recorder.discoveries();
       JavaTckSupport.check(events.size() == 2,
          description + " did not receive exactly two discovery callbacks");
+      JavaTckSupport.check(events.get(0).object.equals(firstObject)
+            && events.get(1).object.equals(secondObject),
+         description + " did not discover registered objects in registration order");
       HashSet<ObjectInstanceHandle> expected = new HashSet<>();
       expected.add(firstObject);
       expected.add(secondObject);
@@ -190,6 +227,7 @@ final class ObjectRegistrationMultiRecipientTck {
 
    private static final class Recorder {
       private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
+      private final List<String> reservations = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -201,6 +239,10 @@ final class ObjectRegistrationMultiRecipientTck {
                   discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
                      (ObjectClassHandle) arguments[1], (String) arguments[2],
                      (FederateHandle) arguments[3]));
+               }
+               if ("objectInstanceNameReservationSucceeded".equals(name)
+                     && arguments != null && arguments.length == 1) {
+                  reservations.add((String) arguments[0]);
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK registration discovery recorder";

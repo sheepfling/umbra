@@ -119,11 +119,18 @@ ConfigurationResult UmbraRtiAmbassador::connectImpl(
   }
 
   bool settingsApplied = false;
+  bool federationSaveDirectorySettingsApplied = false;
   bool fomEditionSettingsApplied = false;
   bool fomEditionSettingsFailedToParse = false;
   std::unique_ptr<umbra::detail::ServiceReportStore> serviceReportStore;
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   auto processEndpoint = configuredAmbassadorProcessEndpoint(configuration);
+  std::filesystem::path federationSaveDirectory;
+  if (!processEndpoint) {
+    federationSaveDirectory = configuredAmbassadorFederationSaveDirectory(
+        configuration,
+        federationSaveDirectorySettingsApplied);
+  }
   auto const configuredFomEdition = configuredAmbassadorFomStandardEdition(
       configuration,
       fomEditionSettingsApplied,
@@ -143,6 +150,9 @@ ConfigurationResult UmbraRtiAmbassador::connectImpl(
         instrumentation_);
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   }
+  if (federationSaveDirectorySettingsApplied) {
+    configureFederationSaveDirectory(federationSaveDirectory);
+  }
 #endif
   ServiceReportConnectionSnapshot serviceReportConnection;
   serviceReportConnection.callbackModel = callbackModel;
@@ -161,7 +171,8 @@ ConfigurationResult UmbraRtiAmbassador::connectImpl(
   auto const additionalSettingsResult =
       fomEditionSettingsFailedToParse
           ? SETTINGS_FAILED_TO_PARSE
-          : (settingsApplied || fomEditionSettingsApplied)
+          : (settingsApplied || federationSaveDirectorySettingsApplied ||
+             fomEditionSettingsApplied)
                 ? SETTINGS_APPLIED
                 : SETTINGS_IGNORED;
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
@@ -184,7 +195,9 @@ ConfigurationResult UmbraRtiAmbassador::connectImpl(
         true, false, SETTINGS_APPLIED,
         fomEditionSettingsApplied
             ? L"Umbra applied the configured FOM model edition for the embedded compatibility profile."
-            : L"Umbra applied serviceReportDirectory for embedded service-report files.");
+            : (federationSaveDirectorySettingsApplied
+                   ? L"Umbra applied federationSaveDirectory for durable federation saves."
+                   : L"Umbra applied serviceReportDirectory for embedded service-report files."));
   }
   auto callbackSession =
       std::make_shared<CallbackSession>(federateAmbassador, instrumentation_);

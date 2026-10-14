@@ -183,6 +183,7 @@ void UmbraRtiAmbassador::nextMessageRequest(LogicalTime const& time) {
   // before the ordinary Time Advance Grant callback. If no queued timestamp
   // is eligible, the state target remains the caller's requested time.
   flushAmbassadorAsynchronousReceiveCallbacks(timeState);
+  submitAmbassadorTimeAdvanceSaveAdmissions(federationName);
   submitAmbassadorTimeAdvanceGrantDispatches(std::move(scheduled.dispatches));
   } catch (Exception const& exception) {
     emitExceptionReport(L"Next Message Request", exception);

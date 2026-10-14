@@ -264,15 +264,19 @@ void EmbeddedFederationRegistry::restoreInteractionDeclarationsFromStateImage(
       }
     }
     if (!savedDeclarations.subscribedInteractionClasses.empty()) {
-      auto const& subscription =
-          savedDeclarations.subscribedInteractionClasses.front();
-      if (subscription.interactionClassHandle != interactionClassHandle) {
-        throw std::logic_error(
-            "The saved interaction subscription references an inconsistent class.");
+      for (auto const& subscription : savedDeclarations.subscribedInteractionClasses) {
+        if (!validInteractionClass(federation, subscription.interactionClassHandle)) {
+          throw std::logic_error(
+              "The saved interaction subscription references an invalid class.");
+        }
+        auto const [position, inserted] = declarations.subscribedInteractionClasses.emplace(
+            subscription.interactionClassHandle, subscription.active);
+        static_cast<void>(position);
+        if (!inserted) {
+          throw std::logic_error(
+              "The saved interaction subscriptions contain duplicate classes.");
+        }
       }
-      declarations.subscribedInteractionClasses.emplace(
-          interactionClassHandle,
-          subscription.active);
     }
     if (!savedDeclarations.regionalSubscribedInteractionClasses.empty()) {
       auto const& subscription =

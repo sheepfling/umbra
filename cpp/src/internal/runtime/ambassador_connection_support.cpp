@@ -182,15 +182,59 @@ std::filesystem::path configuredAmbassadorServiceReportDirectory(
   }
   constexpr std::wstring_view prefix = L"serviceReportDirectory=";
   auto const& settings = configuration->additionalSettings();
-  if (!settings.starts_with(prefix)) {
-    return defaultDirectory;
+  std::size_t begin = 0U;
+  while (begin <= settings.size()) {
+    auto const end = settings.find(L';', begin);
+    auto const token = std::wstring_view(settings).substr(
+        begin,
+        end == std::wstring::npos ? std::wstring::npos : end - begin);
+    if (token.starts_with(prefix)) {
+      auto const value = token.substr(prefix.size());
+      if (value.empty()) {
+        throw RTIinternalError(
+            L"Umbra serviceReportDirectory requires a nonempty directory.");
+      }
+      settingsApplied = true;
+      return std::filesystem::path(value);
+    }
+    if (end == std::wstring::npos) {
+      break;
+    }
+    begin = end + 1U;
   }
-  if (settings.size() == prefix.size()) {
-    throw RTIinternalError(
-        L"Umbra serviceReportDirectory requires a nonempty directory.");
+  return defaultDirectory;
+}
+
+std::filesystem::path configuredAmbassadorFederationSaveDirectory(
+    RtiConfiguration const* configuration,
+    bool& settingsApplied) {
+  settingsApplied = false;
+  if (configuration == nullptr || configuration->additionalSettings().empty()) {
+    return {};
   }
-  settingsApplied = true;
-  return std::filesystem::path(settings.substr(prefix.size()));
+  constexpr std::wstring_view prefix = L"federationSaveDirectory=";
+  auto const& settings = configuration->additionalSettings();
+  std::size_t begin = 0U;
+  while (begin <= settings.size()) {
+    auto const end = settings.find(L';', begin);
+    auto const token = std::wstring_view(settings).substr(
+        begin,
+        end == std::wstring::npos ? std::wstring::npos : end - begin);
+    if (token.starts_with(prefix)) {
+      auto const value = token.substr(prefix.size());
+      if (value.empty()) {
+        throw RTIinternalError(
+            L"Umbra federationSaveDirectory requires a nonempty directory.");
+      }
+      settingsApplied = true;
+      return std::filesystem::path(value);
+    }
+    if (end == std::wstring::npos) {
+      break;
+    }
+    begin = end + 1U;
+  }
+  return {};
 }
 
 umbra::detail::FomStandardEdition configuredAmbassadorFomStandardEdition(

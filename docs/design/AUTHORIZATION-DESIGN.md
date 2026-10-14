@@ -30,8 +30,13 @@ Connect overloads therefore have this deliberately bounded behavior:
   `Unauthorized` before connection state changes. When configured, its result
   is mapped from the official `AuthorizationResult` code.
 
-The factory-created embedded RTI now uses this Connect path. This does not yet
-authorize Create, Destroy, or Join Federation Execution.
+The factory-created embedded RTI now uses this Connect path. It also invokes
+the scoped authorization callbacks for Create Federation Execution (including
+Create-With-MIM), Destroy Federation Execution, and Join before their ordinary
+service paths. See the [2025 authorization and credentials flow
+guide](HLA-2025-AUTHORIZATION-FLOW-GUIDE.md) for the callback scopes, exception
+mapping, and evidence limits. This does not establish process-endpoint parity
+or full standards conformance.
 
 ## Reference authorizer test seam
 
@@ -91,11 +96,13 @@ The global password is not accepted through `additionalSettings` and is not
 copied into the service-report connection snapshot.
 
 The configured authorizer is retained by the ambassador for the connection
-lifetime and released at Disconnect. This slice does not implement custom
-authorizer-library loading, nor authorization of Create, Destroy, or Join
-Federation Execution. The static `umbra::authorizer` artifact still does not
-establish the standard's platform-specific dynamic library nomenclature,
-third-party direct-link, interoperability, or conformance requirements.
+lifetime and released at Disconnect. The embedded operation gates now cover
+Create, Create-With-MIM, Destroy, and Join; the selected operation-test
+evidence and its setup limitations are recorded in the linked flow guide.
+This slice does not implement custom authorizer-library loading. The static
+`umbra::authorizer` artifact still does not establish the standard's
+platform-specific dynamic library nomenclature, third-party direct-link,
+interoperability, or conformance requirements.
 
 ## Traceability and tests
 

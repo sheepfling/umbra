@@ -51,6 +51,19 @@ struct ProcessFederationServiceOptions final {
   // filesystem directory.  Test-only memory stores remain an internal
   // injection seam and are not selected by this runtime option.
   std::filesystem::path serviceReportDirectory;
+  // Deterministic rollback coverage for failures after file allocation. This
+  // hook is private to the process-service test construction path.
+  std::function<void(std::filesystem::path const&)>
+      afterServiceReportFileAllocatedForTesting;
+  std::function<void()> afterJoinedFederateSessionInstalledForTesting;
+  // Internal failure injection after a queued RTI-owned MOM discovery and
+  // its initial reflection, to verify failed-Join event cleanup.
+  std::function<bool(std::uint64_t, std::uint64_t)>
+      failAfterJoinedFederateMomDiscoveryQueuedForTesting;
+  // Internal failure injection after a late-Join synchronization
+  // announcement is queued for the joining federate.
+  std::function<bool(std::wstring const&)>
+      failAfterSynchronizationPointAnnouncementQueuedForTesting;
 };
 
 // Private service binding for the first process-boundary federation path.  A
@@ -94,8 +107,17 @@ class ProcessFederationService final {
       std::wstring const& federationName,
       std::uint64_t departedFederateId,
       std::wstring faultDescription);
+  [[nodiscard]] bool connectionLost(
+      ProcessTransportSession& session,
+      std::wstring faultDescription);
 
  private:
+  void clearJoinedFederateSessionState(
+      ProcessTransportSession& session,
+      std::uint64_t federateId) noexcept;
+  void discardPendingJoinedFederateMomObjectEvents(
+      std::wstring const& federationName,
+      std::uint64_t objectInstanceHandle) noexcept;
   struct SessionState final {
     std::optional<std::wstring> federationName;
     std::uint64_t federateId = 0U;
@@ -669,7 +691,8 @@ class ProcessFederationService final {
   void dispatchTsoInteractionPayloads(
       std::wstring const& federationName,
       std::uint64_t receivingFederateId,
-      rti1516_2025::LogicalTime const& boundary);
+      rti1516_2025::LogicalTime const& boundary,
+      bool inclusive);
 
   [[nodiscard]] TransportServiceMessage rejected(
       TransportServiceMessage const& request) const;

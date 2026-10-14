@@ -61,7 +61,7 @@ final class InteractionSubscriptionLifecycleTck {
          send(publisher, publisherInteraction, publisherParameter, passiveValue, passiveTag);
          settle(subscriber, callbackModel);
          JavaTckSupport.check(subscriberRecorder.interactions.isEmpty(),
-            "passive interaction subscription unexpectedly received an interaction");
+            "passive-only interaction subscription unexpectedly established delivery relevance");
 
          subscriber.subscribeInteractionClass(subscriberInteraction);
          JavaTckSupport.check(subscriberRecorder.interactions.isEmpty(),
@@ -69,6 +69,10 @@ final class InteractionSubscriptionLifecycleTck {
          byte[] activeValue = new byte[] {0x41, 0x43, 0x54};
          byte[] activeTag = new byte[] {0x41, 0x31};
          send(publisher, publisherInteraction, publisherParameter, activeValue, activeTag);
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            JavaTckSupport.check(subscriberRecorder.interactions.isEmpty(),
+               "active interaction callback arrived before evoked callback servicing");
+         }
          awaitCount(subscriber, subscriberRecorder, 1,
             "active interaction subscription delivery did not arrive before deadline");
          assertInteraction(subscriberRecorder.interactions.get(0), subscriberInteraction,
@@ -84,6 +88,7 @@ final class InteractionSubscriptionLifecycleTck {
          JavaTckSupport.check(subscriberRecorder.interactions.isEmpty(),
             "passive interaction downgrade did not suppress delivery");
 
+         subscriberRecorder.interactions.clear();
          subscriber.unsubscribeInteractionClass(subscriberInteraction);
          subscribed = false;
          byte[] withdrawnValue = new byte[] {0x57, 0x49, 0x54};

@@ -3,17 +3,37 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for deterministic service-level exception boundaries in the official IEEE 1516.1 API. The adapter supplies the provider package, baseline FOM, endpoint, logical-time selection, and callback configuration. The scenario verifies invalid resign actions and lookahead, disconnect while joined, ownership cancellation and confirmation boundaries, delete-privilege enforcement, and duplicate named registration. It asserts only standard exception names and public state transitions; it does not assert provider diagnostics, registries, private headers, or implementation behavior.",
+  "standard_sections": [
+    "hla-1516.1-2025:clause-1",
+    "hla-1516.1-2025:clause-4"
+  ],
+  "selected_requirements_lab_requirement_ids": [
+    "requirement-source-refinement-service-exception-precedence",
+    "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4"
+  ],
+  "requirement_section_mappings": [
+    {
+      "requirement_id": "requirement-source-refinement-service-exception-precedence",
+      "standard_section": "hla-1516.1-2025:clause-1"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4",
+      "standard_section": "hla-1516.1-2025:clause-4"
+    }
+  ],
+  "notes": "This contract records the portable C++ TCK check for deterministic service-level exception boundaries in the official IEEE 1516.1 API. The adapter supplies the provider package, baseline FOM, endpoint, logical-time selection, and callback configuration. Clause 1 maps only the simultaneous disconnected and invalid-resign-action condition: the ordered 2025 exception declaration lists InvalidResignAction before NotConnected, so the scenario requires NotConnected to take precedence. Clause 4 maps the public Create, Join, and Destroy Federation Execution calls made before Connect, all of which must report NotConnected. The scenario also checks invalid lookahead, disconnect while joined, ownership cancellation and confirmation boundaries, delete-privilege enforcement, and duplicate named registration, but those behaviors are not included in these two direct mappings. It asserts only standard exception names and public state transitions; it does not assert provider diagnostics, registries, private headers, or implementation behavior.",
   "api_surfaces": [
     {
       "id": "standard-cpp-service-exception-boundaries",
       "owner": "IEEE 1516.1 C++ API",
       "language": "cpp",
-      "signature": "RTIambassador service calls with deterministic standard exception outcomes",
+      "signature": "RTIambassador Create/Join/Destroy Federation Execution and Resign Federation Execution exception boundaries",
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador service declarations and exception specifications",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioStandardExceptionBoundariesContract"
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioStandardExceptionBoundariesContract",
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp::verifyResignExceptionPrecedence",
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp::verifyDisconnectedFederationManagementServices"
       ]
     }
   ]

@@ -39,6 +39,8 @@
 #include "internal/federation/process_transport.hpp"
 #include "internal/federation/process_transport_session.hpp"
 #include "process_public_service_fixture.hpp"
+#include "process_service_report_fixture.hpp"
+#include "ieee1516_2025_connection_process_tso_regional_interaction_fixture.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
@@ -456,27 +458,7 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 }  // namespace
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-TEST_CASE(
-    "RTIambassadors retain a timestamped regional interaction while callbacks are disabled",
-    "[integration][foundation][data-distribution-management][interaction-management]"
-    "[time-management][time-advance][callbacks][callback-gating][transport]"
-    "[process-boundary][public-endpoint][multi-federate][regional-interaction]"
-    "[timestamped-process-regional-interaction][regional-ddm-routing]"
-    "[process-tso-regional-interaction-callback-gating]"
-    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
-    "[rti.service.get-dimension-handle][rti.service.publish-interaction-class]"
-    "[rti.service.create-region][rti.service.set-range-bounds]"
-    "[rti.service.commit-region-modifications]"
-    "[rti.service.get-convey-region-designator-sets-switch]"
-    "[rti.service.set-convey-region-designator-sets-switch]"
-    "[rti.service.subscribe-interaction-class-with-regions]"
-    "[rti.service.unsubscribe-interaction-class-with-regions]"
-    "[rti.service.send-interaction-with-regions]"
-    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
-    "[rti.service.time-advance-request][rti.service.disable-callbacks]"
-    "[rti.service.enable-callbacks][rti.service.evoke-callback]"
-    "[federate.callback.receive-interaction][federate.callback.time-advance-grant]"
-    "[2025]") {
+void verifyProcessTsoRegionalInteraction(RegionalInteractionAdvance requestKind) {
   class RecordingRegionalCallbackFederateAmbassador final
       : public NullFederateAmbassador {
    public:
@@ -739,21 +721,23 @@ TEST_CASE(
           receiverHandler,
           TransportServiceOperation::subscribe_interaction_class_with_regions,
           "The regional callback-gating server lost regional Subscribe.");
-      serveExpected(
-          sender,
-          senderHandler,
+      umbra::test::serveExpectedProcessSuccessfulVoidService(
+          serveExpected, sender, senderHandler,
           TransportServiceOperation::enable_time_regulation,
-          "The regional callback-gating server lost Enable Time Regulation.");
-      serveExpected(
-          receiver,
-          receiverHandler,
+          "The regional interaction server lost Enable Time Regulation.");
+      umbra::test::serveExpectedProcessSuccessfulVoidService(
+          serveExpected, receiver, receiverHandler,
           TransportServiceOperation::enable_time_constrained,
-          "The regional callback-gating server lost Enable Time Constrained.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::time_advance_request,
-          "The regional callback-gating server lost receiver TAR.");
+          "The regional interaction server lost Enable Time Constrained.");
+      auto const receiverAdvanceOperation =
+          requestKind == RegionalInteractionAdvance::nmra
+              ? TransportServiceOperation::next_message_request_available
+              : requestKind == RegionalInteractionAdvance::nmr
+                    ? TransportServiceOperation::next_message_request
+                    : TransportServiceOperation::time_advance_request;
+      umbra::test::serveExpectedProcessSuccessfulVoidService(
+          serveExpected, receiver, receiverHandler, receiverAdvanceOperation,
+          "The regional interaction server lost the receiver time request.");
       serveExpected(
           receiver,
           receiverHandler,
@@ -782,11 +766,10 @@ TEST_CASE(
         throw std::runtime_error(
             "The regional callback-gating server lost Send Interaction With Regions.");
       }
-      serveExpected(
-          sender,
-          senderHandler,
+      umbra::test::serveExpectedProcessSuccessfulVoidService(
+          serveExpected, sender, senderHandler,
           TransportServiceOperation::time_advance_request,
-          "The regional callback-gating server lost sender TAR.");
+          "The regional interaction server lost sender TAR.");
       serveExpected(
           receiver,
           receiverHandler,
@@ -801,7 +784,7 @@ TEST_CASE(
           receiver,
           receiverHandler,
           TransportServiceOperation::unsubscribe_interaction_class_with_regions,
-          "The regional callback-gating server lost regional Unsubscribe.");
+          "The regional interaction server lost regional Unsubscribe.");
       serveExpected(
           sender,
           senderHandler,
@@ -920,13 +903,23 @@ TEST_CASE(
     static_cast<void>(receiverRti->evokeCallback(0.0));
     REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
 
-    REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
-        rti1516_2025::HLAinteger64Time(5)));
+    if (requestKind == RegionalInteractionAdvance::nmr) {
+      REQUIRE_NOTHROW(receiverRti->nextMessageRequest(
+          rti1516_2025::HLAinteger64Time(10)));
+    } else if (requestKind == RegionalInteractionAdvance::nmra) {
+      REQUIRE_NOTHROW(receiverRti->nextMessageRequestAvailable(
+          rti1516_2025::HLAinteger64Time(10)));
+    } else {
+      REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(5)));
+    }
     REQUIRE(receiverFederate.receivedInteractionCount == 0U);
     REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
     static_cast<void>(receiverRti->evokeCallback(0.0));
 
-    REQUIRE_NOTHROW(receiverRti->disableCallbacks());
+    if (requestKind != RegionalInteractionAdvance::nmr) {
+      REQUIRE_NOTHROW(receiverRti->disableCallbacks());
+    }
     std::array<std::uint8_t, 2U> const parameterBytes{0x01U, 0x00U};
     rti1516_2025::ParameterHandleValueMap parameterValues;
     parameterValues.emplace(
@@ -951,12 +944,19 @@ TEST_CASE(
     // The event and its matching grant are already queued at the process
     // boundary, but the official callback switch keeps both out of the
     // federate ambassador until it is explicitly reopened.
-    REQUIRE(receiverRti->evokeCallback(0.0));
-    REQUIRE(receiverFederate.receivedInteractionCount == 0U);
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+    if (requestKind == RegionalInteractionAdvance::nmr) {
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+      REQUIRE(receiverFederate.receivedInteractionCount == 1U);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+      REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I'});
+    } else {
+      REQUIRE(receiverRti->evokeCallback(0.0));
+      REQUIRE(receiverFederate.receivedInteractionCount == 0U);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
 
-    REQUIRE_NOTHROW(receiverRti->enableCallbacks());
-    static_cast<void>(receiverRti->evokeCallback(0.0));
+      REQUIRE_NOTHROW(receiverRti->enableCallbacks());
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+    }
     REQUIRE(receiverFederate.receivedInteractionCount == 1U);
     REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
     REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I'});
@@ -1032,5 +1032,6 @@ TEST_CASE(
   REQUIRE_FALSE(senderJoined);
   REQUIRE_FALSE(receiverJoined);
 }
+
 #endif
 #endif

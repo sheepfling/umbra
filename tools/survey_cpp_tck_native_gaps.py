@@ -40,6 +40,12 @@ def parse_args() -> argparse.Namespace:
         default=Path("compliance/catalogs/cpp-tck-scenario-catalog.json"),
     )
     parser.add_argument("--native-tests", type=Path, default=Path("cpp/tests"))
+    parser.add_argument(
+        "--test",
+        action="append",
+        default=[],
+        help="limit the survey to this Catch2 filename or stem; repeat to select several",
+    )
     return parser.parse_args()
 
 
@@ -134,9 +140,17 @@ def main() -> int:
     catalog = json.loads(args.catalog.read_text(encoding="utf-8"))
     catalog_ids = {entry["id"] for entry in catalog["scenarios"]}
     semantic_matches = semantic_catalog_matches(catalog)
+    native_paths = sorted(args.native_tests.glob("*_catch2.cpp"))
+    if args.test:
+        requested = {Path(name).stem for name in args.test}
+        available = {path.stem for path in native_paths}
+        missing = sorted(requested - available)
+        if missing:
+            raise SystemExit("unknown native Catch2 file/stem: " + ", ".join(missing))
+        native_paths = [path for path in native_paths if path.stem in requested]
     reports = [
         classify(path, catalog_ids, semantic_matches)
-        for path in sorted(args.native_tests.glob("*_catch2.cpp"))
+        for path in native_paths
     ]
     semantic_covered = [
         report for report in reports if report["semantic_catalog_match"] is not None

@@ -171,45 +171,7 @@ TransportServiceMessage ProcessFederationService::handleResign(
   dispatchTimeAdvanceGrants(
       resignRequest.federationName,
       std::move(scheduled.dispatches));
-  {
-    std::scoped_lock lock(mutex_);
-    auto const state = sessions_.find(&session);
-    if (state != sessions_.end()) {
-      sessionsByFederateId_.erase(state->second.federateId);
-      for (auto position = processTsoMessageProducers_.begin();
-           position != processTsoMessageProducers_.end();) {
-        if (position->second == state->second.federateId) {
-          pendingPushedRetractionRecipients_.erase(position->first);
-          position = processTsoMessageProducers_.erase(position);
-        } else {
-          ++position;
-        }
-      }
-      state->second.federationName.reset();
-      state->second.federateId = 0U;
-      state->second.timeState.reset();
-      state->second.serviceReportWriter.reset();
-      state->second.serviceReportLocation.clear();
-      state->second.interactionEvents.clear();
-      state->second.attributeUpdateEvents.clear();
-      state->second.objectInstanceDiscoveryEvents.clear();
-      state->second.objectInstanceRemovalEvents.clear();
-      state->second.objectInstanceScopeChangeEvents.clear();
-      state->second.attributeRelevanceAdvisoryEvents.clear();
-      state->second.attributeTransportationTypeChangeEvents.clear();
-      state->second.attributeTransportationTypeQueryEvents.clear();
-      state->second.interactionTransportationTypeChangeEvents.clear();
-      state->second.interactionTransportationTypeQueryEvents.clear();
-      state->second.attributeOwnershipQueryEvents.clear();
-      state->second.attributeOwnershipAcquisitionIfAvailableEvents.clear();
-      state->second.attributeOwnershipAcquisitionEvents.clear();
-      state->second.attributeOwnershipUnavailableEvents.clear();
-      state->second.synchronizationPointAnnouncementEvents.clear();
-      state->second.federationSynchronizedEvents.clear();
-      state->second.saveEvents.clear();
-      state->second.restoreEvents.clear();
-    }
-  }
+  clearJoinedFederateSessionState(session, resignRequest.federateId);
   return responseFor(request, TransportServiceStatus::ok);
 }
 

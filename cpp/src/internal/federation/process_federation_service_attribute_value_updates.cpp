@@ -318,6 +318,16 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
         totalCount,
         std::numeric_limits<std::uint32_t>::max()));
   }
+  if (messageId != 0U && queueTimestampedAttributeUpdate) {
+    auto const scheduled = registry_.reevaluateTimeAdvanceGrants(
+        updateRequest.federationName);
+    if (scheduled.status != FederationTimeGrantStatus::applied) {
+      return internalError(request);
+    }
+    dispatchTimeAdvanceGrants(
+        updateRequest.federationName,
+        std::move(scheduled.dispatches));
+  }
   return responseFor(
       request,
       TransportServiceStatus::ok,

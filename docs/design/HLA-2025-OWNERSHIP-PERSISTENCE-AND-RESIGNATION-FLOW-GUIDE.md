@@ -1,22 +1,56 @@
 # IEEE 1516.1-2025 Ownership Persistence and Resignation: Flow Guide
 
-This guide is a companion to the [core attribute-ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md). It follows selected ownership work across a save/restore boundary and explains how a departing federate's pending acquisition state is treated by the current Umbra implementation. It is contributor documentation, not an implementation contract or a claim of conformance.
+The pinned 2025 API makes the selected `ResignAction` an explicit part of
+[`resignFederationExecution`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L250).
+Interpret any one resignation scenario against the standard's full action
+rules; a selected implementation trace cannot establish effects for actions
+it does not exercise. This companion to the
+[core attribute-ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md)
+focuses on a narrower question: what selected ownership work crosses a
+save/restore boundary, how current 2025 embedded code handles a departing
+federate's pending acquisition state, and how selected process paths
+distinguish reconstructed ownership work from callbacks already admitted to a
+live HLA_EVOKED queue. It is contributor documentation, not an implementation
+contract or a claim of conformance.
 
 ## Scope and evidence boundaries
 
 - **Standard boundary:** IEEE 1516.1-2025 only. The official [IEEE standard page](https://standards.ieee.org/ieee/1516.1/6688/) identifies the normative document. Consult its exact service text for requirements; this guide does not reconstruct the full resignation-action matrix.
-- **Implementation boundary:** selected 2025 embedded development-profile ownership ledgers, resignation cleanup, and fresh-registry restore paths.
-- **Test boundary:** the cited public-API tests exercise named scenarios using embedded registries. A fresh registry in a test is not by itself proof of behavior across every deployed process, transport, or profile.
+- **Implementation boundary:** selected 2025 embedded ownership ledgers and resignation cleanup, plus selected configured process-endpoint save/restore paths.
+- **Test boundary:** the cited public-API tests cover named embedded fresh-registry and process-endpoint scenarios. The process callback-queue cases perform service-level save/restore through a live endpoint; they do not restart the RTI host process. None proves behavior across every deployed process, transport, or profile.
 - **Edition boundary:** the 2010 API and runtime are separate. Nothing here implies 2010 behavior or parity.
 - **Evidence labels:** source links describe current implementation; focused tests establish only their named observations. Neither substitutes for the standard or proves complete support.
 
-## Keep three kinds of state distinct
+## Keep HLA state distinct from the implementation's recovery model
+
+These rows are a reading aid for selected Umbra paths, not HLA-mandated
+storage layers. Membership and attribute ownership are federation facts
+exposed through the API. The typed ownership ledger, callback route, and
+already-admitted callback queue are different implementation states; classify
+which one is being traced before calling work simply “pending.”
 
 | Layer | Examples | Restore/resignation question |
 | --- | --- | --- |
 | Ownership ledger | Object and attribute identities, owner/requester IDs, pending request IDs, selected attributes, tags, and queued-work markers | Which typed facts can be validated and reconstructed from the saved image? |
 | Callback route | Ambassador registration, live dispatcher, and queued executable closure | Which current route can receive reconstructed work? A closure tied to the old registry is not durable data. |
+| HLA_EVOKED callback queue | Callback frames already admitted to a live ambassador before save | Does an uninvoked callback remain on the current route? One process case says yes across service-level save/restore; these frames are not saved-image records. |
 | Membership | The set of federates currently joined to this execution | Is the saved requester, owner, or notification recipient still a live participant for this restored operation? |
+
+The resignation call has its own caller-visible result. In the pinned 2025
+API, `resignFederationExecution(ResignAction)` returns `void` and lists
+`OwnershipAcquisitionPending` among its typed exceptions. That exception is
+not an ownership callback or a partial ownership outcome. The flow below
+documents the current embedded pending-work guard; the action's broader
+object/deletion/divestiture effects remain in the separate
+[federation lifecycle guide](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#resignaction-effects-in-the-current-implementation)
+and the standard's full service rules.
+
+In the cited embedded case, `UNCONDITIONALLY_DIVEST_ATTRIBUTES` is rejected
+with `OwnershipAcquisitionPending`, then the member successfully retries with
+`CANCEL_THEN_DELETE_THEN_DIVEST`. This is evidence for that retry path, not a
+complete normative rule for every `ResignAction`
+([test](../../cpp/tests/ieee1516_2025_embedded_resign_action_pending_acquisition_catch2.cpp#L36),
+[pinned API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L250)).
 
 The state-image capture writes typed ownership records. In the route-free fresh-registry path, restore validates their identities against current members and object attributes; for regular acquisition work, it clears old queued-delivery markers so the restored planner can reserve work against live routes. This is deliberately narrower than “all ownership work survives restart.” Only supported ledger shapes should be inferred to restore.
 
@@ -79,6 +113,10 @@ flowchart TD
 
 In current source, the preflight rejects unresolved acquisition work for `UNCONDITIONALLY_DIVEST_ATTRIBUTES`, `DELETE_OBJECTS`, `DELETE_OBJECTS_THEN_DIVEST`, and `NO_ACTION`; `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS` and `CANCEL_THEN_DELETE_THEN_DIVEST` select cancellation. The latter also has its own object action. Do not read the chart as the complete standard action table: last-member deletion and connection-loss cleanup are separate rules and are intentionally not expanded here.
 
+For the distinct deleted-object versus retained-object projections—and the
+embedded/process callback-order difference—see the [object and interaction
+guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md).
+
 The two focused embedded tests make the contrast tangible: an unconditional-divest resignation is rejected while acquisition work is pending, then a combined cancellation action succeeds; separately, a requester resigning with the cancellation-only action leaves the surviving owner's queued release callback undelivered.
 
 ## 3. Remove one candidate without discarding the surviving recipient
@@ -117,10 +155,54 @@ sequenceDiagram
 
 This chart emphasizes candidate pruning and recipient preservation, not arbitration order or a general fairness rule. In particular, a resigned candidate is not a reason to discard a different candidate's pending operation.
 
+## 4. A pushed callback queue differs from restored ownership work
+
+“Pending ownership callback” can describe two different boundaries in the
+selected 2025 process evidence. In the first case, discovery and ownership-
+assumption frames have already been pushed into the candidate's live
+HLA_EVOKED callback queue before federation save starts. The save/restore
+protocol completes without invoking them; later evokeCallback calls deliver
+discovery, then the assumption callback, then the queued save/restore status
+callbacks in that test's observed order.
+
+In the second case, the restore operation returns value-only ownership-
+assumption work. The process service first queues federation-restore
+lifecycle notifications and then queues that reconstructed work for a live
+recipient. A separate process-endpoint case observes federationRestored
+before the ownership-assumption callback. This is not the same event as
+retaining the pre-save callback queue.
+
+```mermaid
+flowchart TB
+  Ask["Which pending-work representation are you tracing?"]
+
+  Ask --> Pushed["Already pushed into a live HLA_EVOKED queue"]
+  Pushed --> SaveRestore["Selected process case completes Save and Restore without invoking it"]
+  SaveRestore --> Evoke["Later evokeCallback calls"]
+  Evoke --> Discovery["discoverObjectInstance"]
+  Discovery --> Assumption["requestAttributeOwnershipAssumption"]
+  Assumption --> Status["Then save/restore callbacks in this test's queue order"]
+
+  Ask --> Rebuilt["Value-only ownership work returned by restore"]
+  Rebuilt --> Validate["Validate saved identities against restored members and object attributes"]
+  Validate --> Lifecycle["Queue federation-restore lifecycle notifications"]
+  Lifecycle --> Ownership["Then enqueue reconstructed assumption work for a live recipient"]
+  Ownership --> Restored["Separate test observes federationRestored before the assumption callback"]
+```
+
+These are separate process-profile test scenarios, not two branches of one
+execution or an HLA-wide callback-order rule. The pre-pushed case uses a live
+configured endpoint and does not restart the RTI process; the reconstructed
+case covers a different restore-produced work item. Neither establishes
+process/embedded parity, 2010 behavior, or a normative ordering guarantee.
+
 ## Implementation and focused test evidence
 
 - **Capture:** [typed ownership image capture](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L1015) records acquisition requests, request/candidate identities, attribute sets, tags, callback markers, and Confirm Divestiture notifications.
 - **Restore validation and reconstruction:** [ownership-ledger restore](../../cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp#L569) validates live requester/owner identities and attributes. The route-free regular-request path resets queued callback markers so the restored work can be replanned ([lines 695–704](../../cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp#L695)); Confirm Divestiture notifications likewise require a live recipient ([lines 794–829](../../cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp#L794)).
+- **Process callback mapping and restore enqueue boundary:** the [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L501) maps an ownership-assumption event to the public FederateAmbassador callback. The [process restore service](../../cpp/src/internal/federation/process_federation_service_save_restore.cpp#L246) queues federation-restore notifications before enqueueing returned ownership-assumption work; its comment identifies this as the callback-order boundary.
+- **Already-pushed HLA_EVOKED callback:** [process endpoint test](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L62) admits discovery and assumption frames before save without invoking them, then checks the later Evoke sequence ([queue admission](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L418), [post-restore delivery](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp#L464)).
+- **Ownership work reconstructed through process restore:** [configured process endpoint test](../../cpp/tests/ieee1516_2025_process_restored_ownership_assumption_catch2.cpp#L62) checks federationRestored before the restored ownership-assumption callback.
 - **Resignation preflight and cleanup:** [resignation pending-work check](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L142) and [member-scoped cancellation](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L462).
 - **Regular release callback restored:** [public fresh-registry restore scenario](../../cpp/tests/ieee1516_2025_public_ownership_acquisition_restore_catch2.cpp#L142) captures pending work; [post-restore callback assertions](../../cpp/tests/ieee1516_2025_public_ownership_acquisition_restore_catch2.cpp#L256) verify object, attribute, and tag with both callback models.
 - **Surviving recipient after candidate resignation:** [two-candidate setup and resignation](../../cpp/tests/ieee1516_2025_public_confirm_divestiture_resignation_restore_catch2.cpp#L180), [single-operation saved-image assertions](../../cpp/tests/ieee1516_2025_public_confirm_divestiture_resignation_restore_catch2.cpp#L285), and [restored notification/ownership assertions](../../cpp/tests/ieee1516_2025_public_confirm_divestiture_resignation_restore_catch2.cpp#L361).
@@ -132,7 +214,7 @@ The resignation source comments associate the unresolved-acquisition check with 
 
 ## Deliberate limits and next step
 
-This companion covers selected regular acquisition and Confirm Divestiture/If-Available state only. It does not claim every ownership operation is portable across a fresh registry, expand all `ResignAction` combinations, or integrate ownership with time management, DDM, or TSO callback scheduling. Use the [core ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md) for transfer and callback-time state, and the [save/restore guide](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md) for federation-wide save coordination.
+This companion covers selected regular acquisition and Confirm Divestiture/If-Available state, plus the two process callback/restore cases described above. It does not claim every ownership operation is portable across a fresh registry, expand all `ResignAction` combinations, or integrate ownership with time management, DDM, or TSO scheduling. Use the [core ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md) for transfer and callback-time state, and the [save/restore guide](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md) for federation-wide save coordination.
 
 Receive-order deletion and stale ownership-callback invalidation are now
 diagrammed in the [core ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md#accepted-object-deletion-invalidates-pending-ownership-work),
@@ -173,9 +255,8 @@ guide now links back here and records eight focused embedded action-test files.
 No additional action diagram was justified because it would repeat those two
 distinct views rather than clarify a new tested transition.
 
-Next, audit byte-order clarity in the [data-element encoding guide](HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md)
-against the pinned 2025 API, codec source, and focused tests, then inspect the
-2010 codec and its evidence separately. Confirm that diagrams distinguish
-operation-specific big-/little-endian value encoding from transport framing;
-revise only where source-backed labels are unclear. Do not infer cross-edition
-parity or edit the HLA Requirements Lab during this Umbra documentation phase.
+The byte-order audit is recorded in the [flow-guide backlog](HLA-BEHAVIOR-FLOW-GUIDES.md):
+both edition-specific encoding guides explicitly label BE/LE value octets and
+separate them from process-frame metadata. The next cross-guide handoff is
+tracked there. Do not infer cross-edition parity or edit the HLA Requirements
+Lab during this Umbra documentation phase.

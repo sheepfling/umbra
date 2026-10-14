@@ -167,7 +167,7 @@ void drainCallbacks(RTIambassador& rti) {
 }  // namespace
 
 TEST_CASE(
-    "Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
+    "Embedded mixed default-region timestamped attribute updates respect FQR TARA and NMRA grant boundaries",
     "[integration][development-profile][object-management][ddm][time-management]"
     "[timestamped-default-region-attribute-update][default-region][tso][flush-queue-request]"
     "[time-advance-request-available][next-message-request-available]"
@@ -305,7 +305,7 @@ TEST_CASE(
   REQUIRE(taraReports.attributeReflectionReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(taraReports.timeAdvanceGrantReports.front().value == L"7");
-  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"reflect", "grant"});
+  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"grant", "reflect"});
   REQUIRE(nmraReports.attributeReflectionReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.front().value == L"7");

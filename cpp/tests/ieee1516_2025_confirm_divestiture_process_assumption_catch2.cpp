@@ -294,6 +294,16 @@ TEST_CASE(
           TransportServiceOperation::negotiated_attribute_ownership_divestiture,
           "The process Confirm Divestiture assumption server lost Negotiated Divestiture.");
       serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::is_attribute_owned_by_federate,
+          "The process Confirm Divestiture assumption server lost the owner's pending ownership query.");
+      serveExpected(
+          requesterSession,
+          requesterHandler,
+          TransportServiceOperation::is_attribute_owned_by_federate,
+          "The process Confirm Divestiture assumption server lost the requester's pending ownership query.");
+      serveExpected(
           candidateSession,
           candidateHandler,
           TransportServiceOperation::get_object_class_handle,
@@ -308,6 +318,16 @@ TEST_CASE(
           requesterSession, requesterHandler,
           TransportServiceOperation::get_object_class_handle,
           "The process Confirm Divestiture assumption server lost requester acquisition fence.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::is_attribute_owned_by_federate,
+          "The process Confirm Divestiture assumption server lost the owner's post-confirmation ownership query.");
+      serveExpected(
+          requesterSession,
+          requesterHandler,
+          TransportServiceOperation::is_attribute_owned_by_federate,
+          "The process Confirm Divestiture assumption server lost the requester's post-confirmation ownership query.");
       serveExpected(
           requesterSession,
           requesterHandler,
@@ -462,6 +482,9 @@ TEST_CASE(
             std::vector<unsigned char>(
                 negotiatedTagBytes,
                 negotiatedTagBytes + sizeof(negotiatedTagBytes)));
+    REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, ownerAttribute));
+    REQUIRE_FALSE(requester->isAttributeOwnedByFederate(
+        objectInstance, requesterAttribute));
     REQUIRE(candidateReports.assumptions.empty());
 
     // The candidate's pushed assumption frame is fenced independently while
@@ -500,6 +523,9 @@ TEST_CASE(
             std::vector<unsigned char>(
                 confirmationTagBytes,
                 confirmationTagBytes + sizeof(confirmationTagBytes)));
+    REQUIRE_FALSE(owner->isAttributeOwnedByFederate(objectInstance, ownerAttribute));
+    REQUIRE(requester->isAttributeOwnedByFederate(
+        objectInstance, requesterAttribute));
 
     REQUIRE_NOTHROW(requester->resignFederationExecution(
         rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES));

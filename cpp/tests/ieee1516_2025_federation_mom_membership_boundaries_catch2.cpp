@@ -163,4 +163,5 @@ TEST_CASE(
   REQUIRE_NOTHROW(subject->disconnect());
   REQUIRE_NOTHROW(observer->disconnect());
 }
+
 }

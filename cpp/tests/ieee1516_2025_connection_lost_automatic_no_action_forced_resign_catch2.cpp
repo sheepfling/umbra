@@ -8,10 +8,12 @@ TEST_CASE(
     "[ownership-management][rti.service.connection-lost]"
     "[rti.service.get-automatic-resign-directive]"
     "[rti.service.set-automatic-resign-directive]"
+    "[rti.service.list-federation-execution-members]"
     "[automatic-resign-no-action]"
     "[connection-lost-automatic-resign]"
     "[connection-lost-no-action-policy]"
     "[federate.callback.connection-lost]"
+    "[federate.callback.report-federation-execution-members]"
     "[federate.callback.request-attribute-ownership-assumption]") {
   FederationEventFederateAmbassador lostReports;
   ReportingFederateAmbassador survivingReports;
@@ -35,6 +37,17 @@ TEST_CASE(
       L"automatic-no-action-survivor",
       L"subscriber",
       federationName));
+
+  auto const federationMemberCount = [&] {
+    auto const before = survivingReports.federationExecutionMemberReports.size();
+    REQUIRE_NOTHROW(surviving->listFederationExecutionMembers(federationName));
+    REQUIRE_FALSE(surviving->evokeMultipleCallbacks(0.0, 0.0));
+    REQUIRE(survivingReports.federationExecutionMemberReports.size() == before + 1U);
+    auto const& report = survivingReports.federationExecutionMemberReports.back();
+    REQUIRE(report.federationName == federationName);
+    return report.members.size();
+  };
+  REQUIRE(federationMemberCount() == 2U);
 
   auto const server = lost->getObjectClassHandle(fixture_hla::fom::employee_server);
   auto const efficiency = lost->getAttributeHandle(server, fixture_hla::fixture::efficiency);
@@ -80,6 +93,7 @@ TEST_CASE(
   REQUIRE_FALSE(surviving->isAttributeOwnedByFederate(objectInstance, efficiency));
   REQUIRE_FALSE(surviving->isAttributeOwnedByFederate(objectInstance, privilegeToDelete));
   REQUIRE(surviving->getFederateName(lostFederate) == L"automatic-no-action-lost");
+  REQUIRE(federationMemberCount() == 1U);
 
   REQUIRE_NOTHROW(surviving->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(surviving->destroyFederationExecution(federationName));

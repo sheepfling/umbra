@@ -112,6 +112,9 @@ DEFAULT_PLAN = (
 )
 DEFAULT_BUNDLE = REPOSITORY_ROOT / ".compliance" / "corpus-bundle.json"
 DEFAULT_CONTRACT_DIRECTORY = REPOSITORY_ROOT / "compliance" / "requirements-lab"
+DEFAULT_CPP_TCK_CATALOG = (
+    REPOSITORY_ROOT / "compliance" / "catalogs" / "cpp-tck-scenario-catalog.json"
+)
 DEFAULT_LAB_ISSUES = DEFAULT_CONTRACT_DIRECTORY / "known-issues.json"
 DEFAULT_ROADMAP = REPOSITORY_ROOT / "docs" / "planning" / "ROADMAP.md"
 DEFAULT_IMPLEMENTATION_PLAN = REPOSITORY_ROOT / "docs" / "planning" / "IMPLEMENTATION-PLAN.md"
@@ -135,6 +138,18 @@ def load_json(path: Path) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ValueError(f"JSON root must be an object: {path}")
     return value
+
+
+def load_cpp_tck_scenarios() -> dict[str, dict[str, Any]]:
+    catalog = load_json(DEFAULT_CPP_TCK_CATALOG)
+    rows = catalog.get("scenarios", [])
+    if not isinstance(rows, list):
+        return {}
+    return {
+        row["id"]: row
+        for row in rows
+        if isinstance(row, dict) and isinstance(row.get("id"), str)
+    }
 
 
 def strings(value: Any) -> list[str]:
@@ -3037,11 +3052,11 @@ def roadmap_inventory(
     active_handoff = index.get("active_handoff")
     active_handoff_family: str | None = None
     if isinstance(active_handoff, dict) and folded_query:
-        active_values = strings(
+        active_identity_values = strings(
             active_handoff.get(field)
-            for field in ("id", "family", "lane", "test_case", "objective")
+            for field in ("id", "family", "lane")
         )
-        if any(folded_query in search_key(value) for value in active_values):
+        if any(folded_query == search_key(value) for value in active_identity_values):
             family_value = active_handoff.get("family")
             if isinstance(family_value, str) and family_value:
                 active_handoff_family = family_value
@@ -4043,6 +4058,21 @@ def recent_completed_views(
         (entry for entry in entries if entry.get("plan_id") == latest_plan_id),
         None,
     )
+    if latest_entry is None and isinstance(latest, dict) and latest_plan_id:
+        # The indexed latest pointer can be advanced before its audit-ledger
+        # append. Keep the latest bounded query current without rewriting or
+        # fabricating a historical ledger record.
+        latest_entry = dict(latest)
+        latest_entry["test_query"] = latest.get("test_case")
+        latest_entry["lane_queries"] = strings(
+            latest.get("focus_lane")
+            or latest.get("primary_lane")
+            or latest.get("lane")
+        )
+        if lane and lane.casefold() not in {
+            value.casefold() for value in latest_entry["lane_queries"]
+        }:
+            latest_entry = None
     ordered_entries = ([] if latest_entry is None else [latest_entry]) + [
         entry
         for entry in reversed(entries)
@@ -4133,6 +4163,7 @@ def validate_index(
         for test in plan.get("tests", [])
         if isinstance(test, dict) and isinstance(test.get("id"), str)
     }
+    known_cpp_tck_scenario_ids = set(load_cpp_tck_scenarios())
     known_test_cases = {
         test.get("test_case")
         for test in plan.get("tests", [])
@@ -4172,9 +4203,16 @@ def validate_index(
                     f"{family_id}"
                 )
             seed_id = active_handoff.get("mapping_seed_plan_id")
-            if isinstance(seed_id, str) and seed_id not in known_test_ids:
+            seed_is_known = isinstance(seed_id, str) and (
+                seed_id in known_test_ids
+                or (
+                    family_id == "portable-cpp-tck-2025"
+                    and seed_id in known_cpp_tck_scenario_ids
+                )
+            )
+            if isinstance(seed_id, str) and not seed_is_known:
                 errors.append(
-                    "active_handoff mapping_seed_plan_id is absent from the Catch2 plan: "
+                    "active_handoff mapping_seed_plan_id is absent from its test catalog: "
                     f"{seed_id}"
                 )
             commands = active_handoff.get("commands")
@@ -6416,6 +6454,18 @@ def dashboard_snapshot(
         latest_lane = latest.get("lane")
         latest_focus_lane = latest.get("focus_lane") or latest_lane
         latest_test_case = latest.get("test_case")
+        latest_test = next(
+            (
+                test
+                for test in tests
+                if isinstance(test, dict)
+                and test.get("id") == latest.get("plan_id")
+            ),
+            None,
+        )
+        latest_test_summary = (
+            test_summary_data(latest_test) if isinstance(latest_test, dict) else {}
+        )
         lane_handles = (
             index.get("mapping", {}).get("lane_handles", {}).get(latest_focus_lane)
             if isinstance(latest_focus_lane, str)
@@ -6469,7 +6519,16 @@ def dashboard_snapshot(
                 if isinstance(latest_focus_lane, str) and latest_focus_lane
                 else None
             ),
-            "ctest_command": lane_ctest_command(lane_handles),
+            "ctest_command": lane_ctest_command(lane_handles)
+            or lane_ctest_command(
+                {
+                    "ctest_filter": (
+                        latest_test.get("ctest_filter")
+                        if isinstance(latest_test, dict)
+                        else latest_test_summary.get("ctest_filter")
+                    )
+                }
+            ),
         }
 
     queue = indexed_work_queue(index, tests, limit=max(limit, 0))
@@ -7103,6 +7162,13 @@ def indexed_active_handoff_record(
     card = index.get("active_handoff")
     if not isinstance(card, dict):
         return None
+    if str(card.get("state") or "").strip().casefold() in {
+        "complete",
+        "completed",
+        "closed",
+        "done",
+    }:
+        return None
     family_id = card.get("family")
     if requested_family is not None and str(family_id or "").casefold() != requested_family.casefold():
         return None
@@ -7191,6 +7257,104 @@ def indexed_active_handoff_record(
                 f"ctest --test-dir <build-dir> -R {json.dumps(card['ctest_filter'])} --output-on-failure"
             ),
         }
+
+    if family_id == "portable-cpp-tck-2025":
+        scenarios_by_id = load_cpp_tck_scenarios()
+        scenario = scenarios_by_id.get(card.get("plan_id"))
+        companion = scenarios_by_id.get(card.get("mapping_seed_plan_id"))
+        if isinstance(scenario, dict) and str(card.get("state", "")).casefold() != "new-case-needed":
+            contract_refs = list(
+                dict.fromkeys(
+                    strings(scenario.get("contract_refs"))
+                    + (strings(companion.get("contract_refs")) if isinstance(companion, dict) else [])
+                )
+            )
+            requirement_rows: dict[str, dict[str, Any]] = {}
+            api_surfaces: set[str] = set()
+            for reference in contract_refs:
+                contract_path = DEFAULT_CONTRACT_DIRECTORY / reference
+                if not contract_path.is_file():
+                    continue
+                contract = load_json(contract_path)
+                if contract.get("kind") == "requirements-reference":
+                    for requirement in contract.get("requirements", []):
+                        if not isinstance(requirement, dict):
+                            continue
+                        lab_id = requirement.get("requirements_lab_requirement_id")
+                        document_id = contract.get("document_id")
+                        clause_id = requirement.get("clause_id")
+                        if not all(
+                            isinstance(value, str) and value
+                            for value in (lab_id, document_id, clause_id)
+                        ):
+                            continue
+                        section = f"{document_id}:{clause_id}"
+                        requirement_rows.setdefault(
+                            lab_id,
+                            {
+                                "lab_requirement_id": lab_id,
+                                "standard_section": section,
+                                "document_id": document_id,
+                                "clause_id": clause_id,
+                                "title": requirement.get("title"),
+                                "unresolved": False,
+                            },
+                        )
+                elif contract.get("kind") == "api-reference":
+                    for api_surface in contract.get("api_surfaces", []):
+                        if not isinstance(api_surface, dict):
+                            continue
+                        api_id = api_surface.get("requirements_lab_api_surface_id")
+                        if isinstance(api_id, str) and api_id:
+                            api_surfaces.add(api_id)
+            pairs = sorted(
+                requirement_rows.values(),
+                key=lambda row: (row["lab_requirement_id"], row["standard_section"]),
+            )
+            requirement_ids = sorted({row["lab_requirement_id"] for row in pairs})
+            standard_sections = sorted({row["standard_section"] for row in pairs})
+            if pairs:
+                raw_commands = card.get("commands")
+                commands = (
+                    {key: value for key, value in raw_commands.items() if isinstance(value, str) and value}
+                    if isinstance(raw_commands, dict)
+                    else {}
+                )
+                return {
+                    "found": True,
+                    "runnable": True,
+                    "handoff_kind": "portable-tck-verification",
+                    "state": str(card.get("state") or "verification-needed"),
+                    "active_handoff_id": card.get("id"),
+                    "family_id": family_id,
+                    "plan_id": card.get("plan_id"),
+                    "plan_id_status": "indexed",
+                    "test_case": test_case,
+                    "source_location": card.get("source_location") or scenario.get("cpp_test"),
+                    "source_target": card.get("source_target"),
+                    "source_lane": card.get("lane"),
+                    "lane_pending": False,
+                    "ctest_target": card.get("ctest_target"),
+                    "ctest_filter": card.get("ctest_filter"),
+                    "mapping_status": "mapped-from-portable-tck-contracts",
+                    "mapping_seed_plan_id": card.get("mapping_seed_plan_id"),
+                    "mapping_seed_test_case": companion.get("title") if isinstance(companion, dict) else None,
+                    "requirement_ids": requirement_ids,
+                    "standard_sections": standard_sections,
+                    "api_surfaces": sorted(api_surfaces),
+                    "requirement_section_pairs": pairs,
+                    "requirement_section_pair_count": len(pairs),
+                    "next_action": card.get("objective"),
+                    "acceptance": card.get("acceptance", []),
+                    "commands": commands,
+                    "implementation_command": commands.get("focused_tck"),
+                }
+            return {
+                "found": False,
+                "state": "unavailable",
+                "reason": "portable C++ TCK handoff has no direct requirement-contract mappings",
+                "active_handoff_id": card.get("id"),
+            }
 
     seed_id = card.get("mapping_seed_plan_id")
     seed = next(
@@ -7834,18 +7998,23 @@ def ready_slice(
         record["requirement_section_pairs"] = exact_pairs
         record["requirement_section_pair_count"] = len(exact_pairs)
     if isinstance(case_query, str) and case_query:
-        record["case_command"] = (
-            f'python tools/query_rti_work.py case "{case_query}" '
-            "--summary --compact"
-        )
-        record["matrix_requirement_command"] = (
-            f'python tools/query_rti_work.py matrix "{case_query}" '
-            "--group-by requirement --summary --compact"
-        )
-        record["matrix_section_command"] = (
-            f'python tools/query_rti_work.py matrix "{case_query}" '
-            "--group-by section --summary --compact"
-        )
+        if record.get("handoff_kind") == "portable-tck-verification":
+            record["case_command"] = (
+                f"python tools/cpp_tck.py --scenario {case_query}"
+            )
+        else:
+            record["case_command"] = (
+                f'python tools/query_rti_work.py case "{case_query}" '
+                "--summary --compact"
+            )
+            record["matrix_requirement_command"] = (
+                f'python tools/query_rti_work.py matrix "{case_query}" '
+                "--group-by requirement --summary --compact"
+            )
+            record["matrix_section_command"] = (
+                f'python tools/query_rti_work.py matrix "{case_query}" '
+                "--group-by section --summary --compact"
+            )
     record["owner"] = parent
     record["roadmap_owner"] = (
         roadmap_item_summary(family_item)
@@ -7888,7 +8057,22 @@ def ready_slice(
         if record.get("source_lane")
         else None
     )
-    if record.get("lane_pending"):
+    if record.get("family_id") == "portable-cpp-tck-2025":
+        record["check_command"] = (
+            f"python tools/cpp_tck.py --scenario {record['plan_id']}"
+            if record.get("plan_id")
+            else None
+        )
+        if record.get("lane_pending"):
+            # Portable TCK cases are cataloged independently of Catch2 lanes.
+            # Their post-mapping validation must check the C++ TCK catalog,
+            # not issue a misleading Catch2 focus/check command.
+            record["post_mapping_check_command"] = (
+                f"python tools/cpp_tck.py --scenario {record['plan_id']}"
+                if record.get("plan_id")
+                else None
+            )
+    elif record.get("lane_pending"):
         record["post_mapping_focus_command"] = lane_command
         record["post_mapping_check_command"] = check_command
     else:
@@ -10043,7 +10227,13 @@ def main() -> int:
             if next_card.get("ctest_filter"):
                 print(f"  ctest_filter={next_card['ctest_filter']}")
             print(
-                ("  mapping_seed_only=" if next_card.get("mapping_seed_plan_id") else "  mapping=")
+                (
+                    "  contract_mapping="
+                    if next_card.get("mapping_status") == "mapped-from-portable-tck-contracts"
+                    else "  mapping_seed_only="
+                    if next_card.get("mapping_seed_plan_id")
+                    else "  mapping="
+                )
                 + f"{next_card.get('requirement_count', 0)} requirements; "
                 f"{next_card.get('standard_section_count', 0)} sections; "
                 f"{next_card.get('requirement_section_pair_count', 0)} direct pairs; "
@@ -10068,7 +10258,7 @@ def main() -> int:
                 "matrix_requirement_command",
                 "matrix_section_command",
             ):
-                if next_card.get("mapping_seed_plan_id"):
+                if next_card.get("mapping_status") == "seed-from-existing-case":
                     # A proposed case is not in the plan yet, so these exact
                     # case/matrix queries would be premature.  Show them from
                     # the scoped ready view after the proposed row is recorded.
@@ -10078,11 +10268,16 @@ def main() -> int:
                     print(f"  {handle_name.removesuffix('_command')}={handle}")
             if next_card.get("next_action"):
                 print(f"  next={compact_prose(next_card.get('next_action'), 260)}")
-            if next_card.get("mapping_seed_plan_id"):
+            if next_card.get("mapping_status") == "seed-from-existing-case":
                 print(
                     "  mapping_seed="
                     f"{next_card.get('mapping_seed_plan_id')} "
                     f"status={next_card.get('mapping_status', '<unspecified>')}"
+                )
+            elif next_card.get("mapping_status") == "mapped-from-portable-tck-contracts":
+                print(
+                    "  contract_companion="
+                    f"{next_card.get('mapping_seed_plan_id')}"
                 )
             if next_card.get("seed_trace_command"):
                 print(f"  seed_trace={next_card['seed_trace_command']}")
@@ -11954,7 +12149,11 @@ def main() -> int:
         if result.get("status"):
             print(f"status: {result['status']}")
         mapping_label = (
-            "mapping_seed_only" if result.get("mapping_seed_plan_id") else "mapping"
+            "tck_contract_mapping"
+            if result.get("mapping_status") == "mapped-from-portable-tck-contracts"
+            else "mapping_seed_only"
+            if result.get("mapping_seed_plan_id")
+            else "mapping"
         )
         print(
             f"{mapping_label}: "

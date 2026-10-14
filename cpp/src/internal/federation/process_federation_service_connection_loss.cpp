@@ -179,4 +179,23 @@ bool ProcessFederationService::connectionLost(
       std::move(faultDescription));
 }
 
+bool ProcessFederationService::connectionLost(
+    ProcessTransportSession& session,
+    std::wstring faultDescription) {
+  std::optional<std::wstring> federationName;
+  std::uint64_t departedFederateId = 0U;
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() || !state->second.federationName ||
+        state->second.federateId == 0U) {
+      return true;
+    }
+    federationName = state->second.federationName;
+    departedFederateId = state->second.federateId;
+  }
+  return connectionLost(
+      *federationName, departedFederateId, std::move(faultDescription));
+}
+
 }  // namespace umbra::detail

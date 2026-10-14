@@ -33,6 +33,22 @@ final class TimestampedDirectedAlternateAdvancesTck {
    static void run(RtiFactory factory, String fom, String timeImplementation,
          String objectClassName, String attributeName, String interactionClassName,
          String parameterName, CallbackModel callbackModel) throws Exception {
+      run(factory, fom, timeImplementation, objectClassName, attributeName,
+         interactionClassName, parameterName, null, callbackModel);
+   }
+
+   static void runCustomTransportation(RtiFactory factory, String fom,
+         String timeImplementation, String objectClassName, String attributeName,
+         String interactionClassName, String parameterName, String transportationName,
+         CallbackModel callbackModel) throws Exception {
+      run(factory, fom, timeImplementation, objectClassName, attributeName,
+         interactionClassName, parameterName, transportationName, callbackModel);
+   }
+
+   private static void run(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String attributeName, String interactionClassName,
+         String parameterName, String expectedTransportationName, CallbackModel callbackModel)
+         throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador flushReceiver = factory.getRtiAmbassador();
       RTIambassador taraReceiver = factory.getRtiAmbassador();
@@ -75,6 +91,21 @@ final class TimestampedDirectedAlternateAdvancesTck {
             publisher.getInteractionClassHandle(interactionClassName);
          ParameterHandle publisherParameter = publisher.getParameterHandle(
             publisherInteraction, parameterName);
+         if (expectedTransportationName != null) {
+            TransportationTypeHandle transportation =
+               publisher.getTransportationTypeHandle(expectedTransportationName);
+            JavaTckSupport.check(objectClassName.equals(
+                  publisher.getObjectClassName(publisherClass))
+                  && attributeName.equals(publisher.getAttributeName(
+                     publisherClass, publisherAttribute))
+                  && interactionClassName.equals(
+                     publisher.getInteractionClassName(publisherInteraction))
+                  && parameterName.equals(publisher.getParameterName(
+                     publisherInteraction, publisherParameter))
+                  && expectedTransportationName.equals(
+                     publisher.getTransportationTypeName(transportation)),
+               "adapter FOM publisher handles or custom transportation name did not round-trip");
+         }
          publisher.publishObjectClassAttributes(publisherClass,
             JavaTckSupport.attributeSet(publisher, publisherAttribute));
          attributesPublished = true;
@@ -94,6 +125,21 @@ final class TimestampedDirectedAlternateAdvancesTck {
             receiverInteractions[i] = receivers[i].getInteractionClassHandle(interactionClassName);
             receiverParameters[i] = receivers[i].getParameterHandle(
                receiverInteractions[i], parameterName);
+            if (expectedTransportationName != null) {
+               TransportationTypeHandle transportation =
+                  receivers[i].getTransportationTypeHandle(expectedTransportationName);
+               JavaTckSupport.check(objectClassName.equals(
+                     receivers[i].getObjectClassName(cls))
+                     && attributeName.equals(receivers[i].getAttributeName(
+                        cls, receiverAttributes[i]))
+                     && interactionClassName.equals(receivers[i].getInteractionClassName(
+                        receiverInteractions[i]))
+                     && parameterName.equals(receivers[i].getParameterName(
+                        receiverInteractions[i], receiverParameters[i]))
+                     && expectedTransportationName.equals(
+                        receivers[i].getTransportationTypeName(transportation)),
+                  "adapter FOM receiver handles or custom transportation name did not round-trip");
+            }
             receivers[i].subscribeObjectClassAttributes(cls,
                JavaTckSupport.attributeSet(receivers[i], receiverAttributes[i]));
             if (i == 0) flushAttributesSubscribed = true;
@@ -107,6 +153,12 @@ final class TimestampedDirectedAlternateAdvancesTck {
          }
 
          ObjectInstanceHandle target = publisher.registerObjectInstance(publisherClass);
+         if (expectedTransportationName != null) {
+            String targetName = publisher.getObjectInstanceName(target);
+            JavaTckSupport.check(targetName != null && !targetName.isEmpty()
+                  && target.equals(publisher.getObjectInstanceHandle(targetName)),
+               "custom-transportation directed target name did not round-trip");
+         }
          for (RTIambassador receiver : receivers) JavaTckSupport.drain(receiver);
          for (int i = 0; i < receivers.length; ++i) {
             checkDiscovery(receiverRecs[i], target, publisherClass, producer,
@@ -159,13 +211,14 @@ final class TimestampedDirectedAlternateAdvancesTck {
          awaitCompletion(publisher, receivers, publisherRec, receiverRecs);
 
          checkDelivery(flushRec, flushReceiver, receiverInteractions[0], receiverParameters[0],
-            target, payload, tag, producer, messageTime, sent.handle, "Flush Queue Request");
+            target, payload, tag, producer, messageTime, sent.handle, expectedTransportationName,
+            "Flush Queue Request");
          checkDelivery(taraRec, taraReceiver, receiverInteractions[1], receiverParameters[1],
             target, payload, tag, producer, messageTime, sent.handle,
-            "Time Advance Request Available");
+            expectedTransportationName, "Time Advance Request Available");
          checkDelivery(nmraRec, nmraReceiver, receiverInteractions[2], receiverParameters[2],
             target, payload, tag, producer, messageTime, sent.handle,
-            "Next Message Request Available");
+            expectedTransportationName, "Next Message Request Available");
          JavaTckSupport.check(publisherRec.timeAdvanceGrantTimes.size() == 1
                && publisherTarget.equals(publisherRec.timeAdvanceGrantTimes.get(0)),
             "publisher TAR did not grant the requested logical time");
@@ -282,7 +335,8 @@ final class TimestampedDirectedAlternateAdvancesTck {
          InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
          ObjectInstanceHandle target, byte[] expectedPayload, byte[] expectedTag,
          FederateHandle expectedProducer, LogicalTime<?, ?> expectedTime,
-         MessageRetractionHandle expectedRetraction, String role) throws Exception {
+         MessageRetractionHandle expectedRetraction, String expectedTransportationName,
+         String role) throws Exception {
       JavaTckSupport.check(recorder.interactions.size() == 1,
          role + " did not receive exactly one directed interaction");
       Interaction actual = recorder.interactions.get(0);
@@ -297,9 +351,12 @@ final class TimestampedDirectedAlternateAdvancesTck {
       JavaTckSupport.check(actual.sentOrder == OrderType.TIMESTAMP
             && actual.receivedOrder == OrderType.TIMESTAMP,
          role + " returned incorrect timestamp order metadata");
+      String transportationName = actual.transportation == null ? ""
+         : inspector.getTransportationTypeName(actual.transportation);
       JavaTckSupport.check(expectedRetraction.equals(actual.retraction)
-            && actual.transportation != null
-            && !inspector.getTransportationTypeName(actual.transportation).isEmpty(),
+            && actual.transportation != null && !transportationName.isEmpty()
+            && (expectedTransportationName == null
+               || expectedTransportationName.equals(transportationName)),
          role + " omitted its retraction handle or resolvable transport metadata");
    }
 

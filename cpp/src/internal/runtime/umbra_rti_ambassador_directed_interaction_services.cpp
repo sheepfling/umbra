@@ -664,6 +664,8 @@ MessageRetractionHandle UmbraRtiAmbassador::sendDirectedInteraction(
   }
 
   std::uint64_t messageId = 0;
+  std::vector<umbra::detail::FederationTimeGrantDispatch>
+      newlyEligibleTimeGrants;
   if (timeSnapshot.timeRegulating && plan.preferredOrderType == TIMESTAMP &&
       !recipients.empty()) {
     umbra::detail::TsoDirectedInteractionMessage message;
@@ -730,6 +732,18 @@ MessageRetractionHandle UmbraRtiAmbassador::sendDirectedInteraction(
           L"The embedded federation lost the timestamped Send Directed Interaction membership before its accepted boundary.");
     }
   }
+
+  if (messageId != 0U) {
+    std::scoped_lock lock(ambassadorFederationManagementMutex());
+    auto scheduled = embeddedFederationRegistry().reevaluateTimeAdvanceGrants(
+        *federationName);
+    if (scheduled.status != umbra::detail::FederationTimeGrantStatus::applied) {
+      throw RTIinternalError(
+          L"The embedded federation could not re-evaluate pending time advances after timestamped directed-interaction admission.");
+    }
+    newlyEligibleTimeGrants = std::move(scheduled.dispatches);
+  }
+  submitAmbassadorTimeAdvanceGrantDispatches(std::move(newlyEligibleTimeGrants));
 
   for (auto const& recipient : recipients) {
     if (timeSnapshot.timeRegulating && plan.preferredOrderType == TIMESTAMP &&

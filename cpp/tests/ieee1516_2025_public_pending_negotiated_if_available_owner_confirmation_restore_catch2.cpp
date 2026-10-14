@@ -92,10 +92,19 @@ TEST_CASE(
     REQUIRE_NOTHROW(requester->connect(requesterReports, callbackModel));
     REQUIRE_NOTHROW(owner->createFederationExecution(
         federationName, fomModules, standard_hla::mom::integer64_time));
-    REQUIRE_NOTHROW(sourceOwnerHandle = owner->joinFederationExecution(
-        L"public-ownership-negotiated-if-available-restore-owner",
-        L"publisher",
-        federationName));
+    try {
+      sourceOwnerHandle = owner->joinFederationExecution(
+          L"public-ownership-negotiated-if-available-restore-owner",
+          L"publisher",
+          federationName);
+    } catch (rti1516_2025::Exception const& error) {
+      auto const diagnostic = error.name() + L": " + error.what();
+      std::string printable;
+      for (auto character : diagnostic) {
+        printable.push_back(character <= 127 ? static_cast<char>(character) : '?');
+      }
+      FAIL("Owner Join Federation Execution failed: " + printable);
+    }
     REQUIRE_NOTHROW(requester->joinFederationExecution(
         L"public-ownership-negotiated-if-available-restore-requester",
         L"subscriber",

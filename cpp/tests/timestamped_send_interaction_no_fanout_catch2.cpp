@@ -148,7 +148,17 @@ class TimestampedInteractionRecorder final
     }
   }
 
+  void timeConstrainedEnabled(rti1516_2025::LogicalTime const&) override {
+    ++timeConstrainedEnabledCount;
+  }
+
+  void timeRegulationEnabled(rti1516_2025::LogicalTime const&) override {
+    ++timeRegulationEnabledCount;
+  }
+
   std::size_t receivedCount = 0U;
+  std::size_t timeConstrainedEnabledCount = 0U;
+  std::size_t timeRegulationEnabledCount = 0U;
   std::wstring timestampImplementation;
   std::int64_t timestampValue = -1;
 };
@@ -156,14 +166,20 @@ class TimestampedInteractionRecorder final
 }  // namespace
 
 TEST_CASE(
-    "A joined federate not using time regulation may send a timestamped interaction",
+    "A non-regulating federate sends a timestamped interaction when GALT is defined",
     "[integration][development-profile][time-management][timestamped-interaction]"
     "[unregulated-federate-timestamped-interaction]"
-    "[rti.service.send-interaction][federate.callback.receive-interaction][2025]") {
+    "[rti.service.send-interaction][rti.service.query-galt]"
+    "[rti.service.query-logical-time]"
+    "[rti.service.time-advance-request]"
+    "[federate.callback.receive-interaction][federate.callback.time-constrained-enabled]"
+    "[federate.callback.time-regulation-enabled][2025]") {
   TimestampedInteractionRecorder senderAmbassador;
   TimestampedInteractionRecorder receiverAmbassador;
+  TimestampedInteractionRecorder regulatorAmbassador;
   auto sender = makeRti();
   auto receiver = makeRti();
+  auto regulator = makeRti();
   auto const federationName = nextFederationName();
   auto const fomModule = resourcePath(
       "parameter-handle-provider-fom.xml").wstring();
@@ -172,6 +188,7 @@ TEST_CASE(
 
   REQUIRE_NOTHROW(sender->connect(senderAmbassador, HLA_EVOKED));
   REQUIRE_NOTHROW(receiver->connect(receiverAmbassador, HLA_EVOKED));
+  REQUIRE_NOTHROW(regulator->connect(regulatorAmbassador, HLA_EVOKED));
   REQUIRE_NOTHROW(sender->createFederationExecution(
       federationName,
       fomModule,
@@ -183,6 +200,10 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->joinFederationExecution(
       L"unregulated-timestamp-receiver",
       L"subscriber",
+      federationName));
+  REQUIRE_NOTHROW(regulator->joinFederationExecution(
+      L"timestamp-regulator",
+      L"regulator",
       federationName));
 
   auto const interactionClass = sender->getInteractionClassHandle(
@@ -208,15 +229,45 @@ TEST_CASE(
       rti1516_2025::TIMESTAMP));
   REQUIRE_NOTHROW(receiver->subscribeInteractionClass(receiverInteractionClass));
 
-  // Neither participant invokes time-management services. §8 permits a joined
-  // federate that is not regulating to attach a timestamp to its activity.
-  static_cast<void>(sender->sendInteraction(
+  // §4.19 permits this non-regulating sender's timestamp because its GALT is
+  // defined and timestamp 6 exceeds the constrained receiver's position.
+  // Section 8 limits TSO receipt to time-constrained federates.
+  REQUIRE_NOTHROW(regulator->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  for (int attempt = 0;
+       attempt < 4 && regulatorAmbassador.timeRegulationEnabledCount == 0U;
+       ++attempt) {
+    static_cast<void>(regulator->evokeCallback(0.05));
+  }
+  REQUIRE(regulatorAmbassador.timeRegulationEnabledCount == 1U);
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  for (int attempt = 0;
+       attempt < 4 && receiverAmbassador.timeConstrainedEnabledCount == 0U;
+       ++attempt) {
+    static_cast<void>(receiver->evokeCallback(0.05));
+  }
+  REQUIRE(receiverAmbassador.timeConstrainedEnabledCount == 1U);
+
+  rti1516_2025::HLAinteger64Time senderGalt;
+  REQUIRE(sender->queryGALT(senderGalt));
+  REQUIRE(senderGalt.getTime() == 5);
+  rti1516_2025::HLAinteger64Time receiverPosition;
+  REQUIRE_NOTHROW(receiver->queryLogicalTime(receiverPosition));
+  REQUIRE(receiverPosition.getTime() == 0);
+
+  REQUIRE_NOTHROW(sender->sendInteraction(
       interactionClass,
       parameterValues,
       tag,
       rti1516_2025::HLAinteger64Time(6)));
-  for (int attempt = 0; attempt < 4 && receiverAmbassador.receivedCount == 0U;
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(regulator->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(1)));
+  for (int attempt = 0;
+       attempt < 4 && receiverAmbassador.receivedCount == 0U;
        ++attempt) {
+    static_cast<void>(regulator->evokeCallback(0.05));
     static_cast<void>(receiver->evokeCallback(0.05));
   }
   REQUIRE(receiverAmbassador.receivedCount == 1U);
@@ -225,9 +276,12 @@ TEST_CASE(
 
   REQUIRE_NOTHROW(receiver->resignFederationExecution(
       rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(regulator->resignFederationExecution(
+      rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(sender->resignFederationExecution(
       rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(sender->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(regulator->disconnect());
   REQUIRE_NOTHROW(sender->disconnect());
 }

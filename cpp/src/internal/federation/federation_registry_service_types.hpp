@@ -403,15 +403,27 @@ struct FederationSaveControlResult {
 };
 
 // A time-constrained member must receive Initiate Federate Save while it is
-// still in Time Advancing. The matching time-grant dispatcher therefore
-// invokes that one callback directly at its pre-grant boundary; the registry
-// returns the label for that direct invocation plus any ordinary callbacks
-// made ready once all constrained members have reached the relevant boundary.
+// still in Time Advancing. The planned recipient route and matching time-grant
+// dispatcher both claim one member's admission; the latter invokes its callback
+// directly before the grant when it wins that race. Once all constrained
+// members have been admitted, the registry also returns ordinary callbacks for
+// remaining members.
 struct FederationSaveAdmission {
   FederationSaveControlStatus status = FederationSaveControlStatus::applied;
   std::optional<std::wstring> currentFederateLabel;
   std::shared_ptr<rti1516_2025::LogicalTime const> currentFederateTimestamp;
+  std::optional<FederationSaveNotification> currentFederateNotification;
   std::vector<FederationSaveNotification> notifications;
+};
+
+struct FederationSaveAdmissionCandidate {
+  std::uint64_t federateId = 0;
+  FederateCallbackRoute callbackRoute;
+};
+
+struct FederationSaveAdmissionPlan {
+  FederationSaveControlStatus status = FederationSaveControlStatus::applied;
+  std::vector<FederationSaveAdmissionCandidate> constrainedMembers;
 };
 
 enum class FederationRestoreControlStatus {

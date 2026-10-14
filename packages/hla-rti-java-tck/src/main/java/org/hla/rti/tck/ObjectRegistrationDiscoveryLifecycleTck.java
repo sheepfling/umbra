@@ -22,32 +22,36 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
    private static final int BASE = 2;
    private static final int CANCELLED = 3;
    private static final int LATE = 4;
+   private static final int UNJOINED = 5;
+   private static final int FEDERATE_COUNT = 5;
 
    private ObjectRegistrationDiscoveryLifecycleTck() { }
 
    static void run(RtiFactory factory, String fom, String baseClassName,
          String derivedClassName, String identityAttributeName,
          String derivedAttributeName, CallbackModel callbackModel) throws Exception {
-      RTIambassador[] rti = new RTIambassador[5];
-      Recorder[] recorders = new Recorder[5];
-      boolean[] connected = new boolean[5];
-      boolean[] joined = new boolean[5];
-      boolean[] subscribed = new boolean[5];
+      RTIambassador[] rti = new RTIambassador[FEDERATE_COUNT + 1];
+      Recorder[] recorders = new Recorder[FEDERATE_COUNT + 1];
+      boolean[] connected = new boolean[FEDERATE_COUNT + 1];
+      boolean[] joined = new boolean[FEDERATE_COUNT + 1];
+      boolean[] subscribed = new boolean[FEDERATE_COUNT + 1];
       boolean published = false;
       boolean federationCreated = false;
       String federation = "java-tck-object-registration-discovery-" + UUID.randomUUID();
       String[] roles = {"publisher", "exact", "base", "cancelled", "late"};
       try {
-         for (int i = 0; i < rti.length; ++i) {
+         for (int i = 0; i < FEDERATE_COUNT; ++i) {
             rti[i] = factory.getRtiAmbassador();
             recorders[i] = new Recorder();
             rti[i].connect(recorders[i].proxy(), callbackModel);
             connected[i] = true;
          }
+         rti[UNJOINED] = factory.getRtiAmbassador();
+         recorders[UNJOINED] = new Recorder();
          rti[PUBLISHER].createFederationExecution(federation, fom);
          federationCreated = true;
          FederateHandle producer = null;
-         for (int i = 0; i < rti.length; ++i) {
+         for (int i = 0; i < FEDERATE_COUNT; ++i) {
             FederateHandle handle = rti[i].joinFederationExecution(
                "java-tck-object-registration-" + roles[i], federation);
             joined[i] = true;
@@ -60,7 +64,7 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
          ObjectClassHandle[] baseClasses = new ObjectClassHandle[rti.length];
          AttributeHandle[] identityAttributes = new AttributeHandle[rti.length];
          AttributeHandle[] derivedAttributes = new AttributeHandle[rti.length];
-         for (int i = 0; i < rti.length; ++i) {
+         for (int i = 0; i < FEDERATE_COUNT; ++i) {
             derivedClasses[i] = rti[i].getObjectClassHandle(derivedClassName);
             baseClasses[i] = rti[i].getObjectClassHandle(baseClassName);
             identityAttributes[i] = rti[i].getAttributeHandle(
@@ -73,7 +77,7 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
          }
          JavaTckSupport.check(!derivedClasses[PUBLISHER].equals(baseClasses[PUBLISHER]),
             "typed object registration FOM did not preserve the class hierarchy");
-         for (int i = 1; i < rti.length; ++i) {
+         for (int i = 1; i < FEDERATE_COUNT; ++i) {
             JavaTckSupport.check(derivedClasses[PUBLISHER].equals(derivedClasses[i])
                   && baseClasses[PUBLISHER].equals(baseClasses[i])
                   && identityAttributes[PUBLISHER].equals(identityAttributes[i])
@@ -84,6 +88,21 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
                baseClasses[PUBLISHER], identityAttributeName)
                .equals(identityAttributes[PUBLISHER]),
             "inherited identity attribute handle changed between base and derived classes");
+
+         JavaTckSupport.expectFailure(
+            () -> rti[UNJOINED].registerObjectInstance(
+               JavaTckSupport.invalidHandle(ObjectClassHandle.class)),
+            "NotConnected", "registering an object before connecting");
+         rti[UNJOINED].connect(recorders[UNJOINED].proxy(), callbackModel);
+         connected[UNJOINED] = true;
+         JavaTckSupport.expectFailure(
+            () -> rti[UNJOINED].registerObjectInstance(
+               JavaTckSupport.invalidHandle(ObjectClassHandle.class)),
+            "FederateNotExecutionMember", "registering an object before joining");
+         JavaTckSupport.expectFailure(
+            () -> rti[PUBLISHER].registerObjectInstance(
+               JavaTckSupport.invalidHandle(ObjectClassHandle.class)),
+            "ObjectClassNotDefined", "registering an object for an invalid class handle");
 
          JavaTckSupport.expectFailure(
             () -> rti[PUBLISHER].registerObjectInstance(derivedClasses[PUBLISHER]),

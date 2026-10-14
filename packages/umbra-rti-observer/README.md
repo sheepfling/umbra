@@ -30,6 +30,20 @@ Open <http://127.0.0.1:8765/> after starting the server. The demo emits only
 generic federation, object, interaction, and callback events so the dashboard
 can be smoke-tested without a provider or a domain-specific scenario.
 
+The web extra includes FastAPI and Pydantic. The HTTP surface publishes its
+OpenAPI document at `/openapi.json`; request bodies and finite responses use
+named strict Pydantic models, while SSE and WebSocket messages are validated
+before serialization. Provider-specific event fields are kept through an
+explicit extension model field internally and retain their existing top-level
+wire representation.
+
+The production dashboard is maintained as a separate React/TypeScript package
+at `../umbra-rti-observer-ui`. Build it with `pnpm build` and set
+`UMBRA_OBSERVER_UI_DIST` to its `dist` directory before starting this service.
+The FastAPI root serves that build when present and falls back to the bundled
+zero-build dashboard when it is absent. Refresh the UI's generated client types
+from the backend with `pnpm generate:api`.
+
 ## Provider integration
 
 An adapter can use the zero-dependency core directly:

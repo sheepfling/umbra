@@ -208,6 +208,7 @@
         "-DUMBRA_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}"
         "-DUMBRA_CONFIGURATION=$<CONFIG>"
         "-DUMBRA_EXPECT_PROCESS_PROFILE=${UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT}"
+        $<$<TARGET_EXISTS:umbra_process_federation_service_probe>:-DUMBRA_PROCESS_SERVICE_PROBE_PATH=$<TARGET_FILE:umbra_process_federation_service_probe>>
         -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_installed_package_smoke.cmake
     )
     set_tests_properties(umbra.package_config PROPERTIES

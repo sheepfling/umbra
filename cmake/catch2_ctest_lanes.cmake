@@ -13,6 +13,17 @@
     set_tests_properties(umbra.ieee1516_2025.catch2_tag_taxonomy
       PROPERTIES LABELS foundation
     )
+    if(TARGET umbra_public_fresh_registry_transportation_restore_catch2)
+      add_test(
+        NAME umbra.ieee1516_2025.transportation_restore_catch2_tag_taxonomy
+        COMMAND ${Python3_EXECUTABLE}
+          ${CMAKE_CURRENT_SOURCE_DIR}/tools/verify_catch2_test_tags.py
+          --catch2 $<TARGET_FILE:umbra_public_fresh_registry_transportation_restore_catch2>
+      )
+      set_tests_properties(umbra.ieee1516_2025.transportation_restore_catch2_tag_taxonomy
+        PROPERTIES LABELS foundation
+      )
+    endif()
 
     # Multi-config generators need CTest's explicit configuration flag. Do not
     # pass an empty `-C` for a single-config build that intentionally omits
@@ -701,12 +712,32 @@
     set_tests_properties(umbra.ieee1516_2025.focused_service_lane_catalog
       PROPERTIES LABELS foundation
     )
+    if(TARGET umbra_public_fresh_registry_transportation_restore_catch2)
+      add_custom_target(umbra_test_public_transportation_restore
+        COMMAND ${CMAKE_CTEST_COMMAND}
+          --test-dir "${CMAKE_BINARY_DIR}"
+          ${_umbra_ctest_configuration_arguments}
+          --output-on-failure
+          -R "^umbra[.]ieee1516_2025[.]catch2[.]Embedded public fresh-registry restore rebinds pending (attribute|interaction) transportation-type change and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE$"
+        DEPENDS umbra_public_fresh_registry_transportation_restore_catch2
+        COMMENT "Running Umbra public transportation-type restore test lane"
+        USES_TERMINAL
+        VERBATIM
+      )
+    endif()
+
+    set(_umbra_test_all_dependencies umbra_ieee1516_2025_catch2)
+    if(TARGET umbra_public_fresh_registry_transportation_restore_catch2)
+      list(APPEND _umbra_test_all_dependencies
+        umbra_public_fresh_registry_transportation_restore_catch2
+      )
+    endif()
     add_custom_target(umbra_test_all
       COMMAND ${CMAKE_CTEST_COMMAND}
         --test-dir "${CMAKE_BINARY_DIR}"
         ${_umbra_ctest_configuration_arguments}
         --output-on-failure
-      DEPENDS umbra_ieee1516_2025_catch2
+      DEPENDS ${_umbra_test_all_dependencies}
       COMMENT "Running the complete Umbra CTest regression suite"
       USES_TERMINAL
       VERBATIM

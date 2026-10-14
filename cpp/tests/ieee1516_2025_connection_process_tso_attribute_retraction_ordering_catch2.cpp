@@ -23,6 +23,7 @@
 #include "internal/handles/object_class_handle.hpp"
 #include "ieee1516_2025_process_fom_test_support.hpp"
 #include "process_public_service_fixture.hpp"
+#include "process_service_report_fixture.hpp"
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 namespace {
@@ -37,9 +38,11 @@ using umbra::detail::EmbeddedFederationRegistry;
 using umbra::detail::ProcessFederationService;
 using umbra::detail::ProcessFederationServiceOptions;
 using umbra::detail::ProcessTransportListener;
+using umbra::detail::ProcessTransportServiceDispatcher;
 using umbra::detail::ProcessTransportSession;
 using umbra::detail::TransportServiceMessage;
 using umbra::detail::TransportServiceOperation;
+using umbra::detail::TransportServiceStatus;
 using umbra::test::process_fom_support_2025::composedProcessDefinition;
 
 std::unique_ptr<rti1516_2025::RTIambassador> makeRti() {
@@ -159,16 +162,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
-        }
+        umbra::test::serveExpectedPrimaryProcessRequest(
+            session, handler, operation, description);
       };
 
       serveExpected(
@@ -240,10 +235,20 @@ TEST_CASE(
           TransportServiceOperation::enable_time_regulation,
           "The process ordering server lost Enable Time Regulation.");
       serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The process ordering server lost the sender's Enable Time Regulation success report.");
+      serveExpected(
           receiver,
           receiverHandler,
           TransportServiceOperation::enable_time_constrained,
           "The process ordering server lost Enable Time Constrained.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The process ordering server lost the receiver's Enable Time Constrained success report.");
       serveExpected(
           sender,
           senderHandler,
@@ -280,6 +285,11 @@ TEST_CASE(
           TransportServiceOperation::time_advance_request,
           "The process ordering server lost receiver TAR at timestamp 5.");
       serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The process ordering server lost receiver TAR(5) success report.");
+      serveExpected(
           sender,
           senderHandler,
           TransportServiceOperation::time_advance_request,
@@ -289,6 +299,11 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::time_advance_request,
           "The process ordering server lost sender timestamp-5 TAR.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The process ordering server lost sender TAR(5) success report.");
       std::size_t receiverPolls = 0U;
       std::size_t receiverAcknowledgements = 0U;
       auto serveReceiverUntilAcknowledgements =
@@ -330,10 +345,20 @@ TEST_CASE(
           TransportServiceOperation::time_advance_request,
           "The process ordering server lost receiver TAR at timestamp 7.");
       serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The process ordering server lost receiver TAR(7) success report.");
+      serveExpected(
           sender,
           senderHandler,
           TransportServiceOperation::time_advance_request,
           "The process ordering server lost sender final TAR.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The process ordering server lost sender final TAR success report.");
       serveReceiverUntilAcknowledgements(
           2U,
           "The process ordering server did not receive the timestamp-7 acknowledgement.");

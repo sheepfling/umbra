@@ -302,6 +302,7 @@ MessageRetractionHandle UmbraRtiAmbassador::sendInteraction(
   }
 
   std::uint64_t messageId = 0;
+  std::vector<umbra::detail::FederationTimeGrantDispatch> newlyEligibleTimeGrants;
   if (timeSnapshot.timeRegulating && plan.preferredOrderType == TIMESTAMP) {
     std::vector<std::uint64_t> tsoRecipientIds;
     std::vector<std::uint64_t> allTimestampedRecipientIds;
@@ -379,6 +380,18 @@ MessageRetractionHandle UmbraRtiAmbassador::sendInteraction(
           L"The embedded federation lost the timestamped Send Interaction membership before its accepted boundary.");
     }
   }
+
+  if (messageId != 0U) {
+    std::scoped_lock lock(ambassadorFederationManagementMutex());
+    auto scheduled = embeddedFederationRegistry().reevaluateTimeAdvanceGrants(
+        *federationName);
+    if (scheduled.status != umbra::detail::FederationTimeGrantStatus::applied) {
+      throw RTIinternalError(
+          L"The embedded federation could not re-evaluate pending time advances after timestamped interaction admission.");
+    }
+    newlyEligibleTimeGrants = std::move(scheduled.dispatches);
+  }
+  submitAmbassadorTimeAdvanceGrantDispatches(std::move(newlyEligibleTimeGrants));
 
   // The first public slice queues TSO for time-constrained recipients. A
   // non-time-constrained recipient still receives the timestamped callback

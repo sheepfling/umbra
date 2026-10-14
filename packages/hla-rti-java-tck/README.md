@@ -10,8 +10,8 @@ the evidence model and provider-matrix workflow.
 
 ## Scope
 
-The catalog currently contains 92 scenarios. The default lane covers factory discovery,
-standard encoding, federation creation/join/resign/destroy/query, ordinary
+The catalog currently contains 502 scenarios. The default lane covers factory discovery,
+basic and composite standard encoding, federation creation/join/resign/destroy/query, ordinary
 publication/subscription, named and unnamed object registration and discovery,
 single and multiple name-reservation callbacks, released-name reuse after object
 deletion, instance- and class-scoped attribute value update requests, attribute
@@ -21,12 +21,398 @@ advisories, directed interactions, derived-target subscription eligibility,
 and transportation/order controls. The `java-tck.callback-reentrancy` case
 checks the official API's callback-service exception boundary; because the
 Requirements Lab has no standalone normative requirement for re-entry, it is
-classified as API/exception traceability rather than conformance evidence.
+classified as API/exception traceability rather than conformance evidence. It
+is parity-linked to `cpp-tck.callback-reentrancy`; Java provider runtime remains
+unverified, so it is unsupported by default.
+The `java-tck.null-federate-ambassador` case invokes every official
+`FederateAmbassador` callback overload through `NullFederateAmbassador`,
+including timestamped and directed callbacks, and passes independently of
+federation/FOM setup on the local JNI provider.
+The `java-tck.authorizer-factory-factory` case discovers the standard named
+authorizer factory and authorizer and verifies unknown-name rejection; it also
+passes without federation/FOM setup on the local JNI provider.
+The `java-tck.configuration-authorization-contract` case covers Java builder
+accessors, configuration results, information values, standard credentials,
+password encoding/decoding, and authorizer dispatch. It passes without
+federation/FOM setup. Unlike C++ `VariableLengthData`, Java `Credentials`
+exposes its byte array directly, so the test does not impose C++ copy semantics
+on the Java API.
+The C++ `VariableLengthData` ownership/pointer-adoption contract has no direct
+Java equivalent: the standard Java API uses `byte[]` and does not define pointer
+ownership or adoption. The Java catalog records this as not applicable instead
+of mapping it to a broad API-inventory test.
+The `java-tck.data-element-base-contract` case exercises the shared Java
+`DataElement` contract for encoded length, octet boundary, full encoding,
+positioned `ByteWrapper` encoding/decoding, and truncated input rejection. It
+passes without federation/FOM setup. Java's `DataElement` interface does not
+expose the C++ clone, type-comparison, hash, `encodeInto`, or `decodeFrom`
+members, so those C++-specific methods are not claimed as Java parity.
+The `java-tck.handle-collection-values` case exercises standard attribute
+handle-set and attribute/parameter value-map factories, set/map clone
+independence, attribute/region pair-list cloning, save/restore status value
+records, and `RangeBounds` value equality. It passes without federation or FOM
+setup. It covers the shared Java surface only; C++-specific handle default
+construction, parameter-handle sets, and vector copy/assignment semantics are
+not claimed as Java parity.
+The `java-tck.standard-enumeration-contract` case mirrors the promoted C++ enum
+contract across all eleven corresponding Java enum families. It checks each
+official enum's exact standard constant-name set without requiring a federation,
+FOM, or provider-specific behavior; this is API-contract evidence, not a claim
+about provider runtime behavior.
+The `java-tck.standard-exception-hierarchy` case translates the common subset
+of the promoted C++ exception contract: all 100 shared exception types must
+construct through the standard Java `RTIexception` base and preserve their
+standard name and message. Java copy/assignment and stream behavior, plus C++
+exception types without direct Java counterparts, remain explicitly unclaimed.
+The `java-tck.basic-data-elements` case independently covers the standard scalar
+basic-data-element contract, including exact wire vectors, round trips, and
+malformed scalar decoding; it passes on the local JNI provider. This is linked
+to the promoted C++ basic-data-elements contract. The `java-tck.encoder-round-trip`
+case covers fixed and variable arrays
+(including the empty-array count prefix), aligned records, variant records,
+and extendable variant records. Its wire
+checks are paired with the promoted C++ composite-data-elements contract;
+runtime validation currently exposes an unknown-discriminant variant getter
+behavior difference in the available provider.
+The `java-tck.malformed-inputs` scenario now mirrors the promoted C++ case:
+it rejects missing and malformed FOM inputs, adapter-supplied invalid FOM
+modules, and truncated `HLAinteger32BE` data, then disconnects through the
+standard Java API. The adapter supplies invalid modules through
+`hla.rti.tck.invalidFomModules`. Both `java-tck.malformed-inputs` and
+`java-tck.support-services` pass the adapter's MIM explicitly through the
+standard `createFederationExecutionWithMIM` service.
+The `java-tck.support-services` case also checks that public name-based
+support lookups and service-group normalization reject calls before connect
+and before federation join, using the adapter's callback model, and complements
+those lifecycle gates with joined-state handle checks.
+The `java-tck.standard-order-transportation-lookups` case also verifies that
+each federate's standard transportation-handle factory defaults match the
+handles returned by the standard `HLAreliable` and `HLAbestEffort` name lookups.
+The `java-tck.logical-time-factory` case now mirrors the C++ lifecycle gates
+for `getTimeFactory` before connection and after connection but before join,
+and uses the adapter-selected callback model. It round-trips initial/final time
+values and zero/epsilon intervals through the provider-selected standard
+factory, checks offset encoding boundaries, ordering and arithmetic, and rejects
+empty encodings. C++ mutable boundary setters and `HLAlogicalTime` DataElement
+wrappers have no direct Java equivalent; the catalog marks those C++ slices
+non-applicable rather than claiming Java parity. Federation-backed checks still
+require a provider that can create an execution with adapter-supplied FOM/time
+inputs.
+The `java-tck.overloads-and-exceptions` connection slice now covers all four
+standard Java `connect` overloads plus the adapter-configured
+`RtiConfiguration` overload, validates the standard additional-settings result
+codes, and checks pre-connect service exceptions, duplicate connect, callback
+disable/enable and empty-queue servicing, and reconnecting the same ambassador.
+It uses the adapter-selected callback model and passes on the local JNI provider
+in both callback modes. The C++ pre-connect `disconnect`
+exception assertion is intentionally not translated because the Java standard
+API does not declare `NotConnected` for `disconnect`.
+Optional standard connection settings for this scenario come from adapter JVM
+properties `hla.rti.tck.configurationName`, `hla.rti.tck.rtiAddress`, and
+`hla.rti.tck.additionalSettings`; they default to empty and stay outside the
+portable scenario implementation.
+The `java-tck.factory-discovery` slice also mirrors the promoted C++
+four-octet `HLAinteger32BE` encode/decode check through the discovered standard
+encoder factory, the stable non-empty runtime name/version contract, and
+repeated standard ambassador construction; the expanded scenario passes on
+the local JNI provider.
+The `java-tck.transport-order` scenario also checks standard invalid-class,
+invalid-attribute, unknown-object, and invalid-transportation boundaries for
+default/per-instance order and transportation services, plus unpublished
+interaction-order and invalid published-transport requests. It now uses the
+adapter-selected callback model and checks the distinct immediate-versus-evoked
+transport-change commit behavior for both attributes and interactions.
+The federation restore ownership-assumption scenario also preserves pending
+object-discovery and ownership-assumption callbacks across a complete save and
+restore under both callback models, and checks that ownership is not transferred
+before the restored callback is serviced.
+The `java-tck.ownership-acquisition-publication-fence` scenario uses the
+adapter-supplied multi-attribute FOM from `hla.rti.tck.multiAttributeFom`. It
+checks that publication gates acquisition, an If Available request is
+superseded by a regular mixed-attribute request, only the owned subset prompts
+release, and a pending attribute cannot be unpublished before release denial.
+The `java-tck.partial-attribute-ownership-transfer` case uses the
+adapter-supplied multi-attribute FOM and logical-time implementation. It cancels
+one attribute from a two-attribute acquisition, then verifies that If Wanted
+divests and notifies only the remaining requested attribute.
+The `java-tck.negotiated-divestiture-partial-acquisition-cancellation` case
+uses the adapter-supplied multi-attribute FOM and logical-time implementation.
+It confirms negotiated divestiture transfers only the still-requested attribute
+after the other acquisition is canceled, with callback payloads checked for
+both callback models.
+The `java-tck.negotiated-divestiture-pre-delivery-cancellation` case uses the
+adapter FOM and logical-time implementation. In the evoked model, it verifies
+that canceling before callback servicing suppresses both queued owner callbacks,
+then cancels the pending negotiated divestiture and confirms ownership is
+unchanged.
+The `java-tck.negotiated-divestiture-cancellation` case follows the standard
+two-federate acquisition path, checks the confirmation carries the acquisition
+tag, cancels the negotiated divestiture, and verifies that the ordinary release
+request is restored without changing ownership. It uses byte-array tags and
+adapter-supplied federation inputs; provider runtime remains unverified.
+The `java-tck.negotiated-willing-to-acquire-continuation` case also uses the
+adapter FOM and logical-time implementation. It checks that a canceled first
+candidate does not block the second willing candidate from receiving the
+negotiated transfer; immediate delivery uses the equivalent regular pending
+request path because If Available completes as unavailable immediately.
+The `java-tck.resign-pending-acquisition-rejection` case verifies the standard
+`OwnershipAcquisitionPending` failure for unconditional resign, confirms the
+federate remains joined, then cancels the request through the specified resign
+action and checks that evoked cleanup produces no stale owner-release callback.
+The `java-tck.resign-cancel-if-available-pending` case resigns with
+`CANCEL_PENDING_OWNERSHIP_ACQUISITIONS` while an If Available request is pending,
+then confirms the current owner is unchanged and no unavailable/acquisition
+callback remains queued after cancellation.
+The `java-tck.resign-cancel-negotiated-pending` case queues a negotiated
+divestiture, resigns the requester with the same cancellation action, and checks
+after bounded owner callback servicing that neither divestiture-confirmation nor
+release-request callbacks remain and ownership stays with the original owner.
+The `java-tck.divestiture-if-wanted-mixed-acquirers` scenario uses that same
+adapter-supplied FOM. It verifies that If Wanted is a no-op without pending
+acquirers, then transfers two attributes to independent requesters with the
+exact divestiture tag. With immediate callbacks, If Available is first observed
+as unavailable before a regular pending acquisition is used for the transfer.
+The `java-tck.ownership-state-save-restore` case completes an ordinary negotiated
+transfer before saving, restores that completed owner state, and confirms it
+through both `isAttributeOwnedByFederate` and `queryAttributeOwnership`. Cleanup
+unconditionally divests the acquirer and leaves the prior owner with `NO_ACTION`,
+matching the portable C++ scenario's resign boundary.
+The `java-tck.attribute-ownership-acquisition-cancellation` case ports the
+ordinary cancellation contract, including pre-request/owned-attribute failures,
+the cancellation confirmation metadata, no acquisition notification, and
+preserved ownership after cancellation.
+The `java-tck.attribute-ownership-release-denied` case verifies the exact
+ownership-release request and unavailable callback payloads, unchanged ownership
+before and after denial, and the absence of an acquisition notification.
+The `java-tck.attribute-ownership-query-owner-report` case checks the exact
+`informAttributeOwnership` object, attribute set, and federate handle, then
+rechecks that querying did not change ownership.
+The `java-tck.ownership-query-partition-cleanup` scenario uses the adapter's
+multi-attribute FOM configured with `hla.rti.tck.multiAttributeFom` and the
+multi-attribute class/name properties. It checks the owned/unowned callback
+partition, invalid object/attribute failures, and that removal suppresses stale
+query results.
+The `java-tck.ownership-query-save-restore-results` scenario uses the
+adapter-supplied multi-attribute FOM configured with
+`hla.rti.tck.multiAttributeFom` and the existing multi-attribute class/attribute
+name properties. It saves an owner/unowned split, changes the live owner,
+restores the saved state, then checks federate-owned, unowned, and RTI-owned
+MOM query results through the standard callbacks.
+The `java-tck.auto-provide` case verifies the configured standard Auto Provide
+switch, object discovery, and one provider callback carrying both subscribed
+attributes and an empty tag under either callback model.
+The `java-tck.auto-provide-disabled-explicit-request` case verifies discovery
+continues with Auto Provide disabled, while explicit object- and class-scoped
+value requests each produce one callback preserving their supplied tag.
+The companion discovery-only case verifies that disabling Auto Provide
+suppresses only the provider solicitation; normal object discovery still arrives.
+The inherited-attribute projection case checks base and derived subscriptions
+against a derived object update, including handle stability, identity round-trips,
+callback metadata, and the exact inherited/derived attribute sets.
+The `java-tck.delay-subscription-evaluation-interaction` case checks the standard
+switch with a composed adapter FOM, callback-boundary delivery after subscription,
+and suppression when an interaction is unsubscribed before queued callbacks are
+serviced. Supply the switch declaration module with
+`-Dhla.rti.tck.switchesFom=<adapter FOM>`; no provider-specific API is used.
+The companion `java-tck.delay-subscription-evaluation-attribute-update` case
+checks known-object discovery, late ordinary attribute subscription, callback
+metadata, and suppression after unsubscribe under the same standard switch.
+The timestamped attribute counterpart evaluates the same declaration change at
+the constrained time-grant boundary and checks timestamp, order, retraction, and
+delivery metadata. It uses no DDM regions.
+The timestamped interaction counterpart checks delivery after late subscription
+at the constrained grant and confirms unsubscribe suppresses a later queued
+interaction, including its timestamp and retraction metadata.
+The ordinary directed-interaction counterpart exercises by-ownership target
+selection, late subscription, and callback-boundary unsubscribe suppression;
+it uses no DDM regions.
+Its timestamped counterpart applies the same selector checks at constrained
+time grants and verifies target, timestamp, order, retraction, and producer
+metadata, also without DDM.
+The focused `java-tck.asynchronous-delivery` scenario gates receive-order
+attribute reflection while asynchronous delivery is disabled, then verifies
+release on re-enablement, callback servicing in evoked mode, and the repeated
+disable/re-enable boundary. It uses only the 2025 Java API and remains
+unsupported by default until run against an adapter-supplied Java provider.
+The opt-in `java-tck.update-rate-queries` scenario checks adapter-defined named
+rate lookup, active and passive named subscriptions, default-rate behavior,
+per-attribute rate reset, and invalid designator/object/attribute failures.
+The FOM, object class, attribute, update-rate designator, provider, and callback
+model are adapter-supplied; the scenario uses only the official Java 2025 API
+and remains unverified against a Java provider runtime.
+The opt-in `java-tck.fom-transportation-handle-stability` scenario verifies
+that built-in and custom transportation handles survive an additional-module
+join, while the newly introduced transportation type becomes available with
+one shared handle and round-trips by name. The rich base FOM, extension module,
+transportation names, provider, and callback model are adapter-supplied; Java
+provider runtime verification remains pending.
+The opt-in `java-tck.fom-module-composition` scenario composes the adapter's
+base and extension modules both at federation creation and at a later join,
+then verifies extension object/attribute and interaction/parameter declaration
+identity and ordinary delivery. All module paths and extension names are
+adapter-supplied; Java provider runtime verification remains pending.
+The federate MOM publication-query cases check ordinary object and interaction
+publication reports, including partial/full attribute withdrawal and whole-class
+withdrawal. The opt-in partial interaction-class withdrawal case publishes two
+adapter-named ordinary classes, unpublishes the secondary, and checks that the
+fresh MIM report contains only the retained primary class. Supply the second
+class with `--jvm-argument=-Dhla.rti.tck.secondaryInteractionClass=<class>`;
+FOM, MIM, names, provider, and callback model remain adapter supplied.
+The companion full-withdrawal case removes both classes and checks the exact
+MIM NULL response with one empty interaction-class list.
+The multi-directed-publication query publishes adapter-selected directed
+interactions for two object classes and verifies both standard MIM report rows,
+their object-class identities, interaction lists, and total class count. Supply
+the second object class with
+`--jvm-argument=-Dhla.rti.tck.secondaryDirectedObjectClass=<class>`; the second
+directed interaction uses `hla.rti.tck.directedInteractionClass`.
+The partial-unpublication companion removes the inherited interaction only from
+the derived class and verifies that its class-specific interaction and the
+base-class inherited publication remain in the two MIM report rows.
+The full-unpublication case first verifies that partial state, then removes all
+directed publications from both classes and checks the exact zero-count NULL
+report while ordinary publications remain unchanged.
+The matching directed-subscription query subscribes to one adapter-selected
+interaction under each object class, verifies both inactive standard MIM rows,
+then set-unsubscribes the primary pair and verifies only the secondary row
+remains. It also checks the unchanged NULL reports for ordinary subscriptions.
+Its full-unsubscribe companion preserves both earlier query states, removes the
+remaining class subscription with the class-scoped standard API, and checks the
+exact two-parameter directed NULL response (zero class count and empty list)
+alongside unchanged ordinary subscription NULL reports.
+The full interaction-unsubscription companion removes the remaining active
+application class after the passive MIM class, then checks the empty interaction
+list NULL report while object and directed subscription reports remain present.
+The passive-to-active activation case checks the interaction-list state before
+and after activation while preserving the active object-attribute report and
+empty directed-subscription response. Supply the adapter's rate FOM with
+`-Dhla.rti.tck.updateRateFom=<FOM>` and its designator with
+`-Dhla.rti.tck.updateRateDesignator=<name>`.
+The complete object-class subscription case requests three distinct
+adapter-configured attributes and verifies that exact active set and rate in
+the standard MIM report; configure the second and third attributes with
+`hla.rti.tck.objectClassSecondAttribute` and
+`hla.rti.tck.objectClassThirdAttribute`.
+The passive companion uses the standard passive attribute-set subscription
+operation and verifies that the same complete attribute list and rate are
+reported with the active flag false.
+The complete-set activation case first verifies that passive report, then uses
+the standard active subscription call and requires the next MIM report to retain
+all three attributes and the rate designator with active=true.
+The partial attribute-unsubscribe case starts with two active attributes, removes
+the first through the standard attribute-set service, and verifies that only the
+second remains with the same active state and update-rate designator.
+Its full-unsubscribe companion removes both attributes in one standard set call,
+then checks the zero-class object-subscription NULL response and unchanged
+interaction and directed-subscription NULL reports.
+The multiple-interaction-subscription case checks an active adapter-selected
+application interaction and a passive standard MIM service-report interaction
+in the same report, plus the unchanged empty object and directed subscription
+NULL reports.
+The companion staged-unsubscribe case removes the passive service-report class,
+queries again, and verifies the active application interaction is the sole
+remaining interaction subscription while the other two NULL reports remain.
+The opt-in `java-tck.fom-additional-module-join-atomicity` scenario retries a
+member join with each adapter-supplied invalid FOM input, verifies the failure
+is a standard FOM-loading/rejection exception and that membership/declarations
+remain unchanged, then checks that a valid extension join succeeds. Supply
+invalid paths through `hla.rti.tck.invalidFomModules`, separated by the
+platform path separator.
+The opt-in `java-tck.fom-update-rate-value-stability` scenario verifies an
+existing named update rate retains its value across a later FOM join and that
+the new member resolves the same positive value for an extension rate. The rate
+FOM, extension module, and both rate names are adapter-supplied.
+The opt-in `java-tck.fom-invalid-create-atomicity` scenario retries federation
+creation with each adapter-supplied invalid FOM path, then creates and joins a
+valid federation using the same name to prove failures did not reserve it.
+The opt-in `java-tck.fom-invalid-composite-join-atomicity` case passes each
+invalid module together with the valid extension module, verifies atomic
+rejection, then confirms the valid join works after all failures.
+The opt-in `java-tck.fom-invalid-mim-create-atomicity` scenario exercises the
+standard `createFederationExecutionWithMIM` overload with each adapter-supplied
+invalid MIM path, then reuses the federation name with valid FOM/MIM inputs.
+The opt-in `java-tck.fom-invalid-composite-mim-create-atomicity` scenario
+combines each adapter-supplied invalid FOM module with the valid FOM/MIM inputs,
+checks standard FOM rejection, and then proves a valid MIM-backed create under
+the same federation name succeeds. The opt-in
+`java-tck.fom-empty-mim-create-atomicity` case requires an empty FOM module array
+to fail with `InvalidFOM`, then retries with valid FOM/MIM inputs under the same
+federation name and checks both members' handles.
+The opt-in `java-tck.fom-empty-module-validation` case performs the same
+name-reuse check using standard Create Federation Execution without MIM.
+The opt-in `java-tck.fom-standard-invalid-input-corpus` case accepts a
+platform-path-separator-delimited adapter corpus of semantic-invalid FOM files;
+each rejected input is followed by valid create/join/destroy using the same
+federation name.
+The opt-in `java-tck.fom-dimension-handle-stability` case checks base and
+extension dimension metadata and object/interaction-class associations across
+FOM composition. It uses no DDM region services; the FOMs, dimensions, and class
+names are adapter-provided.
 The
 directed derived-object target scenario uses adapter-selected typed model-FOM
 names and verifies typed parameter delivery only at the registered target,
 excluding an observer without a directed subscription. It remains unsupported
 by default pending execution against a Java provider.
+
+The opt-in `java-tck.custom-transportation-directed-interaction-delivery` case
+uses adapter-selected object/interaction/parameter names and a FOM-defined
+transportation type to check targeted and universal directed delivery, including
+target, value, tag, producer, and transportation metadata. It remains unsupported
+by default until exercised against a Java provider.
+
+The opt-in `java-tck.support-lookups-valid-inputs-after-resignation` case first
+proves adapter-supplied class/member handles round-trip while joined, then checks
+that the corresponding eight handle/name lookups report
+`FederateNotExecutionMember` after resignation.
+
+The opt-in `java-tck.update-rate-lookups-valid-inputs-after-resignation` case
+uses adapter-supplied rate FOM inputs to verify both named and
+object-attribute update-rate lookups while joined and their membership errors
+after resignation.
+
+The opt-in `java-tck.timestamped-attribute-update-rate-reduction` case checks
+timestamped best-effort suppression while reliable attribute updates continue
+to arrive. Its adapter supplies `hla.rti.tck.updateRateFom`,
+`hla.rti.tck.updateRateObjectClass`,
+`hla.rti.tck.updateRateReliableAttribute`,
+`hla.rti.tck.updateRateBestEffortAttribute`, and
+`hla.rti.tck.updateRateDesignator`, along with the provider's standard logical-
+time and callback configuration.
+
+The opt-in `java-tck.mixed-update-rate-subscriptions` case uses the same
+adapter inputs to verify ordinary receive-order updates are independently
+gated: the first passel includes both attributes, while the next still
+delivers the default-rate reliable attribute without repeating the named-rate
+best-effort attribute.
+
+The opt-in `java-tck.attribute-relevance-rate-reissue` case verifies owner-side
+Turn Updates On reissues as the maximum active subscription rate changes among
+two subscribers. It uses the shared rate FOM/object/attribute properties plus
+`hla.rti.tck.updateRateFastDesignator`; the adapter supplies both distinct
+designators and their positive rate ordering.
+
+The opt-in `java-tck.standard-order-transport-lookups-after-resignation` case
+checks the mandatory `Receive`/`TimeStamp` orders and `HLAreliable`/
+`HLAbestEffort` transportation types, including their membership errors after
+resignation.
+
+The opt-in `java-tck.support-switch-getter-lifecycle-boundaries` case exercises
+all thirteen standard support-switch getters while joined, after resignation,
+and after disconnect, checking the corresponding lifecycle exceptions.
+
+The opt-in `java-tck.support-switch-setter-lifecycle-boundaries` case reads and
+reapplies each writable switch's current value while joined, then verifies all
+eight setters report the expected membership and connection errors.
+
+The opt-in `java-tck.resign-unconditional-divestiture` case verifies that
+`NO_ACTION` is rejected while attributes remain owned, then checks the standard
+unconditional-divestiture assumption and the surviving peer's tagged acquisition,
+including the implicit `HLAprivilegeToDeleteObject` attribute.
+
+The opt-in `java-tck.final-federate-resignation-cleanup` case verifies that a
+final member's `NO_ACTION` resignation removes its registered object and frees
+the former object name for reservation and named registration after rejoining.
+It remains unsupported by default until exercised against a Java provider.
 
 The `java-tck.federation-membership` scenario also covers the unnamed
 two-argument join overload: it verifies that the RTI-assigned federate name
@@ -35,6 +421,41 @@ in the standard member-report callback. It also verifies both immediate and
 evoked federation-list callback behavior across two live executions, including
 that disconnect discards an unserviced evoked report. It distinguishes a
 never-created federation from a destroyed federation in member-list callbacks.
+
+The focused `java-tck.duplicate-federate-name-join-boundary` scenario checks
+that a second ambassador receives the standard `FederateNameAlreadyInUse`
+exception for an occupied name, can then join under a distinct name, and can
+resolve both federate handles and names through the standard API. Its ID is
+paired with the equivalent portable C++ scenario.
+
+The focused `java-tck.repeated-join-by-member-boundary` scenario checks that
+an ambassador already joined to an execution receives
+`FederateAlreadyExecutionMember` when it tries to join that execution again,
+and that the original membership remains queryable afterward.
+
+The focused `java-tck.foreign-federate-name-lookup-boundary` scenario creates
+two executions and verifies that each member name resolves only within its
+own execution, with `NameNotFound` for the foreign execution's name.
+
+The focused `java-tck.foreign-object-instance-name-lookup-boundary` scenario
+reserves and registers one named object in each execution, verifies local name
+round-trips, and expects `ObjectInstanceNotKnown` when the local member looks
+up the foreign execution's object name.
+
+The focused `java-tck.foreign-object-instance-handle-lookup-boundary` case
+checks execution scope in the reverse direction: it selects a foreign object
+handle that cannot be confused with the local handle and expects
+`ObjectInstanceNotKnown` when the local member queries it.
+
+The focused `java-tck.local-delete-object-instance-name-lookup-boundary`
+case checks that a member forgets a discovered object locally and can no longer
+resolve its handle, while the publishing member retains its object name until
+the normal deletion service is called.
+
+The focused `java-tck.remote-delete-known-object-class-lookup-boundary` case
+checks that the deleting member loses known-class lookup immediately, the
+other member receives the standard removal callback, and that member then
+also receives `ObjectInstanceNotKnown` for the removed handle.
 
 The opt-in `java-tck.explicit-mim-creation` scenario uses only the standard
 `createFederationExecutionWithMIM` API. Enable it in the provider capability
@@ -51,10 +472,20 @@ verifies that an additional-module join refreshes the reflected FDD and that a
 subsequent explicit value request returns the same composition.
 
 The opt-in `java-tck.federation-mom-fom-module-designator-list` scenario uses
-the same adapter-supplied base FOM, MIM, and extension FOM. It decodes the
-standard `HLAFOMmoduleDesignatorList` as a variable array of Unicode strings,
-compares designators without assuming array order, and checks that the list
-changes after an additional-module join and matches a later explicit request.
+the adapter-supplied base FOM and MIM plus one or more additional FOM modules
+(`-Dhla.rti.tck.additionalFomModules=...`, paths separated by the platform
+path separator). It decodes the standard `HLAFOMmoduleDesignatorList` as a
+variable array of Unicode strings, compares designators without assuming array
+order, and checks that the list changes after an additional-module join and
+matches a later explicit request. The callback assertion also checks the
+standard transport, tag, producer, and DDM-region metadata.
+
+The opt-in `java-tck.federate-mom-fom-module-content-report` scenario requests
+one joined federate's FOM module through the standard federate MOM. The adapter
+supplies the base FOM, standard MIM, additional FOM module, logical-time
+implementation, callback model, and federate type. The test verifies the
+standard request/report handles and parameter names, reliable report delivery,
+the selected module indicator, and returned FOM XML content.
 
 The opt-in `java-tck.federation-mom-static-identity` scenario consumes the
 adapter-supplied FOM, standard MIM, logical-time implementation, and callback
@@ -150,6 +581,64 @@ attribute sets and request tags, and verifies each ordinary response's values,
 tag, producer, reliable transportation, and receive-order metadata. It remains
 unsupported by default until run against a Java provider.
 
+The opt-in `java-tck.regional-multi-attribute-update` scenario uses an
+adapter-supplied multi-attribute FOM configured with
+`hla.rti.tck.multiAttributeFom`, the existing multi-attribute object/attribute
+name properties, and two dimensional names. It independently associates each
+published attribute with a different source region, verifies projection to two
+subscribers, mutates each source range to test independent filtering, then
+restores overlap and checks delivery resumes with the correct source-region
+metadata. It remains unsupported by default pending Java-provider runtime
+verification.
+
+The opt-in `java-tck.allow-relaxed-ddm` scenario composes the adapter-supplied
+dimensional DDM FOM with and without its switch-declaration FOM. Across both
+object and interaction paths, it verifies that regions touching at their
+boundary are filtered in strict mode and admitted when the standard
+`getAllowRelaxedDDMSwitch` reports enabled, including source-region callback
+metadata. Configure the object, attribute, interaction, parameter, and two
+dimension names through the adapter. Provider runtime verification remains
+pending.
+
+The opt-in `java-tck.regional-three-dimensional-overlap` scenario uses an
+adapter-supplied three-dimensional FOM configured with
+`hla.rti.tck.threeDimensionalFom`, the existing DDM object/attribute names, and
+the first, second, and `hla.rti.tck.ddmThirdDimension` dimension names. It
+verifies discovery and reflection with complete three-axis overlap, suppresses
+reflection when each source axis is made disjoint in turn, then confirms
+delivery resumes after restoring overlap. It remains unsupported by default
+pending Java-provider runtime verification.
+
+The opt-in `java-tck.regional-declaration-relevance-advisories` scenario uses
+the adapter-supplied DDM FOM and the configured object class, attribute,
+interaction class, and two dimensions. It verifies passive regional object and
+interaction subscriptions produce no relevance advisory, active declarations
+produce the corresponding start-registration and turn-interactions-on callbacks,
+and unsubscription produces the matching stop/off callbacks. Runtime
+verification against an installed Java provider remains pending.
+
+The opt-in `java-tck.ownership-transfer-regional-update` scenario uses the
+adapter-supplied dimensional DDM FOM and configured object, attribute, and
+dimension names. It transfers an attribute to a new owner, checks that the
+former owner's regional update association is not inherited, then explicitly
+associates the new owner's region and verifies the new source-region designator.
+It covers both callback models and remains pending Java-provider runtime
+verification.
+
+The opt-in `java-tck.ownership-transfer-deferred-regional-update` scenario
+stages the new owner's region association before transfer. It proves the current
+owner's updates continue to carry the current owner's region, then transfers the
+attribute and verifies the staged region becomes the new update source without
+a second association call. Provider runtime verification remains pending.
+
+The opt-in `java-tck.attribute-scope-advisories` scenario checks regional
+scope-in/scope-out callbacks caused by source reassociation and active
+subscribe/unsubscribe transitions, confirms the standard attribute-scope switch
+suppresses both directions, and tests stale in-scope callback suppression when
+the region becomes disjoint before EVOKED callbacks are serviced. It uses the
+adapter-supplied DDM FOM and names; provider runtime verification remains
+pending.
+
 The default `java-tck.object-removal-multi-recipient-fifo` scenario deletes two
 ordinary objects in sequence and verifies that each of two subscribers receives
 both removals in producer order with the corresponding object, tag, and producer
@@ -174,6 +663,27 @@ The publisher must receive no reflection. Provider, FOM, endpoint, and callback
 model remain adapter-configured; runtime verification against a Java provider is
 required before enabling it by default.
 
+The opt-in `java-tck.receive-order-attribute-update` scenario checks adapter-name
+handle round trips, the evoked callback-servicing boundary, and two consecutive
+ordinary updates with exact object, attribute, value, tag, producer, receive-order,
+and transportation metadata. The publisher must receive no reflection. It is
+paired with the promoted C++ scenario and remains unsupported by default until
+executed against a Java 1516.1-2025 provider.
+
+The opt-in `java-tck.interaction-declarations-valid-inputs-after-resignation`
+scenario confirms a valid adapter-supplied interaction handle/name round trip,
+exercises ordinary publication and subscription while joined, then verifies the
+four membership-sensitive services report `FederateNotExecutionMember` after
+resignation. It is paired with the promoted C++ scenario and remains unsupported
+by default until executed against a Java 1516.1-2025 provider.
+
+The opt-in `java-tck.interaction-transportation-query-valid-inputs-after-resignation`
+scenario queries a valid active publisher for the adapter-configured interaction
+class, verifies the reported federate/class and resolvable transportation name,
+then checks `FederateNotExecutionMember` for the same query after requester
+resignation. It is paired with the promoted C++ scenario and remains unsupported
+by default until executed against a Java 1516.1-2025 provider.
+
 The opt-in `java-tck.directed-interaction-declarations-valid-inputs-after-resignation`
 scenario uses the adapter's valid object-class/directed-interaction FOM
 association and checks successful set and whole-class publication/subscription
@@ -190,6 +700,24 @@ success indicator, empty exception, initial serial number, reliable transport,
 empty tag, and absence of regions. Its C++ base scenario passed independent
 installed-package runs in both callback models; Java provider execution remains
 unsupported by default pending verification with a Java provider.
+
+The opt-in `java-tck.service-report-query-galt` scenario uses the adapter's FOM,
+standard MIM, logical-time implementation, and callback model. It establishes a
+time regulator, checks the defined GALT directly, then validates the successful
+`HLAreportServiceInvocation`, including its standard parameter set and returned
+GALT argument. It is paired with the promoted C++ scenario. The local JNI
+provider currently returns `ErrorReadingMIM` while creating the federation with
+the official, XML-well-formed 2025 MIM, before scenario assertions; it remains
+unsupported by default while the adapter/provider artifacts are reconciled.
+
+The opt-in `java-tck.service-report-next-message-request-available-boundary`
+scenario translates the promoted C++ boundary case. It queues a timestamped
+interaction, invokes standard `nextMessageRequestAvailable`, checks the MOM
+report's encoded logical-time argument, and then checks delivery/grant at the
+queued message time. It uses only the standard Java API and adapter-supplied
+FOM, MIM, interaction/parameter names, logical-time implementation, and
+callback model. It remains unsupported by default until a compatible provider
+passes runtime verification.
 
 The opt-in `java-tck.service-report-resign-federation-execution` scenario uses
 the same adapter inputs and checks that the observer receives the standard
@@ -223,6 +751,56 @@ requests and a second TAR fail with `InTimeAdvancingState` while a TAR is
 pending, without prematurely completing the original request. It takes the
 callback model from the adapter configuration rather than hard-coding one.
 
+The opt-in `java-tck.timestamped-default-region-attribute-alternate-advances`
+case delivers one ordinary timestamped update to three constrained regional
+subscribers, each using Flush Queue, TARA, or NMRA. It verifies empty source-
+region metadata, exact value/time/producer/order/retraction/transport data,
+reflection-before-grant ordering, each grant and logical-time query, and
+past-time rejection for all three advance services. The adapter supplies the
+dimensional FOM, names, provider, and logical-time implementation; runtime
+verification remains pending.
+
+The `java-tck.timestamped-default-region-attribute-reenable` case uses ordinary
+object registration and a timestamped update with a dimensional regional
+subscription. It disables and re-enables Time Constrained while delivery is
+queued, then verifies the reflection's supplied-empty source-region metadata,
+callback-before-grant ordering, timestamp/value/retraction data, and the
+post-delivery retraction boundary. The provider, dimensional FOM, names,
+logical-time implementation, and callback model are adapter supplied; runtime
+verification remains pending.
+
+The `java-tck.timestamped-default-region-attribute-regulation-reenable` case
+queues an ordinary timestamped update for regional subscribers, disables and
+re-enables Time Regulation with a changed lookahead, and checks that the queued
+reflection remains withheld until advance. It verifies empty source-region
+metadata, the changed lookahead, reflection-before-grant order, grant/query
+times, and the post-delivery retraction boundary. Adapter and provider runtime
+verification remain pending.
+
+The `java-tck.timestamped-default-region-attribute-mixed-fanout` case sends
+one ordinary timestamped update to immediate and time-constrained regional
+subscribers. It verifies the delivered copy's value, tag, producer, time,
+orders, transport, retraction handle, and empty source-region set; retraction
+then reaches only the immediate recipient, while the queued copy is suppressed
+before the constrained grant. Runtime verification remains pending on an
+adapter-supplied provider and dimensional FOM.
+
+The `java-tck.delay-subscription-evaluation-timestamped-regional-attribute-update`
+case repeats the timestamped DSE enabled/disabled comparison with regional
+source association and regional subscriptions. It unsubscribes before sending,
+restores the declaration before the grant, and checks that the enabled switch
+reevaluates the queued update, including its source-region metadata; a later
+update is withheld after unsubscribe. DDM FOM, switch FOM, logical-time
+implementation, names, provider, and callback model are adapter supplied.
+
+The `java-tck.delay-subscription-evaluation-timestamped-regional-interaction`
+case applies the same enabled/disabled grant-boundary comparison to regional
+timestamped interactions. It checks parameter/tag/time/order/producer/transport
+metadata and the exact source-region set when the enabled switch makes the
+late declaration eligible, then confirms a later send is suppressed after
+unsubscribe. DDM and switch FOMs, names, logical time, provider, and callback
+model are adapter supplied; runtime verification remains pending.
+
 The `java-tck.timestamped-attribute-order-cohort` scenario queues updates at
 timestamps 5, 5, and 7 for two constrained recipients. It accepts either order
 for the equal-time pair while requiring both updates before the time-5 grant,
@@ -249,10 +827,40 @@ object, attribute, value, tag, producer, and transport callback data; it remains
 unsupported by default pending Java-provider execution.
 
 The `java-tck.interaction-subscription-lifecycle` scenario exercises passive
-subscription without delivery, activation without replay, reliable interaction
-delivery with exact parameter/tag/producer metadata, downgrade back to passive,
-and unsubscription. Callback mode, FOM, and names are adapter-supplied. It
+and active interaction subscriptions, activation without replay, delivery
+while active, downgrade back to passive, and unsubscription. A passive-only
+declaration does not establish delivery relevance; the test confirms it
+suppresses delivery before activation and after downgrade. Callback model, FOM,
+and names are adapter-supplied; it remains unsupported by default pending
+Java-provider execution.
+
+The opt-in `java-tck.interaction-service-boundaries` scenario verifies that both
+active and passive subscribers receive the same ordinary interaction with the
+adapter's parameter handle, value, tag, producer handle, and resolvable
+transportation metadata. The case is paired with the promoted C++ scenario and
 remains unsupported by default pending Java-provider execution.
+
+The opt-in `java-tck.interaction-order-classification` scenario sends a
+receive-order interaction and then a timestamp-order interaction to the same
+receiver. It verifies distinct callback paths, exact payload and metadata,
+timestamp/retraction/order fields, and timestamped delivery before the matching
+time-advance grant. FOM and logical-time implementation remain adapter-supplied;
+provider runtime verification is still required.
+
+The opt-in `java-tck.attribute-update-order-classification` scenario sends an
+ordinary receive-order attribute update and then a timestamp-order update to
+the same receiver. It verifies distinct reflection callback paths, exact
+payload and metadata, timestamp/retraction/order fields, and timestamped
+delivery before the matching time-advance grant. FOM and logical-time
+implementation remain adapter-supplied; provider runtime verification is
+still required.
+
+The opt-in `java-tck.custom-transportation-interaction-delivery` scenario uses
+the adapter-supplied rich FOM, typed interaction/parameter names, and
+`hla.rti.tck.customTransportationType` to verify custom transportation handle
+name round trips, ordinary interaction callback metadata, and the standard
+interaction transportation query report. The case is paired with the promoted
+C++ scenario and remains unsupported by default pending Java-provider execution.
 
 The `java-tck.interaction-publication-send-fence` scenario verifies that sending
 after unpublication fails with `InteractionClassNotPublished` and produces no
@@ -276,11 +884,86 @@ resolvable transportation, no region routing, and no publisher loopback. FOM,
 interaction and parameter names, and callback model are adapter-supplied; it
 remains unsupported by default pending Java-provider execution.
 
+The opt-in `java-tck.custom-transportation-attribute-delivery` scenario
+registers and discovers an object from the adapter's rich FOM, then verifies an
+ordinary reflected attribute update retains the FOM-declared custom
+transportation type. Configure the names with
+`hla.rti.tck.customTransportationObjectClass`,
+`hla.rti.tck.customTransportationAttribute`, and
+`hla.rti.tck.customTransportationType`; defaults match the repository's TCK
+rich FOM. The scenario is paired with its promoted C++ case and remains
+unsupported by default pending Java-provider execution.
+
+The opt-in `java-tck.custom-transportation-regional-attribute-delivery` case
+reuses the ordinary regional-object routing oracle with adapter-supplied custom
+FOM declarations. It checks named regional registration and discovery, overlap
+filtering, ordinary reflection and regional value-request response, source
+region designators, reassociation, and the declared custom transportation name
+on each delivery. Configure the DDM FOM, object class, attribute, two dimensions,
+and transportation type through the adapter; provider runtime remains pending.
+
+The opt-in `java-tck.custom-transportation-timestamped-attribute-delivery`
+scenario uses the same adapter FOM and names across a publisher, an unconstrained
+receiver, and a time-constrained receiver. It checks timestamp-order metadata
+and custom transportation identity, retracts one queued update before its
+constrained delivery, then verifies a later update reaches its timestamp and
+cannot be retracted after delivery. Configure the object class, attribute, and
+transportation type as above; configure the logical-time implementation through
+the adapter. It is paired with the promoted C++ case and remains unsupported by
+default pending Java-provider execution.
+
+The opt-in
+`java-tck.custom-transportation-timestamped-attribute-alternate-advances` case
+uses the existing three-recipient timestamped-attribute oracle with an
+adapter-declared custom FOM transportation type. It checks custom class,
+attribute, and transport name round trips, then verifies all three alternate
+advance callbacks preserve that transport along with the timestamp, order,
+payload, tag, and retraction handle. Supply the DDM FOM, logical-time
+implementation, names, provider, and callback model through the adapter; runtime
+verification remains pending.
+
+The opt-in
+`java-tck.custom-transportation-timestamped-interaction-delivery` case covers
+ordinary timestamped interaction delivery with the adapter-declared custom
+transportation type. It checks name round trips and callback transport identity,
+payload, tag, producer, logical time, order, and retraction metadata. The adapter
+supplies the FOM, interaction/parameter names, logical-time implementation,
+provider, and callback model; runtime verification remains pending.
+
+The opt-in
+`java-tck.custom-transportation-timestamped-interaction-alternate-advances`
+case reuses the three-recipient timestamped-interaction oracle and verifies the
+adapter-declared custom transportation name round-trips through publisher and
+receivers and is preserved by Flush Queue, TARA, and NMRA delivery. It checks
+timestamp/order, parameter payload, tag, producer, and retraction identity too.
+The adapter supplies the FOM, interaction/parameter names, logical-time
+implementation, provider, and callback model; runtime verification remains
+pending.
+
+The opt-in
+`java-tck.custom-transportation-timestamped-directed-interaction-alternate-advances`
+case extends the timestamped directed-delivery oracle across Flush Queue, TARA,
+and NMRA. It verifies adapter-supplied object, attribute, interaction,
+parameter, and transportation names; target name/handle round trip; and custom
+transport identity on all three timestamped callbacks. The adapter supplies the
+FOM, logical-time implementation, names, provider, and callback model; runtime
+verification remains pending.
+
+The opt-in `java-tck.custom-transportation-timestamped-directed-delivery` case
+translates the standard single-TAR directed timestamped route with an
+adapter-declared custom transport. It checks object/attribute/interaction/
+parameter and transport name round trips, discovery, timestamp/order/tag/
+retraction metadata, and the custom transport reported in the delivery callback.
+The adapter supplies the rich FOM, logical-time implementation, provider, and
+callback model; provider runtime verification remains pending.
+
 The `java-tck.directed-interaction-target-lifecycle` scenario verifies directed
 delivery to a discovered object target, cancellation/restoration across
 selective subscription and publication changes, callback metadata and delivery
 ordering across target deletion, the standard removal callback, and rejection
-of a later send to the deleted target. The callback model is selected by the
+of a later send to the deleted target. An independent `HLA_IMMEDIATE` observer
+checks target discovery and directed deliveries even when the adapter-selected
+receiver uses evoked callbacks. The primary callback model is selected by the
 adapter; the case imports only the IEEE 1516.1-2025 Java API.
 
 The `java-tck.directed-interaction-subscription-kind` scenario distinguishes
@@ -335,12 +1018,30 @@ update reaches only the still-subscribed receiver. The provider-compatible FOM,
 class and attribute names, and callback model are adapter-supplied; it remains
 unsupported by default pending Java-provider execution.
 
+The `java-tck.modify-lookahead-contract` scenario checks Query Lookahead,
+immediate increase, invalid zero rejection without mutation, deferred decrease
+until a Time Advance Grant, and the evoked-mode `InTimeAdvancingState` boundary
+while a TAR is pending. It uses the adapter's FOM, logical-time implementation,
+and callback model, and only the official IEEE 1516.1-2025 Java API. It is
+unsupported by default until executed against a compatible 2025 provider.
+
+The `java-tck.modify-lookahead-service-report` scenario composes the adapter's
+FOM and standard MIM, requests a lower lookahead while time regulating, verifies
+that the change remains deferred, and checks the resulting standard
+`HLAreportServiceInvocation`: service identity/type, success, argument type/name
+and requested interval, null return, serial number, federate identity, and
+callback metadata. Provider, FOM/MIM, logical-time implementation, and callback
+model remain adapter inputs; runtime verification is pending.
+
 The `java-tck.timestamped-interaction-mixed-advances` scenario sends the same
 timestamped interaction to three constrained receivers, advanced respectively
 by Flush Queue, Time Advance Request Available, and Next Message Request
-Available. It checks callback-before-grant ordering, payload and tag, producer,
-time/order/retraction metadata, grant times, and logical-time queries. It remains
-unsupported by default until run through a compatible provider adapter.
+Available. The publisher advances to one lookahead before the interaction
+timestamp, making the message time the inclusive GALT boundary for the two
+available-advance receivers. It checks callback-before-grant ordering, payload
+and tag, producer, time/order/retraction metadata, grant times, and logical-time
+queries. It remains unsupported by default until run through a compatible
+provider adapter.
 
 The `java-tck.timestamped-directed-alternate-advances` scenario applies the
 same Flush Queue, TARA, and NMRA comparison to directed interactions addressed
@@ -366,6 +1067,23 @@ It checks both ownership callbacks and tags, the unowned interval, successful
 acquisition, and exact update value/tag/producer/time/order/retraction metadata
 at the constrained grant. Callback mode is adapter-selected. It remains
 unsupported by default pending execution against a Java provider.
+
+The focused service-report scenarios decode standard
+`HLAreportServiceInvocation` callbacks through the public encoding API. The
+ordinary attribute-update case verifies the invoking federate, service type,
+success result, empty exception, and initial report serial. The
+timestamped attribute-update and object-deletion cases additionally verify
+retraction metadata and delay the corresponding reflection/removal until the
+constrained receiver and regulating sender complete the required time advances.
+The timestamped deletion failure case verifies reports for an already removed
+object and for a timestamp below current time plus lookahead, including typed
+exception, supplied-argument, null-return, and serial-number fields. These are
+adapter-dependent and remain unsupported by default until exercised against an
+installed Java provider. The timestamped attribute-update failure case adds
+unknown-object, undefined-attribute, and invalid-time reports and confirms that
+none of those rejected calls reflects to a subscribed receiver. The timestamped
+interaction failure case checks invalid interaction class, invalid parameter,
+and invalid-time reports with no application interaction delivery.
 
 The `java-tck.timestamped-attribute-source-resignation` scenario queues an
 attribute update, then resigns its producer with unconditional divestiture.
@@ -456,6 +1174,14 @@ still returns a valid retraction handle, successful retraction and repeated-
 retraction terminalization, expiry after a time advance, and absence of receive
 or retraction callbacks. It remains unsupported by default pending Java provider
 execution.
+
+The `java-tck.timestamped-interaction-source-resignation` scenario holds a
+timestamped interaction behind a constrained receiver's time frontier, resigns
+the producer with `NO_ACTION`, and verifies that the accepted interaction is
+delivered exactly once before the receiver's grant. It checks parameter, tag,
+producer, timestamp, order, transportation, and retraction metadata, including
+that the former producer cannot retract after resignation. It remains
+unsupported by default pending Java provider execution.
 
 The `java-tck.timestamped-interaction-retraction-fanout` scenario has both an
 immediate and a constrained subscriber. It checks delivery metadata, the
@@ -555,6 +1281,25 @@ and verifies its callback metadata, grant ordering, and
 `MessageCanNoLongerBeRetracted` terminal boundary. It remains unsupported by
 default pending Java-provider execution.
 
+The `java-tck.timestamped-directed-interactions` scenario translates the
+combined portable C++ case: it distinguishes target-owner, universal, and
+non-owner subscriptions; checks invalid interaction, target, and retraction
+handles; observes a receive-order callback and its retraction while the target
+is unconstrained; then verifies constrained timestamp-order delivery only to
+the target and universal subscriber. It checks callback metadata and the
+post-delivery retraction boundary. Provider, FOM, time implementation,
+timestamped-directed names, and callback model remain adapter inputs; it is
+unsupported by default until exercised against an external Java 1516.1-2025
+provider.
+
+The `java-tck.directed-interaction-derived-object-target` scenario registers an
+adapter-selected derived object at the publisher, then verifies that a distinct
+federate with a universal directed-interaction subscription receives the send
+while an attribute-only observer does not. It checks target discovery and
+interaction callback metadata through the standard API. FOM/model names and
+callback configuration remain adapter inputs; the case is unsupported by
+default pending Java-provider execution.
+
 The `java-tck.timestamped-directed-interaction-derived-object-target` scenario
 registers an adapter-selected derived object class with an inherited identity
 attribute, directs a timestamped typed interaction to that target, and verifies
@@ -615,6 +1360,85 @@ passing. It passed a focused Java run against a fresh GNU/Ninja build of the
 local JNI provider. Its behavior is observable entirely through the standard
 1516.1-2025 API.
 
+The default `java-tck.resign-delete-objects-then-divest-cross-object-effects`
+scenario gives one federate an attribute on another federate's retained object,
+then has it register a separate object and resign with
+`DELETE_OBJECTS_THEN_DIVEST`. It checks removal delivery and name lookup for the
+departing object's deletion, preservation of the retained object, and
+successful acquisition of the released attribute by a third federate. Provider,
+FOM, logical-time implementation, and callback model are adapter-supplied. Its
+C++ base/contract pair passed two independent GNU 15.2/Ninja installed-package
+builds with all four evoked/immediate focused CTest cases passing in each; the
+Java scenario passed focused execution against a fresh GNU/Ninja JNI provider.
+All assertions use the standard 1516.1-2025 API.
+
+The default `java-tck.resign-unconditionally-divest-preserves-objects` scenario
+establishes foreign ownership of a surviving federate's object, then resigns
+the owner with `UNCONDITIONALLY_DIVEST_ATTRIBUTES`. It verifies that the object
+remains registered and discoverable, no removal is delivered by that resignation,
+and a third federate can acquire the released attribute with the requested tag.
+Only a later `DELETE_OBJECTS` resignation removes the object. The Java scenario
+passed both callback models against the adapter-selected 1516.1-2025 API and FOM;
+its C++ base/contract pair passed four focused tests in each of two independent
+GNU 15.2/Ninja installed-package builds. The Java source uses only the official
+API and JDK, with provider, FOM, time implementation, and callback model supplied
+by the runner.
+
+The default `java-tck.resign-cancel-pending-ownership-acquisitions-action`
+scenario queues a standard ownership acquisition, resigns the requester with
+`CANCEL_PENDING_OWNERSHIP_ACQUISITIONS`, and verifies the registered object and
+current owner are unchanged. The owner then divests and a successor successfully
+acquires the attribute with the expected callback tag before ordinary cleanup;
+the successor must not receive an `attributeOwnershipUnavailable` callback.
+The Java scenario passes both callback models, and its C++ base/contract pair
+passes all four focused evoked/immediate cases in each of two independent
+GNU 15.2/Ninja installed-package builds. The test uses only the official
+1516.1-2025 Java API; provider, FOM, time implementation, and callback model are
+adapter-supplied. Its callback wait helper services callbacks only for the
+evoked model, avoiding an illegal evoke call under immediate delivery.
+
+The default `java-tck.automatic-resign-directive-lifecycle-boundaries` scenario
+checks that the standard automatic-resign directive getter/setter work while
+joined, report `FederateNotExecutionMember` after resignation, and report
+`NotConnected` after disconnect. The Java scenario passes with both configured
+callback models; its C++ base/contract pair passes all four focused tests in
+each of two GNU 15.2/Ninja installed-package builds. Only the standard Java API
+is used; provider, FOM, logical-time implementation, and callback model remain
+adapter inputs.
+
+The default `java-tck.automatic-resign-directive-standard-enumerator-values`
+scenario sets and reads back all six standard Java `ResignAction` constants.
+It passes with both callback configurations, and the corresponding C++ base/
+contract pair passes all four focused tests in each of two GNU 15.2/Ninja
+installed-package builds. The Java enum cannot represent the invalid integer
+cast tested by C++; that negative boundary remains explicitly C++-only, while
+the shared parity slice covers the standard enumerator values.
+
+The default `java-tck.advisory-switch-value-round-trips` scenario toggles each
+of the four standard relevance/scope advisory switches away from its current
+value and restores it, checking both getter results. It passes with evoked and
+immediate callback configuration, as does the C++ base/contract pair in each of
+two independent GNU 15.2/Ninja installed-package builds. The scenario uses only
+the official 1516.1-2025 API and adapter-supplied federation inputs.
+
+The default `java-tck.resign-cancel-then-delete-then-divest-cross-object-effects`
+scenario exercises the compound `CANCEL_THEN_DELETE_THEN_DIVEST` action across
+three distinct objects: cancel the departing federate's pending acquisition,
+remove its registered object, and release its ownership on a retained object.
+It verifies removal metadata and object-name lookups, then checks that a
+successor can acquire both released attributes before the original owner deletes
+its two objects. Java passes in both callback models; the C++ base/contract pair
+passes the four focused tests in each of two GNU 15.2/Ninja installed-package
+builds. The scenario depends only on the official Java API and adapter inputs.
+Its bounded callback waits service callbacks only in the evoked model; immediate
+delivery never invokes `evokeCallback`.
+
+The `java-tck.synchronization` scenario now uses the adapter-selected callback
+model for every participant. Evoked mode explicitly services callbacks;
+immediate mode checks the same registration, announcement, and barrier results
+without calling the evoked callback service. The scenario remains provider-
+unverified until run against an installed Java 1516.1-2025 provider.
+
 ## Build
 
 From the repository root, use the shell-free Python runner:
@@ -667,3 +1491,284 @@ The optional JPype handoff is available directly as
 Scenario/API/requirement traceability is maintained in
 `compliance/catalogs/java-tck-scenario-catalog.json` and validated by
 `tools/java_tck.py`.
+
+The focused `java-tck.remote-delete-object-instance-name-lookup-boundary` case
+checks that object-name/handle lookups round-trip before deletion, then become
+unknown to both the deleting federate and a subscriber after remote removal.
+
+The focused `java-tck.resign-delete-object-lookup-boundary` case checks the
+standard `DELETE_OBJECTS` resignation callback and verifies that the surviving
+member can no longer resolve the removed object's name, handle, or known class.
+
+The focused `java-tck.resign-no-action-owned-attributes-rejection-boundary`
+case verifies that `NO_ACTION` is rejected while the federate still owns an
+object attribute and that the object's identity remains queryable afterward.
+
+The opt-in `java-tck.timestamped-attribute-update-no-fanout` case publishes and
+registers an object without subscribing any federate, then verifies timestamped
+updates still return retraction handles, a successful first retraction becomes
+non-retractable, and a second queued update becomes non-retractable after the
+publisher advances through its timestamp. No reflection or retraction callback
+may loop back to the publisher. FOM, logical-time implementation, provider, and
+callback model are adapter-supplied; the case is paired with the promoted C++
+scenario and remains unsupported pending Java-provider runtime evidence.
+
+The opt-in `java-tck.attribute-update-service-boundaries` case registers an
+object with one active and one passive subscriber, then verifies discovery and
+ordinary attribute reflection reach both after active relevance is established.
+It checks object/attribute/value/tag/producer and resolvable transportation
+metadata, and confirms the update does not reflect back to its producer. The
+adapter supplies the FOM, names, provider, endpoint, and callback model; this
+scenario is paired with the promoted C++ case and remains unsupported pending
+Java-provider runtime evidence.
+
+The opt-in `java-tck.dimension-lookup-valid-handles-after-resignation` case
+resolves adapter-FOM object, interaction, and dimension handles and verifies
+dimension name/upper-bound lookups while joined. After resignation, the same
+valid handles must fail dimension and class-available-dimensions queries with
+`FederateNotExecutionMember`. It performs no DDM region operations and remains
+unsupported pending Java-provider runtime verification.
+
+The opt-in `java-tck.interaction-class-lookup-lifecycle` case checks lookup
+connection and membership boundaries, stable base-class handle/name round trips,
+unknown-name and invalid-handle failures, and extension interaction visibility
+before and after a federate joins with an adapter-supplied additional FOM module.
+It binds only to the official Java API; Java's null handle is used for the
+invalid-handle input because the API exposes no public invalid-handle
+constructor. Provider runtime remains unverified until run against an installed
+Java 1516.1-2025 provider.
+
+The opt-in `java-tck.object-class-lookup-lifecycle` case checks object-class
+lookup connection and membership boundaries, stable base-class handle/name
+round trips, unknown-name and invalid-handle failures, and extension object
+class visibility before and after an additional-FOM join. It uses only the
+official Java API and adapter-provided FOM/configuration. Java's null handle is
+used for the invalid-handle input because the API exposes no public invalid-
+handle constructor; provider runtime remains unverified.
+
+The opt-in `java-tck.attribute-lookup-lifecycle` case checks ordinary
+attribute-name and handle lookup at connection and membership boundaries,
+inherited attribute identity across base/derived classes and federates, and
+invalid, unknown, and class-mismatch failures. It requires an adapter-supplied
+rich FOM and typed class/attribute names, and uses only the official Java API;
+provider runtime remains unverified.
+
+The opt-in `java-tck.parameter-lookup-lifecycle` case checks parameter lookup
+boundaries, inherited parameter identity across base/derived interaction classes
+and federates, and unknown, invalid, and class-mismatch failures. Its rich FOM,
+typed class names, and parameter names are adapter-configurable through the
+`hla.rti.tck.typedDerivedInteractionClass` and
+`hla.rti.tck.typedDerivedParameter` properties (alongside the existing typed
+FOM properties). It uses only the official Java API and remains unverified
+against a provider runtime.
+
+The opt-in `java-tck.regional-attribute-value-request-filtering` case exercises
+regional `requestAttributeValueUpdateWithRegions` overlap filtering, empty
+request sets, default-region object eligibility, invalid foreign/context/
+uncommitted request regions, and callback-time re-evaluation for the configured
+callback model. In addition to the adapter-supplied DDM FOM, object and
+attribute names, and two object dimensions, it requires the unrelated dimension
+name through `hla.rti.tck.ddmUnrelatedDimension`; provider runtime remains
+unverified.
+
+The opt-in `java-tck.regional-attribute-value-update-response-recheck` case
+requests an attribute update, moves the committed requester region out of
+overlap before the owner responds, verifies that the response is suppressed,
+then restores overlap and checks that a fresh request/response preserves the
+value, tag, producer, reliable transportation, and source-region designator.
+The DDM FOM, object/attribute names, and two dimensions remain adapter-supplied;
+provider runtime remains unverified.
+
+The opt-in `java-tck.regional-interaction-empty-subscription-sets` case checks
+that an empty regional subscription creates no delivery route and that an empty
+regional unsubscription leaves an existing route intact. It also verifies
+ordinary delivery before and after a real regional unsubscription, including
+payload, producer, transport, tag, and source-region designator metadata. Its
+interaction class, parameter, two dimensions, and DDM FOM are adapter supplied;
+provider runtime remains unverified.
+
+The opt-in `java-tck.regional-interaction-source-region-snapshot` case queues
+an ordinary regional interaction, mutates its source region to in-range
+disjoint bounds before callback servicing in evoked mode, and verifies delivery
+retains the source-region designator captured at send time. It also confirms
+subsequent disjoint sends are filtered and delivery resumes after restoring overlap. The DDM FOM,
+interaction class, parameter, dimensions, and callback model are adapter
+supplied; provider runtime remains unverified.
+
+The opt-in `java-tck.regional-interaction-subscription-filtering` case ports the
+standard regional interaction filter sequence: ordinary delivery, empty
+regional declarations, overlap and disjoint filtering at callback servicing,
+source-region designator delivery, and foreign/uncommitted/context-invalid
+region rejection. Its DDM FOM, interaction and parameter names, two interaction
+dimensions, and unrelated dimension are adapter supplied; the latter uses
+`hla.rti.tck.ddmUnrelatedDimension`. Provider runtime remains unverified.
+
+The opt-in `java-tck.regional-interaction-region-validation` case verifies
+atomic rejection when a regional interaction send or subscription includes a
+region on a dimension unavailable to the interaction class. It proves rejected
+operations leave no partial delivery/declaration and that a valid region set
+still delivers the expected payload and source-region metadata afterward. The
+FOM and interaction, parameter, two valid dimensions, and unrelated dimension
+are adapter supplied; the unrelated dimension uses
+`hla.rti.tck.ddmUnrelatedDimension`. Provider runtime remains unverified.
+
+The opt-in `java-tck.regional-unpublish-region-release` case associates a
+registered object's attribute with a region, verifies deletion is rejected
+while the region is in use, then unpublishes that attribute and confirms the
+region can be deleted immediately and its former handle is invalid. The DDM
+FOM, object class, attribute, and two dimensions are adapter supplied; provider
+runtime remains unverified.
+
+The opt-in `java-tck.region-lifecycle` case checks DDM services before connect
+and before join, timestamped regional-send boundaries, cross-federate dimension
+metadata, region range round-trips and committed changes, absent-dimension
+errors, invalid range errors, and invalidation after deletion. Its FOM and
+object/interaction classes, attribute, parameter, dimensions, logical-time
+implementation, and callback model are adapter supplied. `decodeRegionHandle`
+is intentionally not represented because the official Java 2025
+`RTIambassador` has no corresponding service; provider runtime remains
+unverified.
+
+The opt-in `java-tck.region-range-validation` case accepts a committed range
+from zero through the adapter dimension's upper bound, then verifies that
+equal and reversed lower/upper bounds fail with `InvalidRangeBound`. The
+application FOM, standard MIM, dimension name, logical-time implementation,
+and callback model are adapter supplied; provider runtime remains unverified.
+
+The opt-in `java-tck.region-range-dimension-validation` case creates a committed
+region containing one adapter dimension and verifies both `getRangeBounds` and
+`setRangeBounds` reject a different invalid dimension handle with
+`RegionDoesNotContainSpecifiedDimension`. The FOM, standard MIM, dimension
+name, logical-time implementation, and callback model are adapter supplied;
+provider runtime remains unverified.
+
+The opt-in `java-tck.regional-boundaries` case verifies zero-dimensional region
+lifecycle; rejects reads/commits of incomplete regions; rejects object
+registration and interaction sends using an unrelated dimension; rejects
+foreign-region deletion/commit; and checks that passive subscriptions and
+registered-object update associations keep regions in use until unsubscribed or
+the object is deleted. The DDM FOM, object/interaction classes, attribute,
+parameter, two class dimensions, unrelated dimension, and callback model are
+adapter supplied; provider runtime remains unverified.
+
+The opt-in `java-tck.passive-regional-interaction-transition` case starts two
+overlapping active regional subscriptions, transitions one to passive and
+confirms it remains a delivery target while the other active route exists,
+then removes the final active route and confirms both go quiet. An empty
+regional subscription does not reactivate the passive route; converting it
+back to active restores delivery only to that receiver. Delivered callbacks
+are checked for payload, tag, producer, transportation, and source-region
+metadata. Its DDM FOM, interaction, parameter, dimensions, and callback model
+are adapter supplied; provider runtime remains unverified.
+
+The opt-in `java-tck.default-region-interaction-routing` case contrasts three
+delivery paths: an explicit regional send reaches an overlapping regional
+subscription but not a disjoint regional declaration; removing that disjoint
+declaration restores delivery through the receiver's ordinary subscription;
+and an ordinary send reaches both regional subscribers with empty source-region
+metadata. The adapter supplies a dimensional interaction FOM, interaction,
+parameter, two dimensions, and callback model; provider runtime remains
+unverified.
+
+The opt-in `java-tck.zero-dimensional-regional-interaction` case first checks
+ordinary default-region delivery, then creates and commits a region with no
+dimensions and verifies that an explicit interaction realization using it is
+not delivered to the ordinary subscriber. Its dimensional interaction FOM,
+interaction, parameter, dimensions, and callback model are adapter supplied;
+provider runtime remains unverified.
+
+The opt-in `java-tck.multi-region-interaction-routing` case sends from two
+disjoint source regions to separate single-region subscribers, a subscriber
+with both regions, and a disjoint subscriber. It verifies union delivery only
+once per send, correct filtering, payload and producer metadata, and the exact
+source-region set in each callback. The adapter supplies the dimensional FOM,
+interaction, parameter, dimensions, and callback model; provider runtime remains
+unverified.
+
+The opt-in `java-tck.inherited-interaction-class-delivery` case sends a derived
+interaction to both a base-class and a derived-class subscription. It verifies
+base-subscription projection to the inherited parameter, full inherited and
+derived parameter delivery to the derived subscriber, and that a base-class
+interaction does not flow to a derived-only subscription. The adapter supplies
+the inherited FOM class/parameter names and callback model; values use standard
+HLA integer and Unicode data elements. Provider runtime remains unverified.
+
+The opt-in `java-tck.timestamped-inherited-interaction-class-delivery` case
+repeats the derived-to-base projection through timestamp-order delivery. It
+checks that constrained subscribers do not receive the interaction before
+advancing, then verifies both projected callback payloads, timestamp/order and
+retraction metadata, and the aligned time-advance grants. The adapter supplies
+the inherited FOM names and logical-time implementation; provider runtime
+remains unverified.
+
+The opt-in `java-tck.timed-regional-interaction-save-restore` case queues a
+timestamped regional interaction beyond a timed federation-save boundary,
+retracts it in the live branch, restores the federation, and uses Flush Queue to
+verify that the saved interaction and its original retraction handle are live
+again. It checks callback payload, source-region metadata, restore identities,
+grant ordering, and the post-delivery retraction callback. The adapter supplies
+the DDM FOM, names, provider, and logical-time implementation; provider runtime
+remains unverified.
+
+The opt-in `java-tck.timed-default-region-interaction-save-restore` case covers
+the same saved-queue/retraction lifecycle for an ordinary timestamped send
+routed to an adapter-declared regional subscription. After restore and
+Flush Queue, it verifies empty source-region metadata, the restored producer
+identity and retraction handle, and delivery-before-grant ordering. The adapter
+supplies the dimensional FOM, names, provider, and logical-time implementation;
+provider runtime remains unverified.
+
+The opt-in `java-tck.timed-default-region-attribute-save-restore` case registers
+an object, queues a timestamped default-region attribute update beyond a timed
+save frontier, retracts it in the live branch, then restores and flushes the
+saved reflection. It verifies restored object/producer identity, payload,
+timestamp, empty source-region metadata, the saved/optimistic Flush Queue
+frontier, callback-before-grant order, and reuse of the original retraction
+handle. The adapter supplies the DDM FOM, names, provider, and logical-time
+implementation; provider runtime remains unverified.
+
+The opt-in `java-tck.timed-regional-attribute-ownership-save-restore` case
+restores a queued timestamped update and continues the surviving regular
+ownership candidate. It checks regional discovery and source metadata, save
+and restore identity, the evoked candidate continuation and immediate
+If-Available boundary, Flush Queue delivery-before-grant, and the resulting
+ownership transfer. The adapter supplies the dimensional object FOM, object
+class/attribute/dimension names, provider, and logical-time implementation;
+provider runtime remains unverified.
+
+The opt-in `java-tck.timed-regional-attribute-ownership-confirmation-cancel-save-restore`
+case uses the same restored multi-recipient timed update, then verifies that
+canceling the owner's negotiated divestiture after its confirmation request
+does not transfer ownership, a subsequent confirmation is rejected, and the
+remaining acquirer's cancellation callback reports the correct object and
+attributes. In immediate-callback mode it exercises the standard
+If-Available/If-Wanted path instead. Provider runtime remains unverified.
+
+The opt-in `java-tck.timed-regional-attribute-ownership-pre-delivery-cancel-save-restore`
+case cancels the negotiated divestiture before servicing its confirmation
+callback. It verifies ownership is unchanged, neither stale confirmation nor
+acquisition callback is delivered, and cancellation of the remaining request
+reports the expected object and attributes. Immediate-callback mode follows
+the standard If-Available/If-Wanted boundary instead. Provider runtime remains
+unverified.
+
+The opt-in `java-tck.dimension-lookup-lifecycle` case exercises standard
+dimension handle/name/upper-bound lookups and object/interaction class dimension
+associations through pre-connect, pre-join, joined, and post-resignation states.
+The adapter supplies the FOM, object/interaction class names, and two dimension
+names (`hla.rti.tck.dimension` and `hla.rti.tck.ddmSecondDimension`). It creates
+no regions and calls no DDM region services; provider runtime remains unverified.
+
+The opt-in `java-tck.handle-normalization-membership-boundaries` case checks
+service-group, federate, object-class, interaction-class, and object-instance
+normalization before connection, while connected but unjoined, and after
+resignation. Its fixture uses the adapter's FOM and standard object/interaction
+names and registers one ordinary object; provider runtime remains unverified.
+
+The opt-in `java-tck.timestamped-interaction-source-resignation-fanout` case
+queues one timestamped interaction for two constrained recipients, advances one
+with TAR and the other with NMR, resigns the producer, and verifies independent
+delivery, payload/source/order/retraction metadata, callback-before-grant order,
+and each recipient's grant time. Provider, time-managed FOM, logical-time
+implementation, and callback model remain adapter-supplied; provider runtime is
+unverified.

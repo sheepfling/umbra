@@ -16,7 +16,8 @@ final class ExplicitMimCreationTck {
 
    static void run(RtiFactory factory, String fom, String mim, String timeImplementation,
          String objectClassName, String attributeName, String interactionClassName,
-         String parameterName, CallbackModel callbackModel) throws Exception {
+         String parameterName, CallbackModel callbackModel, String federateType)
+         throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador member = factory.getRtiAmbassador();
       String federation = "java-tck-explicit-mim-" + UUID.randomUUID();
@@ -40,9 +41,9 @@ final class ExplicitMimCreationTck {
          owner.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
-         owner.joinFederationExecution("java-tck-mim-owner", federation);
+         owner.joinFederationExecution(federateType, federation);
          ownerJoined = true;
-         member.joinFederationExecution("java-tck-mim-member", federation);
+         member.joinFederationExecution(federateType, federation);
          memberJoined = true;
 
          ObjectClassHandle ownerFederationClass = owner.getObjectClassHandle(

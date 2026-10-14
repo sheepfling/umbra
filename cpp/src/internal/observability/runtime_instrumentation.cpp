@@ -7,8 +7,8 @@
 
 namespace umbra::detail {
 
-struct RuntimeInstrumentation::OperationCell final {
-  OperationCell(InstrumentationLayer layer, std::string name)
+struct InstrumentationOperationCell final {
+  InstrumentationOperationCell(InstrumentationLayer layer, std::string name)
       : layer(layer), name(std::move(name)) {}
 
   InstrumentationLayer layer;
@@ -55,8 +55,8 @@ void updateMaximum(
 
 }  // namespace
 
-RuntimeInstrumentation::Scope::Scope(
-    std::shared_ptr<OperationCell> cell,
+InstrumentationScope::InstrumentationScope(
+    std::shared_ptr<InstrumentationOperationCell> cell,
     Clock::time_point startedAt) noexcept
     : cell_(std::move(cell)),
       startedAt_(startedAt),
@@ -69,7 +69,7 @@ RuntimeInstrumentation::Scope::Scope(
   }
 }
 
-RuntimeInstrumentation::Scope::Scope(Scope&& other) noexcept
+InstrumentationScope::InstrumentationScope(InstrumentationScope&& other) noexcept
     : cell_(std::move(other.cell_)),
       startedAt_(other.startedAt_),
       uncaughtExceptionsAtStart_(other.uncaughtExceptionsAtStart_),
@@ -78,8 +78,8 @@ RuntimeInstrumentation::Scope::Scope(Scope&& other) noexcept
   other.completed_ = true;
 }
 
-RuntimeInstrumentation::Scope& RuntimeInstrumentation::Scope::operator=(
-    Scope&& other) noexcept {
+InstrumentationScope& InstrumentationScope::operator=(
+    InstrumentationScope&& other) noexcept {
   if (this == &other) {
     return *this;
   }
@@ -95,7 +95,7 @@ RuntimeInstrumentation::Scope& RuntimeInstrumentation::Scope::operator=(
   return *this;
 }
 
-RuntimeInstrumentation::Scope::~Scope() {
+InstrumentationScope::~InstrumentationScope() {
   if (completed_) {
     return;
   }
@@ -106,7 +106,7 @@ RuntimeInstrumentation::Scope::~Scope() {
   finish(outcome);
 }
 
-void RuntimeInstrumentation::Scope::complete(InstrumentationOutcome outcome) noexcept {
+void InstrumentationScope::complete(InstrumentationOutcome outcome) noexcept {
   if (completed_) {
     return;
   }
@@ -114,7 +114,7 @@ void RuntimeInstrumentation::Scope::complete(InstrumentationOutcome outcome) noe
   finish(outcome);
 }
 
-void RuntimeInstrumentation::Scope::finish(InstrumentationOutcome outcome) noexcept {
+void InstrumentationScope::finish(InstrumentationOutcome outcome) noexcept {
   if (completed_) {
     return;
   }
@@ -146,13 +146,13 @@ void RuntimeInstrumentation::Scope::finish(InstrumentationOutcome outcome) noexc
   cell_->activeCalls.fetch_sub(1, std::memory_order_relaxed);
 }
 
-RuntimeInstrumentation::Scope RuntimeInstrumentation::begin(
+InstrumentationScope RuntimeInstrumentation::begin(
     InstrumentationLayer layer,
     std::string_view name) noexcept {
   return beginAt(layer, name, Clock::now());
 }
 
-RuntimeInstrumentation::Scope RuntimeInstrumentation::beginAt(
+InstrumentationScope RuntimeInstrumentation::beginAt(
     InstrumentationLayer layer,
     std::string_view name,
     Clock::time_point startedAt) noexcept {
@@ -171,7 +171,7 @@ std::uint64_t RuntimeInstrumentation::nextCorrelationId() noexcept {
 }
 
 RuntimeInstrumentationSnapshot RuntimeInstrumentation::snapshot() const {
-  std::vector<std::shared_ptr<OperationCell>> cells;
+  std::vector<std::shared_ptr<InstrumentationOperationCell>> cells;
   {
     std::scoped_lock lock(mutex_);
     cells.reserve(cells_.size());
@@ -204,7 +204,7 @@ RuntimeInstrumentationSnapshot RuntimeInstrumentation::snapshot() const {
   return result;
 }
 
-std::shared_ptr<RuntimeInstrumentation::OperationCell>
+std::shared_ptr<InstrumentationOperationCell>
 RuntimeInstrumentation::cellFor(
     InstrumentationLayer layer,
     std::string_view name) {
@@ -214,7 +214,7 @@ RuntimeInstrumentation::cellFor(
   if (found != cells_.end()) {
     return found->second;
   }
-  auto cell = std::make_shared<OperationCell>(layer, key.second);
+  auto cell = std::make_shared<InstrumentationOperationCell>(layer, key.second);
   cells_.emplace(key, cell);
   return cell;
 }

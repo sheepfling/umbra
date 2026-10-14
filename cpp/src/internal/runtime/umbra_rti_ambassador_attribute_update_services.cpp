@@ -462,6 +462,8 @@ MessageRetractionHandle UmbraRtiAmbassador::updateAttributeValues(
     return makeMessageRetractionHandle(result.messageId);
   }
 #endif
+  std::vector<umbra::detail::FederationTimeGrantDispatch>
+      newlyEligibleTimeGrants;
   try {
   std::shared_ptr<umbra::detail::FederateTimeState> timeState;
   {
@@ -739,6 +741,18 @@ MessageRetractionHandle UmbraRtiAmbassador::updateAttributeValues(
           L"The embedded federation lost the timestamped Update Attribute Values membership before its accepted boundary.");
     }
   }
+
+  if (messageId != 0U) {
+    std::scoped_lock lock(ambassadorFederationManagementMutex());
+    auto scheduled = embeddedFederationRegistry().reevaluateTimeAdvanceGrants(
+        *federationName);
+    if (scheduled.status != umbra::detail::FederationTimeGrantStatus::applied) {
+      throw RTIinternalError(
+          L"The embedded federation could not re-evaluate pending time advances after timestamped attribute-update admission.");
+    }
+    newlyEligibleTimeGrants = std::move(scheduled.dispatches);
+  }
+  submitAmbassadorTimeAdvanceGrantDispatches(std::move(newlyEligibleTimeGrants));
 
   // Time-constrained recipients consume the typed payload at their grant.
   // Other recipients receive the timestamped callback immediately in the

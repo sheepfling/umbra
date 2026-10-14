@@ -455,9 +455,11 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 
 }  // namespace
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-TEST_CASE(
-    "RTIambassadors coordinate deferred process time advances through the federation scheduler",
-    "[integration][foundation][time-management][time-role][time-advance][transport][process-boundary][public-endpoint][multi-federate][scheduler][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.time-advance-request][federate.callback.time-advance-grant][process-time-advance-federation-scheduler]") {
+enum class ProcessTimeAdvanceRequestKind { tar, nmr, nmra, tara };
+
+void verifyProcessTimeAdvanceFederationScheduler(
+    ProcessTimeAdvanceRequestKind requestKind,
+    CallbackModel const callbackModel = HLA_EVOKED) {
   constexpr wchar_t const* federationName =
       L"process-time-advance-federation-scheduler-execution";
   constexpr wchar_t const* regulatingName =
@@ -474,7 +476,9 @@ TEST_CASE(
     try {
       EmbeddedFederationRegistry registry;
       ProcessFederationService service(
-          registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
       auto regulatingConnection = listener->accept(
           nullptr,
           {"process-time-advance-scheduler-server", 0x9210U},
@@ -522,6 +526,10 @@ TEST_CASE(
               regulatingSession,
               regulatingHandler,
               TransportServiceOperation::enable_time_regulation) ||
+          !serveExpected(
+              regulatingSession,
+              regulatingHandler,
+              TransportServiceOperation::report_successful_void_service_invocation) ||
            !serveExpected(
                constrainedSession,
                constrainedHandler,
@@ -529,19 +537,35 @@ TEST_CASE(
            !serveExpected(
                constrainedSession,
                constrainedHandler,
-               TransportServiceOperation::time_advance_request) ||
+               TransportServiceOperation::report_successful_void_service_invocation) ||
            !serveExpected(
                constrainedSession,
                constrainedHandler,
-               TransportServiceOperation::receive_interaction) ||
+               requestKind == ProcessTimeAdvanceRequestKind::nmra
+                   ? TransportServiceOperation::next_message_request_available
+                   : requestKind == ProcessTimeAdvanceRequestKind::nmr
+                       ? TransportServiceOperation::next_message_request
+                      : requestKind == ProcessTimeAdvanceRequestKind::tara
+                          ? TransportServiceOperation::time_advance_request_available
+                          : TransportServiceOperation::time_advance_request) ||
+           !serveExpected(
+               constrainedSession,
+               constrainedHandler,
+               TransportServiceOperation::report_successful_void_service_invocation) ||
+           !serveExpected(
+               constrainedSession,
+               constrainedHandler,
+               callbackModel == HLA_IMMEDIATE
+                   ? TransportServiceOperation::get_object_class_handle
+                   : TransportServiceOperation::receive_interaction) ||
            !serveExpected(
                regulatingSession,
                regulatingHandler,
                TransportServiceOperation::time_advance_request) ||
            !serveExpected(
-               constrainedSession,
-               constrainedHandler,
-               TransportServiceOperation::receive_interaction) ||
+               regulatingSession,
+               regulatingHandler,
+               TransportServiceOperation::report_successful_void_service_invocation) ||
            !serveExpected(
                regulatingSession,
                regulatingHandler,
@@ -581,7 +605,7 @@ TEST_CASE(
   bool constrainedJoined = false;
   try {
     REQUIRE(regulatingRti->connect(
-                regulatingFederate, HLA_EVOKED, regulatingConfiguration)
+                regulatingFederate, callbackModel, regulatingConfiguration)
                 .addressUsed);
     REQUIRE_NOTHROW(regulatingRti->createFederationExecution(
         federationName, L"server-owned-fom.xml"));
@@ -591,7 +615,7 @@ TEST_CASE(
     regulatingJoined = true;
 
     REQUIRE(constrainedRti->connect(
-                constrainedFederate, HLA_EVOKED, constrainedConfiguration)
+                constrainedFederate, callbackModel, constrainedConfiguration)
                 .addressUsed);
     auto const constrainedHandle = constrainedRti->joinFederationExecution(
         constrainedName, L"process-time-advance-scheduler-type", federationName);
@@ -600,32 +624,61 @@ TEST_CASE(
 
     REQUIRE_NOTHROW(regulatingRti->enableTimeRegulation(
         rti1516_2025::HLAinteger64Interval(0)));
-    REQUIRE(regulatingFederate.timeRegulationEnabledCount == 0U);
-    REQUIRE_FALSE(regulatingRti->evokeCallback(0.0));
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE(regulatingFederate.timeRegulationEnabledCount == 0U);
+      REQUIRE_FALSE(regulatingRti->evokeCallback(0.0));
+    }
     REQUIRE(regulatingFederate.timeRegulationEnabledCount == 1U);
 
     REQUIRE_NOTHROW(constrainedRti->enableTimeConstrained());
-    REQUIRE(constrainedFederate.timeConstrainedEnabledCount == 0U);
-    REQUIRE_FALSE(constrainedRti->evokeCallback(0.0));
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE(constrainedFederate.timeConstrainedEnabledCount == 0U);
+      REQUIRE_FALSE(constrainedRti->evokeCallback(0.0));
+    }
     REQUIRE(constrainedFederate.timeConstrainedEnabledCount == 1U);
 
-    REQUIRE_NOTHROW(
-        constrainedRti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+    if (requestKind == ProcessTimeAdvanceRequestKind::nmr) {
+      REQUIRE_NOTHROW(
+          constrainedRti->nextMessageRequest(rti1516_2025::HLAinteger64Time(5)));
+    } else if (requestKind == ProcessTimeAdvanceRequestKind::nmra) {
+      REQUIRE_NOTHROW(constrainedRti->nextMessageRequestAvailable(
+          rti1516_2025::HLAinteger64Time(5)));
+    } else if (requestKind == ProcessTimeAdvanceRequestKind::tara) {
+      REQUIRE_NOTHROW(constrainedRti->timeAdvanceRequestAvailable(
+          rti1516_2025::HLAinteger64Time(5)));
+    } else {
+      REQUIRE_NOTHROW(
+          constrainedRti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+    }
     REQUIRE(constrainedFederate.timeAdvanceGrantCount == 0U);
-    // The deferred request has no callback yet, so this Evoke performs the
-    // one deterministic receive-order poll before returning no callback.
-    REQUIRE_FALSE(constrainedRti->evokeCallback(0.0));
+    // The deferred request has no grant yet. HLA_EVOKED performs its
+    // receive-order poll through Evoke; HLA_IMMEDIATE uses an ordinary
+    // public call as the process-event polling fence.
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE_FALSE(constrainedRti->evokeCallback(0.0));
+    } else {
+      static_cast<void>(
+          constrainedRti->getObjectClassHandle(L"HLAobjectRoot"));
+    }
     REQUIRE(constrainedFederate.timeAdvanceGrantCount == 0U);
 
     REQUIRE_NOTHROW(regulatingRti->timeAdvanceRequest(
         rti1516_2025::HLAinteger64Time(5)));
-    REQUIRE(regulatingFederate.timeAdvanceGrantCount == 0U);
-    REQUIRE_FALSE(regulatingRti->evokeCallback(0.0));
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE(regulatingFederate.timeAdvanceGrantCount == 0U);
+      static_cast<void>(regulatingRti->evokeCallback(0.0));
+    } else {
+      REQUIRE(regulatingFederate.timeAdvanceGrantCount == 1U);
+    }
     REQUIRE(regulatingFederate.timeAdvanceGrantCount == 1U);
     REQUIRE(regulatingFederate.timeAdvanceGrantValue == 5);
 
-    REQUIRE(constrainedFederate.timeAdvanceGrantCount == 0U);
-    REQUIRE_FALSE(constrainedRti->evokeCallback(0.0));
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE(constrainedFederate.timeAdvanceGrantCount == 0U);
+      static_cast<void>(constrainedRti->evokeCallback(0.0));
+    } else {
+      REQUIRE(constrainedFederate.timeAdvanceGrantCount == 1U);
+    }
     REQUIRE(constrainedFederate.timeAdvanceGrantCount == 1U);
     REQUIRE(constrainedFederate.timeAdvanceGrantValue == 5);
 
@@ -668,6 +721,63 @@ TEST_CASE(
     std::rethrow_exception(clientError);
   }
   REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors coordinate deferred process time advances through the federation scheduler",
+    "[integration][foundation][time-management][time-role][time-advance][transport][process-boundary][public-endpoint][multi-federate][scheduler][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.time-advance-request][federate.callback.time-advance-grant][process-time-advance-federation-scheduler]") {
+  verifyProcessTimeAdvanceFederationScheduler(ProcessTimeAdvanceRequestKind::tar);
+}
+
+TEST_CASE(
+    "RTIambassadors coordinate deferred process NMR through the no-TSO federation scheduler",
+    "[integration][foundation][time-management][time-role][time-advance][transport]"
+    "[process-boundary][public-endpoint][multi-federate][scheduler]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.next-message-request][rti.service.time-advance-request]"
+    "[federate.callback.time-advance-grant]"
+    "[process-time-advance-federation-scheduler][process-no-tso-cross-federate-nmr-scheduler][2025]") {
+  verifyProcessTimeAdvanceFederationScheduler(ProcessTimeAdvanceRequestKind::nmr);
+}
+
+TEST_CASE(
+    "RTIambassadors coordinate deferred process NMRA through the no-TSO federation scheduler",
+    "[integration][foundation][time-management][time-role][time-advance][transport]"
+    "[process-boundary][public-endpoint][multi-federate][scheduler]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.next-message-request-available][rti.service.time-advance-request]"
+    "[federate.callback.time-advance-grant]"
+    "[process-time-advance-federation-scheduler][process-no-tso-cross-federate-nmra-scheduler][2025]") {
+  verifyProcessTimeAdvanceFederationScheduler(ProcessTimeAdvanceRequestKind::nmra);
+}
+
+TEST_CASE(
+    "RTIambassadors coordinate deferred process NMR and NMRA through the no-TSO federation scheduler under HLA_IMMEDIATE",
+    "[integration][foundation][time-management][time-role][time-advance][transport]"
+    "[process-boundary][public-endpoint][multi-federate][scheduler]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.next-message-request][rti.service.next-message-request-available]"
+    "[rti.service.time-advance-request][federate.callback.time-advance-grant]"
+    "[process-time-advance-federation-scheduler][process-no-tso-cross-federate-nmr-nmra-immediate][HLA_IMMEDIATE][2025]") {
+  SECTION("NMR") {
+    verifyProcessTimeAdvanceFederationScheduler(
+        ProcessTimeAdvanceRequestKind::nmr, HLA_IMMEDIATE);
+  }
+  SECTION("NMRA") {
+    verifyProcessTimeAdvanceFederationScheduler(
+        ProcessTimeAdvanceRequestKind::nmra, HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "RTIambassadors coordinate deferred process TARA through the no-TSO federation scheduler",
+    "[integration][foundation][time-management][time-role][time-advance][transport]"
+    "[process-boundary][public-endpoint][multi-federate][scheduler]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.time-advance-request-available][rti.service.time-advance-request]"
+    "[federate.callback.time-advance-grant]"
+    "[process-time-advance-federation-scheduler][process-no-tso-cross-federate-tara-scheduler][2025]") {
+  verifyProcessTimeAdvanceFederationScheduler(ProcessTimeAdvanceRequestKind::tara);
 }
 
 #endif

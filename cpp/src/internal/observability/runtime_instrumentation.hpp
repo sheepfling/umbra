@@ -46,40 +46,41 @@ struct RuntimeInstrumentationSnapshot final {
   std::uint64_t nextCorrelationId = 1;
 };
 
+struct InstrumentationOperationCell;
+
+class InstrumentationScope final {
+ public:
+  using Clock = std::chrono::steady_clock;
+
+  InstrumentationScope() = default;
+  InstrumentationScope(InstrumentationScope const&) = delete;
+  InstrumentationScope& operator=(InstrumentationScope const&) = delete;
+  InstrumentationScope(InstrumentationScope&& other) noexcept;
+  InstrumentationScope& operator=(InstrumentationScope&& other) noexcept;
+  ~InstrumentationScope();
+
+  void complete(InstrumentationOutcome outcome = InstrumentationOutcome::success) noexcept;
+
+ private:
+  friend class RuntimeInstrumentation;
+
+  InstrumentationScope(
+      std::shared_ptr<InstrumentationOperationCell> cell,
+      Clock::time_point startedAt) noexcept;
+  void finish(InstrumentationOutcome outcome) noexcept;
+
+  std::shared_ptr<InstrumentationOperationCell> cell_;
+  Clock::time_point startedAt_{};
+  int uncaughtExceptionsAtStart_ = 0;
+  InstrumentationOutcome outcome_ = InstrumentationOutcome::success;
+  bool completed_ = true;
+};
+
 class RuntimeInstrumentation final
     : public std::enable_shared_from_this<RuntimeInstrumentation> {
  public:
   using Clock = std::chrono::steady_clock;
-
- private:
-  struct OperationCell;
-
- public:
-  class Scope final {
-   public:
-    Scope() = default;
-    Scope(Scope const&) = delete;
-    Scope& operator=(Scope const&) = delete;
-    Scope(Scope&& other) noexcept;
-    Scope& operator=(Scope&& other) noexcept;
-    ~Scope();
-
-    void complete(InstrumentationOutcome outcome = InstrumentationOutcome::success) noexcept;
-
-   private:
-    friend class RuntimeInstrumentation;
-
-    Scope(
-        std::shared_ptr<OperationCell> cell,
-        Clock::time_point startedAt) noexcept;
-    void finish(InstrumentationOutcome outcome) noexcept;
-
-    std::shared_ptr<OperationCell> cell_;
-    Clock::time_point startedAt_{};
-    int uncaughtExceptionsAtStart_ = 0;
-    InstrumentationOutcome outcome_ = InstrumentationOutcome::success;
-    bool completed_ = true;
-  };
+  using Scope = InstrumentationScope;
 
   RuntimeInstrumentation() = default;
 
@@ -97,12 +98,14 @@ class RuntimeInstrumentation final
   [[nodiscard]] RuntimeInstrumentationSnapshot snapshot() const;
 
  private:
-  [[nodiscard]] std::shared_ptr<OperationCell> cellFor(
+  [[nodiscard]] std::shared_ptr<InstrumentationOperationCell> cellFor(
       InstrumentationLayer layer,
       std::string_view name);
 
   mutable std::mutex mutex_;
-  std::map<std::pair<InstrumentationLayer, std::string>, std::shared_ptr<OperationCell>>
+  std::map<
+      std::pair<InstrumentationLayer, std::string>,
+      std::shared_ptr<InstrumentationOperationCell>>
       cells_;
   std::atomic<std::uint64_t> nextCorrelationId_ = 1;
 };

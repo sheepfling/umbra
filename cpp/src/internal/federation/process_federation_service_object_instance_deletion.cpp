@@ -170,6 +170,14 @@ TransportServiceMessage ProcessFederationService::handleDeleteObjectInstance(
           enqueueResult.messageId,
           deletionRequest.federateId);
     }
+    auto const scheduled = registry_.reevaluateTimeAdvanceGrants(
+        deletionRequest.federationName);
+    if (scheduled.status != FederationTimeGrantStatus::applied) {
+      return internalError(request);
+    }
+    dispatchTimeAdvanceGrants(
+        deletionRequest.federationName,
+        std::move(scheduled.dispatches));
     return responseFor(
         request,
         TransportServiceStatus::ok,

@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 ordinary object-attribute subscription lifecycle. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies passive and active subscriptions, passive-to-active discovery, ordinary attribute reflection, downgrade and reactivation, unsubscription, stable object identity lookups, and standard resignation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 ordinary object-attribute subscription lifecycle. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and an object class with distinct configured primary and secondary attributes. It verifies that an empty active attribute set discovers no object; an attribute handle obtained from the distinct standard HLAfederate MOM class is rejected with AttributeNotDefined when supplied for the configured object class and causes no discovery side effect; passive subscriptions suppress discovery for objects registered before and during that subscription; activation discovers both objects and establishes stable identity; reflections contain only the selected attribute when the publisher sends both selected and unselected values; downgrade, reactivation, unsubscription, and standard resignation cleanup behave without relying on provider-specific names, registries, headers, or implementation details. The invalid-handle assertion targets ordinary object-attribute declaration validity in IEEE 1516.1-2025 clause 5.8; scenario source is syntactically checked but remains adapter-required until executed against an RTI.",
   "api_surfaces": [
     {
       "id": "standard-cpp-object-attribute-subscription-lifecycle",
@@ -13,7 +13,7 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador object-attribute subscription declarations",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioObjectAttributeSubscriptionLifecycleContract"
+        "packages/hla-rti-cpp-tck/src/tck_object_attribute_subscription_lifecycle_scenarios.cpp::scenarioObjectAttributeSubscriptionLifecycle"
       ]
     }
   ]

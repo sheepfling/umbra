@@ -1,26 +1,16 @@
 #include "internal/federation/federation_save_commit_store.hpp"
 
+#include "internal/platform/filesystem_operations.hpp"
 #include "internal/runtime/utf8_string.hpp"
 
 #include <algorithm>
 #include <atomic>
 #include <charconv>
-#include <cerrno>
 #include <cctype>
 #include <fstream>
 #include <stdexcept>
+#include <string>
 #include <string_view>
-
-#if defined(_WIN32)
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
-#else
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#endif
 
 namespace umbra::detail {
 namespace {
@@ -142,52 +132,6 @@ std::string jsonRawString(std::string_view encoded) {
   }
   result.push_back('"');
   return result;
-}
-
-bool reserveNewFile(std::filesystem::path const& location) {
-#if defined(_WIN32)
-  auto const file = ::CreateFileW(
-      location.c_str(),
-      GENERIC_WRITE,
-      0,
-      nullptr,
-      CREATE_NEW,
-      FILE_ATTRIBUTE_NORMAL,
-      nullptr);
-  if (file == INVALID_HANDLE_VALUE) {
-    auto const error = ::GetLastError();
-    if (error == ERROR_FILE_EXISTS || error == ERROR_ALREADY_EXISTS) {
-      return false;
-    }
-    throw std::runtime_error(
-        "Unable to reserve an Umbra federation-save manifest.");
-  }
-  if (::CloseHandle(file) == 0) {
-    std::error_code ignored;
-    std::filesystem::remove(location, ignored);
-    throw std::runtime_error(
-        "Unable to finalize an Umbra federation-save manifest reservation.");
-  }
-#else
-  auto const descriptor = ::open(
-      location.c_str(),
-      O_WRONLY | O_CREAT | O_EXCL,
-      S_IRUSR | S_IWUSR);
-  if (descriptor < 0) {
-    if (errno == EEXIST) {
-      return false;
-    }
-    throw std::runtime_error(
-        "Unable to reserve an Umbra federation-save manifest.");
-  }
-  if (::close(descriptor) != 0) {
-    std::error_code ignored;
-    std::filesystem::remove(location, ignored);
-    throw std::runtime_error(
-        "Unable to finalize an Umbra federation-save manifest reservation.");
-  }
-#endif
-  return true;
 }
 
 std::string manifestFor(FederationSaveCommitDescriptor const& descriptor) {
@@ -463,8 +407,8 @@ void writeManifest(
     }
   } catch (...) {
     std::error_code ignored;
-    std::filesystem::remove(temporary, ignored);
-    std::filesystem::remove(final, ignored);
+    platform::removeFileNoThrow(temporary);
+    platform::removeFileNoThrow(final);
     throw;
   }
 }
@@ -527,7 +471,9 @@ void FilesystemFederationSaveCommitStore::commit(
                            .lexically_normal();
     auto temporary = final;
     temporary += ".tmp";
-    if (!reserveNewFile(temporary)) {
+    if (!platform::reserveFileExclusively(
+            temporary,
+            "Unable to reserve an Umbra federation-save manifest.")) {
       continue;
     }
     writeManifest(temporary, final, contents);

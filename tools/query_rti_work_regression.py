@@ -983,6 +983,18 @@ def assert_bounded_discovery_output() -> None:
                 raise AssertionError(
                     "new-case resume omitted its explicit mapped seed handle"
                 )
+        elif "contract_mapping=" in resume_summary:
+            if not all(
+                marker in resume_summary
+                for marker in (
+                    "case=python tools/cpp_tck.py --scenario ",
+                    "mapping_pairs=",
+                    "contract_companion=",
+                )
+            ):
+                raise AssertionError(
+                    "portable TCK resume omitted its catalog handle or direct contract mappings"
+                )
         elif not all(
             marker in resume_summary
             for marker in (
@@ -1138,13 +1150,20 @@ def assert_bounded_discovery_output() -> None:
             "search did not rank a title/ID match ahead of cross-field matches"
         )
 
+    active_handoff = (
+        query_rti_work.load_json(query_rti_work.DEFAULT_INDEX).get("active_handoff")
+        or {}
+    )
+    active_handoff_family = active_handoff.get("family")
+    if not active_handoff_family:
+        raise AssertionError("active handoff must declare its roadmap family")
     scoped_ready_result = subprocess.run(
         [
             sys.executable,
             str(SCRIPT_ROOT / "query_rti_work.py"),
             "ready",
             "--family",
-            "time-save-restore",
+            active_handoff_family,
             "--summary",
             "--compact",
         ],
@@ -1154,29 +1173,32 @@ def assert_bounded_discovery_output() -> None:
         check=False,
     )
     scoped_ready = scoped_ready_result.stdout
-    if (
-        scoped_ready_result.returncode != 1
-        or "no executable indexed C++ case is ready" not in scoped_ready
-        or "family_selection: time-save-restore" not in scoped_ready
-        or "recommended_family: time-save-restore" not in scoped_ready
-        or "time-save-restore: state=complete-pointer action=evidence-complete"
-        not in scoped_ready
-        or "next_test=RTIambassador delivers a directed interaction through the official Evoke callback surface (state=complete;"
-        not in scoped_ready
+    active_handoff_plan = active_handoff.get("plan_id")
+    if str(active_handoff.get("state") or "").casefold() in {
+        "complete",
+        "completed",
+        "closed",
+        "done",
+    }:
+        if f"family_selection: {active_handoff_family}" not in scoped_ready:
+            raise AssertionError("completed active handoff did not fall back to bounded family selection")
+    elif (
+        scoped_ready_result.returncode != 0
+        or f"family_selection: {active_handoff_family}" not in scoped_ready
+        or not active_handoff_plan
+        or f"plan_id: {active_handoff_plan}" not in scoped_ready
+        or f"lane: {active_handoff.get('lane')}" not in scoped_ready
+        or "state: active-handoff" not in scoped_ready
     ):
-        raise AssertionError(
-            "scoped ready query lost the current evidence-complete handoff"
-        )
+        raise AssertionError("scoped ready query lost the current active handoff")
     if (
-        "direct_pairs:" in scoped_ready
-        or "mapping_seed:" in scoped_ready
+        "mapping_seed:" in scoped_ready
         or "seed_trace_command:" in scoped_ready
-        or "implementation_command:" in scoped_ready
     ):
         raise AssertionError(
-            "compact completed handoff leaked stale mapping-seed details"
+            "compact active handoff leaked mapping-seed details"
         )
-    if len(scoped_ready.splitlines()) > 20 or len(scoped_ready) > 5000:
+    if len(scoped_ready.splitlines()) > 28 or len(scoped_ready) > 5000:
         raise AssertionError("compact ready family output exceeded its discovery budget")
     if any(
         line.startswith(("  requirements=", "  standard_sections=", "  direct_pairs="))
@@ -1185,15 +1207,21 @@ def assert_bounded_discovery_output() -> None:
         raise AssertionError(
             "compact ready family output leaked mapping previews; use matrix queries"
         )
-    if (
-        "matrix_requirements=python tools/query_rti_work.py matrix time-save-restore --group-by requirement --summary --compact"
+    if str(active_handoff.get("state") or "").casefold() in {
+        "complete",
+        "completed",
+        "closed",
+        "done",
+    }:
+        if "matrix_requirements=" not in scoped_ready or "matrix_sections=" not in scoped_ready:
+            raise AssertionError("bounded family selection lost its on-demand matrix handles")
+    elif (
+        f'matrix_requirements=python tools/query_rti_work.py matrix "{active_handoff_plan}" --group-by requirement --summary --compact'
         not in scoped_ready
-        or "matrix_sections=python tools/query_rti_work.py matrix time-save-restore --group-by section --summary --compact"
+        or f'matrix_sections=python tools/query_rti_work.py matrix "{active_handoff_plan}" --group-by section --summary --compact'
         not in scoped_ready
     ):
-        raise AssertionError(
-            "compact ready family card lost its on-demand matrix handles"
-        )
+        raise AssertionError("compact ready family card lost its on-demand matrix handles")
     scoped_work = run("work", "object-ddm-ownership", "--summary", "--compact")
     if len(scoped_work.splitlines()) > 24 or len(scoped_work) > 4000:
         raise AssertionError("compact work family output exceeded its discovery budget")
@@ -1238,7 +1266,8 @@ def main() -> int:
     index = query_rti_work.load_json(query_rti_work.DEFAULT_INDEX)
     # A planned or proposed handoff must point to an existing build target.
     # Otherwise a bounded resume merely hands the next contributor a new search.
-    handoff_target = (index.get("active_handoff") or {}).get("ctest_target")
+    declared_active_handoff = index.get("active_handoff") or {}
+    handoff_target = declared_active_handoff.get("ctest_target")
     target_declaration = re.compile(
         r"\b(?:add_executable|umbra_add_[A-Za-z0-9_]*catch2_target)"
         r"\s*\(\s*([A-Za-z_][A-Za-z0-9_-]*)"
@@ -1253,8 +1282,21 @@ def main() -> int:
             cmake_source.read_text(encoding="utf-8")
         )
     }
-    if handoff_target and handoff_target not in declared_executables:
+    if (
+        handoff_target
+        and declared_active_handoff.get("family") != "portable-cpp-tck-2025"
+        and handoff_target not in declared_executables
+    ):
         raise AssertionError(f"active handoff names an undeclared CMake target: {handoff_target}")
+    if declared_active_handoff.get("family") == "portable-cpp-tck-2025":
+        if (
+            handoff_target != declared_active_handoff.get("plan_id")
+            or (declared_active_handoff.get("commands") or {}).get("scenario")
+            != handoff_target
+        ):
+            raise AssertionError(
+                "portable C++ TCK handoffs must identify the proposed scenario consistently"
+            )
     plan = query_rti_work.load_json(query_rti_work.DEFAULT_PLAN)
     bundle = query_rti_work.load_json(query_rti_work.DEFAULT_BUNDLE)
     standard_requirements = query_rti_work.load_standard_requirements(bundle)
@@ -1322,7 +1364,12 @@ def main() -> int:
         text=True,
         check=True,
     ).stdout
-    if isinstance(handoff_plan, dict):
+    handoff_is_completed = (
+        isinstance(declared_handoff, dict)
+        and str(declared_handoff.get("state") or "").casefold()
+        in {"complete", "completed", "closed", "done"}
+    )
+    if isinstance(handoff_plan, dict) and not handoff_is_completed:
         if (
             not isinstance(active_handoff, dict)
             or not active_handoff.get("found")
@@ -1395,6 +1442,68 @@ def main() -> int:
             raise AssertionError(
                 "the exact active-case card must retain its implementation status, real source, file target, and direct mapping"
             )
+        exact_case_ctest_handles = {
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-publication-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores a published interaction declaration in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-subscription-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores an interaction subscription declaration in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-publication-subscription-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores a same-class interaction publication and subscription in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-multiple-publications-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores multiple interaction declaration entries in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-multi-federate-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores independent interaction declarations for multiple federates$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-transportation-type-override-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores a committed interaction transportation-type override in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-regional-subscription-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores a regional interaction subscription in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-regional-interaction-tso-ddm-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem fresh-registry restore preserves one timestamped regional interaction payload and source-region snapshot$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-directed-interaction-declaration-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores a directed interaction publication and subscription for multiple federates$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-directed-interaction-routing-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores a directed interaction target and receive-order route$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-attribute-transportation-type-change-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores a pending attribute transportation-type change in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-interaction-transportation-type-change-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores a pending interaction transportation-type change in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-pending-ownership-acquisition-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores pending regular ownership release work in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-pending-ownership-if-available-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores pending If Available ownership callback in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-pending-negotiated-owner-confirmation-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores pending negotiated owner confirmation in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-pending-negotiated-if-available-owner-confirmation-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores pending negotiated If Available owner confirmation in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-negotiated-mixed-confirmation-asymmetric-unit-recovered-source-mapping": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image restores an asymmetric mixed negotiated confirmation in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-negotiated-mixed-confirmation-delivered-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image preserves mixed delivered negotiated confirmations in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-negotiated-if-available-confirmation-delivered-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image preserves delivered negotiated If Available confirmation in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-negotiated-confirmation-delivered-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Filesystem state image preserves delivered negotiated owner confirmation in a fresh registry$",
+            "umbra-cpp-federation-save-commit-filesystem-process-restart-malformed-mixed-confirmation-unit": "^umbra\\.ieee1516_2025\\.catch2\\.Federation restore rejects malformed mixed negotiated confirmation images$",
+        }
+        for case_id, ctest_filter in exact_case_ctest_handles.items():
+            case = next(
+                (
+                    test
+                    for test in tests
+                    if isinstance(test, dict) and test.get("id") == case_id
+                ),
+                None,
+            )
+            if not isinstance(case, dict):
+                raise AssertionError(f"the case {case_id} must remain indexed")
+            card = query_rti_work.case_card_record(case, index, case_id)
+            expected_ctest = (
+                'ctest --test-dir <build-dir> -C Debug -R '
+                f'"{ctest_filter}" --output-on-failure'
+            )
+            if card.get("commands", {}).get("ctest") != expected_ctest:
+                raise AssertionError(
+                    f"case card {case_id} must use its exact registered CTest selector, not an unrelated lane prefix"
+                )
+    elif handoff_is_completed:
+        ready_handoff = query_rti_work.ready_slice(
+            index,
+            tests,
+            source_locations,
+            requested_family=(
+                declared_handoff.get("family")
+                if isinstance(declared_handoff, dict)
+                else None
+            ),
+        )
+        if (
+            active_handoff is not None
+            or (
+                isinstance(ready_handoff, dict)
+                and ready_handoff.get("plan_id") == handoff_plan.get("id")
+            )
+        ):
+            raise AssertionError("completed active handoff was reoffered as next work")
     elif declared_handoff is None:
         latest_slice = (index.get("mapping") or {}).get("latest_completed_slice")
         latest_plan_id = (
@@ -1453,36 +1562,82 @@ def main() -> int:
                 "a completed roadmap slice must remain queryable without being reoffered as the active handoff"
             )
     elif (
-        not isinstance(active_handoff, dict)
-        or not active_handoff.get("found")
-        or not isinstance(declared_handoff, dict)
-        or active_handoff.get("test_case") != declared_handoff.get("test_case")
-        or active_handoff.get("plan_id") != declared_handoff.get("plan_id")
-        or active_handoff.get("plan_id_status") != "proposed"
-        or active_handoff.get("source_target") != declared_handoff.get("source_target")
-        or active_handoff.get("source_location") != declared_handoff.get("source_location")
-        or not isinstance(mapping_seed_plan, dict)
-        or active_handoff.get("mapping_seed_test_case") != mapping_seed_plan.get("test_case")
-        or active_handoff.get("api_surfaces")
-        != query_rti_work.strings(
-            mapping_seed_plan.get("selected_cpp_api_surface_ids")
-            if isinstance(mapping_seed_plan, dict)
-            else None
-        )
-        or bool(declared_handoff.get("api_surfaces"))
-        or active_handoff.get("requirement_section_pair_count", 0) == 0
-        or not active_handoff.get("ctest_filter")
-        or active_handoff.get("test_case") not in resume_handoff
-        or f"proposed_plan_id={declared_handoff.get('plan_id')}" not in resume_handoff
-        or str(declared_handoff.get("source_location")) not in resume_handoff
-        or f'case=python tools/query_rti_work.py case "{declared_handoff.get("plan_id")}"' in resume_handoff
-        or f'matrix_requirements=python tools/query_rti_work.py matrix "{declared_handoff.get("plan_id")}"' in resume_handoff
-        or str(active_handoff.get("source_lane")) not in resume_handoff
-        or "mapping_seed_only=" not in resume_handoff
+        isinstance(active_handoff, dict)
+        and active_handoff.get("handoff_kind") == "portable-tck-verification"
     ):
-        raise AssertionError(
-            "the current new-case handoff must expose its exact source, API, mapping, and seed"
+        if (
+            not isinstance(declared_handoff, dict)
+            or active_handoff.get("plan_id") != declared_handoff.get("plan_id")
+            or active_handoff.get("plan_id_status") != "indexed"
+            or active_handoff.get("source_target") != declared_handoff.get("source_target")
+            or active_handoff.get("requirement_section_pair_count", 0) == 0
+            or not active_handoff.get("api_surfaces")
+            or not active_handoff.get("ctest_filter")
+            or active_handoff.get("test_case") not in resume_handoff
+            or str(active_handoff.get("source_lane")) not in resume_handoff
+        ):
+            raise AssertionError(
+                "portable TCK verification handoff must resolve from its scenario contracts"
+            )
+    else:
+        if (
+            not isinstance(active_handoff, dict)
+            or not active_handoff.get("found")
+            or not isinstance(declared_handoff, dict)
+            or active_handoff.get("test_case") != declared_handoff.get("test_case")
+            or active_handoff.get("plan_id") != declared_handoff.get("plan_id")
+            or active_handoff.get("plan_id_status") != "proposed"
+            or active_handoff.get("source_target") != declared_handoff.get("source_target")
+            or active_handoff.get("source_location") != declared_handoff.get("source_location")
+            or not isinstance(mapping_seed_plan, dict)
+            or active_handoff.get("mapping_seed_test_case") != mapping_seed_plan.get("test_case")
+            or active_handoff.get("api_surfaces")
+            != query_rti_work.strings(
+                mapping_seed_plan.get("selected_cpp_api_surface_ids")
+                if isinstance(mapping_seed_plan, dict)
+                else None
+            )
+            or bool(declared_handoff.get("api_surfaces"))
+            or active_handoff.get("requirement_section_pair_count", 0) == 0
+            or not active_handoff.get("ctest_filter")
+            or active_handoff.get("test_case") not in resume_handoff
+            or f"proposed_plan_id={declared_handoff.get('plan_id')}" not in resume_handoff
+            or (
+                declared_handoff.get("source_location") is not None
+                and str(declared_handoff.get("source_location")) not in resume_handoff
+            )
+            or f'case=python tools/query_rti_work.py case "{declared_handoff.get("plan_id")}"' in resume_handoff
+            or f'matrix_requirements=python tools/query_rti_work.py matrix "{declared_handoff.get("plan_id")}"' in resume_handoff
+            or str(active_handoff.get("source_lane")) not in resume_handoff
+            or "mapping_seed_only=" not in resume_handoff
+        ):
+            raise AssertionError(
+                "the current new-case handoff must expose its exact source, API, mapping, and seed"
+            )
+    if (
+        isinstance(declared_handoff, dict)
+        and declared_handoff.get("family") == "portable-cpp-tck-2025"
+    ):
+        tck_handoff = query_rti_work.ready_slice(
+            index,
+            tests,
+            source_locations,
+            requested_family="portable-cpp-tck-2025",
         )
+        expected_catalog_check = (
+            "python tools/cpp_tck.py --scenario "
+            f"{declared_handoff.get('plan_id')}"
+        )
+        if (
+            not isinstance(tck_handoff, dict)
+            or (tck_handoff.get("check_command") or tck_handoff.get("post_mapping_check_command"))
+            != expected_catalog_check
+            or tck_handoff.get("post_mapping_focus_command") is not None
+            or "query_rti_work.py check --lane" in str(tck_handoff)
+        ):
+            raise AssertionError(
+                "portable C++ TCK handoffs must validate through the TCK catalog, not Catch2 lanes"
+            )
     delay_requirement_ids = {
         "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
         "requirement-candidate-content-clauses-08-time-management-page-187-l40-11",
@@ -9794,12 +9949,25 @@ def main() -> int:
         source_locations,
         include_source_only=True,
     )
-    if source_only_ready.get("state") == "unplanned-source":
+    if source_only_ready.get("state") == "active-handoff":
+        if (
+            source_only_ready.get("plan_id") != active_handoff.get("plan_id")
+            or not source_only_ready.get("source_location")
+        ):
+            raise AssertionError(
+                "explicit source-only opt-in displaced or dropped the active handoff"
+            )
+    elif source_only_ready.get("state") == "unplanned-source":
         if not source_only_ready.get("source_location"):
             raise AssertionError(
                 "explicit source-only handoff omitted its source location"
             )
-    elif source_only_ready.get("state") not in {"none", "planned", "new-case-needed"}:
+    elif source_only_ready.get("state") not in {
+        "none",
+        "planned",
+        "new-case-needed",
+        "verification-needed",
+    }:
         raise AssertionError(
             "explicit source-only opt-in returned an unexpected queue state"
         )
@@ -11207,10 +11375,10 @@ def main() -> int:
         for test in tests
         if "region-lifecycle" in test.get("tags", [])
     ]
-    if len(region_rows) != 6:
+    if len(region_rows) != 7:
         raise AssertionError(
             "region-lifecycle taxonomy row count drifted: "
-            f"expected 6, observed {len(region_rows)}"
+            f"expected 7, observed {len(region_rows)}"
         )
     if any(
         test.get("traceability_state") != "requirements-mapped"
@@ -11222,7 +11390,7 @@ def main() -> int:
     )
     if region_focus.get("lane_state") != "complete":
         raise AssertionError("region-lifecycle lane should be complete")
-    if region_focus.get("mapped_test_count") != 6:
+    if region_focus.get("mapped_test_count") != 7:
         raise AssertionError("focus lost region-lifecycle mapped count")
     if region_focus.get("unclassified_count") != 0:
         raise AssertionError("region-lifecycle retained an unexpected mapping gap")
@@ -12315,9 +12483,9 @@ def main() -> int:
     directed_focus = query_rti_work.focused_lane_result(
         index, tests, "directed", limit=0
     )
-    if directed_focus.get("test_count") != 38:
+    if directed_focus.get("test_count") != 40:
         raise AssertionError("directed lane plan count drifted")
-    if directed_focus.get("mapped_test_count") != 35:
+    if directed_focus.get("mapped_test_count") != 37:
         raise AssertionError("directed lane mapped count drifted")
     directed_handles = directed_focus.get("lane_handles")
     if not isinstance(directed_handles, dict) or directed_handles.get(

@@ -785,16 +785,22 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::enable_time_regulation,
           "The regional process server lost Enable Time Regulation.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
       serveExpected(
           receiverOne,
           receiverOneHandler,
           TransportServiceOperation::enable_time_constrained,
           "The regional process server lost receiver-one Enable Time Constrained.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiverOne, receiverOneHandler);
       serveExpected(
           receiverTwo,
           receiverTwoHandler,
           TransportServiceOperation::enable_time_constrained,
           "The regional process server lost receiver-two Enable Time Constrained.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiverTwo, receiverTwoHandler);
       serveExpected(
           sender,
           senderHandler,
@@ -840,21 +846,29 @@ TEST_CASE(
           receiverOneHandler,
           TransportServiceOperation::time_advance_request,
           "The regional process server lost receiver-one TAR at timestamp 5.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiverOne, receiverOneHandler);
       serveExpected(
           receiverTwo,
           receiverTwoHandler,
           TransportServiceOperation::time_advance_request,
           "The regional process server lost receiver-two TAR at timestamp 5.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiverTwo, receiverTwoHandler);
       serveExpected(
           sender,
           senderHandler,
           TransportServiceOperation::time_advance_request,
           "The regional process server lost sender intermediate TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
       serveExpected(
           sender,
           senderHandler,
           TransportServiceOperation::time_advance_request,
           "The regional process server lost sender timestamp-5 TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
 
       auto serveCallbacks = [&](ProcessTransportSession& session,
                                 auto const& handler,
@@ -913,16 +927,22 @@ TEST_CASE(
           receiverOneHandler,
           TransportServiceOperation::time_advance_request,
           "The regional process server lost receiver-one TAR at timestamp 7.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiverOne, receiverOneHandler);
       serveExpected(
           receiverTwo,
           receiverTwoHandler,
           TransportServiceOperation::time_advance_request,
           "The regional process server lost receiver-two TAR at timestamp 7.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiverTwo, receiverTwoHandler);
       serveExpected(
           sender,
           senderHandler,
           TransportServiceOperation::time_advance_request,
           "The regional process server lost sender final TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
       serveCallbacks(
           receiverOne,
           receiverOneHandler,

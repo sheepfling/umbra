@@ -7,6 +7,7 @@
 #include <RTI/time/HLAinteger64Interval.h>
 #include <RTI/time/HLAinteger64Time.h>
 
+#include <algorithm>
 #include <atomic>
 #include <filesystem>
 #include <memory>
@@ -307,6 +308,188 @@ TEST_CASE(
 
   REQUIRE_NOTHROW(receiver->resignFederationExecution(
       rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded zero-lookahead TAR rejects TSO timestamps at its request boundary",
+    "[integration][development-profile][interaction-management][time-management]"
+    "[timestamped-interaction][tso][tso-send-request-boundary]"
+    "[rti.service.send-interaction][rti.service.time-advance-request]"
+    "[federate.callback.receive-interaction][federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName() + L"-request-boundary";
+  auto const fomModule = resourcePath("parameter-handle-provider-fom.xml").wstring();
+  std::vector<unsigned char> const identifierBytes{0xB4U, 0x05U};
+  std::vector<unsigned char> const tagBytes{0xB4U, 0x06U};
+  VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      fomModule,
+      standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"tso-boundary-publisher",
+      L"publisher",
+      federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"tso-boundary-receiver",
+      L"subscriber",
+      federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  auto const identifier = publisher->getParameterHandle(interactionClass, L"Identifier");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(identifier.isValid());
+  ParameterHandleValueMap parameterValues;
+  parameterValues.emplace(
+      identifier,
+      VariableLengthData(identifierBytes.data(), identifierBytes.size()));
+
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  drainCallbacks(*receiver);
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(0)));
+  drainCallbacks(*publisher);
+
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE(publisherReports.timeAdvanceGrantCount == 0U);
+  REQUIRE_THROWS_AS(
+      publisher->sendInteraction(
+          interactionClass,
+          parameterValues,
+          tag,
+          rti1516_2025::HLAinteger64Time(5)),
+      rti1516_2025::InvalidLogicalTime);
+  auto const accepted = publisher->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(accepted.isValid());
+  REQUIRE(publisherReports.timeAdvanceGrantCount == 0U);
+
+  drainCallbacks(*publisher);
+  REQUIRE(publisherReports.timeAdvanceGrantCount == 1U);
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(6)));
+  drainCallbacks(*receiver);
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
+  REQUIRE(receiverReports.timestampedInteractionReports.front().timeValue == L"6");
+  REQUIRE(receiverReports.timestampedInteractionReports.front().sentOrderType == TIMESTAMP);
+  REQUIRE(receiverReports.timestampedInteractionReports.front().receivedOrderType == TIMESTAMP);
+  REQUIRE(variableLengthDataBytes(
+              receiverReports.timestampedInteractionReports.front().userSuppliedTag) ==
+          tagBytes);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded TARA delivers a TSO at its exclusive request boundary only after the grant",
+    "[integration][development-profile][interaction-management][time-management]"
+    "[timestamped-interaction][tso][tso-tara-exclusive-upper-bound]"
+    "[rti.service.send-interaction][rti.service.time-advance-request-available]"
+    "[federate.callback.receive-interaction][federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName() + L"-tara-exclusive-boundary";
+  auto const fomModule = resourcePath("parameter-handle-provider-fom.xml").wstring();
+  std::vector<unsigned char> const identifierBytes{0xC5U, 0x07U};
+  std::vector<unsigned char> const tagBytes{0xC5U, 0x08U};
+  VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      fomModule,
+      standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"tara-boundary-publisher",
+      L"publisher",
+      federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"tara-boundary-receiver",
+      L"subscriber",
+      federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+  auto const identifier = publisher->getParameterHandle(interactionClass, L"Identifier");
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(identifier.isValid());
+  ParameterHandleValueMap parameterValues;
+  parameterValues.emplace(
+      identifier,
+      VariableLengthData(identifierBytes.data(), identifierBytes.size()));
+
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  drainCallbacks(*receiver);
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  drainCallbacks(*publisher);
+
+  auto const message = publisher->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(message.isValid());
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequestAvailable(
+      rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(2)));
+  drainCallbacks(*publisher);
+
+  // Table 1's TARA row permits pre-grant delivery only for ts < t_R.
+  // Dispatch one receiver callback at a time so an equal-time message cannot
+  // be hidden by draining both callbacks before checking their order.
+  for (int pass = 0; pass != 128 && receiverReports.timeAdvanceGrantCount == 0U;
+       ++pass) {
+    static_cast<void>(receiver->evokeCallback(0.0));
+  }
+  REQUIRE(receiverReports.timeAdvanceGrantCount == 1U);
+  REQUIRE_FALSE(receiverReports.callbackOrder.empty());
+  REQUIRE(receiverReports.callbackOrder.front() == "grant");
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
+  auto const interactionCallback = std::find(
+      receiverReports.callbackOrder.begin(),
+      receiverReports.callbackOrder.end(),
+      "interaction");
+  REQUIRE(interactionCallback != receiverReports.callbackOrder.end());
+  REQUIRE(interactionCallback > receiverReports.callbackOrder.begin());
+  auto const& report = receiverReports.timestampedInteractionReports.front();
+  REQUIRE(report.timeValue == L"6");
+  REQUIRE(report.sentOrderType == TIMESTAMP);
+  REQUIRE(report.receivedOrderType == TIMESTAMP);
+  REQUIRE(variableLengthDataBytes(report.userSuppliedTag) == tagBytes);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(publisher->resignFederationExecution(
       rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));

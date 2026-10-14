@@ -7,6 +7,7 @@
 #include <limits>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <stdexcept>
 #include <string>
 
@@ -102,10 +103,17 @@ class ProcessTransportListener final {
 
   [[nodiscard]] ProcessTransportAddress address() const noexcept;
 
+  // Closes the listening socket without destroying the listener object. This
+  // lets an owner safely release a thread blocked in accept() before joining
+  // it, avoiding a native-socket lifetime race during error cleanup.
+  void close() noexcept;
+
  private:
   ProcessTransportListener(std::uintptr_t nativeSocket, ProcessTransportAddress address);
 
+  mutable std::mutex mutex_;
   std::uintptr_t nativeSocket_ = std::numeric_limits<std::uintptr_t>::max();
+  std::set<std::uintptr_t> pendingSockets_;
   ProcessTransportAddress address_;
 };
 

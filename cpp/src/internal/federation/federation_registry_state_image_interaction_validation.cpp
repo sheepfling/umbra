@@ -13,13 +13,13 @@
 namespace umbra::detail::federation_registry_state_image_validation {
 
 // Interaction declaration state is federation-owned, while callback routes
-// are process-local.  The first fresh-registry slices admit one standalone
-// one or two published interaction classes (the one-class form may carry one
-// same-class subscription, one committed transportation-type override, and/or
-// one pending transportation-type change), one standalone subscription, one
-// standalone regional subscription, or one two-member directed
-// publication/subscription pair; all broader declaration combinations remain
-// behind their explicit lanes.
+// are process-local. The fresh-registry slices admit one standalone one or two
+// published interaction classes (the one-class form may carry one same-class
+// subscription, one committed transportation-type override, and/or one
+// pending transportation-type change), one or more standalone ordinary
+// subscriptions, one standalone regional subscription, or one two-member
+// directed publication/subscription pair; all broader declaration
+// combinations remain behind their explicit lanes.
 bool isRouteFreeInteractionDeclarationImage(FederationStateImage const& image) {
   if (image.interactionDeclarationCount != image.interactionDeclarations.size() ||
       image.interactionDeclarations.size() != 1U ||
@@ -36,7 +36,6 @@ bool isRouteFreeInteractionDeclarationImage(FederationStateImage const& image) {
   auto const& declaration = image.interactionDeclarations.front();
   if (declaration.federateId == 0U ||
       declaration.publishedInteractionClasses.size() > 2U ||
-      declaration.subscribedInteractionClasses.size() > 1U ||
       declaration.regionalSubscribedInteractionClasses.size() > 1U ||
       !declaration.publishedObjectClassDirectedInteractions.empty() ||
       !declaration.subscribedObjectClassDirectedInteractions.empty() ||
@@ -44,6 +43,15 @@ bool isRouteFreeInteractionDeclarationImage(FederationStateImage const& image) {
       !declaration.interactionOrderTypes.empty() ||
       declaration.pendingInteractionTransportationTypeChanges.size() > 1U) {
     return false;
+  }
+
+  std::uint64_t previousSubscriptionHandle = 0U;
+  for (auto const& subscription : declaration.subscribedInteractionClasses) {
+    if (subscription.interactionClassHandle == 0U ||
+        subscription.interactionClassHandle <= previousSubscriptionHandle) {
+      return false;
+    }
+    previousSubscriptionHandle = subscription.interactionClassHandle;
   }
 
   if (declaration.publishedInteractionClasses.size() == 2U) {
@@ -83,7 +91,8 @@ bool isRouteFreeInteractionDeclarationImage(FederationStateImage const& image) {
     return false;
   }
   if (hasPublishedInteraction && hasSubscribedInteraction &&
-      subscribedInteractionClassHandle != publishedInteractionClassHandle) {
+      (declaration.subscribedInteractionClasses.size() != 1U ||
+       subscribedInteractionClassHandle != publishedInteractionClassHandle)) {
     return false;
   }
   if (hasRegionalInteraction && (hasPublishedInteraction || hasSubscribedInteraction)) {
@@ -300,16 +309,21 @@ bool isRouteFreeRegionalTsoInteractionImage(FederationStateImage const& image) {
   return recipients.size() == 2U;
 }
 
-// The next mixed declaration slice keeps one publication and one ordinary
-// subscription on separate joined federates. The publisher may carry one
+// The next mixed declaration slice keeps one publication and ordinary
+// subscriptions on separate joined federates. The publisher may carry one
 // committed transportation override or one pending transportation change;
 // the latter is rebound to the current publisher route by the restore loop.
+// One route-free object may accompany the declarations only when it carries
+// the independently bounded pending attribute transportation-type change.
 // Regional state and order state remain outside this narrow declaration lane.
 bool isRouteFreeMixedMultipleInteractionDeclarationImage(
     FederationStateImage const& image) {
   if (image.interactionDeclarationCount != image.interactionDeclarations.size() ||
-      image.interactionDeclarations.size() != 2U ||
-      !image.objects.empty() ||
+      image.interactionDeclarations.size() < 3U ||
+      image.objects.size() > 1U ||
+      (!image.objects.empty() &&
+       !isRouteFreePendingAttributeTransportationTypeChangeObject(
+           image.objects.front())) ||
       !image.tsoInteractionMessages.empty() ||
       !image.tsoAttributeUpdateMessages.empty() ||
       !image.tsoObjectDeletionMessages.empty() ||
@@ -319,12 +333,11 @@ bool isRouteFreeMixedMultipleInteractionDeclarationImage(
     return false;
   }
   std::uint64_t previousFederateId = 0U;
-  bool hasPublication = false;
-  bool hasSubscription = false;
+  std::size_t publisherCount = 0U;
+  std::size_t subscriberCount = 0U;
   for (auto const& declaration : image.interactionDeclarations) {
     if (declaration.federateId == 0U || declaration.federateId <= previousFederateId ||
         declaration.publishedInteractionClasses.size() > 1U ||
-        declaration.subscribedInteractionClasses.size() > 1U ||
         !declaration.regionalSubscribedInteractionClasses.empty() ||
         !declaration.publishedObjectClassDirectedInteractions.empty() ||
         !declaration.subscribedObjectClassDirectedInteractions.empty() ||
@@ -333,12 +346,19 @@ bool isRouteFreeMixedMultipleInteractionDeclarationImage(
         declaration.pendingInteractionTransportationTypeChanges.size() > 1U) {
       return false;
     }
+    std::uint64_t previousSubscriptionHandle = 0U;
+    for (auto const& subscription : declaration.subscribedInteractionClasses) {
+      if (subscription.interactionClassHandle == 0U ||
+          subscription.interactionClassHandle <= previousSubscriptionHandle) {
+        return false;
+      }
+      previousSubscriptionHandle = subscription.interactionClassHandle;
+    }
     bool const publishes = declaration.publishedInteractionClasses.size() == 1U &&
         declaration.publishedInteractionClasses.front() != 0U &&
         declaration.subscribedInteractionClasses.empty();
     bool const subscribes = declaration.publishedInteractionClasses.empty() &&
-        declaration.subscribedInteractionClasses.size() == 1U &&
-        declaration.subscribedInteractionClasses.front().interactionClassHandle != 0U &&
+        !declaration.subscribedInteractionClasses.empty() &&
         declaration.interactionTransportationTypes.empty();
     if (publishes == subscribes) {
       return false;
@@ -365,11 +385,11 @@ bool isRouteFreeMixedMultipleInteractionDeclarationImage(
         return false;
       }
     }
-    hasPublication = hasPublication || publishes;
-    hasSubscription = hasSubscription || subscribes;
+    publisherCount += publishes ? 1U : 0U;
+    subscriberCount += subscribes ? 1U : 0U;
     previousFederateId = declaration.federateId;
   }
-  return hasPublication && hasSubscription;
+  return publisherCount == 1U && subscriberCount >= 2U;
 }
 
 // Directed interaction declarations are indexed by both the target object

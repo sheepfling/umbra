@@ -1,4 +1,5 @@
 #include "internal/federation/federation_registry.hpp"
+#include "internal/observability/runtime_instrumentation.hpp"
 
 #include <cstdint>
 #include <limits>

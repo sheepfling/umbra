@@ -39,6 +39,7 @@
 #include "internal/federation/process_transport.hpp"
 #include "internal/federation/process_transport_session.hpp"
 #include "process_public_service_fixture.hpp"
+#include "process_service_report_fixture.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
@@ -573,16 +574,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
-        }
+        umbra::test::serveExpectedPrimaryProcessRequest(
+            session, handler, operation, description);
       };
 
       serveExpected(
@@ -677,20 +670,20 @@ TEST_CASE(
           receiverTwoHandler,
           TransportServiceOperation::subscribe_object_class_attributes,
           "The process fanout server lost receiver-two Subscribe.");
-      serveExpected(
-          sender,
-          senderHandler,
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, sender, senderHandler,
           TransportServiceOperation::enable_time_regulation,
-          "The process fanout server lost Enable Time Regulation.");
-      serveExpected(
-          receiverOne,
-          receiverOneHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The process fanout server lost sender Enable Time Regulation.");
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, receiverOne, receiverOneHandler,
           TransportServiceOperation::enable_time_constrained,
+          TransportServiceOperation::report_successful_void_service_invocation,
           "The process fanout server lost receiver-one Enable Time Constrained.");
-      serveExpected(
-          receiverTwo,
-          receiverTwoHandler,
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, receiverTwo, receiverTwoHandler,
           TransportServiceOperation::enable_time_constrained,
+          TransportServiceOperation::report_successful_void_service_invocation,
           "The process fanout server lost receiver-two Enable Time Constrained.");
       serveExpected(
           sender,
@@ -727,25 +720,25 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::retract,
           "The process fanout server lost middle Retract.");
-      serveExpected(
-          receiverOne,
-          receiverOneHandler,
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, receiverOne, receiverOneHandler,
           TransportServiceOperation::time_advance_request,
-          "The process fanout server lost receiver-one TAR at timestamp 5.");
-      serveExpected(
-          receiverTwo,
-          receiverTwoHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The process fanout server lost receiver-one timestamp-5 TAR.");
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, receiverTwo, receiverTwoHandler,
           TransportServiceOperation::time_advance_request,
-          "The process fanout server lost receiver-two TAR at timestamp 5.");
-      serveExpected(
-          sender,
-          senderHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The process fanout server lost receiver-two timestamp-5 TAR.");
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, sender, senderHandler,
           TransportServiceOperation::time_advance_request,
+          TransportServiceOperation::report_successful_void_service_invocation,
           "The process fanout server lost sender intermediate TAR.");
-      serveExpected(
-          sender,
-          senderHandler,
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, sender, senderHandler,
           TransportServiceOperation::time_advance_request,
+          TransportServiceOperation::report_successful_void_service_invocation,
           "The process fanout server lost sender timestamp-5 TAR.");
 
       auto serveCallbacks = [&](ProcessTransportSession& session,
@@ -800,20 +793,20 @@ TEST_CASE(
           receiverTwoAcknowledgements,
           1U,
           "The process fanout server did not receive receiver-two timestamp-5 acknowledgement.");
-      serveExpected(
-          receiverOne,
-          receiverOneHandler,
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, receiverOne, receiverOneHandler,
           TransportServiceOperation::time_advance_request,
-          "The process fanout server lost receiver-one TAR at timestamp 7.");
-      serveExpected(
-          receiverTwo,
-          receiverTwoHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The process fanout server lost receiver-one timestamp-7 TAR.");
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, receiverTwo, receiverTwoHandler,
           TransportServiceOperation::time_advance_request,
-          "The process fanout server lost receiver-two TAR at timestamp 7.");
-      serveExpected(
-          sender,
-          senderHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The process fanout server lost receiver-two timestamp-7 TAR.");
+      umbra::test::serveExpectedProcessServiceReportPair(
+          serveExpected, sender, senderHandler,
           TransportServiceOperation::time_advance_request,
+          TransportServiceOperation::report_successful_void_service_invocation,
           "The process fanout server lost sender final TAR.");
       serveCallbacks(
           receiverOne,

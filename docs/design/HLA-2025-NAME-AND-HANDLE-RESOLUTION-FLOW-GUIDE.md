@@ -1,11 +1,12 @@
 # HLA 1516.1-2025 Names and Handle Resolution
 
-This is a 2025-only guide to how support-service names resolve to typed API
-handles, how class-scoped member lookup follows inheritance, and why an object
-instance name is only resolvable by a federate that currently knows that
-instance. It also distinguishes forward lookup of an active federate name from
-reverse lookup of a federate handle. It is a map of the public API and the
-observed Umbra implementation, not a claim of complete HLA conformance.
+IEEE 1516.1-2025 resolves different names in different scopes: model symbols
+in a joined execution's FOM, federate identities in the execution, and object
+instances known to a particular federate. Its public handle categories are
+distinct values, not interchangeable integers or universal name strings.
+This guide explains those HLA identity and lifetime distinctions first, then
+uses selected 2025 Umbra paths and tests as bounded examples. The 2010 API and
+runtime remain separate, and no complete-conformance claim is made.
 
 Keep the [2010 reference-RTI guide](HLA-2010-REFERENCE-RTI-FLOW-GUIDE.md)
 separate. This document cites only the pinned IEEE 1516.1-2025 API and the
@@ -24,14 +25,10 @@ There are three identity questions that can sound alike:
   lookup directions have distinct API exceptions and should not be assumed to
   have identical lifetime semantics.
 
-The C++ API also makes the symbol category part of the type. An
+The C++ API also makes symbol category part of the type: an
 `ObjectClassHandle` is not an `InteractionClassHandle`, and an
-`AttributeHandle` is not a `ParameterHandle`. The official handle header defines
-each as a distinct class, even though the interfaces share operations. Its
-`hash()` value is explicitly allowed to collide, so use handle equality for
-identity. Use the matching handle `encode()`/`decode...Handle()` API when a
-handle must be carried as data; do not treat a hash or guessed integer as the
-portable handle value.
+`AttributeHandle` is not a `ParameterHandle`. Section 5 explains why handles,
+hashes, encoded bytes, and normalized coordinates are different things.
 
 ## 1. Resolve a model symbol only in an execution context
 
@@ -62,6 +59,41 @@ the broader hierarchy, dimension, and known-instance flows, while one
 process-endpoint integration test covers object/interaction class
 name-to-handle and handle-to-name lookups plus unknown reverse handles. This
 does not establish parity for every lookup family.
+
+### Tested example: additional-module Join and later model lookups
+
+The pinned [2025 Join API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L212)
+accepts additional FOM modules, and model-name lookup is scoped to the joined
+execution. The sequence below is narrower: it records one embedded 2025 test
+observation, not a universal rule for every RTI or the separate process
+profile. It connects the model-composition boundary to the existing member's
+later lookup view.
+
+```mermaid
+sequenceDiagram
+    participant Existing as Already-joined federate
+    participant Joiner as Joining federate
+    participant RTI as Federation execution
+    Existing->>RTI: Resolve a class in the base model
+    RTI-->>Existing: ObjectClassHandle H
+    Joiner->>RTI: Join with a compatible additional FOM module
+    Note over RTI: Embedded 2025 path commits the replacement model with membership
+    RTI-->>Joiner: Join succeeds and returns FederateHandle
+    Existing->>RTI: Resolve a class contributed by the module
+    RTI-->>Existing: New ObjectClassHandle
+    Existing->>RTI: Resolve the original class again
+    RTI-->>Existing: Same handle H in this test
+```
+
+The [object-class test](../../cpp/tests/object_class_lookup_catch2.cpp#L99)
+observes the pre-existing member resolving the new class after the other
+federate's additional-module Join, while its previously resolved class handle
+remains equal. A parallel [interaction-class test](../../cpp/tests/interaction_class_lookup_catch2.cpp#L103)
+covers the same pattern. The tests compare typed-handle equality; they do not
+establish cross-execution numeric identity or process-profile parity. The [FOM
+composition guide](HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md)
+shows the embedded prepare/commit path and its failure boundary. No discovery
+callback or instance visibility follows from this model-lookup observation.
 
 ## 2. Federate name and handle lookup have distinct lifetime paths
 
@@ -124,6 +156,12 @@ particular, `getAttributeName` and `getParameterName` distinguish an invalid
 handle from a valid handle that is not defined for the supplied class. Do not
 collapse these into a generic “lookup failed” rule.
 
+This is a class-scoped **name-resolution** rule, not a promise that the
+inherited member appears in every receiver callback. Discovery, attribute
+projection, ordinary interaction promotion, and directed routing use class
+ancestry differently in the selected 2025 paths; see the object-information
+guide's [cross-path class ancestry map](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#class-ancestry-has-different-jobs-in-different-paths).
+
 ## 4. Object-instance lookup is federate-local knowledge
 
 An object class is a model declaration. An object instance is created at
@@ -142,31 +180,53 @@ flowchart TD
     F --> G["Forward and reverse lookup succeed"]
 ```
 
+Two similarly named support queries answer different questions:
+
+| Query | Scope and key | Absence is reported as |
+| --- | --- | --- |
+| [`getObjectClassHandle(className)`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1709) | Resolve a class declaration in the joined execution's FOM. | `NameNotFound` |
+| [`getKnownObjectClassHandle(instance)`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1729) | Return the class of an object instance in this federate's known-object view. | `ObjectInstanceNotKnown` |
+
 The distinction is observable with evoked callbacks: in the focused embedded
 registration/discovery test, a receiver cannot resolve the instance before its
 discovery callback has been evoked; after discovery, it can resolve the name
-and query the known class. This guide does not restate the full publication,
+and query the known class with `getKnownObjectClassHandle`. The test's
+[registration/discovery assertions](../../cpp/tests/object_instance_registration_discovery_catch2.cpp#L181)
+exercise this boundary. This guide does not restate the full publication,
 subscription, relevance, or callback-order state machines; follow the
 [object/interaction information guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md)
-for those routing decisions.
+for those routing decisions. A reserved name is earlier state, not an instance
+that receivers can resolve; the separate [name-reservation guide](HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md)
+traces the owner's reservation through named registration and consumption,
+then contrasts that owner path with a peer's later discovery-based knowledge
+in its [two-view synthesis](HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md#owner-reservation-and-peer-visibility-advance-separately).
+
+The 2025 [Federation MOM guide](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md) gives a
+useful counterexample to conflating identities: its membership list carries
+`FederateHandle` references to `HLAfederate` objects, while a receiver's
+object-instance knowledge still follows the discovery path. The focused list
+test decodes federate identities but does not test object-instance lookup from
+those references.
 
 ## 5. Typed handle encoding is not numeric identity
 
-The official `Handle.h` defines separate public classes for each handle kind.
-Each kind supports encoding, but the hash is only a container aid and may
-collide. Umbra's internal conversion helpers preserve the category at the
-boundary while using a private numeric value in the embedded registry. That
-representation is an implementation detail, not a cross-execution identity
-contract.
+The official [2025 `Handle.h`](../../third_party/ieee1516.1-2025/include/RTI/Handle.h#L27)
+defines a separate public class for each handle kind. Treat these as opaque,
+category-typed values, not arithmetic integers: the API supports comparison,
+hashing, and encoding, but exposes no portable numeric identity or arithmetic
+operation on a handle. A hash is only a container aid and may collide. Umbra's
+internal conversion helpers preserve the category at the boundary while using
+a private numeric value in the embedded registry. That representation is an
+implementation detail, not a cross-execution identity contract.
 
 ```mermaid
 flowchart LR
-    A["Typed handle"] --> B["handle.encode()"]
+    A["AttributeHandle"] --> B["encode()"]
     B --> C["VariableLengthData payload"]
-    C --> D["Matching decodeAttributeHandle service"]
-    D --> E["AttributeHandle value"]
-    A --> F["hash() for a local hash table"]
-    F --> G["May collide, not a serialized identity"]
+    C --> D["RTIambassador<br/>decodeAttributeHandle(...)"]
+    D --> E["AttributeHandle"]
+    A --> F["hash()"]
+    F --> G["May collide<br/>not portable identity"]
 ```
 
 Match the decoder to the handle category. The encoding on the public handle is
@@ -231,11 +291,11 @@ cross-execution equality or prove a portable coordinate algorithm.
 | Attribute | Class + name → `AttributeHandle` | Class + handle → name | Inherited members resolve through child classes; a valid attribute outside the supplied class hierarchy is `AttributeNotDefined`. |
 | Interaction class | Name → `InteractionClassHandle` | Handle → name | Separate type from object-class handles; lookup is in the joined execution's interaction catalog. |
 | Parameter | Interaction class + name → `ParameterHandle` | Interaction class + handle → name | Inherited parameters resolve through child interaction classes; a valid unrelated handle is `InteractionParameterNotDefined`. |
-| Dimension | Name → `DimensionHandle` | Handle → name / upper bound | Availability for a particular object or interaction class is a separate query and belongs with DDM. |
+| Dimension | Name → `DimensionHandle` | Handle → name / upper bound | Availability for a particular object or interaction class is a separate query; see the [FOM-to-region bridge](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#from-fom-dimensions-to-runtime-region-scope). |
 | Federate | Active name → `FederateHandle` | Known handle → name | The API documents distinct lookup exceptions; the cited process test observes reverse lookup surviving resignation while active-name lookup does not. |
 | Transportation | Name → `TransportationTypeHandle` | Handle → name | Invalid names use `InvalidTransportationName`, not the generic `NameNotFound`. See the [order and transportation guide](HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md). |
 | Order | Name → `OrderType` enum | Enum → name | This is an enum lookup, not a handle lookup; invalid values use order-specific exceptions. |
-| Object instance | Known name → `ObjectInstanceHandle` | Known handle → name | Both directions are scoped to the federate's known instances; unknown-to-this-federate uses `ObjectInstanceNotKnown`. |
+| Object instance | [`getObjectInstanceHandle(name)`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1739): known name → `ObjectInstanceHandle` | [`getObjectInstanceName(handle)`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1749): known handle → name | Both directions are scoped to the federate's known instances; unknown-to-this-federate uses `ObjectInstanceNotKnown`. |
 
 ## What Umbra currently demonstrates
 
@@ -304,6 +364,7 @@ change does not claim to have run the tests):
 - [Inherited parameter lookup and reverse-pair errors](../../cpp/tests/parameter_lookup_catch2.cpp#L51)
 - [Dimension lookup, hierarchy availability, and bounds](../../cpp/tests/dimension_lookup_catch2.cpp#L53)
 - [Per-federate object-instance discovery and name lookup](../../cpp/tests/object_instance_registration_discovery_catch2.cpp#L78)
+- [Configured process-endpoint object-instance lookup round trips and unknown-name/handle exceptions](../../cpp/tests/ieee1516_2025_connection_object_instance_lookup_catch2.cpp#L458)
 - [Configured process-endpoint federate identity lookup and post-resignation observation](../../cpp/tests/ieee1516_2025_connection_federate_identity_lookup_catch2.cpp#L459)
 - [Configured process-endpoint object/interaction class name-handle round trips](../../cpp/tests/ieee1516_2025_connection_reverse_fom_lookup_catch2.cpp#L459)
 - [Transportation lookup](../../cpp/tests/transportation_type_lookup_catch2.cpp#L50) and [order enum lookup](../../cpp/tests/order_type_lookup_catch2.cpp#L49)
@@ -315,11 +376,14 @@ change does not claim to have run the tests):
 ## Known gaps and boundaries
 
 - The embedded tests cover the broader hierarchy, dimension, and known-instance
-  cases. Process-endpoint tests cover object/interaction class lookup and
-  federate identity lookup; they do not establish complete process/embedded
-  semantic parity for attributes, parameters, dimensions, transportation, or
-  federate-local object instances. The post-resignation identity asymmetry is
-  one focused process-test observation, not a general profile guarantee.
+  cases. The configured process-endpoint object-instance lookup test checks an
+  owner's forward/reverse round trip and the unknown-name/unknown-handle
+  exceptions under both callback models; it does not test peer knowledge before
+  or after discovery. Thus it does not establish full process/embedded parity
+  for federate-local object-instance visibility, nor parity for attributes,
+  parameters, dimensions, or transportation. The post-resignation identity
+  asymmetry is one focused process-test observation, not a general profile
+  guarantee.
 - This guide does not claim that a numeric handle or its hash is meaningful
   across executions, process restarts, or implementations. Use the public
   typed handle APIs and matching encode/decode operations.
@@ -328,5 +392,9 @@ change does not claim to have run the tests):
 - No 2010 behavior is inferred. Keep the reference-RTI profile in its separate
   guide and compare editions only with separate evidence.
 
-Visual verification is pending; track it in the
-[behavior-flow guide backlog](HLA-BEHAVIOR-FLOW-GUIDES.md).
+All seven Mermaid diagrams were rendered and visually reviewed in the local
+VS Code Markdown Preview on 2026-10-11. The parallel class-lookup and
+normalization views remain readable at preview width, and the taller lookup
+flows remain readable while scrolling. This is local-render evidence only;
+GitHub rendering remains pending after publication. Track that remaining check
+in the [behavior-flow guide backlog](HLA-BEHAVIOR-FLOW-GUIDES.md).

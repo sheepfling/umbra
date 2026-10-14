@@ -309,11 +309,44 @@ class EmbeddedFederationManagement final {
     return *registry_;
   }
 
+  void configureFederationSaveDirectory(std::filesystem::path directory) {
+    std::error_code error;
+    auto const absoluteDirectory =
+        std::filesystem::absolute(std::move(directory), error).lexically_normal();
+    if (error || absoluteDirectory.empty()) {
+      throw RTIinternalError(
+          L"Umbra could not resolve the configured federation-save directory.");
+    }
+    std::filesystem::create_directories(absoluteDirectory, error);
+    if (error || !std::filesystem::is_directory(absoluteDirectory, error) || error) {
+      throw RTIinternalError(
+          L"Umbra could not create or access the configured federation-save directory.");
+    }
+
+    std::scoped_lock lock(saveCommitStoreMutex_);
+    if (!saveCommitDirectory_.empty()) {
+      if (saveCommitDirectory_ != absoluteDirectory) {
+        throw RTIinternalError(
+            L"Umbra federation-save directory must remain consistent for the embedded RTI process.");
+      }
+      return;
+    }
+    auto store = std::make_shared<umbra::detail::FilesystemFederationSaveCommitStore>(
+        absoluteDirectory);
+    if (!registry_->configureSaveCommitStoreBeforeFederations(std::move(store))) {
+      throw RTIinternalError(
+          L"Umbra federation-save directory must be configured before creating federations.");
+    }
+    saveCommitDirectory_ = absoluteDirectory;
+  }
+
   [[nodiscard]] std::shared_ptr<umbra::detail::EmbeddedFederationRegistry>
   replaceRegistryForTesting(
       std::shared_ptr<umbra::detail::EmbeddedFederationRegistry> replacement) {
+    std::scoped_lock lock(saveCommitStoreMutex_);
     auto previous = std::move(registry_);
     registry_ = std::move(replacement);
+    saveCommitDirectory_.clear();
     return previous;
   }
 
@@ -333,6 +366,8 @@ class EmbeddedFederationManagement final {
   umbra::detail::ReferenceLogicalTimeSelector timeSelector_;
   umbra::detail::FederationManagementCoordinator coordinator_;
   std::shared_ptr<umbra::detail::EmbeddedFederationRegistry> registry_;
+  std::mutex saveCommitStoreMutex_;
+  std::filesystem::path saveCommitDirectory_;
 };
 
 EmbeddedFederationManagement& embeddedFederationManagement() {
@@ -1797,6 +1832,11 @@ std::wstring describeAmbassadorException(Exception const& exception) {
 }
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+void UmbraRtiAmbassador::configureFederationSaveDirectory(
+    std::filesystem::path const& directory) {
+  embeddedFederationManagement().configureFederationSaveDirectory(directory);
+}
+
 std::mutex& ambassadorFederationManagementMutex() {
   return federationManagementMutex();
 }

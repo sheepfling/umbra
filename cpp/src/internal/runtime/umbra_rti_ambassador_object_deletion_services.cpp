@@ -271,6 +271,8 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
   rti1516_2025::OrderType deletionSentOrderType = rti1516_2025::RECEIVE;
   bool provideRetraction = false;
   umbra::detail::FederationTsoObjectDeletionEnqueueResult enqueueResult;
+  std::vector<umbra::detail::FederationTimeGrantDispatch>
+      newlyEligibleTimeGrants;
   {
     std::scoped_lock lock(mutex_, ambassadorFederationManagementMutex());
     requireConnectedForFederationManagement(lifecycle_);
@@ -349,6 +351,18 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
     throw RTIinternalError(
         L"The embedded federation could not queue the timestamped Delete Object Instance service.");
   }
+
+  if (!tsoRecipientIds.empty()) {
+    std::scoped_lock lock(ambassadorFederationManagementMutex());
+    auto scheduled = embeddedFederationRegistry().reevaluateTimeAdvanceGrants(
+        federationName);
+    if (scheduled.status != umbra::detail::FederationTimeGrantStatus::applied) {
+      throw RTIinternalError(
+          L"The embedded federation could not re-evaluate pending time advances after timestamped object-deletion admission.");
+    }
+    newlyEligibleTimeGrants = std::move(scheduled.dispatches);
+  }
+  submitAmbassadorTimeAdvanceGrantDispatches(std::move(newlyEligibleTimeGrants));
 
   // Timestamped deletion is an accepted sender-side service at this queue
   // boundary.  Report it through the standard MOM interaction before any

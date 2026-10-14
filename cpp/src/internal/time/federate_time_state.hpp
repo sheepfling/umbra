@@ -38,6 +38,13 @@ enum class FederateTimeAdvanceMode {
   flush_queue_request,
 };
 
+// Table 1's "messages delivered before grant" boundary is strict for TARA,
+// while TAR, both NMR forms, and Flush Queue include the selected timestamp.
+[[nodiscard]] constexpr bool includesEqualTsoAtPreGrantBoundary(
+    FederateTimeAdvanceMode mode) noexcept {
+  return mode != FederateTimeAdvanceMode::time_advance_request_available;
+}
+
 struct FederateTimeAdvanceResult {
   FederateTimeAdvanceStatus status = FederateTimeAdvanceStatus::inactive;
   std::uint64_t generation = 0;
@@ -203,11 +210,20 @@ class FederateTimeState final {
       std::shared_ptr<rti1516_2025::LogicalTime> requestedTime,
       std::shared_ptr<rti1516_2025::LogicalTime> effectiveTime);
 
+  // A newly admitted TSO can become an earlier target while an NMR/NMRA is
+  // pending. Keep the caller's request boundary, but move the effective grant
+  // target to the earliest eligible message timestamp.
+  [[nodiscard]] bool retargetPendingNextMessageAdvance(
+      std::shared_ptr<rti1516_2025::LogicalTime const> messageTime);
+
   // The Available forms share the same bounded current-queue scheduler as
   // TAR/NMR but use the inclusive GALT rule.  A null effective target keeps
   // the supplied request as the grant target, just as for TAR.
   [[nodiscard]] FederateTimeAdvanceResult requestAdvanceAvailable(
       std::shared_ptr<rti1516_2025::LogicalTime> requestedTime);
+  [[nodiscard]] FederateTimeAdvanceResult requestAdvanceAvailable(
+      std::shared_ptr<rti1516_2025::LogicalTime> requestedTime,
+      std::shared_ptr<rti1516_2025::LogicalTime> effectiveTime);
 
   [[nodiscard]] FederateTimeAdvanceResult requestNextMessageAvailableAdvance(
       std::shared_ptr<rti1516_2025::LogicalTime> requestedTime,

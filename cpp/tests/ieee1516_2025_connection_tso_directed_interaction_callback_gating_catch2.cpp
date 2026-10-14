@@ -51,6 +51,7 @@
 #include "internal/handles/parameter_handle.hpp"
 #include "internal/handles/region_handle.hpp"
 #include "internal/handles/transportation_type_handle.hpp"
+#include "internal/runtime/utf8_string.hpp"
 namespace {
 
 using rti1516_2025::CallbackModel;
@@ -456,39 +457,32 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 }  // namespace
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-TEST_CASE(
-    "RTIambassadors retain a timestamped directed interaction while callbacks are disabled",
-    "[integration][foundation][federation-management][interaction-management][object-management]"
-    "[time-management][time-advance][callbacks][callback-gating][transport]"
-    "[process-boundary][public-endpoint][multi-federate][directed-interaction]"
-    "[timestamped-directed-interaction][directed-routing]"
-    "[process-tso-directed-interaction-callback-gating]"
-    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
-    "[rti.service.get-interaction-class-handle]"
-    "[rti.service.publish-object-class-attributes]"
-    "[rti.service.subscribe-object-class-attributes]"
-    "[rti.service.publish-object-class-directed-interactions]"
-    "[rti.service.subscribe-object-class-directed-interactions]"
-    "[rti.service.register-object-instance][rti.service.enable-time-regulation]"
-    "[rti.service.enable-time-constrained][rti.service.time-advance-request]"
-    "[rti.service.send-directed-interaction][rti.service.disable-callbacks]"
-    "[rti.service.enable-callbacks][rti.service.evoke-callback]"
-    "[federate.callback.discover-object-instance]"
-    "[federate.callback.receive-directed-interaction]"
-    "[federate.callback.time-advance-grant][2025]") {
+void verifyProcessDirectedTsoPendingNextMessageAdvance(
+    bool useAvailableRequest,
+    bool useOrdinaryInteraction = false,
+    bool useImmediateCallbacks = false) {
   class RecordingDirectedTsoFederateAmbassador final
       : public NullFederateAmbassador {
    public:
+    explicit RecordingDirectedTsoFederateAmbassador(
+        bool synchronizeCallbacks)
+        : synchronizeCallbacks(synchronizeCallbacks) {}
+
     void discoverObjectInstance(
         rti1516_2025::ObjectInstanceHandle const& objectInstance,
         rti1516_2025::ObjectClassHandle const& objectClass,
         std::wstring const& objectInstanceName,
         rti1516_2025::FederateHandle const& producingFederate) override {
+      std::unique_lock lock(callbackMutex, std::defer_lock);
+      if (synchronizeCallbacks) {
+        lock.lock();
+      }
       ++discoveredCount;
       discoveredObjectInstance = objectInstance;
       discoveredObjectClass = objectClass;
       discoveredObjectInstanceName = objectInstanceName;
       discoveredProducingFederate = producingFederate;
+      callbackChanged.notify_all();
     }
 
     void receiveDirectedInteraction(
@@ -503,6 +497,10 @@ TEST_CASE(
         rti1516_2025::OrderType receivedOrder,
         rti1516_2025::MessageRetractionHandle const* optionalRetraction)
         override {
+      std::unique_lock lock(callbackMutex, std::defer_lock);
+      if (synchronizeCallbacks) {
+        lock.lock();
+      }
       ++receivedInteractionCount;
       callbackOrder.push_back('I');
       receivedInteractionClass = interactionClass;
@@ -527,13 +525,65 @@ TEST_CASE(
             static_cast<std::uint8_t const*>(userSuppliedTag.data());
         receivedTag.assign(data, data + userSuppliedTag.size());
       }
+      callbackChanged.notify_all();
+    }
+
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const& interactionClass,
+        rti1516_2025::ParameterHandleValueMap const& parameterValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::RegionHandleSet const*,
+        rti1516_2025::LogicalTime const& time,
+        rti1516_2025::OrderType sentOrder,
+        rti1516_2025::OrderType receivedOrder,
+        rti1516_2025::MessageRetractionHandle const* optionalRetraction)
+        override {
+      std::unique_lock lock(callbackMutex, std::defer_lock);
+      if (synchronizeCallbacks) {
+        lock.lock();
+      }
+      ++receivedInteractionCount;
+      callbackOrder.push_back('I');
+      receivedInteractionClass = interactionClass;
+      receivedParameterCount = parameterValues.size();
+      receivedTransportationType = transportationType;
+      receivedProducingFederate = producingFederate;
+      receivedTimestampImplementation = time.implementationName();
+      receivedTimestampValue = -1;
+      if (auto const* integerTime =
+              dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+        receivedTimestampValue = integerTime->getTime();
+      }
+      receivedSentOrderType = sentOrder;
+      receivedReceivedOrderType = receivedOrder;
+      hasOptionalRetraction = optionalRetraction != nullptr;
+      retractionIsValid = optionalRetraction != nullptr &&
+          optionalRetraction->isValid();
+      receivedTag.clear();
+      if (userSuppliedTag.size() != 0U) {
+        auto const* data =
+            static_cast<std::uint8_t const*>(userSuppliedTag.data());
+        receivedTag.assign(data, data + userSuppliedTag.size());
+      }
+      callbackChanged.notify_all();
     }
 
     void timeConstrainedEnabled(rti1516_2025::LogicalTime const&) override {
+      std::unique_lock lock(callbackMutex, std::defer_lock);
+      if (synchronizeCallbacks) {
+        lock.lock();
+      }
       ++timeConstrainedEnabledCount;
+      callbackChanged.notify_all();
     }
 
     void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
+      std::unique_lock lock(callbackMutex, std::defer_lock);
+      if (synchronizeCallbacks) {
+        lock.lock();
+      }
       ++timeAdvanceGrantCount;
       callbackOrder.push_back('G');
       timeAdvanceGrantValue = -1;
@@ -541,8 +591,33 @@ TEST_CASE(
               dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
         timeAdvanceGrantValue = integerTime->getTime();
       }
+      callbackChanged.notify_all();
     }
 
+    bool waitForDiscovery(std::chrono::milliseconds timeout) {
+      std::unique_lock lock(callbackMutex);
+      return callbackChanged.wait_for(lock, timeout, [this] {
+        return discoveredCount == 1U;
+      });
+    }
+
+    bool waitForTimeConstrainedEnabled(std::chrono::milliseconds timeout) {
+      std::unique_lock lock(callbackMutex);
+      return callbackChanged.wait_for(lock, timeout, [this] {
+        return timeConstrainedEnabledCount == 1U;
+      });
+    }
+
+    bool waitForInteractionAndGrant(std::chrono::milliseconds timeout) {
+      std::unique_lock lock(callbackMutex);
+      return callbackChanged.wait_for(lock, timeout, [this] {
+        return receivedInteractionCount == 1U && timeAdvanceGrantCount == 1U;
+      });
+    }
+
+    bool synchronizeCallbacks = false;
+    std::mutex callbackMutex;
+    std::condition_variable callbackChanged;
     std::size_t discoveredCount = 0U;
     rti1516_2025::ObjectInstanceHandle discoveredObjectInstance;
     rti1516_2025::ObjectClassHandle discoveredObjectClass;
@@ -565,7 +640,7 @@ TEST_CASE(
     std::size_t timeAdvanceGrantCount = 0U;
     std::int64_t timeAdvanceGrantValue = -1;
     std::vector<char> callbackOrder;
-  } receiverFederate;
+  } receiverFederate{useImmediateCallbacks};
   NullFederateAmbassador senderFederate;
 
   constexpr wchar_t const* federationName =
@@ -603,7 +678,7 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationService service(
           registry, composedDirectedProcessDefinition(),
-          ProcessFederationServiceOptions{});
+          ProcessFederationServiceOptions{useImmediateCallbacks});
       auto senderConnection = listener->accept(
           nullptr,
           {"process-tso-directed-callback-gating-server", 0xA321U},
@@ -721,21 +796,45 @@ TEST_CASE(
           receiverHandler,
           TransportServiceOperation::subscribe_object_class_directed_interactions,
           "The directed callback-gating server lost directed subscription.");
+      if (useOrdinaryInteraction) {
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::publish_interaction_class,
+            "The interaction callback-gating server lost ordinary publication.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::subscribe_interaction_class,
+            "The interaction callback-gating server lost ordinary subscription.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::change_interaction_order_type,
+            "The interaction callback-gating server lost timestamped order selection.");
+      }
       serveExpected(
           sender,
           senderHandler,
           TransportServiceOperation::register_object_instance,
           "The directed callback-gating server lost target registration.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::receive_interaction,
-          "The directed callback-gating server lost discovery poll.");
+      if (!useImmediateCallbacks) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::receive_interaction,
+            "The directed callback-gating server lost discovery poll.");
+      }
       serveExpected(
           sender,
           senderHandler,
           TransportServiceOperation::enable_time_regulation,
           "The directed callback-gating server lost sender time regulation.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The directed callback-gating server lost sender regulation report.");
       serveExpected(
           receiver,
           receiverHandler,
@@ -744,25 +843,43 @@ TEST_CASE(
       serveExpected(
           receiver,
           receiverHandler,
-          TransportServiceOperation::time_advance_request,
-          "The directed callback-gating server lost receiver TAR.");
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The directed callback-gating server lost receiver constrained report.");
       serveExpected(
           receiver,
           receiverHandler,
-          TransportServiceOperation::receive_interaction,
-          "The directed callback-gating server lost pre-send poll.");
+          useAvailableRequest
+              ? TransportServiceOperation::next_message_request_available
+              : TransportServiceOperation::next_message_request,
+          useAvailableRequest
+              ? "The directed callback-gating server lost receiver NMRA."
+              : "The directed callback-gating server lost receiver NMR.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The directed callback-gating server lost receiver NMR report.");
+      if (!useImmediateCallbacks) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::receive_interaction,
+            "The directed callback-gating server lost pre-send poll.");
+      }
       if (!umbra::test::servePrimaryProcessRequest(
               sender, senderHandler,
               [&](TransportServiceMessage const& request) {
-                if (request.operation !=
-                    TransportServiceOperation::send_directed_interaction) {
+                auto const expectedOperation = useOrdinaryInteraction
+                    ? TransportServiceOperation::send_interaction
+                    : TransportServiceOperation::send_directed_interaction;
+                if (request.operation != expectedOperation) {
                   throw std::runtime_error(
-                      "The directed callback-gating server lost directed Send.");
+                      "The interaction callback-gating server lost timestamped Send.");
                 }
                 auto response = senderHandler(request);
                 if (response.status != TransportServiceStatus::ok) {
                   throw std::runtime_error(
-                      "The directed callback-gating server rejected directed Send.");
+                    "The interaction callback-gating server rejected timestamped Send.");
                 }
                 auto const result =
                     umbra::detail::decodeProcessFederationSendInteractionResult(
@@ -774,16 +891,9 @@ TEST_CASE(
         throw std::runtime_error(
             "The directed callback-gating server lost directed Send.");
       }
-      serveExpected(
-          sender,
-          senderHandler,
-          TransportServiceOperation::time_advance_request,
-          "The directed callback-gating server lost sender TAR.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::receive_interaction,
-          "The directed callback-gating server lost post-send poll.");
+      // The eligible TSO is already admitted through the active event path;
+      // the receiver's next service request after callback dispatch is its
+      // delivery acknowledgement, not another Receive Interaction poll.
       serveExpected(
           receiver,
           receiverHandler,
@@ -824,13 +934,18 @@ TEST_CASE(
   std::exception_ptr clientError;
   bool senderJoined = false;
   bool receiverJoined = false;
+  bool senderAddressUsed = false;
+  bool receiverAddressUsed = false;
   try {
-    REQUIRE(senderRti->connect(
-                senderFederate,
-                HLA_EVOKED,
-                configurationFor(
-                    L"process-tso-directed-callback-gating-sender-client"))
-                .addressUsed);
+    senderAddressUsed = senderRti->connect(
+        senderFederate,
+        HLA_EVOKED,
+        configurationFor(
+            L"process-tso-directed-callback-gating-sender-client"))
+                            .addressUsed;
+    if (!senderAddressUsed) {
+      throw std::runtime_error("Sender Connect did not use the configured address.");
+    }
     REQUIRE_NOTHROW(senderRti->createFederationExecution(
         federationName, L"server-owned-directed-callback-fom.xml"));
     auto const senderHandle = senderRti->joinFederationExecution(
@@ -838,12 +953,15 @@ TEST_CASE(
     REQUIRE(senderHandle.isValid());
     senderJoined = true;
 
-    REQUIRE(receiverRti->connect(
-                receiverFederate,
-                HLA_EVOKED,
-                configurationFor(
-                    L"process-tso-directed-callback-gating-receiver-client"))
-                .addressUsed);
+    receiverAddressUsed = receiverRti->connect(
+        receiverFederate,
+        useImmediateCallbacks ? HLA_IMMEDIATE : HLA_EVOKED,
+        configurationFor(
+            L"process-tso-directed-callback-gating-receiver-client"))
+                              .addressUsed;
+    if (!receiverAddressUsed) {
+      throw std::runtime_error("Receiver Connect did not use the configured address.");
+    }
     auto const receiverHandle = receiverRti->joinFederationExecution(
         receiverName, federateType, federationName);
     REQUIRE(receiverHandle.isValid());
@@ -887,71 +1005,130 @@ TEST_CASE(
         receiverObjectClass,
         rti1516_2025::InteractionClassHandleSet{receiverInteraction},
         true));
+    if (useOrdinaryInteraction) {
+      REQUIRE_NOTHROW(senderRti->publishInteractionClass(senderInteraction));
+      REQUIRE_NOTHROW(receiverRti->subscribeInteractionClass(
+          receiverInteraction, true));
+      REQUIRE_NOTHROW(senderRti->changeInteractionOrderType(
+          senderInteraction, rti1516_2025::TIMESTAMP));
+    }
 
     auto const objectInstance = senderRti->registerObjectInstance(senderObjectClass);
     REQUIRE(objectInstance.isValid());
-    REQUIRE(receiverFederate.discoveredCount == 0U);
-    static_cast<void>(receiverRti->evokeCallback(0.0));
-    REQUIRE(receiverFederate.discoveredCount == 1U);
-    REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
-    REQUIRE(receiverFederate.discoveredObjectClass == receiverObjectClass);
-    REQUIRE(receiverFederate.discoveredProducingFederate == senderHandle);
-    REQUIRE_FALSE(receiverFederate.discoveredObjectInstanceName.empty());
+    if (useImmediateCallbacks) {
+      REQUIRE(receiverFederate.waitForDiscovery(std::chrono::seconds(5)));
+    } else {
+      REQUIRE(receiverFederate.discoveredCount == 0U);
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+    }
+    {
+      std::scoped_lock lock(receiverFederate.callbackMutex);
+      REQUIRE(receiverFederate.discoveredCount == 1U);
+      REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
+      REQUIRE(receiverFederate.discoveredObjectClass == receiverObjectClass);
+      REQUIRE(receiverFederate.discoveredProducingFederate == senderHandle);
+      REQUIRE_FALSE(receiverFederate.discoveredObjectInstanceName.empty());
+    }
 
     REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
-        rti1516_2025::HLAinteger64Interval(0)));
+        rti1516_2025::HLAinteger64Interval(7)));
     REQUIRE_FALSE(senderRti->evokeCallback(0.0));
     REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
-    static_cast<void>(receiverRti->evokeCallback(0.0));
-    REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
-    REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
-        rti1516_2025::HLAinteger64Time(5)));
-    static_cast<void>(receiverRti->evokeCallback(0.0));
-    REQUIRE(receiverFederate.receivedInteractionCount == 0U);
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+    if (useImmediateCallbacks) {
+      REQUIRE(receiverFederate.waitForTimeConstrainedEnabled(
+          std::chrono::seconds(5)));
+    } else {
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+    }
+    {
+      std::scoped_lock lock(receiverFederate.callbackMutex);
+      REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
+    }
+    if (useAvailableRequest) {
+      REQUIRE_NOTHROW(receiverRti->nextMessageRequestAvailable(
+          rti1516_2025::HLAinteger64Time(10)));
+    } else {
+      REQUIRE_NOTHROW(receiverRti->nextMessageRequest(
+          rti1516_2025::HLAinteger64Time(10)));
+    }
+    if (!useImmediateCallbacks) {
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+    }
+    {
+      std::scoped_lock lock(receiverFederate.callbackMutex);
+      REQUIRE(receiverFederate.receivedInteractionCount == 0U);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+    }
 
-    REQUIRE_NOTHROW(receiverRti->disableCallbacks());
+    if (!useImmediateCallbacks) {
+      REQUIRE_NOTHROW(receiverRti->disableCallbacks());
+    }
     std::array<std::uint8_t, 3U> const tagBytes{0x44U, 0x54U, 0x53U};
-    auto const retraction = senderRti->sendDirectedInteraction(
-        senderInteraction,
-        objectInstance,
-        rti1516_2025::ParameterHandleValueMap{},
-        rti1516_2025::VariableLengthData(tagBytes.data(), tagBytes.size()),
-        rti1516_2025::HLAinteger64Time(5));
+    auto const tag =
+        rti1516_2025::VariableLengthData(tagBytes.data(), tagBytes.size());
+    auto const retraction = useOrdinaryInteraction
+        ? senderRti->sendInteraction(
+              senderInteraction,
+              rti1516_2025::ParameterHandleValueMap{},
+              tag,
+              rti1516_2025::HLAinteger64Time(7))
+        : senderRti->sendDirectedInteraction(
+              senderInteraction,
+              objectInstance,
+              rti1516_2025::ParameterHandleValueMap{},
+              tag,
+              rti1516_2025::HLAinteger64Time(7));
     REQUIRE(retraction.isValid());
     REQUIRE(recipientCount.load(std::memory_order_acquire) == 1U);
-    REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
-        rti1516_2025::HLAinteger64Time(5)));
-    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
-    REQUIRE(receiverFederate.receivedInteractionCount == 0U);
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
-    REQUIRE(receiverRti->evokeCallback(0.0));
-    REQUIRE(receiverFederate.receivedInteractionCount == 0U);
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+    if (useImmediateCallbacks) {
+      REQUIRE(receiverFederate.waitForInteractionAndGrant(
+          std::chrono::seconds(5)));
+    } else {
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.receivedInteractionCount == 0U);
+        REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+      }
+      REQUIRE(receiverRti->evokeCallback(0.0));
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.receivedInteractionCount == 0U);
+        REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+      }
 
-    REQUIRE_NOTHROW(receiverRti->enableCallbacks());
-    static_cast<void>(receiverRti->evokeCallback(0.0));
-    REQUIRE(receiverFederate.receivedInteractionCount == 1U);
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
-    REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I'});
-    static_cast<void>(receiverRti->evokeCallback(0.0));
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
-    REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I', 'G'});
-    REQUIRE(receiverFederate.receivedInteractionClass == receiverInteraction);
-    REQUIRE(receiverFederate.receivedObjectInstance == objectInstance);
-    REQUIRE(receiverFederate.receivedParameterCount == 0U);
-    REQUIRE(receiverFederate.receivedTransportationType.isValid());
-    REQUIRE(receiverFederate.receivedProducingFederate == senderHandle);
-    REQUIRE(receiverFederate.receivedTag ==
-            std::vector<std::uint8_t>{0x44U, 0x54U, 0x53U});
-    REQUIRE(receiverFederate.receivedTimestampImplementation ==
-            L"HLAinteger64Time");
-    REQUIRE(receiverFederate.receivedTimestampValue == 5);
-    REQUIRE(receiverFederate.receivedSentOrderType == rti1516_2025::TIMESTAMP);
-    REQUIRE(receiverFederate.receivedReceivedOrderType == rti1516_2025::TIMESTAMP);
-    REQUIRE(receiverFederate.hasOptionalRetraction);
-    REQUIRE(receiverFederate.retractionIsValid);
-    REQUIRE(receiverFederate.timeAdvanceGrantValue == 5);
+      REQUIRE_NOTHROW(receiverRti->enableCallbacks());
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.receivedInteractionCount == 1U);
+        REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+        REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I'});
+      }
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+    }
+    {
+      std::scoped_lock lock(receiverFederate.callbackMutex);
+      REQUIRE(receiverFederate.receivedInteractionCount == 1U);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
+      REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I', 'G'});
+      REQUIRE(receiverFederate.receivedInteractionClass == receiverInteraction);
+      if (!useOrdinaryInteraction) {
+        REQUIRE(receiverFederate.receivedObjectInstance == objectInstance);
+      }
+      REQUIRE(receiverFederate.receivedParameterCount == 0U);
+      REQUIRE(receiverFederate.receivedTransportationType.isValid());
+      REQUIRE(receiverFederate.receivedProducingFederate == senderHandle);
+      REQUIRE(receiverFederate.receivedTag ==
+              std::vector<std::uint8_t>{0x44U, 0x54U, 0x53U});
+      REQUIRE(receiverFederate.receivedTimestampImplementation ==
+              L"HLAinteger64Time");
+      REQUIRE(receiverFederate.receivedTimestampValue == 7);
+      REQUIRE(receiverFederate.receivedSentOrderType == rti1516_2025::TIMESTAMP);
+      REQUIRE(receiverFederate.receivedReceivedOrderType == rti1516_2025::TIMESTAMP);
+      REQUIRE(receiverFederate.hasOptionalRetraction);
+      REQUIRE(receiverFederate.retractionIsValid);
+      REQUIRE(receiverFederate.timeAdvanceGrantValue == 7);
+    }
 
     REQUIRE_NOTHROW(senderRti->resignFederationExecution(
         rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES));
@@ -960,6 +1137,32 @@ TEST_CASE(
     receiverJoined = false;
     REQUIRE_NOTHROW(senderRti->disconnect());
     REQUIRE_NOTHROW(receiverRti->disconnect());
+  } catch (rti1516_2025::Exception const& error) {
+    auto const message = umbra::detail::utf8FromWide(error.what());
+    clientError = std::make_exception_ptr(std::runtime_error(
+        std::string("RTI client exception: ") +
+        message.value_or("RTI exception had invalid UTF-8 text")));
+    if (receiverJoined) {
+      try {
+        receiverRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (senderJoined) {
+      try {
+        senderRti->resignFederationExecution(
+            rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+      } catch (...) {
+      }
+    }
+    try {
+      senderRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      receiverRti->disconnect();
+    } catch (...) {
+    }
   } catch (...) {
     clientError = std::current_exception();
     if (receiverJoined) {
@@ -983,11 +1186,14 @@ TEST_CASE(
     } catch (...) {
     }
   }
-  listener.reset();
+  // Unblock accept before joining the worker. Destroying the listener first
+  // races the worker's access to its mutex if client Connect failed early.
+  listener->close();
   if (server.joinable()) {
     server.join();
   }
-  if (serverError) {
+  listener.reset();
+  if (serverError && !clientError) {
     try {
       std::rethrow_exception(serverError);
     } catch (std::exception const& error) {
@@ -997,11 +1203,128 @@ TEST_CASE(
     }
   }
   if (clientError) {
-    std::rethrow_exception(clientError);
+    try {
+      std::rethrow_exception(clientError);
+    } catch (rti1516_2025::Exception const& error) {
+      auto const message = umbra::detail::utf8FromWide(error.what());
+      FAIL(
+          std::string("directed callback-gating client: ") +
+          message.value_or("RTI exception had invalid UTF-8 text"));
+    } catch (std::exception const& error) {
+      FAIL(std::string("directed callback-gating client: ") + error.what());
+    } catch (...) {
+      FAIL("directed callback-gating client failed with an unknown exception");
+    }
   }
+  REQUIRE(senderAddressUsed);
+  REQUIRE(receiverAddressUsed);
   REQUIRE_FALSE(serverError);
   REQUIRE_FALSE(senderJoined);
   REQUIRE_FALSE(receiverJoined);
+}
+
+TEST_CASE(
+    "RTIambassadors retarget a pending process NMR to a directed TSO while callbacks are disabled",
+    "[integration][foundation][federation-management][interaction-management][object-management]"
+    "[time-management][time-advance][callbacks][callback-gating][transport]"
+    "[process-boundary][public-endpoint][multi-federate][directed-interaction]"
+    "[timestamped-directed-interaction][directed-routing]"
+    "[process-dynamic-future-tso][next-message-request]"
+    "[process-tso-directed-interaction-callback-gating]"
+    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
+    "[rti.service.get-interaction-class-handle]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.publish-object-class-directed-interactions]"
+    "[rti.service.subscribe-object-class-directed-interactions]"
+    "[rti.service.register-object-instance][rti.service.enable-time-regulation]"
+    "[rti.service.enable-time-constrained][rti.service.time-advance-request]"
+    "[rti.service.next-message-request]"
+    "[rti.service.send-directed-interaction][rti.service.disable-callbacks]"
+    "[rti.service.enable-callbacks][rti.service.evoke-callback]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.receive-directed-interaction]"
+    "[federate.callback.time-advance-grant][2025]") {
+  verifyProcessDirectedTsoPendingNextMessageAdvance(false);
+}
+
+TEST_CASE(
+    "RTIambassadors retarget a pending process NMRA to a directed TSO while callbacks are disabled",
+    "[integration][foundation][federation-management][interaction-management][object-management]"
+    "[time-management][time-advance][callbacks][callback-gating][transport]"
+    "[process-boundary][public-endpoint][multi-federate][directed-interaction]"
+    "[timestamped-directed-interaction][directed-routing]"
+    "[process-dynamic-future-tso][next-message-request-available]"
+    "[process-tso-directed-interaction-callback-gating]"
+    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
+    "[rti.service.get-interaction-class-handle]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.publish-object-class-directed-interactions]"
+    "[rti.service.subscribe-object-class-directed-interactions]"
+    "[rti.service.register-object-instance][rti.service.enable-time-regulation]"
+    "[rti.service.enable-time-constrained][rti.service.next-message-request-available]"
+    "[rti.service.send-directed-interaction][rti.service.disable-callbacks]"
+    "[rti.service.enable-callbacks][rti.service.evoke-callback]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.receive-directed-interaction]"
+    "[federate.callback.time-advance-grant][2025]") {
+  verifyProcessDirectedTsoPendingNextMessageAdvance(true);
+}
+
+TEST_CASE(
+    "RTIambassadors retarget a pending process NMRA to an ordinary timestamped interaction while callbacks are disabled",
+    "[integration][foundation][federation-management][interaction-management]"
+    "[time-management][time-advance][callbacks][callback-gating][transport]"
+    "[process-boundary][public-endpoint][multi-federate][interaction]"
+    "[timestamped-interaction][process-dynamic-future-tso]"
+    "[process-tso-interaction-callback-gating]"
+    "[rti.service.get-interaction-class-handle]"
+    "[rti.service.publish-interaction-class][rti.service.subscribe-interaction-class]"
+    "[rti.service.next-message-request-available][rti.service.send-interaction]"
+    "[rti.service.change-interaction-order-type]"
+    "[rti.service.disable-callbacks][rti.service.enable-callbacks]"
+    "[rti.service.evoke-callback][federate.callback.receive-interaction]"
+    "[federate.callback.time-advance-grant][2025]") {
+  verifyProcessDirectedTsoPendingNextMessageAdvance(true, true);
+}
+
+TEST_CASE(
+    "RTIambassadors deliver an eligible directed TSO to a pending process NMR in HLA_IMMEDIATE without a later service poll",
+    "[integration][foundation][federation-management][interaction-management]"
+    "[object-management][time-management][time-advance][transport]"
+    "[process-boundary][public-endpoint][multi-federate][directed-interaction]"
+    "[timestamped-directed-interaction][directed-routing][process-tso-in-transit]"
+    "[process-tso-immediate-directed-interaction-no-follow-up-poll]"
+    "[rti.service.connect][rti.service.register-object-instance]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.evoke-callback]"
+    "[rti.service.next-message-request][rti.service.send-directed-interaction]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.time-constrained-enabled]"
+    "[federate.callback.receive-directed-interaction]"
+    "[federate.callback.time-advance-grant][HLA_IMMEDIATE][2025]") {
+  verifyProcessDirectedTsoPendingNextMessageAdvance(false, false, true);
+}
+
+TEST_CASE(
+    "RTIambassadors deliver an eligible directed TSO to a pending process NMRA in HLA_IMMEDIATE without a later service poll",
+    "[integration][foundation][federation-management][interaction-management]"
+    "[object-management][time-management][time-advance][transport]"
+    "[process-boundary][public-endpoint][multi-federate][directed-interaction]"
+    "[timestamped-directed-interaction][directed-routing][process-tso-in-transit]"
+    "[process-tso-immediate-directed-interaction-no-follow-up-poll]"
+    "[process-tso-immediate-directed-interaction-nmra-no-follow-up-poll]"
+    "[rti.service.connect][rti.service.register-object-instance]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.evoke-callback]"
+    "[rti.service.next-message-request-available]"
+    "[rti.service.send-directed-interaction]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.time-constrained-enabled]"
+    "[federate.callback.receive-directed-interaction]"
+    "[federate.callback.time-advance-grant][HLA_IMMEDIATE][2025]") {
+  verifyProcessDirectedTsoPendingNextMessageAdvance(true, false, true);
 }
 #endif
 #endif

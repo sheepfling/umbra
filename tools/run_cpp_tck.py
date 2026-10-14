@@ -120,6 +120,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=".build/cpp-tck-python",
         help="CMake build directory (default: .build/cpp-tck-python)",
     )
+    parser.add_argument(
+        "--service-report-directory",
+        default="",
+        help="Embedded profile's service-report directory (uses the adapter default when omitted)",
+    )
     parser.add_argument("--generator", help="Optional CMake generator name")
     parser.add_argument(
         "--cxx-compiler",
@@ -423,17 +428,38 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
                 label="connection-loss FOM",
             )
         )
-    inputs: dict[str, Any] = {
-        "package_prefix": resolve_directory(
-            arguments.package_prefix,
-            must_exist=True,
-            label="package prefix",
-        ),
-        "build_directory": resolve_directory(
-            arguments.build_directory,
+    package_prefix = resolve_directory(
+        arguments.package_prefix,
+        must_exist=True,
+        label="package prefix",
+    )
+    build_directory = resolve_directory(
+        arguments.build_directory,
+        must_exist=False,
+        label="build directory",
+    )
+    if arguments.service_report_directory:
+        service_report_directory = resolve_directory(
+            arguments.service_report_directory,
             must_exist=False,
-            label="build directory",
-        ),
+            label="service-report directory",
+        )
+    else:
+        temp_directory = os.environ.get("TEMP", "") if os.name == "nt" else ""
+        default_report_directory = (
+            Path(temp_directory) / "umbra-cpp-tck-service-reports"
+            if temp_directory
+            else build_directory / "service-reports"
+        )
+        service_report_directory = resolve_directory(
+            default_report_directory,
+            must_exist=False,
+            label="service-report directory",
+        )
+    inputs: dict[str, Any] = {
+        "package_prefix": package_prefix,
+        "build_directory": build_directory,
+        "service_report_directory": service_report_directory,
         "fom": resolve_path(arguments.fom, must_exist=True, label="FOM"),
         "model_fom": resolve_path(arguments.model_fom, must_exist=True, label="model FOM"),
         "rate_fom": resolve_path(
@@ -578,6 +604,9 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_SCENARIO_SET": arguments.scenario_set,
         "HLA_RTI_TCK_ADAPTER_PROVIDER_ID": arguments.provider_id,
         "HLA_RTI_TCK_ADAPTER_TIME_IMPLEMENTATION": arguments.time_implementation,
+        "HLA_RTI_TCK_ADAPTER_SERVICE_REPORT_DIRECTORY": inputs[
+            "service_report_directory"
+        ],
         "HLA_RTI_TCK_ADAPTER_SCENARIO_FILTER": ";".join(arguments.scenario),
     }
     optional = {
@@ -648,6 +677,25 @@ def ctest_scenario_regex(selected: list[dict[str, Any]]) -> str | None:
     return "(" + "|".join(alternatives) + ")"
 
 
+def ctest_registered_scenarios(
+    arguments: argparse.Namespace,
+    selected: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Remove scenarios executed only through an adapter-managed fixture."""
+    return [
+        scenario
+        for scenario in selected
+        if not (
+            arguments.connection_loss_fixture
+            and is_connection_loss_scenario(scenario["id"])
+        )
+        and not (
+            arguments.ownership_service_report_fixture
+            and is_ownership_service_report_scenario(scenario["id"])
+        )
+    ]
+
+
 def run_ctest(
     arguments: argparse.Namespace,
     inputs: dict[str, Any],
@@ -665,6 +713,7 @@ def run_ctest(
     scenario_regex = ctest_scenario_regex(selected) if arguments.scenario else None
     if scenario_regex:
         command.extend(["-R", scenario_regex])
+    command.append("--no-tests=error")
     command.append("--output-on-failure")
     run_command(command, cwd=ROOT)
 
@@ -864,6 +913,9 @@ def direct_arguments(
         command.extend(["--standard-invalid-fom", str(path)])
     for scenario in selected:
         command.extend(["--scenario", scenario["runner_id"]])
+    command.extend(
+        ["--service-report-directory", str(inputs["service_report_directory"])]
+    )
     if arguments.connection_loss_marker:
         command.extend(["--connection-loss-marker", arguments.connection_loss_marker])
     if arguments.connection_loss_server_managed:
@@ -998,6 +1050,8 @@ PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "cpp-tck.service-report-interaction-parameter-lookup-failures-contract",
     "cpp-tck.service-report-interaction",
     "cpp-tck.service-report-interaction-contract",
+    "cpp-tck.service-report-next-message-request-available-boundary",
+    "cpp-tck.service-report-query-galt-return-value",
     "cpp-tck.service-report-receive-order-interaction",
     "cpp-tck.service-report-receive-order-interaction-contract",
     "cpp-tck.service-report-timestamped-directed-interaction",
@@ -1042,6 +1096,9 @@ PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "cpp-tck.federation-restore-abort-contract",
     "cpp-tck.federation-restore-work-item-ownership-assumption",
     "cpp-tck.federation-restore-work-item-ownership-assumption-contract",
+    "cpp-tck.pending-negotiated-ownership-package-filesystem-restore",
+    "cpp-tck.service-report-file-creation-failure",
+    "cpp-tck.service-report-file-connect-failure",
     "cpp-tck.ownership-acquisition-if-available",
     "cpp-tck.ownership-acquisition-if-available-contract",
     "cpp-tck.attribute-ownership-acquisition-cancellation",
@@ -1269,6 +1326,20 @@ def run_executable_direct(
     # evidence without failing the process.  Keep each direct evidence child
     # to one catalog scenario so the merged result is complete and portable.
     if len(selected) <= 1:
+        if (
+            len(selected) == 1
+            and is_portable_dispatch_scenario(selected[0]["id"])
+            and (results is not None or junit is not None)
+        ):
+            run_portable_dispatch_direct(
+                arguments,
+                inputs,
+                executable,
+                selected[0],
+                results,
+                junit,
+            )
+            return
         command = [str(executable)] + direct_arguments(
             arguments,
             inputs,
@@ -1541,6 +1612,122 @@ def validate_direct_evidence(
             + preview
             + suffix
         )
+
+
+def run_portable_dispatch_direct(
+    arguments: argparse.Namespace,
+    inputs: dict[str, Any],
+    executable: Path,
+    scenario: dict[str, Any],
+    results: Path | None,
+    junit: Path | None,
+) -> None:
+    """Capture portable-dispatch evidence from its checked success line.
+
+    These C++ scenarios do not implement the result-file switches used by the
+    specialized Python adapters. Their evidence is the child process exiting
+    successfully and printing the exact scenario/callback success marker.
+    """
+    callback_models = (
+        ("evoked", "immediate")
+        if arguments.callback_model == "both"
+        else (arguments.callback_model,)
+    )
+    runner_id = scenario["runner_id"]
+    with tempfile.TemporaryDirectory(
+        prefix="cpp-tck-portable-dispatch-evidence-",
+        dir=inputs["build_directory"],
+    ) as temporary_directory:
+        temporary_root = Path(temporary_directory)
+        result_parts: list[Path] = []
+        junit_parts: list[Path] = []
+        for index, callback_model in enumerate(callback_models):
+            child_arguments = argparse.Namespace(**vars(arguments))
+            child_arguments.callback_model = callback_model
+            command = [str(executable)] + direct_arguments(
+                child_arguments,
+                inputs,
+                [scenario],
+                None,
+                None,
+            )
+            print(f"+ {command_text(command)}", flush=True)
+            completed = subprocess.run(
+                command,
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            if completed.stdout:
+                print(completed.stdout, end="", flush=True)
+            if completed.stderr:
+                print(completed.stderr, end="", file=sys.stderr, flush=True)
+            if completed.returncode != 0:
+                raise ValueError(
+                    f"portable C++ TCK scenario {runner_id}/{callback_model} "
+                    f"exited {completed.returncode}"
+                )
+            success_marker = f"passed {runner_id} [{callback_model}]"
+            if success_marker not in completed.stdout.splitlines():
+                raise ValueError(
+                    f"portable C++ TCK scenario {runner_id}/{callback_model} "
+                    "did not emit its exact success marker"
+                )
+
+            if results is not None:
+                result_part = temporary_root / f"result-{index}.json"
+                result_part.write_text(
+                    json.dumps(
+                        {
+                            "kind": "hla-rti-cpp-tck-evidence",
+                            "callback_model": callback_model,
+                            "results": [
+                                {
+                                    "id": runner_id,
+                                    "callback_model": callback_model,
+                                    "status": "passed",
+                                }
+                            ],
+                        },
+                        indent=2,
+                        sort_keys=True,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                result_parts.append(result_part)
+
+            if junit is not None:
+                junit_part = temporary_root / f"junit-{index}.xml"
+                suite = ET.Element(
+                    "testsuite",
+                    name="portable-cpp-tck",
+                    tests="1",
+                    failures="0",
+                    errors="0",
+                    skipped="0",
+                    time="0",
+                )
+                ET.SubElement(
+                    suite,
+                    "testcase",
+                    classname=runner_id,
+                    name=f"{runner_id} [{callback_model}]",
+                    time="0",
+                )
+                ET.ElementTree(suite).write(
+                    junit_part,
+                    encoding="utf-8",
+                    xml_declaration=True,
+                )
+                junit_parts.append(junit_part)
+
+        if results is not None:
+            merge_json_evidence_parts(result_parts, results)
+            validate_direct_evidence(results, [scenario], arguments.callback_model)
+        if junit is not None:
+            merge_junit_evidence_parts(junit_parts, junit)
 
 
 def merge_json_evidence(
@@ -2099,8 +2286,17 @@ def main() -> int:
             configure(arguments, inputs)
         if not arguments.skip_build:
             build(arguments, inputs)
+        ctest_ran = False
         if not arguments.skip_ctest:
-            run_ctest(arguments, inputs, selected)
+            ctest_selected = ctest_registered_scenarios(arguments, selected)
+            if ctest_selected:
+                run_ctest(arguments, inputs, ctest_selected)
+                ctest_ran = True
+            elif selected:
+                print(
+                    "CTest skipped: selected scenarios require external adapter "
+                    "fixtures and have no entries in the portable CTest matrix."
+                )
             if (
                 arguments.connection_loss_fixture
                 and not (arguments.results or arguments.junit)
@@ -2158,7 +2354,7 @@ def main() -> int:
                 ]
             ),
             "direct_scenario_count": len(selected) if (arguments.results or arguments.junit) else 0,
-            "ctest": not arguments.skip_ctest,
+            "ctest": ctest_ran,
             "direct": direct_summary,
         }
         print(json.dumps(summary, indent=2, sort_keys=True))

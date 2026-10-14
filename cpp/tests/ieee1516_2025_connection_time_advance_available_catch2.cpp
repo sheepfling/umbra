@@ -39,6 +39,7 @@
 #include "internal/federation/process_transport.hpp"
 #include "internal/federation/process_transport_session.hpp"
 #include "process_public_service_fixture.hpp"
+#include "process_tara_boundary_test_support.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
@@ -75,59 +76,6 @@ using rti1516_2025::Unauthorized;
 using rti1516_2025::VariableLengthData;
 
 using TestFederateAmbassador = NullFederateAmbassador;
-
-class ProcessTimeFederateAmbassador final : public NullFederateAmbassador {
- public:
-  void timeRegulationEnabled(
-      rti1516_2025::LogicalTime const& time) override {
-    ++timeRegulationEnabledCount;
-    timeRegulationEnabledImplementation = time.implementationName();
-  }
-
-  void timeConstrainedEnabled(
-      rti1516_2025::LogicalTime const& time) override {
-    ++timeConstrainedEnabledCount;
-    timeConstrainedEnabledImplementation = time.implementationName();
-  }
-
-  void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
-    ++timeAdvanceGrantCount;
-    timeAdvanceGrantImplementation = time.implementationName();
-    if (auto const* integerTime =
-            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
-      timeAdvanceGrantValue = integerTime->getTime();
-    }
-  }
-
-  void flushQueueGrant(
-      rti1516_2025::LogicalTime const& time,
-      rti1516_2025::LogicalTime const& optimisticTime) override {
-    ++flushQueueGrantCount;
-    flushQueueGrantImplementation = time.implementationName();
-    flushQueueGrantOptimisticImplementation = optimisticTime.implementationName();
-    if (auto const* integerTime =
-            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
-      flushQueueGrantValue = integerTime->getTime();
-    }
-    if (auto const* integerOptimisticTime =
-            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&optimisticTime)) {
-      flushQueueGrantOptimisticValue = integerOptimisticTime->getTime();
-    }
-  }
-
-  std::size_t timeRegulationEnabledCount = 0U;
-  std::wstring timeRegulationEnabledImplementation;
-  std::size_t timeConstrainedEnabledCount = 0U;
-  std::wstring timeConstrainedEnabledImplementation;
-  std::size_t timeAdvanceGrantCount = 0U;
-  std::wstring timeAdvanceGrantImplementation;
-  std::int64_t timeAdvanceGrantValue = -1;
-  std::size_t flushQueueGrantCount = 0U;
-  std::wstring flushQueueGrantImplementation;
-  std::wstring flushQueueGrantOptimisticImplementation;
-  std::int64_t flushQueueGrantValue = -1;
-  std::int64_t flushQueueGrantOptimisticValue = -1;
-};
 
 class ProcessSynchronizationFederateAmbassador final
     : public NullFederateAmbassador {
@@ -454,102 +402,23 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 }
 
 }  // namespace
-#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-TEST_CASE(
-    "RTIambassador requests available time advance through a configured process endpoint",
-    "[integration][foundation][time-management][time-advance][transport][process-boundary][process-time-advance-available-focused][public-endpoint][rti.service.time-advance-request-available][federate.callback.time-advance-grant]") {
-  constexpr wchar_t const* federationName =
-      L"process-time-advance-available-execution";
-  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
-  REQUIRE(listener);
-  auto const port = listener->address().port;
-  REQUIRE(port != 0U);
 
-  std::exception_ptr serverError;
-  std::thread server([&] {
-    try {
-      EmbeddedFederationRegistry registry;
-      ProcessFederationService service(
-          registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
-      auto connection = listener->accept(
-          nullptr,
-          {"process-time-advance-available-server", 0x9212U},
-          [](std::wstring) {},
-          [](std::wstring) { return false; });
-      ProcessTransportSession session(connection);
-      auto handler = service.handlerFor(session);
-      auto serveExpected = [&](TransportServiceOperation operation) {
-        return umbra::test::servePrimaryProcessRequest(
-            session, handler,
-            [&](TransportServiceMessage const& request) {
-              if (request.operation != operation) {
-                throw std::runtime_error(
-                    "The process time-advance-available server received an unexpected operation.");
-              }
-              return handler(request);
-            });
-      };
-      if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
-          !serveExpected(TransportServiceOperation::join_federation_execution) ||
-          !serveExpected(
-              TransportServiceOperation::time_advance_request_available) ||
-          !serveExpected(TransportServiceOperation::query_logical_time) ||
-          !serveExpected(TransportServiceOperation::resign_federation_execution)) {
-        throw std::runtime_error(
-            "The process time-advance-available server lost a temporal request.");
-      }
-      service.detach(session);
-      connection->close();
-    } catch (...) {
-      serverError = std::current_exception();
-    }
-  });
+namespace umbra::test {
 
-  ProcessTimeFederateAmbassador federate;
-  auto rti = makeRti();
-  auto configuration = RtiConfiguration::createConfiguration()
-                           .withConfigurationName(
-                               L"process-time-advance-available-client")
-                           .withRtiAddress(
-                               L"tcp://127.0.0.1:" + std::to_wstring(port));
-  std::exception_ptr clientError;
-  try {
-    auto const connectionResult = rti->connect(federate, HLA_EVOKED, configuration);
-    REQUIRE(connectionResult.addressUsed);
-    REQUIRE_NOTHROW(rti->createFederationExecution(
-        federationName, L"server-owned-fom.xml"));
-    auto const joined = rti->joinFederationExecution(
-        L"process-time-advance-available-type", federationName);
-    REQUIRE(joined.isValid());
-
-    REQUIRE_NOTHROW(
-        rti->timeAdvanceRequestAvailable(rti1516_2025::HLAinteger64Time(5)));
-    REQUIRE(federate.timeAdvanceGrantCount == 0U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
-    REQUIRE(federate.timeAdvanceGrantCount == 1U);
-    REQUIRE(
-        federate.timeAdvanceGrantImplementation == L"HLAinteger64Time");
-    REQUIRE(federate.timeAdvanceGrantValue == 5);
-
-    rti1516_2025::HLAinteger64Time queriedTime;
-    REQUIRE_NOTHROW(rti->queryLogicalTime(queriedTime));
-    REQUIRE(queriedTime.getTime() == 5);
-    REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
-    rti->disconnect();
-  } catch (...) {
-    clientError = std::current_exception();
-  }
-  if (listener) {
-    listener.reset();
-  }
-  if (server.joinable()) {
-    server.join();
-  }
-  if (clientError) {
-    std::rethrow_exception(clientError);
-  }
-  REQUIRE_FALSE(serverError);
+detail::FederationDefinition makeProcessTaraBoundaryFederationDefinition() {
+  return composedProcessDefinition();
 }
 
+std::unique_ptr<rti1516_2025::RTIambassador> makeProcessTaraBoundaryRti() {
+  return makeRti();
+}
+
+std::filesystem::path makeProcessTaraBoundaryServiceReportDirectory() {
+  return temporaryServiceReportDirectory();
+}
+
+}  // namespace umbra::test
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 #endif
 #endif

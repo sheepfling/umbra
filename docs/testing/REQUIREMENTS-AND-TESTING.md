@@ -4801,8 +4801,10 @@ and compliance manifests are build or CI artifacts, not Umbra source.
 The embedded connection slice implements all four C++ connect overloads and the
 selected disconnect declaration through the official factory. It also binds the
 four callback-control declarations to a private immediate/evoked dispatcher.
-The configuration result explicitly reports that endpoint/additional settings
-are not yet used except for the documented embedded service-report directory.
+The configuration result explicitly reports which supported endpoint and
+additional settings were applied. Embedded additional settings include the
+documented service-report directory and the implementation-specific
+`federationSaveDirectory` filesystem-backed save store.
 The backend has no configured authorizer: the ordinary no-credentials forms
 remain usable, while an explicit non-`HLAnoCredentials` envelope is rejected
 with `Unauthorized` rather than silently accepted. `HLAplainTextPassword` and

@@ -1,6 +1,11 @@
 package org.hla.rti.tck;
 
 import hla.rti1516_2025.encoding.EncoderFactory;
+import hla.rti1516_2025.encoding.HLAfixedArray;
+import hla.rti1516_2025.encoding.HLAfixedRecord;
+import hla.rti1516_2025.encoding.HLAextendableVariantRecord;
+import hla.rti1516_2025.encoding.HLAvariantRecord;
+import hla.rti1516_2025.encoding.HLAvariableArray;
 import hla.rti1516_2025.encoding.HLAASCIIchar;
 import hla.rti1516_2025.encoding.HLAASCIIstring;
 import hla.rti1516_2025.encoding.HLAboolean;
@@ -40,12 +45,16 @@ final class BasicDataElementsTck {
    private BasicDataElementsTck() {
    }
 
-   static void run(EncoderFactory encoder) throws Exception {
+   static void runBasic(EncoderFactory encoder) throws Exception {
       fixedWidthIntegers(encoder);
       booleansAndOctets(encoder);
       floatingPoint(encoder);
       text(encoder);
       opaqueDataAndOctetPairs(encoder);
+   }
+
+   static void runComposite(EncoderFactory encoder) throws Exception {
+      compositeDataElements(encoder);
    }
 
    private static void fixedWidthIntegers(EncoderFactory encoder) throws Exception {
@@ -266,6 +275,197 @@ final class BasicDataElementsTck {
       HLAoctetPairLE decodedPairLE = encoder.createHLAoctetPairLE();
       decodedPairLE.decode(pairLE.toByteArray());
       check((decodedPairLE.getValue() & 0xffff) == 0x1234, "LE octet pair changed");
+   }
+
+   private static void compositeDataElements(EncoderFactory encoder) throws Exception {
+      HLAfixedArray<HLAbyte> fixedArray = encoder.createHLAfixedArray(
+         encoder.createHLAbyte((byte) 0x11), encoder.createHLAbyte((byte) 0x22),
+         encoder.createHLAbyte((byte) 0x33));
+      checkBytes(fixedArray.toByteArray(), 0x11, 0x22, 0x33);
+      HLAfixedArray<HLAbyte> decodedFixedArray = encoder.createHLAfixedArray(
+         index -> encoder.createHLAbyte(), 3);
+      decodedFixedArray.decode(fixedArray.toByteArray());
+      check(decodedFixedArray.size() == 3
+            && decodedFixedArray.get(0).getValue() == (byte) 0x11
+            && decodedFixedArray.get(1).getValue() == (byte) 0x22
+            && decodedFixedArray.get(2).getValue() == (byte) 0x33,
+         "HLAfixedArray did not round-trip its elements");
+      expectFailure(() -> decodedFixedArray.decode(new byte[] {0x11, 0x22, 0x33, 0}),
+         "DecoderException", "HLAfixedArray accepted trailing data");
+
+      HLAfixedArray<HLAinteger32BE> alignedFixedArray = encoder.createHLAfixedArray(
+         encoder.createHLAinteger32BE(0x10203040), encoder.createHLAinteger32BE(-2));
+      checkBytes(alignedFixedArray.toByteArray(),
+         0x10, 0x20, 0x30, 0x40, 0xff, 0xff, 0xff, 0xfe);
+      check(alignedFixedArray.getOctetBoundary() == 4
+            && alignedFixedArray.getEncodedLength() == 8,
+         "HLAfixedArray metadata did not reflect its element type and count");
+
+      HLAvariableArray<HLAbyte> variableArray = encoder.createHLAvariableArray(
+         index -> encoder.createHLAbyte());
+      variableArray.addElement(encoder.createHLAbyte((byte) 0x44));
+      variableArray.addElement(encoder.createHLAbyte((byte) 0x55));
+      HLAvariableArray<HLAbyte> decodedVariableArray = encoder.createHLAvariableArray(
+         index -> encoder.createHLAbyte());
+      decodedVariableArray.decode(variableArray.toByteArray());
+      check(decodedVariableArray.size() == 2
+            && decodedVariableArray.get(0).getValue() == (byte) 0x44
+            && decodedVariableArray.get(1).getValue() == (byte) 0x55,
+         "HLAvariableArray did not round-trip its elements");
+      HLAvariableArray<HLAinteger16BE> signedVariableArray = encoder.createHLAvariableArray(
+         index -> encoder.createHLAinteger16BE());
+      signedVariableArray.addElement(encoder.createHLAinteger16BE((short) 1));
+      signedVariableArray.addElement(encoder.createHLAinteger16BE((short) 2));
+      checkBytes(signedVariableArray.toByteArray(), 0, 0, 0, 2, 0, 1, 0, 2);
+      expectFailure(() -> signedVariableArray.decode(
+            new byte[] {(byte) 0x80, 0, 0, 0}),
+         "DecoderException", "HLAvariableArray accepted a negative element count");
+      HLAvariableArray<HLAinteger16BE> emptyVariableArray = encoder.createHLAvariableArray(
+         index -> encoder.createHLAinteger16BE());
+      checkBytes(emptyVariableArray.toByteArray(), 0, 0, 0, 0);
+      check(emptyVariableArray.size() == 0
+            && emptyVariableArray.getOctetBoundary() == 4
+            && emptyVariableArray.getEncodedLength() == 4,
+         "empty HLAvariableArray did not preserve its standard count prefix and metadata");
+
+      HLAfixedRecord record = encoder.createHLAfixedRecord();
+      record.add(encoder.createHLAinteger32BE(7));
+      record.add(encoder.createHLAboolean(true));
+      HLAfixedRecord decodedRecord = encoder.createHLAfixedRecord();
+      decodedRecord.add(encoder.createHLAinteger32BE());
+      decodedRecord.add(encoder.createHLAboolean());
+      decodedRecord.decode(record.toByteArray());
+      check(decodedRecord.size() == 2
+            && ((HLAinteger32BE) decodedRecord.get(0)).getValue() == 7
+            && ((HLAboolean) decodedRecord.get(1)).getValue(),
+         "HLAfixedRecord did not round-trip its ordered fields");
+
+      HLAfixedRecord alignedRecord = encoder.createHLAfixedRecord();
+      alignedRecord.add(encoder.createHLAoctet((byte) 0xa5));
+      alignedRecord.add(encoder.createHLAboolean(true));
+      alignedRecord.add(encoder.createHLAfloat64BE(-2.5));
+      byte[] expectedAlignedRecord = new byte[] {
+         (byte) 0xa5, 0, 0, 0, 0, 0, 0, 1,
+         (byte) 0xc0, 0x04, 0, 0, 0, 0, 0, 0};
+      checkBytes(alignedRecord.toByteArray(), 0xa5, 0, 0, 0, 0, 0, 0, 1,
+         0xc0, 0x04, 0, 0, 0, 0, 0, 0);
+      check(alignedRecord.getOctetBoundary() == 8
+            && alignedRecord.getEncodedLength() == expectedAlignedRecord.length,
+         "HLAfixedRecord alignment metadata was incorrect");
+      HLAfixedRecord decodedAlignedRecord = encoder.createHLAfixedRecord();
+      decodedAlignedRecord.add(encoder.createHLAoctet());
+      decodedAlignedRecord.add(encoder.createHLAboolean());
+      decodedAlignedRecord.add(encoder.createHLAfloat64BE());
+      decodedAlignedRecord.decode(expectedAlignedRecord);
+      check(((HLAoctet) decodedAlignedRecord.get(0)).getValue() == (byte) 0xa5
+            && ((HLAboolean) decodedAlignedRecord.get(1)).getValue()
+            && ((HLAfloat64BE) decodedAlignedRecord.get(2)).getValue() == -2.5,
+         "aligned HLAfixedRecord fields did not round-trip");
+      byte[] invalidPadding = expectedAlignedRecord.clone();
+      invalidPadding[1] = 1;
+      expectFailure(() -> decodedAlignedRecord.decode(invalidPadding),
+         "DecoderException", "HLAfixedRecord accepted nonzero alignment padding");
+      byte[] trailingRecord = Arrays.copyOf(expectedAlignedRecord,
+         expectedAlignedRecord.length + 1);
+      expectFailure(() -> decodedAlignedRecord.decode(trailingRecord),
+         "DecoderException", "HLAfixedRecord accepted trailing data");
+
+      HLAvariableArray<HLAfixedRecord> nestedRecords = encoder.createHLAvariableArray(index -> {
+         HLAfixedRecord item = encoder.createHLAfixedRecord();
+         item.add(encoder.createHLAinteger32BE());
+         item.add(encoder.createHLAoctet());
+         return item;
+      });
+      HLAfixedRecord first = encoder.createHLAfixedRecord();
+      first.add(encoder.createHLAinteger32BE(1));
+      first.add(encoder.createHLAoctet((byte) 0x11));
+      HLAfixedRecord second = encoder.createHLAfixedRecord();
+      second.add(encoder.createHLAinteger32BE(2));
+      second.add(encoder.createHLAoctet((byte) 0x22));
+      nestedRecords.addElement(first);
+      nestedRecords.addElement(second);
+      byte[] expectedNestedRecords = new byte[] {
+         0, 0, 0, 2, 0, 0, 0, 1, 0x11, 0, 0, 0, 0, 0, 0, 2, 0x22};
+      checkBytes(nestedRecords.toByteArray(),
+         0, 0, 0, 2, 0, 0, 0, 1, 0x11, 0, 0, 0, 0, 0, 0, 2, 0x22);
+      byte[] invalidNestedPadding = expectedNestedRecords.clone();
+      invalidNestedPadding[9] = 1;
+      expectFailure(() -> nestedRecords.decode(invalidNestedPadding),
+         "DecoderException", "HLAvariableArray accepted nonzero nested-record padding");
+
+      HLAinteger32BE ready = encoder.createHLAinteger32BE(0);
+      HLAinteger32BE busy = encoder.createHLAinteger32BE(1);
+      HLAvariantRecord<HLAinteger32BE> variant = encoder.createHLAvariantRecord(
+         encoder.createHLAinteger32BE());
+      variant.setVariant(ready, encoder.createHLAinteger32BE());
+      variant.setVariant(busy, encoder.createHLAASCIIstring());
+      variant.setDiscriminant(ready);
+      variant.setVariant(ready, encoder.createHLAinteger32BE(41));
+      HLAvariantRecord<HLAinteger32BE> decodedVariant = encoder.createHLAvariantRecord(
+         encoder.createHLAinteger32BE());
+      decodedVariant.setVariant(ready, encoder.createHLAinteger32BE());
+      decodedVariant.setVariant(busy, encoder.createHLAASCIIstring());
+      decodedVariant.decode(variant.toByteArray());
+      check(decodedVariant.getDiscriminant().getValue() == 0
+            && ((HLAinteger32BE) decodedVariant.getValue()).getValue() == 41,
+         "HLAvariantRecord did not round-trip its selected alternative");
+
+      HLAvariantRecord<HLAbyte> alignedVariant = encoder.createHLAvariantRecord(
+         encoder.createHLAbyte());
+      alignedVariant.setVariant(encoder.createHLAbyte((byte) 1),
+         encoder.createHLAinteger32BE());
+      alignedVariant.setVariant(encoder.createHLAbyte((byte) 2),
+         encoder.createHLAfloat64BE());
+      alignedVariant.setVariant(encoder.createHLAbyte((byte) 1),
+         encoder.createHLAinteger32BE(0x10203040));
+      byte[] expectedAlignedVariant = new byte[] {
+         1, 0, 0, 0, 0, 0, 0, 0, 0x10, 0x20, 0x30, 0x40};
+      checkBytes(alignedVariant.toByteArray(),
+         1, 0, 0, 0, 0, 0, 0, 0, 0x10, 0x20, 0x30, 0x40);
+      HLAvariantRecord<HLAbyte> decodedAlignedVariant = encoder.createHLAvariantRecord(
+         encoder.createHLAbyte());
+      decodedAlignedVariant.setVariant(encoder.createHLAbyte((byte) 1),
+         encoder.createHLAinteger32BE());
+      decodedAlignedVariant.setVariant(encoder.createHLAbyte((byte) 2),
+         encoder.createHLAfloat64BE());
+      decodedAlignedVariant.decode(expectedAlignedVariant);
+      check(decodedAlignedVariant.getDiscriminant().getValue() == 1
+            && ((HLAinteger32BE) decodedAlignedVariant.getValue()).getValue() == 0x10203040,
+         "HLAvariantRecord did not preserve its discriminant and aligned alternative");
+      byte[] invalidVariantPadding = expectedAlignedVariant.clone();
+      invalidVariantPadding[1] = 1;
+      expectFailure(() -> decodedAlignedVariant.decode(invalidVariantPadding),
+         "DecoderException", "HLAvariantRecord accepted nonzero alignment padding");
+      alignedVariant.setDiscriminant(encoder.createHLAbyte((byte) 0x7f));
+      checkBytes(alignedVariant.toByteArray(), 0x7f);
+
+      HLAfloat64BE selectedDiscriminant = encoder.createHLAfloat64BE(1.5);
+      HLAextendableVariantRecord<HLAfloat64BE> extendable =
+         encoder.createHLAextendableVariantRecord(encoder.createHLAfloat64BE());
+      extendable.setVariant(selectedDiscriminant, encoder.createHLAinteger32BE());
+      extendable.setDiscriminant(selectedDiscriminant);
+      extendable.setVariant(selectedDiscriminant, encoder.createHLAinteger32BE(0x10203040));
+      checkBytes(extendable.toByteArray(), 0x3f, 0xf8, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 4, 0, 0, 0, 0, 0x10, 0x20, 0x30, 0x40);
+      check(extendable.getOctetBoundary() == 8 && extendable.getEncodedLength() == 20,
+         "HLAextendableVariantRecord alignment or encoded length was incorrect");
+      HLAextendableVariantRecord<HLAfloat64BE> decodedExtendable =
+         encoder.createHLAextendableVariantRecord(encoder.createHLAfloat64BE());
+      decodedExtendable.setVariant(selectedDiscriminant, encoder.createHLAinteger32BE());
+      decodedExtendable.decode(extendable.toByteArray());
+      check(decodedExtendable.getDiscriminant().getValue() == 1.5
+            && ((HLAinteger32BE) decodedExtendable.getValue()).getValue() == 0x10203040,
+         "HLAextendableVariantRecord did not round-trip its discriminant and alternative");
+      byte[] shortAlternativeLength = extendable.toByteArray();
+      shortAlternativeLength[11] = 3;
+      expectFailure(() -> decodedExtendable.decode(shortAlternativeLength),
+         "DecoderException", "HLAextendableVariantRecord accepted a short alternative length");
+      byte[] trailingExtendable = Arrays.copyOf(extendable.toByteArray(),
+         extendable.getEncodedLength() + 1);
+      expectFailure(() -> decodedExtendable.decode(trailingExtendable),
+         "DecoderException", "HLAextendableVariantRecord accepted trailing data");
+      expectFailure(() -> alignedVariant.getValue(), "EncoderException",
+         "HLAvariantRecord exposed an unregistered alternative");
    }
 
    private static void checkBytes(byte[] actual, int... expected) {

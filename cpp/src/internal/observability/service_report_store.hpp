@@ -1,6 +1,6 @@
 #pragma once
 
-#include "internal/observability/runtime_instrumentation.hpp"
+#include "internal/observability/runtime_instrumentation_fwd.hpp"
 
 #include <cstdint>
 #include <filesystem>

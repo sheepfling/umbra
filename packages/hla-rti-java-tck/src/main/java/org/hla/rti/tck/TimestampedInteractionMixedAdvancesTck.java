@@ -21,14 +21,51 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/** Portable timestamped interaction delivery through the three alternate advances. */
+/** Portable timestamped interaction delivery through alternate advances and time boundaries. */
 final class TimestampedInteractionMixedAdvancesTck {
+   private enum BoundaryMode { TARA_STRICTLY_AFTER, TARA_EQUAL, TAR_EQUAL }
+
    private TimestampedInteractionMixedAdvancesTck() {
    }
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
          String interactionClassName, String parameterName, CallbackModel callbackModel)
          throws Exception {
+      run(factory, fom, timeImplementation, interactionClassName, parameterName,
+         callbackModel, BoundaryMode.TARA_STRICTLY_AFTER);
+   }
+
+   static void runTarEqualBoundary(RtiFactory factory, String fom, String timeImplementation,
+         String interactionClassName, String parameterName, CallbackModel callbackModel)
+         throws Exception {
+      run(factory, fom, timeImplementation, interactionClassName, parameterName,
+         callbackModel, BoundaryMode.TAR_EQUAL);
+   }
+
+   static void runTaraEqualBoundary(RtiFactory factory, String fom, String timeImplementation,
+         String interactionClassName, String parameterName, CallbackModel callbackModel)
+         throws Exception {
+      run(factory, fom, timeImplementation, interactionClassName, parameterName,
+         callbackModel, BoundaryMode.TARA_EQUAL);
+   }
+
+   private static void run(RtiFactory factory, String fom, String timeImplementation,
+         String interactionClassName, String parameterName, CallbackModel callbackModel,
+         BoundaryMode boundaryMode) throws Exception {
+      run(factory, fom, timeImplementation, interactionClassName, parameterName, null,
+         callbackModel, boundaryMode);
+   }
+
+   static void runCustomTransportation(RtiFactory factory, String fom,
+         String timeImplementation, String interactionClassName, String parameterName,
+         String transportationName, CallbackModel callbackModel) throws Exception {
+      run(factory, fom, timeImplementation, interactionClassName, parameterName,
+         transportationName, callbackModel, BoundaryMode.TARA_EQUAL);
+   }
+
+   private static void run(RtiFactory factory, String fom, String timeImplementation,
+         String interactionClassName, String parameterName, String expectedTransportationName,
+         CallbackModel callbackModel, BoundaryMode boundaryMode) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador flushReceiver = factory.getRtiAmbassador();
       RTIambassador taraReceiver = factory.getRtiAmbassador();
@@ -74,6 +111,17 @@ final class TimestampedInteractionMixedAdvancesTck {
             publisher.getInteractionClassHandle(interactionClassName);
          ParameterHandle publisherParameter =
             publisher.getParameterHandle(publisherClass, parameterName);
+         if (expectedTransportationName != null) {
+            TransportationTypeHandle transportation =
+               publisher.getTransportationTypeHandle(expectedTransportationName);
+            JavaTckSupport.check(interactionClassName.equals(
+                  publisher.getInteractionClassName(publisherClass))
+                  && parameterName.equals(publisher.getParameterName(
+                     publisherClass, publisherParameter))
+                  && expectedTransportationName.equals(
+                     publisher.getTransportationTypeName(transportation)),
+               "adapter FOM publisher interaction, parameter, or custom transportation name did not round-trip");
+         }
          publisher.publishInteractionClass(publisherClass);
          publisher.changeInteractionOrderType(publisherClass, OrderType.TIMESTAMP);
 
@@ -87,6 +135,14 @@ final class TimestampedInteractionMixedAdvancesTck {
          InteractionClassHandle nmraClass =
             nmraReceiver.getInteractionClassHandle(interactionClassName);
          ParameterHandle nmraParameter = nmraReceiver.getParameterHandle(nmraClass, parameterName);
+         if (expectedTransportationName != null) {
+            verifyCustomTransportation(flushReceiver, flushClass, flushParameter,
+               interactionClassName, parameterName, expectedTransportationName);
+            verifyCustomTransportation(taraReceiver, taraClass, taraParameter,
+               interactionClassName, parameterName, expectedTransportationName);
+            verifyCustomTransportation(nmraReceiver, nmraClass, nmraParameter,
+               interactionClassName, parameterName, expectedTransportationName);
+         }
          flushReceiver.subscribeInteractionClass(flushClass);
          taraReceiver.subscribeInteractionClass(taraClass);
          nmraReceiver.subscribeInteractionClass(nmraClass);
@@ -113,8 +169,13 @@ final class TimestampedInteractionMixedAdvancesTck {
             "timeConstrainedEnabled did not cross every receiver callback interface");
 
          LogicalTime initial = publisher.queryLogicalTime();
+         // The equality modes park the publisher one epsilon before the message;
+         // the baseline advances to the message, leaving its lookahead ahead of the TARA target.
          LogicalTime messageTime = offset(initial, epsilon, 5);
-         LogicalTime publisherTarget = offset(initial, epsilon, 4);
+         boolean equalBoundary = boundaryMode != BoundaryMode.TARA_STRICTLY_AFTER;
+         LogicalTime publisherTarget = offset(initial, epsilon, equalBoundary ? 4 : 5);
+         LogicalTime taraBoundary = offset(initial, epsilon,
+            boundaryMode == BoundaryMode.TARA_STRICTLY_AFTER ? 6 : 5);
          LogicalTime requestBoundary = offset(initial, epsilon, 10);
          byte[] payload = new byte[] {0x49, 0x4e, 0x54, 0x2d, 0x41};
          byte[] tag = new byte[] {0x49, 0x4e, 0x54, 0x2d, 0x46};
@@ -137,7 +198,11 @@ final class TimestampedInteractionMixedAdvancesTck {
             "timestamped interaction was delivered before an advance request");
 
          flushReceiver.flushQueueRequest(requestBoundary);
-         taraReceiver.timeAdvanceRequestAvailable(messageTime);
+         if (boundaryMode == BoundaryMode.TAR_EQUAL) {
+            taraReceiver.timeAdvanceRequest(taraBoundary);
+         } else {
+            taraReceiver.timeAdvanceRequestAvailable(taraBoundary);
+         }
          nmraReceiver.nextMessageRequestAvailable(requestBoundary);
          publisher.timeAdvanceRequest(publisherTarget);
          for (RTIambassador ambassador :
@@ -147,13 +212,15 @@ final class TimestampedInteractionMixedAdvancesTck {
 
          checkReceiver(flushRecorder, flushClass, flushParameter, payload, tag,
             producer, messageTime, retraction.handle, OrderType.TIMESTAMP,
-            "flush-queue receiver");
+            flushReceiver, expectedTransportationName, "flush-queue receiver");
          checkReceiver(taraRecorder, taraClass, taraParameter, payload, tag,
             producer, messageTime, retraction.handle, OrderType.TIMESTAMP,
-            "time-advance-available receiver");
+            taraReceiver, expectedTransportationName,
+            boundaryMode == BoundaryMode.TAR_EQUAL
+               ? "time-advance-request receiver" : "time-advance-available receiver");
          checkReceiver(nmraRecorder, nmraClass, nmraParameter, payload, tag,
             producer, messageTime, retraction.handle, OrderType.TIMESTAMP,
-            "next-message-available receiver");
+            nmraReceiver, expectedTransportationName, "next-message-available receiver");
 
          JavaTckSupport.check(publisherRecorder.timeAdvanceGrantTimes.size() == 1
                && publisherTarget.equals(publisherRecorder.timeAdvanceGrantTimes.get(0)),
@@ -163,19 +230,23 @@ final class TimestampedInteractionMixedAdvancesTck {
                && flushRecorder.callbackOrder.equals(
                   Arrays.asList("receiveInteraction", "flushQueueGrant")),
             "Flush Queue Request did not deliver the interaction before its sole grant");
+         List<String> expectedTaraOrder = boundaryMode == BoundaryMode.TARA_EQUAL
+            ? Arrays.asList("timeAdvanceGrant", "receiveInteraction")
+            : Arrays.asList("receiveInteraction", "timeAdvanceGrant");
          JavaTckSupport.check(taraRecorder.flushQueueGrantTimes.isEmpty()
                && taraRecorder.timeAdvanceGrantTimes.size() == 1
-               && taraRecorder.callbackOrder.equals(
-                  Arrays.asList("receiveInteraction", "timeAdvanceGrant")),
-            "TARA did not deliver the interaction before its sole grant");
+               && taraRecorder.callbackOrder.equals(expectedTaraOrder),
+            boundaryMode == BoundaryMode.TARA_EQUAL
+               ? "TARA delivered the equal-time interaction before its grant"
+               : "the advance request did not deliver the interaction before its sole grant");
          JavaTckSupport.check(nmraRecorder.flushQueueGrantTimes.isEmpty()
                && nmraRecorder.timeAdvanceGrantTimes.size() == 1
                && nmraRecorder.callbackOrder.equals(
                   Arrays.asList("receiveInteraction", "timeAdvanceGrant")),
             "NMRA did not deliver the interaction before its sole grant");
-         JavaTckSupport.check(messageTime.equals(taraRecorder.timeAdvanceGrantTimes.get(0))
+         JavaTckSupport.check(taraBoundary.equals(taraRecorder.timeAdvanceGrantTimes.get(0))
                && messageTime.equals(nmraRecorder.timeAdvanceGrantTimes.get(0)),
-            "TARA or NMRA reported the wrong grant time");
+            "TAR/TARA or NMRA reported the wrong grant time");
          JavaTckSupport.check(flushRecorder.flushQueueGrantTime != null
                && flushRecorder.flushQueueOptimisticTime != null
                && messageTime.equals(flushRecorder.flushQueueOptimisticTime)
@@ -185,7 +256,7 @@ final class TimestampedInteractionMixedAdvancesTck {
                   flushRecorder.flushQueueGrantTime) >= 0
                && flushRecorder.flushQueueGrantTime.equals(flushReceiver.queryLogicalTime()),
             "Flush Queue Grant/query returned inconsistent actual or optimistic time");
-         JavaTckSupport.check(messageTime.equals(taraReceiver.queryLogicalTime())
+         JavaTckSupport.check(taraBoundary.equals(taraReceiver.queryLogicalTime())
                && messageTime.equals(nmraReceiver.queryLogicalTime())
                && publisherTarget.equals(publisher.queryLogicalTime()),
             "logical-time queries did not agree with their respective grants");
@@ -243,7 +314,8 @@ final class TimestampedInteractionMixedAdvancesTck {
          InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
          byte[] expectedPayload, byte[] expectedTag, FederateHandle expectedProducer,
          LogicalTime<?, ?> expectedTime, MessageRetractionHandle expectedRetraction,
-         OrderType expectedOrder, String description) {
+         OrderType expectedOrder, RTIambassador ambassador, String expectedTransportationName,
+         String description) throws Exception {
       JavaTckSupport.check(recorder.timedInteractionCount == 1
             && expectedClass.equals(recorder.interactionClass)
             && recorder.parameters != null && recorder.parameters.size() == 1
@@ -261,6 +333,24 @@ final class TimestampedInteractionMixedAdvancesTck {
          description + " did not preserve the message retraction handle");
       JavaTckSupport.check(recorder.transportation != null,
          description + " returned no transportation handle");
+      if (expectedTransportationName != null) {
+         JavaTckSupport.check(expectedTransportationName.equals(
+               ambassador.getTransportationTypeName(recorder.transportation)),
+            description + " changed the adapter-declared custom transportation type");
+      }
+   }
+
+   private static void verifyCustomTransportation(RTIambassador ambassador,
+         InteractionClassHandle interactionClass, ParameterHandle parameter,
+         String interactionClassName, String parameterName, String transportationName)
+         throws Exception {
+      TransportationTypeHandle transportation =
+         ambassador.getTransportationTypeHandle(transportationName);
+      JavaTckSupport.check(interactionClassName.equals(
+            ambassador.getInteractionClassName(interactionClass))
+            && parameterName.equals(ambassador.getParameterName(interactionClass, parameter))
+            && transportationName.equals(ambassador.getTransportationTypeName(transportation)),
+         "adapter FOM receiver interaction, parameter, or custom transportation name did not round-trip");
    }
 
    private static final class Recorder {

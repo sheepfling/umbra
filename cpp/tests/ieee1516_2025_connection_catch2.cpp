@@ -1694,3 +1694,18 @@ TEST_CASE(
 
 #endif
 #endif
+
+TEST_CASE(
+    "RTIambassador applies 2025 exception precedence when resign is disconnected and invalid",
+    "[api-contract][foundation][2025][exceptions][exception-precedence]"
+    "[rti.service.resign-federation-execution]") {
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  REQUIRE(rti);
+
+  auto const invalidAction =
+      static_cast<rti1516_2025::ResignAction>(99);
+  REQUIRE_THROWS_AS(
+      rti->resignFederationExecution(invalidAction),
+      rti1516_2025::NotConnected);
+}

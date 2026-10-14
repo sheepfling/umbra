@@ -47,8 +47,13 @@ and the evidence needed before expansion.
 
 - [Authorization](design/AUTHORIZATION-DESIGN.md)
 - [Embedded time coordination](design/EMBEDDED-TIME-COORDINATION-DESIGN.md)
-- [HLA behavior-flow guide backlog](design/HLA-BEHAVIOR-FLOW-GUIDES.md) — the
-  edition-separated plan for contributor state and information-flow diagrams.
+- [HLA behavior guide index](design/HLA-BEHAVIOR-FLOW-GUIDES.md) — start here
+  for HLA-first reader paths, the conceptual federation-execution map, the
+  prioritized guide backlog, and explicit 2010/2025 boundaries.
+- [2025 cross-cutting state, event, and observation model](design/HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md) — a
+  portable way to reason about service admission/results, state, effects,
+  eligibility, and observation without treating them as one universal RTI
+  transaction.
 - [IEEE 1516.1-2010 reference RTI implemented flow](design/HLA-2010-REFERENCE-RTI-FLOW-GUIDE.md)
 - [IEEE 1516.1-2025 attribute ownership](design/HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md)
 - [IEEE 1516.1-2025 callback and service ordering](design/HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md)

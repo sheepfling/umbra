@@ -2191,7 +2191,7 @@ TEST_CASE(
 
 TEST_CASE(
     "RTIambassador reports a deterministic process service-report append failure after file loss",
-    "[integration][foundation][federation-management][mom][service-reporting]"
+    "[integration][internal][foundation][federation-management][mom][service-reporting]"
     "[service-report-file][service-report-file-failure][service-report-file-loss]"
     "[transport][process-boundary][public-endpoint][2025]"
     "[rti.service.connect][rti.service.create-federation-execution]"
@@ -2229,7 +2229,6 @@ TEST_CASE(
     std::sort(files.begin(), files.end());
     return files;
   };
-
   std::exception_ptr serverError;
   std::thread server([&] {
     try {
@@ -2284,7 +2283,26 @@ TEST_CASE(
   std::exception_ptr clientError;
   bool joined = false;
   try {
-    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    bool addressUsed = false;
+    try {
+      addressUsed = rti->connect(federate, HLA_EVOKED, configuration).addressUsed;
+    } catch (rti1516_2025::Exception const& exception) {
+      std::string message;
+      for (wchar_t const character : exception.what()) {
+        message.push_back(character >= 0 && character <= 0x7f
+                ? static_cast<char>(character)
+                : '?');
+      }
+      throw std::runtime_error("Process file-loss fixture Connect failed: " + message);
+    } catch (std::exception const& exception) {
+      throw std::runtime_error(
+          "Process file-loss fixture Connect threw std::exception: " +
+          std::string(exception.what()));
+    } catch (...) {
+      throw std::runtime_error(
+          "Process file-loss fixture Connect threw a non-standard exception.");
+    }
+    REQUIRE(addressUsed);
     rti->createFederationExecution(federationName, L"server-owned-fom.xml");
     REQUIRE(rti->joinFederationExecution(
                 federateName, L"process-service-report-file-loss-type", federationName)
@@ -2297,6 +2315,7 @@ TEST_CASE(
     REQUIRE(filesAtJoin.size() == 1U);
     auto const reportFile = filesAtJoin.front();
     REQUIRE(reportFile.is_absolute());
+
     std::error_code removed;
     REQUIRE(std::filesystem::remove(reportFile, removed));
     REQUIRE_FALSE(removed);
@@ -2324,11 +2343,19 @@ TEST_CASE(
     } catch (...) {
     }
   }
-  if (listener) {
-    listener.reset();
+  if (clientError) {
+    // Release either an accepted client session or a blocked listener accept
+    // before joining the worker. Keep the listener object alive through join.
+    rti.reset();
+    if (listener) {
+      listener->close();
+    }
   }
   if (server.joinable()) {
     server.join();
+  }
+  if (listener) {
+    listener.reset();
   }
   if (clientError) {
     std::rethrow_exception(clientError);
@@ -2337,6 +2364,212 @@ TEST_CASE(
     std::rethrow_exception(serverError);
   }
   REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador reports a deterministic process service-report append failure after file permission change",
+    "[integration][internal][foundation][federation-management][mom][service-reporting]"
+    "[service-report-file][service-report-file-failure][service-report-file-permission-change]"
+    "[process-service-report-file-permission-change]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-object-class-handle]"
+    "[rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-service-report-permission-execution";
+  constexpr wchar_t const* federateName =
+      L"process-service-report-permission-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry :
+         std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReportContents = [](std::filesystem::path const& path) {
+    std::ifstream input(path, std::ios::binary);
+    if (!input.good()) {
+      throw std::runtime_error("The process service-report file could not be read.");
+    }
+    return std::string(
+        std::istreambuf_iterator<char>(input),
+        std::istreambuf_iterator<char>());
+  };
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-service-report-permission-server", 0x9E13U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The report-permission server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The report-permission server lost Join.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The report-permission server lost the service-report switch enable.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The report-permission server lost the file-report switch enable.");
+      serve(TransportServiceOperation::get_object_class_handle,
+            "The report-permission server lost the report-producing lookup.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-service-report-permission-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  std::filesystem::path reportFile;
+  bool permissionsRemoved = false;
+  auto restoreWritePermissions = [&] {
+    if (!permissionsRemoved) {
+      return;
+    }
+    constexpr auto writePermissions =
+        std::filesystem::perms::owner_write |
+        std::filesystem::perms::group_write |
+        std::filesystem::perms::others_write;
+    std::error_code permissionError;
+    std::filesystem::permissions(
+        reportFile,
+        writePermissions,
+        std::filesystem::perm_options::add,
+        permissionError);
+    if (!permissionError) {
+      permissionsRemoved = false;
+    }
+  };
+  try {
+    bool addressUsed = false;
+    try {
+      addressUsed = rti->connect(federate, HLA_EVOKED, configuration).addressUsed;
+    } catch (rti1516_2025::Exception const& exception) {
+      std::string message;
+      for (wchar_t const character : exception.what()) {
+        message.push_back(character >= 0 && character <= 0x7f
+                ? static_cast<char>(character)
+                : '?');
+      }
+      throw std::runtime_error(
+          "Process permission-change fixture Connect failed: " + message);
+    }
+    REQUIRE(addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName,
+                L"process-service-report-permission-type",
+                federationName)
+                .isValid());
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+
+    auto const filesAtJoin = reportFiles();
+    REQUIRE(filesAtJoin.size() == 1U);
+    reportFile = filesAtJoin.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialContents = readReportContents(reportFile);
+
+    constexpr auto writePermissions =
+        std::filesystem::perms::owner_write |
+        std::filesystem::perms::group_write |
+        std::filesystem::perms::others_write;
+    std::error_code permissionError;
+    std::filesystem::permissions(
+        reportFile,
+        writePermissions,
+        std::filesystem::perm_options::remove,
+        permissionError);
+    REQUIRE_FALSE(permissionError);
+    permissionsRemoved = true;
+
+    REQUIRE_THROWS_AS(
+        rti->getObjectClassHandle(L"HLAobjectRoot"),
+        RTIinternalError);
+    auto const filesAfterFailure = reportFiles();
+    REQUIRE(filesAfterFailure.size() == 1U);
+    REQUIRE(filesAfterFailure.front() == reportFile);
+    REQUIRE(std::filesystem::is_regular_file(reportFile));
+    REQUIRE(readReportContents(reportFile) == initialContents);
+
+    restoreWritePermissions();
+    REQUIRE_FALSE(permissionsRemoved);
+    rti.reset();
+  } catch (...) {
+    clientError = std::current_exception();
+    restoreWritePermissions();
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (clientError) {
+    rti.reset();
+    if (listener) {
+      listener->close();
+    }
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  if (serverError) {
+    std::rethrow_exception(serverError);
+  }
   std::error_code ignored;
   std::filesystem::remove_all(reportDirectory, ignored);
 }

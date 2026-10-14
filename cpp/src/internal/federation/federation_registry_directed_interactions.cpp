@@ -1,4 +1,5 @@
 #include "internal/federation/federation_registry.hpp"
+#include "internal/observability/runtime_instrumentation.hpp"
 #include "internal/fom/fom_catalog.hpp"
 
 #include <algorithm>
@@ -181,15 +182,51 @@ EmbeddedFederationRegistry::candidateReceiveOrderDirectedInteractionRecipient(
           true))) {
     return std::nullopt;
   }
-  auto const subscriptionIsUniversal = directedInteractionSubscriptionIsUniversal(
-      federation,
-      receivingFederateId,
-      instance->second.registeredObjectClassHandle,
-      sentInteractionClassHandle);
+  auto const knownObjectClass =
+      instance->second.knownObjectClassHandlesByFederate.find(receivingFederateId);
+  if (knownObjectClass == instance->second.knownObjectClassHandlesByFederate.end()) {
+    return std::nullopt;
+  }
+
+  auto const sentClassName =
+      federation.interactionClassHandles->nameFor(sentInteractionClassHandle);
+  if (!sentClassName ||
+      federation.definition.catalog->interactionClass(*sentClassName) == nullptr) {
+    return std::nullopt;
+  }
+
+  // Directed interactions use the object's class as known by this recipient,
+  // not the producer's registered class. Select the sent interaction class
+  // when subscribed, otherwise the closest subscribed interaction superclass.
+  std::optional<std::uint64_t> receivedInteractionClassHandle;
+  std::optional<bool> subscriptionIsUniversal;
+  std::set<std::string> visitedInteractionClasses;
+  std::string receivedClassName = *sentClassName;
+  while (!receivedClassName.empty() &&
+         visitedInteractionClasses.insert(receivedClassName).second) {
+    auto const receivedClassHandle =
+        federation.interactionClassHandles->handleFor(receivedClassName);
+    auto const* receivedClass =
+        federation.definition.catalog->interactionClass(receivedClassName);
+    if (!receivedClassHandle || receivedClass == nullptr) {
+      return std::nullopt;
+    }
+    auto const candidateSubscription = directedInteractionSubscriptionIsUniversal(
+        federation,
+        receivingFederateId,
+        knownObjectClass->second,
+        *receivedClassHandle);
+    if (candidateSubscription.has_value()) {
+      receivedInteractionClassHandle = *receivedClassHandle;
+      subscriptionIsUniversal = candidateSubscription;
+      break;
+    }
+    receivedClassName = receivedClass->parentName;
+  }
   // The optional carries declaration presence separately from selector kind:
   // engaged(false) is the valid by-ownership form, while disengaged means the
   // receiving federate has no applicable directed subscription.
-  if (!subscriptionIsUniversal.has_value()) {
+  if (!receivedInteractionClassHandle || !subscriptionIsUniversal.has_value()) {
     return std::nullopt;
   }
   bool const ownsTargetAttribute = std::any_of(
@@ -202,21 +239,14 @@ EmbeddedFederationRegistry::candidateReceiveOrderDirectedInteractionRecipient(
     return std::nullopt;
   }
 
-  auto const sentClassName =
-      federation.interactionClassHandles->nameFor(sentInteractionClassHandle);
-  if (!sentClassName ||
-      federation.definition.catalog->interactionClass(*sentClassName) == nullptr) {
-    return std::nullopt;
-  }
-
   ReceiveOrderDirectedInteractionRecipient recipient;
   recipient.federateId = receivingFederateId;
   recipient.objectInstanceHandle = objectInstanceHandle;
-  recipient.receivedInteractionClassHandle = sentInteractionClassHandle;
+  recipient.receivedInteractionClassHandle = *receivedInteractionClassHandle;
   for (std::uint64_t const parameterHandle : sentParameterHandles) {
     if (federation.parameterHandles->nameFor(
             federation.definition.catalog.get(),
-            *sentClassName,
+            receivedClassName,
             parameterHandle)) {
       recipient.receivedParameterHandles.insert(parameterHandle);
     }

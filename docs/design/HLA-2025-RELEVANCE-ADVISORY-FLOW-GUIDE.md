@@ -25,45 +25,97 @@ The official [IEEE 1516.1-2025 edition page](https://standards.ieee.org/ieee/151
 is the normative starting point. Source comments and test names below are
 navigation/evidence pointers, not substitutes for the licensed standard.
 
-## Start by asking who receives what
+## Start by separating advisories from delivery gates
 
-| Signal | State being summarized | Callback recipient | What it does not mean |
+| Mechanism | Trigger or state summarized | Recipient or decision point | Boundary to keep |
 | --- | --- | --- | --- |
-| Declaration relevance | A publisher's published object or interaction class has at least one other active matching subscription. | The publisher, with a class-level callback. | It does not prove a particular object exists, a region overlaps, or any value will be delivered. |
-| Attribute relevance | A known object instance's attribute is relevant to at least one other member under the current subscription and scope policy. | The attribute's current owner, with an instance-and-attribute callback. | It is not a value update, discovery callback, or proof that every receiver has received data. |
-| Discovery | A particular receiving federate becomes aware of an object instance. | The receiving federate. | It is not the publisher's class-level Start Registration advisory. |
-| Attribute Scope | A separate scope-advisory lane for object attributes. | Governed by its own service and callback rules. | It is not an alias for Turn Updates On/Off. |
+| Declaration relevance advisory | An active matching class subscription appears or the last matching subscription disappears for a published class. | Publisher; class-level Start/Stop Registration or interaction advisory. | No particular object, region overlap, or delivered value is implied. |
+| Attribute relevance advisory | A known instance attribute gains or loses relevant receivers; its reported update-rate designator can also change while relevance stays on. | Current attribute owner; Turn Updates On/Off. | The callback carries no values and does not prove any value was sent or reflected. It is separate from scope and receiver-side rate admission. Compare the separate [Auto Provide flow](HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md). |
+| Attribute Scope advisory | A known object's attribute enters or leaves one receiver's current scope. | Receiving federate; Attributes In/Out Of Scope. | The callback reports the transition; the underlying scope predicate, not the callback, participates in DDM routing. |
+| [Update-rate admission](HLA-2025-ATTRIBUTE-UPDATE-RATE-ADMISSION-FLOW-GUIDE.md) | A candidate value reaches the current embedded per-receiver, per-attribute best-effort rate filter. | Receiver's value-delivery path; no separate advisory callback. | This is an actual value-admission gate in the described profile, not a timer that reschedules suppressed values or a change to DDM scope. |
+| Discovery | A receiving federate becomes aware of a particular object instance. | Receiving federate; Discover Object Instance. | Object knowledge is not, by itself, eligibility for every attribute value. |
+| Reflection | A projected attribute value survives applicable delivery gates. | Receiving federate; Reflect Attribute Values. | This is the payload path, not evidence that any particular advisory was generated. |
+
+The pinned 2025 API also makes these public channels independently visible:
+
+| HLA-facing signal | FederateAmbassador callback surface | RTIambassador switch surface |
+| --- | --- | --- |
+| Object-class declaration relevance | [`startRegistrationForObjectClass` / `stopRegistrationForObjectClass` (§§5.14–5.15)](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L176) | [`get/setObjectClassRelevanceAdvisorySwitch` (§§10.34–10.35)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2035) |
+| Interaction-class declaration relevance | [`turnInteractionsOn` / `turnInteractionsOff` (§§5.16–5.17)](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L188) | [`get/setInteractionRelevanceAdvisorySwitch` (§§10.40–10.41)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2095) |
+| Per-instance attribute relevance | [`turnUpdatesOnForObjectInstance` / `turnUpdatesOffForObjectInstance` (§§6.23–6.24)](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L358) | [`get/setAttributeRelevanceAdvisorySwitch` (§§10.36–10.37)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2055) |
+| Receiver-local attribute scope | [`attributesInScope` / `attributesOutOfScope` (§§6.19–6.20)](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L336) | [`get/setAttributeScopeAdvisorySwitch` (§§10.38–10.39)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2075) |
+
+These API declarations establish distinct callback and control surfaces, not
+the full trigger predicates, recipient-selection rules, or dispatch ordering.
+Use the applicable standard service text for normative conditions and the
+implementation/test map below only for the named Umbra behavior.
 
 Declaration and attribute relevance are independent signals. Do not use one
 callback as evidence that the other was generated, enabled, or dispatched.
 For object-class subscription operations, the current 2025 ambassador path
 plans declaration advisories and attribute-relevance advisories separately;
 it also has distinct discovery and scope-change work.
+The first three rows report different committed state to different federation
+roles; the update-rate row is a later receiver-side value decision. A single
+subscription or region mutation can change underlying routing state and cause
+one or more notifications, but the notifications do not replace the routing
+predicate or each other's callback family. See the separate [scope guide](HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md)
+and [DDM guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md) for
+their own transitions and evidence limits. For the broader sender-to-receiver
+model that keeps object knowledge, receiver eligibility, reflection, and
+application observation distinct, see the [object and interaction information
+guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#start-with-five-distinct-questions).
 
 ## One object subscription, separate calculations
 
-The branches below show the important separation, not a universal callback
-ordering guarantee. A subscription can affect class-level interest even before
-an instance is registered; attribute-level relevance requires an applicable
-known instance and attribute.
+The branches below show a receiving federate's subscription change fanning out
+into separate state calculations, not a universal callback-order guarantee.
+Class-level interest can change before an instance exists; per-instance
+relevance and scope require a known object/attribute. Potential notifications
+go to different federation roles, and a later reflected value is a separate
+service event. This is a conceptual fan-out map, not one endpoint trace or a
+cross-profile parity claim. Its class-level callback branch is the embedded
+2025 path; the process profile's separate evidence boundary appears below.
 
 ```mermaid
-flowchart LR
-  A[Object-class subscription changes] --> B[Recompute publisher/class declaration relevance]
-  B --> C{Class-level relevance edge?}
-  C -->|Yes and publisher switch enabled| D[Queue Start/Stop Registration advisory]
-  C -->|No edge or switch disabled| E[No class callback]
-  A --> F[Compare per-instance attribute state before and after]
-  F --> G{Known object attribute relevance or rate changed?}
-  G -->|Yes and owner switch enabled| H[Queue Turn Updates On/Off advisory]
-  G -->|No change or switch disabled| I[No attribute callback]
-  A --> J[Separate discovery and Attribute Scope planning]
+flowchart TB
+  Change["Receiver changes an object-class attribute subscription"]
+  Commit["Commit declaration state"]
+  Change --> Commit
+
+  Commit --> ClassCalc["Recompute publisher/class active-subscription relevance"]
+  ClassCalc --> ClassEdge{"Class-level relevance edge?"}
+  ClassEdge -->|Yes and publisher switch enabled| Publisher["Publisher: start/stop registration advisory"]
+  ClassEdge -->|No edge or switch disabled| NoPublisher["No class-level callback"]
+
+  Commit --> Known["For affected known instances, recalculate each attribute"]
+  Known --> OwnerEdge{"Owner-side relevance or rate snapshot changed?"}
+  OwnerEdge -->|Yes and owner switch enabled| Owner["Attribute owner: Turn Updates On/Off"]
+  OwnerEdge -->|No change or switch disabled| NoOwner["No owner advisory"]
+  Known --> ScopeEdge{"This receiver's scope changed?"}
+  ScopeEdge -->|Yes and scope policy permits| Receiver["Subscriber: Attributes In/Out Of Scope"]
+  ScopeEdge -->|No change, disabled, or self-final-unsubscribe exception| NoScope["No scope callback"]
+
+  Commit --> Discovery{"Did an eligible object become newly discoverable?"}
+  Discovery -->|Yes| Discover["Subscriber: Discover Object Instance"]
+  Discovery -->|No| NoDiscovery["No discovery callback"]
+
+  Commit -.-> Update["Later: publisher invokes Update Attribute Values"]
+  Update --> Gates["Apply current delivery eligibility and profile-specific gates"]
+  Gates --> Values{"Any attribute values remain?"}
+  Values -->|Yes| Reflect["Subscriber: Reflect Attribute Values"]
+  Values -->|No| NoReflect["No reflection for filtered values"]
 ```
 
-The sender-facing class callback identifies a class. The owner-facing attribute
-callback identifies an object instance and one or more attributes. Their
-callback queues are distinct, so callback-model dispatch and other queued RTI
-events remain separate concerns; see the [callback and service ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md).
+The sender-facing class callback identifies a class; the owner-facing
+attribute callback identifies an object instance and attributes; the receiver-
+facing scope callback identifies that receiver's in/out transition; discovery
+introduces an object; reflection carries values. These callbacks and the later
+value path are not interchangeable, and the branches do not specify dispatch
+order. The value lane includes profile-specific gates: the linked update-rate
+admission guide documents the embedded best-effort filter and makes no process
+parity claim. The [callback and service ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md)
+covers their separate queue and dispatch boundaries.
 
 ## Class-level declaration relevance
 
@@ -75,11 +127,14 @@ switch and the class still being published.
 
 ```mermaid
 stateDiagram-v2
-  [*] --> NotRelevant
-  NotRelevant --> Relevant: publisher has a matching active subscriber
-  Relevant --> Relevant: duplicate declaration or another match remains
-  Relevant --> NotRelevant: last matching active subscription is removed
-  NotRelevant --> NotRelevant: passive, unrelated, or self subscription
+  direction LR
+  [*] --> NoMatch
+  state "No matching active subscriber" as NoMatch
+  state "A matching active subscriber exists" as Matched
+  NoMatch --> Matched: add an active match
+  Matched --> Matched: duplicate or another active match
+  Matched --> NoMatch: remove the last active match
+  NoMatch --> NoMatch: passive, unrelated, or self subscription
 ```
 
 For object classes, a published attribute is relevant when another joined
@@ -105,7 +160,7 @@ for another. The distinct Create-time versus per-member initialization boundary
 is shown in the
 [federation MOM switch-lifecycle flow](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#creation-time-federation-policy-versus-per-member-switch-seeding).
 
-### Switch-off is not a queued backlog
+### Class-level switch-off is not a queued backlog
 
 In the current planner, the relevance sets are recomputed and committed even
 when the publisher's callback switch is disabled. Turning the switch back on
@@ -166,6 +221,34 @@ applicable declaration with an omitted/default rate suppresses the optional
 designator. This is an implementation detail backed by focused tests, not a
 general statement about every standard/profile combination.
 
+The per-instance Attribute Relevance Advisory switch is the providing
+federate's control, distinct from both the publisher's class-level relevance
+switch and the receiver's Attribute Scope Advisory switch. The 2025 sources
+separate switch state, relevance transitions, and callback delivery:
+
+| Event | Embedded 2025 path | Process 2025 path |
+| --- | --- | --- |
+| Turn the switch on | Store the member switch; do not run the relevance planner. | Update the client callback gate and server member switch; do not run the relevance planner. |
+| A relevance transition occurs while off | Plan a callback closure; its delivery gate checks switch, owner, and current relevance. | Check eligibility before queueing; an event failing this gate is not queued. |
+| Work is already pending when the switch changes | Recheck switch, ownership, and expected relevance when the callback runs. | Recheck while receiving the queued event, then check the switch again at callback dispatch. |
+
+Turning the switch on alone therefore does not synthesize a fresh Turn Updates
+On edge for state that stayed relevant. But pending work is not the same as a
+fresh replay: a planned/admitted callback may be dropped if a later gate fails,
+or may still pass if the switch is back on and the expected state remains
+current at the relevant delivery checks. These are separate source-observed
+2025 paths, not a claim of cross-profile equivalence or a rule from the
+standard.
+
+The selected embedded test disables the switch, changes the subscription,
+and drains owner callbacks while the switch is still off; it then unsubscribes,
+re-enables the switch, and creates a fresh active transition. It does not
+preserve a relevant state or hold work across the off/on cycle. The inspected
+process callback tests enable the switch in setup but do not toggle it off.
+No selected focused test covers a pending event across re-enable. Do not
+transfer the declaration-level switch-off result above to this owner-side
+switch or to receiver-local scope.
+
 ### Scope and class-selection boundaries
 
 - For ordinary subscriptions, class ancestry and the receiver's known object
@@ -184,6 +267,10 @@ general statement about every standard/profile combination.
 - `turnUpdatesOn/Off` is not `reflectAttributeValues`. A provider still has to
   send an update, and publication, ownership, subscription, DDM, order, and
   time-management gates remain independently applicable.
+- Advisory relevance is also distinct from whether a particular passive
+  receiver can get a value: the current embedded active/passive recipient
+  boundary and its test limit are recorded in the
+  [object-attribute subscription guide](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md#passive-is-not-a-hard-delivery-veto).
 - Attribute Scope callbacks are a separate lane. A nearby source comment
   references §10.1.3 for a scope-specific unsubscribe case; do not copy that
   exception into the Turn Updates relevance state machine. See the separate
@@ -199,18 +286,32 @@ covers report routing and callback-order limits.
 
 | Topic | Current 2025 implementation | Focused test evidence |
 | --- | --- | --- |
-| Class-level active-subscription set and edge detection | [Declaration planner](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L723); [callback mapping](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1145) | [Ordinary publication/subscription transitions, switch gating, passive subscriptions, and idempotence](../../cpp/tests/declaration_relevance_advisory_catch2.cpp#L91); [declaration reports before callbacks](../../cpp/tests/declaration_relevance_service_report_catch2.cpp#L163) |
-| Regional declarations | [Class-level planner](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L797) | [Active/passive regional object and interaction subscriptions](../../cpp/tests/regional_declaration_relevance_advisory_catch2.cpp#L122) |
+| Class-level active-subscription set and edge detection (embedded) | [Declaration planner](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L723); [callback mapping](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1145) | [Ordinary publication/subscription transitions, switch gating, passive subscriptions, and idempotence](../../cpp/tests/declaration_relevance_advisory_catch2.cpp#L91); [declaration reports before callbacks](../../cpp/tests/declaration_relevance_service_report_catch2.cpp#L163) |
+| Regional declarations (embedded) | [Class-level planner](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L797) | [Active/passive regional object and interaction subscriptions](../../cpp/tests/regional_declaration_relevance_advisory_catch2.cpp#L122) |
 | FDD switch seeding | [Membership initialization](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L375) | [Joining members receive their composed-FDD switch values](../../cpp/tests/join_advisory_switch_seed_catch2.cpp#L4) |
-| Attribute relevance and rate snapshot | [Per-instance resolver](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L255); [pre/post transition planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L659) | [Process endpoint On/Off callbacks](../../cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp#L457); [rate-change reissue](../../cpp/tests/ieee1516_2025_connection_attribute_relevance_rate_reissue_catch2.cpp#L457) |
+| Process-profile class-level callback boundary | Process [publication handler](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L123) and [subscription handler](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L176) mutate registry state; no class-level planner call or declaration-advisory event route was found. The wire protocol has [switch GET operations](../../cpp/src/internal/federation/transport_service_protocol.hpp#L345); the public [object-class Set](../../cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp#L212) and [interaction-class Set](../../cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp#L466) methods use the embedded registry path. Process switch mutation is available through [HLAsetSwitches](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L107). | [Process MOM switch scenario](../../cpp/tests/ieee1516_2025_connection_process_mom_set_switches_catch2.cpp#L51) sends HLAsetSwitches and checks the getters; it does not call the public Set methods or assert class-level callbacks. No process class-level callback test was found. |
+| Attribute relevance and rate snapshot | [Per-instance resolver](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L255); [pre/post transition planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L659) | [Embedded owner-switch suppression and rate transitions](../../cpp/tests/attribute_relevance_advisory_catch2.cpp#L265); [process On/Off callbacks](../../cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp#L457); [rate-change reissue](../../cpp/tests/ieee1516_2025_connection_attribute_relevance_rate_reissue_catch2.cpp#L457) |
+| Owner switch mutation versus pending delivery | [Embedded switch setter](../../cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp#L323), [callback gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1254), and [transition planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L659); process [client switch update](../../cpp/src/internal/federation/process_federation_client_region_services.cpp#L199), [server switch handler](../../cpp/src/internal/federation/process_federation_service_ddm_switches.cpp#L165), [receive-time recheck](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L147), and [callback-boundary recheck](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1524) | [Embedded switch suppression followed by a fresh transition](../../cpp/tests/attribute_relevance_advisory_catch2.cpp#L265); [process callback path](../../cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp#L457) enables the switch in setup, with no off/on or pending-event scenario |
 | Attribute subscription feeds independent planners | [Subscription adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp#L426) | [Embedded transition scenario](../../cpp/tests/declaration_relevance_advisory_catch2.cpp#L174); [attribute callback scenario](../../cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp#L822) |
 | Regional attribute relevance | [Scope resolver](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L16); [process revalidation/enqueue](../../cpp/src/internal/federation/process_federation_service_attribute_relevance_advisories.cpp#L11) | [Association overlap transitions](../../cpp/tests/ieee1516_2025_connection_regional_attribute_relevance_transition_catch2.cpp#L42); [subscription overlap transitions](../../cpp/tests/ieee1516_2025_connection_regional_attribute_relevance_subscription_transition_catch2.cpp#L457); [passive regional attribute subscriptions](../../cpp/tests/regional_declaration_relevance_advisory_catch2.cpp#L282) |
 | Class-basis policy | [Advisory relevance predicate](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L127) | [Enabled](../../cpp/tests/attribute_relevance_known_class_enabled_subscription_catch2.cpp#L97); [disabled](../../cpp/tests/attribute_relevance_known_class_disabled_subscription_catch2.cpp#L97) |
 
-The declaration transition scenario is embedded-only in the surveyed focused
-suite; the selected attribute transition and rate-reissue scenarios exercise a
-configured process endpoint. Those are different evidence profiles, not
-evidence of cross-profile equivalence.
+The process MOM-switch case is mutation/readback evidence: it sends the
+standard HLAsetSwitches interaction and checks the process getters. It does
+not exercise the public `setObjectClassRelevanceAdvisorySwitch` or
+`setInteractionRelevanceAdvisorySwitch` methods, nor does it test callback
+delivery. In the inspected source those public Set methods have no process
+endpoint branch, whereas their GET counterparts do; the process protocol has
+the GET operations but no dedicated Set operations. Its separate
+`HLAsetSwitches` MOM interaction is the process-side mutation route exercised
+by that test. Process declaration handlers do not invoke the class-level
+declaration planner, and the surveyed process event/dispatch path has no
+Start/Stop Registration or Turn Interactions callback event. Therefore this
+evidence does not establish process-profile class-level callback behavior.
+Treat the boundary as a source-observed gap, not an IEEE rule or a claim of
+equivalence with the embedded path. The selected attribute On/Off tests do
+exercise their separate configured-process event route; do not project that
+support onto class-level advisories.
 
 ## Limits and next boundary
 

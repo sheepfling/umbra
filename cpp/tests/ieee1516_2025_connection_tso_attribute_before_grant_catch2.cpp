@@ -38,6 +38,7 @@
 #include "internal/federation/process_transport.hpp"
 #include "internal/federation/process_transport_session.hpp"
 #include "process_public_service_fixture.hpp"
+#include "process_service_report_fixture.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
@@ -454,9 +455,12 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 
 }  // namespace
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-TEST_CASE(
-    "RTIambassadors deliver a deferred timestamped process attribute update before the grant",
-    "[integration][foundation][object-management][time-management][time-advance][transport][process-boundary][public-endpoint][multi-federate][timestamped-process-attribute-update][process-tso-attribute-before-grant][galt][lits][query-galt-lits][rti.service.update-attribute-values][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.time-advance-request][rti.service.query-galt][rti.service.query-lits][federate.callback.reflect-attribute-values][federate.callback.time-advance-grant]") {
+enum class ProcessTimeRequest { tar, nmr, nmra };
+
+void verifyProcessTsoAttributeBeforeGrant(
+    ProcessTimeRequest requestKind,
+    bool const regionalAttribute = false,
+    CallbackModel const callbackModel = HLA_EVOKED) {
   class RecordingFederateAmbassador final : public NullFederateAmbassador {
    public:
     void discoverObjectInstance(
@@ -464,8 +468,10 @@ TEST_CASE(
         rti1516_2025::ObjectClassHandle const&,
         std::wstring const&,
         rti1516_2025::FederateHandle const&) override {
+      std::scoped_lock lock(callbackMutex);
       discoveredObjectInstance = objectInstance;
       discovered = true;
+      callbackChanged.notify_all();
     }
 
     void reflectAttributeValues(
@@ -479,6 +485,7 @@ TEST_CASE(
         rti1516_2025::OrderType sentOrder,
         rti1516_2025::OrderType receivedOrder,
         rti1516_2025::MessageRetractionHandle const* optionalRetraction) override {
+      std::scoped_lock lock(callbackMutex);
       ++reflectedCount;
       callbackOrder.push_back('A');
       reflectedObjectInstance = objectInstance;
@@ -502,25 +509,47 @@ TEST_CASE(
         auto const* data = static_cast<std::uint8_t const*>(value.data());
         reflectedValue.assign(data, data + value.size());
       }
+      callbackChanged.notify_all();
     }
 
     void timeRegulationEnabled(rti1516_2025::LogicalTime const&) override {
+      std::scoped_lock lock(callbackMutex);
       ++timeRegulationEnabledCount;
+      callbackChanged.notify_all();
     }
 
     void timeConstrainedEnabled(rti1516_2025::LogicalTime const&) override {
+      std::scoped_lock lock(callbackMutex);
       ++timeConstrainedEnabledCount;
+      callbackChanged.notify_all();
     }
 
     void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
+      std::scoped_lock lock(callbackMutex);
       ++timeAdvanceGrantCount;
       callbackOrder.push_back('G');
       if (auto const* integerTime =
               dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
         timeAdvanceGrantValue = integerTime->getTime();
       }
+      callbackChanged.notify_all();
     }
 
+    bool waitForDiscovery() {
+      std::unique_lock lock(callbackMutex);
+      return callbackChanged.wait_for(
+          lock, std::chrono::seconds(2), [this] { return discovered; });
+    }
+
+    bool waitForReflectionAndGrant() {
+      std::unique_lock lock(callbackMutex);
+      return callbackChanged.wait_for(lock, std::chrono::seconds(2), [this] {
+        return reflectedCount == 1U && timeAdvanceGrantCount == 1U;
+      });
+    }
+
+    std::mutex callbackMutex;
+    std::condition_variable callbackChanged;
     bool discovered = false;
     rti1516_2025::ObjectInstanceHandle discoveredObjectInstance;
     std::size_t reflectedCount = 0U;
@@ -545,8 +574,11 @@ TEST_CASE(
       L"process-timestamped-attribute-scheduler-sender";
   constexpr wchar_t const* receiverName =
       L"process-timestamped-attribute-scheduler-receiver";
-  constexpr wchar_t const* objectClassName = L"HLAobjectRoot.Employee";
-  constexpr wchar_t const* attributeName = L"Name";
+  wchar_t const* const objectClassName = regionalAttribute
+                                             ? L"HLAobjectRoot.Food.Drink.Soda"
+                                             : L"HLAobjectRoot.Employee";
+  wchar_t const* const attributeName = regionalAttribute ? L"Flavor" : L"Name";
+  wchar_t const* const dimensionName = L"SodaFlavor";
 
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
@@ -559,7 +591,9 @@ TEST_CASE(
     try {
       EmbeddedFederationRegistry registry;
       ProcessFederationService service(
-          registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
       auto senderConnection = listener->accept(
           nullptr,
           {"process-timestamped-attribute-scheduler-server", 0x9310U},
@@ -571,18 +605,11 @@ TEST_CASE(
       auto serveExpected = [&](ProcessTransportSession& session,
                                auto const& handler,
                                TransportServiceOperation operation) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(
-                        "The process TSO attribute scheduler received an unexpected operation.");
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(
-              "The process TSO attribute scheduler lost a request.");
-        }
+        umbra::test::serveExpectedPrimaryProcessRequest(
+            session,
+            handler,
+            operation,
+            "The process TSO attribute scheduler received an unexpected operation.");
       };
 
       serveExpected(sender, senderHandler,
@@ -608,28 +635,71 @@ TEST_CASE(
                     TransportServiceOperation::get_attribute_handle);
       serveExpected(receiver, receiverHandler,
                     TransportServiceOperation::get_attribute_handle);
+      if (regionalAttribute) {
+        serveExpected(sender, senderHandler,
+                      TransportServiceOperation::get_dimension_handle);
+        serveExpected(receiver, receiverHandler,
+                      TransportServiceOperation::get_dimension_handle);
+        serveExpected(sender, senderHandler,
+                      TransportServiceOperation::create_region);
+        serveExpected(sender, senderHandler,
+                      TransportServiceOperation::set_range_bounds);
+        serveExpected(sender, senderHandler,
+                      TransportServiceOperation::commit_region_modifications);
+        serveExpected(receiver, receiverHandler,
+                      TransportServiceOperation::create_region);
+        serveExpected(receiver, receiverHandler,
+                      TransportServiceOperation::set_range_bounds);
+        serveExpected(receiver, receiverHandler,
+                      TransportServiceOperation::commit_region_modifications);
+        serveExpected(receiver, receiverHandler,
+                      TransportServiceOperation::subscribe_object_class_attributes_with_regions);
+        serveExpected(sender, senderHandler,
+                      TransportServiceOperation::publish_object_class_attributes);
+      } else {
+        serveExpected(sender, senderHandler,
+                      TransportServiceOperation::publish_object_class_attributes);
+        serveExpected(receiver, receiverHandler,
+                      TransportServiceOperation::subscribe_object_class_attributes);
+      }
+      umbra::test::serveExpectedProcessSuccessfulVoidService(
+          serveExpected, sender, senderHandler,
+          TransportServiceOperation::enable_time_regulation);
+      umbra::test::serveExpectedProcessSuccessfulVoidService(
+          serveExpected, receiver, receiverHandler,
+          TransportServiceOperation::enable_time_constrained);
       serveExpected(sender, senderHandler,
-                    TransportServiceOperation::publish_object_class_attributes);
-      serveExpected(receiver, receiverHandler,
-                    TransportServiceOperation::subscribe_object_class_attributes);
-      serveExpected(sender, senderHandler,
-                    TransportServiceOperation::enable_time_regulation);
-      serveExpected(receiver, receiverHandler,
-                    TransportServiceOperation::enable_time_constrained);
-      serveExpected(sender, senderHandler,
-                    TransportServiceOperation::register_object_instance);
-      serveExpected(receiver, receiverHandler,
-                    TransportServiceOperation::receive_interaction);
-      serveExpected(receiver, receiverHandler,
-                    TransportServiceOperation::time_advance_request);
+                    regionalAttribute
+                        ? TransportServiceOperation::register_object_instance_with_regions
+                        : TransportServiceOperation::register_object_instance);
+      if (callbackModel == HLA_EVOKED) {
+        serveExpected(receiver, receiverHandler,
+                      TransportServiceOperation::receive_interaction);
+      }
+      if (requestKind == ProcessTimeRequest::nmra) {
+        umbra::test::serveExpectedProcessSuccessfulVoidService(
+            serveExpected, receiver, receiverHandler,
+            TransportServiceOperation::next_message_request_available);
+      } else if (requestKind == ProcessTimeRequest::nmr) {
+        umbra::test::serveExpectedProcessSuccessfulVoidService(
+            serveExpected, receiver, receiverHandler,
+            TransportServiceOperation::next_message_request);
+      } else {
+        umbra::test::serveExpectedProcessSuccessfulVoidService(
+            serveExpected, receiver, receiverHandler,
+            TransportServiceOperation::time_advance_request);
+      }
       serveExpected(sender, senderHandler,
                     TransportServiceOperation::update_attribute_values);
-      serveExpected(sender, senderHandler,
-                    TransportServiceOperation::time_advance_request);
-      serveExpected(receiver, receiverHandler,
-                    TransportServiceOperation::query_time_bounds);
-      serveExpected(receiver, receiverHandler,
-                    TransportServiceOperation::query_time_bounds);
+      umbra::test::serveExpectedProcessSuccessfulVoidService(
+          serveExpected, sender, senderHandler,
+          TransportServiceOperation::time_advance_request);
+      if (callbackModel == HLA_EVOKED) {
+        serveExpected(receiver, receiverHandler,
+                      TransportServiceOperation::query_time_bounds);
+        serveExpected(receiver, receiverHandler,
+                      TransportServiceOperation::query_time_bounds);
+      }
       serveExpected(receiver, receiverHandler,
                     TransportServiceOperation::acknowledge_tso_delivery);
       serveExpected(sender, senderHandler,
@@ -668,7 +738,7 @@ TEST_CASE(
   bool receiverJoined = false;
   try {
     REQUIRE(senderRti->connect(
-                senderFederate, HLA_EVOKED, senderConfiguration)
+                senderFederate, callbackModel, senderConfiguration)
                 .addressUsed);
     REQUIRE_NOTHROW(senderRti->createFederationExecution(
         federationName, L"server-owned-fom.xml"));
@@ -677,7 +747,7 @@ TEST_CASE(
     REQUIRE(senderHandle.isValid());
     senderJoined = true;
     REQUIRE(receiverRti->connect(
-                receiverFederate, HLA_EVOKED, receiverConfiguration)
+                receiverFederate, callbackModel, receiverConfiguration)
                 .addressUsed);
     auto const receiverHandle = receiverRti->joinFederationExecution(
         receiverName, L"process-timestamped-attribute-scheduler-type", federationName);
@@ -692,35 +762,117 @@ TEST_CASE(
         receiverObjectClass, attributeName);
     REQUIRE(senderObjectClass == receiverObjectClass);
     REQUIRE(senderAttribute == receiverAttribute);
-    REQUIRE_NOTHROW(senderRti->publishObjectClassAttributes(
-        senderObjectClass, {senderAttribute}));
-    REQUIRE_NOTHROW(receiverRti->subscribeObjectClassAttributes(
-        receiverObjectClass, {receiverAttribute}, true));
+    std::optional<rti1516_2025::RegionHandle> senderRegion;
+    if (regionalAttribute) {
+      auto const senderDimension = senderRti->getDimensionHandle(dimensionName);
+      auto const receiverDimension = receiverRti->getDimensionHandle(dimensionName);
+      senderRegion = senderRti->createRegion(
+          rti1516_2025::DimensionHandleSet{senderDimension});
+      REQUIRE_NOTHROW(senderRti->setRangeBounds(
+          *senderRegion, senderDimension, rti1516_2025::RangeBounds(0UL, 1UL)));
+      REQUIRE_NOTHROW(senderRti->commitRegionModifications(
+          rti1516_2025::RegionHandleSet{*senderRegion}));
+      auto const receiverRegion = receiverRti->createRegion(
+          rti1516_2025::DimensionHandleSet{receiverDimension});
+      REQUIRE_NOTHROW(receiverRti->setRangeBounds(
+          receiverRegion, receiverDimension, rti1516_2025::RangeBounds(0UL, 1UL)));
+      REQUIRE_NOTHROW(receiverRti->commitRegionModifications(
+          rti1516_2025::RegionHandleSet{receiverRegion}));
+      rti1516_2025::AttributeHandleSet const subscribedAttributes{receiverAttribute};
+      rti1516_2025::AttributeHandleSetRegionHandleSetPairVector const subscription{{
+          subscribedAttributes,
+          rti1516_2025::RegionHandleSet{receiverRegion},
+      }};
+      REQUIRE_NOTHROW(receiverRti->subscribeObjectClassAttributesWithRegions(
+          receiverObjectClass, subscription));
+      REQUIRE_NOTHROW(senderRti->publishObjectClassAttributes(
+          senderObjectClass, {senderAttribute}));
+    } else {
+      REQUIRE_NOTHROW(senderRti->publishObjectClassAttributes(
+          senderObjectClass, {senderAttribute}));
+      REQUIRE_NOTHROW(receiverRti->subscribeObjectClassAttributes(
+          receiverObjectClass, {receiverAttribute}, true));
+    }
 
     REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
         rti1516_2025::HLAinteger64Interval(1)));
-    REQUIRE_FALSE(senderFederate.timeRegulationEnabledCount != 0U);
-    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
-    REQUIRE(senderFederate.timeRegulationEnabledCount == 1U);
+    if (callbackModel == HLA_EVOKED) {
+      {
+        std::scoped_lock lock(senderFederate.callbackMutex);
+        REQUIRE_FALSE(senderFederate.timeRegulationEnabledCount != 0U);
+      }
+      REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+    }
+    {
+      std::scoped_lock lock(senderFederate.callbackMutex);
+      REQUIRE(senderFederate.timeRegulationEnabledCount == 1U);
+    }
     REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
-    REQUIRE_FALSE(receiverFederate.timeConstrainedEnabledCount != 0U);
-    static_cast<void>(receiverRti->evokeCallback(0.0));
-    REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
-
-    auto const objectInstance = senderRti->registerObjectInstance(senderObjectClass);
-    REQUIRE(objectInstance.isValid());
-    REQUIRE_FALSE(receiverFederate.discovered);
-    for (std::size_t evokeCount = 0U;
-         evokeCount < 4U && !receiverFederate.discovered;
-         ++evokeCount) {
+    if (callbackModel == HLA_EVOKED) {
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE_FALSE(receiverFederate.timeConstrainedEnabledCount != 0U);
+      }
       static_cast<void>(receiverRti->evokeCallback(0.0));
     }
-    REQUIRE(receiverFederate.discovered);
-    REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
+    {
+      std::scoped_lock lock(receiverFederate.callbackMutex);
+      REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
+    }
 
-    REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
-        rti1516_2025::HLAinteger64Time(5)));
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+    rti1516_2025::ObjectInstanceHandle objectInstance;
+    if (regionalAttribute) {
+      rti1516_2025::AttributeHandleSet const registeredAttributes{senderAttribute};
+      rti1516_2025::AttributeHandleSetRegionHandleSetPairVector const registration{{
+          registeredAttributes,
+          rti1516_2025::RegionHandleSet{*senderRegion},
+      }};
+      objectInstance = senderRti->registerObjectInstanceWithRegions(
+          senderObjectClass, registration);
+    } else {
+      objectInstance = senderRti->registerObjectInstance(senderObjectClass);
+    }
+    REQUIRE(objectInstance.isValid());
+    if (callbackModel == HLA_IMMEDIATE) {
+      REQUIRE(receiverFederate.waitForDiscovery());
+    } else {
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE_FALSE(receiverFederate.discovered);
+      }
+      for (std::size_t evokeCount = 0U; evokeCount < 4U; ++evokeCount) {
+        {
+          std::scoped_lock lock(receiverFederate.callbackMutex);
+          if (receiverFederate.discovered) {
+            break;
+          }
+        }
+        static_cast<void>(receiverRti->evokeCallback(0.0));
+      }
+    }
+    {
+      std::scoped_lock lock(receiverFederate.callbackMutex);
+      REQUIRE(receiverFederate.discovered);
+      REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
+    }
+
+    if (requestKind == ProcessTimeRequest::nmra) {
+      REQUIRE_NOTHROW(receiverRti->nextMessageRequestAvailable(
+          rti1516_2025::HLAinteger64Time(10)));
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE_NOTHROW(receiverRti->disableCallbacks());
+      }
+    } else if (requestKind == ProcessTimeRequest::nmr) {
+      REQUIRE_NOTHROW(receiverRti->nextMessageRequest(
+          rti1516_2025::HLAinteger64Time(10)));
+    } else {
+      REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(5)));
+    }
+    {
+      std::scoped_lock lock(receiverFederate.callbackMutex);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+    }
 
     std::array<std::uint8_t, 3U> const valueBytes{0x54U, 0x53U, 0x4FU};
     std::array<std::uint8_t, 3U> const tagBytes{0x54U, 0x41U, 0x47U};
@@ -738,44 +890,81 @@ TEST_CASE(
 
     REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
         rti1516_2025::HLAinteger64Time(6)));
-    REQUIRE(senderFederate.timeAdvanceGrantCount == 0U);
-    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
-    REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
+    if (callbackModel == HLA_EVOKED) {
+      {
+        std::scoped_lock lock(senderFederate.callbackMutex);
+        REQUIRE(senderFederate.timeAdvanceGrantCount == 0U);
+      }
+      REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+    }
+    {
+      std::scoped_lock lock(senderFederate.callbackMutex);
+      REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
+      REQUIRE(senderFederate.timeAdvanceGrantValue == 6);
+    }
     // The sender requested 6, so its own grant is 6.  The timestamp-5
     // reflection is delivered to the constrained receiver before that
     // receiver's separate grant at 5; it does not lower the sender's TAR
     // target.
-    REQUIRE(senderFederate.timeAdvanceGrantValue == 6);
-
-    // The attribute event has crossed transport but remains in the
-    // coordinator's inTransit phase until the public reflection callback
-    // completes.  Query both bounds before that callback so this lane covers
-    // the same deterministic boundary as the process interaction observer.
-    REQUIRE(receiverFederate.reflectedCount == 0U);
-    rti1516_2025::HLAinteger64Time inTransitGaltValue(99);
-    REQUIRE(receiverRti->queryGALT(inTransitGaltValue));
-    REQUIRE(inTransitGaltValue.getTime() == 5);
-    rti1516_2025::HLAinteger64Time inTransitLitsValue(101);
-    REQUIRE(receiverRti->queryLITS(inTransitLitsValue));
-    REQUIRE(inTransitLitsValue.getTime() == 5);
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
-    static_cast<void>(receiverRti->evokeCallback(0.0));
-    REQUIRE(receiverFederate.reflectedCount == 1U);
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
-    REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'A'});
-    static_cast<void>(receiverRti->evokeCallback(0.0));
-    REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
-    REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'A', 'G'});
-    REQUIRE(receiverFederate.reflectedObjectInstance == objectInstance);
-    REQUIRE(receiverFederate.reflectedAttributeCount == 1U);
-    REQUIRE(receiverFederate.reflectedValue ==
-            std::vector<std::uint8_t>{0x54U, 0x53U, 0x4FU});
-    REQUIRE(receiverFederate.reflectedTag ==
-            std::vector<std::uint8_t>{0x54U, 0x41U, 0x47U});
-    REQUIRE(receiverFederate.hasRetraction);
-    REQUIRE(receiverFederate.sentOrderType == rti1516_2025::TIMESTAMP);
-    REQUIRE(receiverFederate.receivedOrderType == rti1516_2025::TIMESTAMP);
-    REQUIRE(receiverFederate.reflectedTimestampValue == 5);
+    if (callbackModel == HLA_EVOKED) {
+      // The attribute event has crossed transport but remains in the
+      // coordinator's inTransit phase until the public reflection callback
+      // completes. Query both bounds before that callback to cover this
+      // deterministic process boundary.
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.reflectedCount == 0U);
+      }
+      rti1516_2025::HLAinteger64Time inTransitGaltValue(99);
+      REQUIRE(receiverRti->queryGALT(inTransitGaltValue));
+      REQUIRE(inTransitGaltValue.getTime() == 5);
+      rti1516_2025::HLAinteger64Time inTransitLitsValue(101);
+      REQUIRE(receiverRti->queryLITS(inTransitLitsValue));
+      REQUIRE(inTransitLitsValue.getTime() == 5);
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+      }
+      if (requestKind == ProcessTimeRequest::nmra) {
+        REQUIRE(receiverRti->evokeCallback(0.0));
+        {
+          std::scoped_lock lock(receiverFederate.callbackMutex);
+          REQUIRE(receiverFederate.reflectedCount == 0U);
+          REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+        }
+        REQUIRE_NOTHROW(receiverRti->enableCallbacks());
+      }
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+    } else {
+      // The process reader delivers both the TSO reflection and the grant
+      // asynchronously; no benign RTI service is used to poll the endpoint.
+      REQUIRE(receiverFederate.waitForReflectionAndGrant());
+    }
+    if (callbackModel == HLA_EVOKED) {
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.reflectedCount == 1U);
+        REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+        REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'A'});
+      }
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+    }
+    {
+      std::scoped_lock lock(receiverFederate.callbackMutex);
+      REQUIRE(receiverFederate.reflectedCount == 1U);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
+      REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'A', 'G'});
+      REQUIRE(receiverFederate.reflectedObjectInstance == objectInstance);
+      REQUIRE(receiverFederate.reflectedAttributeCount == 1U);
+      REQUIRE(receiverFederate.reflectedValue ==
+              std::vector<std::uint8_t>{0x54U, 0x53U, 0x4FU});
+      REQUIRE(receiverFederate.reflectedTag ==
+              std::vector<std::uint8_t>{0x54U, 0x41U, 0x47U});
+      REQUIRE(receiverFederate.hasRetraction);
+      REQUIRE(receiverFederate.sentOrderType == rti1516_2025::TIMESTAMP);
+      REQUIRE(receiverFederate.receivedOrderType == rti1516_2025::TIMESTAMP);
+      REQUIRE(receiverFederate.reflectedTimestampValue == 5);
+    }
 
     REQUIRE_NOTHROW(senderRti->resignFederationExecution(
         rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES));
@@ -820,6 +1009,62 @@ TEST_CASE(
   REQUIRE_FALSE(serverError);
   REQUIRE_FALSE(senderJoined);
   REQUIRE_FALSE(receiverJoined);
+}
+
+TEST_CASE(
+    "RTIambassadors deliver a deferred timestamped process attribute update before the grant",
+    "[integration][foundation][object-management][time-management][time-advance][transport][process-boundary][public-endpoint][multi-federate][timestamped-process-attribute-update][process-tso-attribute-before-grant][galt][lits][query-galt-lits][rti.service.update-attribute-values][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.time-advance-request][rti.service.query-galt][rti.service.query-lits][federate.callback.reflect-attribute-values][federate.callback.time-advance-grant]") {
+  verifyProcessTsoAttributeBeforeGrant(ProcessTimeRequest::tar);
+}
+
+TEST_CASE(
+    "RTIambassadors retarget a pending process NMRA to a timestamped attribute update while callbacks are disabled",
+    "[integration][foundation][object-management][time-management][time-advance][transport][process-boundary][public-endpoint][multi-federate][timestamped-process-attribute-update][process-tso-attribute-update-callback-gating][rti.service.update-attribute-values][rti.service.next-message-request-available][rti.service.disable-callbacks][rti.service.enable-callbacks][rti.service.evoke-callback][federate.callback.reflect-attribute-values][federate.callback.time-advance-grant][2025]") {
+  verifyProcessTsoAttributeBeforeGrant(ProcessTimeRequest::nmra);
+}
+
+TEST_CASE(
+    "RTIambassadors retarget a pending process NMR to a future timestamped attribute update",
+    "[integration][foundation][object-management][time-management][time-advance][transport][process-boundary][public-endpoint][multi-federate][timestamped-process-attribute-update][process-tso-future-attribute-nmr][process-time-advance-next-message-queued-focused][rti.service.update-attribute-values][rti.service.next-message-request][rti.service.evoke-callback][rti.service.query-galt][rti.service.query-lits][federate.callback.reflect-attribute-values][federate.callback.time-advance-grant][2025]") {
+  verifyProcessTsoAttributeBeforeGrant(ProcessTimeRequest::nmr);
+}
+
+TEST_CASE(
+    "RTIambassadors retarget pending process NMR and NMRA to a future timestamped attribute update under HLA_IMMEDIATE",
+    "[integration][foundation][object-management][time-management][time-advance][transport][process-boundary][public-endpoint][multi-federate][timestamped-process-attribute-update][process-tso-future-attribute-nmr-nmra-immediate][process-tso-immediate-no-follow-up-poll][process-time-advance-next-message-queued-focused][rti.service.update-attribute-values][rti.service.next-message-request][rti.service.next-message-request-available][federate.callback.reflect-attribute-values][federate.callback.time-advance-grant][HLA_IMMEDIATE][2025]") {
+  SECTION("NMR") {
+    verifyProcessTsoAttributeBeforeGrant(
+        ProcessTimeRequest::nmr, false, HLA_IMMEDIATE);
+  }
+  SECTION("NMRA") {
+    verifyProcessTsoAttributeBeforeGrant(
+        ProcessTimeRequest::nmra, false, HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "RTIambassadors retarget a pending process NMR to a future timestamped regional attribute update",
+    "[integration][foundation][data-distribution-management][object-management][time-management][time-advance][transport][process-boundary][public-endpoint][multi-federate][timestamped-process-regional-attribute-update][process-tso-future-regional-attribute-nmr][process-time-advance-next-message-queued-focused][rti.service.subscribe-object-class-attributes-with-regions][rti.service.register-object-instance-with-regions][rti.service.update-attribute-values][rti.service.next-message-request][federate.callback.reflect-attribute-values][federate.callback.time-advance-grant][2025]") {
+  verifyProcessTsoAttributeBeforeGrant(ProcessTimeRequest::nmr, true);
+}
+
+TEST_CASE(
+    "RTIambassadors deliver a future timestamped regional attribute update under HLA_IMMEDIATE without a follow-up poll",
+    "[integration][foundation][data-distribution-management][object-management][time-management][time-advance][transport][process-boundary][public-endpoint][multi-federate][timestamped-process-regional-attribute-update][process-tso-immediate-regional-attribute-no-follow-up-poll][process-tso-immediate-no-follow-up-poll][process-time-advance-next-message-queued-focused][rti.service.subscribe-object-class-attributes-with-regions][rti.service.register-object-instance-with-regions][rti.service.update-attribute-values][rti.service.next-message-request][rti.service.next-message-request-available][federate.callback.reflect-attribute-values][federate.callback.time-advance-grant][HLA_IMMEDIATE][2025]") {
+  SECTION("NMR") {
+    verifyProcessTsoAttributeBeforeGrant(
+        ProcessTimeRequest::nmr, true, HLA_IMMEDIATE);
+  }
+  SECTION("NMRA") {
+    verifyProcessTsoAttributeBeforeGrant(
+        ProcessTimeRequest::nmra, true, HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "RTIambassadors retarget a pending process NMRA to a future timestamped regional attribute update",
+    "[integration][foundation][data-distribution-management][object-management][time-management][time-advance][transport][process-boundary][public-endpoint][multi-federate][timestamped-process-regional-attribute-update][process-tso-future-regional-attribute-nmra][process-time-advance-next-message-queued-focused][rti.service.subscribe-object-class-attributes-with-regions][rti.service.register-object-instance-with-regions][rti.service.update-attribute-values][rti.service.next-message-request-available][rti.service.disable-callbacks][rti.service.enable-callbacks][rti.service.evoke-callback][federate.callback.reflect-attribute-values][federate.callback.time-advance-grant][2025]") {
+  verifyProcessTsoAttributeBeforeGrant(ProcessTimeRequest::nmra, true);
 }
 
 #endif

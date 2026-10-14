@@ -541,17 +541,39 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(
-                        std::string(description) +
-                        " received an unexpected process operation.");
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
+        while (true) {
+          bool expectedOperation = false;
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation ==
+                            TransportServiceOperation::report_successful_service_invocation ||
+                        request.operation ==
+                            TransportServiceOperation::report_successful_void_service_invocation) {
+                      auto response = handler(request);
+                      if (request.operation == operation) {
+                        if (response.status != TransportServiceStatus::ok) {
+                          throw std::runtime_error(description);
+                        }
+                        expectedOperation = true;
+                      }
+                      return response;
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          std::string(description) +
+                          " received an unexpected process operation " +
+                          std::to_string(static_cast<unsigned int>(request.operation)) +
+                          ".");
+                    }
+                    expectedOperation = true;
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(description);
+          }
+          if (expectedOperation) {
+            return;
+          }
         }
       };
       serveExpected(ownerSession, ownerHandler,
@@ -573,6 +595,9 @@ TEST_CASE(
       serveExpected(ownerSession, ownerHandler,
                     TransportServiceOperation::enable_time_regulation,
                     "The save-replacement server lost owner Enable Time Regulation.");
+      serveExpected(ownerSession, ownerHandler,
+                    TransportServiceOperation::report_successful_void_service_invocation,
+                    "The save-replacement server lost owner Enable Time Regulation reporting.");
       serveExpected(receiverSession, receiverHandler,
                     TransportServiceOperation::enable_time_constrained,
                     "The save-replacement server lost receiver Enable Time Constrained.");
@@ -743,11 +768,12 @@ TEST_CASE(
     }
   }
   if (listener) {
-    listener.reset();
+    listener->close();
   }
   if (server.joinable()) {
     server.join();
   }
+  listener.reset();
   if (clientError) {
     std::rethrow_exception(clientError);
   }

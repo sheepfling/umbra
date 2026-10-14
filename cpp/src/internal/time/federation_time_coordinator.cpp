@@ -186,7 +186,15 @@ TsoMessageEnqueueResult FederationTimeCoordinator::enqueueTsoMessage(
   if (recipientFederateId == 0 || !recipients_.contains(recipientFederateId)) {
     return {TsoMessageQueueStatus::invalid_recipient};
   }
-  return tsoQueue_.enqueue(messageId, recipientFederateId, std::move(timestamp));
+  auto const targetTime = timestamp;
+  auto const result = tsoQueue_.enqueue(messageId, recipientFederateId, std::move(timestamp));
+  if (result.status == TsoMessageQueueStatus::applied) {
+    auto const state = federates_.find(recipientFederateId);
+    if (state != federates_.end() && state->second) {
+      static_cast<void>(state->second->retargetPendingNextMessageAdvance(targetTime));
+    }
+  }
+  return result;
 }
 
 TsoMessageRetractionResult FederationTimeCoordinator::retractTsoMessage(

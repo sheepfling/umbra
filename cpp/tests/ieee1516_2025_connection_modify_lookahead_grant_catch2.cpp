@@ -457,13 +457,14 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "RTIambassadors apply a deferred lower lookahead at a configured process grant",
-    "[integration][foundation][time-management][time-role][time-advance][lookahead][modify-lookahead][transport][process-boundary][process-modify-lookahead-grant-focused][public-endpoint][multi-federate][scheduler][rti.service.modify-lookahead][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.query-lookahead][rti.service.time-advance-request][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant]") {
+    "[integration][foundation][time-management][time-role][time-advance][lookahead][modify-lookahead][transport][process-boundary][process-modify-lookahead-grant-focused][public-endpoint][multi-federate][scheduler][rti.service-report][rti.service.modify-lookahead][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.query-lookahead][rti.service.time-advance-request][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant]") {
   constexpr wchar_t const* federationName =
       L"process-modify-lookahead-grant-execution";
   constexpr wchar_t const* regulatingName =
       L"process-modify-lookahead-grant-regulating-federate";
   constexpr wchar_t const* constrainedName =
       L"process-modify-lookahead-grant-constrained-federate";
+  auto const serviceReportDirectory = temporaryServiceReportDirectory();
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
   auto const port = listener->address().port;
@@ -473,8 +474,10 @@ TEST_CASE(
   std::thread server([&] {
     try {
       EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions serviceOptions{true};
+      serviceOptions.serviceReportDirectory = serviceReportDirectory;
       ProcessFederationService service(
-          registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+          registry, composedProcessDefinition(), std::move(serviceOptions));
       auto regulatingConnection = listener->accept(
           nullptr,
           {"process-modify-lookahead-grant-server", 0x9207U},
@@ -521,11 +524,35 @@ TEST_CASE(
           !serveExpected(
               regulatingSession,
               regulatingHandler,
+              TransportServiceOperation::set_service_reporting_switch) ||
+          !serveExpected(
+              regulatingSession,
+              regulatingHandler,
+              TransportServiceOperation::set_send_service_reports_to_file_switch) ||
+          !serveExpected(
+              regulatingSession,
+              regulatingHandler,
               TransportServiceOperation::enable_time_regulation) ||
+          !serveExpected(
+              regulatingSession,
+              regulatingHandler,
+              TransportServiceOperation::report_successful_void_service_invocation) ||
+          !serveExpected(
+              constrainedSession,
+              constrainedHandler,
+              TransportServiceOperation::set_service_reporting_switch) ||
+          !serveExpected(
+              constrainedSession,
+              constrainedHandler,
+              TransportServiceOperation::set_send_service_reports_to_file_switch) ||
           !serveExpected(
               constrainedSession,
               constrainedHandler,
               TransportServiceOperation::enable_time_constrained) ||
+          !serveExpected(
+              constrainedSession,
+              constrainedHandler,
+              TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(
               regulatingSession,
               regulatingHandler,
@@ -533,11 +560,23 @@ TEST_CASE(
           !serveExpected(
               regulatingSession,
               regulatingHandler,
+              TransportServiceOperation::report_successful_void_service_invocation) ||
+          !serveExpected(
+              regulatingSession,
+              regulatingHandler,
               TransportServiceOperation::query_lookahead) ||
+          !serveExpected(
+              regulatingSession,
+              regulatingHandler,
+              TransportServiceOperation::report_successful_service_invocation) ||
           !serveExpected(
               constrainedSession,
               constrainedHandler,
               TransportServiceOperation::time_advance_request) ||
+          !serveExpected(
+              constrainedSession,
+              constrainedHandler,
+              TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(
               constrainedSession,
               constrainedHandler,
@@ -547,6 +586,10 @@ TEST_CASE(
               regulatingHandler,
               TransportServiceOperation::time_advance_request) ||
           !serveExpected(
+              regulatingSession,
+              regulatingHandler,
+              TransportServiceOperation::report_successful_void_service_invocation) ||
+          !serveExpected(
               constrainedSession,
               constrainedHandler,
               TransportServiceOperation::receive_interaction) ||
@@ -554,6 +597,18 @@ TEST_CASE(
               regulatingSession,
               regulatingHandler,
               TransportServiceOperation::query_lookahead) ||
+          !serveExpected(
+              regulatingSession,
+              regulatingHandler,
+              TransportServiceOperation::report_successful_service_invocation) ||
+          !serveExpected(
+              regulatingSession,
+              regulatingHandler,
+              TransportServiceOperation::disable_time_regulation) ||
+          !serveExpected(
+              regulatingSession,
+              regulatingHandler,
+              TransportServiceOperation::report_successful_void_service_invocation) ||
           !serveExpected(
               regulatingSession,
               regulatingHandler,
@@ -610,12 +665,17 @@ TEST_CASE(
     REQUIRE(constrainedHandle.isValid());
     constrainedJoined = true;
 
+    REQUIRE_NOTHROW(regulatingRti->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(regulatingRti->setSendServiceReportsToFileSwitch(true));
+
     REQUIRE_NOTHROW(regulatingRti->enableTimeRegulation(
         rti1516_2025::HLAinteger64Interval(5)));
     REQUIRE(regulatingFederate.timeRegulationEnabledCount == 0U);
     REQUIRE_FALSE(regulatingRti->evokeCallback(0.0));
     REQUIRE(regulatingFederate.timeRegulationEnabledCount == 1U);
 
+    REQUIRE_NOTHROW(constrainedRti->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(constrainedRti->setSendServiceReportsToFileSwitch(true));
     REQUIRE_NOTHROW(constrainedRti->enableTimeConstrained());
     REQUIRE(constrainedFederate.timeConstrainedEnabledCount == 0U);
     REQUIRE_FALSE(constrainedRti->evokeCallback(0.0));
@@ -645,6 +705,7 @@ TEST_CASE(
     rti1516_2025::HLAinteger64Interval afterGrant;
     REQUIRE_NOTHROW(regulatingRti->queryLookahead(afterGrant));
     REQUIRE(afterGrant.getInterval() == 1);
+    REQUIRE_NOTHROW(regulatingRti->disableTimeRegulation());
 
     REQUIRE_NOTHROW(regulatingRti->resignFederationExecution(NO_ACTION));
     regulatingJoined = false;
@@ -652,6 +713,63 @@ TEST_CASE(
     constrainedJoined = false;
     regulatingRti->disconnect();
     constrainedRti->disconnect();
+
+    std::string reportContents;
+    std::vector<std::string> reportFileContents;
+    for (auto const& entry : std::filesystem::directory_iterator(serviceReportDirectory)) {
+      if (!entry.is_regular_file()) {
+        continue;
+      }
+      std::ifstream reportFile(entry.path(), std::ios::binary);
+      reportFileContents.emplace_back(
+          std::istreambuf_iterator<char>{reportFile},
+          std::istreambuf_iterator<char>{});
+      reportContents.append(reportFileContents.back());
+    }
+    auto const modifyLookaheadRecord =
+        R"("HLAservice":"ModifyLookahead","HLAsuppliedArguments":[{"HLAargumentType":32,"HLAargumentName":"Requested lookahead","HLAargumentValue":"1"}],"HLAsuccessIndicator":true)";
+    auto const recordPosition = reportContents.find(modifyLookaheadRecord);
+    REQUIRE(recordPosition != std::string::npos);
+    REQUIRE(reportContents.find(modifyLookaheadRecord, recordPosition + 1U) ==
+            std::string::npos);
+    REQUIRE(reportContents.find(R"("HLAserialNumber":0)") != std::string::npos);
+    auto const enableTimeRegulationRecord =
+        R"("HLAservice":"EnableTimeRegulation","HLAsuppliedArguments":[{"HLAargumentType":32,"HLAargumentName":"Lookahead","HLAargumentValue":"5"}],"HLAsuccessIndicator":true)";
+    auto const enableRecordPosition = reportContents.find(enableTimeRegulationRecord);
+    REQUIRE(enableRecordPosition != std::string::npos);
+    REQUIRE(reportContents.find(enableTimeRegulationRecord, enableRecordPosition + 1U) ==
+            std::string::npos);
+    auto const enableTimeConstrainedRecord =
+        R"("HLAservice":"EnableTimeConstrained","HLAsuppliedArguments":[],"HLAsuccessIndicator":true)";
+    auto const constrainedRecordPosition = reportContents.find(enableTimeConstrainedRecord);
+    REQUIRE(constrainedRecordPosition != std::string::npos);
+    REQUIRE(reportContents.find(enableTimeConstrainedRecord, constrainedRecordPosition + 1U) ==
+            std::string::npos);
+    auto const disableTimeRegulationRecord =
+        R"("HLAservice":"DisableTimeRegulation","HLAsuppliedArguments":[],"HLAsuccessIndicator":true)";
+    auto const disableRecordPosition = reportContents.find(disableTimeRegulationRecord);
+    REQUIRE(disableRecordPosition != std::string::npos);
+    REQUIRE(reportContents.find(disableTimeRegulationRecord, disableRecordPosition + 1U) ==
+            std::string::npos);
+    std::string const timeAdvanceRequestRecord =
+        R"("HLAservice":"TimeAdvanceRequest","HLAsuppliedArguments":[{"HLAargumentType":31,"HLAargumentName":"Logical time","HLAargumentValue":"5"}],"HLAsuccessIndicator":true)";
+    auto countTimeAdvanceRecords = [&](std::string const& contents) {
+      std::size_t count = 0U;
+      std::size_t offset = 0U;
+      while ((offset = contents.find(timeAdvanceRequestRecord, offset)) !=
+             std::string::npos) {
+        ++count;
+        offset += timeAdvanceRequestRecord.size();
+      }
+      return count;
+    };
+    REQUIRE(reportFileContents.size() == 2U);
+    REQUIRE(countTimeAdvanceRecords(reportContents) == 2U);
+    REQUIRE(std::count_if(
+                reportFileContents.begin(), reportFileContents.end(),
+                [&](std::string const& contents) {
+                  return countTimeAdvanceRecords(contents) == 1U;
+                }) == 2U);
   } catch (...) {
     clientError = std::current_exception();
     if (constrainedJoined) {

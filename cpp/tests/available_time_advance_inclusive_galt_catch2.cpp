@@ -225,3 +225,71 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->disconnect());
   REQUIRE_NOTHROW(publisher->disconnect());
 }
+
+TEST_CASE(
+    "Embedded no-TSO NMR and NMRA grants wait on cross-federate GALT",
+    "[integration][development-profile][time-management][time-advance]"
+    "[next-message-request][next-message-request-available][galt][scheduler]"
+    "[rti.service.next-message-request][rti.service.next-message-request-available]"
+    "[rti.service.time-advance-request][federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador regulatorReports;
+  ReportingFederateAmbassador requesterReports;
+  auto regulator = makeRti();
+  auto requester = makeRti();
+  auto const federationName = nextFederationName() + L"-no-tso-scheduler";
+  auto const fomModule = sourcePath(std::filesystem::path("cpp") / "tests" / "data" /
+                                    "parameter-handle-provider-fom.xml")
+                             .wstring();
+
+  REQUIRE_NOTHROW(regulator->connect(regulatorReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(regulator->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(regulator->joinFederationExecution(
+      L"no-tso-regulator", L"regulator", federationName));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"no-tso-requester", L"requester", federationName));
+
+  REQUIRE_NOTHROW(requester->enableTimeConstrained());
+  drainCallbacks(*requester);
+  REQUIRE_NOTHROW(regulator->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  drainCallbacks(*regulator);
+
+  // With no queued TSO input, NMR retains the supplied target and waits at
+  // the strict regulator-only GALT of 5. Advancing the other member moves
+  // GALT to 6 and releases the accepted request at 5.
+  REQUIRE_NOTHROW(requester->nextMessageRequest(
+      rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE(requesterReports.timeAdvanceGrantReports.empty());
+  REQUIRE_NOTHROW(regulator->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(1)));
+  drainCallbacks(*regulator);
+  drainCallbacks(*requester);
+  REQUIRE(requesterReports.timeAdvanceGrantReports.size() == 1U);
+  REQUIRE(requesterReports.timeAdvanceGrantReports.back().value == L"5");
+
+  // NMRA also has no TSO candidate. A request for 7 waits while GALT is 6,
+  // then releases exactly at the inclusive boundary when the regulator moves
+  // to 2. This exercises the same scheduler through the Available service.
+  REQUIRE_NOTHROW(requester->nextMessageRequestAvailable(
+      rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE(requesterReports.timeAdvanceGrantReports.size() == 1U);
+  REQUIRE_NOTHROW(regulator->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  drainCallbacks(*regulator);
+  drainCallbacks(*requester);
+  REQUIRE(regulatorReports.timeAdvanceGrantReports.size() == 2U);
+  REQUIRE(requesterReports.timeAdvanceGrantReports.size() == 2U);
+  REQUIRE(requesterReports.timeAdvanceGrantReports.back().value == L"7");
+  REQUIRE(requesterReports.callbackOrder ==
+          std::vector<std::string>{"grant", "grant"});
+
+  rti1516_2025::HLAinteger64Time queriedTime;
+  REQUIRE_NOTHROW(requester->queryLogicalTime(queriedTime));
+  REQUIRE(queriedTime.getTime() == 7);
+
+  REQUIRE_NOTHROW(requester->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(regulator->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(regulator->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(regulator->disconnect());
+}

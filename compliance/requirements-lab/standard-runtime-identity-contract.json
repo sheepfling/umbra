@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the provider- and FOM-independent C++ TCK check for the official IEEE 1516.1 RTI runtime identity functions. It verifies that rtiName and rtiVersion are callable, non-empty, and stable within a process while intentionally leaving provider-specific identity strings unconstrained.",
+  "notes": "This contract records provider- and FOM-independent API checks for the official IEEE 1516.1 RTI runtime identity. The C++ test checks the standard rtiName and rtiVersion functions; the Java test checks the corresponding standard RtiFactory methods. Both require non-empty values stable within one process while intentionally leaving provider-specific identity strings unconstrained.",
   "api_surfaces": [
     {
       "id": "standard-cpp-runtime-identity",
@@ -14,6 +14,17 @@
       "source_symbol": "IEEE 1516.1 RTI1516 declarations",
       "tests": [
         "packages/hla-rti-cpp-tck/src/main.cpp::verifyStandardRuntimeIdentityContract"
+      ]
+    },
+    {
+      "id": "standard-java-runtime-identity",
+      "owner": "IEEE 1516.1 Java API",
+      "language": "java",
+      "signature": "RtiFactory.rtiName and RtiFactory.rtiVersion",
+      "source": "adapter-supplied official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "hla.rti1516_2025.RtiFactory",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java#factoryDiscovery"
       ]
     }
   ]

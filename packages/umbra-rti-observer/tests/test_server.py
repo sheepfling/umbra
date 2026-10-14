@@ -60,5 +60,40 @@ def test_http_ingest_rejects_invalid_batch_without_partial_write() -> None:
         "/api/events",
         json={"events": [{"event_type": "runtime.started"}, "invalid"]},
     )
-    assert response.status_code == 400
+    assert response.status_code == 422
     assert store.events() == []
+
+
+def test_http_contract_uses_named_pydantic_models_at_the_transport_boundary() -> None:
+    client = TestClient(create_app())
+
+    openapi = client.get("/openapi.json")
+    assert openapi.status_code == 200
+    request_schema = (
+        openapi.json()["paths"]["/api/events"]["post"]["requestBody"]
+        ["content"]["application/json"]["schema"]
+    )
+    assert request_schema["anyOf"]
+    assert {"EventBatchRequest", "EventInput"}.issubset(
+        {item["$ref"].rsplit("/", 1)[-1] for item in request_schema["anyOf"]}
+    )
+    response_schemas = openapi["components"]["schemas"]
+    assert {
+        "sequence",
+        "event_type",
+        "family",
+        "source",
+        "observed_at",
+    }.issubset(response_schemas["EventEnvelope"]["properties"])
+    assert {
+        "state",
+        "label",
+        "description",
+        "owner",
+    }.issubset(response_schemas["CapabilityResponse"]["properties"])
+
+    invalid_context = client.put("/api/context", json=["not", "an", "object"])
+    assert invalid_context.status_code == 422
+
+    invalid_status = client.post("/api/control/status", json={})
+    assert invalid_status.status_code == 422

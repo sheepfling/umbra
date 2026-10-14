@@ -73,8 +73,8 @@
         "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/ieee1516_2025_restore_tso_terminal_classification_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
         "cpp/tests/terminal_timestamped_deletion_tombstone_catch2.cpp::Embedded terminal timestamped deletion tombstone releases its object name",
-        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
-        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance respects FQR TARA and NMRA grant boundaries",
+        "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction respects FQR TARA and NMRA grant boundaries",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
         "cpp/tests/timestamped_tso_designator_terminalization_catch2.cpp::Embedded producer advance requests terminalize expired TSO designators"
       ]

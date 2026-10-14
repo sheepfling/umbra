@@ -3,7 +3,7 @@
 namespace {
 
 TEST_CASE(
-    "Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+    "Embedded timestamped Delete Object Instance respects FQR TARA and NMRA grant boundaries",
     "[integration][development-profile][object-management][time-management][tso]"
     "[timestamped-object-deletion]"
     "[timestamped-delete-fqr-tara-nmra]"
@@ -87,8 +87,9 @@ TEST_CASE(
 
   // The deletion is accepted at timestamp 7. FQR, TARA, and NMRA use three
   // distinct grant frontiers over the same queued Remove Object Instance:
-  // FQR requests 10, TARA reaches 7 inclusively, and NMRA selects the queued
-  // timestamp 7 from its request-10 boundary.
+  // FQR flushes all queued messages, TARA(7) grants before the equal-time
+  // removal, and NMRA selects the queued timestamp 7 from its request-10
+  // boundary. Table 1 makes TARA's pre-grant TSO bound strict (ts < t_R).
   auto const retraction = publisher->deleteObjectInstance(
       objectInstance,
       tag,
@@ -124,7 +125,7 @@ TEST_CASE(
   REQUIRE(nmraReports.timeAdvanceGrantReports.size() == 1U);
   REQUIRE(nmraReports.timeAdvanceGrantReports.front().value == L"7");
   REQUIRE(fqrReports.callbackOrder == std::vector<std::string>{"remove", "flush-grant"});
-  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"remove", "grant"});
+  REQUIRE(taraReports.callbackOrder == std::vector<std::string>{"grant", "remove"});
   REQUIRE(nmraReports.callbackOrder == std::vector<std::string>{"remove", "grant"});
 
   auto requireRemoval = [&](auto const& report) {

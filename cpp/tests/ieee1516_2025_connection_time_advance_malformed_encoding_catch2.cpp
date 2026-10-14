@@ -497,14 +497,15 @@ TEST_CASE(
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
-                    "The process malformed-time server received an unexpected operation.");
+                    "The process malformed-time server expected operation " +
+                    std::to_string(static_cast<unsigned>(operation)) + " but received " +
+                    std::to_string(static_cast<unsigned>(request.operation)) + ".");
               }
               return handler(request);
             });
       };
       if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
           !serveExpected(TransportServiceOperation::join_federation_execution) ||
-          !serveExpected(TransportServiceOperation::time_advance_request) ||
           !serveExpected(TransportServiceOperation::resign_federation_execution)) {
         throw std::runtime_error(
             "The process malformed-time server lost a temporal request.");
@@ -546,6 +547,9 @@ TEST_CASE(
   }
   if (server.joinable()) {
     server.join();
+  }
+  if (serverError) {
+    std::rethrow_exception(serverError);
   }
   if (clientError) {
     std::rethrow_exception(clientError);

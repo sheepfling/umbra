@@ -143,14 +143,20 @@ preceding immediate undefined GALT/LITS companion at
 proves immediate callback delivery, and preserves caller outputs; in-transit
 TSO, zero-lookahead epsilon, grant scheduling, retraction, save/restore,
 package/JUnit/protected-review evidence, interoperability, validation, and
-conformance remain separate. The preceding bounded queued
-NMR/NMRA case at
-`cpp/tests/ieee1516_2025_connection_catch2.cpp:12600` adds 101 aggregate
-assertions across `HLA_EVOKED` and `HLA_IMMEDIATE`, maps 19 Lab requirements to
-12 canonical sections, and proves timestamp-5 then timestamp-8 selection with
-interaction-before-grant ordering for both request forms. Query it with
+conformance remain separate. The bounded queued process NMR/NMRA case at
+`cpp/tests/ieee1516_2025_connection_time_advance_next_message_queued_tso_catch2.cpp:458`
+has 232 assertions across `HLA_EVOKED` and `HLA_IMMEDIATE`, maps 20 Lab
+requirements to 13 canonical sections, and covers queued timestamps 5/8/12
+plus future ordinary-interaction arrivals at 15/18 with strict/inclusive GALT
+boundaries and interaction-before-grant ordering. Query it with
 `focus process-time-advance-next-message-queued-focused`, `trace`, `matrix`,
-`check --lane`, or the exact CTest title. The preceding bounded multiple-record
+`check --lane`, or the exact CTest title. A separate 54-assertion HLA_EVOKED
+process case retargets pending NMR to a timestamped attribute update arriving
+over transport and maps directly to clauses 6.10 and 8.10.2; the NMRA attribute
+case and directed-interaction/object-deletion NMRA cases remain separately
+mapped. Regional producer families, asynchronous TSO, exact licensed FQR
+semantics, and general time-management persistence remain open. The preceding
+bounded multiple-record
 Flush Queue case at
 `cpp/tests/ieee1516_2025_connection_catch2.cpp:18501` adds 110 assertions over
 the configured process endpoint, maps 22 Lab requirements to 12 canonical
@@ -342,23 +348,27 @@ lane and exact CTest filter; regional requests, automatic provision, response,
 generic failure/return records, public MOM, package/review, validation, and
 conformance remain separate.
 
-The process NMR/NMRA transport slice is also independently selectable at
-`cpp/tests/ieee1516_2025_connection_catch2.cpp:12492`. Its 22
-`HLA_EVOKED` assertions map four exact 2025 Lab anchors across clauses 8.10.2,
-8.11, and 8.11.3, proving distinct request operations, official logical-time
-encoding, callback-gated grants, and Query Logical Time readback. Query it
-with `focus process-time-advance-next-message-focused`, `trace`, `matrix`,
-`check --lane`, or the exact CTest title. Queued TSO selection, GALT/LITS,
+The no-queued-message process NMR/NMRA transport slice is independently
+selectable at
+`cpp/tests/ieee1516_2025_connection_time_advance_next_message_catch2.cpp:458`.
+Its 25 HLA_EVOKED assertions map five exact 2025 Lab anchors across clauses
+8.10.2, 8.11, 8.11.3, and 11.5.1, proving distinct request operations,
+callback-gated grants, Query Logical Time readback, and request-report records.
+Query it with `focus process-time-advance-next-message-focused`, `trace`,
+`matrix`, `check --lane`, or the exact CTest title. Queued TSO selection, GALT/LITS,
 Flush Queue, multi-federate ordering, save/restore, package/JUnit, and
 conformance remain separate process slices. The queued-TSO companion at
-`cpp/tests/ieee1516_2025_connection_catch2.cpp:12600` is a 101-assertion,
-two-federate `HLA_EVOKED`/`HLA_IMMEDIATE` case mapped to 19 Lab anchors and 12 canonical 2025
-sections. It sends timestamped interactions at 5 and 8, proves NMR(10) selects
-5 and NMRA(10) selects 8, and checks interaction-before-grant ordering. Query
-it with `focus process-time-advance-next-message-queued-focused`, `trace`,
-`matrix`, `check --lane`, or the exact CTest title; GALT/LITS, Flush Queue,
-retraction, multi-recipient ordering, save/restore, and conformance remain
-separate slices.
+`cpp/tests/ieee1516_2025_connection_time_advance_next_message_queued_tso_catch2.cpp:458`
+is a 232-assertion two-federate `HLA_EVOKED`/`HLA_IMMEDIATE` case mapped to 20
+Lab anchors and 13 canonical 2025 sections. It sends interactions at 5, 8,
+and 12, then proves future interaction arrivals at 15 and 18 retarget pending
+NMR/NMRA under their strict/inclusive GALT boundaries. Query it with
+`focus process-time-advance-next-message-queued-focused`, `trace`, `matrix`,
+`check --lane`, or the exact CTest title. A separate 54-assertion HLA_EVOKED
+process NMR attribute-update case has direct §6.10/§8.10.2 mappings; the NMRA
+attribute, directed-interaction, and object-deletion cases remain separate.
+Regional DDM producers, asynchronous TSO, FQR semantics, and general
+time-management persistence remain distinct slices.
 The next process object-instance lookup slice is independently queryable at
 `cpp/tests/ieee1516_2025_connection_catch2.cpp:13040`: 18 assertions under
 `HLA_EVOKED` and `HLA_IMMEDIATE`, five Lab requirements, two canonical 2025
@@ -1212,10 +1222,20 @@ slices.
 A private recipient-scoped queue and temporal coordinator now feed queued, in-transit, and
 delivered-since-last-advance timestamps into the GALT/LITS snapshot and
 limited scheduler. The scheduler now registers and
-re-evaluates limited cross-federate TAR grants under strict defined-GALT and
-undefined-GALT/NRG policy after relevant role and membership changes, while
-retaining static NRG across additional-FOM definition changes, then rechecks
-the bound at callback delivery. The profile still has no federation-event
+re-evaluates limited cross-federate TAR, NMR, and NMRA grants under their
+mode-specific defined-GALT rules and undefined-GALT/NRG policy after relevant
+role and membership changes, while retaining static NRG across additional-FOM
+definition changes, then rechecks the bound at callback delivery. A mapped
+HLA_EVOKED public-API regression with no queued TSO input proves NMR remains
+pending at strict GALT equality and NMRA remains pending above GALT, then
+releases each after the other regulator advances. A separate process-endpoint
+case now accepts NMR and NMRA before ordinary timestamped interactions arrive
+over transport, then verifies retargeted time-15 and time-18 TSO callbacks
+precede their grants under both callback models. The producer advances past the
+strict NMR boundary and to the inclusive NMRA GALT boundary. This covers one
+producer/service route only; other timestamped service families, asynchronous
+TSO, and broader time-management conformance remain open. The profile still
+has no federation-event
 callbacks beyond Connection Lost and the bounded Federate Resigned seam,
 complete object/ownership state, broader time-management services, or remote
 transport. The embedded endpoint's deterministic fault hook is test-only; it

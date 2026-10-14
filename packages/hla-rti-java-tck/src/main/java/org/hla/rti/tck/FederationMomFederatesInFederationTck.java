@@ -9,6 +9,7 @@ import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.FederateHandleFactory;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
+import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
@@ -33,7 +34,7 @@ final class FederationMomFederatesInFederationTck {
    }
 
    static void run(RtiFactory factory, String fom, String mim, String timeImplementation,
-         CallbackModel callbackModel) throws Exception {
+         CallbackModel callbackModel, String federateType) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
       RTIambassador entrant = factory.getRtiAmbassador();
@@ -65,10 +66,10 @@ final class FederationMomFederatesInFederationTck {
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
          FederateHandle ownerHandle = owner.joinFederationExecution(
-            "java-tck-roster-owner", "tck-type", federation);
+            "java-tck-roster-owner", federateType, federation);
          ownerJoined = true;
          FederateHandle observerHandle = observer.joinFederationExecution(
-            "java-tck-roster-observer", "tck-type", federation);
+            "java-tck-roster-observer", federateType, federation);
          observerJoined = true;
 
          federationClass = observer.getObjectClassHandle(FEDERATION_CLASS);
@@ -106,7 +107,7 @@ final class FederationMomFederatesInFederationTck {
 
          recorder.clearReflection();
          FederateHandle entrantHandle = entrant.joinFederationExecution(
-            "java-tck-roster-entrant", "tck-type", federation);
+            "java-tck-roster-entrant", federateType, federation);
          entrantJoined = true;
          Set<FederateHandle> joined = new LinkedHashSet<>(Arrays.asList(
             ownerHandle, observerHandle, entrantHandle));
@@ -166,7 +167,8 @@ final class FederationMomFederatesInFederationTck {
       check(federationObject.equals(recorder.reflectedObject)
             && recorder.reflectedValues != null && recorder.reflectedValues.size() == 1
             && recorder.reflectionTag != null && recorder.reflectionTag.length == 0
-            && reliable.equals(recorder.reflectionTransportation),
+            && reliable.equals(recorder.reflectionTransportation)
+            && recorder.reflectionProducer == null && recorder.reflectionRegionsEmpty,
          description + " returned incomplete or non-standard reflection metadata");
    }
 
@@ -239,6 +241,8 @@ final class FederationMomFederatesInFederationTck {
       private volatile Map<AttributeHandle, byte[]> reflectedValues;
       private volatile byte[] reflectionTag;
       private volatile TransportationTypeHandle reflectionTransportation;
+      private volatile FederateHandle reflectionProducer;
+      private volatile boolean reflectionRegionsEmpty;
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -251,7 +255,7 @@ final class FederationMomFederatesInFederationTck {
                   discoveredClass = (ObjectClassHandle) arguments[1];
                   discoveredName = (String) arguments[2];
                } else if ("reflectAttributeValues".equals(method.getName())
-                     && arguments != null && arguments.length >= 4
+                     && arguments != null && arguments.length == 6
                      && arguments[1] instanceof AttributeHandleValueMap) {
                   reflectedObject = (ObjectInstanceHandle) arguments[0];
                   AttributeHandleValueMap source = (AttributeHandleValueMap) arguments[1];
@@ -263,6 +267,9 @@ final class FederationMomFederatesInFederationTck {
                   reflectionTag = arguments[2] instanceof byte[]
                      ? ((byte[]) arguments[2]).clone() : null;
                   reflectionTransportation = (TransportationTypeHandle) arguments[3];
+                  reflectionProducer = (FederateHandle) arguments[4];
+                  reflectionRegionsEmpty = arguments[5] == null
+                     || ((RegionHandleSet) arguments[5]).isEmpty();
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(method.getName())) return "Java RTI TCK MOM callbacks";
@@ -289,6 +296,8 @@ final class FederationMomFederatesInFederationTck {
          reflectedValues = null;
          reflectionTag = null;
          reflectionTransportation = null;
+         reflectionProducer = null;
+         reflectionRegionsEmpty = false;
       }
    }
 }

@@ -1,14 +1,79 @@
 #include "internal/runtime/umbra_rti_ambassador.hpp"
 
+#include "internal/federation/federation_registry.hpp"
 #include "internal/fom/hla_names.hpp"
 #include "internal/handles/federate_handle.hpp"
 #include "internal/observability/mom_service_report_encoding.hpp"
 #include "internal/runtime/ambassador_shared_utilities.hpp"
 
+#include <mutex>
 #include <utility>
 #include <vector>
 
 namespace rti1516_2025::umbra_binding_detail {
+
+void recordAmbassadorFederationSaveInitiationReports(
+    umbra::detail::FederationSaveNotification const& notification) {
+  if (notification.publicServiceReportRoute) {
+    std::vector<umbra::detail::MomServiceArgument> suppliedArguments{
+        {umbra::detail::MomArgumentType::string,
+         L"Federation save label",
+         umbra::detail::formatMomString(notification.label)}};
+    if (notification.timestamp) {
+      suppliedArguments.push_back({
+          umbra::detail::MomArgumentType::logical_time,
+          L"Optional timestamp",
+          umbra::detail::formatMomLogicalTime(*notification.timestamp)});
+    } else {
+      suppliedArguments.push_back({
+          umbra::detail::MomArgumentType::null_value,
+          L"Optional timestamp",
+          umbra::detail::formatMomNull()});
+    }
+    notification.publicServiceReportRoute(
+        L"InitiateFederateSave",
+        umbra::detail::MomServiceType::federation_management,
+        suppliedArguments,
+        {umbra::detail::MomArgumentType::null_value,
+         L"",
+         umbra::detail::formatMomNull()},
+        true,
+        L"");
+  }
+  if (notification.serviceReportRoute) {
+    // §4.20 is an RTI-initiated service at each recipient. The recipient-owned
+    // route preserves its selected file and serial sequence before callback
+    // delivery in either callback model.
+    notification.serviceReportRoute(
+        static_cast<std::uint16_t>(
+            umbra::detail::MomServiceType::federation_management),
+        [label = notification.label,
+         timestamp = notification.timestamp](std::uint32_t serialNumber) {
+          std::vector<umbra::detail::MomServiceArgument> suppliedArguments{
+              {umbra::detail::MomArgumentType::string,
+               L"Federation save label",
+               umbra::detail::formatMomString(label)},
+          };
+          if (timestamp) {
+            suppliedArguments.push_back({
+                umbra::detail::MomArgumentType::logical_time,
+                L"Optional timestamp",
+                umbra::detail::formatMomLogicalTime(*timestamp),
+            });
+          } else {
+            suppliedArguments.push_back({
+                umbra::detail::MomArgumentType::null_value,
+                L"Optional timestamp",
+                umbra::detail::formatMomNull(),
+            });
+          }
+          return umbra::detail::formatMomSuccessfulVoidServiceReportRecord(
+              serialNumber,
+              L"InitiateFederateSave",
+              suppliedArguments);
+        });
+  }
+}
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 
@@ -21,66 +86,7 @@ void submitAmbassadorFederationSaveNotifications(
     }
     switch (notification.kind) {
       case umbra::detail::FederationSaveNotificationKind::initiate:
-        if (notification.publicServiceReportRoute) {
-          std::vector<umbra::detail::MomServiceArgument> suppliedArguments{
-              {umbra::detail::MomArgumentType::string,
-               L"Federation save label",
-               umbra::detail::formatMomString(notification.label)}};
-          if (notification.timestamp) {
-            suppliedArguments.push_back({
-                umbra::detail::MomArgumentType::logical_time,
-                L"Optional timestamp",
-                umbra::detail::formatMomLogicalTime(*notification.timestamp)});
-          } else {
-            suppliedArguments.push_back({
-                umbra::detail::MomArgumentType::null_value,
-                L"Optional timestamp",
-                umbra::detail::formatMomNull()});
-          }
-          notification.publicServiceReportRoute(
-              L"InitiateFederateSave",
-              umbra::detail::MomServiceType::federation_management,
-              suppliedArguments,
-              {umbra::detail::MomArgumentType::null_value,
-               L"",
-               umbra::detail::formatMomNull()},
-              true,
-              L"");
-        }
-        if (notification.serviceReportRoute) {
-          // §4.20 is an RTI-initiated service at each recipient.  The
-          // recipient-owned route preserves its selected file and serial
-          // sequence before HLA_EVOKED work can expose Initiate Federate Save.
-          notification.serviceReportRoute(
-              static_cast<std::uint16_t>(
-                  umbra::detail::MomServiceType::federation_management),
-              [
-                  label = notification.label,
-                  timestamp = notification.timestamp](std::uint32_t serialNumber) {
-                std::vector<umbra::detail::MomServiceArgument> suppliedArguments{
-                    {umbra::detail::MomArgumentType::string,
-                     L"Federation save label",
-                     umbra::detail::formatMomString(label)},
-                };
-                if (timestamp) {
-                  suppliedArguments.push_back({
-                      umbra::detail::MomArgumentType::logical_time,
-                      L"Optional timestamp",
-                      umbra::detail::formatMomLogicalTime(*timestamp),
-                  });
-                } else {
-                  suppliedArguments.push_back({
-                      umbra::detail::MomArgumentType::null_value,
-                      L"Optional timestamp",
-                      umbra::detail::formatMomNull(),
-                  });
-                }
-                return umbra::detail::formatMomSuccessfulVoidServiceReportRecord(
-                    serialNumber,
-                    L"InitiateFederateSave",
-                    suppliedArguments);
-              });
-        }
+        recordAmbassadorFederationSaveInitiationReports(notification);
         notification.callbackRoute([
             federationName,
             receivingFederateId = notification.receivingFederateId,
@@ -228,6 +234,59 @@ void submitAmbassadorFederationSaveNotifications(
         });
         break;
     }
+  }
+}
+
+void submitAmbassadorTimeAdvanceSaveAdmissions(
+    std::wstring const& federationName) {
+  umbra::detail::FederationSaveAdmissionPlan plan;
+  {
+    std::scoped_lock lock(ambassadorFederationManagementMutex());
+    plan = embeddedFederationRegistry()
+               .planImmediateFederationSaveTimeAdvanceAdmissions(federationName);
+  }
+  if (plan.status != umbra::detail::FederationSaveControlStatus::applied) {
+    throw RTIinternalError(
+        L"The embedded federation could not plan an untimed save while constrained federates were Time Advancing.");
+  }
+
+  for (auto const& candidate : plan.constrainedMembers) {
+    candidate.callbackRoute([
+        federationName,
+        candidateFederateId = candidate.federateId](FederateAmbassador& recipient) {
+      umbra::detail::FederationSaveAdmission admission;
+      {
+        std::scoped_lock lock(ambassadorFederationManagementMutex());
+        admission = embeddedFederationRegistry()
+                        .admitImmediateFederationSaveAtTimeAdvanceBoundary(
+                            federationName,
+                            candidateFederateId);
+      }
+      if (admission.status !=
+          umbra::detail::FederationSaveControlStatus::applied) {
+        throw RTIinternalError(
+            L"The embedded federation could not admit an untimed save while the federate was Time Advancing.");
+      }
+      if (admission.currentFederateNotification) {
+        auto const& notification = *admission.currentFederateNotification;
+        recordAmbassadorFederationSaveInitiationReports(notification);
+        if (notification.timestamp) {
+          recipient.initiateFederateSave(
+              notification.label,
+              *notification.timestamp);
+        } else {
+          recipient.initiateFederateSave(notification.label);
+        }
+        queueAmbassadorJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+            federationName,
+            candidateFederateId,
+            {umbra::detail::hla::utf8::mom::federate_state},
+            candidateFederateId);
+      }
+      submitAmbassadorFederationSaveNotifications(
+          federationName,
+          std::move(admission.notifications));
+    });
   }
 }
 

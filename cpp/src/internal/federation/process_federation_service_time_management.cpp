@@ -32,7 +32,6 @@
 #include <utility>
 
 namespace umbra::detail {
-
 TransportServiceMessage ProcessFederationService::handleQueryLogicalTime(
     ProcessTransportSession& session,
     TransportServiceMessage const& request) {
@@ -659,7 +658,8 @@ TransportServiceMessage ProcessFederationService::handleTimeAdvanceRequestForMod
   }
 
   std::shared_ptr<rti1516_2025::LogicalTime> effectiveTime;
-  if (mode == FederateTimeAdvanceMode::next_message_request ||
+  if (mode == FederateTimeAdvanceMode::time_advance_request_available ||
+      mode == FederateTimeAdvanceMode::next_message_request ||
       mode == FederateTimeAdvanceMode::next_message_request_available) {
     auto const queued = registry_.earliestTsoTimestampFor(
         advance.federationName, advance.federateId);
@@ -699,7 +699,7 @@ TransportServiceMessage ProcessFederationService::handleTimeAdvanceRequestForMod
       std::move(decodedRequestedTime));
   if (mode == FederateTimeAdvanceMode::time_advance_request_available) {
     requestResult = timeState->requestAdvanceAvailable(
-        std::move(mutableRequestedTime));
+        std::move(mutableRequestedTime), std::move(effectiveTime));
   } else if (mode == FederateTimeAdvanceMode::next_message_request) {
     requestResult = timeState->requestNextMessageAdvance(
         std::move(mutableRequestedTime), std::move(effectiveTime));
@@ -760,6 +760,72 @@ TransportServiceMessage ProcessFederationService::handleTimeAdvanceRequestForMod
     dispatchTimeAdvanceGrants(
         advance.federationName,
         std::move(scheduled.dispatches));
+
+    // The embedded ambassador submits untimed-save admissions when a TAR is
+    // accepted, not only when a later grant is dispatched. Mirror that
+    // boundary here so a constrained save may begin while its recipients are
+    // Time Advancing even when the requests are waiting above the current
+    // GALT. The registry withholds this plan until every constrained member
+    // has accepted its TAR, preventing a later TAR from conflicting with the
+    // federation-wide save-in-progress state.
+    auto const savePlan =
+        registry_.planImmediateFederationSaveTimeAdvanceAdmissions(
+            advance.federationName);
+    if (savePlan.status != FederationSaveControlStatus::applied) {
+      return internalError(request);
+    }
+    for (auto const& candidate : savePlan.constrainedMembers) {
+      auto admission =
+          registry_.admitImmediateFederationSaveAtTimeAdvanceBoundary(
+              advance.federationName,
+              candidate.federateId);
+      if (admission.status != FederationSaveControlStatus::applied) {
+        return internalError(request);
+      }
+      if (admission.currentFederateNotification) {
+        ProcessTransportSession* receivingSession = nullptr;
+        {
+          std::scoped_lock lock(mutex_);
+          auto const mapped =
+              sessionsByFederateId_.find(candidate.federateId);
+          if (mapped != sessionsByFederateId_.end()) {
+            auto const recipient = sessions_.find(mapped->second);
+            if (recipient != sessions_.end() &&
+                recipient->second.federationName.has_value() &&
+                *recipient->second.federationName == advance.federationName &&
+                recipient->second.federateId == candidate.federateId) {
+              receivingSession = mapped->second;
+            }
+          }
+        }
+        if (receivingSession == nullptr ||
+            !receivingSession->connection()) {
+          return internalError(request);
+        }
+        ProcessFederationSaveEvent saveEvent;
+        saveEvent.kind = FederationSaveNotificationKind::initiate;
+        saveEvent.receivingFederateId = candidate.federateId;
+        saveEvent.label =
+            admission.currentFederateNotification->label;
+        ProcessFederationReceiveInteractionResult saveResult;
+        saveResult.saveEvent = std::move(saveEvent);
+        ProcessTransportSession eventSession(receivingSession->connection());
+        if (!eventSession.send(TransportServiceMessage{
+                TransportServiceMessageKind::event,
+                TransportServiceOperation::receive_interaction,
+                TransportServiceStatus::ok,
+                0U,
+                encodeProcessFederationReceiveInteractionResult(saveResult)})) {
+          return internalError(request);
+        }
+      }
+      if (!admission.notifications.empty() &&
+          !enqueueFederationSaveNotifications(
+              advance.federationName,
+              std::move(admission.notifications))) {
+        return internalError(request);
+      }
+    }
   }
   return responseFor(
       request,

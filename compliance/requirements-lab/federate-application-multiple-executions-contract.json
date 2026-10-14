@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "standard_sections": [
+    "hla-1516.1-2025:clause-4"
+  ],
+  "selected_requirements_lab_requirement_ids": [
+    "requirement-candidate-content-clauses-04-federation-management-page-039-l4-1"
+  ],
+  "requirement_section_mappings": [
+    {
+      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-039-l4-1",
+      "standard_section": "hla-1516.1-2025:clause-4"
+    }
+  ],
+  "notes": "This portable C++ TCK scenario exercises clause 4's application participation behavior using only public IEEE 1516.1-2025 services: it creates two federation executions, joins multiple federates to each, and reuses one RTIambassador after resignation in the other execution. The adapter supplies the provider, baseline FOM, logical-time selection, and endpoint. Passing this scenario is API-level test evidence, not a claim of conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federation-participation-multiple-executions",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador Connect, Create Federation Execution, Join Federation Execution, Resign Federation Execution, Destroy Federation Execution, and Disconnect",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador service declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp::scenarioFederateApplicationMultipleExecutions",
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp::scenarioFederateApplicationMultipleExecutionsContract",
+        "cpp/tests/ieee1516_2025_federation_application_multiple_executions_catch2.cpp"
+      ]
+    }
+  ]
+}

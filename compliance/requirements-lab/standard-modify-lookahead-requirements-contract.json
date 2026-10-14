@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract directly maps the portable C++ Modify Lookahead TCK assertions to the pinned 2025 clause 8.20.4 requirements. The test verifies that an actual lookahead decrease proceeds by the logical-time amount advanced across successive grants and reaches the requested value, and that a standard HLAinteger64Interval/HLAfloat64Interval zero value is accepted and becomes active at its grant boundary. Negative interval construction is not represented by the official nonnegative standard interval types and is therefore not fabricated in this portable case.",
+  "requirements": [
+    {
+      "id": "portable-cpp-modify-lookahead-zero-is-valid",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l72-17",
+      "clause_id": "clause-8.20.4",
+      "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
+      "source_symbol": "scenarioModifyLookahead(",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioModifyLookaheadContract"
+      ]
+    },
+    {
+      "id": "portable-cpp-modify-lookahead-decreases-by-granted-time",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l84-21",
+      "clause_id": "clause-8.20.4",
+      "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
+      "source_symbol": "scenarioModifyLookahead(",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioModifyLookaheadContract"
+      ]
+    }
+  ]
+}

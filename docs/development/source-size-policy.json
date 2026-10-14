@@ -146,28 +146,28 @@
     },
     {
       "path": "cpp/tests/ieee1516_2025_connection_modify_lookahead_catch2.cpp",
-      "max_lines": 565,
-      "reason": "Complete 2025 Modify Lookahead process-boundary lane extracted from the mapped connection suite; keep public status mapping, immediate increase, and deferred decrease retention together."
+      "max_lines": 603,
+      "reason": "Complete 2025 Modify Lookahead process-boundary lane extracted from the mapped connection suite; keep public status mapping, immediate increase, deferred decrease retention, and successful filesystem service-report records together. Growth is capped at this exact verified size; extract a separate cohesive case before further expansion."
     },
     {
       "path": "cpp/tests/ieee1516_2025_connection_modify_lookahead_grant_catch2.cpp",
-      "max_lines": 691,
-      "reason": "Complete 2025 two-federate deferred lower-lookahead grant lane extracted from the mapped connection suite; keep callback gating, scheduler grants, and grant-boundary lookahead application together."
+      "max_lines": 809,
+      "reason": "Complete 2025 two-federate deferred lower-lookahead grant lane extracted from the mapped connection suite; keep callback gating, scheduler grants, grant-boundary application, and exact successful filesystem reports for EnableTimeRegulation, EnableTimeConstrained, DisableTimeRegulation, ModifyLookahead, and per-federate TimeAdvanceRequest together. Growth is capped at this exact verified size; extract a separate cohesive case before further expansion."
     },
     {
       "path": "cpp/tests/ieee1516_2025_connection_time_advance_available_catch2.cpp",
-      "max_lines": 555,
-      "reason": "Complete 2025 Time Advance Request Available process-boundary lane extracted from the mapped connection suite; keep available-form transport, callback-gated grant, and logical-time readback together."
+      "max_lines": 604,
+      "reason": "Complete 2025 Time Advance Request Available process-boundary lane extracted from the mapped connection suite; keep available-form transport, callback-gated grant, logical-time readback, and the accepted-request filesystem report together. Growth is capped at this exact verified size; extract a separate cohesive case before further expansion."
     },
     {
       "path": "cpp/tests/ieee1516_2025_connection_time_advance_next_message_catch2.cpp",
-      "max_lines": 567,
-      "reason": "Complete 2025 no-queued-message Next Message Request/Available process-boundary lane extracted from the mapped connection suite; keep both request forms and logical-time readback together, separate from queued timestamped-message behavior."
+      "max_lines": 610,
+      "reason": "Complete 2025 no-queued-message Next Message Request/Available process-boundary lane extracted from the mapped connection suite; keep both request forms and their accepted service-report records together, separate from queued timestamped-message behavior."
     },
     {
       "path": "cpp/tests/ieee1516_2025_connection_time_advance_next_message_queued_tso_catch2.cpp",
-      "max_lines": 900,
-      "reason": "Complete 2025 queued timestamped-message Next Message process-boundary lane extracted from the mapped connection suite; keep HLA_IMMEDIATE delivery, callback-before-grant ordering, and both callback-model sections together."
+      "max_lines": 1120,
+      "reason": "Complete 2025 queued timestamped-message Next Message process-boundary lane extracted from the mapped connection suite; keep three-message selection, accepted service-report file continuity, HLA_IMMEDIATE delivery, callback-before-grant ordering, and both callback-model sections together."
     },
     {
       "path": "cpp/tests/ieee1516_2025_connection_object_instance_lookup_catch2.cpp",
@@ -311,8 +311,8 @@
     },
     {
       "path": "cpp/tests/ieee1516_2025_connection_process_query_time_bounds_multi_federate_catch2.cpp",
-      "max_lines": 666,
-      "reason": "Complete 2025 two-federate immediate-callback process Query GALT/LITS available-bound lane extracted from the mapped connection suite; keep self-exclusion, observer lookahead bounds, and available-result encoding together."
+      "max_lines": 772,
+      "reason": "Complete 2025 two-federate immediate-callback process Query GALT/LITS/Lookahead lane extracted from the mapped connection suite; keep self-exclusion, available/undefined bounds, returned lookahead interval, and their standard filesystem service-report return arguments together. Growth is capped at this exact verified size; extract a separate cohesive case before further expansion."
     },
     {
       "path": "cpp/tests/ieee1516_2025_connection_process_query_time_bounds_queued_tso_catch2.cpp",

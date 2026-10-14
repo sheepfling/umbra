@@ -562,11 +562,15 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::enable_time_regulation,
           "The process attribute-retraction server lost Enable Time Regulation.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
       serveExpected(
           receiver,
           receiverHandler,
           TransportServiceOperation::enable_time_constrained,
           "The process attribute-retraction server lost Enable Time Constrained.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiver, receiverHandler);
       serveExpected(
           sender,
           senderHandler,
@@ -582,6 +586,8 @@ TEST_CASE(
           receiverHandler,
           TransportServiceOperation::time_advance_request,
           "The process attribute-retraction server lost receiver TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiver, receiverHandler);
       serveExpected(
           sender,
           senderHandler,
@@ -592,6 +598,8 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::time_advance_request,
           "The process attribute-retraction server lost sender intermediate TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
       serveExpected(
           sender,
           senderHandler,
@@ -602,6 +610,8 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::time_advance_request,
           "The process attribute-retraction server lost sender TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
       // Retract happened before the TSO payload crossed the receiver's
       // process callback boundary.  The receiver still polls once to admit
       // its grant, but no receive-attribute-update or acknowledgement frame

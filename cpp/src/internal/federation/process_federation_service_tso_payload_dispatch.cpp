@@ -12,12 +12,13 @@ using process_federation_payload::parameterVector;
 void ProcessFederationService::dispatchTsoInteractionPayloads(
     std::wstring const& federationName,
     std::uint64_t receivingFederateId,
-    rti1516_2025::LogicalTime const& boundary) {
+    rti1516_2025::LogicalTime const& boundary,
+    bool inclusive) {
   auto delivery = registry_.beginTsoPayloadDelivery(
       federationName,
       receivingFederateId,
       boundary,
-      true);
+      inclusive);
   if (delivery.status != FederationTsoRegistryStatus::applied ||
       (delivery.deliveryStatus != FederationTsoDeliveryStatus::applied &&
        delivery.deliveryStatus != FederationTsoDeliveryStatus::no_messages)) {

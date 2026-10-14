@@ -32,6 +32,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     parser.add_argument("--java-main", type=Path, default=DEFAULT_JAVA_MAIN)
+    parser.add_argument(
+        "--report-cpp-gaps",
+        action="store_true",
+        help="list unpaired C++ TCK scenarios and explicit not-applicable dispositions",
+    )
     arguments = parser.parse_args()
 
     try:
@@ -44,6 +49,44 @@ def main() -> int:
         return 2
 
     java_ids = set(SCENARIO_ID.findall(java_source))
+    if arguments.report_cpp_gaps:
+        candidates = [
+            row
+            for row in rows
+            if isinstance(row.get("id"), str)
+            and row["id"].startswith("cpp-tck.")
+            and not row["id"].endswith("-contract")
+        ]
+        not_applicable = [
+            row
+            for row in candidates
+            if isinstance(row.get("parity"), str)
+            and row["parity"].startswith("not-applicable:")
+        ]
+        unpaired = [
+            row for row in candidates
+            if not (
+                isinstance(row.get("parity"), str)
+                and (
+                    row["parity"].startswith("java-tck.")
+                    or row["parity"].startswith("not-applicable:")
+                )
+            )
+        ]
+        print(
+            f"cpp/java parity candidates: {len(unpaired)} unpaired; "
+            f"{len(not_applicable)} explicitly not applicable"
+        )
+        for row in unpaired[:40]:
+            print(
+                f"  {row['id']} [{row.get('category', 'uncategorized')}]: "
+                f"{row.get('title', '(untitled)')}"
+            )
+        if len(unpaired) > 40:
+            print(f"  ... {len(unpaired) - 40} additional candidates")
+        for row in not_applicable:
+            print(f"  not applicable {row['id']}: {row['parity'].split(':', 1)[1].strip()}")
+
     parity_targets = {
         row["parity"]
         for row in rows

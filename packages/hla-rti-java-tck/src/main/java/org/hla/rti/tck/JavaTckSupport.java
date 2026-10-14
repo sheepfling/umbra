@@ -20,6 +20,13 @@ final class JavaTckSupport {
       void encode(byte[] buffer, int offset);
    }
 
+   static String updateRateName() {
+      String name = System.getProperty("hla.rti.tck.updateRateName", "High");
+      check(name != null && !name.trim().isEmpty(),
+         "adapter must provide a non-empty named update-rate designator");
+      return name;
+   }
+
    static void check(boolean condition, String message) {
       if (!condition) {
          throw new AssertionError(message);

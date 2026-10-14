@@ -50,14 +50,64 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     umbra_guard_catch2_debug_image_size("${target_name}")
   endfunction()
 
+  umbra_add_embedded_2025_catch2_target(umbra_public_fresh_registry_transportation_restore_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_public_pending_attribute_transportation_type_change_restore_catch2.cpp
+    cpp/tests/ieee1516_2025_public_pending_interaction_transportation_type_change_restore_catch2.cpp
+    cpp/tests/ieee1516_2025_public_corrupt_federation_state_image_restore_catch2.cpp
+  )
+
+  # Keep the public regional-interaction TSO/DDM plus service-report-file
+  # restore regression independently buildable. The aggregate 2025 target
+  # retains its historical copy; this target isolates the public filesystem
+  # and report-identity path for focused compilation and CTest selection.
+  umbra_add_embedded_2025_catch2_target(umbra_public_regional_interaction_tso_ddm_restore_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_public_regional_interaction_tso_ddm_filesystem_restore_catch2.cpp
+    cpp/tests/ieee1516_2025_public_fresh_registry_regional_interaction_restore_catch2.cpp
+  )
+
+  # Keep the public fresh-registry regional attribute TSO/DDM restore case
+  # independently buildable from the aggregate 2025 executable.
+  umbra_add_embedded_2025_catch2_target(umbra_public_regional_attribute_tso_ddm_restore_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_public_regional_attribute_update_tso_restore_catch2.cpp
+  )
+
+  # Keep the public fresh-registry timestamped object-deletion restore vector
+  # independently buildable from the aggregate 2025 executable.
+  umbra_add_embedded_2025_catch2_target(umbra_public_object_deletion_tso_restore_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_public_object_deletion_tso_restore_catch2.cpp
+    cpp/tests/ieee1516_2025_public_object_deletion_retraction_restore_catch2.cpp
+  )
+
+  # Keep application/federation participation independently buildable so its
+  # focused CTest lane does not require the much larger aggregate executable.
+  umbra_add_embedded_2025_catch2_target(umbra_federation_participation_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_federation_application_multiple_executions_catch2.cpp
+  )
+
+  # Keep the Connection Lost/automatic-resign contract buildable without the
+  # aggregate Catch2 target, including its public membership-state assertions.
+  umbra_add_embedded_2025_catch2_target(umbra_connection_lost_no_action_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_connection_lost_automatic_no_action_forced_resign_catch2.cpp
+  )
+
   umbra_add_embedded_2025_catch2_target(umbra_ieee1516_2025_connection_catch2
     PROCESS_SERVICE_PROBE
     MSVC_BIGOBJ
     SOURCES
     ${UMBRA_IEEE1516_2025_CONNECTION_TEST_SOURCES}
   )
+  target_compile_definitions(umbra_ieee1516_2025_connection_catch2 PRIVATE
+    UMBRA_PROCESS_TRANSPORT_PROXY_PROBE_PATH="$<TARGET_FILE:umbra_process_transport_proxy_probe>"
+  )
   add_dependencies(umbra_ieee1516_2025_connection_catch2
     umbra_process_federation_service_probe
+    umbra_process_transport_proxy_probe
   )
 
   # Keep the private process-boundary tests independently buildable as
@@ -73,7 +123,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     cpp/tests/process_federation_callback_bridge_catch2.cpp
     cpp/tests/transport_protocol_catch2.cpp
     cpp/tests/process_federation_service_codec_catch2.cpp
-    cpp/tests/process_federation_service_catch2.cpp cpp/tests/process_federation_service_tso_attribute_before_grant_catch2.cpp cpp/tests/process_federation_service_attribute_relevance_advisory_catch2.cpp cpp/tests/process_federation_service_regional_class_request_attribute_value_update_catch2.cpp
+    cpp/tests/process_federation_service_catch2.cpp cpp/tests/process_federation_service_join_rollback_catch2.cpp cpp/tests/process_federation_service_tso_attribute_before_grant_catch2.cpp cpp/tests/process_federation_service_attribute_relevance_advisory_catch2.cpp cpp/tests/process_federation_service_regional_class_request_attribute_value_update_catch2.cpp
     cpp/tests/process_federation_additional_fom_catch2.cpp
     cpp/tests/process_federation_service_process_catch2.cpp
   )
@@ -173,6 +223,18 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   umbra_add_embedded_2025_catch2_target(umbra_multi_region_interaction_routing_catch2
     SOURCES
     cpp/tests/multi_region_interaction_routing_catch2.cpp
+  )
+
+  # Keep inherited interaction receipt independently buildable and mapped to
+  # the 2025 receipt rule in §6.1.9.
+  umbra_add_embedded_2025_catch2_target(umbra_inherited_interaction_receipt_catch2
+    SOURCES
+    cpp/tests/inherited_interaction_receipt_catch2.cpp
+  )
+
+  umbra_add_embedded_2025_catch2_target(umbra_directed_interaction_inherited_receipt_catch2
+    SOURCES
+    cpp/tests/directed_interaction_inherited_receipt_catch2.cpp
   )
 
   # Keep mixed-dimensional Send Interaction With Regions validation
@@ -1289,6 +1351,13 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   umbra_add_embedded_2025_catch2_target(umbra_resign_action_final_federate_catch2
     SOURCES
     cpp/tests/resign_action_final_federate_catch2.cpp
+  )
+
+  # Keep the 2025 final-federate lifetime cleanup sequence independently
+  # buildable: after resigning with no further join intent, disconnect.
+  umbra_add_embedded_2025_catch2_target(umbra_federate_lifetime_disconnect_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_embedded_resign_action_final_federate_catch2.cpp
   )
 
   # Keep the 2025 FDD update-rate metadata lookup independently
