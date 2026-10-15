@@ -49228,10 +49228,10 @@
         "requirement-candidate-content-clauses-04-federation-management-page-079-l149-40"
       ],
       "test_case": "RTIambassadors preserve multi-federate federation restore status projections under HLA_IMMEDIATE through the configured process endpoint",
-      "source_location": "cpp/tests/ieee1516_2025_connection_process_federation_restore_status_multi_federate_immediate_catch2.cpp:459",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_federation_restore_status_multi_federate_immediate_catch2.cpp:534",
       "primary_lane": "process-federation-restore-status-multi-federate-immediate",
       "focus_lane": "process-federation-restore-status-multi-federate-immediate",
-      "assertions": 107,
+      "assertions": 121,
       "callback_models": [
         "HLA_IMMEDIATE"
       ],

@@ -229,60 +229,133 @@ class ProcessSaveFederateAmbassador final : public NullFederateAmbassador {
 class ProcessRestoreFederateAmbassador final : public NullFederateAmbassador {
  public:
   void requestFederationRestoreSucceeded(std::wstring const& label) override {
-    ++restoreSucceededCount;
-    restoreLabel = label;
-    callbackOrder.push_back("restore-request-succeeded");
+    {
+      std::scoped_lock lock(callbackMutex);
+      ++restoreSucceededCount;
+      restoreLabel = label;
+      callbackOrder.push_back("restore-request-succeeded");
+    }
+    callbackChanged.notify_all();
   }
 
   void requestFederationRestoreFailed(std::wstring const& label) override {
-    ++restoreFailedCount;
-    restoreLabel = label;
-    callbackOrder.push_back("restore-request-failed");
+    {
+      std::scoped_lock lock(callbackMutex);
+      ++restoreFailedCount;
+      restoreLabel = label;
+      callbackOrder.push_back("restore-request-failed");
+    }
+    callbackChanged.notify_all();
   }
 
   void initiateFederateSave(std::wstring const& label) override {
-    ++saveInitiateCount;
-    saveLabel = label;
+    {
+      std::scoped_lock lock(callbackMutex);
+      ++saveInitiateCount;
+      saveLabel = label;
+    }
+    callbackChanged.notify_all();
   }
 
-  void federationSaved() override { ++saveCompleteCount; }
+  bool waitForSaveInitiation() {
+    std::unique_lock lock(callbackMutex);
+    return callbackChanged.wait_for(
+        lock, std::chrono::seconds(2), [this] {
+          return saveInitiateCount != 0U;
+        });
+  }
+
+  std::size_t observedSaveInitiateCount() const {
+    std::scoped_lock lock(callbackMutex);
+    return saveInitiateCount;
+  }
+
+  bool waitForCount(
+      std::size_t ProcessRestoreFederateAmbassador::* count,
+      std::size_t expected) {
+    std::unique_lock lock(callbackMutex);
+    return callbackChanged.wait_for(
+        lock, std::chrono::seconds(2), [this, count, expected] {
+          return this->*count >= expected;
+        });
+  }
+
+  bool waitForStatusReports(std::size_t expected) {
+    std::unique_lock lock(callbackMutex);
+    return callbackChanged.wait_for(
+        lock, std::chrono::seconds(2), [this, expected] {
+          return federationRestoreStatusReports.size() >= expected;
+        });
+  }
+
+  void federationSaved() override {
+    {
+      std::scoped_lock lock(callbackMutex);
+      ++saveCompleteCount;
+    }
+    callbackChanged.notify_all();
+  }
 
   void federationNotSaved(rti1516_2025::SaveFailureReason reason) override {
-    ++saveNotCompleteCount;
-    saveFailureReason = reason;
+    {
+      std::scoped_lock lock(callbackMutex);
+      ++saveNotCompleteCount;
+      saveFailureReason = reason;
+    }
+    callbackChanged.notify_all();
   }
 
   void federationRestoreBegun() override {
-    ++restoreBegunCount;
-    callbackOrder.push_back("restore-begun");
+    {
+      std::scoped_lock lock(callbackMutex);
+      ++restoreBegunCount;
+      callbackOrder.push_back("restore-begun");
+    }
+    callbackChanged.notify_all();
   }
 
   void initiateFederateRestore(
       std::wstring const& label,
       std::wstring const& federateName,
       rti1516_2025::FederateHandle const& postRestoreFederateHandle) override {
-    ++restoreInitiateCount;
-    restoreLabel = label;
-    restoreFederateName = federateName;
-    restorePostFederateHandle = postRestoreFederateHandle;
-    callbackOrder.push_back("restore-initiate");
+    {
+      std::scoped_lock lock(callbackMutex);
+      ++restoreInitiateCount;
+      restoreLabel = label;
+      restoreFederateName = federateName;
+      restorePostFederateHandle = postRestoreFederateHandle;
+      callbackOrder.push_back("restore-initiate");
+    }
+    callbackChanged.notify_all();
   }
 
   void federationRestored() override {
-    ++restoreCompleteCount;
-    callbackOrder.push_back("restore-complete");
+    {
+      std::scoped_lock lock(callbackMutex);
+      ++restoreCompleteCount;
+      callbackOrder.push_back("restore-complete");
+    }
+    callbackChanged.notify_all();
   }
 
   void federationNotRestored(rti1516_2025::RestoreFailureReason reason) override {
-    ++restoreNotCompleteCount;
-    restoreFailureReason = reason;
-    callbackOrder.push_back("restore-failed");
+    {
+      std::scoped_lock lock(callbackMutex);
+      ++restoreNotCompleteCount;
+      restoreFailureReason = reason;
+      callbackOrder.push_back("restore-failed");
+    }
+    callbackChanged.notify_all();
   }
 
   void federationRestoreStatusResponse(
       rti1516_2025::FederateRestoreStatusVector const& response) override {
-    federationRestoreStatusReports.push_back(response);
-    callbackOrder.push_back("restore-status");
+    {
+      std::scoped_lock lock(callbackMutex);
+      federationRestoreStatusReports.push_back(response);
+      callbackOrder.push_back("restore-status");
+    }
+    callbackChanged.notify_all();
   }
 
   std::size_t restoreSucceededCount = 0U;
@@ -291,6 +364,8 @@ class ProcessRestoreFederateAmbassador final : public NullFederateAmbassador {
   std::size_t restoreInitiateCount = 0U;
   std::size_t restoreCompleteCount = 0U;
   std::size_t restoreNotCompleteCount = 0U;
+  mutable std::mutex callbackMutex;
+  std::condition_variable callbackChanged;
   std::size_t saveInitiateCount = 0U;
   std::size_t saveCompleteCount = 0U;
   std::size_t saveNotCompleteCount = 0U;
@@ -665,26 +740,43 @@ TEST_CASE(
     secondJoined = true;
 
     REQUIRE_NOTHROW(firstRti->requestFederationSave(saveLabel));
-    REQUIRE(firstFederate.saveInitiateCount == 1U);
-    REQUIRE(secondFederate.saveInitiateCount == 0U);
+    // The process server pushes both Initiate Federate Save notifications
+    // before responding. HLA_IMMEDIATE may admit either callback now, rather
+    // than waiting for a later service on that federate's connection.
+    REQUIRE(firstFederate.waitForSaveInitiation());
+    REQUIRE(secondFederate.waitForSaveInitiation());
+    REQUIRE(firstFederate.observedSaveInitiateCount() == 1U);
+    REQUIRE(secondFederate.observedSaveInitiateCount() == 1U);
     REQUIRE_NOTHROW(firstRti->federateSaveBegun());
-    REQUIRE(firstFederate.saveInitiateCount == 1U);
-    REQUIRE(secondFederate.saveInitiateCount == 0U);
+    REQUIRE(firstFederate.observedSaveInitiateCount() == 1U);
+    REQUIRE(secondFederate.observedSaveInitiateCount() == 1U);
     REQUIRE_NOTHROW(secondRti->federateSaveBegun());
-    REQUIRE(secondFederate.saveInitiateCount == 1U);
+    REQUIRE(secondFederate.observedSaveInitiateCount() == 1U);
     REQUIRE_NOTHROW(firstRti->federateSaveComplete());
     REQUIRE(firstFederate.saveCompleteCount == 0U);
     REQUIRE_NOTHROW(secondRti->federateSaveComplete());
+    REQUIRE(secondFederate.waitForCount(
+        &ProcessRestoreFederateAmbassador::saveCompleteCount, 1U));
     REQUIRE(secondFederate.saveCompleteCount == 1U);
 
     REQUIRE_NOTHROW(firstRti->requestFederationRestore(saveLabel));
+    REQUIRE(firstFederate.waitForCount(
+        &ProcessRestoreFederateAmbassador::saveCompleteCount, 1U));
+    REQUIRE(firstFederate.waitForCount(
+        &ProcessRestoreFederateAmbassador::restoreSucceededCount, 1U));
+    REQUIRE(firstFederate.waitForCount(
+        &ProcessRestoreFederateAmbassador::restoreInitiateCount, 1U));
+    REQUIRE(secondFederate.waitForCount(
+        &ProcessRestoreFederateAmbassador::restoreInitiateCount, 1U));
     REQUIRE(firstFederate.saveCompleteCount == 1U);
     REQUIRE(firstFederate.restoreSucceededCount == 1U);
     REQUIRE(firstFederate.restoreBegunCount == 1U);
     REQUIRE(firstFederate.restoreInitiateCount == 1U);
     REQUIRE(secondFederate.restoreSucceededCount == 0U);
-    REQUIRE(secondFederate.restoreBegunCount == 0U);
-    REQUIRE(secondFederate.restoreInitiateCount == 0U);
+    // Restore begun/initiate are also pushed to all members before the
+    // requester receives its service response in HLA_IMMEDIATE mode.
+    REQUIRE(secondFederate.restoreBegunCount == 1U);
+    REQUIRE(secondFederate.restoreInitiateCount == 1U);
 
     auto requireStatus = [](auto const& statuses,
                             auto const& handle,
@@ -708,6 +800,7 @@ TEST_CASE(
     };
 
     REQUIRE_NOTHROW(firstRti->queryFederationRestoreStatus());
+    REQUIRE(firstFederate.waitForStatusReports(1U));
     REQUIRE(firstFederate.federationRestoreStatusReports.size() == 1U);
     auto const& firstRestoringStatuses =
         firstFederate.federationRestoreStatusReports.back();
@@ -724,6 +817,7 @@ TEST_CASE(
         true);
 
     REQUIRE_NOTHROW(secondRti->queryFederationRestoreStatus());
+    REQUIRE(secondFederate.waitForStatusReports(1U));
     REQUIRE(secondFederate.saveCompleteCount == 1U);
     REQUIRE(secondFederate.restoreSucceededCount == 0U);
     REQUIRE(secondFederate.restoreBegunCount == 1U);
@@ -746,6 +840,7 @@ TEST_CASE(
     REQUIRE_NOTHROW(firstRti->federateRestoreComplete());
     REQUIRE(firstFederate.restoreCompleteCount == 0U);
     REQUIRE_NOTHROW(firstRti->queryFederationRestoreStatus());
+    REQUIRE(firstFederate.waitForStatusReports(2U));
     REQUIRE(firstFederate.federationRestoreStatusReports.size() == 2U);
     auto const& firstWaitingStatuses =
         firstFederate.federationRestoreStatusReports.back();
@@ -762,6 +857,7 @@ TEST_CASE(
         true);
 
     REQUIRE_NOTHROW(secondRti->queryFederationRestoreStatus());
+    REQUIRE(secondFederate.waitForStatusReports(2U));
     REQUIRE(secondFederate.federationRestoreStatusReports.size() == 2U);
     auto const& secondWaitingStatuses =
         secondFederate.federationRestoreStatusReports.back();
@@ -778,10 +874,14 @@ TEST_CASE(
         true);
 
     REQUIRE_NOTHROW(secondRti->federateRestoreComplete());
+    REQUIRE(secondFederate.waitForCount(
+        &ProcessRestoreFederateAmbassador::restoreCompleteCount, 1U));
     REQUIRE(secondFederate.restoreCompleteCount == 1U);
-    REQUIRE(firstFederate.restoreCompleteCount == 0U);
 
     REQUIRE_NOTHROW(firstRti->queryFederationRestoreStatus());
+    REQUIRE(firstFederate.waitForCount(
+        &ProcessRestoreFederateAmbassador::restoreCompleteCount, 1U));
+    REQUIRE(firstFederate.waitForStatusReports(3U));
     REQUIRE(firstFederate.restoreCompleteCount == 1U);
     REQUIRE(firstFederate.federationRestoreStatusReports.size() == 3U);
     auto const& firstTerminalStatuses =
@@ -799,6 +899,7 @@ TEST_CASE(
         false);
 
     REQUIRE_NOTHROW(secondRti->queryFederationRestoreStatus());
+    REQUIRE(secondFederate.waitForStatusReports(3U));
     REQUIRE(secondFederate.federationRestoreStatusReports.size() == 3U);
     auto const& secondTerminalStatuses =
         secondFederate.federationRestoreStatusReports.back();
