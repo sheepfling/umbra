@@ -39,7 +39,10 @@ class RetractionGateFederate final : public NullFederateAmbassador {
   void discoverObjectInstance(
       ObjectInstanceHandle const&, ObjectClassHandle const&,
       std::wstring const&, FederateHandle const&) override {
-    discoveryCount.fetch_add(1U, std::memory_order_release);
+    {
+      std::scoped_lock lock(callbackMutex);
+      discoveryCount.fetch_add(1U, std::memory_order_release);
+    }
     callbackChanged.notify_all();
   }
 

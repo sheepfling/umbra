@@ -16959,7 +16959,7 @@
         "requirement-candidate-content-clauses-10-support-services-page-286-l125-38"
       ],
       "test_case": "RTIambassadors suppress retracted pushed object callbacks across Enable Callbacks",
-      "source_location": "cpp/tests/ieee1516_2025_connection_process_object_retraction_callback_gate_catch2.cpp:316",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_object_retraction_callback_gate_catch2.cpp:319",
       "callback_models": ["HLA_IMMEDIATE"],
       "delivery_modes": [
         "timestamped-attribute-update-retracted-before-callback",
