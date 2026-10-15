@@ -601,6 +601,10 @@ TEST_CASE(
       serveExpected(receiverSession, receiverHandler,
                     TransportServiceOperation::enable_time_constrained,
                     "The save-replacement server lost receiver Enable Time Constrained.");
+      // Each void-service report is synchronous: acknowledge it before this
+      // scripted server starts waiting on the other federate's session.
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiverSession, receiverHandler);
       serveExpected(ownerSession, ownerHandler,
                     TransportServiceOperation::request_federation_save,
                     "The save-replacement server lost first Request Federation Save.");
@@ -610,9 +614,13 @@ TEST_CASE(
       serveExpected(ownerSession, ownerHandler,
                     TransportServiceOperation::time_advance_request,
                     "The save-replacement server lost owner TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, ownerSession, ownerHandler);
       serveExpected(receiverSession, receiverHandler,
                     TransportServiceOperation::time_advance_request,
                     "The save-replacement server lost receiver TAR.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, receiverSession, receiverHandler);
       serveExpected(ownerSession, ownerHandler,
                     TransportServiceOperation::receive_interaction,
                     "The save-replacement server lost owner save polling.");
