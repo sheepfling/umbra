@@ -1699,6 +1699,56 @@
       "reproduction": "Read requirement-candidate-content-clauses-04-federation-management-page-065-l109-26 in topics/ieee/hla-1516.1-2025/semantic/requirements.json and the following candidate beginning at page 66 line 10. RL-326 is a separate 4.20 fragment.",
       "verification": "The pinned requirement JSON directly shows the unfinished sentence and subsequent distinct candidate. The canonical PDF was not independently checked in this turn; this is a Lab extraction issue, not IEEE errata or conformance evidence.",
       "detected": "2026-10-15"
+    },
+    {
+      "id": "RL-328",
+      "status": "open",
+      "kind": "semantic-extraction-clause-boundary-cluster",
+      "title": "Queued-TSO save anchors recur across later-heading clause boundaries",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l32-10",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l41-12",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l47-14",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l53-16",
+        "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l63-17",
+        "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+        "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
+        "requirement-candidate-content-clauses-08-time-management-page-207-l112-28",
+        "requirement-candidate-content-clauses-10-support-services-page-286-l20-3"
+      ],
+      "exported_clause": "5.1.4; 6.12.4; 8.5.5; 8.6.3; 8.8.3; 8.18.1; 8.19.3; 10.60.6",
+      "normative_clause": "5.1.3; 6.12; 8.5; 8.6; 8.8; 8.17; 8.19; 10.59.4",
+      "document_id": "hla-1516.1-2025",
+      "symptom": "Several complete service rules in the pinned 2025 export inherit a later subsection heading on the same reconstructed page. The affected candidate IDs and individual source-to-heading corrections are listed in docs/planning/REQUIREMENTS-LAB-ISSUES.md under RL-328.",
+      "impact": "A queued-TSO timed-save test can claim direct coverage of an unrelated later subsection when it selects these exported anchors without checking the page-heading order.",
+      "workaround": "Keep the pinned IDs/export unchanged; consult the complete 2025 clause before promoting a direct candidate-to-canonical-subsection pair. Do not resynchronize unchanged Lab inputs or infer IEEE errata or conformance.",
+      "reproduction": "Read the RL-328 source-page list in docs/planning/REQUIREMENTS-LAB-ISSUES.md and compare the affected IDs in topics/ieee/hla-1516.1-2025/semantic/requirements.json with heading order in semantic/content-blocks.json.",
+      "verification": "Mirrored the existing human-readable RL-328 entry into the machine ledger so its issue ID is queryable. The canonical PDF was not independently checked in this turn.",
+      "detected": "2026-10-15"
+    },
+    {
+      "id": "RL-329",
+      "status": "open",
+      "kind": "semantic-extraction-clause-boundary",
+      "title": "Page-165 Attribute Ownership Unavailable introduction inherits later 7.10.6 heading",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1"
+      ],
+      "exported_clause": "7.10.6",
+      "normative_clause": "7.10",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/07-ownership-management-page-165.tex",
+        "lines": "14-19",
+        "page": 165
+      },
+      "symptom": "The candidate describing what the Attribute Ownership Unavailable service informs the joined federate is exported as 7.10.6. On the reconstructed page, that introduction precedes 7.10.1 Supplied arguments; 7.10.6 is the later Reference state charts heading at the page foot.",
+      "impact": "The existing If Available contract and C++ test rows can misattribute service-introduction evidence to reference state charts, inflating 7.10.6 coverage while leaving the 7.10 service rule unrepresented.",
+      "workaround": "Preserve the candidate ID and pinned export. Map direct local C++ evidence for this sentence to canonical 7.10, not 7.10.6; do not claim the case validates the reference state charts or resynchronize unchanged Lab inputs.",
+      "reproduction": "Compare requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1 in topics/ieee/hla-1516.1-2025/semantic/requirements.json with the page-165 heading sequence in semantic/content-blocks.json: the introduction occurs before 7.10.1, while 7.10.6 Reference state charts appears at the bottom.",
+      "verification": "The pinned requirement record and reconstructed semantic page establish the heading order. The canonical PDF was not independently checked in this turn; this is a Lab source-attribution issue, not IEEE errata or conformance evidence.",
+      "detected": "2026-10-15"
     }
   ]
 }

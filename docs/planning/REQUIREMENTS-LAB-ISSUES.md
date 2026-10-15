@@ -550,3 +550,22 @@ part of the service. Preserve the pinned export and inspect the full 2025
 clause until the Lab fixes the extraction. This is a Lab attribution issue,
 not an IEEE erratum or a conformance finding; no Lab resynchronization was
 performed.
+
+### RL-329 — Page-165 Attribute Ownership Unavailable introduction inherits 7.10.6
+
+The pinned candidate
+`requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1`
+says what the Attribute Ownership Unavailable service informs the joined
+federate, but the export labels it §7.10.6. On the reconstructed page, this
+introductory rule precedes §7.10.1 Supplied arguments; §7.10.6 is the later
+Reference state charts heading at the page foot. The service introduction
+belongs to §7.10, not §7.10.6.
+
+The wrong heading can make direct C++ evidence look like coverage of reference
+state charts instead of the unavailable-service rule. Preserve the stable Lab
+candidate ID and exported clause, while mapping the local If Available tests
+and requirements contract to canonical §7.10. The pinned export was not
+resynchronized. This is a Lab source-attribution issue, not an IEEE erratum or
+conformance finding; the canonical PDF was not independently checked in this
+turn. Source: pinned `semantic/requirements.json` and the page-165 heading
+sequence in `semantic/content-blocks.json`.
