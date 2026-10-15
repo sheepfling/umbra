@@ -26374,7 +26374,7 @@
         "requirement-candidate-content-clauses-06-object-management-page-138-l158-43"
       ],
       "test_case": "RTIambassador reissues Attribute Relevance Advisory callbacks when the active update rate changes through a configured process endpoint",
-      "source_location": "cpp/tests/ieee1516_2025_connection_attribute_relevance_rate_reissue_catch2.cpp:457",
+      "source_location": "cpp/tests/ieee1516_2025_connection_attribute_relevance_rate_reissue_catch2.cpp:456",
       "assertions": 120,
       "callback_models": [
         "HLA_EVOKED",

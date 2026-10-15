@@ -4,7 +4,6 @@
 #include <atomic>
 #include <array>
 #include <chrono>
-#include <condition_variable>
 #include <cstring>
 #include <exception>
 #include <filesystem>
@@ -13,7 +12,6 @@
 #include <iterator>
 #include <limits>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <set>
@@ -32,6 +30,7 @@
 #include <umbra/embedded_profile_configuration.hpp>
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+#include "attribute_relevance_rate_reissue_recorders.hpp"
 #include "internal/federation/federation_registry.hpp"
 #include "internal/federation/process_federation_service.hpp"
 #include "internal/federation/process_transport.hpp"
@@ -457,132 +456,9 @@ TEST_CASE(
     "RTIambassador reissues Attribute Relevance Advisory callbacks when the active update rate changes through a configured process endpoint",
     "[integration][foundation][object-management][data-distribution-management][callbacks][callback-immediate][transport][process-boundary][process-attribute-relevance-rate-reissue][public-endpoint][attribute-relevance-advisory][update-rate-reissue][2025][rti.service.get-attribute-relevance-advisory-switch][rti.service.set-attribute-relevance-advisory-switch][rti.service.publish-object-class-attributes][rti.service.register-object-instance][rti.service.subscribe-object-class-attributes][rti.service.unsubscribe-object-class-attributes][federate.callback.discover-object-instance][federate.callback.turn-updates-on-for-object-instance][federate.callback.turn-updates-off-for-object-instance]") {
   auto runScenario = [](CallbackModel callbackModel) {
-    class RecordingOwnerAmbassador final : public NullFederateAmbassador {
-     public:
-      struct State {
-        std::size_t turnedOnCount = 0U;
-        rti1516_2025::ObjectInstanceHandle turnedOnObjectInstance;
-        rti1516_2025::AttributeHandleSet turnedOnAttributes;
-        std::vector<std::optional<std::wstring>> turnedOnRates;
-        std::size_t turnedOffCount = 0U;
-        rti1516_2025::ObjectInstanceHandle turnedOffObjectInstance;
-        rti1516_2025::AttributeHandleSet turnedOffAttributes;
-      };
-
-      void turnUpdatesOnForObjectInstance(
-          rti1516_2025::ObjectInstanceHandle const& objectInstance,
-          rti1516_2025::AttributeHandleSet const& attributes) override {
-        {
-          std::lock_guard lock(mutex_);
-          ++state_.turnedOnCount;
-          state_.turnedOnObjectInstance = objectInstance;
-          state_.turnedOnAttributes = attributes;
-          state_.turnedOnRates.emplace_back(std::nullopt);
-        }
-        condition_.notify_all();
-      }
-
-      void turnUpdatesOnForObjectInstance(
-          rti1516_2025::ObjectInstanceHandle const& objectInstance,
-          rti1516_2025::AttributeHandleSet const& attributes,
-          std::wstring const& updateRateDesignator) override {
-        {
-          std::lock_guard lock(mutex_);
-          ++state_.turnedOnCount;
-          state_.turnedOnObjectInstance = objectInstance;
-          state_.turnedOnAttributes = attributes;
-          state_.turnedOnRates.emplace_back(updateRateDesignator);
-        }
-        condition_.notify_all();
-      }
-
-      void turnUpdatesOffForObjectInstance(
-          rti1516_2025::ObjectInstanceHandle const& objectInstance,
-          rti1516_2025::AttributeHandleSet const& attributes) override {
-        {
-          std::lock_guard lock(mutex_);
-          ++state_.turnedOffCount;
-          state_.turnedOffObjectInstance = objectInstance;
-          state_.turnedOffAttributes = attributes;
-        }
-        condition_.notify_all();
-      }
-
-      [[nodiscard]] State snapshot() const {
-        std::lock_guard lock(mutex_);
-        return state_;
-      }
-
-      [[nodiscard]] bool waitForOnCount(std::size_t count) {
-        std::unique_lock lock(mutex_);
-        return condition_.wait_for(lock, std::chrono::seconds(2), [&] {
-          return state_.turnedOnCount >= count;
-        });
-      }
-
-      [[nodiscard]] bool waitForOffCount(std::size_t count) {
-        std::unique_lock lock(mutex_);
-        return condition_.wait_for(lock, std::chrono::seconds(2), [&] {
-          return state_.turnedOffCount >= count;
-        });
-      }
-
-      void resetOnHistory() {
-        std::lock_guard lock(mutex_);
-        state_.turnedOnCount = 0U;
-        state_.turnedOnRates.clear();
-        state_.turnedOnAttributes.clear();
-      }
-
-     private:
-      mutable std::mutex mutex_;
-      std::condition_variable condition_;
-      State state_;
-    } ownerFederate;
-
-    class RecordingReceiverAmbassador final : public NullFederateAmbassador {
-     public:
-      struct State {
-        bool discovered = false;
-        rti1516_2025::ObjectInstanceHandle discoveredObjectInstance;
-        rti1516_2025::ObjectClassHandle discoveredObjectClass;
-        std::wstring discoveredObjectInstanceName;
-        rti1516_2025::FederateHandle discoveredProducingFederate;
-      };
-
-      void discoverObjectInstance(
-          rti1516_2025::ObjectInstanceHandle const& objectInstance,
-          rti1516_2025::ObjectClassHandle const& objectClass,
-          std::wstring const& objectInstanceName,
-          rti1516_2025::FederateHandle const& producingFederate) override {
-        {
-          std::lock_guard lock(mutex_);
-          state_.discovered = true;
-          state_.discoveredObjectInstance = objectInstance;
-          state_.discoveredObjectClass = objectClass;
-          state_.discoveredObjectInstanceName = objectInstanceName;
-          state_.discoveredProducingFederate = producingFederate;
-        }
-        condition_.notify_all();
-      }
-
-      [[nodiscard]] bool waitForDiscovery() {
-        std::unique_lock lock(mutex_);
-        return condition_.wait_for(lock, std::chrono::seconds(2), [&] {
-          return state_.discovered;
-        });
-      }
-
-      [[nodiscard]] State snapshot() const {
-        std::lock_guard lock(mutex_);
-        return state_;
-      }
-
-     private:
-      mutable std::mutex mutex_;
-      std::condition_variable condition_;
-      State state_;
-    } firstReceiverFederate, secondReceiverFederate;
+    umbra::test::RateReissueOwnerAmbassador ownerFederate;
+    umbra::test::RateReissueReceiverAmbassador firstReceiverFederate;
+    umbra::test::RateReissueReceiverAmbassador secondReceiverFederate;
 
     auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
     REQUIRE(listener);
