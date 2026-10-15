@@ -194,6 +194,46 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded Create Federation Execution rejects overlapping extendable variant alternatives",
+    "[integration][development-profile][federation-management][fom][annex-c]"
+    "[annex-c-variant-alternative-overlap][rti.service.create-federation-execution]") {
+  rti1516_2025::NullFederateAmbassador federate;
+  auto creator = makeRti();
+  auto const federationName = nextFederationName();
+  auto const base = testDataPath("variant-record-overlapping-ranges-base-fom.xml").wstring();
+  auto const disjointExtension =
+      testDataPath("variant-record-nonoverlapping-ranges-extension-fom.xml").wstring();
+  auto const overlappingExtension =
+      testDataPath("variant-record-overlapping-ranges-extension-fom.xml").wstring();
+
+  REQUIRE_NOTHROW(creator->connect(federate, rti1516_2025::HLA_EVOKED));
+
+  // The same extendable record accepts a second named alternative when its
+  // discriminant enumerator is disjoint from the base alternative's range.
+  REQUIRE_NOTHROW(creator->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{base, disjointExtension},
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
+
+  // In the other separately schema-valid extension, UmbraTwo and UmbraThree
+  // occur in the base range and in a different named alternative. The pinned
+  // Annex C.3 continuation requires this merge conflict to fail (RL-319).
+  REQUIRE_THROWS_AS(
+      creator->createFederationExecution(
+          federationName,
+          std::vector<std::wstring>{base, overlappingExtension},
+          L"HLAinteger64Time"),
+      rti1516_2025::InconsistentFOM);
+  REQUIRE_NOTHROW(creator->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{base, disjointExtension},
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(creator->disconnect());
+}
+
+TEST_CASE(
     "Embedded Join Federation Execution composes an additional FOM module for all members",
     "[integration][development-profile][federation-management][fom][fom-module-management]"
     "[rti.service.join-federation-execution]"

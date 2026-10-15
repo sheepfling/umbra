@@ -9668,6 +9668,36 @@
       "next_action": "Keep the named simple-data conflict regression green. The clipped extendable-variant-record continuation (RL-319), enumerated merge, and other Annex C.3 type-specific rules require separate evidence and remain open."
     },
     {
+      "id": "umbra-cpp-annex-c-extendable-variant-alternative-overlap-at-create-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.createfederationexecution.b7555a12e578"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"
+      ],
+      "test_case": "Embedded Create Federation Execution rejects overlapping extendable variant alternatives",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "fom",
+        "annex-c",
+        "annex-c-variant-alternative-overlap",
+        "rti.service.create-federation-execution"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/fom_declaration_management_catch2.cpp:196",
+      "assertions": 7,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.2-2025:clause-C.3"
+      ],
+      "requirements_lab_api_surface_status": "The official vector Create Federation Execution overload accepts a two-module HLAextendableVariantRecord merge with disjoint enumerators, then rejects a separately schema-valid extension that assigns UmbraTwo and UmbraThree to a different named alternative. A valid retry under the same name confirms no partial federation reservation. This observes only the enumerator-overlap conflict described by the pinned page-110/page-111 continuation (RL-319). The clipped candidate is deliberately not selected as a complete requirement mapping; the direct pair is the intact general C.3 named-data-type conflict rule.",
+      "next_action": "Keep this one public C++ alternative-overlap boundary green. RL-319 remains open, and HLAother, same-name alternative union, other type-specific C.3 merge rules, interoperability, and conformance are not implied."
+    },
+    {
       "id": "umbra-cpp-fom-additional-module-join-composition-integration",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
