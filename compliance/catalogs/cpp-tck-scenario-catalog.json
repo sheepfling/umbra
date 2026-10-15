@@ -9176,7 +9176,7 @@
         "resign-action-requirements-contract.json",
         "standard-ordinary-multi-attribute-subscription-projection-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioOrdinaryMultiAttributeSubscriptionProjection",
+      "cpp_test": "src/tck_multi_attribute_delivery_scenarios.cpp#scenarioOrdinaryMultiAttributeSubscriptionProjection",
       "runner_id": "cpp-tck.ordinary-multi-attribute-subscription-projection",
       "parity": "java-tck.ordinary-multi-attribute-subscription-projection",
       "default_status": "adapter-required",
@@ -9208,7 +9208,7 @@
       "contract_refs": [
         "standard-ordinary-multi-attribute-subscription-projection-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioOrdinaryMultiAttributeSubscriptionProjectionContract",
+      "cpp_test": "src/tck_multi_attribute_delivery_scenarios.cpp#scenarioOrdinaryMultiAttributeSubscriptionProjectionContract",
       "runner_id": "cpp-tck.ordinary-multi-attribute-subscription-projection-contract",
       "parity": "cpp-tck.ordinary-multi-attribute-subscription-projection",
       "default_status": "adapter-required",
@@ -9255,7 +9255,7 @@
         "resign-action-requirements-contract.json",
         "standard-ordinary-multi-attribute-value-update-request-response-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioOrdinaryMultiAttributeValueUpdateRequestResponse",
+      "cpp_test": "src/tck_multi_attribute_delivery_scenarios.cpp#scenarioOrdinaryMultiAttributeValueUpdateRequestResponse",
       "runner_id": "cpp-tck.ordinary-multi-attribute-value-update-request-response",
       "parity": "java-tck.ordinary-multi-attribute-value-update-request-response",
       "default_status": "adapter-required",
@@ -9290,7 +9290,7 @@
       "contract_refs": [
         "standard-ordinary-multi-attribute-value-update-request-response-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioOrdinaryMultiAttributeValueUpdateRequestResponseContract",
+      "cpp_test": "src/tck_multi_attribute_delivery_scenarios.cpp#scenarioOrdinaryMultiAttributeValueUpdateRequestResponseContract",
       "runner_id": "cpp-tck.ordinary-multi-attribute-value-update-request-response-contract",
       "parity": "cpp-tck.ordinary-multi-attribute-value-update-request-response",
       "default_status": "adapter-required",
