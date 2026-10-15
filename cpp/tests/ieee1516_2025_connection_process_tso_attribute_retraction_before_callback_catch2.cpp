@@ -613,14 +613,9 @@ TEST_CASE(
       umbra::test::serveExpectedSuccessfulVoidInvocationReport(
           serveExpected, sender, senderHandler);
       // Retract happened before the TSO payload crossed the receiver's
-      // process callback boundary.  The receiver still polls once to admit
-      // its grant, but no receive-attribute-update or acknowledgement frame
-      // is legal for the retracted message.
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process attribute-retraction server lost receiver grant polling.");
+      // process callback boundary. The pending grant is pushed to the
+      // receiver when the sender reaches time 5; it requires no receive poll
+      // or acknowledgement frame for the retracted message.
       serveExpected(
           sender,
           senderHandler,
