@@ -376,8 +376,8 @@
     },
     {
       "path": "cpp/tests/ieee1516_2025_connection_process_directed_interaction_transportation_catch2.cpp",
-      "max_lines": 864,
-      "reason": "Complete 2025 directed interaction transportation lane extracted from the mapped connection suite; keep the private callback fixture, configured process endpoint, callback-immediate behavior, and transportation override confirmation together."
+      "max_lines": 883,
+      "reason": "Complete 2025 directed interaction transportation lane with bounded callback arrival and synchronized confirmation publication; keep the pull-mode process fixture, callback-immediate behavior, directed override, and receiver metadata assertions together. Guard further growth at 883 lines."
     },
     {
       "path": "cpp/tests/ieee1516_2025_connection_process_federation_save_timed_replacement_catch2.cpp",
