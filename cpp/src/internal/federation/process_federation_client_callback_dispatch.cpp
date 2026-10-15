@@ -566,8 +566,18 @@ void ProcessFederationClient::close() noexcept {
   if (shutdownConnection) {
     shutdownConnection->close();
   }
-  responseAvailable_.notify_all();
-  callbackEventsAvailable_.notify_all();
+  // Closing is published before socket shutdown so a blocked send/receive can
+  // unwind. Synchronize with each wait mutex *after* shutdown: otherwise a
+  // waiter may see closing_ == false, then miss the notification before its
+  // condition-variable wait atomically releases the mutex and blocks.
+  {
+    std::scoped_lock lock(responseMutex_);
+    responseAvailable_.notify_all();
+  }
+  {
+    std::scoped_lock lock(transactionMutex_);
+    callbackEventsAvailable_.notify_all();
+  }
 
   auto const currentThread = std::this_thread::get_id();
   if (streamReaderThread_.joinable() &&
