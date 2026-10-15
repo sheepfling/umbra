@@ -516,3 +516,37 @@ its own review because it currently selects unrelated synchronization and
 untimed-save candidates. No Lab resynchronization or IEEE erratum is implied.
 Source: pinned `topics/ieee/hla-1516.1-2025/semantic/requirements.json`,
 `content/clauses/04-federation-management-page-065.tex:109-113`.
+
+### RL-328 — Queued-TSO save anchors recur across later-heading clause boundaries
+
+The pinned 2025 export assigns several complete service rules to a later
+subsection on the same page, although the reconstructed source places each
+rule before that subsection's heading. This is a new cluster found while
+auditing the queued-TSO timed-save row, distinct from the page-67 save
+fragments in RL-326/RL-327 and the individual earlier boundary reports:
+
+- `requirement-candidate-content-clauses-05-declaration-management-page-084-l32-10`:
+  exported §5.1.4; the subscribed-interaction-class rule precedes that heading
+  and belongs to §5.1.3.
+- `requirement-candidate-content-clauses-06-object-management-page-124-l41-12`,
+  `...page-124-l47-14`, and `...page-124-l53-16`: exported §6.12.4; the
+  delivery, no-self-delivery, and tag rules precede §6.12.1 and belong to
+  the §6.12 service description.
+- `requirement-candidate-content-clauses-08-time-management-page-191-l73-17`,
+  `...page-192-l63-17`, and `...page-194-l21-3`: exported §8.5.5, §8.6.3,
+  and §8.8.3 respectively; their service-introduction rules belong to
+  §8.5, §8.6, and §8.8.
+- `requirement-candidate-content-clauses-08-time-management-page-206-l29-4`
+  and `...page-207-l112-28`: exported §8.18.1 and §8.19.3; the Query GALT
+  and Query LITS result rules belong to §8.17 and §8.19 respectively.
+- `requirement-candidate-content-clauses-10-support-services-page-286-l20-3`:
+  exported §10.60.6; the pending-callback rule is explicitly under the
+  §10.59.4 Postconditions heading, before §10.60 begins.
+
+Several of these candidates are also sentence fragments. Workaround: do not
+promote the affected IDs as direct requirement-to-canonical-subsection pairs
+in the queued-TSO test plan merely because the runtime assertion exercises
+part of the service. Preserve the pinned export and inspect the full 2025
+clause until the Lab fixes the extraction. This is a Lab attribution issue,
+not an IEEE erratum or a conformance finding; no Lab resynchronization was
+performed.
