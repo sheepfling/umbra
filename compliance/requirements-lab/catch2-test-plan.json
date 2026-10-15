@@ -32069,7 +32069,7 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13"
       ],
       "test_case": "RTIambassadors deliver Attribute Ownership Acquisition Cancellation through a configured process endpoint",
-      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:1037",
+      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:1132",
       "primary_lane": "process-ownership-acquisition-cancellation",
       "assertions": 32,
       "callback_models": [
@@ -32104,6 +32104,52 @@
       "status": "implemented-public-foundation-not-conformance-evidence",
       "requirements_lab_api_surface_status": "The official C++ RTIambassador Cancel Attribute Ownership Acquisition service now crosses the configured process endpoint with a typed object/attribute request and result, retains the cancellation reservation until the receive-order callback fence, and delivers one grouped Confirm Attribute Ownership Acquisition Cancellation callback through HLA_EVOKED. This is public process-foundation evidence only; push delivery, owner-denial and transfer races, supplied-empty/repeated sets, RTI-owned state, DDM/timestamped behavior, transport interoperability, package/JUnit/protected-review, validation, and conformance remain separate.",
       "next_action": "Keep the typed cancellation request/result, event-kind validation, callback-time registry commit, stale owner-release suppression, and resignation cleanup green. Add push-mode, cancellation-race, mixed/multi-acquirer, supplied-empty/repeated-set, RTI-owned, DDM/timestamped, transport/package, JUnit/protected-review, validation, and conformance evidence before promotion."
+    },
+    {
+      "id": "umbra-cpp-attribute-ownership-acquisition-cancellation-process-idle-push-integration",
+      "requirements_lab_mapping_id": "process.transition.attribute-ownership-acquisition-cancellation-idle-push-public",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+        "api.2025.cpp.rtiambassador.cancelattributeownershipacquisition.2c855e13192e",
+        "api.2025.cpp.federateambassador.confirmattributeownershipacquisitioncancellation.7eb7a984121a"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40",
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1",
+        "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13"
+      ],
+      "test_case": "RTIambassadors confirm process acquisition cancellation while requester is idle",
+      "source_location": "cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp:148",
+      "ctest_target": "umbra_attribute_ownership_acquisition_catch2",
+      "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors confirm process acquisition cancellation while requester is idle$",
+      "primary_lane": "process-ownership-acquisition-cancellation-idle-push",
+      "focus_lane": "process-ownership-acquisition-cancellation-idle-push",
+      "assertions": 35,
+      "callback_models": ["HLA_IMMEDIATE"],
+      "delivery_modes": [
+        "public-process-endpoint",
+        "two-federate-cancellation-handshake",
+        "idle-immediate-push-callback-delivery-no-evoke-or-progress-service",
+        "typed-cancellation-result"
+      ],
+      "callback_gate_modes": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.8",
+        "hla-1516.1-2025:clause-7.15",
+        "hla-1516.1-2025:clause-7.16"
+      ],
+      "tags": [
+        "integration", "development-profile", "federation-management",
+        "ownership-management", "transport", "process-boundary",
+        "process-ownership-acquisition-cancellation-idle-push",
+        "public-endpoint", "attribute-ownership-acquisition",
+        "rti.service.cancel-attribute-ownership-acquisition",
+        "federate.callback.confirm-attribute-ownership-acquisition-cancellation",
+        "2025"
+      ],
+      "status": "implemented-public-process-foundation-not-conformance-evidence",
+      "requirements_lab_api_surface_status": "The official 2025 C++ RTIambassador acquisition and cancellation services cross a configured process endpoint in HLA_IMMEDIATE mode. After observing the owner's release request, the requester cancels and receives one Confirm Attribute Ownership Acquisition Cancellation callback through a thread-safe condition-variable observer without Evoke or an intervening public RTI progress call. The callback identifies the exact object and attribute; public ownership checks retain the original owner and leave the requester unowned. The server rejects receive_interaction polls. This is bounded push-mode development-profile evidence, not a cancel-versus-buffered-release race, transport interoperability, validation, or conformance claim.",
+      "next_action": "Keep the idle IMMEDIATE case and evoked cancellation control green. Separately address cancellation versus already-buffered release events, mixed and multi-acquirer sets, supplied-empty/repeated sets, RTI-owned, DDM/timestamped, transport/package, JUnit/protected review, validation, and conformance."
     },
     {
       "id": "umbra-cpp-negotiated-divestiture-cancellation-process-integration",

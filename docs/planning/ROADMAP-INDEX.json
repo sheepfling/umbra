@@ -98,8 +98,8 @@
     "issue_query": "python tools/query_rti_work.py lab-issues --summary --compact",
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
-"active_handoff_note": "2026-10-15: The official 2025 HLA_IMMEDIATE denied-acquisition idle-callback case now proves both federates receive callbacks without Evoke or intervening public progress calls (36 assertions; 20 exact repeats; 4 direct pinned pairs). Earlier no-Evoke push and evoked post-denial owner-query controls remain green. Live plan has 1,516 C++ cases, 1,419 mapped, 97 explicitly unmapped, zero unclassified, 983 direct pairs. The next release-blocking slice is a rare HLA_EVOKED process Disconnect hang in the class-wide Request Attribute Value Update case: 7 of 2,622 isolated full-binary concurrent starts stalled after both Resigns and server socket closes. The regional subscription/update partition timeout remains under separate investigation. Restore-success and restore-status callback fixtures passed 50/50 focused repeats each. No clean full process/native/package or conformance claim; do not resynchronize unchanged Requirements Lab inputs.",
-"latest_verified_slice": "2026-10-15: Official C++ ownership process evidence added a distinct idle HLA_IMMEDIATE denial case with no Evoke or public progress calls; the idle, active-immediate, and evoked controls passed 20/20 repeats each (60/60 starts), and the new lane maps four pinned requirements to clauses 4, 7.8, and 7.12. The prior active no-Evoke push case passed 50/50 main repeats. Restore-success and restore-status process fixture waits passed 50/50 each. A 553-case process run with class-wide Request Attribute Value Update excluded passed 551, with restore status since repaired and regional timeout still under investigation. The class-wide case has a separate 7/2,622 concurrent full-binary Disconnect hang; no speculative runtime fix was made. TCK object-removal extraction passed 12/12 installed-consumer cases, 1,036-scenario catalog validation and 164-method/56-callback audit. Live mapping is 1,419 mapped, 97 explicitly unmapped, zero unclassified and 983 direct pairs. Full process/native/package, 41 source-size blockers, historical audit, external interoperability and protected conformance gates remain open.",
+"active_handoff_note": "2026-10-15: A distinct official 2025 HLA_IMMEDIATE process cancellation case now confirms the object/attribute callback through a thread-safe idle requester observer, with no Evoke or intervening public progress call (35 assertions; 20/20 exact repeats; 3 direct pinned pairs to clauses 7.8, 7.15, and 7.16). The adjacent HLA_EVOKED cancellation control passed 20/20. The earlier idle denied-acquisition control remains green. Live plan has 1,517 C++ cases, 1,420 mapped, 97 explicitly unmapped, zero unclassified, and 986 direct pairs. The active release-blocking handoff remains the rare HLA_EVOKED process Disconnect hang in class-wide Request Attribute Value Update (7/2,622 isolated full-binary concurrent starts). Regional subscription/update partition timeout remains under investigation; fixture failure-path cleanup passed 20/20 exact repeats and injected failure fails fast, but did not resolve the partition hang. No clean full process/native/package or conformance claim; do not resynchronize unchanged Requirements Lab inputs.",
+"latest_verified_slice": "2026-10-15: The 35-assertion official C++ HLA_IMMEDIATE process acquisition-cancellation case passed 20/20 focused CTest repeats; its adjacent HLA_EVOKED cancellation control passed 20/20 and the idle denied-acquisition control passed once. A condition-variable observer sees one exact cancellation confirmation while the requester makes no Evoke or intervening public RTI progress call; the original owner remains owner and requester stays unowned. This is bounded push-mode evidence, not the cancel-versus-already-buffered-release race or conformance. The lane check passed with three pinned direct pairs to clauses 7.8, 7.15, and 7.16. The previous 553-case process run excluded the class-wide Request Attribute Value Update case and passed 551, with the regional timeout still under investigation; its separate Disconnect hang had occurred in 7/2,622 concurrent starts. TCK extraction now comprises 15 cohesive splits; main.cpp is 22,689 lines (portable 22,614), the latest federation-MOM synchronization passed both-model tests 4/4, and catalog/API checks remain 1,036 scenarios and 164 methods/56 callbacks. Live mapping is 1,420 mapped, 97 explicitly unmapped, zero unclassified, and 986 direct pairs. Full process/native/package, source-size, historical audit, interoperability, and protected conformance gates remain open.",
   "active_handoff": {
     "state": "investigation",
     "family": "transport-and-conformance",
@@ -324,8 +324,8 @@
     },
     "current_snapshot": {
       "source": "python tools/query_rti_work.py dashboard --summary --compact",
-      "plan_cases": 1514,
-      "mapped_cases": 1417,
+      "plan_cases": 1517,
+      "mapped_cases": 1420,
       "unmapped_cases": 97,
       "explicit_unmapped_cases": 97,
       "unclassified_unmapped_cases": 0,
@@ -333,13 +333,30 @@
       "source_unlocated_actionable_cases": 0,
       "planned_cases": 0,
       "source_only_cases": 0,
-      "direct_requirement_section_pairs": 983,
+      "direct_requirement_section_pairs": 986,
       "standard_requirement_total": 2220,
       "standard_requirement_coverage_percent": 44.28,
       "service_report_store_cases": 20,
       "service_report_store_mapped_cases": 13
     },
     "latest_completed_slice": {
+      "lane": "process-ownership-acquisition-cancellation-idle-push",
+      "owner": "object-ddm-ownership",
+      "plan_id": "umbra-cpp-attribute-ownership-acquisition-cancellation-process-idle-push-integration",
+      "test_case": "RTIambassadors confirm process acquisition cancellation while requester is idle",
+      "source_location": "cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp:148",
+      "primary_lane": "process-ownership-acquisition-cancellation-idle-push",
+      "focus_lane": "process-ownership-acquisition-cancellation-idle-push",
+      "assertions": 35,
+      "requirements": 3,
+      "standard_sections": 3,
+      "api_surfaces": 3,
+      "callback_models": [
+        "HLA_IMMEDIATE"
+      ],
+      "next_action": "The official C++ public process cancellation callback is observed through HLA_IMMEDIATE without Evoke or an intervening requester service call; exact object/attribute and retained-owner state pass 20/20 focused repeats, the HLA_EVOKED companion passes 20/20, and the lane mapping check passes three direct pinned pairs. This does not cover cancel versus an already-buffered owner-release event. Keep the active process Disconnect investigation as the next release-blocking handoff; ownership race, multi-acquirer, validation, and conformance evidence remain separate."
+    },
+    "previous_completed_slice": {
       "lane": "process-service-report-next-message-request-available-pending-failure",
       "owner": "mom-after-base-services",
       "plan_id": "umbra-cpp-process-service-report-next-message-request-available-pending-failure",
@@ -355,23 +372,6 @@
         "HLA_EVOKED"
       ],
       "next_action": "A dedicated official-C++ two-member process loopback case holds TAR(5) pending, verifies NMRA(6) throws InTimeAdvancingState with one failed report in the same joined federate's filesystem file and no false success, then releases the original grant with regulator TAR(5). The MinGW connection target and exact loopback CTest passed 1/1. Its five direct pairs are §11.5 reporting; full §8.11.3(f)/§8.11.5(c) remains a pinned extraction gap (RL-322). Development-profile evidence only. Next: separately cover an invalid-time NMRA failure or the MOM-interaction destination, not generic process conformance."
-    },
-    "previous_completed_slice": {
-      "lane": "service-report-next-message-request-available-pending-failure",
-      "owner": "mom-after-base-services",
-      "plan_id": "umbra-cpp-service-report-next-message-request-available-pending-failure",
-      "test_case": "Embedded service reporting records a pending-advance Next Message Request Available failure",
-      "source_location": "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp:171",
-      "primary_lane": "service-report-next-message-request-available-pending-failure",
-      "focus_lane": "service-report-next-message-request-available-pending-failure",
-      "assertions": 21,
-      "requirements": 5,
-      "standard_sections": 3,
-      "api_surfaces": 7,
-      "callback_models": [
-        "HLA_EVOKED"
-      ],
-      "next_action": "The official-C++ embedded case keeps Time Advance Request(5) pending, verifies Next Message Request Available(6) throws InTimeAdvancingState with one failed filesystem report and no false success, then observes the original grant at 5. Its five direct pairs are §11.5 reporting; full §8.11.3(f)/§8.11.5(c) has no candidate in the pinned Lab bundle (RL-322). Focused MinGW available-advance/reporting CTest passed 6/6. Development-profile evidence only. Next: separately cover process parity or another failure class; do not infer all NMRA failures or conformance."
     },
     "prior_completed_slices": [
       {
@@ -863,6 +863,7 @@
       "process-ownership-acquisition-release": "object-ddm-ownership",
       "process-ownership-acquisition-release-denied": "object-ddm-ownership",
       "process-ownership-acquisition-cancellation": "object-ddm-ownership",
+      "process-ownership-acquisition-cancellation-idle-push": "object-ddm-ownership",
       "attribute-ownership-acquisition-if-available": "object-ddm-ownership",
       "attribute-ownership-acquisition": "object-ddm-ownership",
       "negotiated-assumption": "object-ddm-ownership",
@@ -2787,6 +2788,12 @@
         "ctest_label": "process-boundary",
         "source": "cpp/tests/attribute_ownership_acquisition_catch2.cpp"
       },
+      "process-ownership-acquisition-cancellation-idle-push": {
+        "catch2_target": "umbra_attribute_ownership_acquisition_catch2",
+        "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors confirm process acquisition cancellation while requester is idle$",
+        "ctest_label": "process-boundary",
+        "source": "cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp"
+      },
       "process-negotiated-divestiture-cancellation": {
         "catch2_target": "umbra_attribute_ownership_acquisition_catch2",
         "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors cancel Negotiated Attribute Ownership Divestiture through a configured process endpoint$",
@@ -4475,6 +4482,7 @@
       "process-ownership-acquisition-release": 30,
       "process-ownership-acquisition-release-denied": 36,
       "process-ownership-acquisition-cancellation": 34,
+      "process-ownership-acquisition-cancellation-idle-push": 35,
       "process-confirm-divestiture": 62,
       "process-confirm-divestiture-service-report": 62,
       "process-confirm-divestiture-service-report-interaction": 76,
@@ -10494,7 +10502,7 @@
         "public-endpoint",
         "2025"
       ],
-      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:986",
+      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:1132",
       "primary_lane": "process-ownership-acquisition-cancellation",
       "assertions": 34,
       "requirements": 3,
@@ -10508,6 +10516,37 @@
         "HLA_EVOKED"
       ],
       "status": "implemented-public-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-attribute-ownership-acquisition-cancellation-process-idle-push-integration",
+      "test_query": "RTIambassadors confirm process acquisition cancellation while requester is idle",
+      "lane_queries": [
+        "process-ownership-acquisition-cancellation-idle-push",
+        "process-ownership-acquisition-cancellation",
+        "attribute-ownership-acquisition",
+        "rti.service.cancel-attribute-ownership-acquisition",
+        "federate.callback.confirm-attribute-ownership-acquisition-cancellation",
+        "object-ddm-ownership",
+        "ownership-management",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp:148",
+      "primary_lane": "process-ownership-acquisition-cancellation-idle-push",
+      "assertions": 35,
+      "requirements": 3,
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.8",
+        "hla-1516.1-2025:clause-7.15",
+        "hla-1516.1-2025:clause-7.16"
+      ],
+      "api_surfaces": 3,
+      "callback_models": [
+        "HLA_IMMEDIATE"
+      ],
+      "status": "implemented-public-process-foundation-not-conformance-evidence"
     },
     {
       "plan_id": "umbra-cpp-attribute-ownership-acquisition-release-denied-process-integration",
@@ -28299,6 +28338,7 @@
         "process-ownership-acquisition-release-denied-push",
         "process-ownership-acquisition-release-denied-idle-push",
         "process-ownership-acquisition-cancellation",
+        "process-ownership-acquisition-cancellation-idle-push",
         "process-confirm-divestiture",
         "query-attribute-ownership-service-report-interaction",
         "cancel-attribute-ownership-acquisition-service-report-interaction",
