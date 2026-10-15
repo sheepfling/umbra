@@ -77779,6 +77779,64 @@
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public immediate fresh-registry restore keeps an object-name reservation with its federate$",
       "next_action": "Keep atomic Reserve Multiple Names, ownership across changed membership, external process restart, installed-package/JUnit evidence, interoperability, and conformance outside this focused HLA_IMMEDIATE two-federate case."
+    },
+    {
+      "id": "umbra-cpp-public-fresh-registry-reserve-multiple-name-foreign-owner-partition-restore",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.reservemultipleobjectinstancenames.6fac44e8cd2f",
+        "api.2025.cpp.rtiambassador.releaseobjectinstancename.2d87737a22e3",
+        "api.2025.cpp.rtiambassador.requestfederationsave.32986a607094",
+        "api.2025.cpp.rtiambassador.federatesavebegun.4d2693ce9551",
+        "api.2025.cpp.rtiambassador.federatesavecomplete.e775cf801fae",
+        "api.2025.cpp.rtiambassador.requestfederationrestore.12708949c200",
+        "api.2025.cpp.rtiambassador.federaterestorecomplete.c2567e07cf13",
+        "api.2025.cpp.federateambassador.multipleobjectinstancenamereservationsucceeded.c4a7d2f3a174",
+        "api.2025.cpp.federateambassador.multipleobjectinstancenamereservationfailed.1def6acfecf1"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-068-l115-29",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l64-15",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l67-16",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l110-30",
+        "requirement-candidate-content-clauses-06-object-management-page-116-l84-21",
+        "requirement-candidate-content-clauses-06-object-management-page-116-l96-25",
+        "requirement-candidate-content-clauses-06-object-management-page-114-l110-26"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.22",
+        "hla-1516.1-2025:clause-4.23",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-6.4.3",
+        "hla-1516.1-2025:clause-6.5.3",
+        "hla-1516.1-2025:clause-6.6.4"
+      ],
+      "test_case": "Embedded public fresh-registry restore partitions Reserve Multiple Names against saved foreign ownership",
+      "source_location": "cpp/tests/ieee1516_2025_public_fresh_registry_object_name_reservations_restore_catch2.cpp:266",
+      "primary_lane": "public-fresh-registry-reserve-multiple-name-partition",
+      "assertions": 57,
+      "callback_models": ["HLA_EVOKED"],
+      "tags": [
+        "integration", "development-profile", "2025", "federation-management",
+        "object-management", "save-restore", "durable-save", "filesystem",
+        "process-restart", "public-fresh-registry-reserve-multiple-name-partition",
+        "multi-federate", "rti.service.reserve-multiple-object-instance-names",
+        "rti.service.release-object-instance-name",
+        "rti.service.request-federation-save",
+        "rti.service.federate-save-begun",
+        "rti.service.federate-save-complete",
+        "rti.service.request-federation-restore",
+        "rti.service.federate-restore-complete",
+        "federate.callback.multiple-object-instance-name-reservation-succeeded",
+        "federate.callback.multiple-object-instance-name-reservation-failed"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "The official 2025 C++ API case saves two names reserved through Reserve Multiple Object Instance Names by one federate; it observes that the filesystem commit and Federation Saved callbacks wait until both joined federates complete. It recreates the embedded registry and public ambassadors, then restores the image. A second federate's mixed request receives a successful subset containing only a free name and a failed subset containing only the foreign-held name, through multiple-name callbacks rather than single-name callbacks. The successful subset is releasable by the second federate; the original owner retains and can release the restored names. This exercises per-name outcomes and owner exclusivity, not the distinct illegal-name abort-all rule.",
+      "ctest_target": "umbra_ieee1516_2025_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore partitions Reserve Multiple Names against saved foreign ownership$",
+      "next_action": "Keep the distinct illegal-name abort-all and Release Multiple Names atomicity rules, HLA_IMMEDIATE parity, changed-membership/distributed restart, installed-package/JUnit evidence, interoperability, and conformance open."
     }
   ]
 }
