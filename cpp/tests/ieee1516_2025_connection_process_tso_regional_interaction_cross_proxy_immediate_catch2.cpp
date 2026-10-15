@@ -455,23 +455,7 @@ RtiConfiguration configurationFor(
       .withRtiAddress(L"tcp://127.0.0.1:" + std::to_wstring(address.port));
 }
 
-}  // namespace
-
-TEST_CASE(
-    "RTIambassadors retarget pending process NMR across two OS ingress proxies for regional interactions",
-    "[integration][foundation][data-distribution-management]"
-    "[interaction-management][time-management][time-advance][transport]"
-    "[process-boundary][public-endpoint][multi-federate][regional-interaction]"
-    "[timestamped-process-regional-interaction]"
-    "[process-time-advance-next-message-queued-focused]"
-    "[process-tso-cross-endpoint-arrival-coordination]"
-    "[rti.service.create-region][rti.service.set-range-bounds]"
-    "[rti.service.commit-region-modifications]"
-    "[rti.service.subscribe-interaction-class-with-regions]"
-    "[rti.service.send-interaction-with-regions]"
-    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
-    "[rti.service.next-message-request][federate.callback.receive-interaction]"
-    "[federate.callback.time-advance-grant][2025]") {
+void verifyRegionalCrossProxyScenario(bool releaseLaterInteraction) {
   EmbeddedFederationRegistry registry;
   ProcessFederationServiceHost authority(
       registry,
@@ -634,6 +618,48 @@ TEST_CASE(
   REQUIRE_FALSE(receiverFederate.waitForEvents(3U, std::chrono::milliseconds(150)));
   REQUIRE(receiverFederate.events().size() == 2U);
 
+  if (releaseLaterInteraction) {
+    REQUIRE_NOTHROW(receiver->nextMessageRequest(
+        rti1516_2025::HLAinteger64Time(10)));
+    // The earlier regulator is still at 5; observe a bounded interval with
+    // no grant before advancing it, despite the queued later interaction.
+    REQUIRE_FALSE(receiverFederate.waitForEvents(
+        3U, std::chrono::milliseconds(150)));
+    REQUIRE(receiverFederate.events().size() == 2U);
+
+    REQUIRE_NOTHROW(earlier->timeAdvanceRequest(
+        rti1516_2025::HLAinteger64Time(8)));
+    REQUIRE(earlierFederate.waitForEvents(2U));
+    auto const earlierEvents = earlierFederate.events();
+    REQUIRE(earlierEvents.size() == 2U);
+    REQUIRE(earlierEvents[1].kind == 'G');
+    REQUIRE(earlierEvents[1].time == 8);
+
+    // Still no receiver evokeCallback: the retained timestamp-8 interaction
+    // is released by the authoritative time scheduler into immediate delivery.
+    REQUIRE(receiverFederate.waitForEvents(4U));
+    auto const released = receiverFederate.events();
+    REQUIRE(released.size() == 4U);
+    REQUIRE(released[0].kind == 'I');
+    REQUIRE(released[0].time == 5);
+    REQUIRE(released[1].kind == 'G');
+    REQUIRE(released[1].time == 5);
+    REQUIRE(released[2].kind == 'I');
+    REQUIRE(released[2].time == 8);
+    REQUIRE(released[2].interaction == receiverClass);
+    REQUIRE(released[2].parameter == laterParameter);
+    REQUIRE(released[2].payload == 0x08U);
+    REQUIRE(released[2].producer == laterHandle);
+    REQUIRE(released[2].sentRegions ==
+            rti1516_2025::RegionHandleSet{laterRegion});
+    REQUIRE(released[2].receivedOrder == rti1516_2025::TIMESTAMP);
+    REQUIRE(released[3].kind == 'G');
+    REQUIRE(released[3].time == 8);
+    REQUIRE_FALSE(receiverFederate.waitForEvents(
+        5U, std::chrono::milliseconds(150)));
+    REQUIRE(receiverFederate.events().size() == 4U);
+  }
+
   REQUIRE_NOTHROW(later->resignFederationExecution(rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(earlier->resignFederationExecution(rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(receiver->resignFederationExecution(rti1516_2025::NO_ACTION));
@@ -644,6 +670,44 @@ TEST_CASE(
   earlierIngress.stop();
   authority.stop();
   REQUIRE_NOTHROW(authority.rethrowIfFailed());
+}
+
+}  // namespace
+
+TEST_CASE(
+    "RTIambassadors retarget pending process NMR across two OS ingress proxies for regional interactions",
+    "[integration][foundation][data-distribution-management]"
+    "[interaction-management][time-management][time-advance][transport]"
+    "[process-boundary][public-endpoint][multi-federate][regional-interaction]"
+    "[timestamped-process-regional-interaction]"
+    "[process-time-advance-next-message-queued-focused]"
+    "[process-tso-cross-endpoint-arrival-coordination]"
+    "[rti.service.create-region][rti.service.set-range-bounds]"
+    "[rti.service.commit-region-modifications]"
+    "[rti.service.subscribe-interaction-class-with-regions]"
+    "[rti.service.send-interaction-with-regions]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.next-message-request][federate.callback.receive-interaction]"
+    "[federate.callback.time-advance-grant][2025]") {
+  verifyRegionalCrossProxyScenario(false);
+}
+
+TEST_CASE(
+    "RTIambassadors release queued cross-proxy regional interaction on subsequent NMR",
+    "[integration][foundation][data-distribution-management]"
+    "[interaction-management][time-management][time-advance][transport]"
+    "[process-boundary][public-endpoint][multi-federate][regional-interaction]"
+    "[timestamped-process-regional-interaction]"
+    "[process-time-advance-next-message-queued-focused]"
+    "[process-tso-cross-endpoint-arrival-coordination]"
+    "[rti.service.create-region][rti.service.set-range-bounds]"
+    "[rti.service.commit-region-modifications]"
+    "[rti.service.subscribe-interaction-class-with-regions]"
+    "[rti.service.send-interaction-with-regions]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.next-message-request][federate.callback.receive-interaction]"
+    "[federate.callback.time-advance-grant][2025]") {
+  verifyRegionalCrossProxyScenario(true);
 }
 
 #endif

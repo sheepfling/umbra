@@ -16272,7 +16272,7 @@
       "source_location": "cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp:457",
       "primary_lane": "process-synchronization-point-explicit-failure",
       "focus_lane": "process-synchronization-point-explicit-failure",
-      "assertions": 27,
+      "assertions": 23,
       "callback_models": [
         "HLA_EVOKED"
       ],
@@ -28412,7 +28412,7 @@
       ],
       "test_case": "RTIambassador routes process Request Attribute Value Update through the official Provide callback",
       "source_location": "cpp/tests/ieee1516_2025_connection_request_attribute_value_update_catch2.cpp:459",
-      "assertions": 62,
+      "assertions": 63,
       "callback_models": [
         "HLA_EVOKED",
         "HLA_IMMEDIATE"
@@ -48810,7 +48810,7 @@
         "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l152-45"
       ],
       "test_case": "RTIambassadors retarget pending process NMR across two OS ingress proxies for regional interactions",
-      "source_location": "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_cross_proxy_immediate_catch2.cpp:460",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_cross_proxy_immediate_catch2.cpp:677",
       "assertions": 62,
       "callback_models": [
         "HLA_IMMEDIATE"
@@ -48846,7 +48846,73 @@
       "ctest_target": "umbra_ieee1516_2025_connection_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors retarget pending process NMR across two OS ingress proxies for regional interactions$",
       "ctest_label": "process-tso-cross-endpoint-arrival-coordination",
-      "next_action": "Prove a later receiver advance can release the still-queued timestamp-8 regional interaction in a separate focused case. Keep disjoint-region suppression, other TSO producer families, save/restore, package, Lab validation, interoperability, and conformance separate."
+      "next_action": "The separate subsequent-NMR case now proves the queued timestamp-8 interaction later releases. Keep disjoint-region suppression, other TSO producer families, save/restore, package, Lab validation, interoperability, and conformance separate."
+    },
+    {
+      "id": "umbra-cpp-process-tso-regional-interaction-cross-proxy-subsequent-nmr-release",
+      "primary_lane": "process-tso-cross-endpoint-arrival-coordination",
+      "focus_lane": "process-tso-cross-endpoint-arrival-coordination",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.getinteractionclasshandle.99bb9271fea0",
+        "api.2025.cpp.rtiambassador.getparameterhandle.396bff598c35",
+        "api.2025.cpp.rtiambassador.getdimensionhandle.7a343b0ace0a",
+        "api.2025.cpp.rtiambassador.publishinteractionclass.b9a848c4482f",
+        "api.2025.cpp.rtiambassador.createregion.db9bf691b557",
+        "api.2025.cpp.rtiambassador.setrangebounds.7bcbe0e55f0b",
+        "api.2025.cpp.rtiambassador.commitregionmodifications.e066e7b1c53d",
+        "api.2025.cpp.rtiambassador.setconveyregiondesignatorsetsswitch.7f6cdda9211b",
+        "api.2025.cpp.rtiambassador.subscribeinteractionclasswithregions.452be558d57a",
+        "api.2025.cpp.rtiambassador.sendinteractionwithregions.dc826d06f8e1",
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
+        "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+        "api.2025.cpp.rtiambassador.nextmessagerequest.da397d231bce",
+        "api.2025.cpp.federateambassador.receiveinteraction.06a1022b8731",
+        "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
+        "requirement-candidate-content-clauses-08-time-management-page-197-l50-13",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l152-45"
+      ],
+      "test_case": "RTIambassadors release queued cross-proxy regional interaction on subsequent NMR",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_cross_proxy_immediate_catch2.cpp:695",
+      "assertions": 88,
+      "callback_models": [
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.10.2",
+        "hla-1516.1-2025:clause-9.10"
+      ],
+      "tags": [
+        "integration",
+        "foundation",
+        "2025",
+        "data-distribution-management",
+        "interaction-management",
+        "time-management",
+        "time-advance",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "multi-federate",
+        "regional-interaction",
+        "timestamped-process-regional-interaction",
+        "process-time-advance-next-message-queued-focused",
+        "process-tso-cross-endpoint-arrival-coordination",
+        "rti.service.subscribe-interaction-class-with-regions",
+        "rti.service.send-interaction-with-regions",
+        "rti.service.next-message-request",
+        "federate.callback.receive-interaction",
+        "federate.callback.time-advance-grant"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence",
+      "requirements_lab_api_surface_status": "Official 2025 C++ HLA_IMMEDIATE development-profile evidence: after receiver NMR(10) delivers regional I(5) then TAG(5), a second NMR(10) remains pending while the earlier regulator is at 5; its advance to 8 releases the retained regional I(8) from the original later producer before TAG(8), without replay of I(5). The three direct pinned pairs cover only NMR next-TSO selection, the post-NMR Receive Interaction branch, and positive overlap of committed send/subscription regions. The §9.10 disjoint path and §9.12 send-scope exclusion remain unproved. Distinct OS proxies, no receiver polling, exact producer/metadata, and bounded no-extra-event probes are implementation-profile assertions, not extra normative pairs. This is not general TSO, Lab validation, interoperability, or conformance evidence.",
+      "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors release queued cross-proxy regional interaction on subsequent NMR$",
+      "ctest_label": "process-tso-cross-endpoint-arrival-coordination",
+      "next_action": "Add a distinct disjoint-region receiver/control path before mapping §9.12 send-scope exclusion; keep other TSO producer families, save/restore, package, Lab validation, interoperability, and conformance separate."
     },
     {
       "id": "umbra-cpp-process-tso-regional-interaction-nmra-future-arrival",

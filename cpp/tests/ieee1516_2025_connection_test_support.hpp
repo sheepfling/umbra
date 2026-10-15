@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <system_error>
 
 #include <RTI/RTI1516.h>
 
@@ -23,8 +24,13 @@ inline std::filesystem::path temporaryServiceReportDirectory() {
   for (;;) {
     auto const candidate = std::filesystem::temp_directory_path() /
         ("umbra-service-report-configuration-" + std::to_string(++next));
-    if (std::filesystem::create_directory(candidate)) {
+    std::error_code error;
+    if (std::filesystem::create_directory(candidate, error)) {
       return candidate;
+    }
+    if (error && error != std::errc::file_exists) {
+      throw std::filesystem::filesystem_error(
+          "Could not allocate a service-report directory", candidate, error);
     }
   }
 }

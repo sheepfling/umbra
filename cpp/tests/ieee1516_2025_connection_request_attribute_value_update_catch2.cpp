@@ -460,6 +460,7 @@ TEST_CASE(
     "RTIambassador routes process Request Attribute Value Update through the official Provide callback",
     "[integration][foundation][object-management][callbacks][callback-controls][transport][process-boundary][public-endpoint][rti.service.request-attribute-value-update][federate.callback.provide-attribute-value-update]") {
   auto runScenario = [](CallbackModel callbackModel) {
+    constexpr double callbackWaitSeconds = 2.0;
     class RecordingFederateAmbassador final : public NullFederateAmbassador {
      public:
       void discoverObjectInstance(
@@ -472,6 +473,19 @@ TEST_CASE(
         discoveredObjectClass = objectClass;
         discoveredObjectInstanceName = objectInstanceName;
         discoveredProducingFederate = producingFederate;
+      }
+
+      void turnUpdatesOnForObjectInstance(
+          rti1516_2025::ObjectInstanceHandle const&,
+          rti1516_2025::AttributeHandleSet const&) override {
+        ++turnUpdatesOnCount;
+      }
+
+      void turnUpdatesOnForObjectInstance(
+          rti1516_2025::ObjectInstanceHandle const&,
+          rti1516_2025::AttributeHandleSet const&,
+          std::wstring const&) override {
+        ++turnUpdatesOnCount;
       }
 
       void provideAttributeValueUpdate(
@@ -520,6 +534,7 @@ TEST_CASE(
       rti1516_2025::ObjectClassHandle discoveredObjectClass;
       std::wstring discoveredObjectInstanceName;
       rti1516_2025::FederateHandle discoveredProducingFederate;
+      std::size_t turnUpdatesOnCount = 0U;
       bool provided = false;
       rti1516_2025::ObjectInstanceHandle providedObjectInstance;
       std::size_t providedAttributeCount = 0U;
@@ -868,13 +883,14 @@ TEST_CASE(
         static_cast<void>(
             providerRti->getObjectClassHandle(objectClassNameWide));
       } else {
-        static_cast<void>(providerRti->evokeCallback(0.0));
+        static_cast<void>(providerRti->evokeCallback(callbackWaitSeconds));
+        REQUIRE(providerFederate.turnUpdatesOnCount == 1U);
       }
       if (callbackModel == HLA_IMMEDIATE) {
         static_cast<void>(
             requesterRti->getObjectClassHandle(objectClassNameWide));
       } else {
-        static_cast<void>(requesterRti->evokeCallback(0.0));
+        static_cast<void>(requesterRti->evokeCallback(callbackWaitSeconds));
       }
       REQUIRE(requesterFederate.discovered);
       REQUIRE(requesterFederate.discoveredObjectInstance == objectInstance);
@@ -891,7 +907,7 @@ TEST_CASE(
         static_cast<void>(
             providerRti->getObjectClassHandle(objectClassNameWide));
       } else {
-        static_cast<void>(providerRti->evokeCallback(0.0));
+        static_cast<void>(providerRti->evokeCallback(callbackWaitSeconds));
       }
       REQUIRE(providerFederate.provided);
       REQUIRE(providerFederate.providedObjectInstance == objectInstance);
@@ -913,7 +929,7 @@ TEST_CASE(
         static_cast<void>(
             requesterRti->getObjectClassHandle(objectClassNameWide));
       } else {
-        static_cast<void>(requesterRti->evokeCallback(0.0));
+        static_cast<void>(requesterRti->evokeCallback(callbackWaitSeconds));
       }
       REQUIRE(requesterFederate.reflected);
       REQUIRE(requesterFederate.reflectedObjectInstance == objectInstance);
@@ -931,30 +947,13 @@ TEST_CASE(
       requesterRti->disconnect();
     } catch (...) {
       clientError = std::current_exception();
-      if (providerJoined) {
-        try {
-          providerRti->resignFederationExecution(DELETE_OBJECTS);
-        } catch (...) {
-        }
-      }
-      if (requesterJoined) {
-        try {
-          requesterRti->resignFederationExecution(NO_ACTION);
-        } catch (...) {
-        }
-      }
-      try {
-        providerRti->disconnect();
-      } catch (...) {
-      }
-      try {
-        requesterRti->disconnect();
-      } catch (...) {
-      }
     }
-    if (listener) {
-      listener.reset();
+    if (clientError) {
+      // No additional scripted service is legal after an assertion failure.
+      providerRti.reset();
+      requesterRti.reset();
     }
+    listener->close();
     if (server.joinable()) {
       server.join();
     }

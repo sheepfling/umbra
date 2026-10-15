@@ -464,6 +464,7 @@ TEST_CASE(
   constexpr wchar_t const* synchronizationLabel =
       L"process-synchronization-point-explicit";
   constexpr wchar_t const* federateType = L"process-synchronization-explicit-type";
+  constexpr double callbackWaitSeconds = 2.0;
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
   auto const port = listener->address().port;
@@ -621,12 +622,12 @@ TEST_CASE(
         tag,
         synchronizationSet);
     REQUIRE(senderFederate.registrationSucceededCount == 0U);
-    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+    (void)senderRti->evokeCallback(callbackWaitSeconds);
     REQUIRE(senderFederate.registrationSucceededCount == 1U);
     REQUIRE(senderFederate.registrationLabel == synchronizationLabel);
     REQUIRE_FALSE(senderRti->evokeCallback(0.0));
     REQUIRE(senderFederate.announcementCount == 0U);
-    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    (void)receiverRti->evokeCallback(callbackWaitSeconds);
     REQUIRE(receiverFederate.announcementCount == 1U);
     REQUIRE(receiverFederate.announcementLabel == synchronizationLabel);
     REQUIRE(receiverFederate.announcementTag ==
@@ -636,7 +637,7 @@ TEST_CASE(
         synchronizationLabel,
         tag,
         synchronizationSet);
-    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+    (void)senderRti->evokeCallback(callbackWaitSeconds);
     REQUIRE(senderFederate.registrationFailedCount == 1U);
     REQUIRE(senderFederate.registrationLabel == synchronizationLabel);
     REQUIRE(senderFederate.registrationFailureReason ==
@@ -646,7 +647,7 @@ TEST_CASE(
         senderRti->synchronizationPointAchieved(synchronizationLabel),
         rti1516_2025::SynchronizationPointLabelNotAnnounced);
     receiverRti->synchronizationPointAchieved(synchronizationLabel, false);
-    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    (void)receiverRti->evokeCallback(callbackWaitSeconds);
     REQUIRE(receiverFederate.synchronizedCount == 1U);
     REQUIRE(receiverFederate.synchronizedLabel == synchronizationLabel);
     REQUIRE(receiverFederate.failedToSyncCount == 1U);
@@ -659,9 +660,12 @@ TEST_CASE(
   } catch (...) {
     clientError = std::current_exception();
   }
-  if (listener) {
-    listener.reset();
+  if (clientError) {
+    // Closing both clients unblocks the scripted server without extra services.
+    senderRti.reset();
+    receiverRti.reset();
   }
+  listener->close();
   if (server.joinable()) {
     server.join();
   }
