@@ -5086,7 +5086,7 @@ def main() -> int:
         or assumption_case.get("assertions") != 60
         or len(assumption_case.get("lab_requirement_ids", [])) != 1
         or len(assumption_case.get("standard_sections", [])) != 1
-        or len(assumption_case.get("selected_cpp_api_surface_ids", [])) != 16
+        or len(assumption_case.get("selected_cpp_api_surface_ids", [])) != 17
     ):
         raise AssertionError("Confirm Divestiture assumption mapping drifted")
     assumption_focus = query_rti_work.focused_lane_result(
