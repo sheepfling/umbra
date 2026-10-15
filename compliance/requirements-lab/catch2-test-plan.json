@@ -31905,7 +31905,7 @@
       "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors retain the queried owner after a denied process acquisition$",
       "primary_lane": "process-ownership-acquisition-release-denied",
       "focus_lane": "process-ownership-acquisition-release-denied",
-      "assertions": 44,
+      "assertions": 43,
       "callback_models": [
         "HLA_EVOKED"
       ],
