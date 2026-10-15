@@ -617,18 +617,14 @@ TEST_CASE(
             ownerHandler,
             TransportServiceOperation::register_object_instance_with_regions,
             "The initial regional advisory server lost regional Register.");
+        // Evoked discovery drains the receiver's queued callback locally;
+        // registration does not require a second process Receive request.
         if (callbackModel == HLA_IMMEDIATE) {
           serveExpected(
               receiver,
               receiverHandler,
               TransportServiceOperation::get_object_class_handle,
               "The initial regional advisory server lost immediate discovery polling.");
-        } else {
-          serveExpected(
-              receiver,
-              receiverHandler,
-              TransportServiceOperation::receive_interaction,
-              "The initial regional advisory server lost discovery Receive.");
         }
         serveExpected(
             owner,
