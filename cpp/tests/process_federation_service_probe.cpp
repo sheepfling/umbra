@@ -479,6 +479,34 @@ int runPublicServer(
           return receiverHandler(request);
         });
   };
+  auto serveExpectedReceiverAfterEvokedPolls =
+      [&](TransportServiceOperation operation) {
+        while (true) {
+          bool expected = false;
+          if (!umbra::test::servePrimaryProcessRequest(
+                  *receiver, receiverHandler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation ==
+                        TransportServiceOperation::receive_interaction) {
+                      return receiverHandler(request);
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          "The installable process profile pending-acquisition server received an unexpected lost-member operation " +
+                          std::to_string(static_cast<unsigned int>(request.operation)) +
+                          " (expected " +
+                          std::to_string(static_cast<unsigned int>(operation)) + ").");
+                    }
+                    expected = true;
+                    return receiverHandler(request);
+                  })) {
+            return false;
+          }
+          if (expected) {
+            return true;
+          }
+        }
+      };
   auto serveExpectedSenderAfterEvokedPolls =
       [&](TransportServiceOperation operation) {
         while (true) {
@@ -552,31 +580,37 @@ int runPublicServer(
           return (*survivorHandler)(request);
         });
   };
-  auto serveExpectedReceiverPoll = [&] {
-    return umbra::test::servePrimaryProcessRequest(
-        *receiver, receiverHandler,
-        [&](TransportServiceMessage const& request) {
-          if (request.operation != TransportServiceOperation::receive_interaction) {
-            throw std::runtime_error(
-                "The installable process profile pending-acquisition server received an unexpected lost-member callback poll.");
+  auto serveExpectedSurvivorAfterEvokedPolls =
+      [&](TransportServiceOperation operation) {
+        if (!survivor || !survivorHandler) {
+          return false;
+        }
+        while (true) {
+          bool expected = false;
+          if (!umbra::test::servePrimaryProcessRequest(
+                  *survivor, *survivorHandler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation ==
+                        TransportServiceOperation::receive_interaction) {
+                      return (*survivorHandler)(request);
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          "The installable process profile pending-acquisition server received an unexpected survivor operation " +
+                          std::to_string(static_cast<unsigned int>(request.operation)) +
+                          " (expected " +
+                          std::to_string(static_cast<unsigned int>(operation)) + ").");
+                    }
+                    expected = true;
+                    return (*survivorHandler)(request);
+                  })) {
+            return false;
           }
-          return receiverHandler(request);
-        });
-  };
-  auto serveExpectedSurvivorPoll = [&] {
-    if (!survivor || !survivorHandler) {
-      return false;
-    }
-    return umbra::test::servePrimaryProcessRequest(
-        *survivor, *survivorHandler,
-        [&](TransportServiceMessage const& request) {
-          if (request.operation != TransportServiceOperation::receive_interaction) {
-            throw std::runtime_error(
-                "The installable process profile pending-acquisition server received an unexpected survivor callback poll.");
+          if (expected) {
+            return true;
           }
-          return (*survivorHandler)(request);
-        });
-  };
+        }
+      };
 
   auto const interactionClass = registry.interactionClassHandleFor(
       L"process-execution",
@@ -627,11 +661,13 @@ int runPublicServer(
       throw std::runtime_error(
           "The installable process profile pending-acquisition server lost a pre-loss operation.");
     }
-    if (!serveExpectedReceiverPoll() || !serveExpectedSurvivorPoll()) {
-      throw std::runtime_error(
-          "The installable process profile pending-acquisition server lost object discovery delivery.");
-    }
-    if (!serveExpectedReceiver(TransportServiceOperation::attribute_ownership_acquisition) ||
+    // Discovery may be pushed before an evoked client needs to poll. The
+    // public ownership queries delimit each recipient's callback drain.
+    if (!serveExpectedReceiverAfterEvokedPolls(
+            TransportServiceOperation::is_attribute_owned_by_federate) ||
+        !serveExpectedSurvivorAfterEvokedPolls(
+            TransportServiceOperation::is_attribute_owned_by_federate) ||
+        !serveExpectedReceiver(TransportServiceOperation::attribute_ownership_acquisition) ||
         !serveExpectedReceiver(TransportServiceOperation::set_automatic_resign_directive) ||
         !serveExpectedReceiver(TransportServiceOperation::get_automatic_resign_directive)) {
       throw std::runtime_error(
@@ -677,8 +713,8 @@ int runPublicServer(
 
     if (!serveExpectedSenderAfterEvokedPolls(
             TransportServiceOperation::unconditional_attribute_ownership_divestiture) ||
-        !serveExpectedSurvivorPoll() ||
-        !serveExpectedSurvivor(TransportServiceOperation::is_attribute_owned_by_federate) ||
+        !serveExpectedSurvivorAfterEvokedPolls(
+            TransportServiceOperation::is_attribute_owned_by_federate) ||
         !serveExpectedSurvivor(TransportServiceOperation::resign_federation_execution) ||
         !serveExpectedSender(TransportServiceOperation::resign_federation_execution)) {
       throw std::runtime_error(

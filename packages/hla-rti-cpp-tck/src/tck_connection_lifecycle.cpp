@@ -422,11 +422,17 @@ void scenarioConnectionLossAutomaticCancelPendingAcquisition(
       [&] { return lost.recorder().hasDiscovery(object); },
       options,
       "automatic acquisition-cancellation lost-member discovery");
+  require(
+      !lost.rtiAmbassador().isAttributeOwnedByFederate(object, lostAttribute),
+      "automatic acquisition-cancellation lost member unexpectedly owns the attribute");
   waitFor(
       survivor,
       [&] { return survivor.recorder().hasDiscovery(object); },
       options,
       "automatic acquisition-cancellation survivor discovery");
+  require(
+      !survivor.rtiAmbassador().isAttributeOwnedByFederate(object, survivorAttribute),
+      "automatic acquisition-cancellation survivor unexpectedly owns the attribute");
 
   std::vector<std::uint8_t> const acquisitionTagBytes{0xD6U, 0x25U};
   std::vector<std::uint8_t> const divestitureTagBytes{0xD7U, 0x25U};
