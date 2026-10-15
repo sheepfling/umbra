@@ -111,6 +111,7 @@ LOCAL_TCK_HEADERS = {
     "tck_order_type_controls.hpp",
     "tck_joined_federate_mom_reflections_received_counts.hpp",
     "tck_main_scenarios.hpp",
+    "tck_regional_auto_provide_scenarios.hpp",
     "tck_federation_lifecycle_scenarios.hpp",
     "tck_inherited_derived_delivery_scenarios.hpp",
     "tck_callback_controls_scenarios.hpp",

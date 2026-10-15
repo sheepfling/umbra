@@ -13,8 +13,8 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador multi-source regional Auto Provide declarations",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionalAutoProvideMultiSource",
-        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionalAutoProvideMultiSourceContract"
+        "packages/hla-rti-cpp-tck/src/tck_regional_auto_provide_scenarios.cpp::scenarioRegionalAutoProvideMultiSource",
+        "packages/hla-rti-cpp-tck/src/tck_regional_auto_provide_scenarios.cpp::scenarioRegionalAutoProvideMultiSourceContract"
       ]
     }
   ]

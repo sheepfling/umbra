@@ -13,8 +13,8 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership and regional object services",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionalAutoProvideMultiProvider",
-        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionalAutoProvideMultiProviderContract"
+        "packages/hla-rti-cpp-tck/src/tck_regional_auto_provide_scenarios.cpp::scenarioRegionalAutoProvideMultiProvider",
+        "packages/hla-rti-cpp-tck/src/tck_regional_auto_provide_scenarios.cpp::scenarioRegionalAutoProvideMultiProviderContract"
       ]
     }
   ]

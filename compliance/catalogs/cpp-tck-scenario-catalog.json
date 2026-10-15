@@ -19675,7 +19675,7 @@
         "attribute-value-update-response-api-contract.json",
         "attribute-value-update-response-requirements-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioRegionalAutoProvideResponse",
+      "cpp_test": "src/tck_regional_auto_provide_scenarios.cpp#scenarioRegionalAutoProvideResponse",
       "runner_id": "cpp-tck.regional-auto-provide-response",
       "parity": "java-tck.regional-auto-provide-response",
       "default_status": "adapter-required",
@@ -19702,7 +19702,7 @@
       "contract_refs": [
         "standard-regional-auto-provide-response-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioRegionalAutoProvideResponseContract",
+      "cpp_test": "src/tck_regional_auto_provide_scenarios.cpp#scenarioRegionalAutoProvideResponseContract",
       "runner_id": "cpp-tck.regional-auto-provide-response-contract",
       "parity": "cpp-tck.regional-auto-provide-response",
       "default_status": "adapter-required",
@@ -19765,7 +19765,7 @@
         "time-advance-api-contract.json",
         "time-advance-requirements-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioRegionalAutoProvideTimestampedResponse",
+      "cpp_test": "src/tck_regional_auto_provide_scenarios.cpp#scenarioRegionalAutoProvideTimestampedResponse",
       "runner_id": "cpp-tck.regional-auto-provide-timestamped-response",
       "parity": "java-tck.regional-auto-provide-timestamped-response",
       "default_status": "adapter-required",
@@ -19800,7 +19800,7 @@
       "contract_refs": [
         "standard-regional-auto-provide-timestamped-response-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioRegionalAutoProvideTimestampedResponseContract",
+      "cpp_test": "src/tck_regional_auto_provide_scenarios.cpp#scenarioRegionalAutoProvideTimestampedResponseContract",
       "runner_id": "cpp-tck.regional-auto-provide-timestamped-response-contract",
       "parity": "cpp-tck.regional-auto-provide-timestamped-response",
       "default_status": "adapter-required",
@@ -19849,7 +19849,7 @@
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioRegionalAutoProvideOverlap",
+      "cpp_test": "src/tck_regional_auto_provide_scenarios.cpp#scenarioRegionalAutoProvideOverlap",
       "runner_id": "cpp-tck.regional-auto-provide-overlap",
       "parity": "java-tck.regional-auto-provide-overlap",
       "default_status": "adapter-required",
@@ -19876,7 +19876,7 @@
       "contract_refs": [
         "standard-regional-auto-provide-overlap-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioRegionalAutoProvideOverlapContract",
+      "cpp_test": "src/tck_regional_auto_provide_scenarios.cpp#scenarioRegionalAutoProvideOverlapContract",
       "runner_id": "cpp-tck.regional-auto-provide-overlap-contract",
       "parity": "cpp-tck.regional-auto-provide-overlap",
       "default_status": "adapter-required",
@@ -19929,7 +19929,7 @@
         "attribute-value-update-response-api-contract.json",
         "attribute-value-update-response-requirements-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioRegionalAutoProvideMultiSource",
+      "cpp_test": "src/tck_regional_auto_provide_scenarios.cpp#scenarioRegionalAutoProvideMultiSource",
       "runner_id": "cpp-tck.regional-auto-provide-multi-source",
       "parity": "java-tck.regional-auto-provide-multi-source",
       "default_status": "adapter-required",
@@ -19956,7 +19956,7 @@
       "contract_refs": [
         "standard-regional-auto-provide-multi-source-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioRegionalAutoProvideMultiSourceContract",
+      "cpp_test": "src/tck_regional_auto_provide_scenarios.cpp#scenarioRegionalAutoProvideMultiSourceContract",
       "runner_id": "cpp-tck.regional-auto-provide-multi-source-contract",
       "parity": "cpp-tck.regional-auto-provide-multi-source",
       "default_status": "adapter-required",
@@ -20022,7 +20022,7 @@
         "attribute-value-update-response-api-contract.json",
         "attribute-value-update-response-requirements-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioRegionalAutoProvideMultiProvider",
+      "cpp_test": "src/tck_regional_auto_provide_scenarios.cpp#scenarioRegionalAutoProvideMultiProvider",
       "runner_id": "cpp-tck.regional-auto-provide-multi-provider",
       "parity": "java-tck.regional-auto-provide-multi-provider",
       "default_status": "adapter-required",
@@ -20053,7 +20053,7 @@
       "contract_refs": [
         "standard-regional-auto-provide-multi-provider-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioRegionalAutoProvideMultiProviderContract",
+      "cpp_test": "src/tck_regional_auto_provide_scenarios.cpp#scenarioRegionalAutoProvideMultiProviderContract",
       "runner_id": "cpp-tck.regional-auto-provide-multi-provider-contract",
       "parity": "cpp-tck.regional-auto-provide-multi-provider",
       "default_status": "adapter-required",
@@ -20106,7 +20106,7 @@
         "attribute-value-update-request-api-contract.json",
         "attribute-value-update-request-requirements-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioRegionalAutoProvideCallbackControl",
+      "cpp_test": "src/tck_regional_auto_provide_scenarios.cpp#scenarioRegionalAutoProvideCallbackControl",
       "runner_id": "cpp-tck.regional-auto-provide-callback-control",
       "parity": "java-tck.regional-auto-provide-callback-control",
       "default_status": "adapter-required",
@@ -20132,7 +20132,7 @@
       "contract_refs": [
         "standard-regional-auto-provide-callback-control-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioRegionalAutoProvideCallbackControlContract",
+      "cpp_test": "src/tck_regional_auto_provide_scenarios.cpp#scenarioRegionalAutoProvideCallbackControlContract",
       "runner_id": "cpp-tck.regional-auto-provide-callback-control-contract",
       "parity": "cpp-tck.regional-auto-provide-callback-control",
       "default_status": "adapter-required",
