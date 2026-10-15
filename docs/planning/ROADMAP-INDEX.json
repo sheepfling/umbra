@@ -250,7 +250,7 @@
       "catch2_cases_without_cpp_source_location": 2,
       "catch2_cases_without_lab_requirement_mapping": 97,
       "catch2_planned_cases": 0,
-      "catch2_plan_cases": 1502,
+      "catch2_plan_cases": 1503,
       "catch2_unmapped_explicit_disposition": 97,
       "catch2_unmapped_unclassified": 0,
       "cpp_source_cases_without_plan_row": 0,
@@ -360,8 +360,8 @@
     },
     "current_snapshot": {
       "source": "python tools/query_rti_work.py dashboard --summary --compact",
-      "plan_cases": 1502,
-      "mapped_cases": 1405,
+      "plan_cases": 1503,
+      "mapped_cases": 1406,
       "unmapped_cases": 97,
       "explicit_unmapped_cases": 97,
       "unclassified_unmapped_cases": 0,
@@ -369,13 +369,30 @@
       "source_unlocated_actionable_cases": 0,
       "planned_cases": 0,
       "source_only_cases": 0,
-    "direct_requirement_section_pairs": 980,
+      "direct_requirement_section_pairs": 980,
       "standard_requirement_total": 2220,
-    "standard_requirement_coverage_percent": 44.14,
+      "standard_requirement_coverage_percent": 44.14,
     "service_report_store_cases": 19,
       "service_report_store_mapped_cases": 13
     },
     "latest_completed_slice": {
+      "lane": "service-report-next-message-request-available-pending-failure",
+      "owner": "mom-after-base-services",
+      "plan_id": "umbra-cpp-service-report-next-message-request-available-pending-failure",
+      "test_case": "Embedded service reporting records a pending-advance Next Message Request Available failure",
+      "source_location": "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp:171",
+      "primary_lane": "service-report-next-message-request-available-pending-failure",
+      "focus_lane": "service-report-next-message-request-available-pending-failure",
+      "assertions": 21,
+      "requirements": 5,
+      "standard_sections": 3,
+      "api_surfaces": 7,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "next_action": "The official-C++ embedded case keeps Time Advance Request(5) pending, verifies Next Message Request Available(6) throws InTimeAdvancingState with one failed filesystem report and no false success, then observes the original grant at 5. Its five direct pairs are §11.5 reporting; full §8.11.3(f)/§8.11.5(c) has no candidate in the pinned Lab bundle (RL-322). Focused MinGW available-advance/reporting CTest passed 6/6. Development-profile evidence only. Next: separately cover an invalid-time NMRA failure or the process/MOM routes; do not infer all failures or conformance."
+    },
+    "previous_completed_slice": {
       "lane": "service-report-next-message-request-available-failure",
       "owner": "mom-after-base-services",
       "plan_id": "umbra-cpp-service-report-next-message-request-available-backward-failure",
@@ -390,24 +407,7 @@
       "callback_models": [
         "HLA_EVOKED"
       ],
-      "next_action": "The official-C++ embedded case now proves a backward Next Message Request Available(4) at current time 5 throws LogicalTimeAlreadyPassed, retains time and grant state, and appends one failed filesystem service-report record without a premature success record. Its five direct pairs are §11.5 reporting; full §8.11.3(d)/§8.11.5(a) flow text has no candidate in the pinned Lab bundle (RL-321). Focused MinGW available-advance/reporting CTest passed 5/5. Development-profile evidence only. Next: separately cover a pending-request NMRA failure (InTimeAdvancingState) and its file report; do not infer all NMRA failures, process routing, or conformance."
-    },
-    "previous_completed_slice": {
-      "lane": "tso-tara-queued-equal-boundary",
-      "owner": "time-save-restore",
-      "plan_id": "umbra-cpp-tara-exclusive-tso-request-boundary-integration",
-      "test_case": "Embedded TARA delivers a queued equal-time TSO before its grant",
-      "source_location": "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp:407",
-      "primary_lane": "tso-tara-queued-equal-boundary",
-      "focus_lane": "tso-tara-queued-equal-boundary",
-      "assertions": 30,
-      "requirements": 2,
-      "standard_sections": 1,
-      "api_surfaces": 18,
-      "callback_models": [
-        "HLA_EVOKED"
-      ],
-      "next_action": "Corrected the embedded and process TARA pre-grant selectors to deliver already-queued ts=t_R payloads before Time Advance Grant, as full IEEE 1516.1-2025 section 8.9 requires. The focused interaction, attribute, regional, directed, deletion, and process C++ cases now assert that boundary; the portable mixed-advance deletion case provides both callback models. Direct mappings select the pinned section-8.9 candidates, with RL-316 recording the clipped enumerated message set. Development-profile/TCK evidence only, not overall conformance. Next: add a distinct future-arrival ts=t_R case after the grant without weakening the queued-at-request requirement; cross-process watermark coordination remains separate."
+      "next_action": "The official-C++ embedded case proves backward Next Message Request Available(4) at current time 5 throws LogicalTimeAlreadyPassed, retains time and grant state, and appends one failed filesystem service-report record without a premature success record. Its five direct pairs are §11.5 reporting; full §8.11.3(d)/§8.11.5(a) flow text has no candidate in the pinned Lab bundle (RL-321). Focused MinGW available-advance/reporting CTest passed 5/5. Development-profile evidence only. Next: separately cover a pending-request NMRA failure and its file report; do not infer all NMRA failures, process routing, or conformance."
     },
     "prior_completed_slices": [
       {
@@ -525,6 +525,7 @@
       "service-report-store": "mom-after-base-services",
       "service-report-directory-config": "mom-after-base-services",
       "service-report-next-message-request-available-failure": "mom-after-base-services",
+      "service-report-next-message-request-available-pending-failure": "mom-after-base-services",
       "timestamped-regional-request-provider-response": "object-ddm-ownership",
       "object-class-request-provider-response": "time-save-restore",
       "timestamped-update-failure-service-report-file": "mom-after-base-services",
@@ -1579,6 +1580,12 @@
         "catch2_target": "umbra_ieee1516_2025_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records a rejected backward Next Message Request Available$",
         "ctest_label": "service-report-next-message-request-available-failure",
+        "source": "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp"
+      },
+      "service-report-next-message-request-available-pending-failure": {
+        "catch2_target": "umbra_ieee1516_2025_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records a pending-advance Next Message Request Available failure$",
+        "ctest_label": "service-report-next-message-request-available-pending-failure",
         "source": "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp"
       },
       "ddm-nonvoid-failure": {
@@ -4645,6 +4652,7 @@
       "mom-auto-provide-switch-mutation": 41,
       "service-report-directory-config": 8,
       "service-report-next-message-request-available-failure": 20,
+      "service-report-next-message-request-available-pending-failure": 21,
       "ddm-nonvoid-failure": 272,
       "ddm-mutation-failure": 72,
       "service-report-writer-failure": 27,
@@ -28915,6 +28923,7 @@
         "service-report-pair-list",
         "service-report-next-message-request-available-boundary",
         "service-report-next-message-request-available-failure",
+        "service-report-next-message-request-available-pending-failure",
         "associate-regions-for-updates-service-report-file",
         "unpublish-object-class-attributes-ownership-pending",
         "publish-object-class-attributes-service-report-file",
@@ -28929,7 +28938,7 @@
         "ddm-nonvoid-failure",
         "ddm-mutation-failure"
       ],
-      "next_action": "The accepted Next Message Request Available file-report boundary remains in its existing mapped case, and the new backward-time failure case at cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp:113 adds one direct §11.5 reporting slice (RL-321 records missing §8.11.3(d)/§8.11.5(a) candidate extraction). Focused MinGW available-advance/reporting CTest passed 5/5. Next separate official-C++ slice: report an NMRA request rejected with InTimeAdvancingState while an earlier advance is pending; keep process and MOM-interaction routes distinct."
+      "next_action": "The accepted Next Message Request Available boundary and backward-time failure retain their existing mapped C++ cases. The pending-advance failure case at cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp:171 adds one filesystem-reporting slice: it proves InTimeAdvancingState with no false success record while the earlier grant remains pending. RL-322 records missing full §8.11.3(f)/§8.11.5(c) candidates; the five direct pairs are only §11.5 reporting. Focused MinGW available-advance/reporting CTest passed 6/6. Next separate official-C++ slice: invalid-time NMRA failure or process/MOM route reporting; do not infer general conformance."
     },
     {
       "id": "transport-and-conformance",

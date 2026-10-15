@@ -1563,6 +1563,27 @@
       "reproduction": "Compare the pinned corpus bundle's requirement-candidate-content-clauses-08-time-management-page-199-* rows with the unchanged 1516.1-2025 semantic page-199 block line 149 and page-200 block line 21 in Document-Recreation.",
       "verification": "The reconstructed 2025 §8.11.3(d) says the specified logical time is greater than or equal to the joined federate's logical time, and §8.11.5(a) names Logical Time Already Passed. No corresponding candidate appears among the pinned page-199/200 requirement rows. The canonical PDF was not independently checked in this turn; this is a Lab extraction/usability issue, not IEEE errata.",
       "detected": "2026-10-14"
+    },
+    {
+      "id": "RL-322",
+      "status": "open",
+      "kind": "requirements-lab-missing-service-flow-candidates",
+      "title": "Next Message Request Available Time Advancing precondition and exception lack candidates",
+      "affected_requirement_ids": [],
+      "exported_clause": "8.11",
+      "normative_clause": "8.11.3(f), 8.11.5(c)",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "output/semantic/content-block-content-15161-page-200.tex",
+        "lines": "11, 23",
+        "page": 200
+      },
+      "symptom": "The pinned page-200 candidate rows start after the §8.11.3(f) precondition and §8.11.5(c) exception. The full 2025 section says the joined federate is not in the Time Advancing state and lists Joined federate in Time Advancing state as the exception, but neither service-flow item has its own candidate.",
+      "impact": "A focused official-C++ NMRA invocation while a prior advance is pending cannot directly map its InTimeAdvancingState exception to a Lab requirement ID. This is a distinct flow-item extraction gap from RL-321's backward-time pair.",
+      "workaround": "Do not resynchronize or invent IDs. Record the §8.11.3(f)/§8.11.5(c) full-section/API observation separately; map the test's filesystem failure-report assertions only to the existing §11.5/§11.5.1/§11.5.2 candidates.",
+      "reproduction": "Compare the pinned corpus bundle's requirement-candidate-content-clauses-08-time-management-page-200-* rows with output/semantic/content-block-content-15161-page-200.tex lines 11 and 23 in the 2025 Requirements Lab topic.",
+      "verification": "The reconstructed pinned 2025 §8.11.3(f) and §8.11.5(c) text has the stated Time Advancing precondition and exception. No corresponding candidate appears among the pinned page-199/200 requirement rows. The canonical PDF was not independently checked in this turn; this records Lab extraction usability, not IEEE errata.",
+      "detected": "2026-10-14"
     }
   ]
 }

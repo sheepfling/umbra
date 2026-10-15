@@ -418,3 +418,14 @@ backward NMRA test should cite those subsections as full-section/API evidence,
 without inventing a requirement ID; its separate service-report assertions
 can map to the existing §11.5 candidates. The bundle was not resynchronized.
 This is a Lab extraction issue, not IEEE errata or conformance evidence.
+
+### RL-322 — §8.11 NMRA Time Advancing flow items are missing candidates
+
+The pinned 2025 §8.11.3(f) requires the joined federate not be in the Time
+Advancing state, and §8.11.5(c) lists that state as an exception. These
+items appear at page-200 semantic lines 11 and 23, before the page's first
+candidate row. This is distinct from RL-321's backward-time pair. The new
+official-C++ pending-advance case cites the full subsections for its public
+exception and maps only its file-report assertions to real §11.5 candidates.
+No candidate ID was invented and the bundle was not resynchronized. This is
+a Lab extraction issue, not an IEEE erratum or conformance claim.
