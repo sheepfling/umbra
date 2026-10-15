@@ -458,7 +458,7 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "RTIambassador routes regional process class Request Attribute Value Update with its region selector",
-    "[integration][foundation][object-management][ddm][callbacks][callback-controls][transport][process-boundary][public-endpoint][rti.service.request-attribute-value-update-with-regions][rti.service.register-object-instance-with-regions][rti.service.create-region][rti.service.subscribe-object-class-attributes-with-regions][rti.service.update-attribute-values][federate.callback.provide-attribute-value-update][federate.callback.discover-object-instance][federate.callback.reflect-attribute-values]") {
+    "[integration][foundation][object-management][ddm][callbacks][callback-controls][transport][process-boundary][process-regional-class-request-attribute-value-update][2025][public-endpoint][rti.service.request-attribute-value-update-with-regions][rti.service.register-object-instance-with-regions][rti.service.create-region][rti.service.subscribe-object-class-attributes-with-regions][rti.service.update-attribute-values][federate.callback.provide-attribute-value-update][federate.callback.discover-object-instance][federate.callback.reflect-attribute-values]") {
   auto runScenario = [&](CallbackModel callbackModel) {
   class RecordingFederateAmbassador final : public NullFederateAmbassador {
    public:
@@ -466,20 +466,35 @@ TEST_CASE(
         rti1516_2025::ObjectInstanceHandle const& objectInstance,
         rti1516_2025::AttributeHandleSet const& attributes,
         rti1516_2025::VariableLengthData const& userSuppliedTag) override {
-      providedObject = objectInstance;
-      providedAttributeCount = attributes.size();
-      if (userSuppliedTag.size() != 0U) {
-        auto const* first = static_cast<std::uint8_t const*>(
-            userSuppliedTag.data());
-        providedTag.assign(first, first + userSuppliedTag.size());
+      {
+        std::scoped_lock lock(callbackMutex);
+        providedObject = objectInstance;
+        providedAttributeCount = attributes.size();
+        if (userSuppliedTag.size() != 0U) {
+          auto const* first = static_cast<std::uint8_t const*>(
+              userSuppliedTag.data());
+          providedTag.assign(first, first + userSuppliedTag.size());
+        }
+        ++providedCount;
       }
-      ++providedCount;
+      callbackAvailable.notify_all();
+    }
+
+    bool waitForProvided() {
+      std::unique_lock lock(callbackMutex);
+      return callbackAvailable.wait_for(lock, std::chrono::seconds(2), [this] {
+        return providedCount == 1U;
+      });
     }
 
     rti1516_2025::ObjectInstanceHandle providedObject;
     std::size_t providedAttributeCount = 0U;
     std::vector<std::uint8_t> providedTag;
     std::size_t providedCount = 0U;
+
+   private:
+    std::mutex callbackMutex;
+    std::condition_variable callbackAvailable;
   } providerFederate;
   class RecordingRequesterFederateAmbassador final
       : public NullFederateAmbassador {
@@ -489,10 +504,14 @@ TEST_CASE(
         rti1516_2025::ObjectClassHandle const& objectClass,
         std::wstring const&,
         rti1516_2025::FederateHandle const& producingFederate) override {
-      discovered = true;
-      discoveredObject = objectInstance;
-      discoveredClass = objectClass;
-      discoveredProducingFederate = producingFederate;
+      {
+        std::scoped_lock lock(callbackMutex);
+        discovered = true;
+        discoveredObject = objectInstance;
+        discoveredClass = objectClass;
+        discoveredProducingFederate = producingFederate;
+      }
+      callbackAvailable.notify_all();
     }
 
     void reflectAttributeValues(
@@ -502,29 +521,40 @@ TEST_CASE(
         rti1516_2025::TransportationTypeHandle const& transportationType,
         rti1516_2025::FederateHandle const& producingFederate,
         rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
-      reflected = true;
-      reflectedObject = objectInstance;
-      reflectedAttributeCount = attributeValues.size();
-      reflectedTransportationType = transportationType;
-      reflectedProducingFederate = producingFederate;
-      reflectedHasSentRegions = optionalSentRegions != nullptr;
-      reflectedSentRegionCount = optionalSentRegions == nullptr
-          ? 0U
-          : optionalSentRegions->size();
-      reflectedTag.clear();
-      if (userSuppliedTag.size() != 0U) {
-        auto const* first = static_cast<std::uint8_t const*>(
-            userSuppliedTag.data());
-        reflectedTag.assign(first, first + userSuppliedTag.size());
-      }
-      reflectedValue.clear();
-      if (!attributeValues.empty()) {
-        auto const& value = attributeValues.begin()->second;
-        if (value.size() != 0U) {
-          auto const* first = static_cast<std::uint8_t const*>(value.data());
-          reflectedValue.assign(first, first + value.size());
+      {
+        std::scoped_lock lock(callbackMutex);
+        reflected = true;
+        reflectedObject = objectInstance;
+        reflectedAttributeCount = attributeValues.size();
+        reflectedTransportationType = transportationType;
+        reflectedProducingFederate = producingFederate;
+        reflectedHasSentRegions = optionalSentRegions != nullptr;
+        reflectedSentRegionCount = optionalSentRegions == nullptr
+            ? 0U
+            : optionalSentRegions->size();
+        reflectedTag.clear();
+        if (userSuppliedTag.size() != 0U) {
+          auto const* first = static_cast<std::uint8_t const*>(
+              userSuppliedTag.data());
+          reflectedTag.assign(first, first + userSuppliedTag.size());
+        }
+        reflectedValue.clear();
+        if (!attributeValues.empty()) {
+          auto const& value = attributeValues.begin()->second;
+          if (value.size() != 0U) {
+            auto const* first = static_cast<std::uint8_t const*>(value.data());
+            reflectedValue.assign(first, first + value.size());
+          }
         }
       }
+      callbackAvailable.notify_all();
+    }
+
+    bool waitForReflection() {
+      std::unique_lock lock(callbackMutex);
+      return callbackAvailable.wait_for(lock, std::chrono::seconds(2), [this] {
+        return discovered && reflected;
+      });
     }
 
     bool discovered = false;
@@ -540,6 +570,10 @@ TEST_CASE(
     std::size_t reflectedSentRegionCount = 0U;
     std::vector<std::uint8_t> reflectedTag;
     std::vector<std::uint8_t> reflectedValue;
+
+   private:
+    std::mutex callbackMutex;
+    std::condition_variable callbackAvailable;
   } requesterFederate;
 
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
@@ -731,13 +765,13 @@ TEST_CASE(
           requesterHandler,
           TransportServiceOperation::request_attribute_value_update_class_with_regions,
           "The regional process class server lost regional Request Attribute Value Update.");
-      serveExpected(
-          provider,
-          providerHandler,
-          callbackModel == HLA_IMMEDIATE
-              ? TransportServiceOperation::get_object_class_handle
-              : TransportServiceOperation::receive_interaction,
-          "The regional process class server lost provider Provide polling.");
+      if (callbackModel == HLA_EVOKED) {
+        serveExpected(
+            provider,
+            providerHandler,
+            TransportServiceOperation::receive_interaction,
+            "The regional process class server lost provider Provide polling.");
+      }
       serveExpected(
           requester,
           requesterHandler,
@@ -752,8 +786,8 @@ TEST_CASE(
         serveExpected(
             requester,
             requesterHandler,
-            TransportServiceOperation::get_object_class_handle,
-            "The regional process class server lost requester immediate reflection polling.");
+            TransportServiceOperation::claim_deferred_attribute_update,
+            "The regional process class server lost requester deferred reflection claim.");
       } else {
         serveExpected(
             requester,
@@ -899,9 +933,9 @@ TEST_CASE(
     REQUIRE_NOTHROW(requesterRti->requestAttributeValueUpdateWithRegions(
         requesterObjectClass, requestPairs, userSuppliedTag));
     if (callbackModel == HLA_IMMEDIATE) {
-      static_cast<void>(providerRti->getObjectClassHandle(objectClassNameWide));
+      REQUIRE(providerFederate.waitForProvided());
     } else {
-      static_cast<void>(providerRti->evokeCallback(0.0));
+      static_cast<void>(providerRti->evokeCallback(0.2));
     }
     REQUIRE(providerFederate.providedCount == 1U);
     REQUIRE(providerFederate.providedObject == objectInstance);
@@ -923,12 +957,12 @@ TEST_CASE(
     REQUIRE_NOTHROW(providerRti->updateAttributeValues(
         objectInstance, responseValues, responseTagData));
     if (callbackModel == HLA_IMMEDIATE) {
-      static_cast<void>(requesterRti->getObjectClassHandle(objectClassNameWide));
+      REQUIRE(requesterFederate.waitForReflection());
     } else {
       for (std::size_t evokeCount = 0U;
            evokeCount < 4U && !requesterFederate.reflected;
            ++evokeCount) {
-        static_cast<void>(requesterRti->evokeCallback(0.0));
+        static_cast<void>(requesterRti->evokeCallback(0.2));
       }
     }
     REQUIRE(requesterFederate.discovered);
