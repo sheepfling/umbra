@@ -8,7 +8,6 @@
 #include <cstring>
 #include <exception>
 #include <filesystem>
-#include <fstream>
 #include <functional>
 #include <future>
 #include <iterator>
@@ -456,65 +455,133 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "RTIambassador reissues Attribute Relevance Advisory callbacks when the active update rate changes through a configured process endpoint",
-    "[integration][foundation][object-management][data-distribution-management][callbacks][callback-immediate][transport][process-boundary][public-endpoint][attribute-relevance-advisory][update-rate-reissue][2025][rti.service.get-attribute-relevance-advisory-switch][rti.service.set-attribute-relevance-advisory-switch][rti.service.publish-object-class-attributes][rti.service.register-object-instance][rti.service.subscribe-object-class-attributes][rti.service.unsubscribe-object-class-attributes][federate.callback.discover-object-instance][federate.callback.turn-updates-on-for-object-instance][federate.callback.turn-updates-off-for-object-instance]") {
+    "[integration][foundation][object-management][data-distribution-management][callbacks][callback-immediate][transport][process-boundary][process-attribute-relevance-rate-reissue][public-endpoint][attribute-relevance-advisory][update-rate-reissue][2025][rti.service.get-attribute-relevance-advisory-switch][rti.service.set-attribute-relevance-advisory-switch][rti.service.publish-object-class-attributes][rti.service.register-object-instance][rti.service.subscribe-object-class-attributes][rti.service.unsubscribe-object-class-attributes][federate.callback.discover-object-instance][federate.callback.turn-updates-on-for-object-instance][federate.callback.turn-updates-off-for-object-instance]") {
   auto runScenario = [](CallbackModel callbackModel) {
     class RecordingOwnerAmbassador final : public NullFederateAmbassador {
      public:
+      struct State {
+        std::size_t turnedOnCount = 0U;
+        rti1516_2025::ObjectInstanceHandle turnedOnObjectInstance;
+        rti1516_2025::AttributeHandleSet turnedOnAttributes;
+        std::vector<std::optional<std::wstring>> turnedOnRates;
+        std::size_t turnedOffCount = 0U;
+        rti1516_2025::ObjectInstanceHandle turnedOffObjectInstance;
+        rti1516_2025::AttributeHandleSet turnedOffAttributes;
+      };
+
       void turnUpdatesOnForObjectInstance(
           rti1516_2025::ObjectInstanceHandle const& objectInstance,
           rti1516_2025::AttributeHandleSet const& attributes) override {
-        ++turnedOnCount;
-        turnedOnObjectInstance = objectInstance;
-        turnedOnAttributes = attributes;
-        turnedOnRates.emplace_back(std::nullopt);
+        {
+          std::lock_guard lock(mutex_);
+          ++state_.turnedOnCount;
+          state_.turnedOnObjectInstance = objectInstance;
+          state_.turnedOnAttributes = attributes;
+          state_.turnedOnRates.emplace_back(std::nullopt);
+        }
+        condition_.notify_all();
       }
 
       void turnUpdatesOnForObjectInstance(
           rti1516_2025::ObjectInstanceHandle const& objectInstance,
           rti1516_2025::AttributeHandleSet const& attributes,
           std::wstring const& updateRateDesignator) override {
-        ++turnedOnCount;
-        turnedOnObjectInstance = objectInstance;
-        turnedOnAttributes = attributes;
-        turnedOnRates.emplace_back(updateRateDesignator);
+        {
+          std::lock_guard lock(mutex_);
+          ++state_.turnedOnCount;
+          state_.turnedOnObjectInstance = objectInstance;
+          state_.turnedOnAttributes = attributes;
+          state_.turnedOnRates.emplace_back(updateRateDesignator);
+        }
+        condition_.notify_all();
       }
 
       void turnUpdatesOffForObjectInstance(
           rti1516_2025::ObjectInstanceHandle const& objectInstance,
           rti1516_2025::AttributeHandleSet const& attributes) override {
-        ++turnedOffCount;
-        turnedOffObjectInstance = objectInstance;
-        turnedOffAttributes = attributes;
+        {
+          std::lock_guard lock(mutex_);
+          ++state_.turnedOffCount;
+          state_.turnedOffObjectInstance = objectInstance;
+          state_.turnedOffAttributes = attributes;
+        }
+        condition_.notify_all();
       }
 
-      std::size_t turnedOnCount = 0U;
-      rti1516_2025::ObjectInstanceHandle turnedOnObjectInstance;
-      rti1516_2025::AttributeHandleSet turnedOnAttributes;
-      std::vector<std::optional<std::wstring>> turnedOnRates;
-      std::size_t turnedOffCount = 0U;
-      rti1516_2025::ObjectInstanceHandle turnedOffObjectInstance;
-      rti1516_2025::AttributeHandleSet turnedOffAttributes;
+      [[nodiscard]] State snapshot() const {
+        std::lock_guard lock(mutex_);
+        return state_;
+      }
+
+      [[nodiscard]] bool waitForOnCount(std::size_t count) {
+        std::unique_lock lock(mutex_);
+        return condition_.wait_for(lock, std::chrono::seconds(2), [&] {
+          return state_.turnedOnCount >= count;
+        });
+      }
+
+      [[nodiscard]] bool waitForOffCount(std::size_t count) {
+        std::unique_lock lock(mutex_);
+        return condition_.wait_for(lock, std::chrono::seconds(2), [&] {
+          return state_.turnedOffCount >= count;
+        });
+      }
+
+      void resetOnHistory() {
+        std::lock_guard lock(mutex_);
+        state_.turnedOnCount = 0U;
+        state_.turnedOnRates.clear();
+        state_.turnedOnAttributes.clear();
+      }
+
+     private:
+      mutable std::mutex mutex_;
+      std::condition_variable condition_;
+      State state_;
     } ownerFederate;
 
     class RecordingReceiverAmbassador final : public NullFederateAmbassador {
      public:
+      struct State {
+        bool discovered = false;
+        rti1516_2025::ObjectInstanceHandle discoveredObjectInstance;
+        rti1516_2025::ObjectClassHandle discoveredObjectClass;
+        std::wstring discoveredObjectInstanceName;
+        rti1516_2025::FederateHandle discoveredProducingFederate;
+      };
+
       void discoverObjectInstance(
           rti1516_2025::ObjectInstanceHandle const& objectInstance,
           rti1516_2025::ObjectClassHandle const& objectClass,
           std::wstring const& objectInstanceName,
           rti1516_2025::FederateHandle const& producingFederate) override {
-        discovered = true;
-        discoveredObjectInstance = objectInstance;
-        discoveredObjectClass = objectClass;
-        discoveredObjectInstanceName = objectInstanceName;
-        discoveredProducingFederate = producingFederate;
+        {
+          std::lock_guard lock(mutex_);
+          state_.discovered = true;
+          state_.discoveredObjectInstance = objectInstance;
+          state_.discoveredObjectClass = objectClass;
+          state_.discoveredObjectInstanceName = objectInstanceName;
+          state_.discoveredProducingFederate = producingFederate;
+        }
+        condition_.notify_all();
       }
 
-      bool discovered = false;
-      rti1516_2025::ObjectInstanceHandle discoveredObjectInstance;
-      rti1516_2025::ObjectClassHandle discoveredObjectClass;
-      std::wstring discoveredObjectInstanceName;
-      rti1516_2025::FederateHandle discoveredProducingFederate;
+      [[nodiscard]] bool waitForDiscovery() {
+        std::unique_lock lock(mutex_);
+        return condition_.wait_for(lock, std::chrono::seconds(2), [&] {
+          return state_.discovered;
+        });
+      }
+
+      [[nodiscard]] State snapshot() const {
+        std::lock_guard lock(mutex_);
+        return state_;
+      }
+
+     private:
+      mutable std::mutex mutex_;
+      std::condition_variable condition_;
+      State state_;
     } firstReceiverFederate, secondReceiverFederate;
 
     auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
@@ -550,40 +617,48 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!umbra::test::servePrimaryProcessRequest(
-                  session, handler,
-                  [&](TransportServiceMessage const& request) {
-                    if (request.operation != operation) {
-                      throw std::runtime_error(description);
-                    }
-                    auto response = handler(request);
-                    if (operation ==
-                            TransportServiceOperation::register_object_instance &&
-                        response.status == TransportServiceStatus::ok) {
-                      auto const registration =
-                          umbra::detail::decodeProcessFederationRegisterObjectInstanceResult(
-                              response.payload);
-                      expectedObjectInstance.store(
-                          registration.objectInstanceHandle,
-                          std::memory_order_release);
-                    }
-                    return response;
-                  })) {
-            throw std::runtime_error(description);
+          // Callback polling can race with a public service on the same
+          // session. Serve those polls without consuming the expected call.
+          for (unsigned pollCount = 0U; pollCount < 32U; ++pollCount) {
+            bool servedPoll = false;
+            if (!umbra::test::servePrimaryProcessRequest(
+                    session, handler,
+                    [&](TransportServiceMessage const& request) {
+                      if (request.operation ==
+                          TransportServiceOperation::receive_interaction) {
+                        auto response = handler(request);
+                        if (response.status != TransportServiceStatus::ok) {
+                          throw std::runtime_error(
+                              "The rate-reissue server could not serve a callback poll.");
+                        }
+                        servedPoll = true;
+                        return response;
+                      }
+                      if (request.operation != operation) {
+                        throw std::runtime_error(description);
+                      }
+                      auto response = handler(request);
+                      if (operation ==
+                              TransportServiceOperation::register_object_instance &&
+                          response.status == TransportServiceStatus::ok) {
+                        auto const registration =
+                            umbra::detail::decodeProcessFederationRegisterObjectInstanceResult(
+                                response.payload);
+                        expectedObjectInstance.store(
+                            registration.objectInstanceHandle,
+                            std::memory_order_release);
+                      }
+                      return response;
+                    })) {
+              throw std::runtime_error(description);
+            }
+            if (!servedPoll) {
+              return;
+            }
           }
+          throw std::runtime_error(
+              "The rate-reissue server exceeded its callback-poll limit.");
         };
-        auto serveCallbackPoll = [&](ProcessTransportSession& session,
-                                     auto const& handler,
-                                     char const* description) {
-          serveExpected(
-              session,
-              handler,
-              callbackModel == HLA_IMMEDIATE
-                  ? TransportServiceOperation::get_object_class_handle
-                  : TransportServiceOperation::receive_interaction,
-              description);
-        };
-
         serveExpected(
             owner,
             ownerHandler,
@@ -674,15 +749,6 @@ TEST_CASE(
             ownerHandler,
             TransportServiceOperation::register_object_instance,
             "The rate-reissue server lost Register.");
-        serveCallbackPoll(
-            firstReceiver,
-            firstReceiverHandler,
-            "The rate-reissue server lost first discovery poll.");
-        serveCallbackPoll(
-            secondReceiver,
-            secondReceiverHandler,
-            "The rate-reissue server lost second discovery poll.");
-
         serveExpected(
             firstReceiver,
             firstReceiverHandler,
@@ -693,11 +759,6 @@ TEST_CASE(
             firstReceiverHandler,
             TransportServiceOperation::subscribe_object_class_attributes,
             "The rate-reissue server lost first High Subscribe.");
-        serveCallbackPoll(
-            owner,
-            ownerHandler,
-            "The rate-reissue server lost first High advisory poll.");
-
         serveExpected(
             secondReceiver,
             secondReceiverHandler,
@@ -719,38 +780,22 @@ TEST_CASE(
             firstReceiverHandler,
             TransportServiceOperation::subscribe_object_class_attributes,
             "The rate-reissue server lost first Medium Subscribe.");
-        serveCallbackPoll(
-            owner,
-            ownerHandler,
-            "The rate-reissue server lost Medium advisory poll.");
         serveExpected(
             firstReceiver,
             firstReceiverHandler,
             TransportServiceOperation::subscribe_object_class_attributes,
             "The rate-reissue server lost first High re-subscribe.");
-        serveCallbackPoll(
-            owner,
-            ownerHandler,
-            "The rate-reissue server lost High advisory poll.");
 
         serveExpected(
             firstReceiver,
             firstReceiverHandler,
             TransportServiceOperation::unsubscribe_object_class_attributes,
             "The rate-reissue server lost first PayRate Unsubscribe.");
-        serveCallbackPoll(
-            owner,
-            ownerHandler,
-            "The rate-reissue server lost first unsubscribe advisory poll.");
         serveExpected(
             secondReceiver,
             secondReceiverHandler,
             TransportServiceOperation::unsubscribe_object_class_attributes,
             "The rate-reissue server lost second PayRate Unsubscribe.");
-        serveCallbackPoll(
-            owner,
-            ownerHandler,
-            "The rate-reissue server lost final advisory-off poll.");
 
         serveExpected(
             owner,
@@ -781,15 +826,22 @@ TEST_CASE(
     auto ownerRti = makeRti();
     auto firstReceiverRti = makeRti();
     auto secondReceiverRti = makeRti();
-    auto pumpOwner = [&] {
+    auto pumpOwnerOn = [&](std::size_t count) {
       if (callbackModel == HLA_IMMEDIATE) {
-        static_cast<void>(ownerRti->getObjectClassHandle(objectClassNameWide));
+        REQUIRE(ownerFederate.waitForOnCount(count));
       } else {
-        static_cast<void>(ownerRti->evokeCallback(0.0));
+        static_cast<void>(ownerRti->evokeCallback(0.25));
+      }
+    };
+    auto pumpOwnerOff = [&](std::size_t count) {
+      if (callbackModel == HLA_IMMEDIATE) {
+        REQUIRE(ownerFederate.waitForOffCount(count));
+      } else {
+        static_cast<void>(ownerRti->evokeCallback(0.25));
       }
     };
     auto pumpReceiver = [](RTIambassador& rti) {
-      static_cast<void>(rti.evokeCallback(0.0));
+      static_cast<void>(rti.evokeCallback(0.25));
     };
     auto configuration = RtiConfiguration::createConfiguration()
                              .withConfigurationName(
@@ -871,33 +923,32 @@ TEST_CASE(
                   std::to_wstring(expectedObjectInstance.load(std::memory_order_acquire)) +
                   L")");
       if (callbackModel == HLA_IMMEDIATE) {
-        static_cast<void>(firstReceiverRti->getObjectClassHandle(objectClassNameWide));
-        static_cast<void>(secondReceiverRti->getObjectClassHandle(objectClassNameWide));
+        REQUIRE(firstReceiverFederate.waitForDiscovery());
+        REQUIRE(secondReceiverFederate.waitForDiscovery());
       } else {
         pumpReceiver(*firstReceiverRti);
         pumpReceiver(*secondReceiverRti);
       }
-      REQUIRE(firstReceiverFederate.discovered);
-      REQUIRE(secondReceiverFederate.discovered);
-      REQUIRE(firstReceiverFederate.discoveredObjectInstance == objectInstance);
-      REQUIRE(secondReceiverFederate.discoveredObjectInstance == objectInstance);
-      REQUIRE(firstReceiverFederate.discoveredObjectClass == ownerObjectClass);
-      REQUIRE(secondReceiverFederate.discoveredObjectClass == ownerObjectClass);
+      auto const firstReceiverState = firstReceiverFederate.snapshot();
+      auto const secondReceiverState = secondReceiverFederate.snapshot();
+      REQUIRE(firstReceiverState.discovered);
+      REQUIRE(secondReceiverState.discovered);
+      REQUIRE(firstReceiverState.discoveredObjectInstance == objectInstance);
+      REQUIRE(secondReceiverState.discoveredObjectInstance == objectInstance);
+      REQUIRE(firstReceiverState.discoveredObjectClass == ownerObjectClass);
+      REQUIRE(secondReceiverState.discoveredObjectClass == ownerObjectClass);
 
       // The registration response carries the initial Name advisory. Evoked
       // dispatch retains it locally; immediate dispatch already delivered it.
-      if (callbackModel == HLA_EVOKED) {
-        pumpOwner();
-      }
-      REQUIRE(ownerFederate.turnedOnCount == 1U);
-      REQUIRE(ownerFederate.turnedOnObjectInstance == objectInstance);
-      REQUIRE(ownerFederate.turnedOnAttributes ==
+      pumpOwnerOn(1U);
+      auto ownerState = ownerFederate.snapshot();
+      REQUIRE(ownerState.turnedOnCount == 1U);
+      REQUIRE(ownerState.turnedOnObjectInstance == objectInstance);
+      REQUIRE(ownerState.turnedOnAttributes ==
               rti1516_2025::AttributeHandleSet{ownerNameAttribute});
-      REQUIRE(ownerFederate.turnedOnRates.back() ==
+      REQUIRE(ownerState.turnedOnRates.back() ==
               std::nullopt);
-      ownerFederate.turnedOnCount = 0U;
-      ownerFederate.turnedOnRates.clear();
-      ownerFederate.turnedOnAttributes.clear();
+      ownerFederate.resetOnHistory();
 
       auto const firstReceiverPayRateAttribute = firstReceiverRti->getAttributeHandle(
           firstReceiverObjectClass, payRateAttributeNameWide);
@@ -907,11 +958,12 @@ TEST_CASE(
           rti1516_2025::AttributeHandleSet{firstReceiverPayRateAttribute},
           true,
           L"High"));
-      pumpOwner();
-      REQUIRE(ownerFederate.turnedOnCount == 1U);
-      REQUIRE(ownerFederate.turnedOnAttributes ==
+      pumpOwnerOn(1U);
+      ownerState = ownerFederate.snapshot();
+      REQUIRE(ownerState.turnedOnCount == 1U);
+      REQUIRE(ownerState.turnedOnAttributes ==
               rti1516_2025::AttributeHandleSet{ownerPayRateAttribute});
-      REQUIRE(ownerFederate.turnedOnRates.back() ==
+      REQUIRE(ownerState.turnedOnRates.back() ==
               std::optional<std::wstring>{L"High"});
 
       auto const secondReceiverPayRateAttribute = secondReceiverRti->getAttributeHandle(
@@ -927,16 +979,17 @@ TEST_CASE(
           rti1516_2025::AttributeHandleSet{secondReceiverPayRateAttribute},
           true,
           L"Low"));
-      REQUIRE(ownerFederate.turnedOnCount == 1U);
+      REQUIRE(ownerFederate.snapshot().turnedOnCount == 1U);
 
       REQUIRE_NOTHROW(firstReceiverRti->subscribeObjectClassAttributes(
           firstReceiverObjectClass,
           rti1516_2025::AttributeHandleSet{firstReceiverPayRateAttribute},
           true,
           L"Medium"));
-      pumpOwner();
-      REQUIRE(ownerFederate.turnedOnCount == 2U);
-      REQUIRE(ownerFederate.turnedOnRates.back() ==
+      pumpOwnerOn(2U);
+      ownerState = ownerFederate.snapshot();
+      REQUIRE(ownerState.turnedOnCount == 2U);
+      REQUIRE(ownerState.turnedOnRates.back() ==
               std::optional<std::wstring>{L"Medium"});
 
       REQUIRE_NOTHROW(firstReceiverRti->subscribeObjectClassAttributes(
@@ -944,30 +997,33 @@ TEST_CASE(
           rti1516_2025::AttributeHandleSet{firstReceiverPayRateAttribute},
           true,
           L"High"));
-      pumpOwner();
-      REQUIRE(ownerFederate.turnedOnCount == 3U);
-      REQUIRE(ownerFederate.turnedOnRates.back() ==
+      pumpOwnerOn(3U);
+      ownerState = ownerFederate.snapshot();
+      REQUIRE(ownerState.turnedOnCount == 3U);
+      REQUIRE(ownerState.turnedOnRates.back() ==
               std::optional<std::wstring>{L"High"});
 
       REQUIRE_NOTHROW(firstReceiverRti->unsubscribeObjectClassAttributes(
           firstReceiverObjectClass,
           rti1516_2025::AttributeHandleSet{firstReceiverPayRateAttribute}));
-      pumpOwner();
-      REQUIRE(ownerFederate.turnedOffCount == 0U);
+      pumpOwnerOn(4U);
+      ownerState = ownerFederate.snapshot();
+      REQUIRE(ownerState.turnedOffCount == 0U);
       // Removing the higher-rate declaration leaves a still-relevant peer;
       // the boundary carries a Low-rate Turn Updates On refresh, but it must
       // not emit Turn Updates Off while that peer remains subscribed.
-      REQUIRE(ownerFederate.turnedOnCount == 4U);
-      REQUIRE(ownerFederate.turnedOnRates.back() ==
+      REQUIRE(ownerState.turnedOnCount == 4U);
+      REQUIRE(ownerState.turnedOnRates.back() ==
               std::optional<std::wstring>{L"Low"});
 
       REQUIRE_NOTHROW(secondReceiverRti->unsubscribeObjectClassAttributes(
           secondReceiverObjectClass,
           rti1516_2025::AttributeHandleSet{secondReceiverPayRateAttribute}));
-      pumpOwner();
-      REQUIRE(ownerFederate.turnedOffCount == 1U);
-      REQUIRE(ownerFederate.turnedOffObjectInstance == objectInstance);
-      REQUIRE(ownerFederate.turnedOffAttributes ==
+      pumpOwnerOff(1U);
+      ownerState = ownerFederate.snapshot();
+      REQUIRE(ownerState.turnedOffCount == 1U);
+      REQUIRE(ownerState.turnedOffObjectInstance == objectInstance);
+      REQUIRE(ownerState.turnedOffAttributes ==
               rti1516_2025::AttributeHandleSet{ownerPayRateAttribute});
 
       ownerRti->resignFederationExecution(DELETE_OBJECTS);

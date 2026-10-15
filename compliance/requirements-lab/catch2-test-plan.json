@@ -26375,7 +26375,7 @@
       ],
       "test_case": "RTIambassador reissues Attribute Relevance Advisory callbacks when the active update rate changes through a configured process endpoint",
       "source_location": "cpp/tests/ieee1516_2025_connection_attribute_relevance_rate_reissue_catch2.cpp:457",
-      "assertions": 112,
+      "assertions": 120,
       "callback_models": [
         "HLA_EVOKED",
         "HLA_IMMEDIATE"
@@ -26393,6 +26393,7 @@
         "callback-immediate",
         "transport",
         "process-boundary",
+        "process-attribute-relevance-rate-reissue",
         "public-endpoint",
         "attribute-relevance-advisory",
         "update-rate-reissue",
