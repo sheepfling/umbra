@@ -150,6 +150,50 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded Create Federation Execution rejects conflicting definitions of one named data type",
+    "[integration][development-profile][federation-management][fom][annex-c]"
+    "[annex-c-data-type-conflict][rti.service.create-federation-execution]") {
+  rti1516_2025::NullFederateAmbassador federate;
+  auto creator = makeRti();
+  auto const federationName = nextFederationName();
+  auto const consumer = testDataPath("data-type-reference-consumer-fom.xml").wstring();
+  auto const provider = testDataPath("data-type-reference-provider-fom.xml").wstring();
+  auto const conflictingProvider =
+      testDataPath("data-type-reference-conflicting-provider-fom.xml").wstring();
+
+  REQUIRE_NOTHROW(creator->connect(federate, rti1516_2025::HLA_EVOKED));
+
+  // Both definitions are individually valid in a composed 2025 FOM. Their
+  // shared name differs only in simple-data representation (32-bit vs 64-bit).
+  REQUIRE_NOTHROW(creator->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{consumer, provider},
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(creator->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{consumer, conflictingProvider},
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
+
+  // IEEE 1516.2-2025 Annex C.3 requires failure when a named data type has
+  // different values for fields that must be merged. The failed composition
+  // must not leave a partial federation behind under the requested name.
+  REQUIRE_THROWS_AS(
+      creator->createFederationExecution(
+          federationName,
+          std::vector<std::wstring>{consumer, provider, conflictingProvider},
+          L"HLAinteger64Time"),
+      rti1516_2025::InconsistentFOM);
+  REQUIRE_NOTHROW(creator->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{consumer, provider},
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(creator->disconnect());
+}
+
+TEST_CASE(
     "Embedded Join Federation Execution composes an additional FOM module for all members",
     "[integration][development-profile][federation-management][fom][fom-module-management]"
     "[rti.service.join-federation-execution]"

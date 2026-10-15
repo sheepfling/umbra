@@ -9638,6 +9638,36 @@
       "next_action": "Keep this public C++ creation boundary green. Review the remaining Annex C.3 candidate rules separately, particularly the clipped extendable-variant-record statement, without promoting this one case to complete Annex C coverage."
     },
     {
+      "id": "umbra-cpp-annex-c-named-data-type-conflict-at-create-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.createfederationexecution.b7555a12e578"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"
+      ],
+      "test_case": "Embedded Create Federation Execution rejects conflicting definitions of one named data type",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "fom",
+        "annex-c",
+        "annex-c-data-type-conflict",
+        "rti.service.create-federation-execution"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/fom_declaration_management_catch2.cpp:152",
+      "assertions": 9,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.2-2025:clause-C.3"
+      ],
+      "requirements_lab_api_surface_status": "Both individually schema-valid provider modules compose with the same consumer, but the official vector Create Federation Execution overload rejects them together because one named simple data type has different representations. A subsequent valid creation under the same federation name confirms the rejected composition did not reserve partial federation state. This is bounded Annex C.3 development-profile evidence, not complete data-type merging or conformance.",
+      "next_action": "Keep the named simple-data conflict regression green. The clipped extendable-variant-record continuation (RL-319), enumerated merge, and other Annex C.3 type-specific rules require separate evidence and remain open."
+    },
+    {
       "id": "umbra-cpp-fom-additional-module-join-composition-integration",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
