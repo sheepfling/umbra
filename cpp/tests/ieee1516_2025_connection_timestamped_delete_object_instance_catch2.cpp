@@ -599,6 +599,9 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
   std::atomic_uint64_t deleteMessageId{0U};
   std::atomic_bool producerKnowledgeCleared{false};
   std::atomic_bool receiverKnowledgeCleared{false};
+  std::mutex serverConnectionMutex;
+  std::shared_ptr<ProcessTransportConnection> serverSenderConnection;
+  std::shared_ptr<ProcessTransportConnection> serverReceiverConnection;
   std::exception_ptr serverError;
   std::thread server([&] {
     try {
@@ -612,6 +615,10 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
           {"public-process-timestamped-delete-server", 0x9D01U},
           [](std::wstring) {},
           [](std::wstring) { return false; });
+      {
+        std::scoped_lock lock(serverConnectionMutex);
+        serverSenderConnection = senderConnection;
+      }
       ProcessTransportSession sender(senderConnection);
       auto senderBaseHandler = service.handlerFor(sender);
       auto senderHandler = [&](TransportServiceMessage const& request) {
@@ -708,6 +715,10 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
           {"public-process-timestamped-delete-server", 0x9D02U},
           [](std::wstring) {},
           [](std::wstring) { return false; });
+      {
+        std::scoped_lock lock(serverConnectionMutex);
+        serverReceiverConnection = receiverConnection;
+      }
       ProcessTransportSession receiver(receiverConnection);
       auto receiverBaseHandler = service.handlerFor(receiver);
       auto receiverHandler = [&](TransportServiceMessage const& request) {
@@ -760,6 +771,33 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
           }
         }
       };
+      auto serveReceivePollUntilEvent = [&](auto const& hasExpectedEvent,
+                                            char const* description) {
+        // A zero-wait public Evoke may poll before the callback push reaches
+        // this process. Do not switch to the other federate's scripted stream
+        // until the poll actually returned the expected callback.
+        for (;;) {
+          bool delivered = false;
+          serveExpected(
+              receiver,
+              [&](TransportServiceMessage const& request) {
+                auto response = receiverHandler(request);
+                if (request.operation ==
+                        TransportServiceOperation::receive_interaction &&
+                    response.status == TransportServiceStatus::ok) {
+                  delivered = hasExpectedEvent(
+                      umbra::detail::decodeProcessFederationReceiveInteractionResult(
+                          response.payload));
+                }
+                return response;
+              },
+              TransportServiceOperation::receive_interaction,
+              description);
+          if (delivered) {
+            return;
+          }
+        }
+      };
       serveExpected(
           receiver,
           receiverHandler,
@@ -808,10 +846,8 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
           TransportServiceOperation::register_object_instance,
           "The public timestamped process delete server lost sender Register.");
       if (callbackModel == HLA_EVOKED) {
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::receive_interaction,
+        serveReceivePollUntilEvent(
+            [](auto const& result) { return result.discoveryEvent.has_value(); },
             "The public timestamped process delete server lost receiver discovery poll.");
       }
       if (preferReceiveOrder) {
@@ -897,10 +933,8 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
               "The public timestamped process delete server lost receiver TSO acknowledgement.");
         }
       } else if (callbackModel == HLA_EVOKED) {
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::receive_interaction,
+        serveReceivePollUntilEvent(
+            [](auto const& result) { return result.removalEvent.has_value(); },
             "The public timestamped process delete server lost receiver removal poll.");
       }
 
@@ -1007,10 +1041,14 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
     if (callbackModel == HLA_IMMEDIATE) {
       REQUIRE(receiverFederate.waitForDiscovery());
     } else {
-      for (std::size_t evokeCount = 0U;
-           evokeCount < 4U && !receiverFederate.hasDiscovered();
-           ++evokeCount) {
+      auto const deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(2);
+      while (!receiverFederate.hasDiscovered() &&
+             std::chrono::steady_clock::now() < deadline) {
         static_cast<void>(receiverRti->evokeCallback(0.0));
+        if (!receiverFederate.hasDiscovered()) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
       }
     }
     REQUIRE(receiverFederate.hasDiscovered());
@@ -1092,13 +1130,16 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
       REQUIRE(receiverFederate.waitForRemoval(
           constrainReceiver || gateNmraCallbacks || requestNmr));
     } else {
-      for (std::size_t evokeCount = 0U;
-           evokeCount < 6U &&
-           (gateNmraCallbacks || requestNmr
-                ? receiverFederate.observedCallbackOrder().size() < 2U
-                : !receiverFederate.hasRemoved());
-           ++evokeCount) {
+      auto const deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(2);
+      while ((gateNmraCallbacks || requestNmr
+                  ? receiverFederate.observedCallbackOrder().size() < 2U
+                  : !receiverFederate.hasRemoved()) &&
+             std::chrono::steady_clock::now() < deadline) {
         static_cast<void>(receiverRti->evokeCallback(0.0));
+        if (!receiverFederate.hasRemoved()) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
       }
     }
     REQUIRE(receiverFederate.hasRemoved());
@@ -1138,29 +1179,23 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
     receiverRti->disconnect();
   } catch (...) {
     clientError = std::current_exception();
-    if (senderJoined) {
-      try {
-        senderRti->resignFederationExecution(DELETE_OBJECTS);
-      } catch (...) {
+    // A failed assertion must not enter another synchronous service call
+    // while the scripted server may be blocked on a different federate.
+    listener->close();
+    {
+      std::scoped_lock lock(serverConnectionMutex);
+      if (serverSenderConnection) {
+        serverSenderConnection->close();
+      }
+      if (serverReceiverConnection) {
+        serverReceiverConnection->close();
       }
     }
-    if (receiverJoined) {
-      try {
-        receiverRti->resignFederationExecution(NO_ACTION);
-      } catch (...) {
-      }
-    }
-    try {
-      senderRti->disconnect();
-    } catch (...) {
-    }
-    try {
-      receiverRti->disconnect();
-    } catch (...) {
-    }
+    senderRti.reset();
+    receiverRti.reset();
   }
   if (listener) {
-    listener.reset();
+    listener->close();
   }
   if (server.joinable()) {
     server.join();

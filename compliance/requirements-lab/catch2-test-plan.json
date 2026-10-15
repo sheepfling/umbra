@@ -28025,7 +28025,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-212-l48-9"
       ],
       "test_case": "RTIambassador routes timestamped Delete Object Instance and removal callback through a configured process endpoint",
-      "source_location": "cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp:1184",
+      "source_location": "cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp:1219",
       "assertions": 291,
       "callback_models": [
         "HLA_EVOKED",
@@ -28102,7 +28102,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-199-l40-12"
       ],
       "test_case": "RTIambassadors retarget a pending process NMRA to timestamped object deletion while callbacks are disabled",
-      "source_location": "cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp:1215",
+      "source_location": "cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp:1250",
       "assertions": 97,
       "callback_models": [
         "HLA_EVOKED",
@@ -28178,7 +28178,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-197-l50-13"
       ],
       "test_case": "RTIambassadors retarget a pending process NMR to timestamped object deletion",
-      "source_location": "cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp:1228",
+      "source_location": "cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp:1263",
       "assertions": 89,
       "callback_models": [
         "HLA_EVOKED",
