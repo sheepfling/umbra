@@ -77836,7 +77836,65 @@
       "requirements_lab_api_surface_status": "The official 2025 C++ API case saves two names reserved through Reserve Multiple Object Instance Names by one federate; it observes that the filesystem commit and Federation Saved callbacks wait until both joined federates complete. It recreates the embedded registry and public ambassadors, then restores the image. A second federate's mixed request receives a successful subset containing only a free name and a failed subset containing only the foreign-held name, through multiple-name callbacks rather than single-name callbacks. The successful subset is releasable by the second federate; the original owner retains and can release the restored names. This exercises per-name outcomes and owner exclusivity, not the distinct illegal-name abort-all rule.",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore partitions Reserve Multiple Names against saved foreign ownership$",
-      "next_action": "Keep the distinct illegal-name abort-all and Release Multiple Names atomicity rules, HLA_IMMEDIATE parity, changed-membership/distributed restart, installed-package/JUnit evidence, interoperability, and conformance open."
+      "next_action": "A separate fresh-registry case now covers Release Multiple Names atomicity after restore. Keep the distinct illegal-name abort-all reservation rule, HLA_IMMEDIATE parity, changed-membership/distributed restart, installed-package/JUnit evidence, interoperability, and conformance open."
+    },
+    {
+      "id": "umbra-cpp-public-fresh-registry-release-multiple-name-atomicity-restore",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.reservemultipleobjectinstancenames.6fac44e8cd2f",
+        "api.2025.cpp.rtiambassador.releasemultipleobjectinstancenames.fcc388c749d8",
+        "api.2025.cpp.rtiambassador.requestfederationsave.32986a607094",
+        "api.2025.cpp.rtiambassador.federatesavebegun.4d2693ce9551",
+        "api.2025.cpp.rtiambassador.federatesavecomplete.e775cf801fae",
+        "api.2025.cpp.rtiambassador.requestfederationrestore.12708949c200",
+        "api.2025.cpp.rtiambassador.federaterestorecomplete.c2567e07cf13",
+        "api.2025.cpp.federateambassador.multipleobjectinstancenamereservationsucceeded.c4a7d2f3a174"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-068-l115-29",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l64-15",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l67-16",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l110-30",
+        "requirement-candidate-content-clauses-06-object-management-page-116-l84-21",
+        "requirement-candidate-content-clauses-06-object-management-page-117-l36-6",
+        "requirement-candidate-content-clauses-06-object-management-page-117-l45-9",
+        "requirement-candidate-content-clauses-06-object-management-page-117-l48-10"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.22",
+        "hla-1516.1-2025:clause-4.23",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-6.5.3",
+        "hla-1516.1-2025:clause-6.6.4",
+        "hla-1516.1-2025:clause-6.7.5"
+      ],
+      "test_case": "Embedded public fresh-registry restore preserves atomic Release Multiple Names",
+      "source_location": "cpp/tests/ieee1516_2025_public_fresh_registry_object_name_reservations_restore_catch2.cpp:414",
+      "primary_lane": "public-fresh-registry-release-multiple-name-atomicity",
+      "focus_lane": "public-fresh-registry-release-multiple-name-atomicity",
+      "assertions": 33,
+      "callback_models": ["HLA_EVOKED"],
+      "tags": [
+        "integration", "development-profile", "2025", "federation-management",
+        "object-management", "save-restore", "durable-save", "filesystem",
+        "process-restart", "public-fresh-registry-release-multiple-name-atomicity",
+        "rti.service.reserve-multiple-object-instance-names",
+        "rti.service.release-multiple-object-instance-names",
+        "rti.service.request-federation-save",
+        "rti.service.federate-save-begun",
+        "rti.service.federate-save-complete",
+        "rti.service.request-federation-restore",
+        "rti.service.federate-restore-complete",
+        "federate.callback.multiple-object-instance-name-reservation-succeeded"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "The official 2025 C++ API case reserves two names, commits a filesystem image, recreates the registry and ambassador, and restores the same joined-federate identity. Release Multiple Object Instance Names with one restored name and one unreserved name throws ObjectInstanceNameNotReserved; a subsequent valid two-name release succeeds, proving the rejected list did not partly release its restored first name. Repeating that valid release fails, and Reserve Multiple Object Instance Names then succeeds for both names. This is a bounded HLA_EVOKED development-profile test of the section 6.7.5 abort-all rule, not package, distributed restart, Lab validation, or conformance evidence.",
+      "ctest_target": "umbra_ieee1516_2025_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore preserves atomic Release Multiple Names$",
+      "next_action": "Test a foreign-owned invalid member and HLA_IMMEDIATE parity separately; keep changed-membership/distributed restart, installed-package/JUnit, interoperability, and conformance open."
     }
   ]
 }

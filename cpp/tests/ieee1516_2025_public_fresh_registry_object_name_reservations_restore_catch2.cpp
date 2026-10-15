@@ -410,3 +410,113 @@ TEST_CASE(
     REQUIRE_NOTHROW(owner->disconnect());
   }
 }
+
+TEST_CASE(
+    "Embedded public fresh-registry restore preserves atomic Release Multiple Names",
+    "[integration][development-profile][2025][federation-management]"
+    "[object-management][save-restore][durable-save][filesystem][process-restart]"
+    "[public-fresh-registry-release-multiple-name-atomicity]"
+    "[rti.service.reserve-multiple-object-instance-names]"
+    "[rti.service.release-multiple-object-instance-names]"
+    "[rti.service.request-federation-save][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][rti.service.request-federation-restore]"
+    "[rti.service.federate-restore-complete]"
+    "[federate.callback.multiple-object-instance-name-reservation-succeeded]") {
+  auto const saveDirectory = temporaryFederationSaveDirectory();
+  auto const saveStore =
+      std::make_shared<umbra::detail::FilesystemFederationSaveCommitStore>(
+          saveDirectory.path());
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "attribute-update-passel-fom.xml")
+          .wstring();
+  std::wstring const firstName = L"saved-release-first";
+  std::wstring const secondName = L"saved-release-second";
+  std::wstring const unreservedName = L"saved-release-unreserved";
+  std::wstring const saveLabel = L"multiple-release-atomicity";
+  std::set<std::wstring> const reservedNames{firstName, secondName};
+  FederateHandle sourceHandle;
+
+  auto const drain = [](RTIambassador& rti) {
+    for (int pass = 0; pass != 16; ++pass) {
+      static_cast<void>(rti.evokeCallback(0.0));
+    }
+  };
+
+  {
+    auto registry = std::make_shared<umbra::detail::EmbeddedFederationRegistry>(
+        nullptr, saveStore);
+    ScopedEmbeddedFederationRegistry scope(registry);
+    ReportingFederateAmbassador reports;
+    auto rti = makeRti();
+    REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
+    REQUIRE_NOTHROW(rti->createFederationExecution(
+        federationName, fomModule, standard_hla::mom::integer64_time));
+    REQUIRE_NOTHROW(sourceHandle = rti->joinFederationExecution(
+        L"name-owner", L"publisher", federationName));
+
+    REQUIRE_NOTHROW(rti->reserveMultipleObjectInstanceNames(reservedNames));
+    drain(*rti);
+    REQUIRE(reports.multipleObjectInstanceNameReservationSucceededReports.size() == 1U);
+    REQUIRE(reports.multipleObjectInstanceNameReservationSucceededReports.front()
+                .objectInstanceNames == reservedNames);
+
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveComplete());
+    drain(*rti);
+    REQUIRE(reports.federationSavedReportCount == 1U);
+    auto const durable = saveStore->load(federationName, saveLabel);
+    REQUIRE(durable.has_value());
+    auto const image = umbra::detail::FederationStateImageCodec::decode(
+        durable->stateImage);
+    REQUIRE(image.reservedObjectInstanceNames.size() == reservedNames.size());
+
+    REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(rti->disconnect());
+  }
+
+  {
+    auto registry = std::make_shared<umbra::detail::EmbeddedFederationRegistry>(
+        nullptr, saveStore);
+    ScopedEmbeddedFederationRegistry scope(registry);
+    ReportingFederateAmbassador reports;
+    auto rti = makeRti();
+    REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
+    REQUIRE_NOTHROW(rti->createFederationExecution(
+        federationName, fomModule, standard_hla::mom::integer64_time));
+    FederateHandle freshHandle;
+    REQUIRE_NOTHROW(freshHandle = rti->joinFederationExecution(
+        L"name-owner", L"publisher", federationName));
+    REQUIRE(freshHandle == sourceHandle);
+    REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
+    drain(*rti);
+    REQUIRE(reports.requestFederationRestoreSucceededReports ==
+            std::vector<std::wstring>{saveLabel});
+    REQUIRE_NOTHROW(rti->federateRestoreComplete());
+    drain(*rti);
+    REQUIRE(reports.federationRestoredReportCount == 1U);
+
+    // The invalid name sorts after the restored first name. A partial release
+    // would make the subsequent valid two-name release fail.
+    REQUIRE(firstName < unreservedName);
+    REQUIRE_THROWS_AS(
+        rti->releaseMultipleObjectInstanceNames({firstName, unreservedName}),
+        rti1516_2025::ObjectInstanceNameNotReserved);
+    REQUIRE_NOTHROW(rti->releaseMultipleObjectInstanceNames(reservedNames));
+    REQUIRE_THROWS_AS(
+        rti->releaseMultipleObjectInstanceNames(reservedNames),
+        rti1516_2025::ObjectInstanceNameNotReserved);
+    REQUIRE_NOTHROW(rti->reserveMultipleObjectInstanceNames(reservedNames));
+    drain(*rti);
+    REQUIRE(reports.multipleObjectInstanceNameReservationSucceededReports.size() == 1U);
+    REQUIRE(reports.multipleObjectInstanceNameReservationSucceededReports.front()
+                .objectInstanceNames == reservedNames);
+
+    REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(rti->disconnect());
+  }
+}
