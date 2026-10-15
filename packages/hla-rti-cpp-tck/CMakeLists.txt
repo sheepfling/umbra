@@ -32,6 +32,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_attribute_value_update_request_response.cpp
   src/tck_update_rate_scenarios.cpp
   src/tck_federation_mom_content_scenarios.cpp
+  src/tck_federation_synchronization_mom_queries.cpp
   src/tck_timestamped_interaction_scheduling_scenarios.cpp
   src/tck_federation_lifecycle_scenarios.cpp
   src/tck_inherited_derived_delivery_scenarios.cpp

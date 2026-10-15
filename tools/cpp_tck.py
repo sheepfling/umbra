@@ -114,6 +114,7 @@ LOCAL_TCK_HEADERS = {
     "tck_attribute_value_update_request_response.hpp",
     "tck_update_rate_scenarios.hpp",
     "tck_federation_mom_content_scenarios.hpp",
+    "tck_federation_synchronization_mom_queries.hpp",
     "tck_portable_member_control_scenarios.hpp",
     "tck_transport_order_scenarios.hpp",
     "tck_attribute_relevance_scenarios.hpp",

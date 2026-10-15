@@ -357,8 +357,6 @@ void scenarioFederationMomSaveStatus(Options const&, rti::CallbackModel);
 void scenarioFederationMomSaveStatusContract(Options const&, rti::CallbackModel);
 void scenarioFederationSaveRestore(Options const&, rti::CallbackModel);
 void scenarioFederationSaveRestoreContract(Options const&, rti::CallbackModel);
-void scenarioFederationSynchronizationMomQueries(Options const&, rti::CallbackModel);
-void scenarioFederationSynchronizationMomQueriesContract(Options const&, rti::CallbackModel);
 void scenarioFederationTeardownIsolation(Options const&, rti::CallbackModel);
 void scenarioFederationTeardownIsolationContract(Options const&, rti::CallbackModel);
 void scenarioFinalFederateResignationCleanup(Options const&, rti::CallbackModel);

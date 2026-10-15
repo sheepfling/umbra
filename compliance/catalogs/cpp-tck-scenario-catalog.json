@@ -36953,7 +36953,7 @@
         "synchronization-point-requirements-contract.json",
         "standard-federation-mom-synchronization-queries-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioFederationSynchronizationMomQueries",
+      "cpp_test": "src/tck_federation_synchronization_mom_queries.cpp#scenarioFederationSynchronizationMomQueries",
       "runner_id": "cpp-tck.federation-mom-synchronization-queries",
       "parity": "java-tck.federation-mom-synchronization-queries",
       "default_status": "adapter-required",
@@ -36990,7 +36990,7 @@
       "contract_refs": [
         "standard-federation-mom-synchronization-queries-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioFederationSynchronizationMomQueriesContract",
+      "cpp_test": "src/tck_federation_synchronization_mom_queries.cpp#scenarioFederationSynchronizationMomQueriesContract",
       "runner_id": "cpp-tck.federation-mom-synchronization-queries-contract",
       "parity": "cpp-tck.federation-mom-synchronization-queries",
       "default_status": "adapter-required",
