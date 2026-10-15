@@ -7246,11 +7246,13 @@ def main() -> int:
         raise AssertionError("focused timestamped regional process mapped count drifted")
     if timestamped_regional_focus.get("assertion_count") != 71:
         raise AssertionError("focused timestamped regional process lane assertion total drifted")
-    if timestamped_regional_focus.get("requirement_count") != 28:
+    if timestamped_regional_focus.get("recorded_assertion_count") != 207:
+        raise AssertionError("focused timestamped regional process recorded assertion total drifted")
+    if timestamped_regional_focus.get("requirement_count") != 32:
         raise AssertionError("focused timestamped regional process requirement total drifted")
-    if timestamped_regional_focus.get("standard_section_count") != 16:
+    if timestamped_regional_focus.get("standard_section_count") != 19:
         raise AssertionError("focused timestamped regional process section total drifted")
-    if timestamped_regional_focus.get("requirement_section_pair_count") != 28:
+    if timestamped_regional_focus.get("requirement_section_pair_count") != 32:
         raise AssertionError("focused timestamped regional process direct pair drifted")
     timestamped_regional_handles = timestamped_regional_focus.get("lane_handles")
     if not isinstance(timestamped_regional_handles, dict) or timestamped_regional_handles.get(
