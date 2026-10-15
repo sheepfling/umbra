@@ -31273,7 +31273,7 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1"
       ],
       "test_case": "RTIambassador carries Attribute Ownership Acquisition If Available through a configured process endpoint",
-      "source_location": "cpp/tests/attribute_ownership_acquisition_if_available_catch2.cpp:376",
+      "source_location": "cpp/tests/attribute_ownership_acquisition_if_available_catch2.cpp:378",
       "primary_lane": "process-ownership-acquisition-if-available",
       "assertions": 22,
       "callback_models": [
@@ -31368,7 +31368,7 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-166-l41-10"
       ],
       "test_case": "RTIambassadors deliver the Attribute Ownership Acquisition release request through a configured process endpoint",
-      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:388",
+      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:423",
       "primary_lane": "process-ownership-acquisition-release",
       "assertions": 30,
       "callback_models": [
@@ -31416,9 +31416,9 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6"
       ],
       "test_case": "RTIambassadors deliver Attribute Ownership Unavailable after a denied process acquisition",
-      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:673",
+      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:724",
       "primary_lane": "process-ownership-acquisition-release-denied",
-      "assertions": 36,
+      "assertions": 35,
       "callback_models": [
         "HLA_EVOKED"
       ],
@@ -31464,9 +31464,9 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13"
       ],
       "test_case": "RTIambassadors deliver Attribute Ownership Acquisition Cancellation through a configured process endpoint",
-      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:986",
+      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:1037",
       "primary_lane": "process-ownership-acquisition-cancellation",
-      "assertions": 34,
+      "assertions": 32,
       "callback_models": [
         "HLA_EVOKED"
       ],

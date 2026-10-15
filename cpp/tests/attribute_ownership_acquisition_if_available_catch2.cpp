@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <filesystem>
 #include <memory>
 #include <exception>
@@ -398,18 +399,33 @@ TEST_CASE(
           [](std::wstring) { return false; });
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
-      auto serveExpected = [&](umbra::detail::TransportServiceOperation operation) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
-                [&](umbra::detail::TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(
-                        "The process ownership-acquisition server received an unexpected operation.");
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(
-              "The process ownership-acquisition server lost a request.");
+      auto serveExpected = [&](umbra::detail::TransportServiceOperation operation,
+                               bool allowReceivePolls = false) {
+        bool servedExpected = false;
+        std::size_t receivePollCount = 0U;
+        while (!servedExpected) {
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  session,
+                  [&](umbra::detail::TransportServiceMessage const& request) {
+                    if (allowReceivePolls &&
+                        request.operation ==
+                            umbra::detail::TransportServiceOperation::receive_interaction) {
+                      if (++receivePollCount > 256U) {
+                        throw std::runtime_error(
+                            "The process ownership-acquisition-if-available client exceeded the bounded callback poll allowance.");
+                      }
+                      return handler(request);
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          "The process ownership-acquisition server received an unexpected operation.");
+                    }
+                    servedExpected = true;
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(
+                "The process ownership-acquisition server lost a request.");
+          }
         }
       };
 
@@ -424,9 +440,9 @@ TEST_CASE(
       serveExpected(TransportServiceOperation::publish_object_class_attributes);
       serveExpected(
           TransportServiceOperation::attribute_ownership_acquisition_if_available);
-      serveExpected(TransportServiceOperation::receive_interaction);
-      serveExpected(TransportServiceOperation::receive_interaction);
-      serveExpected(TransportServiceOperation::resign_federation_execution);
+      // A pushed notification may be ready before Evoke issues a process
+      // poll. The exact poll count is not the ownership contract.
+      serveExpected(TransportServiceOperation::resign_federation_execution, true);
       service.detach(session);
       connection->close();
     } catch (...) {
@@ -481,7 +497,12 @@ TEST_CASE(
       AttributeHandleSet{acquirableAttribute},
       tag));
   REQUIRE(reports.attributeOwnershipAcquisitionReports.empty());
-  static_cast<void>(rti->evokeMultipleCallbacks(0.0, 0.0));
+  auto const notificationDeadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(2);
+  while (reports.attributeOwnershipAcquisitionReports.empty() &&
+         std::chrono::steady_clock::now() < notificationDeadline) {
+    static_cast<void>(rti->evokeMultipleCallbacks(0.01, 0.02));
+  }
   REQUIRE(reports.attributeOwnershipAcquisitionReports.size() == 1U);
   auto const& report = reports.attributeOwnershipAcquisitionReports.front();
   REQUIRE(report.kind ==

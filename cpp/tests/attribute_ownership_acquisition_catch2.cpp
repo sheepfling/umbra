@@ -447,16 +447,31 @@ TEST_CASE(
       auto serveExpected = [&](ProcessTransportSession& session,
                                auto const& handler,
                                umbra::detail::TransportServiceOperation operation,
-                               char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
-                [&](umbra::detail::TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
+                               char const* description,
+                               bool allowReceivePolls = false) {
+        bool servedExpected = false;
+        std::size_t receivePollCount = 0U;
+        while (!servedExpected) {
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  session,
+                  [&](umbra::detail::TransportServiceMessage const& request) {
+                    if (allowReceivePolls &&
+                        request.operation ==
+                            umbra::detail::TransportServiceOperation::receive_interaction) {
+                      if (++receivePollCount > 256U) {
+                        throw std::runtime_error(
+                            "The process ownership-acquisition release client exceeded the bounded callback poll allowance.");
+                      }
+                      return handler(request);
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(description);
+                    }
+                    servedExpected = true;
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(description);
+          }
         }
       };
 
@@ -522,33 +537,22 @@ TEST_CASE(
       serveExpected(
           requesterSession,
           requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process ownership-acquisition release server lost requester discovery poll.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process ownership-acquisition release server lost requester discovery drain.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
           TransportServiceOperation::publish_object_class_attributes,
-          "The process ownership-acquisition release server lost requester Publish.");
+          "The process ownership-acquisition release server lost requester Publish.",
+          true);
       serveExpected(
           requesterSession,
           requesterHandler,
           TransportServiceOperation::attribute_ownership_acquisition,
           "The process ownership-acquisition release server lost Acquisition.");
+      // The owner may perform any bounded number of callback polls before
+      // it reaches the explicit post-callback lookup fence.
       serveExpected(
           ownerSession,
           ownerHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process ownership-acquisition release server lost owner release-request poll.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process ownership-acquisition release server lost owner release-request drain.");
+          TransportServiceOperation::get_object_class_handle,
+          "The process ownership-acquisition release server lost the owner callback fence.",
+          true);
       serveExpected(
           requesterSession,
           requesterHandler,
@@ -632,7 +636,12 @@ TEST_CASE(
     ObjectInstanceHandle objectInstance;
     REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(ownerClass));
     REQUIRE(objectInstance.isValid());
-    REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+    auto const discoveryDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (requesterReports.objectDiscoveryReports.empty() &&
+           std::chrono::steady_clock::now() < discoveryDeadline) {
+      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+    }
     REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
     REQUIRE(requesterReports.objectDiscoveryReports.front().objectInstance ==
             objectInstance);
@@ -647,13 +656,20 @@ TEST_CASE(
         AttributeHandleSet{requesterAttribute},
         tag));
     REQUIRE(ownerReports.releaseRequests.empty());
-    static_cast<void>(owner->evokeMultipleCallbacks(0.0, 0.0));
+    auto const releaseDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (ownerReports.releaseRequests.empty() &&
+           std::chrono::steady_clock::now() < releaseDeadline) {
+      static_cast<void>(owner->evokeMultipleCallbacks(0.01, 0.02));
+    }
     REQUIRE(ownerReports.releaseRequests.size() == 1U);
     auto const& releaseRequest = ownerReports.releaseRequests.front();
     REQUIRE(releaseRequest.objectInstance == objectInstance);
     REQUIRE(releaseRequest.attributes == AttributeHandleSet{ownerAttribute});
     REQUIRE(variableLengthDataBytes(releaseRequest.userSuppliedTag) ==
             std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
+    REQUIRE(owner->getObjectClassHandle(
+                fixture_hla::fom::attribute_fixture_child) == ownerClass);
 
     // The release request remains pending after the owner callback is
     // observed.  Resignation must therefore use the 2025 cancellation
@@ -731,16 +747,31 @@ TEST_CASE(
       auto serveExpected = [&](ProcessTransportSession& session,
                                auto const& handler,
                                umbra::detail::TransportServiceOperation operation,
-                               char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
-                [&](umbra::detail::TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
+                               char const* description,
+                               bool allowReceivePolls = false) {
+        bool servedExpected = false;
+        std::size_t receivePollCount = 0U;
+        while (!servedExpected) {
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  session,
+                  [&](umbra::detail::TransportServiceMessage const& request) {
+                    if (allowReceivePolls &&
+                        request.operation ==
+                            umbra::detail::TransportServiceOperation::receive_interaction) {
+                      if (++receivePollCount > 256U) {
+                        throw std::runtime_error(
+                            "The process ownership-acquisition release-denied client exceeded the bounded callback poll allowance.");
+                      }
+                      return handler(request);
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(description);
+                    }
+                    servedExpected = true;
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(description);
+          }
         }
       };
 
@@ -806,18 +837,9 @@ TEST_CASE(
       serveExpected(
           requesterSession,
           requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process ownership-acquisition release-denied server lost requester discovery poll.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process ownership-acquisition release-denied server lost requester discovery drain.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
           TransportServiceOperation::publish_object_class_attributes,
-          "The process ownership-acquisition release-denied server lost requester Publish.");
+          "The process ownership-acquisition release-denied server lost requester Publish.",
+          true);
       serveExpected(
           requesterSession,
           requesterHandler,
@@ -826,33 +848,15 @@ TEST_CASE(
       serveExpected(
           ownerSession,
           ownerHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process ownership-acquisition release-denied server lost owner release-request poll.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process ownership-acquisition release-denied server lost owner release-request drain.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
           TransportServiceOperation::attribute_ownership_release_denied,
-          "The process ownership-acquisition release-denied server lost Release Denied.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process ownership-acquisition release-denied server lost requester unavailable poll.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process ownership-acquisition release-denied server lost requester unavailable drain.");
+          "The process ownership-acquisition release-denied server lost Release Denied.",
+          true);
       serveExpected(
           requesterSession,
           requesterHandler,
           TransportServiceOperation::resign_federation_execution,
-          "The process ownership-acquisition release-denied server lost requester Resign.");
+          "The process ownership-acquisition release-denied server lost requester Resign.",
+          true);
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -931,7 +935,12 @@ TEST_CASE(
     ObjectInstanceHandle objectInstance;
     REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(ownerClass));
     REQUIRE(objectInstance.isValid());
-    REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+    auto const discoveryDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (requesterReports.objectDiscoveryReports.empty() &&
+           std::chrono::steady_clock::now() < discoveryDeadline) {
+      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+    }
     REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
     REQUIRE(requesterReports.objectDiscoveryReports.front().objectInstance ==
             objectInstance);
@@ -948,7 +957,12 @@ TEST_CASE(
         AttributeHandleSet{requesterAttribute},
         acquisitionTag));
     REQUIRE(ownerReports.releaseRequests.empty());
-    static_cast<void>(owner->evokeMultipleCallbacks(0.0, 0.0));
+    auto const releaseDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (ownerReports.releaseRequests.empty() &&
+           std::chrono::steady_clock::now() < releaseDeadline) {
+      static_cast<void>(owner->evokeMultipleCallbacks(0.01, 0.02));
+    }
     REQUIRE(ownerReports.releaseRequests.size() == 1U);
     auto const& releaseRequest = ownerReports.releaseRequests.front();
     REQUIRE(releaseRequest.objectInstance == objectInstance);
@@ -961,7 +975,12 @@ TEST_CASE(
         AttributeHandleSet{ownerAttribute},
         denialTag));
     REQUIRE(requesterReports.acquisitionReports.empty());
-    static_cast<void>(requester->evokeMultipleCallbacks(0.0, 0.0));
+    auto const unavailableDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (requesterReports.acquisitionReports.empty() &&
+           std::chrono::steady_clock::now() < unavailableDeadline) {
+      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+    }
     REQUIRE(requesterReports.acquisitionReports.size() == 1U);
     auto const& unavailable = requesterReports.acquisitionReports.front();
     REQUIRE(unavailable.kind ==
@@ -1045,19 +1064,34 @@ TEST_CASE(
       auto serveExpected = [&](ProcessTransportSession& processSession,
                                auto const& handler,
                                umbra::detail::TransportServiceOperation operation,
-                               char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                processSession,
-                [&](umbra::detail::TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(
-                        std::string(description) + " (received operation " +
-                        std::to_string(static_cast<unsigned>(request.operation)) +
-                        ").");
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
+                               char const* description,
+                               bool allowReceivePolls = false) {
+        bool servedExpected = false;
+        std::size_t receivePollCount = 0U;
+        while (!servedExpected) {
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  processSession,
+                  [&](umbra::detail::TransportServiceMessage const& request) {
+                    if (allowReceivePolls &&
+                        request.operation ==
+                            umbra::detail::TransportServiceOperation::receive_interaction) {
+                      if (++receivePollCount > 256U) {
+                        throw std::runtime_error(
+                            "The process ownership-acquisition cancellation client exceeded the bounded callback poll allowance.");
+                      }
+                      return handler(request);
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          std::string(description) + " (received operation " +
+                          std::to_string(static_cast<unsigned>(request.operation)) +
+                          ").");
+                    }
+                    servedExpected = true;
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(description);
+          }
         }
       };
 
@@ -1123,18 +1157,9 @@ TEST_CASE(
       serveExpected(
           requesterSession,
           requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process ownership-acquisition cancellation server lost requester discovery poll.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process ownership-acquisition cancellation server lost requester discovery drain.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
           TransportServiceOperation::publish_object_class_attributes,
-          "The process ownership-acquisition cancellation server lost requester Publish.");
+          "The process ownership-acquisition cancellation server lost requester Publish.",
+          true);
       serveExpected(
           requesterSession,
           requesterHandler,
@@ -1153,18 +1178,9 @@ TEST_CASE(
       serveExpected(
           requesterSession,
           requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process ownership-acquisition cancellation server lost requester confirmation poll.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process ownership-acquisition cancellation server lost requester confirmation drain.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
           TransportServiceOperation::resign_federation_execution,
-          "The process ownership-acquisition cancellation server lost requester Resign.");
+          "The process ownership-acquisition cancellation server lost requester Resign.",
+          true);
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -1244,7 +1260,12 @@ TEST_CASE(
     ObjectInstanceHandle objectInstance;
     REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(ownerClass));
     REQUIRE(objectInstance.isValid());
-    REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+    auto const discoveryDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (requesterReports.objectDiscoveryReports.empty() &&
+           std::chrono::steady_clock::now() < discoveryDeadline) {
+      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+    }
     REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
     REQUIRE(requesterReports.objectDiscoveryReports.front().objectInstance ==
             objectInstance);
@@ -1264,7 +1285,12 @@ TEST_CASE(
         AttributeHandleSet{requesterAttribute}));
     REQUIRE(ownerReports.releaseRequests.empty());
     REQUIRE(requesterReports.acquisitionCancellationReports.empty());
-    REQUIRE_NOTHROW(requester->evokeMultipleCallbacks(0.0, 0.0));
+    auto const confirmationDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (requesterReports.acquisitionCancellationReports.empty() &&
+           std::chrono::steady_clock::now() < confirmationDeadline) {
+      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+    }
     REQUIRE(requesterReports.acquisitionCancellationReports.size() == 1U);
     auto const& cancellation =
         requesterReports.acquisitionCancellationReports.front();
