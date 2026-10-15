@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -206,13 +207,14 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
         continue;
       }
       auto recipient = plannedRecipient;
-      // An evoked process receiver's poll is the actual receive-order
-      // delivery fence. Keep the accepted passel until that fence, even when
-      // the creation-time switch retained a currently ineligible recipient.
-      // Push-mode callbacks need a separate callback-entry fence.
+      // Pull mode checks ordinary receive-order passels on poll. For the
+      // bounded regional push lane, issue a readiness marker and check when
+      // the immediate callback task is admitted. Nonregional push routing
+      // remains on its existing path pending a separate DSE slice.
       bool const recheckAtReceive =
-          !options_.pushReceiveOrderEvents &&
-          !updateRequest.timestamp.has_value();
+          !updateRequest.timestamp.has_value() &&
+          (!options_.pushReceiveOrderEvents ||
+           !passel.sentRegionHandles.empty());
       if (!recheckAtReceive && recipient.receivedAttributeHandles.empty()) {
         auto const current = registry_.receiveOrderAttributeUpdateRecipientFor(
             updateRequest.federationName,
@@ -286,8 +288,12 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
         events.end());
   }
 
-  std::vector<std::pair<ProcessTransportSession*, ProcessFederationAttributeUpdateEvent>>
-      pushedEvents;
+  struct PushedAttributeEvent final {
+    ProcessTransportSession* session;
+    std::optional<ProcessFederationAttributeUpdateEvent> event;
+    std::uint64_t receivingFederateId;
+  };
+  std::vector<PushedAttributeEvent> pushedEvents;
   {
     std::scoped_lock lock(mutex_);
     for (auto& event : events) {
@@ -303,7 +309,16 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
         auto* const receivingSessionPointer = receivingSession->second;
         bool const hasRetraction = event.retractionMessageId.has_value();
       if (options_.pushReceiveOrderEvents) {
-        pushedEvents.emplace_back(receivingSession->second, std::move(event));
+        if (event.recheckAtReceive) {
+          auto const receivingFederateId = event.receivingFederateId;
+          receivingState->second.deferredAttributeUpdateEvents.push_back(
+              std::move(event));
+          pushedEvents.push_back(PushedAttributeEvent{
+              receivingSession->second, std::nullopt, receivingFederateId});
+        } else {
+          pushedEvents.push_back(PushedAttributeEvent{
+              receivingSession->second, std::move(event), 0U});
+        }
       } else {
         receivingState->second.attributeUpdateEvents.push_back(std::move(event));
       }
@@ -322,14 +337,26 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
 
   if (options_.pushReceiveOrderEvents) {
     for (auto const& pushedEvent : pushedEvents) {
-      auto const eventMessage = TransportServiceMessage{
-          TransportServiceMessageKind::event,
-          TransportServiceOperation::receive_attribute_update,
-          TransportServiceStatus::ok,
-          0U,
-          encodeProcessFederationReceiveAttributeUpdateResult(
-              ProcessFederationReceiveAttributeUpdateResult{pushedEvent.second})};
-      if (pushedEvent.first == nullptr || !pushedEvent.first->send(eventMessage)) {
+      auto const eventMessage = pushedEvent.event
+          ? TransportServiceMessage{
+                TransportServiceMessageKind::event,
+                TransportServiceOperation::receive_attribute_update,
+                TransportServiceStatus::ok,
+                0U,
+                encodeProcessFederationReceiveAttributeUpdateResult(
+                    ProcessFederationReceiveAttributeUpdateResult{
+                        *pushedEvent.event})}
+          : TransportServiceMessage{
+                TransportServiceMessageKind::event,
+                TransportServiceOperation::claim_deferred_attribute_update,
+                TransportServiceStatus::ok,
+                0U,
+                encodeProcessFederationReceiveInteractionRequest(
+                    ProcessFederationReceiveInteractionRequest{
+                        updateRequest.federationName,
+                        pushedEvent.receivingFederateId})};
+      if (pushedEvent.session == nullptr ||
+          !pushedEvent.session->send(eventMessage)) {
         return internalError(request);
       }
     }

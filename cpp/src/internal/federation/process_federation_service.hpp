@@ -133,6 +133,10 @@ class ProcessFederationService final {
     std::filesystem::path serviceReportLocation;
     std::deque<ProcessFederationInteractionEvent> interactionEvents;
     std::deque<ProcessFederationAttributeUpdateEvent> attributeUpdateEvents;
+    // One service-owned regional passel per push readiness marker. The callback-entry
+    // claim consumes exactly one, even if current DDM relevance suppresses it.
+    std::deque<ProcessFederationAttributeUpdateEvent>
+        deferredAttributeUpdateEvents;
     std::deque<ProcessFederationObjectInstanceDiscoveryEvent>
         objectInstanceDiscoveryEvents;
     std::deque<ProcessFederationObjectInstanceRemovalEvent>
@@ -334,6 +338,13 @@ class ProcessFederationService final {
   [[nodiscard]] TransportServiceMessage handleReceiveAttributeUpdate(
       ProcessTransportSession& session,
       TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage handleClaimDeferredAttributeUpdate(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] bool recheckAttributeUpdateAtReceive(
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId,
+      ProcessFederationAttributeUpdateEvent& event);
   [[nodiscard]] TransportServiceMessage handleReceiveObjectInstanceDiscovery(
       ProcessTransportSession& session,
       TransportServiceMessage const& request);

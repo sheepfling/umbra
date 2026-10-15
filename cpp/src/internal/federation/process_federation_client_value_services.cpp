@@ -254,6 +254,31 @@ ProcessFederationClient::receiveAttributeUpdate(
       .event;
 }
 
+std::optional<ProcessFederationAttributeUpdateEvent>
+ProcessFederationClient::claimDeferredAttributeUpdate(
+    std::wstring const& federationName, std::uint64_t receivingFederateId) {
+  {
+    std::scoped_lock lock(transactionMutex_);
+    if (closing_.load(std::memory_order_acquire) ||
+        !joinedFederationName_ || *joinedFederationName_ != federationName ||
+        joinedFederateId_ != receivingFederateId) {
+      return std::nullopt;
+    }
+  }
+  auto response = request(
+      TransportServiceOperation::claim_deferred_attribute_update,
+      encodeProcessFederationReceiveInteractionRequest(
+          ProcessFederationReceiveInteractionRequest{
+              federationName, receivingFederateId}),
+      false);
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationReceiveAttributeUpdateResult(response.payload)
+      .event;
+}
+
 std::optional<ProcessFederationObjectInstanceDiscoveryEvent>
 ProcessFederationClient::receiveObjectInstanceDiscovery(
     std::wstring federationName,

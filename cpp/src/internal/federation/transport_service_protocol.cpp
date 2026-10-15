@@ -167,6 +167,7 @@ bool isTransportServiceOperation(TransportServiceOperation operation) noexcept {
     case TransportServiceOperation::report_failed_service_invocation:
     case TransportServiceOperation::report_successful_service_invocation:
     case TransportServiceOperation::report_successful_void_service_invocation:
+    case TransportServiceOperation::claim_deferred_attribute_update:
       return true;
     case TransportServiceOperation::destroy_federation_execution:
     case TransportServiceOperation::unpublish_object_class_attributes:

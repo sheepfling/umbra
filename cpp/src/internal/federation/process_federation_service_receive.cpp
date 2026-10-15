@@ -35,6 +35,41 @@
 
 namespace umbra::detail {
 using process_federation_payload::parameterVector;
+
+bool ProcessFederationService::recheckAttributeUpdateAtReceive(
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId,
+    ProcessFederationAttributeUpdateEvent& event) {
+  if (!event.recheckAtReceive) {
+    return !event.attributeValues.empty();
+  }
+  std::vector<std::uint64_t> sentAttributeHandles;
+  sentAttributeHandles.reserve(event.attributeValues.size());
+  for (auto const& [attributeHandle, value] : event.attributeValues) {
+    static_cast<void>(value);
+    sentAttributeHandles.push_back(attributeHandle);
+  }
+  auto const current = registry_.receiveOrderAttributeUpdateRecipientFor(
+      federationName,
+      event.producingFederateId,
+      receivingFederateId,
+      event.objectInstanceHandle,
+      sentAttributeHandles,
+      event.sentRegionHandles ? &*event.sentRegionHandles : nullptr,
+      event.sentRegionSnapshots.empty()
+          ? nullptr
+          : &event.sentRegionSnapshots);
+  if (!current) {
+    return false;
+  }
+  std::erase_if(
+      event.attributeValues,
+      [&](ProcessFederationAttributeValue const& value) {
+        return !current->receivedAttributeHandles.contains(value.first);
+      });
+  return !event.attributeValues.empty();
+}
+
 TransportServiceMessage ProcessFederationService::handleReceiveInteraction(
     ProcessTransportSession& session,
     TransportServiceMessage const& request) {
@@ -188,34 +223,11 @@ TransportServiceMessage ProcessFederationService::handleReceiveInteraction(
         while (!state->second.attributeUpdateEvents.empty()) {
           auto event = std::move(state->second.attributeUpdateEvents.front());
           state->second.attributeUpdateEvents.pop_front();
-          if (event.recheckAtReceive) {
-            std::vector<std::uint64_t> sentAttributeHandles;
-            sentAttributeHandles.reserve(event.attributeValues.size());
-            for (auto const& [attributeHandle, value] : event.attributeValues) {
-              static_cast<void>(value);
-              sentAttributeHandles.push_back(attributeHandle);
-            }
-            auto const current = registry_.receiveOrderAttributeUpdateRecipientFor(
-                receiveRequest.federationName,
-                event.producingFederateId,
-                receiveRequest.receivingFederateId,
-                event.objectInstanceHandle,
-                sentAttributeHandles,
-                event.sentRegionHandles ? &*event.sentRegionHandles : nullptr,
-                event.sentRegionSnapshots.empty()
-                    ? nullptr
-                    : &event.sentRegionSnapshots);
-            if (!current) {
-              continue;
-            }
-            std::erase_if(
-                event.attributeValues,
-                [&](ProcessFederationAttributeValue const& value) {
-                  return !current->receivedAttributeHandles.contains(value.first);
-                });
-            if (event.attributeValues.empty()) {
-              continue;
-            }
+          if (!recheckAttributeUpdateAtReceive(
+                  receiveRequest.federationName,
+                  receiveRequest.receivingFederateId,
+                  event)) {
+            continue;
           }
           result.attributeEvent = std::move(event);
           break;

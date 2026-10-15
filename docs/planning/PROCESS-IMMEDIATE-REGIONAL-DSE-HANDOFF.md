@@ -1,8 +1,9 @@
 # 2025 process regional DSE: HLA_IMMEDIATE callback-entry handoff
 
-Status: **open; strict regression red; no runtime fix or validation claim**. Search
-handle: `process-delayed-regional-attribute-immediate`. Keep this separate from
-the green `process-delayed-regional-attribute` HLA_EVOKED receive-fence lane.
+Status: **bounded implementation and focused MinGW evidence complete; broader
+conformance open**. Search handle: `process-delayed-regional-attribute-immediate`.
+Keep this separate from the `process-delayed-regional-attribute` HLA_EVOKED
+receive-fence lane.
 
 ## Contract and observed failure
 
@@ -16,12 +17,12 @@ canonical **§8.1.8**, not the bundle's stale `8.1.10` metadata (RL-018).
 The regional attribute path also draws on §§6.10, 6.11, 9.5, 9.6, and 9.8;
 the existing evoked plan row has the exact direct requirement pairs.
 
-A strict, uncommitted official-API C++ case is preserved in
+A strict official-API C++ case in
 `cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp`
-in the isolated `2025-object-ddm` worktree. It uses
+uses
 `ProcessFederationServiceOptions{true}` and HLA_IMMEDIATE; disabling then
 enabling callbacks creates the callback-entry fence. MinGW built
-`umbra_process_delayed_regional_attribute_catch2`. The focused CTest
+`umbra_process_delayed_regional_attribute_catch2`. Before the fix, the focused CTest
 `Process immediate delayed regional attribute delivery rechecks at callback entry`
 failed reproducibly:
 
@@ -32,53 +33,51 @@ failed reproducibly:
   still reflected after the receiver committed a disjoint range before
   callback entry: **1**, expected **0** (`:284`).
 
-The existing HLA_EVOKED test remained green 1/1 after the fixture extension.
-Do not check the red case into the default CTest suite or mark §8.1.8
-validated until a correct callback-entry mechanism passes it.
+After the callback-entry claim implementation, this case passes all 47
+assertions. The focused target passes **4/4** CTests (immediate, HLA_EVOKED,
+ordinary overlapping push, and disjoint regional push). Its exact plan row
+has 10 direct requirement-to-canonical-section pairs; the focused lane check
+passes with no source-unlocated tests. This is private process-profile
+evidence, not validation of all §8.1.8.
 
-## Why the current push path cannot satisfy this boundary
+## Why the old push path failed, and the bounded implementation
 
-`process_federation_service_attribute_value_updates.cpp` materializes the
-recipient and attribute subset during `UpdateAttributeValues` when
-`pushReceiveOrderEvents` is true, then sends the complete event frame. Its
-server-only `recheckAtReceive` flag and original sent-region snapshots are
-deliberately not encoded by the process codec. The client buffers the frame;
-`process_federation_client_callback_dispatch.cpp` submits it to
-`process_federation_callback_bridge.cpp`, whose immediate task invokes the
-FederateAmbassador without asking the authoritative service for current
-subscription or region state. Once serialized, the client cannot recover a
-recipient omitted at generation or suppress a now-disjoint passel correctly.
+The old `process_federation_service_attribute_value_updates.cpp` push path
+materialized a recipient and attribute subset during `UpdateAttributeValues`,
+then sent the complete event frame. Server-only `recheckAtReceive` and the
+original sent-region snapshots did not cross the wire. Once serialized, the
+client could neither recover a recipient omitted at generation nor suppress a
+now-disjoint passel at callback entry.
 
-The next slice needs a **server-owned callback-entry decision**. Two candidate
-protocols need design review, not an in-place predicate tweak:
+The chosen private operation is `claim_deferred_attribute_update = 144`.
+For regional receive-order attribute updates under process push, the service
+retains each accepted passel and original producer-region snapshots in its
+joined-federate queue, then sends a readiness marker carrying the federation
+name and receiver's joined-federate ID. The client puts that marker into the
+same heterogeneous FIFO as other pushed events. When its
+HLA_IMMEDIATE callback task is admitted, it claims **one** passel. The
+authoritative service rechecks the receiver's current subscription/committed
+region, returns the filtered event or a suppressed result, and consumes that
+one queue slot. At callback admission, the client rejects a marker whose join
+identity no longer matches. The callback bridge holds a client lifetime lease
+during the claim and cancels queued work on resignation or close; the producer
+snapshot never becomes client-supplied authority. Timestamped/TSO and 2010
+paths were not changed.
 
-1. Retain each accepted passel and its immutable producer-region snapshots in
-   the service, push an ordered notification, and materialize via the existing
-   receive operation only when the immediate callback task is admitted.
-2. Retain the same service-owned state behind an event identity and make a
-   one-shot callback-entry recheck request that returns the filtered event.
+The strict case checks enabled late overlap, late disjoint suppression,
+disabled generation-time exclusion, current subscription/range suppression
+in both modes, source-region mutation after send, two queued markers/FIFO,
+and object deletion before callback entry. Neighboring ordinary nonregional
+push behavior remains on its prior path and is checked separately.
 
-Both must define cancellation/lifetime, one-shot consumption, FIFO with other
-pushed events, and the boundary against concurrent subscription changes. The
-client must not become the authority for region snapshots. Likely touchpoints:
-`process_federation_service_attribute_value_updates.cpp`,
-`process_federation_service_receive.cpp`,
-`process_federation_service_protocol.hpp` and codecs,
-`process_federation_client.cpp`,
-`process_federation_client_callback_dispatch.cpp`, and
-`process_federation_callback_bridge.cpp`/`.hpp`. Confirm request/reply
-re-entry and lock ordering before making an immediate callback task perform
-network I/O. Keep timestamped/TSO and 2010 behavior outside this first slice.
+## Next bounded handoff
 
-## Acceptance for a dedicated implementation lane
-
-Promote the strict case only with a separate plan row and direct
-requirement-to-canonical-2025 mappings. Under HLA_IMMEDIATE process push,
-prove enabled late overlap (one reflection with original sent region/tag),
-late disjoint suppression, disabled generation-time exclusion, and current
-subscription/range suppression in both modes. Include source-region mutation
-after send, multiple queued passels/FIFO, resign or object-delete cancellation,
-and a concurrent subscription/callback race test if the chosen protocol permits
-it. Re-run the neighboring HLA_EVOKED receive-fence case and ordinary regional
-push controls, focused MinGW CTest, and the lane mapping check. Do not claim
-full §8.1.8 or general TSO parity from this bounded receive-order slice.
+Prove concurrent subscription changes against the network claim-to-user
+callback window with a deterministic interlock, then add fresh installed-
+package/process-host evidence. Audit ordinary nonregional attribute updates,
+prove stale-marker rejection across resign/rejoin with a dedicated case, and
+check concurrent producers' readiness-marker ordering before broadening DSE
+coverage. The callback-entry decision is made at task admission, but a
+separate concurrent service call could still mutate subscription after the
+claim response and before user callback invocation. Do not claim that race,
+full §8.1.8, general TSO parity, or external conformance from this lane.

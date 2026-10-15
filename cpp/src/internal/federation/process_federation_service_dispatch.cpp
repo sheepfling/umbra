@@ -112,6 +112,8 @@ TransportServiceMessage ProcessFederationService::handle(
         return handleFlushQueueRequest(session, request);
       case TransportServiceOperation::receive_attribute_update:
         return handleReceiveAttributeUpdate(session, request);
+      case TransportServiceOperation::claim_deferred_attribute_update:
+        return handleClaimDeferredAttributeUpdate(session, request);
       case TransportServiceOperation::receive_object_instance_discovery:
         return handleReceiveObjectInstanceDiscovery(session, request);
       case TransportServiceOperation::get_federate_handle:

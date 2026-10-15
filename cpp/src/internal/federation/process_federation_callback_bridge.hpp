@@ -34,6 +34,9 @@ class ProcessFederationCallbackBridge final {
   using TsoDeliveryCompletionHandler = std::function<void(std::uint64_t)>;
   using ExceptionReportProjectionHandler = std::function<
       std::optional<ProcessFederationInteractionEvent>(ProcessFederationInteractionEvent)>;
+  using DeferredAttributeUpdateHandler = std::function<
+      std::optional<ProcessFederationAttributeUpdateEvent>(
+          std::wstring const&, std::uint64_t)>;
 
   explicit ProcessFederationCallbackBridge(
       rti1516_2025::FederateAmbassador& recipient,
@@ -69,6 +72,12 @@ class ProcessFederationCallbackBridge final {
   // same callback dispatcher/session as interaction events so callback model,
   // enable/disable gating, and ambassador lifetime remain identical.
   void submitAttributeUpdate(ProcessFederationAttributeUpdateEvent event);
+  // A push readiness marker enters the dispatcher in FIFO order, but the
+  // authoritative service resolves its passel only when this task is admitted.
+  void submitDeferredAttributeUpdate(
+      std::wstring federationName, std::uint64_t receivingFederateId);
+  void setDeferredAttributeUpdateHandler(DeferredAttributeUpdateHandler handler);
+  void cancelDeferredAttributeUpdates() noexcept;
 
   // Queue one provider-side Request Attribute Value Update callback through
   // the same callback dispatcher/session as all other process events.
@@ -207,6 +216,7 @@ class ProcessFederationCallbackBridge final {
 
  private:
   struct ExceptionReportProjectionState;
+  struct DeferredAttributeUpdateState;
   [[nodiscard]] bool isClosed() const noexcept;
 
   struct RetractionState final {
@@ -223,6 +233,7 @@ class ProcessFederationCallbackBridge final {
   std::shared_ptr<rti1516_2025::umbra_binding_detail::CallbackSession> const
       callbackSession_;
   std::shared_ptr<ExceptionReportProjectionState> const exceptionReportProjection_;
+  std::shared_ptr<DeferredAttributeUpdateState> const deferredAttributeUpdate_;
   std::shared_ptr<std::atomic_bool> attributeRelevanceAdvisorySwitchState_;
   CallbackCompletionHandler timeRegulationEnabledCompletion_;
   CallbackCompletionHandler timeConstrainedEnabledCompletion_;

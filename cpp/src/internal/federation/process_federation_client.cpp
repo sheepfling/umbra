@@ -121,6 +121,8 @@ namespace {
       return "receive-interaction";
     case TransportServiceOperation::receive_attribute_update:
       return "receive-attribute-update";
+    case TransportServiceOperation::claim_deferred_attribute_update:
+      return "claim-deferred-attribute-update";
     case TransportServiceOperation::get_interaction_class_handle:
       return "get-interaction-class-handle";
     case TransportServiceOperation::get_object_class_handle:
@@ -466,6 +468,13 @@ void ProcessFederationClient::bufferEvent(TransportServiceMessage message) {
             "Process federation client received an empty unsolicited attribute event.");
       }
       pendingEvents_.emplace_back(std::move(*result.event));
+      return;
+    }
+    case TransportServiceOperation::claim_deferred_attribute_update: {
+      auto marker = decodeProcessFederationReceiveInteractionRequest(
+          message.payload);
+      pendingEvents_.emplace_back(PendingDeferredAttributeUpdate{
+          std::move(marker.federationName), marker.receivingFederateId});
       return;
     }
     case TransportServiceOperation::receive_object_instance_discovery: {

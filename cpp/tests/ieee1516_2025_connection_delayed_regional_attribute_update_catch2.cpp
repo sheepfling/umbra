@@ -10,6 +10,7 @@
 #include <RTI/RTI1516.h>
 
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <filesystem>
@@ -97,20 +98,22 @@ class RegionalReceiver final : public NullFederateAmbassador {
       TransportationTypeHandle const&,
       FederateHandle const&,
       RegionHandleSet const* sentRegions) override {
-    ++reflections;
     receivedAttributes = values.size();
     receivedSentRegions = sentRegions == nullptr ? 0U : sentRegions->size();
     if (tag.size() != 0U) {
       auto const* bytes = static_cast<std::uint8_t const*>(tag.data());
       receivedTag.assign(bytes, bytes + tag.size());
     }
+    receivedTags.push_back(receivedTag);
+    reflections.fetch_add(1U, std::memory_order_release);
   }
 
-  std::size_t discoveries = 0U;
-  std::size_t reflections = 0U;
+  std::atomic<std::size_t> discoveries = 0U;
+  std::atomic<std::size_t> reflections = 0U;
   std::size_t receivedAttributes = 0U;
   std::size_t receivedSentRegions = 0U;
   std::vector<std::uint8_t> receivedTag;
+  std::vector<std::vector<std::uint8_t>> receivedTags;
 };
 
 std::unique_ptr<RTIambassador> makeRti() {
@@ -129,30 +132,35 @@ void drainCallbacks(RTIambassador& rti) {
   }
 }
 
-void drainCallbacksFor(RTIambassador& rti) {
+void drainCallbacksFor(RTIambassador& rti, CallbackModel callbackModel) {
   for (unsigned attempt = 0U; attempt < 20U; ++attempt) {
-    drainCallbacks(rti);
+    if (callbackModel == HLA_EVOKED) {
+      drainCallbacks(rti);
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
   }
 }
 
 template <typename Ready>
-void pumpCallbacksUntil(RTIambassador& rti, Ready ready) {
+void pumpCallbacksUntil(RTIambassador& rti, CallbackModel callbackModel, Ready ready) {
   for (unsigned attempt = 0U; attempt < 50U && !ready(); ++attempt) {
-    drainCallbacks(rti);
+    if (callbackModel == HLA_EVOKED) {
+      drainCallbacks(rti);
+    }
     if (!ready()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
   }
 }
 
-void runScenario(bool enableDelay) {
+void runScenario(bool enableDelay, CallbackModel callbackModel) {
   EmbeddedFederationRegistry registry;
   ProcessFederationServiceHost host(
       registry,
       delayedRegionalDefinition(enableDelay),
       {"127.0.0.1", 0U},
-      {"umbra-delayed-regional-process-test", 0xD351U});
+      {"umbra-delayed-regional-process-test", 0xD351U},
+      ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
   host.start();
 
   constexpr wchar_t const* federationName = L"process-delayed-regional-attribute";
@@ -162,11 +170,11 @@ void runScenario(bool enableDelay) {
   auto receiver = makeRti();
   REQUIRE(sender->connect(
       senderFederate,
-      HLA_EVOKED,
+      callbackModel,
       configurationFor(host.address().port, L"delayed-regional-sender")).addressUsed);
   REQUIRE(receiver->connect(
       receiverFederate,
-      HLA_EVOKED,
+      callbackModel,
       configurationFor(host.address().port, L"delayed-regional-receiver")).addressUsed);
   REQUIRE_NOTHROW(sender->createFederationExecution(
       federationName, L"server-owned-fom.xml"));
@@ -208,8 +216,13 @@ void runScenario(bool enableDelay) {
   receiver->subscribeObjectClassAttributesWithRegions(receiverClass, receiverPairs);
   auto const object = sender->registerObjectInstanceWithRegions(senderClass, senderPairs);
   REQUIRE(object.isValid());
-  pumpCallbacksUntil(*receiver, [&] { return receiverFederate.discoveries == 1U; });
+  pumpCallbacksUntil(*receiver, callbackModel, [&] {
+    return receiverFederate.discoveries == 1U;
+  });
   REQUIRE(receiverFederate.discoveries == 1U);
+  if (callbackModel == HLA_IMMEDIATE) {
+    receiver->disableCallbacks();
+  }
 
   // The receiver is known, but has no attribute declaration when each update
   // is generated. The creation-time switch keeps its route until delivery.
@@ -223,9 +236,15 @@ void runScenario(bool enableDelay) {
   sender->updateAttributeValues(
       object, values, VariableLengthData(firstTag.data(), firstTag.size()));
   receiver->subscribeObjectClassAttributesWithRegions(receiverClass, receiverPairs);
-  drainCallbacksFor(*receiver);
+  if (callbackModel == HLA_IMMEDIATE) {
+    receiver->enableCallbacks();
+  }
+  drainCallbacksFor(*receiver, callbackModel);
   REQUIRE(receiverFederate.reflections == 0U);
 
+  if (callbackModel == HLA_IMMEDIATE) {
+    receiver->disableCallbacks();
+  }
   receiver->unsubscribeObjectClassAttributesWithRegions(receiverClass, receiverPairs);
   receiver->setRangeBounds(receiverRegion, receiverDimension, RangeBounds(0UL, 1UL));
   receiver->commitRegionModifications(RegionHandleSet{receiverRegion});
@@ -237,10 +256,15 @@ void runScenario(bool enableDelay) {
   sender->setRangeBounds(senderRegion, senderDimension, RangeBounds(2UL, 3UL));
   sender->commitRegionModifications(RegionHandleSet{senderRegion});
   receiver->subscribeObjectClassAttributesWithRegions(receiverClass, receiverPairs);
+  if (callbackModel == HLA_IMMEDIATE) {
+    receiver->enableCallbacks();
+  }
   if (enableDelay) {
-    pumpCallbacksUntil(*receiver, [&] { return receiverFederate.reflections == 1U; });
+    pumpCallbacksUntil(*receiver, callbackModel, [&] {
+      return receiverFederate.reflections == 1U;
+    });
   } else {
-    drainCallbacksFor(*receiver);
+    drainCallbacksFor(*receiver, callbackModel);
   }
   REQUIRE(receiverFederate.reflections == (enableDelay ? 1U : 0U));
   if (enableDelay) {
@@ -252,7 +276,10 @@ void runScenario(bool enableDelay) {
 
   // A passel initially eligible for this overlapping declaration must still
   // be suppressed when the committed receiving range becomes disjoint before
-  // the evoked callback entry, irrespective of the switch setting.
+  // callback entry, irrespective of the switch setting.
+  if (callbackModel == HLA_IMMEDIATE) {
+    receiver->disableCallbacks();
+  }
   sender->setRangeBounds(senderRegion, senderDimension, RangeBounds(0UL, 1UL));
   sender->commitRegionModifications(RegionHandleSet{senderRegion});
   std::array<std::uint8_t, 1U> const thirdTag{0xD3U};
@@ -260,8 +287,52 @@ void runScenario(bool enableDelay) {
       object, values, VariableLengthData(thirdTag.data(), thirdTag.size()));
   receiver->setRangeBounds(receiverRegion, receiverDimension, RangeBounds(2UL, 3UL));
   receiver->commitRegionModifications(RegionHandleSet{receiverRegion});
-  drainCallbacksFor(*receiver);
+  if (callbackModel == HLA_IMMEDIATE) {
+    receiver->enableCallbacks();
+  }
+  drainCallbacksFor(*receiver, callbackModel);
   REQUIRE(receiverFederate.reflections == (enableDelay ? 1U : 0U));
+
+  if (callbackModel == HLA_IMMEDIATE) {
+    // Two readiness markers wait behind one disabled callback gate. The
+    // first passel is generated while the current receiver range is
+    // disjoint; only the enabled switch may admit it after the late overlap.
+    // The second is initially eligible in either mode. Preserve their FIFO
+    // order without allowing a suppressed slot to claim its successor.
+    receiver->disableCallbacks();
+    std::array<std::uint8_t, 1U> const fourthTag{0xD4U};
+    sender->updateAttributeValues(
+        object, values, VariableLengthData(fourthTag.data(), fourthTag.size()));
+    receiver->setRangeBounds(receiverRegion, receiverDimension, RangeBounds(0UL, 1UL));
+    receiver->commitRegionModifications(RegionHandleSet{receiverRegion});
+    std::array<std::uint8_t, 1U> const fifthTag{0xD5U};
+    sender->updateAttributeValues(
+        object, values, VariableLengthData(fifthTag.data(), fifthTag.size()));
+    receiver->enableCallbacks();
+    auto const expectedReflections = enableDelay ? 3U : 1U;
+    pumpCallbacksUntil(*receiver, callbackModel, [&] {
+      return receiverFederate.reflections == expectedReflections;
+    });
+    REQUIRE(receiverFederate.reflections == expectedReflections);
+    if (enableDelay) {
+      REQUIRE(receiverFederate.receivedTags ==
+              std::vector<std::vector<std::uint8_t>>{{0xD2U}, {0xD4U}, {0xD5U}});
+    } else {
+      REQUIRE(receiverFederate.receivedTags ==
+              std::vector<std::vector<std::uint8_t>>{{0xD5U}});
+    }
+
+    // Object deletion after acceptance but before callback entry invalidates
+    // this passel; the service still consumes its matching readiness marker.
+    receiver->disableCallbacks();
+    std::array<std::uint8_t, 1U> const sixthTag{0xD6U};
+    sender->updateAttributeValues(
+        object, values, VariableLengthData(sixthTag.data(), sixthTag.size()));
+    sender->deleteObjectInstance(object, VariableLengthData{});
+    receiver->enableCallbacks();
+    drainCallbacksFor(*receiver, callbackModel);
+    REQUIRE(receiverFederate.reflections == expectedReflections);
+  }
 
   receiver->resignFederationExecution(NO_ACTION);
   sender->resignFederationExecution(DELETE_OBJECTS);
@@ -283,9 +354,25 @@ TEST_CASE(
     "[rti.service.subscribe-object-class-attributes-with-regions]"
     "[federate.callback.reflect-attribute-values]") {
   SECTION("enabled delays eligibility to the HLA_EVOKED receive fence") {
-    runScenario(true);
+    runScenario(true, HLA_EVOKED);
   }
   SECTION("disabled preserves generation-time exclusion") {
-    runScenario(false);
+    runScenario(false, HLA_EVOKED);
+  }
+}
+
+TEST_CASE(
+    "Process immediate delayed regional attribute delivery rechecks at callback entry",
+    "[integration][object-management][data-distribution-management]"
+    "[delay-subscription-evaluation][process-boundary]"
+    "[process-delayed-regional-attribute-immediate][2025]"
+    "[rti.service.update-attribute-values]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[federate.callback.reflect-attribute-values]") {
+  SECTION("enabled defers eligibility to the HLA_IMMEDIATE callback entry") {
+    runScenario(true, HLA_IMMEDIATE);
+  }
+  SECTION("disabled preserves generation-time exclusion") {
+    runScenario(false, HLA_IMMEDIATE);
   }
 }

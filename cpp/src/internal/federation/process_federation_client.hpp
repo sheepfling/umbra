@@ -990,6 +990,9 @@ class ProcessFederationClient final {
   [[nodiscard]] ProcessFederationInteractionEvent receivePushedEvent();
   [[nodiscard]] ProcessFederationAttributeUpdateEvent
   receivePushedAttributeUpdate();
+  [[nodiscard]] std::optional<ProcessFederationAttributeUpdateEvent>
+  claimDeferredAttributeUpdate(
+      std::wstring const& federationName, std::uint64_t receivingFederateId);
   [[nodiscard]] ProcessFederationObjectInstanceDiscoveryEvent
   receivePushedObjectInstanceDiscovery();
   [[nodiscard]] ProcessFederationObjectInstanceRemovalEvent
@@ -1056,9 +1059,14 @@ class ProcessFederationClient final {
   std::shared_ptr<ProcessFederationCallbackBridge> callbackBridge_;
   std::shared_ptr<std::atomic_bool> attributeRelevanceAdvisorySwitchState_;
   struct PendingRequestRetraction final { std::uint64_t messageId; };
+  struct PendingDeferredAttributeUpdate final {
+    std::wstring federationName;
+    std::uint64_t receivingFederateId;
+  };
   using PendingEvent = std::variant<
       ProcessFederationInteractionEvent,
       ProcessFederationAttributeUpdateEvent,
+      PendingDeferredAttributeUpdate,
       ProcessFederationAttributeValueUpdateRequestEvent,
       ProcessFederationAttributeOwnershipQueryEvent,
       ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent,

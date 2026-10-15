@@ -108,11 +108,15 @@ void ProcessFederationClient::resignFederationExecution(
         joinedFederateId_ == federateId) {
       joinedFederationName_.reset();
       joinedFederateId_ = 0U;
+      std::erase_if(pendingEvents_, [](PendingEvent const& event) {
+        return std::holds_alternative<PendingDeferredAttributeUpdate>(event);
+      });
       bridge = callbackBridge_;
     }
   }
   if (bridge) {
     bridge->cancelExceptionReportProjections();
+    bridge->cancelDeferredAttributeUpdates();
   }
 }
 

@@ -347,6 +347,11 @@ enum class TransportServiceOperation : std::uint16_t {
   // Successful void service reports use Table 5's [null] file form rather
   // than a typed ReturnArgument record.
   report_successful_void_service_invocation = 143U,
+  // Push-mode regional receive-order attribute updates retain their passel
+  // on the service until this callback-entry claim. The same operation also
+  // carries an unsolicited joined-federate identity marker; no region
+  // snapshot crosses the wire.
+  claim_deferred_attribute_update = 144U,
 };
 
 enum class TransportServiceStatus : std::uint16_t {

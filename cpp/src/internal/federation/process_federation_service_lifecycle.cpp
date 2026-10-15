@@ -53,6 +53,7 @@ void ProcessFederationService::clearJoinedFederateSessionState(
   state->second.serviceReportLocation.clear();
   state->second.interactionEvents.clear();
   state->second.attributeUpdateEvents.clear();
+  state->second.deferredAttributeUpdateEvents.clear();
   state->second.objectInstanceDiscoveryEvents.clear();
   state->second.objectInstanceRemovalEvents.clear();
   state->second.objectInstanceScopeChangeEvents.clear();
@@ -85,6 +86,9 @@ void ProcessFederationService::discardPendingJoinedFederateMomObjectEvents(
     };
     std::erase_if(state.objectInstanceDiscoveryEvents, matchesObject);
     std::erase_if(state.attributeUpdateEvents, matchesObject);
+    // Retain a deferred push passel until its one matching readiness marker
+    // is claimed. The callback-entry recheck will suppress a removed object;
+    // erasing this slot early could let that marker claim a later passel.
   }
 }
 namespace {

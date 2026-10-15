@@ -1097,6 +1097,68 @@ struct ProcessFederationCallbackBridge::ExceptionReportProjectionState final {
   }
 };
 
+struct ProcessFederationCallbackBridge::DeferredAttributeUpdateState final {
+  std::mutex mutex;
+  std::condition_variable idle;
+  DeferredAttributeUpdateHandler handler;
+  std::uint64_t generation = 0U;
+  std::size_t inFlight = 0U;
+  bool closed = false;
+
+  std::uint64_t currentGeneration() {
+    std::scoped_lock lock(mutex);
+    return generation;
+  }
+
+  bool admitCallback(std::uint64_t admittedGeneration) {
+    std::scoped_lock lock(mutex);
+    return !closed && generation == admittedGeneration;
+  }
+
+  std::optional<ProcessFederationAttributeUpdateEvent> materialize(
+      std::uint64_t admittedGeneration,
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId) {
+    DeferredAttributeUpdateHandler claim;
+    {
+      std::scoped_lock lock(mutex);
+      if (closed || generation != admittedGeneration || !handler) {
+        return std::nullopt;
+      }
+      claim = handler;
+      ++inFlight;
+    }
+    std::optional<ProcessFederationAttributeUpdateEvent> event;
+    try {
+      event = claim(federationName, receivingFederateId);
+    } catch (...) {
+      std::scoped_lock lock(mutex);
+      --inFlight;
+      idle.notify_all();
+      throw;
+    }
+    {
+      std::scoped_lock lock(mutex);
+      --inFlight;
+      if (closed || generation != admittedGeneration) {
+        event.reset();
+      }
+      idle.notify_all();
+    }
+    return event;
+  }
+
+  void cancel(bool permanently) noexcept {
+    std::unique_lock lock(mutex);
+    ++generation;
+    if (permanently) {
+      closed = true;
+      handler = {};
+    }
+    idle.wait(lock, [this] { return inFlight == 0U; });
+  }
+};
+
 ProcessFederationCallbackBridge::ProcessFederationCallbackBridge(
     rti1516_2025::FederateAmbassador& recipient,
     CallbackDispatchModel model)
@@ -1105,7 +1167,9 @@ ProcessFederationCallbackBridge::ProcessFederationCallbackBridge(
           std::make_shared<rti1516_2025::umbra_binding_detail::CallbackSession>(
               recipient)),
       exceptionReportProjection_(
-          std::make_shared<ExceptionReportProjectionState>()) {}
+          std::make_shared<ExceptionReportProjectionState>()),
+      deferredAttributeUpdate_(
+          std::make_shared<DeferredAttributeUpdateState>()) {}
 
 ProcessFederationCallbackBridge::ProcessFederationCallbackBridge(
     std::shared_ptr<CallbackDispatcher> dispatcher,
@@ -1114,7 +1178,9 @@ ProcessFederationCallbackBridge::ProcessFederationCallbackBridge(
     : dispatcher_(std::move(dispatcher)),
       callbackSession_(std::move(callbackSession)),
       exceptionReportProjection_(
-          std::make_shared<ExceptionReportProjectionState>()) {
+          std::make_shared<ExceptionReportProjectionState>()),
+      deferredAttributeUpdate_(
+          std::make_shared<DeferredAttributeUpdateState>()) {
   if (!dispatcher_ || !callbackSession_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge requires the runtime callback controls.");
@@ -1334,6 +1400,45 @@ void ProcessFederationCallbackBridge::submitAttributeUpdate(
           tsoCompletion(*tsoMessageId);
         }
       });
+}
+
+void ProcessFederationCallbackBridge::submitDeferredAttributeUpdate(
+    std::wstring federationName, std::uint64_t receivingFederateId) {
+  auto const session = callbackSession_;
+  if (isClosed() || !session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  auto const state = deferredAttributeUpdate_;
+  auto const generation = state->currentGeneration();
+  dispatcher_->submit([session, state, generation,
+                       federationName = std::move(federationName),
+                       receivingFederateId] {
+    auto event = state->materialize(
+        generation, federationName, receivingFederateId);
+    if (!event) {
+      return;
+    }
+    session->invoke(
+        [state, generation, event = std::move(*event)](
+            rti1516_2025::FederateAmbassador& recipient) mutable {
+          if (state->admitCallback(generation)) {
+            deliverAttributeUpdate(event, recipient);
+          }
+        });
+  });
+}
+
+void ProcessFederationCallbackBridge::setDeferredAttributeUpdateHandler(
+    DeferredAttributeUpdateHandler handler) {
+  std::scoped_lock lock(deferredAttributeUpdate_->mutex);
+  if (!deferredAttributeUpdate_->closed) {
+    deferredAttributeUpdate_->handler = std::move(handler);
+  }
+}
+
+void ProcessFederationCallbackBridge::cancelDeferredAttributeUpdates() noexcept {
+  deferredAttributeUpdate_->cancel(false);
 }
 
 void ProcessFederationCallbackBridge::submitAttributeValueUpdateRequest(
@@ -1867,6 +1972,7 @@ void ProcessFederationCallbackBridge::close() noexcept {
   // lifetime. Neither this wait nor session close owns the dispatcher lock or
   // the client's stream transaction mutex.
   exceptionReportProjection_->cancel(true);
+  deferredAttributeUpdate_->cancel(true);
   {
     std::scoped_lock lock(retractionMutex_);
     retractionStates_.clear();

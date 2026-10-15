@@ -176,6 +176,41 @@ TransportServiceMessage ProcessFederationService::handleReceiveAttributeUpdate(
       encodeProcessFederationReceiveAttributeUpdateResult(result));
 }
 
+TransportServiceMessage ProcessFederationService::handleClaimDeferredAttributeUpdate(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const receiveRequest = decodeProcessFederationReceiveInteractionRequest(
+      request.payload);
+  ProcessFederationReceiveAttributeUpdateResult result;
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != receiveRequest.federationName ||
+        state->second.federateId != receiveRequest.receivingFederateId ||
+        !registry_.memberById(
+            receiveRequest.federationName, receiveRequest.receivingFederateId)) {
+      return rejected(request);
+    }
+    if (!state->second.deferredAttributeUpdateEvents.empty()) {
+      auto event = std::move(
+          state->second.deferredAttributeUpdateEvents.front());
+      state->second.deferredAttributeUpdateEvents.pop_front();
+      if (recheckAttributeUpdateAtReceive(
+              receiveRequest.federationName,
+              receiveRequest.receivingFederateId,
+              event)) {
+        result.event = std::move(event);
+      }
+    }
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationReceiveAttributeUpdateResult(result));
+}
+
 TransportServiceMessage
 ProcessFederationService::handleReceiveObjectInstanceDiscovery(
     ProcessTransportSession& session,

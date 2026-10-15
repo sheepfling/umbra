@@ -285,6 +285,10 @@ void ProcessFederationClient::dispatchPendingPushedEvents() {
         else if constexpr (std::is_same_v<Event, ProcessFederationAttributeUpdateEvent>) {
           bridge->submitAttributeUpdate(std::move(value));
         }
+        else if constexpr (std::is_same_v<Event, PendingDeferredAttributeUpdate>) {
+          bridge->submitDeferredAttributeUpdate(
+              std::move(value.federationName), value.receivingFederateId);
+        }
         else if constexpr (std::is_same_v<Event, ProcessFederationAttributeValueUpdateRequestEvent>) {
           bridge->submitAttributeValueUpdateRequest(std::move(value));
         }
@@ -488,6 +492,10 @@ void ProcessFederationClient::attachCallbackBridge(
       [this](ProcessFederationInteractionEvent event) {
         return recheckExceptionReport(std::move(event));
       });
+  callbackBridge_->setDeferredAttributeUpdateHandler(
+      [this](std::wstring const& federationName, std::uint64_t receivingFederateId) {
+        return claimDeferredAttributeUpdate(federationName, receivingFederateId);
+      });
   callbackEventsAvailable_.notify_all();
 }
 
@@ -509,6 +517,10 @@ void ProcessFederationClient::attachCallbackBridge(
   callbackBridge_->setExceptionReportProjectionHandler(
       [this](ProcessFederationInteractionEvent event) {
         return recheckExceptionReport(std::move(event));
+      });
+  callbackBridge_->setDeferredAttributeUpdateHandler(
+      [this](std::wstring const& federationName, std::uint64_t receivingFederateId) {
+        return claimDeferredAttributeUpdate(federationName, receivingFederateId);
       });
   callbackEventsAvailable_.notify_all();
 }
