@@ -713,6 +713,11 @@ TEST_CASE(
       serveExpected(
           receiver,
           receiverHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The multiple-record FQR server lost Query Logical Time report.");
+      serveExpected(
+          receiver,
+          receiverHandler,
           TransportServiceOperation::flush_queue_request,
           "The multiple-record FQR server lost second receiver FQR.");
       serveExpected(
@@ -725,6 +730,11 @@ TEST_CASE(
           receiverHandler,
           TransportServiceOperation::query_logical_time,
           "The multiple-record FQR server lost second Query Logical Time.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The multiple-record FQR server lost second Query Logical Time report.");
       serveExpected(
           sender,
           senderHandler,
