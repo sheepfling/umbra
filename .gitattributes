@@ -3,3 +3,16 @@
 # leaves binary files untouched; matching .editorconfig's LF policy avoids
 # platform-dependent line-ending churn for new and checked-out text files.
 * text=auto eol=lf
+
+# Licensed IEEE 1516-2025 imports are checked against byte-exact upstream
+# SHA-256 manifests. Preserve their original CRLF bytes and whitespace in Git;
+# the pinned digests, not generic whitespace lint, guard these vendor files.
+third_party/ieee1516.1-2025/include/RTI/*.h -text -eol -whitespace
+third_party/ieee1516.1-2025/include/RTI/auth/*.h -text -eol -whitespace
+third_party/ieee1516.1-2025/include/RTI/encoding/*.h -text -eol -whitespace
+third_party/ieee1516.1-2025/include/RTI/libauth/*.h -text -eol -whitespace
+third_party/ieee1516.1-2025/include/RTI/libfedtime/*.h -text -eol -whitespace
+third_party/ieee1516.1-2025/include/RTI/time/*.h -text -eol -whitespace
+third_party/ieee1516.2-2025/resources/schemas/*.xsd -text -eol -whitespace
+third_party/ieee1516.2-2025/resources/mim/*.xml -text -eol -whitespace
+third_party/ieee1516.2-2025/resources/examples/*.xml -text -eol -whitespace
