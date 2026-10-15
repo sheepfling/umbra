@@ -105,14 +105,16 @@ a commit, and a concrete next handoff.
 
 | Seat | Current packet | Exclusive ownership and merge gate |
 | --- | --- | --- |
-| 1. Process next-message advance | Diagnose the queued process NMRA rejection that currently reports an unexpected exception at the request-7 assertion. | Own that separate process test and only a proven shared-runtime correction. Check the pinned 2025 exception/reporting contract before changing the assertion; run both native registrations with finite timeouts. |
-| 2. TARA equal-time delivery | Compare the package's failed equal-boundary timestamped interaction case with a freshly installed current provider. | Own a proven time-scheduler correction and focused official-C++ evidence only; verify both callback models and adjacent temporal cases. Do not infer that all ten temporal failure families share one cause. |
-| 3. Custom regional transport | Compare the package's failed regional attribute-delivery case with the same fresh provider. | Own a proven region/transport or adapter correction only; verify both callback models and adjacent regional cases. Keep clear of the time scheduler and process fixtures. |
-| 4. Integration and release gates | Integrate tested commits and run combined MinGW native/package checks. | Own cherry-picks, roadmap/plan handoff, mapping checks, build-quality capture, and the frozen-commit release decision. The older-prefix installed-package run is red (48/2,072 registrations in 12 families); do not treat it as current-provider proof or a pass. |
+| 1. 2025 callback admission | Resolve a process ownership Evoke Multiple timeout without losing a queued acquisition callback; check the serial directed-callback failure too. | Own `cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp` and focused official-C++ evidence only. Preserve the separate 2010 stream; require exact ownership and representative directed/callback-disabled tests before merge. |
+| 2. Process save isolation | Reproduce the untimed federation-save callback assertion from the red process partition. | Own only a proven save fixture issue. If it shares seat 1's callback-pump root cause, report that dependency without editing the shared runtime seam. |
+| 3. Portable C++ source quality | Extract a second cohesive timestamped-interaction scheduling family from oversized TCK `main.cpp`. | Own TCK scenario/CMake files only. Preserve 1,036 catalog IDs and 5,161 contract references; pass focused both-model cases and source-boundary checks. |
+| 4. Integration and release gates | Integrate tested commits, maintain one roadmap handoff, and rerun combined MinGW native/package checks. | The fresh installed-provider checkpoint passed 2,048/2,048 configured CTests and 2,072/2,072 direct replays with valid JSON/JUnit and the explicit process-loss fixture. It precedes any later runtime merge, so own the frozen-commit rerun rather than calling this final. The process partition is red (56/544 with the then-known NMRA case excluded). |
 
-Earlier durable/save, MOM-reporting, regional process, and process-retraction
-packets are integrated with their focused checks. The process-retraction case
-passes both native registrations (2/2) after removal of a false fixture poll.
+Earlier durable/save, MOM-reporting, regional process, process-retraction,
+queued-NMRA, and private process packets are integrated with their focused
+checks. Retraction and queued NMRA pass both native registrations (2/2 each);
+the private process callback case passes its exact integrated selector after
+20 isolated repeats and 28 adjacent private cases.
 The custom-transportation TCK source extraction moved 1,800 lines to a
 cohesive ordinary source file while preserving all 1,036 catalog IDs; 28/36
 focused package registrations passed and the eight failures exactly matched
@@ -126,17 +128,17 @@ C++ gates rather than consuming a current C++ seat.
 
 ## Current release-gate packets
 
-An earlier installed-package C++ TCK checkpoint was green, but the new
-older-provider-prefix run is red and neither is a clean current native or
-repository-quality bill. Keep these finite packets separate so an audit repair
-does not get misreported as new RTI conformance:
+A new full installed-package C++ TCK checkpoint is green against the freshly
+installed provider, but it precedes pending native runtime changes and is not
+a clean current native or repository-quality bill. Keep these finite packets
+separate so an audit repair does not get misreported as new RTI conformance:
 
 | Packet | Verified starting point | Close only after |
 | --- | --- | --- |
 | Official 2025 vendor bytes | The 44 C++ headers and seven 1516.2 resources are byte-exact against the pinned archives; narrow vendor-tree Git text exceptions preserve those bytes. Binding inventory and resource CTests pass. | Preserve manifest digests and confirm the fresh installed-package check at the frozen integration commit. |
 | Test metadata and names | API IDs, duplicate roadmap key, lane tags, and 52 symbolic-name lookups are repaired. The local contract-selector guard is clean: 5,161/5,161 native references exact. A rebuilt MinGW Catch2 executable passes taxonomy; binding inventory, resource, traceability, and symbolic-name checks pass too. The long query regression still exposes stale local expectations one at a time (next known guard: latest completed-slice evidence counts versus its plan row, line 5334). The optional strict historical-completion audit reports 110 legacy reference mismatches; the live mapping check passes. | Repair the remaining bounded query-regression guards and historical ledger separately without resynchronizing the Lab or weakening normative mappings; rerun the five passing static gates at the frozen integration commit. |
-| Native process regressions | The ownership case's four invalid early-absence assertions were removed and its exact MinGW CTest passes (60 assertions). The regional callback-gating fixture now passes all six native registrations. The distinct retraction fixture also had a false grant-poll expectation; its integrated native registrations pass 2/2, with adjacent connection cases 5/5 in isolation. A separate queued NMRA case remains under diagnosis. | Finish the queued NMRA packet, then rerun the process partition with loopback access and bounded timeouts; classify each distinct failure. |
-| Source ownership and comprehensive proof | Thirty-nine hard and 18 soft source-size findings remained before the latest 1,800-line cohesive custom-transportation extraction; that move created no new hard finding. The full native partition has not passed. A new installed-package run against the older 2026-10-14 provider prefix failed 48/2,072 registrations across 12 families, mostly time-advance ordering; direct JSON/JUnit was not produced because CTest failed. | Compare each failed family against a fresh current provider before changing runtime, finish responsibility-based file splits and size checks, then obtain a clean combined MinGW native/package run, direct JSON/JUnit, and mapping checks at one frozen commit. |
+| Native process regressions | The ownership case's four invalid early-absence assertions were removed and its earlier exact MinGW CTest passed (60 assertions). The regional callback-gating fixture passes all six native registrations. Retraction and queued-NMRA fixture corrections pass 2/2 integrated registrations each; the adjacent failed-NMRA-report case also passes 2/2. The private registry-bound probe race fix passes its exact integrated test, with 20 isolated repeats and 28 adjacent private cases. A newer broad process partition is red and a shared 2025 callback-drain issue is under repair. | Finish the callback-drain and save-isolation packets, then rerun the process partition serially or with proved-safe concurrency, loopback access, finite timeouts, and a named output log. |
+| Source ownership and comprehensive proof | The latest 1,800-line cohesive custom-transportation extraction created no new size finding; the gate remains 39 hard/18 soft. A loopback-enabled native process partition with `-j2`, 18-second caps, and the then-known NMRA failure excluded finished red: 56/544 registrations failed, including duplicate core/connection registrations and ownership timeouts. A serial rerun reproduced the directed-interaction callback-disabled failure in both executables; other failures need individual classification. The older installed provider produced 48 failed package registrations, all of which passed focused fresh-provider replay. The full fresh-provider checkpoint then passed 2,048/2,048 configured CTests and 2,072/2,072 direct replays with valid JSON/JUnit, including 24/24 process-loss fixture cases. This provider predates any later runtime merge. | Finish partitioned native diagnosis and source ownership/size work; then repeat the combined native and installed-package gates at one frozen commit. Use explicit `--connection-loss-fixture` and preserve a named output log on the next broad native run. |
 
 The first three packets can be developed in isolated worktrees concurrently.
 The integration owner alone merges them serially and records the exact
