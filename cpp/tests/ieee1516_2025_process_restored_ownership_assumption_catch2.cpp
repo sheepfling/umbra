@@ -22,6 +22,7 @@
 #include <fstream>
 #include <iterator>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -136,6 +137,9 @@ TEST_CASE(
   REQUIRE(port != 0U);
 
   std::exception_ptr serverError;
+  std::mutex serverConnectionMutex;
+  std::shared_ptr<umbra::detail::ProcessTransportConnection>
+      serverOwnerConnection, serverCandidateConnection;
   std::thread server([&] {
     try {
       EmbeddedFederationRegistry registry;
@@ -149,6 +153,10 @@ TEST_CASE(
           {"process-restored-ownership-assumption-server", 0xA730U},
           [](std::wstring) {},
           [](std::wstring) { return false; });
+      {
+        std::lock_guard lock(serverConnectionMutex);
+        serverOwnerConnection = ownerConnection;
+      }
       ProcessTransportSession ownerSession(ownerConnection);
       auto ownerHandler = service.handlerFor(ownerSession);
       auto serveExpected = [&](ProcessTransportSession& processSession,
@@ -203,6 +211,10 @@ TEST_CASE(
           {"process-restored-ownership-assumption-server", 0xA731U},
           [](std::wstring) {},
           [](std::wstring) { return false; });
+      {
+        std::lock_guard lock(serverConnectionMutex);
+        serverCandidateConnection = candidateConnection;
+      }
       ProcessTransportSession candidateSession(candidateConnection);
       auto candidateHandler = service.handlerFor(candidateSession);
       serveExpected(
@@ -436,39 +448,42 @@ TEST_CASE(
 
     constexpr wchar_t const* saveLabel =
         L"process-restored-ownership-assumption-save";
+    // The process reader may submit a typed callback after the receive poll
+    // returns. Give each causally expected HLA_EVOKED callback a bounded slot.
+    constexpr double expectedCallbackWaitSeconds = 2.0;
     REQUIRE_NOTHROW(owner->requestFederationSave(saveLabel));
-    static_cast<void>(owner->evokeCallback(0.0));
+    static_cast<void>(owner->evokeCallback(expectedCallbackWaitSeconds));
     REQUIRE(ownerReports.saveInitiateCount == 1U);
-    static_cast<void>(candidate->evokeCallback(0.0));
+    static_cast<void>(candidate->evokeCallback(expectedCallbackWaitSeconds));
     REQUIRE(candidateReports.saveInitiateCount == 1U);
     REQUIRE_NOTHROW(owner->federateSaveBegun());
     REQUIRE_NOTHROW(candidate->federateSaveBegun());
     REQUIRE_NOTHROW(owner->federateSaveComplete());
     REQUIRE_NOTHROW(candidate->federateSaveComplete());
-    static_cast<void>(owner->evokeCallback(0.0));
+    static_cast<void>(owner->evokeCallback(expectedCallbackWaitSeconds));
     REQUIRE(ownerReports.saveCompleteCount == 1U);
-    static_cast<void>(candidate->evokeCallback(0.0));
+    static_cast<void>(candidate->evokeCallback(expectedCallbackWaitSeconds));
     REQUIRE(candidateReports.saveCompleteCount == 1U);
 
     REQUIRE_NOTHROW(owner->requestFederationRestore(saveLabel));
-    static_cast<void>(owner->evokeCallback(0.0));
-    static_cast<void>(owner->evokeCallback(0.0));
-    static_cast<void>(owner->evokeCallback(0.0));
+    static_cast<void>(owner->evokeCallback(expectedCallbackWaitSeconds));
+    static_cast<void>(owner->evokeCallback(expectedCallbackWaitSeconds));
+    static_cast<void>(owner->evokeCallback(expectedCallbackWaitSeconds));
     REQUIRE(ownerReports.restoreBegunCount == 1U);
     REQUIRE(ownerReports.restoreInitiateCount == 1U);
-    static_cast<void>(candidate->evokeCallback(0.0));
-    static_cast<void>(candidate->evokeCallback(0.0));
+    static_cast<void>(candidate->evokeCallback(expectedCallbackWaitSeconds));
+    static_cast<void>(candidate->evokeCallback(expectedCallbackWaitSeconds));
     REQUIRE(candidateReports.restoreBegunCount == 1U);
     REQUIRE(candidateReports.restoreInitiateCount == 1U);
     REQUIRE_NOTHROW(owner->federateRestoreComplete());
     REQUIRE_NOTHROW(candidate->federateRestoreComplete());
-    static_cast<void>(owner->evokeCallback(0.0));
+    static_cast<void>(owner->evokeCallback(expectedCallbackWaitSeconds));
     REQUIRE(ownerReports.restoreCompleteCount == 1U);
-    static_cast<void>(candidate->evokeCallback(0.0));
+    static_cast<void>(candidate->evokeCallback(expectedCallbackWaitSeconds));
     REQUIRE(candidateReports.restoreCompleteCount == 1U);
     REQUIRE(candidateReports.assumptions.empty());
-    static_cast<void>(candidate->evokeCallback(0.0));
-    static_cast<void>(candidate->evokeCallback(0.0));
+    static_cast<void>(candidate->evokeCallback(expectedCallbackWaitSeconds));
+    static_cast<void>(candidate->evokeCallback(expectedCallbackWaitSeconds));
     REQUIRE(candidateReports.assumptions.size() == 1U);
     auto const& assumption = candidateReports.assumptions.front();
     REQUIRE(assumption.objectInstance == objectInstance);
@@ -488,6 +503,17 @@ TEST_CASE(
     REQUIRE_NOTHROW(candidate->disconnect());
   } catch (...) {
     clientError = std::current_exception();
+    // A failed assertion can leave the scripted server expecting a different
+    // operation. Release both active sockets before any synchronous cleanup.
+    {
+      std::lock_guard lock(serverConnectionMutex);
+      if (serverCandidateConnection) {
+        serverCandidateConnection->close();
+      }
+      if (serverOwnerConnection) {
+        serverOwnerConnection->close();
+      }
+    }
     if (candidateJoined) {
       try {
         candidate->resignFederationExecution(rti1516_2025::NO_ACTION);

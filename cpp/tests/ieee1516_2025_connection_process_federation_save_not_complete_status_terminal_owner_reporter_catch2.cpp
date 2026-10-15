@@ -623,8 +623,10 @@ TEST_CASE(
                                    .withRtiAddress(
                                        L"tcp://127.0.0.1:" + std::to_wstring(port));
   std::exception_ptr clientError;
-  bool ownerJoined = false;
-  bool receiverJoined = false;
+  // One process poll admits the expected event, but its stream reader may
+  // submit the callback just after a zero-duration Evoke checks the queue.
+  // Wait for that callback without issuing a second, unscripted process poll.
+  constexpr double callbackWaitSeconds = 2.0;
   try {
     REQUIRE(ownerRti->connect(ownerFederate, HLA_EVOKED, ownerConfiguration)
                 .addressUsed);
@@ -634,7 +636,6 @@ TEST_CASE(
     auto const ownerHandle =
         ownerRti->joinFederationExecution(ownerType, federationName);
     REQUIRE(ownerHandle.isValid());
-    ownerJoined = true;
 
     REQUIRE(receiverRti->connect(
                 receiverFederate,
@@ -644,13 +645,12 @@ TEST_CASE(
     auto const receiverHandle =
         receiverRti->joinFederationExecution(receiverType, federationName);
     REQUIRE(receiverHandle.isValid());
-    receiverJoined = true;
 
     REQUIRE_NOTHROW(ownerRti->requestFederationSave(saveLabel));
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(ownerRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(ownerFederate.initiateCount == 1U);
     REQUIRE(ownerFederate.initiateLabel == saveLabel);
-    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE_FALSE(receiverRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(receiverFederate.initiateCount == 1U);
     REQUIRE(receiverFederate.initiateLabel == saveLabel);
 
@@ -659,8 +659,8 @@ TEST_CASE(
     REQUIRE_NOTHROW(ownerRti->federateSaveNotComplete());
     REQUIRE(ownerFederate.notSavedCount == 0U);
     REQUIRE(receiverFederate.notSavedCount == 0U);
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
-    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE_FALSE(ownerRti->evokeCallback(callbackWaitSeconds));
+    REQUIRE_FALSE(receiverRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(ownerFederate.notSavedCount == 1U);
     REQUIRE(receiverFederate.notSavedCount == 1U);
     REQUIRE(ownerFederate.notSavedReason ==
@@ -669,7 +669,7 @@ TEST_CASE(
             rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
 
     REQUIRE_NOTHROW(ownerRti->queryFederationSaveStatus());
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(ownerRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(ownerFederate.federationSaveStatusReports.size() == 1U);
     REQUIRE(ownerFederate.federationSaveStatusReports.back().size() == 2U);
     REQUIRE(ownerFederate.federationSaveStatusReports.back()[0].first ==
@@ -682,7 +682,7 @@ TEST_CASE(
             rti1516_2025::NO_SAVE_IN_PROGRESS);
 
     REQUIRE_NOTHROW(receiverRti->queryFederationSaveStatus());
-    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE_FALSE(receiverRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(receiverFederate.federationSaveStatusReports.size() == 1U);
     REQUIRE(receiverFederate.federationSaveStatusReports.back().size() == 2U);
     REQUIRE(receiverFederate.federationSaveStatusReports.back()[0].first ==
@@ -695,33 +695,16 @@ TEST_CASE(
             rti1516_2025::NO_SAVE_IN_PROGRESS);
 
     REQUIRE_NOTHROW(ownerRti->resignFederationExecution(NO_ACTION));
-    ownerJoined = false;
     REQUIRE_NOTHROW(receiverRti->resignFederationExecution(NO_ACTION));
-    receiverJoined = false;
     REQUIRE_NOTHROW(ownerRti->disconnect());
     REQUIRE_NOTHROW(receiverRti->disconnect());
   } catch (...) {
     clientError = std::current_exception();
-    if (receiverJoined) {
-      try {
-        receiverRti->resignFederationExecution(NO_ACTION);
-      } catch (...) {
-      }
-    }
-    if (ownerJoined) {
-      try {
-        ownerRti->resignFederationExecution(NO_ACTION);
-      } catch (...) {
-      }
-    }
-    try {
-      receiverRti->disconnect();
-    } catch (...) {
-    }
-    try {
-      ownerRti->disconnect();
-    } catch (...) {
-    }
+    // A failed assertion can leave the scripted server expecting a different
+    // operation. Closing both process streams unblocks that server; sending a
+    // synchronous Resign at this point could wait forever for a reply.
+    receiverRti.reset();
+    ownerRti.reset();
   }
   if (listener) {
     listener.reset();

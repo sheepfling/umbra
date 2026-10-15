@@ -100,8 +100,11 @@ TEST_CASE(
                   processSession,
                   [&](umbra::detail::TransportServiceMessage const& request) {
                     if (allowReceivePolls &&
-                        request.operation ==
-                            umbra::detail::TransportServiceOperation::receive_interaction) {
+                        (request.operation ==
+                             umbra::detail::TransportServiceOperation::receive_interaction ||
+                         (request.operation ==
+                              umbra::detail::TransportServiceOperation::claim_attribute_ownership_release &&
+                          &processSession == &ownerSession))) {
                       if (++receivePollCount > 256U) {
                         throw std::runtime_error(
                             "The process negotiated-divestiture cancellation client exceeded the bounded callback poll allowance.");

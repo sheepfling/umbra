@@ -14,6 +14,7 @@
 
 #include <chrono>
 #include <condition_variable>
+#include <cstddef>
 #include <exception>
 #include <memory>
 #include <mutex>
@@ -205,15 +206,23 @@ TEST_CASE(
                                umbra::detail::TransportServiceOperation operation,
                                char const* description) {
         bool expectedOperationServed = false;
+        std::size_t callbackPollCount = 0U;
         while (!expectedOperationServed) {
           umbra::detail::TransportServiceMessage response;
           if (!ProcessTransportServiceDispatcher::serveOne(
                   processSession,
                   [&](umbra::detail::TransportServiceMessage const& request) {
-                    if (request.operation ==
-                            umbra::detail::TransportServiceOperation::receive_interaction &&
-                        operation !=
-                            umbra::detail::TransportServiceOperation::receive_interaction) {
+                    if ((request.operation ==
+                             umbra::detail::TransportServiceOperation::receive_interaction &&
+                         operation !=
+                             umbra::detail::TransportServiceOperation::receive_interaction) ||
+                        (request.operation ==
+                             umbra::detail::TransportServiceOperation::claim_attribute_ownership_release &&
+                         &processSession == &ownerSession)) {
+                      if (++callbackPollCount > 256U) {
+                        throw std::runtime_error(
+                            "The push Confirm Divestiture client exceeded the bounded callback poll allowance.");
+                      }
                       response = handler(request);
                       return response;
                     }

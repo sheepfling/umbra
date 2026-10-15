@@ -851,14 +851,14 @@ TEST_CASE(
                 .isValid());
 
     REQUIRE_NOTHROW(firstRti->enableTimeConstrained());
-    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE_FALSE(firstRti->evokeCallback(2.0));
     REQUIRE(firstFederate.timeConstrainedEnabledCount == 1U);
     REQUIRE_NOTHROW(secondRti->enableTimeConstrained());
-    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE_FALSE(secondRti->evokeCallback(2.0));
     REQUIRE(secondFederate.timeConstrainedEnabledCount == 1U);
     REQUIRE_NOTHROW(ownerRti->enableTimeRegulation(
         rti1516_2025::HLAinteger64Interval(1)));
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(ownerRti->evokeCallback(2.0));
     REQUIRE(ownerFederate.timeRegulationEnabledCount == 1U);
 
     ownerFederate.callbackOrder.clear();
@@ -879,21 +879,21 @@ TEST_CASE(
     REQUIRE_NOTHROW(secondRti->timeAdvanceRequest(
         rti1516_2025::HLAinteger64Time(5)));
 
-    static_cast<void>(secondRti->evokeCallback(0.0));
+    static_cast<void>(secondRti->evokeCallback(2.0));
     REQUIRE(secondFederate.initiateCount == 1U);
     REQUIRE(secondFederate.initiateLabel == saveLabel);
     REQUIRE(secondFederate.timeAdvanceGrantCount == 0U);
     REQUIRE(secondFederate.callbackOrder ==
             std::vector<std::string>{"save-initiate"});
 
-    static_cast<void>(firstRti->evokeCallback(0.0));
+    static_cast<void>(firstRti->evokeCallback(2.0));
     REQUIRE(firstFederate.initiateCount == 1U);
     REQUIRE(firstFederate.initiateLabel == saveLabel);
     REQUIRE(firstFederate.timeAdvanceGrantCount == 0U);
     REQUIRE(firstFederate.callbackOrder ==
             std::vector<std::string>{"save-initiate"});
 
-    static_cast<void>(ownerRti->evokeCallback(0.0));
+    static_cast<void>(ownerRti->evokeCallback(2.0));
     REQUIRE(ownerFederate.initiateCount == 1U);
     REQUIRE(ownerFederate.initiateLabel == saveLabel);
     REQUIRE(ownerFederate.callbackOrder ==
@@ -905,9 +905,9 @@ TEST_CASE(
     REQUIRE_NOTHROW(ownerRti->federateSaveComplete());
     REQUIRE_NOTHROW(firstRti->federateSaveComplete());
     REQUIRE_NOTHROW(secondRti->federateSaveComplete());
-    static_cast<void>(ownerRti->evokeCallback(0.0));
-    static_cast<void>(firstRti->evokeCallback(0.0));
-    static_cast<void>(secondRti->evokeCallback(0.0));
+    static_cast<void>(ownerRti->evokeCallback(2.0));
+    static_cast<void>(firstRti->evokeCallback(2.0));
+    static_cast<void>(secondRti->evokeCallback(2.0));
     REQUIRE(ownerFederate.savedCount == 1U);
     REQUIRE(firstFederate.savedCount == 1U);
     REQUIRE(secondFederate.savedCount == 1U);
@@ -928,18 +928,11 @@ TEST_CASE(
     clientError = std::current_exception();
   }
   if (clientError) {
-    auto disconnect = [](RTIambassador& client) {
-      try {
-        client.disconnect();
-      } catch (...) {
-      }
-    };
-    std::thread ownerDisconnect([&] { disconnect(*ownerRti); });
-    std::thread firstDisconnect([&] { disconnect(*firstRti); });
-    std::thread secondDisconnect([&] { disconnect(*secondRti); });
-    ownerDisconnect.join();
-    firstDisconnect.join();
-    secondDisconnect.join();
+    // Public Disconnect rejects still-joined federates. Destroy the clients
+    // to close their process sockets before joining the scripted server.
+    secondRti.reset();
+    firstRti.reset();
+    ownerRti.reset();
   }
   if (listener) {
     listener->close();
@@ -1054,13 +1047,13 @@ TEST_CASE(
 
     REQUIRE_NOTHROW(
         rti->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(2.0));
     REQUIRE(federate.timeRegulationEnabledCount == 1U);
 
     rti1516_2025::HLAinteger64Time saveTime(5);
     REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel, saveTime));
     REQUIRE(federate.timedInitiateCount == 0U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(2.0));
     REQUIRE(federate.timedInitiateCount == 1U);
     REQUIRE(federate.timedInitiateLabel == saveLabel);
     REQUIRE(federate.timedInitiateImplementation == L"HLAinteger64Time");
@@ -1069,7 +1062,7 @@ TEST_CASE(
     REQUIRE_NOTHROW(rti->federateSaveBegun());
     REQUIRE_NOTHROW(rti->federateSaveComplete());
     REQUIRE(federate.savedCount == 0U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(2.0));
     REQUIRE(federate.savedCount == 1U);
     REQUIRE(federate.notSavedCount == 0U);
 
@@ -1329,8 +1322,6 @@ TEST_CASE(
                                    .withRtiAddress(
                                        L"tcp://127.0.0.1:" + std::to_wstring(port));
   std::exception_ptr clientError;
-  bool ownerJoined = false;
-  bool receiverJoined = false;
   try {
     REQUIRE(ownerRti->connect(ownerFederate, HLA_EVOKED, ownerConfiguration)
                 .addressUsed);
@@ -1339,7 +1330,6 @@ TEST_CASE(
         L"server-owned-process-timed-federation-save-fom.xml"));
     REQUIRE(ownerRti->joinFederationExecution(ownerType, federationName)
                 .isValid());
-    ownerJoined = true;
 
     REQUIRE(receiverRti->connect(
                 receiverFederate,
@@ -1348,14 +1338,13 @@ TEST_CASE(
                 .addressUsed);
     REQUIRE(receiverRti->joinFederationExecution(receiverType, federationName)
                 .isValid());
-    receiverJoined = true;
 
     REQUIRE_NOTHROW(ownerRti->enableTimeRegulation(
         rti1516_2025::HLAinteger64Interval(1)));
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(ownerRti->evokeCallback(2.0));
     REQUIRE(ownerFederate.timeRegulationEnabledCount == 1U);
     REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
-    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE_FALSE(receiverRti->evokeCallback(2.0));
     REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
 
     rti1516_2025::HLAinteger64Time saveTime(5);
@@ -1364,21 +1353,23 @@ TEST_CASE(
     REQUIRE(receiverFederate.timedInitiateCount == 0U);
 
     REQUIRE_NOTHROW(ownerRti->timeAdvanceRequest(saveTime));
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    // The save-initiate callback may already be queued behind this grant.
+    // Assert the callback sequence below instead of queue emptiness here.
+    static_cast<void>(ownerRti->evokeCallback(2.0));
     REQUIRE(ownerFederate.timeAdvanceGrantCount == 1U);
     REQUIRE(ownerFederate.timedInitiateCount == 0U);
 
     REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(saveTime));
-    static_cast<void>(receiverRti->evokeCallback(0.0));
+    static_cast<void>(receiverRti->evokeCallback(2.0));
     REQUIRE(receiverFederate.timedInitiateCount == 1U);
     REQUIRE(receiverFederate.timedInitiateLabel == saveLabel);
     REQUIRE(receiverFederate.timedInitiateImplementation == L"HLAinteger64Time");
     REQUIRE(receiverFederate.timedInitiateValue == saveTime.toString());
     REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
-    static_cast<void>(receiverRti->evokeCallback(0.0));
+    static_cast<void>(receiverRti->evokeCallback(2.0));
     REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
     REQUIRE(ownerFederate.timedInitiateCount == 0U);
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(ownerRti->evokeCallback(2.0));
     REQUIRE(ownerFederate.timedInitiateCount == 1U);
     REQUIRE(ownerFederate.timedInitiateLabel == saveLabel);
     REQUIRE(ownerFederate.timedInitiateImplementation == L"HLAinteger64Time");
@@ -1388,46 +1379,31 @@ TEST_CASE(
     REQUIRE_NOTHROW(receiverRti->federateSaveBegun());
     REQUIRE_NOTHROW(ownerRti->federateSaveComplete());
     REQUIRE_NOTHROW(receiverRti->federateSaveComplete());
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
-    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE_FALSE(ownerRti->evokeCallback(2.0));
+    REQUIRE_FALSE(receiverRti->evokeCallback(2.0));
     REQUIRE(ownerFederate.savedCount == 1U);
     REQUIRE(receiverFederate.savedCount == 1U);
 
     REQUIRE_NOTHROW(ownerRti->resignFederationExecution(NO_ACTION));
-    ownerJoined = false;
     REQUIRE_NOTHROW(receiverRti->resignFederationExecution(NO_ACTION));
-    receiverJoined = false;
     REQUIRE_NOTHROW(ownerRti->disconnect());
     REQUIRE_NOTHROW(receiverRti->disconnect());
   } catch (...) {
     clientError = std::current_exception();
-    if (receiverJoined) {
-      try {
-        receiverRti->resignFederationExecution(NO_ACTION);
-      } catch (...) {
-      }
-    }
-    if (ownerJoined) {
-      try {
-        ownerRti->resignFederationExecution(NO_ACTION);
-      } catch (...) {
-      }
-    }
-    try {
-      receiverRti->disconnect();
-    } catch (...) {
-    }
-    try {
-      ownerRti->disconnect();
-    } catch (...) {
-    }
   }
   if (listener) {
-    listener.reset();
+    listener->close();
+  }
+  if (clientError) {
+    // Disconnect rejects joined federates; destroy the ambassadors to close
+    // their process sockets before joining a server blocked in its script.
+    receiverRti.reset();
+    ownerRti.reset();
   }
   if (server.joinable()) {
     server.join();
   }
+  listener.reset();
   if (clientError) {
     std::rethrow_exception(clientError);
   }
@@ -1744,14 +1720,14 @@ TEST_CASE(
     secondJoined = true;
 
     REQUIRE_NOTHROW(firstRti->enableTimeConstrained());
-    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE_FALSE(firstRti->evokeCallback(2.0));
     REQUIRE(firstFederate.timeConstrainedEnabledCount == 1U);
     REQUIRE_NOTHROW(secondRti->enableTimeConstrained());
-    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE_FALSE(secondRti->evokeCallback(2.0));
     REQUIRE(secondFederate.timeConstrainedEnabledCount == 1U);
     REQUIRE_NOTHROW(ownerRti->enableTimeRegulation(
         rti1516_2025::HLAinteger64Interval(1)));
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(ownerRti->evokeCallback(2.0));
     REQUIRE(ownerFederate.timeRegulationEnabledCount == 1U);
 
     rti1516_2025::HLAinteger64Time saveTime(5);
@@ -1763,7 +1739,9 @@ TEST_CASE(
     REQUIRE_NOTHROW(firstRti->timeAdvanceRequest(saveTime));
     REQUIRE_NOTHROW(secondRti->timeAdvanceRequest(saveTime));
     REQUIRE_NOTHROW(ownerRti->timeAdvanceRequest(saveTime));
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    // A timed save initiation may be queued immediately after the grant.
+    // The next Evoke and callback-order checks assert that ordering.
+    static_cast<void>(ownerRti->evokeCallback(2.0));
     REQUIRE(ownerFederate.timeAdvanceGrantCount == 1U);
     REQUIRE(ownerFederate.timedInitiateCount == 0U);
 
@@ -1777,24 +1755,24 @@ TEST_CASE(
     REQUIRE(ownerFederate.callbackOrder ==
             std::vector<std::string>{"grant", "save-initiate-timed"});
 
-    static_cast<void>(firstRti->evokeCallback(0.0));
+    static_cast<void>(firstRti->evokeCallback(2.0));
     REQUIRE(firstFederate.timedInitiateCount == 1U);
     REQUIRE(firstFederate.timedInitiateLabel == saveLabel);
     REQUIRE(firstFederate.timedInitiateImplementation == L"HLAinteger64Time");
     REQUIRE(firstFederate.timedInitiateValue == saveTime.toString());
     REQUIRE(firstFederate.timeAdvanceGrantCount == 0U);
-    static_cast<void>(firstRti->evokeCallback(0.0));
+    static_cast<void>(firstRti->evokeCallback(2.0));
     REQUIRE(firstFederate.timeAdvanceGrantCount == 1U);
     REQUIRE(firstFederate.callbackOrder ==
             std::vector<std::string>{"save-initiate-timed", "grant"});
 
-    static_cast<void>(secondRti->evokeCallback(0.0));
+    static_cast<void>(secondRti->evokeCallback(2.0));
     REQUIRE(secondFederate.timedInitiateCount == 1U);
     REQUIRE(secondFederate.timedInitiateLabel == saveLabel);
     REQUIRE(secondFederate.timedInitiateImplementation == L"HLAinteger64Time");
     REQUIRE(secondFederate.timedInitiateValue == saveTime.toString());
     REQUIRE(secondFederate.timeAdvanceGrantCount == 0U);
-    static_cast<void>(secondRti->evokeCallback(0.0));
+    static_cast<void>(secondRti->evokeCallback(2.0));
     REQUIRE(secondFederate.timeAdvanceGrantCount == 1U);
     REQUIRE(secondFederate.callbackOrder ==
             std::vector<std::string>{"save-initiate-timed", "grant"});
@@ -1805,9 +1783,9 @@ TEST_CASE(
     REQUIRE_NOTHROW(ownerRti->federateSaveComplete());
     REQUIRE_NOTHROW(firstRti->federateSaveComplete());
     REQUIRE_NOTHROW(secondRti->federateSaveComplete());
-    static_cast<void>(ownerRti->evokeCallback(0.0));
-    static_cast<void>(firstRti->evokeCallback(0.0));
-    static_cast<void>(secondRti->evokeCallback(0.0));
+    static_cast<void>(ownerRti->evokeCallback(2.0));
+    static_cast<void>(firstRti->evokeCallback(2.0));
+    static_cast<void>(secondRti->evokeCallback(2.0));
     REQUIRE(ownerFederate.savedCount == 1U);
     REQUIRE(firstFederate.savedCount == 1U);
     REQUIRE(secondFederate.savedCount == 1U);
@@ -2391,14 +2369,14 @@ TEST_CASE(
         secondRti->subscribeInteractionClass(secondInteraction, true));
 
     REQUIRE_NOTHROW(firstRti->enableTimeConstrained());
-    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE_FALSE(firstRti->evokeCallback(2.0));
     REQUIRE(firstFederate.timeConstrainedEnabledCount == 1U);
     REQUIRE_NOTHROW(secondRti->enableTimeConstrained());
-    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE_FALSE(secondRti->evokeCallback(2.0));
     REQUIRE(secondFederate.timeConstrainedEnabledCount == 1U);
     REQUIRE_NOTHROW(ownerRti->enableTimeRegulation(
         rti1516_2025::HLAinteger64Interval(1)));
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(ownerRti->evokeCallback(2.0));
     REQUIRE(ownerFederate.timeRegulationEnabledCount == 1U);
 
     rti1516_2025::HLAinteger64Time queuedTsoTime(6);
@@ -2427,7 +2405,9 @@ TEST_CASE(
     REQUIRE_NOTHROW(firstRti->timeAdvanceRequest(saveTime));
     REQUIRE_NOTHROW(secondRti->timeAdvanceRequest(saveTime));
     REQUIRE_NOTHROW(ownerRti->timeAdvanceRequest(saveTime));
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    // The queued timed save initiation is a legitimate next callback.
+    // The checks below prove that grant precedes initiation.
+    static_cast<void>(ownerRti->evokeCallback(2.0));
     REQUIRE(ownerFederate.timeAdvanceGrantCount == 1U);
     REQUIRE(ownerFederate.timedInitiateCount == 0U);
 
@@ -2442,27 +2422,27 @@ TEST_CASE(
     REQUIRE(ownerFederate.callbackOrder ==
             std::vector<std::string>{"grant", "save-initiate-timed"});
 
-    static_cast<void>(firstRti->evokeCallback(0.0));
+    static_cast<void>(firstRti->evokeCallback(2.0));
     REQUIRE(firstFederate.timedInitiateCount == 1U);
     REQUIRE(firstFederate.timedInitiateLabel == saveLabel);
     REQUIRE(firstFederate.timedInitiateImplementation == L"HLAinteger64Time");
     REQUIRE(firstFederate.timedInitiateValue == saveTime.toString());
     REQUIRE(firstFederate.receivedInteractionCount == 0U);
     REQUIRE(firstFederate.timeAdvanceGrantCount == 0U);
-    static_cast<void>(firstRti->evokeCallback(0.0));
+    static_cast<void>(firstRti->evokeCallback(2.0));
     REQUIRE(firstFederate.timeAdvanceGrantCount == 1U);
     REQUIRE(firstFederate.receivedInteractionCount == 0U);
     REQUIRE(firstFederate.callbackOrder ==
             std::vector<std::string>{"save-initiate-timed", "grant"});
 
-    static_cast<void>(secondRti->evokeCallback(0.0));
+    static_cast<void>(secondRti->evokeCallback(2.0));
     REQUIRE(secondFederate.timedInitiateCount == 1U);
     REQUIRE(secondFederate.timedInitiateLabel == saveLabel);
     REQUIRE(secondFederate.timedInitiateImplementation == L"HLAinteger64Time");
     REQUIRE(secondFederate.timedInitiateValue == saveTime.toString());
     REQUIRE(secondFederate.receivedInteractionCount == 0U);
     REQUIRE(secondFederate.timeAdvanceGrantCount == 0U);
-    static_cast<void>(secondRti->evokeCallback(0.0));
+    static_cast<void>(secondRti->evokeCallback(2.0));
     REQUIRE(secondFederate.timeAdvanceGrantCount == 1U);
     REQUIRE(secondFederate.receivedInteractionCount == 0U);
     REQUIRE(secondFederate.callbackOrder ==
@@ -2474,9 +2454,9 @@ TEST_CASE(
     REQUIRE_NOTHROW(ownerRti->federateSaveComplete());
     REQUIRE_NOTHROW(firstRti->federateSaveComplete());
     REQUIRE_NOTHROW(secondRti->federateSaveComplete());
-    static_cast<void>(ownerRti->evokeCallback(0.0));
-    static_cast<void>(firstRti->evokeCallback(0.0));
-    static_cast<void>(secondRti->evokeCallback(0.0));
+    static_cast<void>(ownerRti->evokeCallback(2.0));
+    static_cast<void>(firstRti->evokeCallback(2.0));
+    static_cast<void>(secondRti->evokeCallback(2.0));
     REQUIRE(ownerFederate.savedCount == 1U);
     REQUIRE(firstFederate.savedCount == 1U);
     REQUIRE(secondFederate.savedCount == 1U);
@@ -2485,7 +2465,7 @@ TEST_CASE(
     REQUIRE(secondFederate.receivedInteractionCount == 0U);
 
     REQUIRE_NOTHROW(ownerRti->timeAdvanceRequest(queuedTsoTime));
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(ownerRti->evokeCallback(2.0));
     REQUIRE(ownerFederate.timeAdvanceGrantCount == 2U);
 
     REQUIRE_NOTHROW(firstRti->timeAdvanceRequest(queuedTsoTime));
@@ -2495,10 +2475,10 @@ TEST_CASE(
     rti1516_2025::HLAinteger64Time firstLits(99);
     REQUIRE(firstRti->queryLITS(firstLits));
     REQUIRE(firstLits.getTime() == 6);
-    static_cast<void>(firstRti->evokeCallback(0.0));
+    static_cast<void>(firstRti->evokeCallback(2.0));
     REQUIRE(firstFederate.receivedInteractionCount == 1U);
     REQUIRE(firstFederate.timeAdvanceGrantCount == 1U);
-    static_cast<void>(firstRti->evokeCallback(0.0));
+    static_cast<void>(firstRti->evokeCallback(2.0));
     REQUIRE(firstFederate.timeAdvanceGrantCount == 2U);
     REQUIRE(firstFederate.receivedInteractionClass == expectedClass);
     REQUIRE(firstFederate.receivedProducingFederate.isValid());
@@ -2521,10 +2501,10 @@ TEST_CASE(
     rti1516_2025::HLAinteger64Time secondLits(99);
     REQUIRE(secondRti->queryLITS(secondLits));
     REQUIRE(secondLits.getTime() == 6);
-    static_cast<void>(secondRti->evokeCallback(0.0));
+    static_cast<void>(secondRti->evokeCallback(2.0));
     REQUIRE(secondFederate.receivedInteractionCount == 1U);
     REQUIRE(secondFederate.timeAdvanceGrantCount == 1U);
-    static_cast<void>(secondRti->evokeCallback(0.0));
+    static_cast<void>(secondRti->evokeCallback(2.0));
     REQUIRE(secondFederate.timeAdvanceGrantCount == 2U);
     REQUIRE(secondFederate.receivedInteractionClass == expectedClass);
     REQUIRE(secondFederate.receivedProducingFederate.isValid());

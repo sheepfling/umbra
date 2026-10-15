@@ -1125,6 +1125,7 @@ TEST_CASE(
       L"process-federation-restore-abort-type";
   constexpr wchar_t const* saveLabel =
       L"process-federation-restore-abort-label";
+  constexpr double callbackWaitSeconds = 2.0;
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
   auto const port = listener->address().port;
@@ -1227,20 +1228,20 @@ TEST_CASE(
     REQUIRE(federateHandle.isValid());
 
     REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.saveInitiateCount == 1U);
     REQUIRE(federate.saveLabel == saveLabel);
     REQUIRE_NOTHROW(rti->federateSaveBegun());
     REQUIRE_NOTHROW(rti->federateSaveComplete());
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.saveCompleteCount == 1U);
 
     REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.restoreSucceededCount == 1U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.restoreBegunCount == 1U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.restoreInitiateCount == 1U);
     REQUIRE(federate.restoreLabel == saveLabel);
     REQUIRE_FALSE(federate.restoreFederateName.empty());
@@ -1248,7 +1249,7 @@ TEST_CASE(
 
     REQUIRE_NOTHROW(rti->abortFederationRestore());
     REQUIRE(federate.restoreNotCompleteCount == 0U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.restoreNotCompleteCount == 1U);
     REQUIRE(federate.restoreCompleteCount == 0U);
     REQUIRE(federate.restoreFailureReason == rti1516_2025::RESTORE_ABORTED);
@@ -1264,12 +1265,17 @@ TEST_CASE(
   } catch (...) {
     clientError = std::current_exception();
   }
+  if (clientError) {
+    // An assertion must release a server blocked before its scripted Resign.
+    rti.reset();
+  }
   if (listener) {
-    listener.reset();
+    listener->close();
   }
   if (server.joinable()) {
     server.join();
   }
+  listener.reset();
   if (clientError) {
     std::rethrow_exception(clientError);
   }
@@ -1468,6 +1474,7 @@ TEST_CASE(
       L"process-federation-restore-status-boundaries-type";
   constexpr wchar_t const* saveLabel =
       L"process-federation-restore-status-boundaries-label";
+  constexpr double callbackWaitSeconds = 2.0;
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
   auto const port = listener->address().port;
@@ -1589,7 +1596,7 @@ TEST_CASE(
 
     REQUIRE_NOTHROW(rti->queryFederationRestoreStatus());
     REQUIRE(federate.federationRestoreStatusReports.empty());
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.federationRestoreStatusReports.size() == 1U);
     auto const& idleStatuses = federate.federationRestoreStatusReports.back();
     REQUIRE(idleStatuses.size() == 1U);
@@ -1598,24 +1605,24 @@ TEST_CASE(
     REQUIRE(idleStatuses.front().status == rti1516_2025::NO_RESTORE_IN_PROGRESS);
 
     REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.saveInitiateCount == 1U);
     REQUIRE_NOTHROW(rti->federateSaveBegun());
     REQUIRE_NOTHROW(rti->federateSaveComplete());
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.saveCompleteCount == 1U);
 
     REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.restoreSucceededCount == 1U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.restoreBegunCount == 1U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.restoreInitiateCount == 1U);
 
     REQUIRE_NOTHROW(rti->queryFederationRestoreStatus());
     REQUIRE(federate.federationRestoreStatusReports.size() == 1U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.federationRestoreStatusReports.size() == 2U);
     auto const& restoringStatuses = federate.federationRestoreStatusReports.back();
     REQUIRE(restoringStatuses.size() == 1U);
@@ -1625,12 +1632,12 @@ TEST_CASE(
 
     REQUIRE_NOTHROW(rti->federateRestoreComplete());
     REQUIRE(federate.restoreCompleteCount == 0U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.restoreCompleteCount == 1U);
 
     REQUIRE_NOTHROW(rti->queryFederationRestoreStatus());
     REQUIRE(federate.federationRestoreStatusReports.size() == 2U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.federationRestoreStatusReports.size() == 3U);
     auto const& terminalStatuses = federate.federationRestoreStatusReports.back();
     REQUIRE(terminalStatuses.size() == 1U);
@@ -1652,12 +1659,17 @@ TEST_CASE(
   } catch (...) {
     clientError = std::current_exception();
   }
+  if (clientError) {
+    // A failed assertion must not leave the scripted server awaiting Resign.
+    rti.reset();
+  }
   if (listener) {
-    listener.reset();
+    listener->close();
   }
   if (server.joinable()) {
     server.join();
   }
+  listener.reset();
   if (clientError) {
     std::rethrow_exception(clientError);
   }
@@ -1677,6 +1689,7 @@ TEST_CASE(
       L"process-federation-restore-status-multi-federate-second-type";
   constexpr wchar_t const* saveLabel =
       L"process-federation-restore-status-multi-federate-label";
+  constexpr double callbackWaitSeconds = 2.0;
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
   auto const port = listener->address().port;
@@ -1944,29 +1957,29 @@ TEST_CASE(
     secondJoined = true;
 
     REQUIRE_NOTHROW(firstRti->requestFederationSave(saveLabel));
-    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE_FALSE(firstRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(firstFederate.saveInitiateCount == 1U);
-    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE_FALSE(secondRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(secondFederate.saveInitiateCount == 1U);
     REQUIRE_NOTHROW(firstRti->federateSaveBegun());
     REQUIRE_NOTHROW(secondRti->federateSaveBegun());
     REQUIRE_NOTHROW(firstRti->federateSaveComplete());
     REQUIRE_NOTHROW(secondRti->federateSaveComplete());
-    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE_FALSE(firstRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(firstFederate.saveCompleteCount == 1U);
-    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE_FALSE(secondRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(secondFederate.saveCompleteCount == 1U);
 
     REQUIRE_NOTHROW(firstRti->requestFederationRestore(saveLabel));
-    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE_FALSE(firstRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(firstFederate.restoreSucceededCount == 1U);
-    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE_FALSE(firstRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(firstFederate.restoreBegunCount == 1U);
-    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE_FALSE(firstRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(firstFederate.restoreInitiateCount == 1U);
-    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE_FALSE(secondRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(secondFederate.restoreBegunCount == 1U);
-    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE_FALSE(secondRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(secondFederate.restoreInitiateCount == 1U);
 
     auto requireStatus = [](auto const& statuses,
@@ -1992,7 +2005,7 @@ TEST_CASE(
 
     REQUIRE_NOTHROW(firstRti->queryFederationRestoreStatus());
     REQUIRE(firstFederate.federationRestoreStatusReports.empty());
-    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE_FALSE(firstRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(firstFederate.federationRestoreStatusReports.size() == 1U);
     auto const& firstRestoringStatuses =
         firstFederate.federationRestoreStatusReports.back();
@@ -2010,7 +2023,7 @@ TEST_CASE(
 
     REQUIRE_NOTHROW(secondRti->queryFederationRestoreStatus());
     REQUIRE(secondFederate.federationRestoreStatusReports.empty());
-    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE_FALSE(secondRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(secondFederate.federationRestoreStatusReports.size() == 1U);
     auto const& secondRestoringStatuses =
         secondFederate.federationRestoreStatusReports.back();
@@ -2029,7 +2042,7 @@ TEST_CASE(
     REQUIRE_NOTHROW(firstRti->federateRestoreComplete());
     REQUIRE(firstFederate.restoreCompleteCount == 0U);
     REQUIRE_NOTHROW(firstRti->queryFederationRestoreStatus());
-    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE_FALSE(firstRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(firstFederate.federationRestoreStatusReports.size() == 2U);
     auto const& firstWaitingStatuses =
         firstFederate.federationRestoreStatusReports.back();
@@ -2046,7 +2059,7 @@ TEST_CASE(
         true);
 
     REQUIRE_NOTHROW(secondRti->queryFederationRestoreStatus());
-    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE_FALSE(secondRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(secondFederate.federationRestoreStatusReports.size() == 2U);
     auto const& secondWaitingStatuses =
         secondFederate.federationRestoreStatusReports.back();
@@ -2063,13 +2076,13 @@ TEST_CASE(
         true);
 
     REQUIRE_NOTHROW(secondRti->federateRestoreComplete());
-    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE_FALSE(firstRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(firstFederate.restoreCompleteCount == 1U);
-    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE_FALSE(secondRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(secondFederate.restoreCompleteCount == 1U);
 
     REQUIRE_NOTHROW(firstRti->queryFederationRestoreStatus());
-    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE_FALSE(firstRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(firstFederate.federationRestoreStatusReports.size() == 3U);
     auto const& firstTerminalStatuses =
         firstFederate.federationRestoreStatusReports.back();

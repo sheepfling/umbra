@@ -17,11 +17,15 @@
 #endif
 
 #include <array>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
 #include <exception>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -83,10 +87,28 @@ TEST_CASE(
         ObjectInstanceHandle const& objectInstance,
         AttributeHandleSet const& attributes,
         VariableLengthData const& userSuppliedTag) override {
-      requests.push_back({objectInstance, attributes, userSuppliedTag});
+      {
+        std::lock_guard lock(mutex_);
+        requests_.push_back({objectInstance, attributes, userSuppliedTag});
+      }
+      changed_.notify_all();
     }
 
-    std::vector<RequestReport> requests;
+    [[nodiscard]] bool waitForRequest() {
+      std::unique_lock lock(mutex_);
+      return changed_.wait_for(lock, std::chrono::seconds(2),
+                               [&] { return !requests_.empty(); });
+    }
+
+    [[nodiscard]] std::vector<RequestReport> requestsSnapshot() const {
+      std::lock_guard lock(mutex_);
+      return requests_;
+    }
+
+   private:
+    mutable std::mutex mutex_;
+    std::condition_variable changed_;
+    std::vector<RequestReport> requests_;
   } ownerReports;
 
   class AssumingFederateAmbassador final
@@ -149,15 +171,23 @@ TEST_CASE(
                                umbra::detail::TransportServiceOperation operation,
                                char const* description) {
         bool expectedOperationServed = false;
+        std::size_t callbackPollCount = 0U;
         while (!expectedOperationServed) {
           umbra::detail::TransportServiceMessage response;
           if (!ProcessTransportServiceDispatcher::serveOne(
                   processSession,
                   [&](umbra::detail::TransportServiceMessage const& request) {
-                    if (request.operation ==
-                            umbra::detail::TransportServiceOperation::receive_interaction &&
-                        operation !=
-                            umbra::detail::TransportServiceOperation::receive_interaction) {
+                    if ((request.operation ==
+                             umbra::detail::TransportServiceOperation::receive_interaction &&
+                         operation !=
+                             umbra::detail::TransportServiceOperation::receive_interaction) ||
+                        (request.operation ==
+                             umbra::detail::TransportServiceOperation::claim_attribute_ownership_release &&
+                         &processSession == &ownerSession)) {
+                      if (++callbackPollCount > 256U) {
+                        throw std::runtime_error(
+                            "The process Confirm Divestiture assumption client exceeded the bounded callback poll allowance.");
+                      }
                       response = handler(request);
                       return response;
                     }
@@ -469,17 +499,19 @@ TEST_CASE(
         objectInstance,
         AttributeHandleSet{requesterAttribute},
         negotiatedTag));
-    REQUIRE(ownerReports.requests.empty());
+    REQUIRE(ownerReports.requestsSnapshot().empty());
     REQUIRE_NOTHROW(owner->negotiatedAttributeOwnershipDivestiture(
         objectInstance,
         AttributeHandleSet{ownerAttribute},
         negotiatedTag));
-    REQUIRE(ownerReports.requests.size() == 1U);
-    REQUIRE(ownerReports.requests.front().objectInstance == objectInstance);
-    REQUIRE(ownerReports.requests.front().attributes ==
+    REQUIRE(ownerReports.waitForRequest());
+    auto const ownerRequests = ownerReports.requestsSnapshot();
+    REQUIRE(ownerRequests.size() == 1U);
+    REQUIRE(ownerRequests.front().objectInstance == objectInstance);
+    REQUIRE(ownerRequests.front().attributes ==
             AttributeHandleSet{ownerAttribute});
     REQUIRE(variableLengthDataBytes(
-                ownerReports.requests.front().userSuppliedTag) ==
+                ownerRequests.front().userSuppliedTag) ==
             std::vector<unsigned char>(
                 negotiatedTagBytes,
                 negotiatedTagBytes + sizeof(negotiatedTagBytes)));
