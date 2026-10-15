@@ -112,6 +112,7 @@ LOCAL_TCK_HEADERS = {
     "tck_joined_federate_mom_reflections_received_counts.hpp",
     "tck_main_scenarios.hpp",
     "tck_regional_auto_provide_scenarios.hpp",
+    "tck_portable_mom_interaction_counts.hpp",
     "tck_timestamped_interaction_scheduling_scenarios.hpp",
     "tck_custom_transportation_scenarios.hpp",
     "tck_federation_lifecycle_scenarios.hpp",
