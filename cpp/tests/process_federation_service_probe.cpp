@@ -1714,14 +1714,14 @@ int runReceiver(std::filesystem::path const& directory) {
   auto const senderId = readHandle(directory / "sender-id.txt");
   std::vector<std::uint8_t> const expectedPayload{0x50U, 0x52U, 0x4fU, 0x42U};
   ProbeFederateAmbassador ambassador;
-  // The current server emits a pushed event.  The client owns the receive
-  // boundary and projects it into the official callback bridge.
+  // The server emits a pushed event after Send Interaction.  Its arrival and
+  // the client's background dispatch are concurrent with this receiver, so
+  // wait at the evoked callback boundary rather than sampling either queue.
   client.attachCallbackBridge(ambassador);
-  client.dispatchPushedReceiveOrder();
-  if (client.pendingCallbackCount() != 1U) {
-    throw std::runtime_error("The process probe callback was not queued.");
+  static_cast<void>(client.evokeOne(std::chrono::seconds(3)));
+  if (!ambassador.received) {
+    throw std::runtime_error("The process probe callback was not delivered.");
   }
-  static_cast<void>(client.evokeOne(std::chrono::milliseconds(0)));
   auto const transportationValue =
       rti1516_2025::umbra_binding_detail::standardTransportationTypeValue(
           L"HLAreliable");
