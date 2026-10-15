@@ -2,6 +2,7 @@
 
 #include "tck_harness.hpp"
 #include "tck_callback_controls_scenarios.hpp"
+#include "tck_delay_subscription_scenarios.hpp"
 #include "tck_federation_lifecycle_scenarios.hpp"
 
 namespace hla_rti_cpp_tck::detail {
@@ -115,14 +116,6 @@ void scenarioConnectionCallbackContract(Options const&, rti::CallbackModel);
 void scenarioCustomTransportationInteractionDelivery(Options const&, rti::CallbackModel);
 void scenarioCustomTransportationTimestampedDelivery(Options const&, rti::CallbackModel);
 void scenarioCustomTransportationTimestampedDirectedDelivery(Options const&, rti::CallbackModel);
-void scenarioDelaySubscriptionEvaluationAttributeUpdate(Options const&, rti::CallbackModel);
-void scenarioDelaySubscriptionEvaluationDirectedInteraction(Options const&, rti::CallbackModel);
-void scenarioDelaySubscriptionEvaluationInteraction(Options const&, rti::CallbackModel);
-void scenarioDelaySubscriptionEvaluationTimestampedAttributeUpdate(Options const&, rti::CallbackModel);
-void scenarioDelaySubscriptionEvaluationTimestampedDirectedInteraction(Options const&, rti::CallbackModel);
-void scenarioDelaySubscriptionEvaluationTimestampedInteraction(Options const&, rti::CallbackModel);
-void scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdate(Options const&, rti::CallbackModel);
-void scenarioDelaySubscriptionEvaluationTimestampedRegionalInteraction(Options const&, rti::CallbackModel);
 void scenarioFederationMomContentReports(Options const&, rti::CallbackModel);
 void scenarioFederationMomContentReportsContract(Options const&, rti::CallbackModel);
 void scenarioFederationMomCurrentFdd(Options const&, rti::CallbackModel);

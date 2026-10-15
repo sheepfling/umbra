@@ -110,6 +110,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_object_management_scenarios.cpp
   src/tck_ownership_management_scenarios.cpp
   src/tck_region_lifecycle_scenarios.cpp
+  src/tck_delay_subscription_scenarios.cpp
   src/tck_federation_save_restore_interlocks.cpp
   src/tck_data_encoding.cpp
   src/tck_logical_time.cpp

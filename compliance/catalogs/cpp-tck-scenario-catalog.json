@@ -32774,7 +32774,7 @@
         "unsubscribe-interaction-class-api-contract.json",
         "unsubscribe-interaction-class-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioDelaySubscriptionEvaluationInteraction",
+      "cpp_test": "src/tck_delay_subscription_scenarios.cpp#scenarioDelaySubscriptionEvaluationInteraction",
       "runner_id": "cpp-tck.delay-subscription-evaluation-interaction",
       "parity": "java-tck.delay-subscription-evaluation-interaction",
       "default_status": "adapter-required",
@@ -32823,7 +32823,7 @@
         "unsubscribe-object-class-directed-interactions-api-contract.json",
         "unsubscribe-object-class-directed-interactions-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioDelaySubscriptionEvaluationDirectedInteraction",
+      "cpp_test": "src/tck_delay_subscription_scenarios.cpp#scenarioDelaySubscriptionEvaluationDirectedInteraction",
       "runner_id": "cpp-tck.delay-subscription-evaluation-directed-interaction",
       "parity": "java-tck.delay-subscription-evaluation-directed-interaction",
       "default_status": "adapter-required",
@@ -32872,7 +32872,7 @@
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioDelaySubscriptionEvaluationAttributeUpdate",
+      "cpp_test": "src/tck_delay_subscription_scenarios.cpp#scenarioDelaySubscriptionEvaluationAttributeUpdate",
       "runner_id": "cpp-tck.delay-subscription-evaluation-attribute-update",
       "parity": "java-tck.delay-subscription-evaluation-attribute-update",
       "default_status": "adapter-required",
@@ -32923,7 +32923,7 @@
         "time-advance-api-contract.json",
         "time-advance-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioDelaySubscriptionEvaluationTimestampedInteraction",
+      "cpp_test": "src/tck_delay_subscription_scenarios.cpp#scenarioDelaySubscriptionEvaluationTimestampedInteraction",
       "runner_id": "cpp-tck.delay-subscription-evaluation-timestamped-interaction",
       "parity": "java-tck.delay-subscription-evaluation-timestamped-interaction",
       "default_status": "adapter-required",
@@ -32978,7 +32978,7 @@
         "time-advance-api-contract.json",
         "time-advance-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioDelaySubscriptionEvaluationTimestampedDirectedInteraction",
+      "cpp_test": "src/tck_delay_subscription_scenarios.cpp#scenarioDelaySubscriptionEvaluationTimestampedDirectedInteraction",
       "runner_id": "cpp-tck.delay-subscription-evaluation-timestamped-directed-interaction",
       "parity": "java-tck.delay-subscription-evaluation-timestamped-directed-interaction",
       "default_status": "adapter-required",
@@ -33034,7 +33034,7 @@
         "time-advance-api-contract.json",
         "time-advance-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioDelaySubscriptionEvaluationTimestampedAttributeUpdate",
+      "cpp_test": "src/tck_delay_subscription_scenarios.cpp#scenarioDelaySubscriptionEvaluationTimestampedAttributeUpdate",
       "runner_id": "cpp-tck.delay-subscription-evaluation-timestamped-attribute-update",
       "parity": "java-tck.delay-subscription-evaluation-timestamped-attribute-update",
       "default_status": "adapter-required",
@@ -33096,7 +33096,7 @@
         "standard-delay-subscription-evaluation-contract.json",
         "standard-timestamped-regional-attribute-update-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdate",
+      "cpp_test": "src/tck_delay_subscription_scenarios.cpp#scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdate",
       "runner_id": "cpp-tck.delay-subscription-evaluation-timestamped-regional-attribute-update",
       "parity": "java-tck.delay-subscription-evaluation-timestamped-regional-attribute-update",
       "default_status": "adapter-required",
@@ -33157,7 +33157,7 @@
         "standard-delay-subscription-evaluation-contract.json",
         "standard-timestamped-regional-interaction-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioDelaySubscriptionEvaluationTimestampedRegionalInteraction",
+      "cpp_test": "src/tck_delay_subscription_scenarios.cpp#scenarioDelaySubscriptionEvaluationTimestampedRegionalInteraction",
       "runner_id": "cpp-tck.delay-subscription-evaluation-timestamped-regional-interaction",
       "parity": "java-tck.delay-subscription-evaluation-timestamped-regional-interaction",
       "default_status": "adapter-required",

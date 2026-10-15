@@ -120,6 +120,7 @@ LOCAL_TCK_HEADERS = {
     "tck_lookup_lifecycle_scenarios.hpp",
     "tck_fom_module_scenarios.hpp",
     "tck_region_lifecycle_scenarios.hpp",
+    "tck_delay_subscription_scenarios.hpp",
     "tck_logical_time.hpp",
     "tck_options.hpp",
 }
