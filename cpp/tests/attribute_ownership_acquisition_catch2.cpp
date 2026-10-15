@@ -1470,19 +1470,34 @@ void runProcessConfirmDivestitureServiceReportScenario(
       auto serveExpected = [&](ProcessTransportSession& processSession,
                                auto const& handler,
                                umbra::detail::TransportServiceOperation operation,
-                               char const* description)
+                               char const* description,
+                               bool allowReceivePolls = false)
           -> umbra::detail::TransportServiceMessage {
         umbra::detail::TransportServiceMessage response;
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                processSession,
-                [&](umbra::detail::TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  response = handler(request);
-                  return response;
-                })) {
-          throw std::runtime_error(description);
+        bool servedExpected = false;
+        std::size_t receivePollCount = 0U;
+        while (!servedExpected) {
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  processSession,
+                  [&](umbra::detail::TransportServiceMessage const& request) {
+                    if (allowReceivePolls &&
+                        request.operation ==
+                            umbra::detail::TransportServiceOperation::receive_interaction) {
+                      if (++receivePollCount > 256U) {
+                        throw std::runtime_error(
+                            "The process Confirm Divestiture client exceeded the bounded callback poll allowance.");
+                      }
+                      return handler(request);
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(description);
+                    }
+                    servedExpected = true;
+                    response = handler(request);
+                    return response;
+                  })) {
+            throw std::runtime_error(description);
+          }
         }
         return response;
       };
@@ -1585,18 +1600,9 @@ void runProcessConfirmDivestitureServiceReportScenario(
       serveExpected(
           requesterSession,
           requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process Confirm Divestiture server lost requester discovery poll.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process Confirm Divestiture server lost requester discovery drain.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
           TransportServiceOperation::publish_object_class_attributes,
-          "The process Confirm Divestiture server lost requester Publish.");
+          "The process Confirm Divestiture server lost requester Publish.",
+          true);
       serveExpected(
           requesterSession,
           requesterHandler,
@@ -1617,22 +1623,13 @@ void runProcessConfirmDivestitureServiceReportScenario(
           ownerHandler,
           TransportServiceOperation::set_send_service_reports_to_file_switch,
           "The process Confirm Divestiture server lost the service-report-file switch.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process Confirm Divestiture server lost owner confirmation poll.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process Confirm Divestiture server lost owner confirmation drain.");
       if (exerciseMixedConfirmation) {
         serveExpected(
             ownerSession,
             ownerHandler,
             TransportServiceOperation::confirm_divestiture,
-            "The process Confirm Divestiture server lost the mixed-set rejection request.");
+            "The process Confirm Divestiture server lost the mixed-set rejection request.",
+            true);
         serveExpected(
             ownerSession,
             ownerHandler,
@@ -1648,7 +1645,8 @@ void runProcessConfirmDivestitureServiceReportScenario(
           ownerSession,
           ownerHandler,
           TransportServiceOperation::confirm_divestiture,
-          "The process Confirm Divestiture server lost Confirm Divestiture.");
+          "The process Confirm Divestiture server lost Confirm Divestiture.",
+          !exerciseMixedConfirmation);
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -1658,29 +1656,16 @@ void runProcessConfirmDivestitureServiceReportScenario(
         serveExpected(
             observerSession,
             observerHandler,
-            TransportServiceOperation::receive_interaction,
-            "The process Confirm Divestiture server lost the report observer poll.");
-        serveExpected(
-            observerSession,
-            observerHandler,
-            TransportServiceOperation::receive_interaction,
-            "The process Confirm Divestiture server lost the report observer drain.");
+            TransportServiceOperation::get_interaction_class_handle,
+            "The process Confirm Divestiture server lost the report observer callback fence.",
+            true);
       }
       serveExpected(
           requesterSession,
           requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process Confirm Divestiture server lost requester acquisition poll.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process Confirm Divestiture server lost requester acquisition drain.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
           TransportServiceOperation::resign_federation_execution,
-          "The process Confirm Divestiture server lost requester Resign.");
+          "The process Confirm Divestiture server lost requester Resign.",
+          true);
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -1807,7 +1792,12 @@ void runProcessConfirmDivestitureServiceReportScenario(
     ObjectInstanceHandle objectInstance;
     REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(ownerClass));
     REQUIRE(objectInstance.isValid());
-    REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+    auto const discoveryDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (requesterReports.objectDiscoveryReports.empty() &&
+           std::chrono::steady_clock::now() < discoveryDeadline) {
+      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+    }
     REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
     REQUIRE(requesterReports.objectDiscoveryReports.front().objectInstance ==
             objectInstance);
@@ -1831,7 +1821,12 @@ void runProcessConfirmDivestitureServiceReportScenario(
     REQUIRE_NOTHROW(owner->setSendServiceReportsToFileSwitch(
         selectFileDestination));
     REQUIRE(ownerReports.requests.empty());
-    REQUIRE_NOTHROW(owner->evokeMultipleCallbacks(0.0, 0.0));
+    auto const confirmationDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (ownerReports.requests.empty() &&
+           std::chrono::steady_clock::now() < confirmationDeadline) {
+      static_cast<void>(owner->evokeMultipleCallbacks(0.01, 0.02));
+    }
     REQUIRE(ownerReports.requests.size() == 1U);
     REQUIRE(ownerReports.requests.front().objectInstance == objectInstance);
     REQUIRE(ownerReports.requests.front().attributes ==
@@ -1858,8 +1853,16 @@ void runProcessConfirmDivestitureServiceReportScenario(
     REQUIRE(requesterReports.acquisitionReports.empty());
 
     if (!selectFileDestination) {
-      REQUIRE_NOTHROW(observer->evokeMultipleCallbacks(0.0, 0.0));
+      auto const reportDeadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(2);
+      while (observerReports.interactionReports.empty() &&
+             std::chrono::steady_clock::now() < reportDeadline) {
+        static_cast<void>(observer->evokeMultipleCallbacks(0.01, 0.02));
+      }
       REQUIRE(observerReports.interactionReports.size() == 1U);
+      REQUIRE(observer->getInteractionClassHandle(
+                  L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation") ==
+              reportClass);
       auto const& report = observerReports.interactionReports.front();
       REQUIRE(report.interactionClass == reportClass);
       REQUIRE(report.parameterValues.size() == 8U);
@@ -1904,7 +1907,12 @@ void runProcessConfirmDivestitureServiceReportScenario(
       REQUIRE(observerReports.interactionReports.empty());
     }
 
-    REQUIRE_NOTHROW(requester->evokeMultipleCallbacks(0.0, 0.0));
+    auto const acquisitionDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (requesterReports.acquisitionReports.empty() &&
+           std::chrono::steady_clock::now() < acquisitionDeadline) {
+      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+    }
     REQUIRE(requesterReports.acquisitionReports.size() == 1U);
     REQUIRE(requesterReports.acquisitionReports.front().kind ==
             ReportingFederateAmbassador::AcquisitionReport::Kind::notification);

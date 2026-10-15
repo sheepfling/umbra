@@ -31604,9 +31604,9 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5"
       ],
       "test_case": "RTIambassadors deliver Confirm Divestiture through a configured process endpoint",
-      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:1947",
+      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:1988",
       "primary_lane": "process-confirm-divestiture-service-report",
-      "assertions": 62,
+      "assertions": 58,
       "callback_models": [
         "HLA_EVOKED"
       ],
@@ -31688,9 +31688,9 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5"
       ],
       "test_case": "RTIambassadors deliver Confirm Divestiture through process MOM interaction",
-      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:1960",
+      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:2001",
       "primary_lane": "process-confirm-divestiture-service-report-interaction",
-      "assertions": 76,
+      "assertions": 72,
       "callback_models": [
         "HLA_EVOKED"
       ],
@@ -31770,9 +31770,9 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-159-l53-11"
       ],
       "test_case": "RTIambassadors reject mixed process Confirm Divestiture sets atomically",
-      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:1975",
+      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:2016",
       "primary_lane": "process-confirm-divestiture-mixed-set-atomicity",
-      "assertions": 81,
+      "assertions": 77,
       "callback_models": [
         "HLA_EVOKED"
       ],
@@ -31865,9 +31865,9 @@
         "2025"
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
-      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:1986",
+      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:2027",
       "requirements_lab_api_surface_status": "The official C++ RTIambassador Confirm Divestiture service now crosses the configured process endpoint with pushReceiveOrderEvents enabled. The focused two-federate HLA_IMMEDIATE case consumes the pushed discovery and confirmation fences through ordinary public lookups, re-enters the public Confirm Divestiture call from the pushed Request Divestiture Confirmation callback, commits ownership before the paired acquisition notification, and preserves the confirmation tag. This is public process-foundation evidence only; assumption-search continuation, mixed/RTI-owned state, transport interoperability, package/JUnit/protected-review, validation, and conformance remain separate.",
-      "next_action": "The focused push-receive case passes under MinGW. Its prior hang was fixture ordering: the owner server must serve report_successful_service_invocation after the re-entrant Confirm call before waiting on the requester acquisition fence. The server fixture also accepts background receive_interaction polls from HLA_IMMEDIATE dispatch before serving the next scripted operation. The pushed-assumption companion now passes with the same expected report append."
+      "next_action": "After the 2025 Evoke callback-pump correction, the focused push-receive case is red at cpp/tests/attribute_ownership_acquisition_catch2.cpp:2333: the HLA_IMMEDIATE requester has already received its acquisition callback before the fixture's expected lookup fence. Check the pinned 2025 immediate-delivery semantics and process ordering, then make the assertion timing-sensitive without weakening the ownership-transfer and tag checks. Preserve the existing expected successful-service-report append."
     },
     {
       "id": "umbra-cpp-confirm-divestiture-process-assumption-integration",
