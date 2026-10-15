@@ -19,14 +19,12 @@ The C++ Catch2 plan has 1,506 cases: 1,409 requirement-mapped and 97 explicitly
 classified without a normative mapping. The mapping check records 981 direct
 requirement-to-canonical-section pairs and 2,220 pinned 2025 requirement IDs;
 pair count is not a requirement-completion percentage. The portable C++ TCK
-catalogs 1,036 promoted scenarios. A prior installed package passed all 2,048
-configured CTests and 2,068 direct both-model replays with valid JSON/JUnit,
-but later restore, reporting, and TCK-source changes superseded that binary.
-An earlier combined-branch package passed 2,048 configured CTests and 2,072
-direct both-model replays; its JSON/JUnit contains no failures. Subsequent
-source changes supersede that binary. Full native regression remains a release
-gate. The current source-size check is also red: 40 hard findings and 18
-soft-limit findings.
+catalogs 1,036 promoted scenarios. The fresh installed-provider checkpoint
+passed all 2,048 configured CTests and 2,072 direct both-model replays with
+valid JSON/JUnit, including 24 process-loss fixture cases. Later 2025 runtime
+and TCK-source commits supersede that binary, so full native and frozen-commit
+package regressions remain release gates. The current source-size check is red:
+40 hard findings and 18 soft-limit findings.
 Cohesive callback-control and MOM-query extractions removed a further 5,105
 lines from portable TCK `main.cpp` and 3,374 from `portable_tck.cpp`; both
 drivers remain above the hard ceiling and need further ownership work. Later
@@ -34,7 +32,12 @@ federation-lifecycle and regional-service-report extractions removed another
 1,173 and 1,026 lines, respectively. Inherited/derived delivery and regional
 Auto Provide families removed another 1,416 and 1,913 lines. The Delay
 Subscription Evaluation family removed another 1,590 lines from `main.cpp`.
-The drivers now measure 31,480 and 30,413 expanded lines.
+Three additional cohesive extractions moved 1,800 custom-transportation,
+1,880 timestamped-interaction, and 1,639 MOM-interaction lines out of the two
+portable TCK drivers. They now measure 29,600 and 26,974 expanded lines.
+An ignored partial MinGW TCK-quality snapshot records 92 translation units,
+346.7 summed compiler seconds, and 11.79 seconds for the TCK link; the build
+history remains queryable in `out/build-metrics/history.jsonl`.
 
 ## Work lanes
 
@@ -105,10 +108,10 @@ a commit, and a concrete next handoff.
 
 | Seat | Current packet | Exclusive ownership and merge gate |
 | --- | --- | --- |
-| 1. 2025 callback admission | Resolve a process ownership Evoke Multiple timeout without losing a queued acquisition callback; check the serial directed-callback failure too. | Own `cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp` and focused official-C++ evidence only. Preserve the separate 2010 stream; require exact ownership and representative directed/callback-disabled tests before merge. |
-| 2. Process save isolation | Reproduce the untimed federation-save callback assertion from the red process partition. | Own only a proven save fixture issue. If it shares seat 1's callback-pump root cause, report that dependency without editing the shared runtime seam. |
-| 3. Portable C++ source quality | Extract a second cohesive timestamped-interaction scheduling family from oversized TCK `main.cpp`. | Own TCK scenario/CMake files only. Preserve 1,036 catalog IDs and 5,161 contract references; pass focused both-model cases and source-boundary checks. |
-| 4. Integration and release gates | Integrate tested commits, maintain one roadmap handoff, and rerun combined MinGW native/package checks. | The fresh installed-provider checkpoint passed 2,048/2,048 configured CTests and 2,072/2,072 direct replays with valid JSON/JUnit and the explicit process-loss fixture. It precedes any later runtime merge, so own the frozen-commit rerun rather than calling this final. The process partition is red (56/544 with the then-known NMRA case excluded). |
+| 1. ARA process callback fixture | Remove obsolete evoked discovery-poll expectations that block the next legal attribute-handle request. | Own the focused ARA C++ fixture; require both callback models and both native registrations. Do not change the shared callback pump. |
+| 2. Directed interaction callback | Correct an EVOKED-only absence assertion that rejects legal HLA_IMMEDIATE object discovery. | Own the directed C++ fixture; require exact core and connection CTests plus neighboring callback-gating evidence after integration. |
+| 3. Adjacent ownership fixtures | Repair three cancellation/if-available/release process tests with stale fixed callback-poll counts. | Own only the ownership fixtures unless a distinct runtime defect is proven; require all three exact cases and the acquisition case. |
+| 4. Integration and release gates | Integrate verified commits, log Requirements Lab issues, maintain one roadmap handoff, and run a named native-process partition. | The 2025 callback-pump repair is integrated and its exact acquisition case passes. The fresh package checkpoint predates this runtime commit; rerun package and native gates at one frozen commit before any clean-bill claim. |
 
 Earlier durable/save, MOM-reporting, regional process, process-retraction,
 queued-NMRA, and private process packets are integrated with their focused
@@ -118,10 +121,13 @@ the private process callback case passes its exact integrated selector after
 The custom-transportation TCK source extraction moved 1,800 lines to a
 cohesive ordinary source file while preserving all 1,036 catalog IDs; 28/36
 focused package registrations passed and the eight failures exactly matched
-the pre-extraction baseline. These packets remain subject to the combined
-native and package gates below. The next vacated implementation seat should
-take a bounded FOM/Annex-C evidence-closure packet or a verified 2025
-counterexample confined to `cpp/src/internal/fom/**`. Requirement
+the pre-extraction baseline. The timestamped and MOM interaction extractions
+passed 28/28 and 16/16 focused cases, respectively, plus catalog/API/contract
+checks. The untimed save callback case passed 20/20 isolated repeats and was
+not changed. These packets remain subject to combined native and package
+gates. The next vacated implementation seat should take a bounded FOM/Annex-C
+evidence-closure packet or a verified 2025 counterexample confined to
+`cpp/src/internal/fom/**`. Requirement
 adjudication is a subsection-sized read-only lane, not an open-ended search;
 neither lane invents tests from candidate text. Java parity begins after the
 C++ gates rather than consuming a current C++ seat.

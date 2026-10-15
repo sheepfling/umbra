@@ -26959,6 +26959,7 @@
     {
       "id": "umbra-cpp-process-attribute-relevance-advisory-public-bridge",
       "requirements_lab_mapping_id": "m25.integration.process-attribute-relevance-advisory",
+      "focus_lane": "process-attribute-relevance-advisory",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.getattributerelevanceadvisoryswitch.a7d78199839a",
         "api.2025.cpp.rtiambassador.setattributerelevanceadvisoryswitch.73f461c94e8a",
@@ -27008,6 +27009,7 @@
         "callback-immediate",
         "transport",
         "process-boundary",
+        "process-attribute-relevance-advisory",
         "public-endpoint",
         "2025",
         "rti.service.get-attribute-relevance-advisory-switch",

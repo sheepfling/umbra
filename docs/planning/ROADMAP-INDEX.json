@@ -103,21 +103,21 @@
   "active_handoff": {
     "state": "investigation",
     "family": "transport-and-conformance",
-    "id": "umbra-cpp-attribute-ownership-acquisition-process-integration",
-    "plan_id": "umbra-cpp-attribute-ownership-acquisition-process-integration",
-    "mapping_seed_plan_id": "umbra-cpp-attribute-ownership-acquisition-process-integration",
-    "test_case": "RTIambassador carries Attribute Ownership Acquisition through a configured process endpoint",
-    "lane": "process-ownership-acquisition",
-    "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:260",
-    "source_target": "cpp/tests/attribute_ownership_acquisition_catch2.cpp",
-    "ctest_target": "umbra_attribute_ownership_acquisition_catch2",
-    "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassador carries Attribute Ownership Acquisition through a configured process endpoint$",
-    "objective": "Diagnose the isolated process ownership timeout in 2025 Evoke Multiple callback admission. The current pump can spin while a pushed callback remains pending; a one-line break removes the spin but leaves an acquisition notification undelivered. Identify the pending callback and preserve both callback delivery and finite drain behavior before changing the runtime. Verify the exact ownership case and representative directed/process callback cases; do not resynchronize unchanged Requirements Lab inputs.",
+    "id": "umbra-cpp-process-attribute-relevance-advisory-public-bridge",
+    "plan_id": "umbra-cpp-process-attribute-relevance-advisory-public-bridge",
+    "mapping_seed_plan_id": "umbra-cpp-process-attribute-relevance-advisory-public-bridge",
+    "test_case": "RTIambassador delivers Attribute Relevance Advisory callbacks through a configured process endpoint under HLA_EVOKED and HLA_IMMEDIATE",
+    "lane": "process-attribute-relevance-advisory",
+    "source_location": "cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp:457",
+    "source_target": "cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp",
+    "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador delivers Attribute Relevance Advisory callbacks through a configured process endpoint under HLA_EVOKED and HLA_IMMEDIATE$",
+    "objective": "Remove obsolete fixed receive-poll expectations from the process Attribute Relevance Advisory fixture while retaining official 2025 C++ callback identity, update-rate designator, and both callback-model assertions. Integrate the isolated fix, verify both native registrations and the focused requirement lane, and keep separate regional/suppression cases out of scope.",
     "acceptance": [
-      "The exact ownership acquisition case passes with a finite timeout and its 2025 requirement/section mapping intact.",
-      "Representative directed and callback-disabled process cases pass after the shared 2025 callback-pump correction; the 2010 compatibility boundary remains untouched.",
-      "The native process partition is rerun with loopback access, a per-test timeout, and a named output log; partial or hung runs are not called green.",
-      "Source-size, installed-package refresh, planning regression, external interoperability, and protected conformance review remain separate release gates."
+      "The exact Attribute Relevance Advisory case passes in both native registrations and both callback models with its official C++ assertions intact.",
+      "The focused process-attribute-relevance-advisory lane check preserves all nine direct 2025 requirement-section pairs and its source pointer.",
+      "The named process partition and the separate ownership and directed-callback repairs are classified before claiming any native-process clean bill.",
+      "Installed-package refresh, source-size, planning regression, external interoperability, and protected conformance review remain separate release gates."
     ]
   },
   "last_completed_handoff": {

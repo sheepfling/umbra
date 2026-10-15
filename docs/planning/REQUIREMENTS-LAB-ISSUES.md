@@ -429,3 +429,18 @@ official-C++ pending-advance case cites the full subsections for its public
 exception and maps only its file-report assertions to real §11.5 candidates.
 No candidate ID was invented and the bundle was not resynchronized. This is
 a Lab extraction issue, not an IEEE erratum or conformance claim.
+
+### RL-323 — Evoke Callback postcondition is attributed to §10.60.6
+
+The pinned 2025 candidate `requirement-candidate-content-clauses-10-support-
+services-page-286-l20-3` labels the rule to process pending callbacks on an
+Evoke Callback or Evoke Multiple Callbacks invocation as §10.60.6. Its
+reconstructed source at page 286, lines 18–36 places the rule under
+§10.59.4 Postconditions. Section 10.60.6 is the reference-state-charts
+subsection of Disable Callbacks, not this Evoke postcondition.
+
+Workaround: keep the immutable candidate ID and pinned export, but map this
+rule to canonical §10.59.4 when planning or reviewing C++ callback evidence.
+Do not infer a §10.60.6 validation claim from the exported label. No Lab
+resynchronization was performed. This is a source-to-clause attribution issue,
+not an IEEE erratum or a new conformance result.

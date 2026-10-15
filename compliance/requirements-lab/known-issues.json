@@ -1584,6 +1584,29 @@
       "reproduction": "Compare the pinned corpus bundle's requirement-candidate-content-clauses-08-time-management-page-200-* rows with output/semantic/content-block-content-15161-page-200.tex lines 11 and 23 in the 2025 Requirements Lab topic.",
       "verification": "The reconstructed pinned 2025 §8.11.3(f) and §8.11.5(c) text has the stated Time Advancing precondition and exception. No corresponding candidate appears among the pinned page-199/200 requirement rows. The canonical PDF was not independently checked in this turn; this records Lab extraction usability, not IEEE errata.",
       "detected": "2026-10-14"
+    },
+    {
+      "id": "RL-323",
+      "status": "open",
+      "kind": "requirements-lab-source-clause-attribution",
+      "title": "Evoke Callback postcondition candidate has Disable Callbacks clause label",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-286-l20-3"
+      ],
+      "exported_clause": "10.60.6",
+      "normative_clause": "10.59.4",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "output/semantic/content-block-content-15161-page-286.tex",
+        "lines": "18-36",
+        "page": 286
+      },
+      "symptom": "The candidate for processing pending callbacks on Evoke Callback or Evoke Multiple Callbacks invocation is labeled 10.60.6, but the reconstructed source places it under 10.59.4 Postconditions. Section 10.60.6 is the Disable Callbacks reference-state-charts subsection.",
+      "impact": "A test mapped by exported metadata alone could incorrectly claim coverage of Disable Callbacks rather than the Evoke Callback postcondition.",
+      "workaround": "Keep the candidate ID and pinned export unchanged; use canonical 10.59.4 for direct requirement-to-section mapping and do not infer a 10.60.6 validation claim.",
+      "reproduction": "Compare the affected ID in topics/ieee/hla-1516.1-2025/semantic/requirements.json with output/semantic/content-block-content-15161-page-286.tex lines 18-36 in the Requirements Lab topic.",
+      "verification": "The pinned reconstructed page labels the enclosing text 10.59.4 Postconditions and separately bookmarks 10.60.6 as Reference state charts. The canonical PDF was not independently checked in this turn; this is a Lab source-attribution issue, not IEEE errata or conformance evidence.",
+      "detected": "2026-10-15"
     }
   ]
 }
