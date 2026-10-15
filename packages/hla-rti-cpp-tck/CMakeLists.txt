@@ -80,6 +80,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_joined_federate_mom_deleted_object_count_periodic.cpp
   src/tck_joined_federate_mom_time_state_durations.cpp
   src/tck_order_type_controls.cpp
+  src/tck_attribute_relevance_scenarios.cpp
   src/tck_joined_federate_mom_directed_interactions_received_counts.cpp
   src/tck_joined_federate_mom_reflections_received_counts.cpp
   src/tck_factory_identity.cpp
