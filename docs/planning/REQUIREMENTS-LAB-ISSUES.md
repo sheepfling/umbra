@@ -389,3 +389,21 @@ planning variant-record merge tests; do not treat the clipped candidate as
 complete validation. The separate public C++ data-type-addition test addresses
 only the earlier, intact §C.3 requirement. This is a Requirements Lab
 extraction issue, not IEEE errata.
+### RL-320 — page-115 Reserve Multiple Names mixes two distinct rules
+
+The pinned 2025 §6.5.3 candidate at page 115, line 107 starts in the middle
+of the sentence saying an illegal name aborts reservation of the entire set,
+then continues into the separate result-callback rule. The adjacent line-104
+and line-110 candidates supply its missing context. Read alone, line 107 can
+make an unavailable but legal name look like an abort-all condition. A local
+reservation requirements contract also labels this candidate as reporting
+subsets, although the per-name success indicators and exclusive rights are
+described with the Multiple Object Instance Names Reserved service in §6.6.4.
+
+Workaround: keep the immutable IDs and pinned export. Read page-115 lines
+104–115 together. Map mixed unavailable/free requests to the multiple-name
+result and ownership rules; test an actually illegal supplied name before
+claiming the abort-all rule. Correct the local crosswalk label separately.
+The new public filesystem-restore case tests only the mixed-name partition.
+RL-320 is recorded in `known-issues.json`; this is an extraction/crosswalk
+usability issue, not IEEE errata or a conformance claim.

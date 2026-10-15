@@ -1517,6 +1517,31 @@
       "recurrence_of": "RL-314",
       "verification": "The pinned candidate stops mid-sentence at the end of the page-110 block. The Lab's page-111 semantic block supplies the conflict and HLAother continuation. The canonical PDF was not independently checked in this turn, so this is a Lab extraction/usability issue, not IEEE errata.",
       "detected": "2026-10-14"
+    },
+    {
+      "id": "RL-320",
+      "status": "open",
+      "kind": "requirements-lab-fragmented-mixed-rule",
+      "title": "Page-115 Reserve Multiple Names candidates split illegal-name abort from callback result",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-115-l104-28",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l107-29",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l110-30"
+      ],
+      "exported_clause": "6.5.3",
+      "normative_clause": "6.5.3",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/06-object-management-page-115.tex",
+        "lines": "104-115",
+        "page": 115
+      },
+      "symptom": "The l104 candidate ends at `shall`; l107 begins `abort the reservation of all names in the set` and continues into the result-callback sentence; l110 completes that callback sentence and separately prohibits using the single-name result service. A standalone l107 lookup obscures that abort-all applies only when any supplied name is illegal, not when an otherwise legal name is already held by another federate. Umbra's existing object-instance-name-reservation requirements contract labels l107 as `reports-subsets`, although that fragment contains the illegal-name abort and callback lead-in rather than the per-name outcome rule.",
+      "impact": "The fragmented candidate and local crosswalk label can cause a mixed unavailable/free Reserve Multiple request to be mistaken for an all-or-nothing illegal-name request, or cause a test of per-name indicators to be mapped to the illegal-name abort rule.",
+      "workaround": "Keep all candidate IDs immutable and the pinned export unchanged. Read l104, l107, and l110 as one paragraph before mapping. Map a mixed unavailable/free request to the Multiple Object Instance Names Reserved result and unique-right rules in clauses 6.5.3 and 6.6.4; reserve l104/l107's illegal-name abort-all claim for a test that actually supplies an illegal name. Correct the local `reports-subsets` crosswalk label in a separately scoped traceability cleanup; do not infer conformance from embedded development-profile tests.",
+      "reproduction": "Inspect the three affected IDs in topics/ieee/hla-1516.1-2025/semantic/requirements.json and compare the page-115 paragraph in semantic/content-elements.json with compliance/requirements-lab/object-instance-name-reservation-requirements-contract.json. The source locators are content/clauses/06-object-management-page-115.tex lines 104-115.",
+      "verification": "The pinned 2025 semantic export shows the l104/l107/l110 sentence boundaries, and the reconstructed page-115 paragraph says any illegal name aborts all reservations while the result uses the multiple-name service. Page 116 describes per-name reservation-success indicators and exclusive reservation rights. The canonical licensed PDF was not independently rechecked in this turn; this records pinned-export usability and local crosswalk drift, not IEEE errata.",
+      "detected": "2026-10-14"
     }
   ]
 }
