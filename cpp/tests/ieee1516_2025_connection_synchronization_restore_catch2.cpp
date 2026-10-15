@@ -671,6 +671,7 @@ TEST_CASE(
       L"process-federation-restore-request-type";
   constexpr wchar_t const* restoreLabel =
       L"process-federation-restore-missing-label";
+  constexpr double callbackWaitSeconds = 2.0;
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
   auto const port = listener->address().port;
@@ -692,19 +693,29 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
-                               char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(
-                        std::string(description) +
-                        " received an unexpected process operation.");
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
-        }
+                               char const* description,
+                               bool allowEvokePoll = false) {
+        bool servedExpected = false;
+        do {
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
+                  [&](TransportServiceMessage const& request) {
+                    if (allowEvokePoll &&
+                        request.operation ==
+                            TransportServiceOperation::receive_interaction) {
+                      return handler(request);
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          std::string(description) +
+                          " received an unexpected process operation.");
+                    }
+                    servedExpected = true;
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(description);
+          }
+        } while (!servedExpected);
       };
       serveExpected(
           TransportServiceOperation::create_federation_execution,
@@ -716,11 +727,9 @@ TEST_CASE(
           TransportServiceOperation::request_federation_restore,
           "The process federation-restore server lost Request Federation Restore.");
       serveExpected(
-          TransportServiceOperation::receive_interaction,
-          "The process federation-restore server lost restore-failure polling.");
-      serveExpected(
           TransportServiceOperation::resign_federation_execution,
-          "The process federation-restore server lost Resign.");
+          "The process federation-restore server lost Resign.",
+          true);
       service.detach(session);
       connection->close();
     } catch (...) {
@@ -747,7 +756,7 @@ TEST_CASE(
 
     REQUIRE_NOTHROW(rti->requestFederationRestore(restoreLabel));
     REQUIRE(federate.restoreFailedCount == 0U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.restoreSucceededCount == 0U);
     REQUIRE(federate.restoreFailedCount == 1U);
     REQUIRE(federate.restoreLabel == restoreLabel);
@@ -757,12 +766,17 @@ TEST_CASE(
   } catch (...) {
     clientError = std::current_exception();
   }
+  if (clientError) {
+    // A failed assertion must not leave the scripted server awaiting Resign.
+    rti.reset();
+  }
   if (listener) {
-    listener.reset();
+    listener->close();
   }
   if (server.joinable()) {
     server.join();
   }
+  listener.reset();
   if (clientError) {
     std::rethrow_exception(clientError);
   }
