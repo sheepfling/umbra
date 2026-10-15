@@ -319,7 +319,7 @@ bool isRouteFreeRegionalTsoInteractionImage(FederationStateImage const& image) {
 bool isRouteFreeMixedMultipleInteractionDeclarationImage(
     FederationStateImage const& image) {
   if (image.interactionDeclarationCount != image.interactionDeclarations.size() ||
-      image.interactionDeclarations.size() < 3U ||
+      image.interactionDeclarations.size() < 2U ||
       image.objects.size() > 1U ||
       (!image.objects.empty() &&
        !isRouteFreePendingAttributeTransportationTypeChangeObject(
@@ -389,7 +389,7 @@ bool isRouteFreeMixedMultipleInteractionDeclarationImage(
     subscriberCount += subscribes ? 1U : 0U;
     previousFederateId = declaration.federateId;
   }
-  return publisherCount == 1U && subscriberCount >= 2U;
+  return publisherCount == 1U && subscriberCount >= 1U;
 }
 
 // Directed interaction declarations are indexed by both the target object
