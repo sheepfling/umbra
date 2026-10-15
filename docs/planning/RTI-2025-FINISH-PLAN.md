@@ -10,19 +10,23 @@ Java adapter/TCK outside the C++ release gate.
 The live query is `python tools/query_rti_work.py resume`, followed by one
 bounded `work`, `case`, `focus`, or `ready --summary --compact` detail query.
 The current roadmap checklist has 235 complete and 8 open entries. Its 10
-open indexed families are a different grouping: four `evidence-complete`, five
+open indexed families are a different grouping: five `evidence-complete`, four
 `new-case-needed`, and one `external-review`. There are no executable or
-planned candidates in the indexed queue. The last active handoff is complete;
-do not recycle its process TSO work as a supposedly missing case.
+planned candidates in the indexed queue. Do not recycle completed process TSO
+work as a supposedly missing case.
 
-The C++ Catch2 plan has 1,489 cases: 1,392 requirement-mapped and 97 explicitly
-classified without a normative mapping. Direct mappings touch 976 of 2,220
-pinned 2025 requirement IDs (43.96%). This is a traceability statistic, not
-implementation or conformance completion. The portable C++ TCK catalogs
-1,034 promoted scenarios; catalog/API audits are inventory checks, not a fresh
-all-green provider run. The last documented full provider matrix recorded six
-failures across three behaviors, each in both callback models. Re-run against
-a clean installed package before treating those failures as current.
+The C++ Catch2 plan has 1,502 cases: 1,405 requirement-mapped and 97 explicitly
+classified without a normative mapping. The mapping check records 980 direct
+requirement-to-canonical-section pairs and 2,220 pinned 2025 requirement IDs;
+pair count is not a requirement-completion percentage. The portable C++ TCK
+catalogs 1,034 promoted scenarios. A pre-integration installed package passed
+all 2,048 configured CTests, but its direct replay was stopped after 303
+scenario chunks when subsequent runtime changes superseded that package.
+Fresh post-integration JSON/JUnit and catalog validation remain a release gate.
+The current source-size check is also red: 40 hard findings and 17 soft-limit
+findings, including the portable TCK's 41,710-line `main.cpp` and 36,724-line
+`portable_tck.cpp`. A cohesive lookup-lifecycle extraction removed 744 lines
+from `main.cpp` but did not clear its hard limit.
 
 ## Work lanes
 
@@ -52,12 +56,14 @@ requirement-to-canonical-2025-subsection pairs from the pinned text. Add its
 Catch2 plan row only when the actual C++ case exists. Do not use an open-ended
 `new evidence` label as a permanent next action.
 
-Adjudicate the 1,244 currently unlinked requirement IDs in bounded subsection
-batches. Classify each as: testable C++ behavior needing a direct case;
+Adjudicate unlinked requirement IDs in bounded subsection batches, using the
+live traceability query for the distinct-ID denominator. Classify each as:
+testable C++ behavior needing a direct case;
 existing behavior needing a precise evidence link; static FOM/API/schema
 contract needing an appropriate validator; Requirements Lab extraction issue
 needing a numbered ledger entry; or explicitly inapplicable/deferred with a
-rationale. Report both the direct-mapping ratio and the adjudicated ratio.
+rationale. Report distinct-ID direct-mapping and adjudicated ratios separately
+from requirement-section pair counts.
 Do not chase 2,220 Catch2 mappings indiscriminately or mark candidates
 validated from implementation code alone.
 
@@ -80,22 +86,21 @@ validated from implementation code alone.
 `conformance accepted` are separate milestones. Java parity follows these
 C++ gates rather than silently blocking or inflating them.
 
-## Parallel execution board: first wave
+## Parallel execution board: current wave
 
-Start these four seats at the same time, from one pinned local integration
-commit in separate Git worktrees. Each worker has its own MinGW `out/` and
-one vertical slice; no worker uses the dirty integration checkout. The
-integration owner merges completed branches one at a time.
+Keep these four seats active from isolated Git worktrees. Each worker has its
+own MinGW `out/` and one vertical slice; no worker uses the dirty integration
+checkout. The integration owner cherry-picks verified commits one at a time.
 
 | Seat | Start-now packet | Exclusive working area | Deliverable |
 | --- | --- | --- | --- |
-| 1. Object/DDM runtime | Verify the 2025 Delay Subscription Evaluation rule and test process receive-order regional attribute delivery. The deferred-recipient lookup in `process_federation_service_attribute_value_updates.cpp` appears to omit sent-region context that its TSO counterpart retains; this is a source observation, not yet a confirmed defect. Use `work object-ddm-ownership --summary --compact`, check for an equivalent case, then add the focused public C++ process test and fix only if it fails. | Process attribute-update and object/DDM routing implementation plus its focused C++ test; avoid state-image and MOM files. | Exact 2025 clause mapping, public API regression, MinGW target and CTest, changed-lane check. |
-| 2. Durable save/restore runtime | Use `work time-save-restore --summary --compact` and one targeted ledger lookup to choose a still-pending application ledger. Test disk-only, fresh-registry restore through the official C++ API, then implement the missing persistence if proven. If the pointer is already covered, close it and take the next verified save/restore gap; do not recreate the old NMR/NMRA work. | `federation_registry_state_image*`, restore files and `federation_save_commit_store*` plus focused restore tests; coordinate any object/DDM ledger interface with seat 1 before editing it. | One durable state round-trip with exact 2025 mapping, MinGW target/CTest and changed-lane check, or an evidence-backed closure note if no gap remains. |
-| 3. MOM/reporting runtime | Reproduce the installed-package Service Reporting subscription interlock discrepancy against the mapped public process anchor selected by `resume`; then fix the provider path and add the precise C++ regression if it persists. The timestamped-delete service-report failure is the next MOM packet, not simultaneous edits in the same files. | MOM reporting, switch and filesystem report-store implementation plus focused tests; no TCK runner/catalog edits. | Correct official exception/report behavior, focused native test and affected installed-package TCK cases in both callback models. |
-| 4. Integration and portable TCK | Build a clean installed MinGW package, run all 1,034 promoted C++ TCK scenarios in both callback models with direct JSON/JUnit, and classify the six last-documented failures. Hand confirmed provider bugs to seats 1-3; perform serial merges, neighboring process/package regressions, mapping/quality checks, and the release checkpoint. | Installed-package/TCK harness and evidence; shared CMake, CI, `ROADMAP-INDEX.json` and mapping-index merge resolution. Avoid concurrent runtime edits. | A current pass/fail list and reproducible failure packets, an integrated green branch, and no unexplained regression. |
+| 1. Object/DDM runtime | Preserve the verified process HLA_IMMEDIATE regional delivery and resign-fence behavior. Correct the test wording to describe the proven callback-task-admission boundary, then project the changed behavior through the installed-package regional TCK. Do not invent a later callback-entry recheck without a normative requirement and failing case. | Process object/DDM routing and its focused C++ tests; avoid save/restore and MOM files. | Precise 2025 clause mapping, corrected case/plan/roadmap wording, focused MinGW CTest and lane check. |
+| 2. Save/restore and TCK quality | Preserve the verified fresh-registry Release Multiple Names abort-all case. Extract one cohesive lookup-lifecycle scenario group from the oversized portable TCK translation unit into ordinary `.cpp`/`.hpp` ownership; keep scenario IDs and both callback-model behavior stable. | Portable TCK lookup-lifecycle declarations/implementation and CMake; avoid runtime and MOM files. | Focused MinGW TCK build, both-model CTests, catalog/mapping stability, and measured source-size reduction. |
+| 3. MOM/reporting runtime | Extend the verified backward-NMRA filesystem failure record to the distinct pending-advance `InTimeAdvancingState` rejection. Check the pinned 2025 text, retain the static report-file identity, and avoid unsupported temporal mappings. | MOM time-advance reporting and one official-C++ service-report test; no TCK runner/catalog edits. | One exact mapped native failure case, focused adjacent CTests, lane check, and no false success record. |
+| 4. Integration and portable TCK | Complete the shared MinGW build and neighboring tests for each incoming slice, merge verified commits serially, update the active roadmap handoff, then rebuild/install a fresh package. Run all 1,034 promoted C++ TCK scenarios in both callback models with direct JSON/JUnit and classify failures. | Integration checkout, installed-package/TCK evidence, shared index merge resolution; no simultaneous lane-owned runtime edits. | A current pass/fail list with reproducible packets, mapped clean branch, build-quality snapshot, and explicit release blockers. |
 
 If a fifth contributor is available, give them FOM/Annex-C evidence closure and
-any verified 1516.2 gap confined to `cpp/src/internal/fom/**`. A sixth can
+any verified 2025 FOM gap confined to `cpp/src/internal/fom/**`. A sixth can
 adjudicate unmapped requirement rows in bounded subsection batches and record
 Requirements Lab defects. Neither should invent tests from candidate text or
 edit another worker's runtime files. The time/callback holding items are
