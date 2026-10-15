@@ -1,0 +1,32 @@
+#pragma once
+
+#include "tck_harness.hpp"
+
+namespace hla_rti_cpp_tck::detail {
+
+void scenarioFomModuleComposition(Options const&, rti::CallbackModel);
+void scenarioFomModuleCompositionContract(Options const&, rti::CallbackModel);
+void scenarioFomAdditionalModuleJoinAtomicity(Options const&, rti::CallbackModel);
+void scenarioFomAdditionalModuleJoinAtomicityContract(Options const&, rti::CallbackModel);
+void scenarioFomTransportationHandleStability(Options const&, rti::CallbackModel);
+void scenarioFomTransportationHandleStabilityContract(Options const&, rti::CallbackModel);
+void scenarioFomDimensionHandleStability(Options const&, rti::CallbackModel);
+void scenarioFomDimensionHandleStabilityContract(Options const&, rti::CallbackModel);
+void scenarioFomUpdateRateValueStability(Options const&, rti::CallbackModel);
+void scenarioFomUpdateRateValueStabilityContract(Options const&, rti::CallbackModel);
+void scenarioFomStandardInvalidInputCorpus(Options const&, rti::CallbackModel);
+void scenarioFomStandardInvalidInputCorpusContract(Options const&, rti::CallbackModel);
+void scenarioFomInvalidCreateAtomicity(Options const&, rti::CallbackModel);
+void scenarioFomInvalidCreateAtomicityContract(Options const&, rti::CallbackModel);
+void scenarioFomInvalidCompositeJoinAtomicity(Options const&, rti::CallbackModel);
+void scenarioFomInvalidCompositeJoinAtomicityContract(Options const&, rti::CallbackModel);
+void scenarioFomInvalidMimCreateAtomicity(Options const&, rti::CallbackModel);
+void scenarioFomInvalidMimCreateAtomicityContract(Options const&, rti::CallbackModel);
+void scenarioFomInvalidCompositeMimCreateAtomicity(Options const&, rti::CallbackModel);
+void scenarioFomInvalidCompositeMimCreateAtomicityContract(Options const&, rti::CallbackModel);
+void scenarioFomEmptyMimCreateAtomicity(Options const&, rti::CallbackModel);
+void scenarioFomEmptyMimCreateAtomicityContract(Options const&, rti::CallbackModel);
+void scenarioFomEmptyModuleValidation(Options const&, rti::CallbackModel);
+void scenarioFomEmptyModuleValidationContract(Options const&, rti::CallbackModel);
+
+}  // namespace hla_rti_cpp_tck::detail

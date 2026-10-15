@@ -72,6 +72,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_joined_federate_mom_reflections_received_counts.cpp
   src/tck_factory_identity.cpp
   src/tck_lookup_lifecycle_scenarios.cpp
+  src/tck_fom_module_scenarios.cpp
   src/tck_timestamped_attribute_scenarios.cpp
   src/tck_timestamped_interaction_scenarios.cpp
   src/tck_timestamped_interaction_boundary_scenarios.cpp
