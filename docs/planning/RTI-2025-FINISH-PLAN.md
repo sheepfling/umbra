@@ -24,7 +24,7 @@ passed all 2,048 configured CTests and 2,072 direct both-model replays with
 valid JSON/JUnit, including 24 process-loss fixture cases. Later 2025 runtime
 and TCK-source commits supersede that binary, so full native and frozen-commit
 package regressions remain release gates. The current source-size check is red:
-42 hard findings and 18 soft-limit findings.
+41 hard findings and 18 soft-limit findings.
 Cohesive callback-control and MOM-query extractions removed a further 5,105
 lines from portable TCK `main.cpp` and 3,374 from `portable_tck.cpp`; both
 drivers remain above the hard ceiling and need further ownership work. Later
@@ -110,10 +110,10 @@ a commit, and a concrete next handoff.
 
 | Seat | Current packet | Exclusive ownership and merge gate |
 | --- | --- | --- |
-| 1. Remote regional subscription/scoped update | The exact case at `cpp/tests/ieee1516_2025_connection_regional_subscription_update_catch2.cpp:457` remains independently red: core fails or times out and connection times out when serially selected. Neighboring regional-unsubscribe is green. | Locate the first fixture, wire, service, or callback stall. Preserve regional overlap, remote discovery/reflection, sent-region metadata and recipient assertions. Add a dedicated focused lane tag to source and exact plan row, replacing broad `process-boundary` as the primary query handle. Own only this C++ source/runtime seam and exact plan row. |
-| 2. Timestamped regional interaction | The process pair at `cpp/tests/ieee1516_2025_connection_tso_regional_interaction_catch2.cpp:459` times out in the eight-way partition; serial independence is not yet established. | Run the exact pair serially first. If red, identify the first fixture/transport/time callback stall against pinned 2025 TSO/DDM clauses; if green, classify parallel interference without speculative edits. Own a source file distinct from seat 1. |
-| 3. Portable C++ TCK source ownership | Eight cohesive extractions are integrated; `main.cpp` is 25,638 lines and `portable_tck.cpp` is 23,106, with 1,036 catalog IDs and 5,161 exact selectors retained. The last two packets pass 20/20 and 12/12 affected both-model registrations. | Extract another cohesive scenario family into ordinary `.cpp/.hpp` owner files, keeping selectors/catalog stable. Own only TCK sources/CMake/source-size policy. Build the installed-provider target and run affected both-model CTests plus catalog/API/selector checks. No broad mechanical line-count split. |
-| 4. Integration and release gates | Integrate verified packets, maintain the exact roadmap handoff, and repeat targeted MinGW checks before a frozen native/package run. | The bounded eight-way process partition is 537/548 after two waves, improved from 531/548 and 517/548; 11 cases remain red or time out, with a changing failure set. Source-size still has 42 hard findings. The earlier 2,048/2,048 installed-package checkpoint predates later changes. Do not claim a clean bill, tag, or conformance until frozen-commit gates pass. |
+| 1. Remote regional subscription/scoped update | Integrated: exact core/connection registrations retain 66 assertions, pass five repeats each, and have the focused `process-regional-subscription-update` lane. | Keep the regional overlap, remote discovery/reflection, sent-region metadata, and recipient assertions green; no new native repair is queued here. |
+| 2. Timestamped regional interaction and advisory callbacks | Integrated: the regional TSO pair now serves the sender report and pushed-event acknowledgement in order; the advisory rate-reissue pair uses synchronized callback snapshots rather than fabricated service calls. Both exact pairs and their neighbors pass. | Preserve the official 2025 timestamp, region, rate-designator, and callback assertions; do not infer general TSO or DDM conformance from these fixtures. |
+| 3. Portable C++ TCK source ownership | Ten cohesive extractions are integrated; `main.cpp` is 24,404 lines and `portable_tck.cpp` is 23,106. The two latest families pass 16/16 and 12/12 affected both-model installed-provider registrations; the catalog remains 1,036 valid IDs. | Continue cohesive ordinary `.cpp/.hpp` ownership splits. The 5,161-selector audit and full installed-package run must be refreshed at the frozen runtime commit; no broad mechanical line-count split. |
+| 4. Integration and release gates | The eight process-boundary executables were rebuilt on the integrated 2025 runtime; the bounded eight-way partition now passes 548/548 in 25 seconds. Confirm Divestiture push and grouped Query Attribute Ownership are repeat-green. | Source-size still has 41 hard findings. The earlier 2,048/2,048 installed-package checkpoint predates the latest runtime change. Keep full native/package, query-regression, interoperability, and protected conformance gates open; do not tag or claim a clean bill yet. |
 
 Earlier durable/save, MOM-reporting, regional process, process-retraction,
 queued-NMRA, and private process packets are integrated with their focused
@@ -133,26 +133,27 @@ case passes 2/2; ordinary and directed transportation callback fixtures pass
 4/4 and 20/20 repeats; the new timestamped attribute-update/object-removal
 retraction gate passes 2/2, pending a pre-fix regression proof. The untimed save callback case passed 20/20
 isolated repeats and was not changed. These packets remain subject to
-combined native and package gates. After the active native investigation seats
-clear, refill with a bounded FOM/Annex-C evidence-closure packet or a verified
-2025 counterexample confined to `cpp/src/internal/fom/**`. Requirement
+combined native and package gates. With the process partition now green, the
+next implementation seat tests RTI-owned Query Attribute Ownership through
+the already established process joined-federate MOM path. A bounded FOM/Annex-C
+evidence-closure packet remains a separate follow-on. Requirement
 adjudication is a subsection-sized read-only lane, not an open-ended search;
 neither lane invents tests from candidate text. Java parity begins after the
 C++ gates rather than consuming a current C++ seat.
 
 ## Current release-gate packets
 
-A new full installed-package C++ TCK checkpoint is green against the freshly
-installed provider, but it precedes pending native runtime changes and is not
-a clean current native or repository-quality bill. Keep these finite packets
+A prior full installed-package C++ TCK checkpoint was green against its then-
+current provider, but it precedes the latest native runtime changes and is not
+a clean current repository-quality bill. Keep these finite packets
 separate so an audit repair does not get misreported as new RTI conformance:
 
 | Packet | Verified starting point | Close only after |
 | --- | --- | --- |
 | Official 2025 vendor bytes | The 44 C++ headers and seven 1516.2 resources are byte-exact against the pinned archives; narrow vendor-tree Git text exceptions preserve those bytes. Binding inventory and resource CTests pass. | Preserve manifest digests and confirm the fresh installed-package check at the frozen integration commit. |
-| Test metadata and names | The local contract-selector guard is clean: 5,161/5,161 native references exact. The live mapping check passes with 1,410 mapped cases and no unclassified cases. Queued-TSO mapping was narrowed to nine supported pairs/five sections; RL-328 records a new Lab attribution issue. Two bounded query-regression guard packets fixed stale queued-NMR counts and Available-form source/count/target expectations; the next independent stop is the grant-time lookahead assertion guard near line 7759 (34 expected, 51 live). The optional strict historical-completion audit still reports 110 legacy reference mismatches. | Repair only evidence-backed remaining query guards and historical ledger issues without resynchronizing the Lab or weakening normative mappings; rerun static gates at the frozen integration commit. |
-| Native process regressions | On main, queued-TSO-after-save, deferred lower lookahead, regional unsubscription, and timed-save replacement each pass exact core/connection registrations after independent serial-red fixture repairs; worker repeat checks were 30/30, 10/10 with neighbors, 20/20, and 20/20 per registration respectively. The bounded eight-way process partition passes 537/548, up from 531/548 and 517/548, but 11 cases still fail or time out with a changing set. Remote regional subscription/scoped update is independently red under serial selection. | Resolve that exact handoff, add its focused lane, verify neighbors, and rerun a bounded partition only after integration. Distinguish fixture waits from runtime defects and parallel interference. |
-| Source ownership and comprehensive proof | Eight cohesive TCK extractions are integrated; `main.cpp` shrank from 29,600 to 25,638 lines and `portable_tck.cpp` from 24,765 to 23,106. The last two packets passed 20/20 and 12/12 affected both-model CTests, catalog 1,036/1,036, official API audit 164 methods/56 callbacks, and selector contract 5,161/5,161. Source-size remains red at 42 hard findings, including both oversized drivers. The earlier installed-provider checkpoint passed 2,048/2,048 configured CTests and 2,072/2,072 direct replays, but predates later source changes. | Resolve or justify remaining source-size findings, freeze one integration commit, then repeat native and installed-package gates with retained JSON/JUnit and a named native output log. |
+| Test metadata and names | The live mapping check passes with 1,410 mapped cases, 97 explicitly unmapped, zero unclassified, and 983 direct pairs. The grant-time lookahead guard now matches its existing 51-assertion, nine-requirement/seven-section C++ case; the full query regression next stops at a separate stale Modify Lookahead guard near line 7798. The previous 5,161/5,161 selector audit and optional historical audit predate this integration. | Repair only evidence-backed query guards and historical ledger issues without resynchronizing the Lab; rerun static gates at the frozen commit. |
+| Native process regressions | On main, remote regional subscription, regional TSO, advisory rate reissue, Confirm Divestiture push, and grouped Query Attribute Ownership now pass focused repeats. The ownership-query defect was in the 2025 process receive-order drain; enabled Evoke Multiple now drains buffered typed work while disabled callbacks retain one-poll gating. A fresh build of all eight process-boundary executables passed 548/548 in the eight-way partition; the retained log is under `out/mgw/embedded/20261015-process-boundary-final.log`. | Keep the 2025 callback drain and neighboring typed/Evoke controls green. Extend RTI-owned process ownership-query coverage against the already implemented joined-federate MOM report-file path; package and external transport evidence remain separate. |
+| Source ownership and comprehensive proof | Ten cohesive TCK extractions are integrated; `main.cpp` shrank from 29,600 to 24,404 lines and `portable_tck.cpp` from 24,765 to 23,106. The latest families pass 16/16 and 12/12 affected both-model CTests against the prior installed provider; catalog 1,036/1,036 and API audit 164 methods/56 callbacks are valid. Source-size remains red at 41 hard findings, including both oversized drivers. The earlier installed-provider checkpoint passed 2,048/2,048 configured CTests and 2,072/2,072 direct replays, but predates the current runtime. | Resolve or justify remaining source-size findings, freeze one integration commit, then refresh the installed provider and repeat native/package gates with retained JSON/JUnit. |
 
 The first three packets can be developed in isolated worktrees concurrently.
 The integration owner alone merges them serially and records the exact

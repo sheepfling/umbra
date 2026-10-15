@@ -98,26 +98,26 @@
     "issue_query": "python tools/query_rti_work.py lab-issues --summary --compact",
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
-  "active_handoff_note": "2026-10-15 parallel-wave checkpoint: queued-TSO-after-save, deferred lower lookahead, regional unsubscription, and timestamped save replacement now pass exact core/connection registrations on main after independent serial-red fixture repairs. A bounded eight-way process partition improved from 517/548 to 531/548 to 537/548 across the waves; 11 cases remain red or time out, and the failure set changes between runs. The next independently red case is remote regional subscription/scoped update: core fails or times out and connection times out when run serially. Its broad process-boundary tag needs a dedicated focused lane when repaired. Eight cohesive TCK owner extractions retain 1,036 catalog IDs and 5,161 exact selectors; main.cpp is 25,638 and portable_tck.cpp is 23,106 lines. Queued-TSO mapping is nine supported pairs/five sections, with RL-328 logged. The prior 2,048-case installed-package checkpoint predates these changes; source-size, full native/package, query regression, interoperability, and protected conformance gates remain open. Do not resynchronize unchanged Requirements Lab inputs or promote conformance.",
-  "latest_verified_slice": "2026-10-15: On main, exact native pairs pass for FQR/GALT, multiple-record Flush Queue, regional transportation, regional Attribute Relevance Advisory, official Evoke receive, regional class Request Attribute Value Update, directed interaction transportation override, multi-constrained timed save, queued-TSO-after-save, deferred lower lookahead, regional unsubscription, and timed-save replacement. The last four were independently serial-red before fixture repairs and green after focused integration; queued-TSO retained 130 assertions and regional unsubscription retained its original behavior checks, with its plan count corrected to 108. Queued-TSO mapping has nine supported direct pairs/five sections; regional unsubscription has 26 pairs/13 sections and a new focused lane. Eight cohesive TCK owner extractions retain 1,036 catalog IDs; the last two pass 20/20 and 12/12 affected both-model CTests, preserving 5,161/5,161 selectors. main.cpp is 25,638 lines and portable_tck.cpp is 23,106. A bounded eight-way native process partition passed 537/548 (up from 531/548 and 517/548); 11 failures/timeouts remain, including an independently red remote regional subscription/scoped update pair. Live mapping passes (1,410 mapped, 97 explicitly unmapped, zero unclassified, 983 direct pairs). Source-size is still red (42 hard findings). The earlier installed-package 2,048/2,048 CTests and 2,072/2,072 direct replays predate later source changes. Full native/package gates, query regression (next stale grant-time lookahead guard), strict historical ledger, external interoperability, and protected conformance review remain open.",
+  "active_handoff_note": "2026-10-15 integrated checkpoint: the eight freshly rebuilt 2025 process-boundary test executables pass 548/548 CTests in a bounded eight-way run, up from 537/548. Remote regional subscription/scoped update, timestamped regional interaction, advisory rate reissue, Confirm Divestiture push, and grouped Query Attribute Ownership are repeat-green. The ownership-query defect was a 2025 process receive-order drain race; enabled Evoke Multiple now drains typed callbacks while disabled callbacks preserve one-poll gating. Ten cohesive C++ TCK extractions retain 1,036 valid catalog IDs; main.cpp is 24,404 and portable_tck.cpp is 23,106 lines. The previously indexed process Join MOM report-file prerequisite for an RTI-owned process ownership query is already implemented, so the next bounded implementation slice is that RTI-owned query itself. Source-size remains red at 41 hard findings; full native/package, query regression, interoperability, and protected conformance gates remain open. Do not resynchronize unchanged Requirements Lab inputs or promote conformance.",
+  "latest_verified_slice": "2026-10-15: On main, native process-boundary CTest passes 548/548 after rebuilding all eight selected targets against the integrated 2025 callback-drain runtime; the retained output log is out/mgw/embedded/20261015-process-boundary-final.log. Exact ownership query passes five further main repeats after ten isolated repeats, and Confirm Divestiture push passes five main repeats after thirty isolated repeats. Regional subscription, regional TSO, and advisory rate-reissue focused cases and neighbors pass; their official-API assertions remain intact. The first and second new TCK owner extractions pass 16/16 and 12/12 affected both-model installed-provider CTests; catalog validation is 1,036/1,036 and official API coverage audit is 164 methods/56 callbacks. The TCK driver main.cpp is 24,404 lines and portable_tck.cpp is 23,106. Live mapping passes (1,410 mapped, 97 explicitly unmapped, zero unclassified, 983 direct pairs). Source-size remains red at 41 hard findings. The prior installed-provider 2,048/2,048 CTests and 2,072/2,072 direct replays predate the callback-drain runtime change; full native/package gates, next stale Modify Lookahead query guard, strict historical ledger, external interoperability, and protected conformance review remain open.",
   "active_handoff": {
     "state": "investigation",
-    "family": "transport-and-conformance",
-    "id": "umbra-cpp-process-endpoint-regional-subscription-update-integration",
-    "plan_id": "umbra-cpp-process-endpoint-regional-subscription-update-integration",
-    "mapping_seed_plan_id": "umbra-cpp-process-endpoint-regional-subscription-update-integration",
-    "test_case": "RTIambassador routes a remote regional subscription and scoped update through a configured process endpoint",
-    "lane": "process-boundary",
-    "source_location": "cpp/tests/ieee1516_2025_connection_regional_subscription_update_catch2.cpp:457",
-    "source_target": "cpp/tests/ieee1516_2025_connection_regional_subscription_update_catch2.cpp",
-    "ctest_target": "umbra_ieee1516_2025_connection_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador routes a remote regional subscription and scoped update through a configured process endpoint$",
-    "objective": "Resolve the independently red remote regional subscription/scoped-update process case. Core fails or times out and connection times out under serial 25-second runs after the neighboring regional-unsubscribe case became green. Locate the first fixture, wire, service, or callback stall against the official 2025 DDM and object-management behavior. Preserve the two-federate regional overlap, remote discovery/reflection, sent-region metadata and no-time update assertions. Give this case a dedicated focused lane tag and exact plan-row tag so it can be queried without the broad process-boundary lane.",
+    "family": "object-ddm-ownership",
+    "id": "umbra-cpp-attribute-ownership-query-process-integration",
+    "plan_id": "umbra-cpp-attribute-ownership-query-process-integration",
+    "mapping_seed_plan_id": "umbra-cpp-attribute-ownership-query-process-integration",
+    "test_case": "RTIambassador carries Query Attribute Ownership through a configured process endpoint",
+    "lane": "process-ownership-query",
+    "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:685",
+    "source_target": "cpp/tests/attribute_ownership_query_catch2.cpp",
+    "ctest_target": "umbra_attribute_ownership_query_catch2",
+    "ctest_filter": "^umbra\\.attribute_ownership_query\\.catch2\\.RTIambassador carries Query Attribute Ownership through a configured process endpoint$",
+    "objective": "Extend the already-green official 2025 process Query Attribute Ownership case from federate-owned and unowned results to a separate RTI-owned HLAfederate MOM attribute result. Process Join already establishes the RTI-owned MOM object and publishes its filesystem-backed HLAreportServiceFile attribute in the focused joined-federate MOM report-file case; do not reimplement that prerequisite. Query ownership of that attribute through the configured endpoint, preserving receive-order callback fencing and the correct Attribute Owned by RTI callback rather than a federate-owned or unowned report. Add a dedicated C++ case and exact direct mappings only where pinned 2025 subsections support them.",
     "acceptance": [
-      "The exact remote regional subscription/scoped-update case passes both core and connection native registrations with finite timeouts and its regional overlap, discovery/reflection, sent-region and recipient assertions intact.",
-      "The test and exact plan row gain one dedicated focused lane tag; its eight selected direct requirement-section pairs across five pinned 2025 sections remain truthful or are corrected by assertion-level evidence.",
-      "The neighboring regional-unsubscribe and embedded scope controls remain green; no fixture change masks DDM callback routing.",
-      "Native process partition, installed-package refresh, source-size, planning regression, external interoperability, and protected conformance review remain separate release gates."
+      "A new focused official-C++ process case observes the joined-federate MOM object and receives Attribute Owned by RTI for HLAreportServiceFile through the configured endpoint, without substituting federate-owned or unowned callbacks.",
+      "The case has its own source/plan lane and truthful direct requirement-to-canonical-2025-subsection mappings; the existing grouped federate-owned/unowned query and joined-federate MOM report-file cases stay green.",
+      "Build the MinGW target, repeat the exact case, run adjacent callback controls, and verify changed lane mappings.",
+      "Full installed-package, source-size, query-regression, interoperability, and protected conformance review remain separate release gates."
     ]
   },
   "last_completed_handoff": {
@@ -3777,7 +3777,7 @@
         "catch2_target": "umbra_ieee1516_2025_connection_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors apply a deferred lower lookahead at a configured process grant$",
         "ctest_label": "process-boundary",
-        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+        "source": "cpp/tests/ieee1516_2025_connection_modify_lookahead_grant_catch2.cpp"
       },
       "process-time-advance-available-focused": {
         "catch2_target": "umbra_ieee1516_2025_catch2",
@@ -4386,7 +4386,7 @@
       "process-query-time-bounds-zero-lookahead": 28,
       "process-query-lookahead-focused": 13,
       "process-modify-lookahead-focused": 17,
-      "process-modify-lookahead-grant-focused": 34,
+      "process-modify-lookahead-grant-focused": 51,
       "process-time-advance-available-focused": 15,
       "process-tso-tara-queued-equal-boundary": 34,
       "process-tso-tara-pregrant-boundary": 1,
@@ -11913,9 +11913,12 @@
         "federate.callback.time-advance-grant"
       ],
       "source_location": "cpp/tests/ieee1516_2025_connection_modify_lookahead_grant_catch2.cpp:458",
-      "assertions": 34,
-      "requirements": 6,
+      "assertions": 51,
+      "requirements": 9,
       "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.4.3",
         "hla-1516.1-2025:clause-8.5.5",
         "hla-1516.1-2025:clause-8.6.3",
         "hla-1516.1-2025:clause-8.8.3",
