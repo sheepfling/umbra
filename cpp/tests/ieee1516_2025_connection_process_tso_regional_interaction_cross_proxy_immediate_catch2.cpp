@@ -672,6 +672,249 @@ void verifyRegionalCrossProxyScenario(bool releaseLaterInteraction) {
   REQUIRE_NOTHROW(authority.rethrowIfFailed());
 }
 
+void verifyRegionalDisjointReceiverScopeScenario() {
+  EmbeddedFederationRegistry registry;
+  ProcessFederationServiceHost authority(
+      registry,
+      composedDefinition(),
+      {"127.0.0.1", 0U},
+      {"regional-disjoint-scope-authority", 0xB841U});
+  authority.start();
+
+  TemporaryDirectory directory;
+  writeMarker(
+      directory.path() / "authority.port",
+      std::to_string(authority.address().port));
+  std::filesystem::path const probe(UMBRA_PROCESS_TRANSPORT_PROXY_PROBE_PATH);
+  ProxyProcess laterIngress(probe, directory.path(), "sender");
+  ProxyProcess earlierIngress(probe, directory.path(), "receiver");
+  REQUIRE(laterIngress.address().port != earlierIngress.address().port);
+  REQUIRE(laterIngress.address().port != authority.address().port);
+  REQUIRE(earlierIngress.address().port != authority.address().port);
+
+  constexpr wchar_t const* federationName =
+      L"regional-cross-proxy-disjoint-immediate-nmr";
+  constexpr wchar_t const* interactionName =
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+  constexpr wchar_t const* parameterName = L"TimelinessOk";
+  constexpr wchar_t const* dimensionName = L"ServerId";
+  RecordingFederate laterFederate;
+  RecordingFederate earlierFederate;
+  RecordingFederate receiverAFederate;
+  RecordingFederate receiverBFederate;
+  auto later = makeRti();
+  auto earlier = makeRti();
+  auto receiverA = makeRti();
+  auto receiverB = makeRti();
+  REQUIRE(later->connect(
+              laterFederate,
+              HLA_IMMEDIATE,
+              configurationFor(laterIngress.address(), L"regional-later"))
+              .addressUsed);
+  REQUIRE_NOTHROW(later->createFederationExecution(
+      federationName, L"server-owned-regional-cross-proxy-fom.xml"));
+  auto const laterHandle = later->joinFederationExecution(
+      L"regional-disjoint-later", L"regional-disjoint-type", federationName);
+  REQUIRE(laterHandle.isValid());
+  REQUIRE(earlier->connect(
+              earlierFederate,
+              HLA_IMMEDIATE,
+              configurationFor(
+                  earlierIngress.address(), L"regional-earlier"))
+              .addressUsed);
+  auto const earlierHandle = earlier->joinFederationExecution(
+      L"regional-disjoint-earlier", L"regional-disjoint-type", federationName);
+  REQUIRE(earlierHandle.isValid());
+  REQUIRE(receiverA->connect(
+              receiverAFederate,
+              HLA_IMMEDIATE,
+              configurationFor(authority.address(), L"regional-receiver-a"))
+              .addressUsed);
+  auto const receiverAHandle = receiverA->joinFederationExecution(
+      L"regional-disjoint-a", L"regional-disjoint-type", federationName);
+  REQUIRE(receiverAHandle.isValid());
+  REQUIRE(receiverB->connect(
+              receiverBFederate,
+              HLA_IMMEDIATE,
+              configurationFor(authority.address(), L"regional-receiver-b"))
+              .addressUsed);
+  auto const receiverBHandle = receiverB->joinFederationExecution(
+      L"regional-disjoint-b", L"regional-disjoint-type", federationName);
+  REQUIRE(receiverBHandle.isValid());
+
+  auto const laterClass = later->getInteractionClassHandle(interactionName);
+  auto const earlierClass = earlier->getInteractionClassHandle(interactionName);
+  auto const receiverAClass = receiverA->getInteractionClassHandle(interactionName);
+  auto const receiverBClass = receiverB->getInteractionClassHandle(interactionName);
+  REQUIRE(laterClass == earlierClass);
+  REQUIRE(laterClass == receiverAClass);
+  REQUIRE(laterClass == receiverBClass);
+  auto const laterParameter = later->getParameterHandle(
+      laterClass, parameterName);
+  auto const earlierParameter = earlier->getParameterHandle(
+      earlierClass, parameterName);
+  auto const receiverBParameter = receiverB->getParameterHandle(
+      receiverBClass, parameterName);
+  REQUIRE(laterParameter == earlierParameter);
+  REQUIRE(laterParameter == receiverBParameter);
+  auto const laterDimension = later->getDimensionHandle(dimensionName);
+  auto const earlierDimension = earlier->getDimensionHandle(dimensionName);
+  auto const receiverADimension = receiverA->getDimensionHandle(dimensionName);
+  auto const receiverBDimension = receiverB->getDimensionHandle(dimensionName);
+  auto const laterRegion = later->createRegion(
+      rti1516_2025::DimensionHandleSet{laterDimension});
+  auto const earlierRegion = earlier->createRegion(
+      rti1516_2025::DimensionHandleSet{earlierDimension});
+  auto const receiverARegion = receiverA->createRegion(
+      rti1516_2025::DimensionHandleSet{receiverADimension});
+  auto const receiverBRegion = receiverB->createRegion(
+      rti1516_2025::DimensionHandleSet{receiverBDimension});
+  REQUIRE(laterRegion.isValid());
+  REQUIRE(earlierRegion.isValid());
+  REQUIRE(receiverARegion.isValid());
+  REQUIRE(receiverBRegion.isValid());
+  REQUIRE_NOTHROW(later->setRangeBounds(
+      laterRegion, laterDimension, rti1516_2025::RangeBounds(6UL, 10UL)));
+  REQUIRE_NOTHROW(earlier->setRangeBounds(
+      earlierRegion, earlierDimension, rti1516_2025::RangeBounds(0UL, 5UL)));
+  REQUIRE_NOTHROW(receiverA->setRangeBounds(
+      receiverARegion, receiverADimension, rti1516_2025::RangeBounds(0UL, 5UL)));
+  REQUIRE_NOTHROW(receiverB->setRangeBounds(
+      receiverBRegion, receiverBDimension, rti1516_2025::RangeBounds(6UL, 10UL)));
+  REQUIRE_NOTHROW(later->commitRegionModifications(
+      rti1516_2025::RegionHandleSet{laterRegion}));
+  REQUIRE_NOTHROW(earlier->commitRegionModifications(
+      rti1516_2025::RegionHandleSet{earlierRegion}));
+  REQUIRE_NOTHROW(receiverA->commitRegionModifications(
+      rti1516_2025::RegionHandleSet{receiverARegion}));
+  REQUIRE_NOTHROW(receiverB->commitRegionModifications(
+      rti1516_2025::RegionHandleSet{receiverBRegion}));
+  REQUIRE_NOTHROW(later->publishInteractionClass(laterClass));
+  REQUIRE_NOTHROW(earlier->publishInteractionClass(earlierClass));
+  REQUIRE_NOTHROW(receiverA->setConveyRegionDesignatorSetsSwitch(true));
+  REQUIRE_NOTHROW(receiverB->setConveyRegionDesignatorSetsSwitch(true));
+  REQUIRE_NOTHROW(receiverA->subscribeInteractionClassWithRegions(
+      receiverAClass,
+      rti1516_2025::RegionHandleSet{receiverARegion},
+      true));
+  REQUIRE_NOTHROW(receiverB->subscribeInteractionClassWithRegions(
+      receiverBClass,
+      rti1516_2025::RegionHandleSet{receiverBRegion},
+      true));
+  REQUIRE_NOTHROW(later->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_NOTHROW(earlier->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_NOTHROW(receiverA->enableTimeConstrained());
+  REQUIRE_NOTHROW(receiverB->enableTimeConstrained());
+  REQUIRE_NOTHROW(receiverA->nextMessageRequest(
+      rti1516_2025::HLAinteger64Time(10)));
+  REQUIRE_NOTHROW(receiverB->nextMessageRequest(
+      rti1516_2025::HLAinteger64Time(10)));
+  REQUIRE(receiverAFederate.events().empty());
+  REQUIRE(receiverBFederate.events().empty());
+
+  auto sendRegional = [](
+                          RTIambassador& sender,
+                          rti1516_2025::InteractionClassHandle const& interaction,
+                          rti1516_2025::ParameterHandle const& parameter,
+                          rti1516_2025::RegionHandle const& region,
+                          std::uint8_t payload,
+                          std::int64_t timestamp) {
+    ParameterHandleValueMap values;
+    values.emplace(parameter, VariableLengthData(&payload, sizeof(payload)));
+    std::uint8_t const tag = 0x52U;
+    return sender.sendInteractionWithRegions(
+        interaction,
+        values,
+        rti1516_2025::RegionHandleSet{region},
+        VariableLengthData(&tag, sizeof(tag)),
+        rti1516_2025::HLAinteger64Time(timestamp));
+  };
+  auto const laterRetraction = sendRegional(
+      *later, laterClass, laterParameter, laterRegion, 0x08U, 8);
+  REQUIRE(laterRetraction.isValid());
+  REQUIRE_NOTHROW(later->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(8)));
+  REQUIRE(laterFederate.waitForEvents(1U));
+  REQUIRE(laterFederate.events()[0].kind == 'G');
+  REQUIRE(laterFederate.events()[0].time == 8);
+  REQUIRE(receiverAFederate.events().empty());
+  REQUIRE(receiverBFederate.events().empty());
+
+  auto const earlierRetraction = sendRegional(
+      *earlier, earlierClass, earlierParameter, earlierRegion, 0x05U, 5);
+  REQUIRE(earlierRetraction.isValid());
+  REQUIRE_NOTHROW(earlier->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE(earlierFederate.waitForEvents(1U));
+  REQUIRE(earlierFederate.events()[0].kind == 'G');
+  REQUIRE(earlierFederate.events()[0].time == 5);
+
+  // Both receivers are HLA_IMMEDIATE. No evokeCallback drives either route.
+  REQUIRE(receiverAFederate.waitForEvents(2U));
+  auto const aEvents = receiverAFederate.events();
+  REQUIRE(aEvents.size() == 2U);
+  REQUIRE(aEvents[0].kind == 'I');
+  REQUIRE(aEvents[0].time == 5);
+  REQUIRE(aEvents[0].interaction == receiverAClass);
+  REQUIRE(aEvents[0].parameter == earlierParameter);
+  REQUIRE(aEvents[0].payload == 0x05U);
+  REQUIRE(aEvents[0].producer == earlierHandle);
+  REQUIRE(aEvents[0].sentRegions ==
+          rti1516_2025::RegionHandleSet{earlierRegion});
+  REQUIRE(aEvents[0].receivedOrder == rti1516_2025::TIMESTAMP);
+  REQUIRE(aEvents[1].kind == 'G');
+  REQUIRE(aEvents[1].time == 5);
+
+  // B has the same interaction-class subscription but a disjoint [6,10]
+  // region. Its NMR remains pending: the [0,5] send cannot enter B's
+  // eligible timestamped set or produce a Receive Interaction callback.
+  REQUIRE_FALSE(receiverBFederate.waitForEvents(
+      1U, std::chrono::milliseconds(150)));
+
+  REQUIRE_NOTHROW(earlier->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(8)));
+  REQUIRE(earlierFederate.waitForEvents(2U));
+  auto const earlierEvents = earlierFederate.events();
+  REQUIRE(earlierEvents.size() == 2U);
+  REQUIRE(earlierEvents[1].kind == 'G');
+  REQUIRE(earlierEvents[1].time == 8);
+
+  // Positive same-receiver control: B's subscription is live and accepts the
+  // [6,10] send at 8, before TAG(8), without replaying disjoint I(5).
+  REQUIRE(receiverBFederate.waitForEvents(2U));
+  auto const bAfter = receiverBFederate.events();
+  REQUIRE(bAfter.size() == 2U);
+  REQUIRE(bAfter[0].kind == 'I');
+  REQUIRE(bAfter[0].time == 8);
+  REQUIRE(bAfter[0].interaction == receiverBClass);
+  REQUIRE(bAfter[0].parameter == receiverBParameter);
+  REQUIRE(bAfter[0].payload == 0x08U);
+  REQUIRE(bAfter[0].producer == laterHandle);
+  REQUIRE(bAfter[0].sentRegions ==
+          rti1516_2025::RegionHandleSet{laterRegion});
+  REQUIRE(bAfter[0].receivedOrder == rti1516_2025::TIMESTAMP);
+  REQUIRE(bAfter[1].kind == 'G');
+  REQUIRE(bAfter[1].time == 8);
+  REQUIRE_FALSE(receiverBFederate.waitForEvents(
+      3U, std::chrono::milliseconds(150)));
+  REQUIRE(receiverAFederate.events().size() == 2U);
+
+  REQUIRE_NOTHROW(later->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(earlier->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(receiverA->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(receiverB->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(later->disconnect());
+  REQUIRE_NOTHROW(earlier->disconnect());
+  REQUIRE_NOTHROW(receiverA->disconnect());
+  REQUIRE_NOTHROW(receiverB->disconnect());
+  laterIngress.stop();
+  earlierIngress.stop();
+  authority.stop();
+  REQUIRE_NOTHROW(authority.rethrowIfFailed());
+}
+
 }  // namespace
 
 TEST_CASE(
@@ -708,6 +951,24 @@ TEST_CASE(
     "[rti.service.next-message-request][federate.callback.receive-interaction]"
     "[federate.callback.time-advance-grant][2025]") {
   verifyRegionalCrossProxyScenario(true);
+}
+
+TEST_CASE(
+    "RTIambassadors exclude disjoint cross-proxy regional interaction for one NMR receiver",
+    "[integration][foundation][data-distribution-management]"
+    "[interaction-management][time-management][time-advance][transport]"
+    "[process-boundary][public-endpoint][multi-federate][regional-interaction]"
+    "[timestamped-process-regional-interaction][regional-send-scope-exclusion]"
+    "[process-time-advance-next-message-queued-focused]"
+    "[process-tso-cross-endpoint-arrival-coordination]"
+    "[rti.service.create-region][rti.service.set-range-bounds]"
+    "[rti.service.commit-region-modifications]"
+    "[rti.service.subscribe-interaction-class-with-regions]"
+    "[rti.service.send-interaction-with-regions]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.next-message-request][federate.callback.receive-interaction]"
+    "[federate.callback.time-advance-grant][2025]") {
+  verifyRegionalDisjointReceiverScopeScenario();
 }
 
 #endif
