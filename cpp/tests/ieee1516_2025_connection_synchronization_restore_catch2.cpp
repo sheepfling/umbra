@@ -794,6 +794,7 @@ TEST_CASE(
       L"process-federation-restore-success-type";
   constexpr wchar_t const* saveLabel =
       L"process-federation-restore-success-label";
+  constexpr double callbackWaitSeconds = 2.0;
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
   auto const port = listener->address().port;
@@ -896,21 +897,21 @@ TEST_CASE(
     REQUIRE(federateHandle.isValid());
 
     REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.saveInitiateCount == 1U);
     REQUIRE(federate.saveLabel == saveLabel);
     REQUIRE_NOTHROW(rti->federateSaveBegun());
     REQUIRE_NOTHROW(rti->federateSaveComplete());
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.saveCompleteCount == 1U);
 
     REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
     REQUIRE(federate.restoreSucceededCount == 0U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.restoreSucceededCount == 1U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.restoreBegunCount == 1U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.restoreInitiateCount == 1U);
     REQUIRE(federate.restoreLabel == saveLabel);
     REQUIRE_FALSE(federate.restoreFederateName.empty());
@@ -918,7 +919,7 @@ TEST_CASE(
 
     REQUIRE_NOTHROW(rti->federateRestoreComplete());
     REQUIRE(federate.restoreCompleteCount == 0U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.restoreCompleteCount == 1U);
     REQUIRE(federate.restoreNotCompleteCount == 0U);
     REQUIRE(federate.callbackOrder ==
@@ -933,12 +934,17 @@ TEST_CASE(
   } catch (...) {
     clientError = std::current_exception();
   }
+  if (clientError) {
+    // An assertion must release a server blocked before its scripted Resign.
+    rti.reset();
+  }
   if (listener) {
-    listener.reset();
+    listener->close();
   }
   if (server.joinable()) {
     server.join();
   }
+  listener.reset();
   if (clientError) {
     std::rethrow_exception(clientError);
   }

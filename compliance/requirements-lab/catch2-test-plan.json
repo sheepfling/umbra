@@ -15643,7 +15643,7 @@
         "hla-1516.1-2025:clause-4.32"
       ],
       "test_case": "RTIambassadors carry successful federation restore lifecycle through the configured process endpoint",
-      "source_location": "cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp:772",
+      "source_location": "cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp:786",
       "primary_lane": "process-federation-restore-success-lifecycle",
       "focus_lane": "process-federation-restore-success-lifecycle",
       "assertions": 30,
