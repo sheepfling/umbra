@@ -76,12 +76,12 @@ bool ProcessFederationService::enqueueAttributeOwnershipAcquisitionWorkItems(
         workItem.userSuppliedTag,
         workItem.candidateIsIfAvailable};
 
-    // A release request is a callback-boundary reservation, not an already
-    // delivered callback. Keep it in the service queue until the recipient
-    // polls so automatic connection-loss cleanup can cancel it atomically.
-    if (options_.pushReceiveOrderEvents &&
-        eventKind !=
-            ProcessFederationAttributeOwnershipAcquisitionEventKind::request_release) {
+    // The immediate process profile revalidates this reservation when the
+    // service sends the callback event. Pull delivery performs the same check
+    // when the recipient polls in handleReceiveInteraction. The sent event is
+    // not a general callback-entry claim protocol: a later client-side buffer
+    // window remains separate from this bounded push path.
+    if (options_.pushReceiveOrderEvents) {
       if (eventKind ==
           ProcessFederationAttributeOwnershipAcquisitionEventKind::
               acquisition_notification) {
