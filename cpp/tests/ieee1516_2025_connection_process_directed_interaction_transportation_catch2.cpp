@@ -462,14 +462,29 @@ class DirectedInteractionTransportationFederateAmbassador final
   void confirmInteractionTransportationTypeChange(
       rti1516_2025::InteractionClassHandle const& interactionClass,
       rti1516_2025::TransportationTypeHandle const& transportationType) override {
-    ++changeCount;
-    changedInteractionClass = interactionClass;
-    changedTransportationType = transportationType;
+    {
+      std::scoped_lock lock(callbackMutex);
+      changedInteractionClass = interactionClass;
+      changedTransportationType = transportationType;
+      changeCount.fetch_add(1U, std::memory_order_release);
+    }
+    callbackAvailable.notify_all();
   }
 
-  std::size_t changeCount = 0U;
+  void waitForChange() {
+    std::unique_lock lock(callbackMutex);
+    callbackAvailable.wait_for(lock, std::chrono::seconds(2), [this] {
+      return changeCount.load(std::memory_order_acquire) != 0U;
+    });
+  }
+
+  std::atomic_size_t changeCount{0U};
   rti1516_2025::InteractionClassHandle changedInteractionClass;
   rti1516_2025::TransportationTypeHandle changedTransportationType;
+
+ private:
+  std::mutex callbackMutex;
+  std::condition_variable callbackAvailable;
 };
 
 TEST_CASE(
@@ -746,8 +761,12 @@ TEST_CASE(
           objectClass, rti1516_2025::InteractionClassHandleSet{interactionClass}));
       REQUIRE_NOTHROW(senderRti->requestInteractionTransportationTypeChange(
           interactionClass, transportation));
-      static_cast<void>(senderRti->evokeCallback(0.0));
-      REQUIRE(senderFederate.changeCount == 1U);
+      if (callbackModel == HLA_EVOKED) {
+        static_cast<void>(senderRti->evokeCallback(2.0));
+      } else {
+        senderFederate.waitForChange();
+      }
+      REQUIRE(senderFederate.changeCount.load(std::memory_order_acquire) == 1U);
       REQUIRE(senderFederate.changedInteractionClass == interactionClass);
       REQUIRE(senderFederate.changedTransportationType == transportation);
 
