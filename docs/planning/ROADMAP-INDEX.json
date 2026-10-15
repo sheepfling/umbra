@@ -98,25 +98,25 @@
     "issue_query": "python tools/query_rti_work.py lab-issues --summary --compact",
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
-  "active_handoff_note": "2026-10-15 integrated checkpoint: the eight freshly rebuilt 2025 process-boundary test executables pass 548/548 CTests in a bounded eight-way run, up from 537/548. Remote regional subscription/scoped update, timestamped regional interaction, advisory rate reissue, Confirm Divestiture push, and grouped Query Attribute Ownership are repeat-green. The ownership-query defect was a 2025 process receive-order drain race; enabled Evoke Multiple now drains typed callbacks while disabled callbacks preserve one-poll gating. Ten cohesive C++ TCK extractions retain 1,036 valid catalog IDs; main.cpp is 24,404 and portable_tck.cpp is 23,106 lines. The previously indexed process Join MOM report-file prerequisite for an RTI-owned process ownership query is already implemented, so the next bounded implementation slice is that RTI-owned query itself. Source-size remains red at 41 hard findings; full native/package, query regression, interoperability, and protected conformance gates remain open. Do not resynchronize unchanged Requirements Lab inputs or promote conformance.",
-  "latest_verified_slice": "2026-10-15: On main, native process-boundary CTest passes 548/548 after rebuilding all eight selected targets against the integrated 2025 callback-drain runtime; the retained output log is out/mgw/embedded/20261015-process-boundary-final.log. Exact ownership query passes five further main repeats after ten isolated repeats, and Confirm Divestiture push passes five main repeats after thirty isolated repeats. Regional subscription, regional TSO, and advisory rate-reissue focused cases and neighbors pass; their official-API assertions remain intact. The first and second new TCK owner extractions pass 16/16 and 12/12 affected both-model installed-provider CTests; catalog validation is 1,036/1,036 and official API coverage audit is 164 methods/56 callbacks. The TCK driver main.cpp is 24,404 lines and portable_tck.cpp is 23,106. Live mapping passes (1,410 mapped, 97 explicitly unmapped, zero unclassified, 983 direct pairs). Source-size remains red at 41 hard findings. The prior installed-provider 2,048/2,048 CTests and 2,072/2,072 direct replays predate the callback-drain runtime change; full native/package gates, next stale Modify Lookahead query guard, strict historical ledger, external interoperability, and protected conformance review remain open.",
+  "active_handoff_note": "2026-10-15 integrated checkpoint: the official 2025 process RTI-owned MOM ownership result and the federate-owned to unowned transition after unconditional divestiture each have separate mapped C++ cases and pass five repeats on main. The grouped process ownership query and MOM resign/rejoin fixture are repeat-green; the latter now waits for the specific pushed removal and accepts bounded callback polls. Three recent cohesive C++ TCK extractions retain 1,036 valid catalog IDs; main.cpp is 23,859 lines and portable_tck.cpp is 23,106. A 550-case process-boundary run passed 548 and timed out in two unrelated existing save-status and TSO-attribute-fanout fixtures; do not call this a clean bill. The next bounded behavior slice is query ownership after a second joined federate acquires the divested attribute, using pinned 2025 acquisition clauses. Source-size remains red at 41 hard findings; full native/package, query regression, interoperability, and protected conformance gates remain open. Do not resynchronize unchanged Requirements Lab inputs or promote conformance.",
+  "latest_verified_slice": "2026-10-15: On main, process RTI-owned MOM ownership query (28 assertions) and ownership transition after unconditional divestiture (29 assertions) each pass five repeats; the grouped federate-owned/unowned query also passed adjacent repeats in the isolated transition lane. The MOM resign/rejoin callback-admission fixture passed 20 repeats after correcting its wait and scripted server poll allowance. The most recent contention-free process-boundary partition passed 548/550, with save-status response and timestamped attribute fanout timeouts; out/mgw/embedded/20261015-process-boundary-ownership-transition.log is retained, and save-status intermittence reproduced in isolated repeats. The preceding 548/548 partition predates the two new cases. The federation-MOM TCK extraction passes its integrated MinGW build and 12/12 affected both-model installed-provider CTests; catalog validation remains 1,036/1,036 and API audit 164 methods/56 callbacks. TCK main.cpp is 23,859 lines, portable_tck.cpp 23,106. Live mapping passes (1,412 mapped, 97 explicitly unmapped, zero unclassified, 983 distinct direct pairs). Source-size remains red at 41 hard findings. A partial build-metrics capture at ad454c0d records 1,515 translation units, 4,542.0 summed compiler seconds, 40,002 first-party include edges, and no unmeasured compile commands; it is not a wall-time or clean-gate claim. Full native/package gates, strict historical ledger/query regression, external interoperability, and protected conformance review remain open.",
   "active_handoff": {
     "state": "investigation",
     "family": "object-ddm-ownership",
-    "id": "umbra-cpp-attribute-ownership-query-process-integration",
-    "plan_id": "umbra-cpp-attribute-ownership-query-process-integration",
-    "mapping_seed_plan_id": "umbra-cpp-attribute-ownership-query-process-integration",
-    "test_case": "RTIambassador carries Query Attribute Ownership through a configured process endpoint",
-    "lane": "process-ownership-query",
-    "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:685",
+    "id": "umbra-cpp-process-ownership-query-after-unconditional-divestiture",
+    "plan_id": "umbra-cpp-process-ownership-query-after-unconditional-divestiture",
+    "mapping_seed_plan_id": "umbra-cpp-process-ownership-query-after-unconditional-divestiture",
+    "test_case": "RTIambassador reports a process ownership transition after unconditional divestiture",
+    "lane": "process-ownership-transition-query",
+    "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:981",
     "source_target": "cpp/tests/attribute_ownership_query_catch2.cpp",
     "ctest_target": "umbra_attribute_ownership_query_catch2",
-    "ctest_filter": "^umbra\\.attribute_ownership_query\\.catch2\\.RTIambassador carries Query Attribute Ownership through a configured process endpoint$",
-    "objective": "Extend the already-green official 2025 process Query Attribute Ownership case from federate-owned and unowned results to a separate RTI-owned HLAfederate MOM attribute result. Process Join already establishes the RTI-owned MOM object and publishes its filesystem-backed HLAreportServiceFile attribute in the focused joined-federate MOM report-file case; do not reimplement that prerequisite. Query ownership of that attribute through the configured endpoint, preserving receive-order callback fencing and the correct Attribute Owned by RTI callback rather than a federate-owned or unowned report. Add a dedicated C++ case and exact direct mappings only where pinned 2025 subsections support them.",
+    "ctest_filter": "^umbra\\.attribute_ownership_query\\.catch2\\.RTIambassador reports a process ownership transition after unconditional divestiture$",
+    "objective": "Extend the public 2025 process before/after ownership-query slice through an actual acquisition by a second joined federate. Starting from the proven federate-owned to unowned state after unconditional divestiture, acquire the attribute and query again so the observer receives the new owner through the configured endpoint. Select the exact pinned 2025 acquisition and query requirement/subsection pairs before adding a dedicated C++ case; do not reuse divestiture mappings for acquisition or infer all ownership-arbitration behavior.",
     "acceptance": [
-      "A new focused official-C++ process case observes the joined-federate MOM object and receives Attribute Owned by RTI for HLAreportServiceFile through the configured endpoint, without substituting federate-owned or unowned callbacks.",
-      "The case has its own source/plan lane and truthful direct requirement-to-canonical-2025-subsection mappings; the existing grouped federate-owned/unowned query and joined-federate MOM report-file cases stay green.",
-      "Build the MinGW target, repeat the exact case, run adjacent callback controls, and verify changed lane mappings.",
+      "A focused official-C++ process case observes the owner transition from the divested/unowned state to a second joined federate after successful public acquisition, with exactly the appropriate ownership-query callback.",
+      "Give the case its own focused lane and direct pinned requirement-to-canonical-2025-subsection mappings; retain the grouped, RTI-owned MOM, and divestiture query cases.",
+      "Build the MinGW target, repeat the exact case and adjacent controls, and verify changed lane mappings.",
       "Full installed-package, source-size, query-regression, interoperability, and protected conformance review remain separate release gates."
     ]
   },
@@ -214,7 +214,7 @@
       "catch2_cases_without_cpp_source_location": 2,
       "catch2_cases_without_lab_requirement_mapping": 97,
       "catch2_planned_cases": 0,
-      "catch2_plan_cases": 1507,
+      "catch2_plan_cases": 1509,
       "catch2_unmapped_explicit_disposition": 97,
       "catch2_unmapped_unclassified": 0,
       "cpp_source_cases_without_plan_row": 0,
@@ -324,8 +324,8 @@
     },
     "current_snapshot": {
       "source": "python tools/query_rti_work.py dashboard --summary --compact",
-      "plan_cases": 1507,
-      "mapped_cases": 1410,
+      "plan_cases": 1509,
+      "mapped_cases": 1412,
       "unmapped_cases": 97,
       "explicit_unmapped_cases": 97,
       "unclassified_unmapped_cases": 0,
@@ -2835,8 +2835,8 @@
         "ctest_label": "process-boundary",
         "source_state": "source-located-executable",
         "execution_gate": "none",
-        "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:2463",
-        "source": "cpp/tests/attribute_ownership_acquisition_catch2.cpp"
+        "source_location": "cpp/tests/ieee1516_2025_process_confirm_divestiture_push_catch2.cpp:54",
+        "source": "cpp/tests/ieee1516_2025_process_confirm_divestiture_push_catch2.cpp"
       },
       "process-confirm-divestiture-assumption": {
         "catch2_target": "umbra_attribute_ownership_acquisition_catch2",
@@ -3771,7 +3771,8 @@
         "catch2_target": "umbra_ieee1516_2025_connection_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador modifies lookahead through a configured process endpoint$",
         "ctest_label": "process-boundary",
-        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+        "source_location": "cpp/tests/ieee1516_2025_connection_modify_lookahead_catch2.cpp:458",
+        "source": "cpp/tests/ieee1516_2025_connection_modify_lookahead_catch2.cpp"
       },
       "process-modify-lookahead-grant-focused": {
         "catch2_target": "umbra_ieee1516_2025_connection_catch2",
@@ -4385,7 +4386,7 @@
       "process-query-time-bounds-queued-tso": 31,
       "process-query-time-bounds-zero-lookahead": 28,
       "process-query-lookahead-focused": 13,
-      "process-modify-lookahead-focused": 17,
+      "process-modify-lookahead-focused": 23,
       "process-modify-lookahead-grant-focused": 51,
       "process-time-advance-available-focused": 15,
       "process-tso-tara-queued-equal-boundary": 34,
@@ -4467,7 +4468,7 @@
       "process-confirm-divestiture-service-report-interaction": 76,
       "confirm-divestiture-mixed-set-atomicity": 138,
       "process-confirm-divestiture-mixed-set-atomicity": 81,
-      "process-confirm-divestiture-push": 41,
+      "process-confirm-divestiture-push": 43,
       "process-confirm-divestiture-assumption": 60,
       "negotiated-assumption": 30,
       "regional-object-attribute-region-context": 34,

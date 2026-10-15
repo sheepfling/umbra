@@ -5069,7 +5069,7 @@ def main() -> int:
         or push_confirm_focus.get("requirement_count") != 4
         or push_confirm_focus.get("standard_section_count") != 4
         or push_confirm_focus.get("requirement_section_pair_count") != 4
-        or push_confirm_focus.get("assertion_count") != 41
+        or push_confirm_focus.get("assertion_count") != 43
     ):
         raise AssertionError("push Confirm Divestiture focus card drifted")
     assumption_case = next(
@@ -7771,7 +7771,7 @@ def main() -> int:
         raise AssertionError("focused process grant-time lookahead lane is not complete")
     if process_modify_lookahead_grant_focus.get("mapped_test_count") != 1:
         raise AssertionError("focused process grant-time lookahead mapped count drifted")
-    if process_modify_lookahead_grant_focus.get("assertion_count") != 34:
+    if process_modify_lookahead_grant_focus.get("assertion_count") != 51:
         raise AssertionError("focused process grant-time lookahead lane assertion total drifted")
     if process_modify_lookahead_grant_focus.get("requirement_count") != 9:
         raise AssertionError("focused process grant-time lookahead requirement total drifted")
@@ -7814,7 +7814,7 @@ def main() -> int:
         raise AssertionError("focused process modify-lookahead lane is not complete")
     if process_modify_lookahead_focus.get("mapped_test_count") != 1:
         raise AssertionError("focused process modify-lookahead mapped count drifted")
-    if process_modify_lookahead_focus.get("assertion_count") != 17:
+    if process_modify_lookahead_focus.get("assertion_count") != 23:
         raise AssertionError("focused process modify-lookahead lane assertion total drifted")
     if process_modify_lookahead_focus.get("requirement_count") != 3:
         raise AssertionError("focused process modify-lookahead requirement total drifted")
