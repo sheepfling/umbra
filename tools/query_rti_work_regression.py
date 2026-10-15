@@ -7816,9 +7816,9 @@ def main() -> int:
         raise AssertionError("focused process modify-lookahead mapped count drifted")
     if process_modify_lookahead_focus.get("assertion_count") != 23:
         raise AssertionError("focused process modify-lookahead lane assertion total drifted")
-    if process_modify_lookahead_focus.get("requirement_count") != 3:
+    if process_modify_lookahead_focus.get("requirement_count") != 4:
         raise AssertionError("focused process modify-lookahead requirement total drifted")
-    if process_modify_lookahead_focus.get("standard_section_count") != 1:
+    if process_modify_lookahead_focus.get("standard_section_count") != 2:
         raise AssertionError("focused process modify-lookahead section total drifted")
     process_modify_lookahead_handles = process_modify_lookahead_focus.get("lane_handles")
     if not isinstance(process_modify_lookahead_handles, dict) or process_modify_lookahead_handles.get(
