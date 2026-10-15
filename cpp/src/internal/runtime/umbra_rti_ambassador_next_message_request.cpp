@@ -1,5 +1,6 @@
 #include "internal/runtime/umbra_rti_ambassador.hpp"
 
+#include "internal/observability/mom_service_report_encoding.hpp"
 #include "internal/runtime/ambassador_shared_utilities.hpp"
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
@@ -208,6 +209,16 @@ void UmbraRtiAmbassador::nextMessageRequestAvailable(LogicalTime const& time) {
       umbra::detail::FederateTimeAdvanceMode::next_message_request_available,
       true,
       L"Next Message Request Available");
+  } catch (LogicalTimeAlreadyPassed const& exception) {
+    emitExceptionReport(L"Next Message Request Available", exception);
+    appendFailedServiceReportToFileIfSelected(
+        L"NextMessageRequestAvailable",
+        umbra::detail::MomServiceType::time_management,
+        {{umbra::detail::MomArgumentType::logical_time,
+          L"Logical time",
+          umbra::detail::formatMomLogicalTime(time)}},
+        describeAmbassadorException(exception));
+    throw;
   } catch (Exception const& exception) {
     emitExceptionReport(L"Next Message Request Available", exception);
     throw;

@@ -1542,6 +1542,27 @@
       "reproduction": "Inspect the three affected IDs in topics/ieee/hla-1516.1-2025/semantic/requirements.json and compare the page-115 paragraph in semantic/content-elements.json with compliance/requirements-lab/object-instance-name-reservation-requirements-contract.json. The source locators are content/clauses/06-object-management-page-115.tex lines 104-115.",
       "verification": "The pinned 2025 semantic export shows the l104/l107/l110 sentence boundaries, and the reconstructed page-115 paragraph says any illegal name aborts all reservations while the result uses the multiple-name service. Page 116 describes per-name reservation-success indicators and exclusive reservation rights. The canonical licensed PDF was not independently rechecked in this turn; this records pinned-export usability and local crosswalk drift, not IEEE errata.",
       "detected": "2026-10-14"
+    },
+    {
+      "id": "RL-321",
+      "status": "open",
+      "kind": "requirements-lab-missing-service-flow-candidates",
+      "title": "Next Message Request Available backward-time precondition and exception lack candidates",
+      "affected_requirement_ids": [],
+      "exported_clause": "8.11",
+      "normative_clause": "8.11.3(d), 8.11.5(a)",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "output/semantic/content-block-content-15161-page-199.tex",
+        "lines": "145-150",
+        "page": 199
+      },
+      "symptom": "The pinned candidate bundle has section-8.11 narrative fragments but no candidate for the §8.11.3(d) rule that the supplied time be at least the joined federate's current time, nor for the §8.11.5(a) Logical Time Already Passed exception on the following semantic page.",
+      "impact": "A focused official-C++ rejected-NMRA case cannot honestly map its backward-time public exception to a Lab requirement ID, even though the full pinned section contains both the precondition and exception. Mapping it to a nearby 8.11 narrative fragment would misstate coverage.",
+      "workaround": "Keep the bundle and existing candidate IDs unchanged. State the §8.11.3(d)/§8.11.5(a) full-section/API observation explicitly without a fabricated direct requirement pair; map its separate service-report file assertions to the existing 11.5/11.5.1/11.5.2 candidates.",
+      "reproduction": "Compare the pinned corpus bundle's requirement-candidate-content-clauses-08-time-management-page-199-* rows with the unchanged 1516.1-2025 semantic page-199 block line 149 and page-200 block line 21 in Document-Recreation.",
+      "verification": "The reconstructed 2025 §8.11.3(d) says the specified logical time is greater than or equal to the joined federate's logical time, and §8.11.5(a) names Logical Time Already Passed. No corresponding candidate appears among the pinned page-199/200 requirement rows. The canonical PDF was not independently checked in this turn; this is a Lab extraction/usability issue, not IEEE errata.",
+      "detected": "2026-10-14"
     }
   ]
 }

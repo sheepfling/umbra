@@ -407,3 +407,14 @@ claiming the abort-all rule. Correct the local crosswalk label separately.
 The new public filesystem-restore case tests only the mixed-name partition.
 RL-320 is recorded in `known-issues.json`; this is an extraction/crosswalk
 usability issue, not IEEE errata or a conformance claim.
+
+### RL-321 — §8.11 NMRA backward-time flow items are missing candidates
+
+The full pinned 2025 §8.11.3(d) requires the supplied logical time to be at
+least the joined federate's current time, and §8.11.5(a) names the Logical
+Time Already Passed exception. The candidate bundle retains neighboring
+§8.11 narrative fragments but neither service-flow item. An official-C++
+backward NMRA test should cite those subsections as full-section/API evidence,
+without inventing a requirement ID; its separate service-report assertions
+can map to the existing §11.5 candidates. The bundle was not resynchronized.
+This is a Lab extraction issue, not IEEE errata or conformance evidence.

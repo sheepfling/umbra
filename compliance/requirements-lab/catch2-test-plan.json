@@ -335,6 +335,58 @@
       "next_action": "The extracted 37-assertion case preserves the supplied Next Message Request Available boundary of 10 separately from the later grant at 7. Keep its two mappings (\u00a78.11 behavior and \u00a711.5.1 service-report payload) distinct, with no development-profile conformance claim. Continue with the mapped Request Interaction Transportation Type Change extraction at cpp/tests/ieee1516_2025_request_interaction_transportation_type_change_service_report_file_catch2.cpp:11."
     },
     {
+      "id": "umbra-cpp-service-report-next-message-request-available-backward-failure",
+      "primary_lane": "service-report-next-message-request-available-failure",
+      "focus_lane": "service-report-next-message-request-available-failure",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.nextmessagerequestavailable.53e69adb796b",
+        "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+        "api.2025.cpp.rtiambassador.querylogicaltime.cb29c063787c",
+        "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891",
+        "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l21-6",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l104-34"
+      ],
+      "test_case": "Embedded service reporting records a rejected backward Next Message Request Available",
+      "source_location": "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp:113",
+      "assertions": 20,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.11.3",
+        "hla-1516.1-2025:clause-8.11.5",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.1",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "tags": [
+        "integration",
+        "development-profile",
+        "time-management",
+        "mom",
+        "service-report-file",
+        "service-reporting",
+        "service-failure",
+        "service-report-next-message-request-available-failure",
+        "next-message-request-available",
+        "rti.service.next-message-request-available",
+        "federate.callback.time-advance-grant",
+        "2025"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "This HLA_EVOKED official-C++ case advances one joined federate to time 5, then submits Next Message Request Available(4). The public LogicalTimeAlreadyPassed exception and unchanged time/grant state exercise full 2025 sections 8.11.3(d) and 8.11.5(a), but the pinned Lab candidate bundle has no direct candidate for those service-flow items (RL-321); no requirement ID is invented. Service-report generation, file routing, false success, and Null return map directly to the listed 11.5, 11.5.1, and 11.5.2 candidates. Exact exception text and serial are additional implementation assertions, not separate direct requirement claims. This is one embedded filesystem failure path, not general time-management failure coverage, Lab validation, or conformance.",
+      "ctest_target": "umbra_ieee1516_2025_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records a rejected backward Next Message Request Available$",
+      "ctest_label": "service-report-next-message-request-available-failure",
+      "next_action": "Keep this one backward-time NMRA failure distinct from the accepted-request record. Cover other NMRA failure classes, process-endpoint reports, and MOM-interaction routing only as separately mapped C++ slices; do not infer general reporting completeness."
+    },
+    {
       "id": "umbra-cpp-service-report-request-interaction-transportation-type-change",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.requestinteractiontransportationtypechange.d8afce747757",

@@ -360,8 +360,8 @@
     },
     "current_snapshot": {
       "source": "python tools/query_rti_work.py dashboard --summary --compact",
-    "plan_cases": 1489,
-    "mapped_cases": 1392,
+    "plan_cases": 1499,
+    "mapped_cases": 1402,
     "unmapped_cases": 97,
     "explicit_unmapped_cases": 97,
       "unclassified_unmapped_cases": 0,
@@ -369,13 +369,30 @@
       "source_unlocated_actionable_cases": 0,
       "planned_cases": 0,
       "source_only_cases": 0,
-    "direct_requirement_section_pairs": 977,
+    "direct_requirement_section_pairs": 980,
       "standard_requirement_total": 2220,
-    "standard_requirement_coverage_percent": 44.01,
+    "standard_requirement_coverage_percent": 44.14,
     "service_report_store_cases": 19,
       "service_report_store_mapped_cases": 13
     },
     "latest_completed_slice": {
+      "lane": "service-report-next-message-request-available-failure",
+      "owner": "mom-after-base-services",
+      "plan_id": "umbra-cpp-service-report-next-message-request-available-backward-failure",
+      "test_case": "Embedded service reporting records a rejected backward Next Message Request Available",
+      "source_location": "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp:113",
+      "primary_lane": "service-report-next-message-request-available-failure",
+      "focus_lane": "service-report-next-message-request-available-failure",
+      "assertions": 20,
+      "requirements": 5,
+      "standard_sections": 3,
+      "api_surfaces": 5,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "next_action": "The official-C++ embedded case now proves a backward Next Message Request Available(4) at current time 5 throws LogicalTimeAlreadyPassed, retains time and grant state, and appends one failed filesystem service-report record without a premature success record. Its five direct pairs are §11.5 reporting; full §8.11.3(d)/§8.11.5(a) flow text has no candidate in the pinned Lab bundle (RL-321). Focused MinGW available-advance/reporting CTest passed 5/5. Development-profile evidence only. Next: separately cover a pending-request NMRA failure (InTimeAdvancingState) and its file report; do not infer all NMRA failures, process routing, or conformance."
+    },
+    "previous_completed_slice": {
       "lane": "tso-tara-queued-equal-boundary",
       "owner": "time-save-restore",
       "plan_id": "umbra-cpp-tara-exclusive-tso-request-boundary-integration",
@@ -391,23 +408,6 @@
         "HLA_EVOKED"
       ],
       "next_action": "Corrected the embedded and process TARA pre-grant selectors to deliver already-queued ts=t_R payloads before Time Advance Grant, as full IEEE 1516.1-2025 section 8.9 requires. The focused interaction, attribute, regional, directed, deletion, and process C++ cases now assert that boundary; the portable mixed-advance deletion case provides both callback models. Direct mappings select the pinned section-8.9 candidates, with RL-316 recording the clipped enumerated message set. Development-profile/TCK evidence only, not overall conformance. Next: add a distinct future-arrival ts=t_R case after the grant without weakening the queued-at-request requirement; cross-process watermark coordination remains separate."
-    },
-    "previous_completed_slice": {
-      "lane": "unregulated-federate-timestamped-interaction",
-      "owner": "time-save-restore",
-      "plan_id": "umbra-cpp-unregulated-federate-timestamped-interaction-integration",
-      "test_case": "A non-regulating federate sends a timestamped interaction when GALT is defined",
-      "source_location": "cpp/tests/timestamped_send_interaction_no_fanout_catch2.cpp:168",
-      "primary_lane": "unregulated-federate-timestamped-interaction",
-      "focus_lane": "unregulated-federate-timestamped-interaction",
-      "assertions": 23,
-      "requirements": 3,
-      "standard_sections": 3,
-      "api_surfaces": 9,
-      "callback_models": [
-        "HLA_EVOKED"
-      ],
-      "next_action": "This 23-assertion HLA_EVOKED case keeps the sender non-regulating while a separate regulator establishes sender GALT=5, verifies receiver time position 0, sends at timestamp 6 to a time-constrained receiver, and advances the receiver/regulator before delivery. The focused MinGW target built and the exact CTest passed 1/1; the lane has three direct requirement/subsection pairs across §§4.19, 8.1.2, and 8. Do not infer designator validity, callback-before-grant ordering, undefined-GALT behavior, or conformance. Next source-only case: Embedded timestamped Send Interaction queues TSO and requests retraction after delivery at cpp/tests/timestamped_send_interaction_retraction_catch2.cpp:150."
     },
     "prior_completed_slices": [
       {
@@ -524,6 +524,7 @@
       "service-report-object-name-reservation-mom-failures": "mom-after-base-services",
       "service-report-store": "mom-after-base-services",
       "service-report-directory-config": "mom-after-base-services",
+      "service-report-next-message-request-available-failure": "mom-after-base-services",
       "timestamped-regional-request-provider-response": "object-ddm-ownership",
       "object-class-request-provider-response": "time-save-restore",
       "timestamped-update-failure-service-report-file": "mom-after-base-services",
@@ -1573,6 +1574,12 @@
         "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service-report configuration rejects unusable directories without fallback$",
         "ctest_label": "service-report-directory-config",
         "source": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp"
+      },
+      "service-report-next-message-request-available-failure": {
+        "catch2_target": "umbra_ieee1516_2025_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records a rejected backward Next Message Request Available$",
+        "ctest_label": "service-report-next-message-request-available-failure",
+        "source": "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp"
       },
       "ddm-nonvoid-failure": {
         "catch2_target": "umbra_ieee1516_2025_catch2",
@@ -4637,6 +4644,7 @@
       "object-class-attribute-value-update-request-baseline-state": 43,
       "mom-auto-provide-switch-mutation": 41,
       "service-report-directory-config": 8,
+      "service-report-next-message-request-available-failure": 20,
       "ddm-nonvoid-failure": 272,
       "ddm-mutation-failure": 72,
       "service-report-writer-failure": 27,
@@ -28906,6 +28914,7 @@
         "service-report-credentials",
         "service-report-pair-list",
         "service-report-next-message-request-available-boundary",
+        "service-report-next-message-request-available-failure",
         "associate-regions-for-updates-service-report-file",
         "unpublish-object-class-attributes-ownership-pending",
         "publish-object-class-attributes-service-report-file",
@@ -28920,7 +28929,7 @@
         "ddm-nonvoid-failure",
         "ddm-mutation-failure"
       ],
-      "next_action": "The paired time-constrained and time-regulation service methods are now in focused 2025 ambassador modules; their existing service-report mappings remain unchanged, and callback gating stays a development-profile observation. The next source-only handoff is the already-mapped Next Message Request Available boundary at cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp:11; its two direct pairs remain separate and no plan row is to be added or altered."
+      "next_action": "The accepted Next Message Request Available file-report boundary remains in its existing mapped case, and the new backward-time failure case at cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp:113 adds one direct §11.5 reporting slice (RL-321 records missing §8.11.3(d)/§8.11.5(a) candidate extraction). Focused MinGW available-advance/reporting CTest passed 5/5. Next separate official-C++ slice: report an NMRA request rejected with InTimeAdvancingState while an earlier advance is pending; keep process and MOM-interaction routes distinct."
     },
     {
       "id": "transport-and-conformance",

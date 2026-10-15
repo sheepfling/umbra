@@ -554,7 +554,8 @@ void UmbraRtiAmbassador::requestAvailableTimeAdvance(
           result.generation);
     }
   }
-  if (reportService && reportTimeArgument &&
+  if (result.status == umbra::detail::FederateTimeAdvanceStatus::applied &&
+      reportService && reportTimeArgument &&
       scheduled.status == umbra::detail::FederationTimeGrantStatus::applied) {
     // Acceptance is reportable now; the distinct Time Advance Grant callback
     // later completes the logical-time transition.
