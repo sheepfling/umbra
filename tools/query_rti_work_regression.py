@@ -1434,7 +1434,8 @@ def main() -> int:
                 in existing_case_text
                 for location in case_locations
             )
-            or "status: implemented-in-noninstallable-development-profile" not in existing_case_text
+            or not str(handoff_plan.get("status") or "").startswith("implemented-")
+            or f"status: {handoff_plan.get('status')}" not in existing_case_text
             or "source: <TEST_CASE not declared yet>" in existing_case_text
             or "not recorded; case is not implemented" in existing_case_text
             or "requirement_section_mappings:" not in existing_case_text
