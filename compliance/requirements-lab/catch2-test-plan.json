@@ -16959,7 +16959,7 @@
         "requirement-candidate-content-clauses-10-support-services-page-286-l125-38"
       ],
       "test_case": "RTIambassadors suppress retracted pushed object callbacks across Enable Callbacks",
-      "source_location": "cpp/tests/ieee1516_2025_connection_process_object_retraction_callback_gate_catch2.cpp:290",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_object_retraction_callback_gate_catch2.cpp:316",
       "callback_models": ["HLA_IMMEDIATE"],
       "delivery_modes": [
         "timestamped-attribute-update-retracted-before-callback",
@@ -16981,7 +16981,7 @@
         "federate.callback.remove-object-instance", "2025"
       ],
       "status": "implemented-private-foundation-not-conformance-evidence",
-      "requirements_lab_api_surface_status": "Direct candidate-to-2025-section pairs are time-management page-210-l27-5 -> 8.22.3, page-211-l89-23 -> 8.23.3, and support-services page-286-l125-38 -> 10.60.6. Through the official C++ API, an HLA_IMMEDIATE process receiver disables callbacks, admits a pushed timestamped attribute update or object removal, observes a legal producer Retract, then enables callbacks. Neither the withdrawn callback nor Request Retraction may appear because the original callback did not begin. The object service calls establish the two delivery families; this focused regression does not claim full Update Attribute Values or Delete Object Instance conformance, interoperability, or Lab validation.",
+      "requirements_lab_api_surface_status": "Direct candidate-to-2025-section pairs are time-management page-210-l27-5 -> 8.22.3, page-211-l89-23 -> 8.23.3, and support-services page-286-l125-38 -> 10.60.6. Through the official C++ API, an HLA_IMMEDIATE process receiver disables callbacks, admits a pushed timestamped attribute update or object removal, observes a legal producer Retract, then enables callbacks. A later object registration and observed discovery callback form a positive FIFO completion fence before asserting that neither the withdrawn callback nor Request Retraction appeared; the original callback did not begin. The object service calls establish the two delivery families; this focused regression does not claim full Update Attribute Values or Delete Object Instance conformance, interoperability, or Lab validation.",
       "ctest_target": "umbra_ieee1516_2025_connection_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors suppress retracted pushed object callbacks across Enable Callbacks$",
       "ctest_label": "process-boundary",

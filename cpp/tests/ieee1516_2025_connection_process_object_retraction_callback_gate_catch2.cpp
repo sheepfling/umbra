@@ -2,9 +2,12 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <cstdint>
 #include <exception>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -36,7 +39,8 @@ class RetractionGateFederate final : public NullFederateAmbassador {
   void discoverObjectInstance(
       ObjectInstanceHandle const&, ObjectClassHandle const&,
       std::wstring const&, FederateHandle const&) override {
-    discovered.store(true, std::memory_order_release);
+    discoveryCount.fetch_add(1U, std::memory_order_release);
+    callbackChanged.notify_all();
   }
 
   void reflectAttributeValues(
@@ -58,7 +62,17 @@ class RetractionGateFederate final : public NullFederateAmbassador {
     retractionRequested.fetch_add(1U, std::memory_order_release);
   }
 
-  std::atomic_bool discovered{false};
+  bool waitForDiscoveries(unsigned const count) {
+    std::unique_lock lock(callbackMutex);
+    return callbackChanged.wait_for(
+        lock, std::chrono::seconds(2), [&] {
+          return discoveryCount.load(std::memory_order_acquire) >= count;
+        });
+  }
+
+  std::mutex callbackMutex;
+  std::condition_variable callbackChanged;
+  std::atomic_uint discoveryCount{0U};
   std::atomic_uint reflected{0U};
   std::atomic_uint removed{0U};
   std::atomic_uint retractionRequested{0U};
@@ -176,6 +190,10 @@ void verifyRetractedObjectEventSuppressed(RetractedObjectEvent eventKind) {
             "Missing retracted object-event completion or receiver fence");
       }
       serveExpected(sender, senderHandler,
+                    TransportServiceOperation::register_object_instance);
+      serveExpected(receiver, receiverHandler,
+                    TransportServiceOperation::get_object_class_handle);
+      serveExpected(sender, senderHandler,
                     TransportServiceOperation::resign_federation_execution);
       serveExpected(receiver, receiverHandler,
                     TransportServiceOperation::resign_federation_execution);
@@ -229,7 +247,7 @@ void verifyRetractedObjectEventSuppressed(RetractedObjectEvent eventKind) {
     auto const object = senderRti->registerObjectInstance(senderClass);
     REQUIRE(object.isValid());
     static_cast<void>(receiverRti->getObjectClassHandle(objectClassName));
-    REQUIRE(receiverFederate.discovered.load(std::memory_order_acquire));
+    REQUIRE(receiverFederate.waitForDiscoveries(1U));
 
     senderRti->enableTimeRegulation(HLAinteger64Interval(1));
     receiverRti->disableCallbacks();
@@ -252,8 +270,16 @@ void verifyRetractedObjectEventSuppressed(RetractedObjectEvent eventKind) {
     senderRti->retract(retraction);
     static_cast<void>(receiverRti->getObjectClassHandle(objectClassName));
     receiverRti->enableCallbacks();
-    // The acknowledgment can already have been emitted when the queued
-    // callback runs. That must not turn suppression into delivery.
+    // A later public registration supplies a positive callback completion
+    // fence. The earlier pushed event and its retraction have already crossed
+    // the receiver stream, so any stale queued callback would precede this
+    // discovery in the immediate dispatcher.
+    auto const laterObject = senderRti->registerObjectInstance(senderClass);
+    REQUIRE(laterObject.isValid());
+    static_cast<void>(receiverRti->getObjectClassHandle(objectClassName));
+    REQUIRE(receiverFederate.waitForDiscoveries(2U));
+    // Acknowledgment may already have been emitted when the queued callback
+    // runs. That must never turn suppression into delivery.
     CHECK(receiverFederate.reflected.load(std::memory_order_acquire) == 0U);
     CHECK(receiverFederate.removed.load(std::memory_order_acquire) == 0U);
     CHECK(receiverFederate.retractionRequested.load(std::memory_order_acquire) == 0U);
