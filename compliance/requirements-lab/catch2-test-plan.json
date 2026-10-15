@@ -28763,6 +28763,8 @@
       ],
       "test_case": "RTIambassador receives a process interaction through the official Evoke callback surface",
       "source_location": "cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp:457",
+      "primary_lane": "process-receive-evoke",
+      "focus_lane": "process-receive-evoke",
       "assertions": 32,
       "callback_models": [
         "HLA_EVOKED"
@@ -28783,7 +28785,8 @@
         "callback-controls",
         "transport",
         "process-boundary",
-        "public-endpoint"
+        "public-endpoint",
+        "process-receive-evoke"
       ],
       "status": "implemented-private-foundation-not-conformance-evidence",
       "next_action": "Reopen this official Evoke receive process case: both current native core and connection registrations time out at 25 seconds in isolation. Locate the first wire/service/callback stall before attributing it to RTI behavior. Preserve the two active-subscription receive-order interactions, parameter/tag/transportation/producer projection, sender exclusion, Evoke Callback and Evoke Multiple Callbacks, disabled-callback pending behavior, and 17 direct 2025 requirement-section pairs. Its timestamped companion and immediate-delivery, regional, directed, package/JUnit/protected review, Lab validation, interoperability, and conformance remain separate."

@@ -456,7 +456,7 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "RTIambassador receives a process interaction through the official Evoke callback surface",
-    "[integration][foundation][interaction-management][callbacks][callback-controls][transport][process-boundary][public-endpoint]") {
+    "[integration][foundation][interaction-management][callbacks][callback-controls][transport][process-boundary][public-endpoint][process-receive-evoke]") {
   class RecordingFederateAmbassador final : public NullFederateAmbassador {
    public:
     void receiveInteraction(
@@ -635,13 +635,14 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::report_successful_void_service_invocation,
           "The public process evoke server lost the second Send report.");
-      for (std::size_t receiveIndex = 1U; receiveIndex < 3U; ++receiveIndex) {
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::receive_interaction,
-            "The public process evoke server lost Receive.");
-      }
+      // The disabled Evoke Multiple admits the second interaction into the
+      // pending callback queue. Re-enabling drains that callback without an
+      // additional empty receive_interaction poll before Resign.
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The public process evoke server lost the second Receive.");
       serveExpected(
           sender,
           senderHandler,
