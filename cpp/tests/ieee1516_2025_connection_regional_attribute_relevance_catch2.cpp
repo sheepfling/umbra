@@ -463,31 +463,44 @@ TEST_CASE(
       void turnUpdatesOnForObjectInstance(
           rti1516_2025::ObjectInstanceHandle const& objectInstance,
           rti1516_2025::AttributeHandleSet const& attributes) override {
-        ++turnedOnCount;
-        turnedOnObjectInstance = objectInstance;
-        turnedOnAttributes = attributes;
-        turnedOnUpdateRateDesignator.reset();
+        {
+          std::scoped_lock lock(callbackMutex);
+          ++turnedOnCount;
+          turnedOnObjectInstance = objectInstance;
+          turnedOnAttributes = attributes;
+          turnedOnUpdateRateDesignator.reset();
+        }
+        callbackAvailable.notify_all();
       }
 
       void turnUpdatesOnForObjectInstance(
           rti1516_2025::ObjectInstanceHandle const& objectInstance,
           rti1516_2025::AttributeHandleSet const& attributes,
           std::wstring const& updateRateDesignator) override {
-        ++turnedOnCount;
-        turnedOnObjectInstance = objectInstance;
-        turnedOnAttributes = attributes;
-        turnedOnUpdateRateDesignator = updateRateDesignator;
+        {
+          std::scoped_lock lock(callbackMutex);
+          ++turnedOnCount;
+          turnedOnObjectInstance = objectInstance;
+          turnedOnAttributes = attributes;
+          turnedOnUpdateRateDesignator = updateRateDesignator;
+        }
+        callbackAvailable.notify_all();
       }
 
       void turnUpdatesOffForObjectInstance(
           rti1516_2025::ObjectInstanceHandle const& objectInstance,
           rti1516_2025::AttributeHandleSet const& attributes) override {
-        ++turnedOffCount;
-        turnedOffObjectInstance = objectInstance;
-        turnedOffAttributes = attributes;
+        {
+          std::scoped_lock lock(callbackMutex);
+          ++turnedOffCount;
+          turnedOffObjectInstance = objectInstance;
+          turnedOffAttributes = attributes;
+        }
+        callbackAvailable.notify_all();
       }
 
       void clear() {
+        std::scoped_lock lock(callbackMutex);
         turnedOnCount = 0U;
         turnedOnObjectInstance = {};
         turnedOnAttributes.clear();
@@ -497,6 +510,32 @@ TEST_CASE(
         turnedOffAttributes.clear();
       }
 
+      bool hasTurnedOn(std::size_t count) {
+        std::scoped_lock lock(callbackMutex);
+        return turnedOnCount >= count;
+      }
+
+      bool hasTurnedOff(std::size_t count) {
+        std::scoped_lock lock(callbackMutex);
+        return turnedOffCount >= count;
+      }
+
+      bool waitForTurnedOn(std::size_t count) {
+        std::unique_lock lock(callbackMutex);
+        return callbackAvailable.wait_for(lock, std::chrono::seconds(2), [&] {
+          return turnedOnCount >= count;
+        });
+      }
+
+      bool waitForTurnedOff(std::size_t count) {
+        std::unique_lock lock(callbackMutex);
+        return callbackAvailable.wait_for(lock, std::chrono::seconds(2), [&] {
+          return turnedOffCount >= count;
+        });
+      }
+
+      std::mutex callbackMutex;
+      std::condition_variable callbackAvailable;
       std::size_t turnedOnCount = 0U;
       rti1516_2025::ObjectInstanceHandle turnedOnObjectInstance;
       rti1516_2025::AttributeHandleSet turnedOnAttributes;
@@ -513,13 +552,26 @@ TEST_CASE(
           rti1516_2025::ObjectClassHandle const& objectClass,
           std::wstring const& objectInstanceName,
           rti1516_2025::FederateHandle const& producingFederate) override {
-        discoveredObjectInstance = objectInstance;
-        discoveredObjectClass = objectClass;
-        discoveredObjectInstanceName = objectInstanceName;
-        discoveredProducingFederate = producingFederate;
-        discovered = true;
+        {
+          std::scoped_lock lock(callbackMutex);
+          discoveredObjectInstance = objectInstance;
+          discoveredObjectClass = objectClass;
+          discoveredObjectInstanceName = objectInstanceName;
+          discoveredProducingFederate = producingFederate;
+          discovered = true;
+        }
+        callbackAvailable.notify_all();
       }
 
+      bool waitForDiscovery() {
+        std::unique_lock lock(callbackMutex);
+        return callbackAvailable.wait_for(lock, std::chrono::seconds(2), [&] {
+          return discovered;
+        });
+      }
+
+      std::mutex callbackMutex;
+      std::condition_variable callbackAvailable;
       bool discovered = false;
       rti1516_2025::ObjectInstanceHandle discoveredObjectInstance;
       rti1516_2025::ObjectClassHandle discoveredObjectClass;
@@ -553,20 +605,42 @@ TEST_CASE(
             [](std::wstring) { return false; });
         ProcessTransportSession owner(ownerConnection);
         auto ownerHandler = service.handlerFor(owner);
+        bool allowOwnerCallbackPolls = false;
         auto serveExpected = [&](ProcessTransportSession& session,
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!umbra::test::servePrimaryProcessRequest(
-                  session, handler,
-                  [&](TransportServiceMessage const& request) {
-                    if (request.operation != operation) {
-                      throw std::runtime_error(description);
-                    }
-                    return handler(request);
-                  })) {
-            throw std::runtime_error(std::string(description) +
-                                     " connection closed before request");
+          for (;;) {
+            bool matched = false;
+            if (!umbra::test::servePrimaryProcessRequest(
+                    session, handler,
+                    [&](TransportServiceMessage const& request) {
+                      matched = request.operation == operation;
+                      bool const ownerCallbackPoll = allowOwnerCallbackPolls &&
+                          &session == &owner &&
+                          request.operation ==
+                              TransportServiceOperation::receive_interaction;
+                      if (!matched && !ownerCallbackPoll) {
+                        throw std::runtime_error(description);
+                      }
+                      auto response = handler(request);
+                      if (response.status != TransportServiceStatus::ok) {
+                        throw std::runtime_error(description);
+                      }
+                      if (ownerCallbackPoll &&
+                          umbra::detail::decodeProcessFederationReceiveInteractionResult(
+                              response.payload).attributeRelevanceAdvisoryEvent) {
+                        throw std::runtime_error(
+                            "Owner polling duplicated a pushed relevance advisory.");
+                      }
+                      return response;
+                    })) {
+              throw std::runtime_error(std::string(description) +
+                                       " connection closed before request");
+            }
+            if (matched) {
+              return;
+            }
           }
         };
 
@@ -645,19 +719,15 @@ TEST_CASE(
             ownerHandler,
             TransportServiceOperation::register_object_instance_with_regions,
             "The regional rate-designator server lost regional Register.");
-        if (callbackModel == HLA_IMMEDIATE) {
-          serveExpected(
-              receiver,
-              receiverHandler,
-              TransportServiceOperation::get_object_class_handle,
-              "The regional rate-designator server lost immediate discovery polling.");
-        } else {
-          serveExpected(
-              receiver,
-              receiverHandler,
-              TransportServiceOperation::receive_interaction,
-              "The regional rate-designator server lost discovery Receive.");
-        }
+        allowOwnerCallbackPolls = true;
+        // The receiver's pushed discovery frame precedes the next response
+        // on that same connection. This lookup is a wire-order fence for the
+        // test, not a requirement that discovery itself be polled.
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::get_object_class_handle,
+            "The regional rate-designator server lost post-register receiver lookup.");
         serveExpected(
             owner,
             ownerHandler,
@@ -694,10 +764,18 @@ TEST_CASE(
 
     auto ownerRti = makeRti();
     auto receiverRti = makeRti();
-    auto pumpOwner = [&] {
+    auto awaitOwnerAdvisory = [&](bool turnOn) {
       if (callbackModel == HLA_EVOKED) {
-        static_cast<void>(ownerRti->evokeCallback(0.0));
+        auto const deadline = std::chrono::steady_clock::now() +
+            std::chrono::seconds(2);
+        while (!(turnOn ? ownerFederate.hasTurnedOn(1U)
+                        : ownerFederate.hasTurnedOff(1U)) &&
+               std::chrono::steady_clock::now() < deadline) {
+          static_cast<void>(ownerRti->evokeCallback(0.2));
+        }
       }
+      REQUIRE((turnOn ? ownerFederate.waitForTurnedOn(1U)
+                      : ownerFederate.waitForTurnedOff(1U)));
     };
     auto configuration = RtiConfiguration::createConfiguration()
                              .withConfigurationName(
@@ -784,21 +862,30 @@ TEST_CASE(
       auto const objectInstance = ownerRti->registerObjectInstanceWithRegions(
           ownerObjectClass, ownerPair);
       REQUIRE(objectInstance.isValid());
-      pumpOwner();
-      if (callbackModel == HLA_IMMEDIATE) {
-        static_cast<void>(receiverRti->getObjectClassHandle(objectClassName));
-      } else {
-        static_cast<void>(receiverRti->evokeCallback(0.0));
+      // The post-register lookup gives the receiver's pushed discovery frame
+      // a deterministic process-wire boundary in both callback models.
+      REQUIRE(receiverRti->getObjectClassHandle(objectClassName) ==
+              receiverObjectClass);
+      if (callbackModel == HLA_EVOKED) {
+        static_cast<void>(receiverRti->evokeCallback(1.0));
       }
-      REQUIRE(receiverFederate.discovered);
-      REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
-      REQUIRE(receiverFederate.discoveredObjectClass == receiverObjectClass);
-      REQUIRE(ownerFederate.turnedOffCount == 0U);
-      REQUIRE(ownerFederate.turnedOnCount == 1U);
-      REQUIRE(ownerFederate.turnedOnObjectInstance == objectInstance);
-      REQUIRE(ownerFederate.turnedOnAttributes == ownerAttributes);
-      REQUIRE(ownerFederate.turnedOnUpdateRateDesignator ==
-              std::optional<std::wstring>{L"High"});
+      REQUIRE(receiverFederate.waitForDiscovery());
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.discovered);
+        REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
+        REQUIRE(receiverFederate.discoveredObjectClass == receiverObjectClass);
+      }
+      awaitOwnerAdvisory(true);
+      {
+        std::scoped_lock lock(ownerFederate.callbackMutex);
+        REQUIRE(ownerFederate.turnedOffCount == 0U);
+        REQUIRE(ownerFederate.turnedOnCount == 1U);
+        REQUIRE(ownerFederate.turnedOnObjectInstance == objectInstance);
+        REQUIRE(ownerFederate.turnedOnAttributes == ownerAttributes);
+        REQUIRE(ownerFederate.turnedOnUpdateRateDesignator ==
+                std::optional<std::wstring>{L"High"});
+      }
       ownerFederate.clear();
 
       REQUIRE_NOTHROW(ownerRti->associateRegionsForUpdates(
@@ -807,9 +894,11 @@ TEST_CASE(
               ownerAttributes,
               rti1516_2025::RegionHandleSet{disjointOwnerRegion},
           }}));
-      REQUIRE(ownerFederate.turnedOnCount == 0U);
-      REQUIRE(ownerFederate.turnedOffCount == 0U);
-      ownerFederate.clear();
+      {
+        std::scoped_lock lock(ownerFederate.callbackMutex);
+        REQUIRE(ownerFederate.turnedOnCount == 0U);
+        REQUIRE(ownerFederate.turnedOffCount == 0U);
+      }
 
       REQUIRE_NOTHROW(ownerRti->unassociateRegionsForUpdates(
           objectInstance,
@@ -817,11 +906,14 @@ TEST_CASE(
               ownerAttributes,
               rti1516_2025::RegionHandleSet{ownerRegion},
           }}));
-      pumpOwner();
-      REQUIRE(ownerFederate.turnedOnCount == 0U);
-      REQUIRE(ownerFederate.turnedOffCount == 1U);
-      REQUIRE(ownerFederate.turnedOffObjectInstance == objectInstance);
-      REQUIRE(ownerFederate.turnedOffAttributes == ownerAttributes);
+      awaitOwnerAdvisory(false);
+      {
+        std::scoped_lock lock(ownerFederate.callbackMutex);
+        REQUIRE(ownerFederate.turnedOnCount == 0U);
+        REQUIRE(ownerFederate.turnedOffCount == 1U);
+        REQUIRE(ownerFederate.turnedOffObjectInstance == objectInstance);
+        REQUIRE(ownerFederate.turnedOffAttributes == ownerAttributes);
+      }
       ownerFederate.clear();
 
       REQUIRE_NOTHROW(ownerRti->associateRegionsForUpdates(
@@ -830,13 +922,16 @@ TEST_CASE(
               ownerAttributes,
               rti1516_2025::RegionHandleSet{ownerRegion},
           }}));
-      pumpOwner();
-      REQUIRE(ownerFederate.turnedOffCount == 0U);
-      REQUIRE(ownerFederate.turnedOnCount == 1U);
-      REQUIRE(ownerFederate.turnedOnObjectInstance == objectInstance);
-      REQUIRE(ownerFederate.turnedOnAttributes == ownerAttributes);
-      REQUIRE(ownerFederate.turnedOnUpdateRateDesignator ==
-              std::optional<std::wstring>{L"High"});
+      awaitOwnerAdvisory(true);
+      {
+        std::scoped_lock lock(ownerFederate.callbackMutex);
+        REQUIRE(ownerFederate.turnedOffCount == 0U);
+        REQUIRE(ownerFederate.turnedOnCount == 1U);
+        REQUIRE(ownerFederate.turnedOnObjectInstance == objectInstance);
+        REQUIRE(ownerFederate.turnedOnAttributes == ownerAttributes);
+        REQUIRE(ownerFederate.turnedOnUpdateRateDesignator ==
+                std::optional<std::wstring>{L"High"});
+      }
       ownerFederate.clear();
 
       ownerRti->resignFederationExecution(DELETE_OBJECTS);
