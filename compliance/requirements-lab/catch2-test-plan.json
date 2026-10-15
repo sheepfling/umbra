@@ -28529,7 +28529,7 @@
       "source_location": "cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp:459",
       "primary_lane": "process-regional-class-request-attribute-value-update",
       "focus_lane": "process-regional-class-request-attribute-value-update",
-      "assertions": 50,
+      "assertions": 102,
       "callback_models": [
         "HLA_EVOKED",
         "HLA_IMMEDIATE"
@@ -28551,6 +28551,7 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11",
         "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-9.13.1",
         "hla-1516.1-2025:clause-9.13.6",
@@ -28580,8 +28581,8 @@
         "federate.callback.reflect-attribute-values"
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
-      "requirements_lab_api_surface_status": "The official C++ regional class-level Request Attribute Value Update service, region lifecycle, object-class publication/registration, regional subscription, Provide Attribute Value Update callback, Update Attribute Values response, discovery/reflection callbacks, sent-region metadata, and both HLA_EVOKED and HLA_IMMEDIATE callback paths are exercised through the configured endpoint. A committed overlap-qualified region selector solicits one provider callback with the request tag; the provider responds with a scoped attribute update that reaches the requester with the response value, tag, producing federate, and regional metadata. Immediate delivery is driven by the next RTI service call, while evoked delivery is admitted through Evoke Callback. This is public process-foundation evidence only; private codec/service review, disjoint suppression, timestamped/retraction, package/JUnit/protected-review, validation, interoperability, and conformance remain separate.",
-      "next_action": "Both native registrations time out at 25 seconds when run alone; locate the first regional request/response wire or callback stall and repair it while preserving the region selector, both callback models, and all 16 direct requirement-to-2025-section pairs. Then rerun the adjacent private regional service control before broader package and conformance gates."
+      "requirements_lab_api_surface_status": "The official C++ regional class-level Request Attribute Value Update service, region lifecycle, object-class publication/registration, regional subscription, Provide Attribute Value Update callback, Update Attribute Values response, discovery/reflection callbacks, sent-region metadata, and both HLA_EVOKED and HLA_IMMEDIATE callback paths are exercised through the configured endpoint. A committed overlap-qualified region selector solicits one provider callback with the request tag; the provider responds with a scoped attribute update that reaches the requester with the response value, tag, producing federate, and regional metadata. Immediate delivery is admitted through the pushed callback and deferred-attribute claim route, while evoked delivery is admitted through Evoke Callback. This is public process-foundation evidence only; private codec/service review, disjoint suppression, timestamped/retraction, package/JUnit/protected-review, validation, interoperability, and conformance remain separate.",
+      "next_action": "Both native registrations and the adjacent private regional service control pass after correcting the scripted callback route; preserve the 16 direct requirement-to-2025-section pairs and add disjoint, timestamped, package/JUnit, validation, interoperability, and conformance gates separately."
     },
     {
       "id": "umbra-cpp-process-regional-class-request-attribute-value-update-invalid-region-public",
