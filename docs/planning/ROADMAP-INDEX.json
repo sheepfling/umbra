@@ -98,25 +98,26 @@
     "issue_query": "python tools/query_rti_work.py lab-issues --summary --compact",
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
-"active_handoff_note": "2026-10-15 handoff: official 2025 process ownership-query evidence now includes five evoked public cases, HLA_IMMEDIATE mixed free/held If Available, and HLA_IMMEDIATE two-candidate competing If Available with a queried actual winner. Both evoked and pushed competing variants passed 20 isolated MinGW repeats. Live metadata is 1,514 cases, 1,417 mapped, 97 explicitly unmapped, zero unclassified, 983 direct pairs. Save/restore callback repairs passed 20 main repeats each. A 550-case process partition passed; the latest 554-case eight-way run passed 552 and timed out in class-wide Request Attribute Value Update and timestamped Delete fixtures, now under focused investigation; no clean partition claim. The next behavior slice extends the already-implemented regular acquisition/release-denial process case with a public post-denial ownership query and exact pinned 2025 query mappings. Thirteen cohesive TCK source extractions are integrated; their 32 affected both-model installed-provider CTests, 1,036-scenario catalog and 164-method/56-callback API audit pass on main, and 41 source-size hard findings remain. Full native/package, query regression, external interoperability and protected conformance gates stay open. Do not resynchronize unchanged Requirements Lab inputs.",
-"latest_verified_slice": "2026-10-15: On main, the official 2025 HLA_IMMEDIATE mixed If Available case passed 20 MinGW repeats; the new HLA_IMMEDIATE competing If Available case and its evoked control each passed 20 main-checkout repeats, with 62 and corrected 66 assertions respectively and ten direct pinned 2025 requirement/section pairs. The two latest save/restore callback fixture repairs passed 20 main repeats each, as did earlier MOM resign/rejoin, save-status/save-abort, terminal save-failure, timestamped-delete, multi-federate save and next-message temporary-directory repairs. Advisory-rate reissue passed 50 repeats. The latest full process partition passed 552/554, timing out in class-wide Request Attribute Value Update and timestamped Delete; timestamped Delete passed 20 focused repeats afterward, so the partition remains unclean. RL-329 documents the page-165 unavailable-service heading defect; local crosswalks use canonical 7.10. Live mapping passes with 1,417 mapped, 97 explicitly unmapped, zero unclassified and 983 direct pairs. Two more cohesive TCK scenario extractions moved 460 and 493 unchanged lines out of main.cpp and portable_tck.cpp; main lengths are 23,400 and 22,614. The two extracted TCK families pass 32/32 affected both-model installed-provider CTests on main; the catalog validates 1,036 scenarios and the official API audit covers 164 methods/56 callbacks. Forty-one source-size hard findings, historical query regression, full native/package evidence, external interoperability and protected conformance review remain open.",
+"active_handoff_note": "2026-10-15: Official 2025 evoked process release-denial now proves post-denial public owner query (20/20 main repeats); distinct HLA_IMMEDIATE no-Evoke push case passed 50/50 and maps six direct requirement/section pairs. The next bounded ownership question is idle callback delivery without another public RTI call and cancellation versus buffered release events; current service-send revalidation is not a callback-entry claim. Live plan has 1,515 C++ cases, 1,418 mapped, 97 explicitly unmapped, zero unclassified, 983 direct pairs. Restore-success and restore-status fixture waits passed 50/50 each. The latest 553-case process partition excluded one still-flaky class-wide case and passed 551/553; two additional timeout fixtures were identified, and restore status was repaired afterward. No clean full partition or conformance claim. The TCK catalog remains 1,036 scenarios and its API audit covers 164 methods/56 callbacks. Do not resynchronize unchanged Requirements Lab inputs.",
+"latest_verified_slice": "2026-10-15: MinGW main-build process ownership: evoked post-denial owner query 20/20 repeats; HLA_IMMEDIATE denial/no-Evoke push 50/50; prior ownership regression selector 15/15. Restore-success and restore-status process fixtures now use bounded callback waits and failure-safe teardown, each 50/50 focused repeats. The wider process run excluding class-wide Request Attribute Value Update passed 551/553, with an already-repaired restore-status callback timing failure and one unresolved regional subscription/update timeout; the class-wide case separately failed once on repeat 20 after 19 passes, with cleanup under focused investigation. One cohesive TCK object-removal fan-out extraction passed 12/12 installed-consumer cases, 1,036-scenario catalog validation and official 164-method/56-callback audit. Live mapping is 1,418 mapped, 97 explicitly unmapped, zero unclassified and 983 direct pairs. Full process/native/package, source-size, external interoperability and protected conformance gates remain open.",
   "active_handoff": {
     "state": "investigation",
     "family": "object-ddm-ownership",
-    "id": "umbra-cpp-attribute-ownership-acquisition-release-denied-process-integration",
-    "plan_id": "umbra-cpp-attribute-ownership-acquisition-release-denied-process-integration",
-    "mapping_seed_plan_id": "umbra-cpp-attribute-ownership-acquisition-release-denied-process-integration",
-    "test_case": "RTIambassadors deliver Attribute Ownership Unavailable after a denied process acquisition",
-    "lane": "process-ownership-acquisition-release-denied",
-    "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:723",
+    "id": "umbra-cpp-attribute-ownership-acquisition-release-denied-process-push-integration",
+    "plan_id": "umbra-cpp-attribute-ownership-acquisition-release-denied-process-push-integration",
+    "mapping_seed_plan_id": "umbra-cpp-attribute-ownership-acquisition-release-denied-process-push-integration",
+    "test_case": "RTIambassadors push a denied process acquisition and retain its queried owner",
+    "lane": "process-ownership-acquisition-release-denied-push",
+    "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:1123",
     "source_target": "cpp/tests/attribute_ownership_acquisition_catch2.cpp",
     "ctest_target": "umbra_attribute_ownership_acquisition_catch2",
-    "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors deliver Attribute Ownership Unavailable after a denied process acquisition$",
-    "objective": "The existing official 2025 process case already proves regular acquisition against a held attribute, owner release denial, and the requester's Attribute Ownership Unavailable callback with the denial tag. Extend this same focused case with a public Query Attribute Ownership after denial and an exact owner-handle assertion proving that the original owner remains. Add only the exact pinned query clauses to its direct mapping and keep conformance promotion separate.",
+    "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors push a denied process acquisition and retain its queried owner$",
+    "objective": "The official 2025 HLA_IMMEDIATE process denial case proves release and unavailable callbacks without Evoke while each federate still makes ordinary RTI calls to advance the stream. Next, isolate whether the owner and requester receive those callbacks while otherwise idle, with no public poll-like call, and preserve cancellation-versus-buffered-event safety. Use pinned 2025 clause 4 and ownership clauses; do not infer full HLA_IMMEDIATE conformance from the current bounded push evidence.",
     "acceptance": [
-      "The existing official-C++ HLA_EVOKED denied-acquisition process case makes one public Query Attribute Ownership after the denial and reports the original owner.",
-      "Update that exact case's plan row with direct pinned requirement-to-canonical-2025 query mappings; retain existing denial-tag and callback assertions plus evoked/pushed If Available cases.",
-      "Build the MinGW target, repeat the exact case and adjacent controls, and verify changed lane mappings without inferring complete acquisition/release conformance.",
+      "The existing official-C++ HLA_IMMEDIATE process case continues to deliver owner release and requester unavailable callbacks without Evoke and keeps the queried original owner.",
+      "Add an idle-federate callback test with no subsequent public RTI call while awaiting each callback; bound waits and teardown so failure cannot hang the scripted server.",
+      "Verify cancellation versus buffered release-event behavior at actual callback entry or document the narrower service-send-boundary guarantee; keep six direct pinned requirement-to-canonical-2025-section mappings accurate.",
+      "Build the MinGW target, repeat the exact immediate and evoked cases, then verify the changed lane mapping and expanded process partition.",
       "Full installed-package, source-size, query-regression, interoperability, and protected conformance review remain separate release gates."
     ]
   },
@@ -214,7 +215,7 @@
       "catch2_cases_without_cpp_source_location": 2,
       "catch2_cases_without_lab_requirement_mapping": 97,
       "catch2_planned_cases": 0,
-      "catch2_plan_cases": 1514,
+      "catch2_plan_cases": 1515,
       "catch2_unmapped_explicit_disposition": 97,
       "catch2_unmapped_unclassified": 0,
       "cpp_source_cases_without_plan_row": 0,
@@ -2765,7 +2766,13 @@
       },
       "process-ownership-acquisition-release-denied": {
         "catch2_target": "umbra_attribute_ownership_acquisition_catch2",
-        "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors deliver Attribute Ownership Unavailable after a denied process acquisition$",
+        "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors retain the queried owner after a denied process acquisition$",
+        "ctest_label": "process-boundary",
+        "source": "cpp/tests/attribute_ownership_acquisition_catch2.cpp"
+      },
+      "process-ownership-acquisition-release-denied-push": {
+        "catch2_target": "umbra_attribute_ownership_acquisition_catch2",
+        "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors push a denied process acquisition and retain its queried owner$",
         "ctest_label": "process-boundary",
         "source": "cpp/tests/attribute_ownership_acquisition_catch2.cpp"
       },
@@ -10499,7 +10506,7 @@
     },
     {
       "plan_id": "umbra-cpp-attribute-ownership-acquisition-release-denied-process-integration",
-      "test_query": "RTIambassadors deliver Attribute Ownership Unavailable after a denied process acquisition",
+      "test_query": "RTIambassadors retain the queried owner after a denied process acquisition",
       "lane_queries": [
         "process-ownership-acquisition-release-denied",
         "process-ownership-acquisition-release",
@@ -10514,17 +10521,49 @@
         "public-endpoint",
         "2025"
       ],
-      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:673",
+      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:724",
       "primary_lane": "process-ownership-acquisition-release-denied",
-      "assertions": 36,
-      "requirements": 3,
+      "assertions": 43,
+      "requirements": 5,
       "standard_sections": [
         "hla-1516.1-2025:clause-7.8",
-        "hla-1516.1-2025:clause-7.12"
+        "hla-1516.1-2025:clause-7.12",
+        "hla-1516.1-2025:clause-7.17.5",
+        "hla-1516.1-2025:clause-7.18.4"
       ],
-      "api_surfaces": 2,
+      "api_surfaces": 4,
       "callback_models": [
         "HLA_EVOKED"
+      ],
+      "status": "implemented-public-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-attribute-ownership-acquisition-release-denied-process-push-integration",
+      "test_query": "RTIambassadors push a denied process acquisition and retain its queried owner",
+      "lane_queries": [
+        "process-ownership-acquisition-release-denied-push",
+        "process-ownership-acquisition-release-denied",
+        "attribute-ownership-acquisition",
+        "query-attribute-ownership",
+        "ownership-management",
+        "process-boundary",
+        "public-endpoint",
+        "2025"
+      ],
+      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:1123",
+      "primary_lane": "process-ownership-acquisition-release-denied-push",
+      "assertions": 40,
+      "requirements": 6,
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-7.8",
+        "hla-1516.1-2025:clause-7.12",
+        "hla-1516.1-2025:clause-7.17.5",
+        "hla-1516.1-2025:clause-7.18.4"
+      ],
+      "api_surfaces": 5,
+      "callback_models": [
+        "HLA_IMMEDIATE"
       ],
       "status": "implemented-public-foundation-not-conformance-evidence"
     },
@@ -28223,6 +28262,7 @@
         "process-ownership-acquisition",
         "process-ownership-acquisition-release",
         "process-ownership-acquisition-release-denied",
+        "process-ownership-acquisition-release-denied-push",
         "process-ownership-acquisition-cancellation",
         "process-confirm-divestiture",
         "query-attribute-ownership-service-report-interaction",
