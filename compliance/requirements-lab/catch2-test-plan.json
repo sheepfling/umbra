@@ -27079,6 +27079,7 @@
     {
       "id": "umbra-cpp-process-regional-attribute-relevance-advisory-public-transition",
       "requirements_lab_mapping_id": "m27.transition.process-regional-attribute-relevance-advisory-public",
+      "focus_lane": "regional-association-transition",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.getobjectclasshandle.36d1b269a059",
         "api.2025.cpp.rtiambassador.getattributehandle.aa05f6c28dcb",
@@ -27134,6 +27135,7 @@
         "process-boundary",
         "public-endpoint",
         "regional-attribute-relevance",
+        "regional-association-transition",
         "2025",
         "rti.service.get-attribute-relevance-advisory-switch",
         "rti.service.set-attribute-relevance-advisory-switch",
