@@ -4949,7 +4949,7 @@ def main() -> int:
         regional_transport_focus.get("lane_state") != "complete"
         or regional_transport_focus.get("mapped_test_count") != 1
         or regional_transport_focus.get("assertion_count") != 84
-        or regional_transport_focus.get("recorded_assertion_count") != 84
+        or regional_transport_focus.get("recorded_assertion_count") != 86
         or regional_transport_focus.get("requirement_count") != 22
         or regional_transport_focus.get("standard_section_count") != 10
         or regional_transport_focus.get("requirement_section_pair_count") != 22
