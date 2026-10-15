@@ -212,26 +212,25 @@ using umbra::detail::TransportServiceOperation;
                       TransportServiceOperation::join_federation_execution,
                       "The process MOM lifecycle server lost the sync-point retry.");
         bool finalResignServed = false;
-        if (!umbra::test::servePrimaryProcessRequest(
-                subjectSession, subjectHandler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation ==
-                      TransportServiceOperation::resign_federation_execution) {
-                    finalResignServed = true;
-                  } else if (request.operation !=
-                             TransportServiceOperation::receive_interaction) {
-                    throw std::runtime_error(
-                        "The process MOM lifecycle server lost the retry announcement delivery or final subject Resign.");
-                  }
-                  return subjectHandler(request);
-                })) {
-          throw std::runtime_error(
-              "The process MOM lifecycle server lost the retry announcement delivery or final subject Resign.");
-        }
-        if (!finalResignServed) {
-          serveExpected(subjectSession, subjectHandler,
-                        TransportServiceOperation::resign_federation_execution,
-                        "The process MOM lifecycle server lost the final subject Resign.");
+        auto serveRetryAnnouncementOrResign =
+            [&](TransportServiceMessage const& request) {
+              if (request.operation ==
+                  TransportServiceOperation::resign_federation_execution) {
+                finalResignServed = true;
+              } else if (request.operation !=
+                         TransportServiceOperation::receive_interaction) {
+                throw std::runtime_error(
+                    "The process MOM lifecycle server lost the retry announcement delivery or final subject Resign.");
+              }
+              return subjectHandler(request);
+            };
+        while (!finalResignServed) {
+          if (!umbra::test::servePrimaryProcessRequest(
+                  subjectSession, subjectHandler,
+                  serveRetryAnnouncementOrResign)) {
+            throw std::runtime_error(
+                "The process MOM lifecycle server lost the retry announcement delivery or final subject Resign.");
+          }
         }
       } catch (...) {
         observerConnection->close();
@@ -334,13 +333,23 @@ using umbra::detail::TransportServiceOperation;
     subject->resignFederationExecution(NO_ACTION);
     subjectJoined = false;
 
-    // Drain the old lifetime's removal before injecting a late-Join discovery
-    // failure, so any callback observed below belongs to the failed lifetime.
-    for (std::size_t pass = 0U; pass != 64U; ++pass) {
-      if (!observer->evokeCallback(0.0)) {
-        break;
-      }
+    // The pushed removal may arrive after Resign returns. Wait for that exact
+    // old-lifetime object rather than treating an empty immediate poll as a
+    // guarantee that the reader has already admitted the event.
+    auto const hasResignedRemoval = [&] {
+      return std::any_of(
+          observerFederate.callbackEvents.begin(),
+          observerFederate.callbackEvents.end(),
+          [&](RecordingFederateAmbassador::CallbackEvent const& event) {
+            return event.kind ==
+                       RecordingFederateAmbassador::CallbackKind::removal &&
+                   event.objectInstance == resignedObject;
+          });
+    };
+    for (std::size_t pass = 0U; pass != 100U && !hasResignedRemoval(); ++pass) {
+      static_cast<void>(observer->evokeCallback(0.05));
     }
+    REQUIRE(hasResignedRemoval());
     auto const callbacksBeforeFailedJoin = observerFederate.callbackEvents.size();
     auto const reflectionsBeforeFailedJoin = observerFederate.reflections.size();
     failNextJoinedMomDiscovery.store(true, std::memory_order_release);
@@ -352,10 +361,8 @@ using umbra::detail::TransportServiceOperation;
     // The process service had already queued the new MOM discovery and initial
     // reflection for the observer. Rollback must discard both before returning
     // Join failure, not leak a phantom joined-federate object.
-    for (std::size_t pass = 0U; pass != 64U; ++pass) {
-      if (!observer->evokeCallback(0.0)) {
-        break;
-      }
+    for (std::size_t pass = 0U; pass != 4U; ++pass) {
+      static_cast<void>(observer->evokeCallback(0.05));
     }
     REQUIRE(observerFederate.callbackEvents.size() == callbacksBeforeFailedJoin);
     REQUIRE(observerFederate.reflections.size() == reflectionsBeforeFailedJoin);
@@ -453,7 +460,18 @@ using umbra::detail::TransportServiceOperation;
                 subjectName, federateType, federationName)
                 .isValid());
     subjectJoined = true;
-    static_cast<void>(subject->evokeCallback(0.0));
+    // The process event reader may still be admitting the pushed announcement
+    // when Join returns. Give the public EVOKED route a bounded opportunity to
+    // receive it before checking that rollback did not duplicate the event.
+    for (std::size_t pass = 0U;
+         pass != 100U &&
+         static_cast<std::size_t>(std::count(
+             subjectFederate.synchronizationAnnouncements.begin(),
+             subjectFederate.synchronizationAnnouncements.end(),
+             syncPointLabel)) == announcementsBeforeSyncFailure;
+         ++pass) {
+      static_cast<void>(subject->evokeCallback(0.05));
+    }
     REQUIRE(static_cast<std::size_t>(std::count(
                 subjectFederate.synchronizationAnnouncements.begin(),
                 subjectFederate.synchronizationAnnouncements.end(),

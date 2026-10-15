@@ -49509,7 +49509,7 @@
       "source_location": "cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp:37",
       "primary_lane": "process-joined-federate-mom-lifecycle",
       "focus_lane": "process-mom-resign-removal-order",
-      "assertions": 32,
+      "assertions": 33,
       "callback_models": [
         "HLA_IMMEDIATE",
         "HLA_EVOKED"
