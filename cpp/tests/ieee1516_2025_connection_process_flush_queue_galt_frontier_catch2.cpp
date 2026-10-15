@@ -592,6 +592,15 @@ TEST_CASE(
           throw std::runtime_error(description);
         }
       };
+      // Success reports are synchronous requests on the same connection.
+      // Drain each before the fixed-order server switches federates.
+      auto serveSuccessfulVoidReport = [&](ProcessTransportSession& session,
+                                           auto const& handler) {
+        serveExpected(
+            session, handler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The process Flush Queue GALT server lost a successful void service report.");
+      };
       serveExpected(
           sender,
           senderHandler,
@@ -654,16 +663,19 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::enable_time_regulation,
           "The process Flush Queue GALT server lost Enable Time Regulation.");
+      serveSuccessfulVoidReport(sender, senderHandler);
       serveExpected(
           receiver,
           receiverHandler,
           TransportServiceOperation::enable_time_constrained,
           "The process Flush Queue GALT server lost Enable Time Constrained.");
+      serveSuccessfulVoidReport(receiver, receiverHandler);
       serveExpected(
           sender,
           senderHandler,
           TransportServiceOperation::time_advance_request,
           "The process Flush Queue GALT server lost sender TAR(5).");
+      serveSuccessfulVoidReport(sender, senderHandler);
       serveExpected(
           sender,
           senderHandler,
@@ -685,10 +697,15 @@ TEST_CASE(
           TransportServiceOperation::query_logical_time,
           "The process Flush Queue GALT server lost first Query Logical Time.");
       serveExpected(
+          receiver, receiverHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The process Flush Queue GALT server lost first Query Logical Time report.");
+      serveExpected(
           sender,
           senderHandler,
           TransportServiceOperation::time_advance_request,
           "The process Flush Queue GALT server lost sender TAR(7).");
+      serveSuccessfulVoidReport(sender, senderHandler);
       serveExpected(
           receiver,
           receiverHandler,
@@ -699,6 +716,10 @@ TEST_CASE(
           receiverHandler,
           TransportServiceOperation::query_logical_time,
           "The process Flush Queue GALT server lost second Query Logical Time.");
+      serveExpected(
+          receiver, receiverHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The process Flush Queue GALT server lost second Query Logical Time report.");
       serveExpected(
           sender,
           senderHandler,
