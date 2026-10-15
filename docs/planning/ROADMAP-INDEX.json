@@ -527,6 +527,7 @@
       "service-report-next-message-request-available-failure": "mom-after-base-services",
       "service-report-next-message-request-available-pending-failure": "mom-after-base-services",
       "process-service-report-next-message-request-available-pending-failure": "mom-after-base-services",
+      "process-service-report-next-message-request-available-backward-failure": "mom-after-base-services",
       "timestamped-regional-request-provider-response": "object-ddm-ownership",
       "object-class-request-provider-response": "time-save-restore",
       "timestamped-update-failure-service-report-file": "mom-after-base-services",

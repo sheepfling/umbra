@@ -56,6 +56,7 @@ set(UMBRA_IEEE1516_2025_CONNECTION_TEST_SOURCES
   cpp/tests/ieee1516_2025_connection_process_tso_tara_boundary_catch2.cpp
   cpp/tests/ieee1516_2025_connection_time_advance_next_message_catch2.cpp
   cpp/tests/ieee1516_2025_connection_process_nmra_pending_failure_report_catch2.cpp
+  cpp/tests/ieee1516_2025_connection_process_nmra_backward_failure_report_catch2.cpp
   cpp/tests/ieee1516_2025_connection_time_advance_next_message_queued_tso_catch2.cpp
   cpp/tests/ieee1516_2025_connection_object_instance_lookup_catch2.cpp
   cpp/tests/ieee1516_2025_connection_reverse_fom_lookup_catch2.cpp

@@ -501,6 +501,63 @@
       "next_action": "This is the process/file parity companion to the embedded pending-NMRA failure case. Keep other NMRA failure classes and the MOM-interaction destination as separately mapped official-C++ slices; no general failure-routing or conformance claim."
     },
     {
+      "id": "umbra-cpp-process-service-report-next-message-request-available-backward-failure",
+      "primary_lane": "process-service-report-next-message-request-available-backward-failure",
+      "focus_lane": "process-service-report-next-message-request-available-backward-failure",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+        "api.2025.cpp.rtiambassador.nextmessagerequestavailable.53e69adb796b",
+        "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891",
+        "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
+        "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c",
+        "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l21-6",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l104-34"
+      ],
+      "test_case": "RTIambassador reports a backward process NMRA failure to the joined federate file",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_nmra_backward_failure_report_catch2.cpp:77",
+      "assertions": 43,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.11.3",
+        "hla-1516.1-2025:clause-8.11.5",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.1",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "tags": [
+        "integration",
+        "development-profile",
+        "2025",
+        "time-management",
+        "mom",
+        "service-report-file",
+        "service-reporting",
+        "service-failure",
+        "process-boundary",
+        "public-endpoint",
+        "next-message-request-available",
+        "process-service-report-next-message-request-available-backward-failure",
+        "rti.service.time-advance-request",
+        "rti.service.next-message-request-available",
+        "federate.callback.time-advance-grant"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "This official-C++ process-endpoint case advances the joined federate to time 5, then submits NMRA(4) in both callback models. LogicalTimeAlreadyPassed and unchanged grant state exercise full pinned 2025 subsections 8.11.3(d) and 8.11.5(a), whose direct Lab candidates remain missing under RL-321; no requirement ID is invented. The separate one-file-per-join, failed-report, Null return, and no-false-success assertions map to the five listed candidates in 11.5, 11.5.1, and 11.5.2. Exact exception text and serial are implementation assertions, not separate direct requirement claims. This is current-provider process development-profile evidence, not general failure routing, interoperability, Lab validation, or conformance.",
+      "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador reports a backward process NMRA failure to the joined federate file$",
+      "ctest_label": "process-service-report-next-message-request-available-backward-failure",
+      "next_action": "Keep this backward-time process/file failure distinct from pending-advance NMRA and MOM-interaction routing. Use separately mapped official-C++ slices for other failure classes; do not infer all NMRA failures or conformance."
+    },
+    {
       "id": "umbra-cpp-service-report-request-interaction-transportation-type-change",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.requestinteractiontransportationtypechange.d8afce747757",
