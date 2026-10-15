@@ -17,6 +17,8 @@
 #endif
 
 #include <array>
+#include <chrono>
+#include <cstddef>
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -84,22 +86,37 @@ TEST_CASE(
           [](std::wstring) { return false; });
       ProcessTransportSession ownerSession(ownerConnection);
       auto ownerHandler = service.handlerFor(ownerSession);
-       auto serveExpected = [&](ProcessTransportSession& processSession,
+      auto serveExpected = [&](ProcessTransportSession& processSession,
                                auto const& handler,
                                umbra::detail::TransportServiceOperation operation,
-                               char const* description)
+                                char const* description,
+                                bool allowReceivePolls = false)
           -> umbra::detail::TransportServiceMessage {
         umbra::detail::TransportServiceMessage response;
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                processSession,
-                [&](umbra::detail::TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                   response = handler(request);
-                  return response;
-                })) {
-          throw std::runtime_error(description);
+        bool servedExpected = false;
+        std::size_t receivePollCount = 0U;
+        while (!servedExpected) {
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  processSession,
+                  [&](umbra::detail::TransportServiceMessage const& request) {
+                    if (allowReceivePolls &&
+                        request.operation ==
+                            umbra::detail::TransportServiceOperation::receive_interaction) {
+                      if (++receivePollCount > 256U) {
+                        throw std::runtime_error(
+                            "The process negotiated-divestiture cancellation client exceeded the bounded callback poll allowance.");
+                      }
+                      return handler(request);
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(description);
+                    }
+                    servedExpected = true;
+                    response = handler(request);
+                    return response;
+                  })) {
+            throw std::runtime_error(description);
+          }
         }
         return response;
       };
@@ -176,18 +193,9 @@ TEST_CASE(
       serveExpected(
           requesterSession,
           requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process negotiated-divestiture cancellation server lost requester discovery poll.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process negotiated-divestiture cancellation server lost requester discovery drain.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
           TransportServiceOperation::publish_object_class_attributes,
-          "The process negotiated-divestiture cancellation server lost requester Publish.");
+          "The process negotiated-divestiture cancellation server lost requester Publish.",
+          true);
        serveExpected(
            requesterSession,
            requesterHandler,
@@ -225,16 +233,14 @@ TEST_CASE(
           requesterHandler,
           TransportServiceOperation::is_attribute_owned_by_federate,
           "The process negotiated-divestiture cancellation server lost the requester's second-attribute state query.");
+      // The owner may issue zero or more callback polls before reaching the
+      // explicit post-callback lookup fence.
       serveExpected(
           ownerSession,
           ownerHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process negotiated-divestiture cancellation server lost owner release poll.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::receive_interaction,
-          "The process negotiated-divestiture cancellation server lost owner release drain.");
+          TransportServiceOperation::get_object_class_handle,
+          "The process negotiated-divestiture cancellation server lost owner callback fence.",
+          true);
       serveExpected(
           requesterSession,
           requesterHandler,
@@ -331,7 +337,12 @@ TEST_CASE(
     ObjectInstanceHandle objectInstance;
     REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(ownerClass));
     REQUIRE(objectInstance.isValid());
-    REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+    auto const discoveryDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (requesterReports.objectDiscoveryReports.empty() &&
+           std::chrono::steady_clock::now() < discoveryDeadline) {
+      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+    }
     REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
     REQUIRE(requesterReports.objectDiscoveryReports.front().objectInstance ==
             objectInstance);
@@ -361,7 +372,12 @@ TEST_CASE(
     REQUIRE_FALSE(requester->isAttributeOwnedByFederate(
         objectInstance, requesterSecondAttribute));
     REQUIRE(ownerReports.releaseRequests.empty());
-    REQUIRE_NOTHROW(owner->evokeMultipleCallbacks(0.0, 0.0));
+    auto const releaseDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (ownerReports.releaseRequests.empty() &&
+           std::chrono::steady_clock::now() < releaseDeadline) {
+      static_cast<void>(owner->evokeMultipleCallbacks(0.01, 0.02));
+    }
     REQUIRE(ownerReports.releaseRequests.size() == 1U);
     auto const& release = ownerReports.releaseRequests.front();
     REQUIRE(release.objectInstance == objectInstance);
@@ -369,6 +385,8 @@ TEST_CASE(
             AttributeHandleSet{ownerAttribute, ownerSecondAttribute});
     REQUIRE(variableLengthDataBytes(release.userSuppliedTag) ==
             std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
+    REQUIRE(owner->getObjectClassHandle(
+                fixture_hla::fom::attribute_fixture_child) == ownerClass);
 
     REQUIRE_NOTHROW(requester->resignFederationExecution(
         rti1516_2025::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS));

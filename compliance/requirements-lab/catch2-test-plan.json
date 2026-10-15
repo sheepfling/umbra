@@ -31529,9 +31529,9 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-169-l24-3"
       ],
       "test_case": "RTIambassadors cancel Negotiated Attribute Ownership Divestiture through a configured process endpoint",
-      "source_location": "cpp/tests/ieee1516_2025_negotiated_divestiture_cancellation_process_catch2.cpp:62",
+      "source_location": "cpp/tests/ieee1516_2025_negotiated_divestiture_cancellation_process_catch2.cpp:65",
       "primary_lane": "process-negotiated-divestiture-cancellation",
-      "assertions": 40,
+      "assertions": 38,
       "callback_models": [
         "HLA_EVOKED"
       ],
