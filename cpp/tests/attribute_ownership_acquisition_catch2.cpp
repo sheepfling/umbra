@@ -2315,6 +2315,7 @@ TEST_CASE(
         objectInstance,
         AttributeHandleSet{requesterAttribute},
         negotiatedTag));
+    REQUIRE(requesterReports.acquisitionReports.empty());
     REQUIRE(ownerReports.requests.empty());
     REQUIRE_NOTHROW(owner->negotiatedAttributeOwnershipDivestiture(
         objectInstance,
@@ -2330,11 +2331,10 @@ TEST_CASE(
                 negotiatedTagBytes,
                 negotiatedTagBytes + sizeof(negotiatedTagBytes)));
     REQUIRE(ownerReports.confirmed);
-    REQUIRE(requesterReports.acquisitionReports.empty());
 
-    // Confirm was pushed to the requester by the owner's callback-side
-    // confirmDivestiture request.  The ordinary lookup is the push fence and
-    // dispatches the official acquisition notification synchronously.
+    // Confirm pushes the acquisition notification to this HLA_IMMEDIATE
+    // requester. It may have arrived already; the lookup is an observation
+    // fence, not a required trigger for callback delivery.
     REQUIRE_NOTHROW(static_cast<void>(requester->getObjectClassHandle(
         fixture_hla::fom::attribute_fixture_child)));
     REQUIRE(requesterReports.acquisitionReports.size() == 1U);
