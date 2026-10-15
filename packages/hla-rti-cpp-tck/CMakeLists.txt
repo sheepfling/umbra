@@ -47,6 +47,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_portable_service_report_scenarios.cpp
   src/tck_custom_transportation_scenarios.cpp
   src/tck_custom_transportation_interaction_scenarios.cpp
+  src/tck_post_resignation_valid_input_scenarios.cpp
   src/tck_regional_auto_provide_scenarios.cpp
   src/tck_portable_region_service_reports.cpp
   src/tck_portable_mom_declaration_queries.cpp
