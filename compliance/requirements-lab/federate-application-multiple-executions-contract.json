@@ -27,7 +27,7 @@
       "tests": [
         "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp::scenarioFederateApplicationMultipleExecutions",
         "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp::scenarioFederateApplicationMultipleExecutionsContract",
-        "cpp/tests/ieee1516_2025_federation_application_multiple_executions_catch2.cpp"
+        "cpp/tests/ieee1516_2025_federation_application_multiple_executions_catch2.cpp::One application may join multiple federates across multiple federation executions"
       ]
     }
   ]
