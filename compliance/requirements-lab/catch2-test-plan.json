@@ -31441,7 +31441,7 @@
         "hla-1516.1-2025:clause-7.2",
         "hla-1516.1-2025:clause-7.7.3",
         "hla-1516.1-2025:clause-7.9.1",
-        "hla-1516.1-2025:clause-7.10.6",
+        "hla-1516.1-2025:clause-7.10",
         "hla-1516.1-2025:clause-7.17.5",
         "hla-1516.1-2025:clause-7.18.4"
       ],
@@ -31548,6 +31548,11 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1"
       ],
       "test_case": "Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks",
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.7.3",
+        "hla-1516.1-2025:clause-7.9.1",
+        "hla-1516.1-2025:clause-7.10"
+      ],
       "tags": [
         "development-profile",
         "ownership-management",
@@ -31578,7 +31583,8 @@
       "ctest_filter": "^umbra\\.attribute_ownership_acquisition_if_available\\.catch2\\.Standalone Attribute Ownership Acquisition If Available resolves 2025 callbacks$",
       "assertions": 54,
       "standard_sections": [
-        "hla-1516.1-2025:clause-7"
+        "hla-1516.1-2025:clause-7",
+        "hla-1516.1-2025:clause-7.10"
       ],
       "tags": [
         "unit",
@@ -31625,7 +31631,7 @@
       "callback_gate_modes": [],
       "standard_sections": [
         "hla-1516.1-2025:clause-7.7.3",
-        "hla-1516.1-2025:clause-7.10.6",
+        "hla-1516.1-2025:clause-7.10",
         "hla-1516.1-2025:clause-7.9.1"
       ],
       "tags": [

@@ -4,6 +4,17 @@
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
   "notes": "This source/test traceability contract covers only Umbra's Attribute Ownership Acquisition If Available path and its two matching terminal callbacks in the non-installable IEEE 1516.1-2025 development profile. It uses only candidate records exported by the Requirements Lab and does not infer missing IDs. The implementation validates the requester's known instance, known-class attributes, publication state, and current ownership; it retains a private Willing to Acquire reservation until callback delivery. A repeat for attributes already in that federate's Willing to Acquire state is an applied no-op for those attributes, while an eligible additional attribute receives its own reservation. The paired Unpublish Object Class Attributes path rejects removal of a still-required publication with OwnershipAcquisitionPending; the pinned Lab export has no granular candidate for that 5.3.3(f) guard, so RL-014 records the traceability limitation. At delivery the runtime atomically assigns still-unowned attributes to the requester and invokes Attribute Ownership Acquisition Notification, while attributes owned by another joined federate invoke Attribute Ownership Unavailable without a release request. It also nullifies pending requests on requester resignation or receive-order Remove Object Instance. Negotiated acquisition, all divestiture forms, RTI-owned state, full resign-action ownership disposition, save/restore behavior, DDM, timestamped/retraction behavior, FOM sharing policy, remote transport, packaging, catalog evidence, and conformance remain outside this slice. The linked Catch2 test demonstrates a bounded implementation slice, not full IEEE 1516.1-2025 conformance.",
+  "canonical_standard_section_overrides": [
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-7.10.6",
+      "canonical_clause_id": "clause-7.10",
+      "source_heading": "7.10 Attribute Ownership Unavailable",
+      "source_path": "content/clauses/07-ownership-management-page-165.tex",
+      "known_issue_id": "RL-328"
+    }
+  ],
   "requirements": [
     {
       "id": "umbra-acquisition-if-available-records-a-request-without-owner-release",
