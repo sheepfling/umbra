@@ -110,6 +110,7 @@ LOCAL_TCK_HEADERS = {
     "tck_joined_federate_mom_time_state_durations.hpp",
     "tck_order_type_controls.hpp",
     "tck_transport_order_type_change.hpp",
+    "tck_transport_order_scenarios.hpp",
     "tck_attribute_relevance_scenarios.hpp",
     "tck_joined_federate_mom_reflections_received_counts.hpp",
     "tck_main_scenarios.hpp",
