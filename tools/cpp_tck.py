@@ -112,6 +112,7 @@ LOCAL_TCK_HEADERS = {
     "tck_transport_order_type_change.hpp",
     "tck_receive_order_callback_cancellation.hpp",
     "tck_attribute_value_update_request_response.hpp",
+    "tck_update_rate_scenarios.hpp",
     "tck_portable_member_control_scenarios.hpp",
     "tck_transport_order_scenarios.hpp",
     "tck_attribute_relevance_scenarios.hpp",

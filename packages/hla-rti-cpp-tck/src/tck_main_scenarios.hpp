@@ -415,8 +415,6 @@ void scenarioLocalDeleteObjectInstanceContract(Options const&, rti::CallbackMode
 void scenarioLogicalTimeContract(Options const&, rti::CallbackModel);
 void scenarioLogicalTimeFactory(Options const&, rti::CallbackModel);
 void scenarioLogicalTimeFactoryFactoryContract(Options const&, rti::CallbackModel);
-void scenarioMixedUpdateRateSubscriptions(Options const&, rti::CallbackModel);
-void scenarioMixedUpdateRateSubscriptionsContract(Options const&, rti::CallbackModel);
 void scenarioMultiRegionInteractionRouting(Options const&, rti::CallbackModel);
 void scenarioMultiRegionInteractionRoutingContract(Options const&, rti::CallbackModel);
 void scenarioNamedRegistration(Options const&, rti::CallbackModel);
@@ -557,8 +555,6 @@ void scenarioTimedRegionalAttributeNegotiatedRegularConfirmationCancelAfterResto
 void scenarioTimedRegionalAttributeNegotiatedRegularConfirmationCancelAfterRestoreContract(Options const&, rti::CallbackModel);
 void scenarioTimedRegionalAttributeNegotiatedRegularPreDeliveryCancelAfterRestore(Options const&, rti::CallbackModel);
 void scenarioTimedRegionalAttributeNegotiatedRegularPreDeliveryCancelAfterRestoreContract(Options const&, rti::CallbackModel);
-void scenarioTimestampedAttributeUpdateRateReduction(Options const&, rti::CallbackModel);
-void scenarioTimestampedAttributeUpdateRateReductionContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedDefaultRegionAttributeAlternateAdvances(Options const&, rti::CallbackModel);
 void scenarioTimestampedDefaultRegionAttributeAlternateAdvancesContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedDefaultRegionAttributeMixedFanout(Options const&, rti::CallbackModel);
@@ -610,8 +606,6 @@ void scenarioTimestampedRegionalInteractionTarNmr(Options const&, rti::CallbackM
 void scenarioTimestampedRegionalInteractionTarNmrContract(Options const&, rti::CallbackModel);
 void scenarioTransportOrder(Options const&, rti::CallbackModel);
 void scenarioTransportOrderContract(Options const&, rti::CallbackModel);
-void scenarioUpdateRateQueries(Options const&, rti::CallbackModel);
-void scenarioUpdateRateQueriesContract(Options const&, rti::CallbackModel);
 void scenarioVariableLengthDataContract(Options const&, rti::CallbackModel);
 void scenarioZeroDimensionalRegionalInteraction(Options const&, rti::CallbackModel);
 void scenarioZeroDimensionalRegionalInteractionContract(Options const&, rti::CallbackModel);
