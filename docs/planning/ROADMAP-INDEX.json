@@ -98,26 +98,26 @@
     "issue_query": "python tools/query_rti_work.py lab-issues --summary --compact",
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
-  "active_handoff_note": "2026-10-15 parallel-wave checkpoint: the retraction and queued-NMRA fixtures now pass in both native executables (2/2 each); the private process callback race is also fixed and passes its exact integrated test. The next active packet is the separate process ownership/callback-drain behavior, not another Requirements Lab sync. A fresh installed MinGW C++ TCK checkpoint passed 2,048 configured CTests and 2,072 direct both-model replays with valid JSON/JUnit and the explicit process-loss fixture. That provider predates possible later callback-runtime changes, so rerun the package gate at the frozen integration commit. Do not promote conformance.",
-  "latest_verified_slice": "2026-10-15: The retraction, queued-NMRA, and private process fixtures passed their exact integrated native selectors; NMRA and retraction passed both registered executables (2/2 each), and the private case passed 1/1 after 20 isolated repeats plus 28 adjacent private cases. Their live lane mapping checks passed. The 1,036-scenario portable C++ TCK catalog and 5,161 native contract selectors remain clean after a 1,800-line cohesive custom-transportation extraction. The fresh installed package checkpoint passed 2,048/2,048 configured CTests and 2,072/2,072 direct replays with valid JSON/JUnit, including 24/24 fixture-backed process-loss replays. A bounded native process partition remained red (56/544 registrations failed with the then-known NMRA case excluded), and a serial directed-interaction callback case reproduced. Callback-drain repair, final native and frozen-commit package gates, long planning regression, strict historical ledger, 39 hard/18 soft source-size findings, external interoperability, and conformance remain open.",
+  "active_handoff_note": "2026-10-15 parallel-wave checkpoint: the 2025 callback-pump fix is integrated; four Attribute Relevance Advisory process packets now pass all eight exact core/connection registrations; and six ownership process fixtures including negotiated-divestiture cancellation pass focused main checks. Ordinary, MOM, and mixed-set Confirm Divestiture are integrated after isolated repeats, leaving the push-receive variant as the current exact ownership handoff. Directed timestamped callback and regional transportation override have independent investigation lanes. A fresh installed MinGW C++ TCK checkpoint passed 2,048 configured CTests and 2,072 direct both-model replays before later runtime changes. Do not resynchronize unchanged Requirements Lab inputs or promote conformance.",
+  "latest_verified_slice": "2026-10-15: A named native process snapshot against pre-fixture binaries passed 489/544 and failed 55/544, providing a finite failure inventory rather than a clean bill. After scoped fixes, four Attribute Relevance Advisory packets passed 8/8 exact integrated registrations, and six acquisition/divestiture ownership cases passed their focused integrated selectors. The 2025 callback-pump fix passes exact ownership acquisition and its mapping. The portable C++ TCK retains 1,036 catalog IDs and 5,161 contract selectors after additional custom-transportation, timestamped-interaction, MOM-interaction, resignation-ownership, and service-report source extractions; focused checks passed in their lanes. An earlier fresh installed provider passed 2,048/2,048 CTests and 2,072/2,072 both-model replays including 24/24 process-loss cases, but final frozen-commit native/package gates, 40 hard/18 soft source-size findings, long planning regression, strict historical ledger, external interoperability, and protected conformance review remain open.",
   "active_handoff": {
     "state": "investigation",
-    "family": "transport-and-conformance",
-    "id": "umbra-cpp-process-attribute-relevance-advisory-public-bridge",
-    "plan_id": "umbra-cpp-process-attribute-relevance-advisory-public-bridge",
-    "mapping_seed_plan_id": "umbra-cpp-process-attribute-relevance-advisory-public-bridge",
-    "test_case": "RTIambassador delivers Attribute Relevance Advisory callbacks through a configured process endpoint under HLA_EVOKED and HLA_IMMEDIATE",
-    "lane": "process-attribute-relevance-advisory",
-    "source_location": "cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp:457",
-    "source_target": "cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp",
-    "ctest_target": "umbra_ieee1516_2025_connection_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador delivers Attribute Relevance Advisory callbacks through a configured process endpoint under HLA_EVOKED and HLA_IMMEDIATE$",
-    "objective": "Remove obsolete fixed receive-poll expectations from the process Attribute Relevance Advisory fixture while retaining official 2025 C++ callback identity, update-rate designator, and both callback-model assertions. Integrate the isolated fix, verify both native registrations and the focused requirement lane, and keep separate regional/suppression cases out of scope.",
+    "family": "object-ddm-ownership",
+    "id": "umbra-cpp-confirm-divestiture-process-push-integration",
+    "plan_id": "umbra-cpp-confirm-divestiture-process-push-integration",
+    "mapping_seed_plan_id": "umbra-cpp-confirm-divestiture-process-push-integration",
+    "test_case": "RTIambassadors deliver Confirm Divestiture through a configured process endpoint in push receive mode",
+    "lane": "process-confirm-divestiture-push",
+    "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:2026",
+    "source_target": "cpp/tests/attribute_ownership_acquisition_catch2.cpp",
+    "ctest_target": "umbra_attribute_ownership_acquisition_catch2",
+    "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors deliver Confirm Divestiture through a configured process endpoint in push receive mode$",
+    "objective": "Resolve the HLA_IMMEDIATE push-receive Confirm Divestiture case after the 2025 callback-pump correction. Its requester can receive an acquisition callback before the fixture's expected lookup fence; verify the pinned 2025 callback and ownership ordering, repair only the proven fixture or runtime defect, and preserve the exact official C++ case and requirement mappings.",
     "acceptance": [
-      "The exact Attribute Relevance Advisory case passes in both native registrations and both callback models with its official C++ assertions intact.",
-      "The focused process-attribute-relevance-advisory lane check preserves all nine direct 2025 requirement-section pairs and its source pointer.",
-      "The named process partition and the separate ownership and directed-callback repairs are classified before claiming any native-process clean bill.",
-      "Installed-package refresh, source-size, planning regression, external interoperability, and protected conformance review remain separate release gates."
+      "The exact push-receive Confirm Divestiture case passes under HLA_IMMEDIATE with a finite process timeout and its official C++ ownership/callback assertions intact.",
+      "The focused process-confirm-divestiture-push lane check preserves four direct 2025 requirement-section pairs and a current source pointer.",
+      "The adjacent ordinary, MOM, and mixed-set Confirm Divestiture cases remain green after the push fix.",
+      "Native process partition, installed-package refresh, source-size, planning regression, external interoperability, and protected conformance review remain separate release gates."
     ]
   },
   "last_completed_handoff": {

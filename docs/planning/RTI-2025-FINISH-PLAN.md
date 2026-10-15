@@ -32,11 +32,12 @@ federation-lifecycle and regional-service-report extractions removed another
 1,173 and 1,026 lines, respectively. Inherited/derived delivery and regional
 Auto Provide families removed another 1,416 and 1,913 lines. The Delay
 Subscription Evaluation family removed another 1,590 lines from `main.cpp`.
-Three additional cohesive extractions moved 1,800 custom-transportation,
-1,880 timestamped-interaction, and 1,639 MOM-interaction lines out of the two
-portable TCK drivers. They now measure 29,600 and 26,974 expanded lines.
-An ignored partial MinGW TCK-quality snapshot records 92 translation units,
-346.7 summed compiler seconds, and 11.79 seconds for the TCK link; the build
+Five additional cohesive extractions moved 1,800 custom-transportation,
+1,880 timestamped-interaction, 1,639 MOM-interaction, 1,052
+resignation/ownership, and 1,160 service-report lines out of the two portable
+TCK drivers. They now measure 29,600 and 24,764 expanded lines. The latest
+ignored partial MinGW TCK-quality snapshot records 94 translation units,
+351.5 summed compiler seconds, and 10.23 seconds for the TCK link; the
 history remains queryable in `out/build-metrics/history.jsonl`.
 
 ## Work lanes
@@ -108,10 +109,10 @@ a commit, and a concrete next handoff.
 
 | Seat | Current packet | Exclusive ownership and merge gate |
 | --- | --- | --- |
-| 1. ARA process callback fixture | Remove obsolete evoked discovery-poll expectations that block the next legal attribute-handle request. | Own the focused ARA C++ fixture; require both callback models and both native registrations. Do not change the shared callback pump. |
-| 2. Directed interaction callback | Correct an EVOKED-only absence assertion that rejects legal HLA_IMMEDIATE object discovery. | Own the directed C++ fixture; require exact core and connection CTests plus neighboring callback-gating evidence after integration. |
-| 3. Adjacent ownership fixtures | Repair three cancellation/if-available/release process tests with stale fixed callback-poll counts. | Own only the ownership fixtures unless a distinct runtime defect is proven; require all three exact cases and the acquisition case. |
-| 4. Integration and release gates | Integrate verified commits, log Requirements Lab issues, maintain one roadmap handoff, and run a named native-process partition. | The 2025 callback-pump repair is integrated and its exact acquisition case passes. The fresh package checkpoint predates this runtime commit; rerun package and native gates at one frozen commit before any clean-bill claim. |
+| 1. Directed callback timing | Resolve the remaining EVOKED discovery-arrival race in the official directed-interaction callback case after two narrower IMMEDIATE expectations were corrected. | Own the directed C++ fixture; require exact core/connection CTests and representative adjacent directed routes. Do not weaken timestamped/retraction obligations or change shared runtime without wire evidence. |
+| 2. Confirm Divestiture push | Resolve the one remaining push-receive ownership callback case after ordinary, MOM-interaction, and mixed-set Confirm Divestiture passed. | Own the focused HLA_IMMEDIATE ownership fixture and exact mapping; require the push selector plus those three adjacent cases. Distinguish early legal callback delivery from runtime defect. |
+| 3. Regional transportation override | Diagnose the missing Confirm Interaction Transportation Type Change callback in the regional process fixture. | Own its C++ fixture and any proven service defect; require both callback models, both core/connection registrations, and focused regional transport mappings. |
+| 4. Integration and release gates | Integrate verified commits, maintain the exact roadmap handoff, and repeat targeted MinGW checks before a frozen native/package run. | The named pre-fixture process snapshot was 489/544 green; newer focused repairs are green but do not convert that snapshot into a clean bill. The fresh installed-package TCK checkpoint predates the callback-runtime commit, so rerun it at the frozen source state. |
 
 Earlier durable/save, MOM-reporting, regional process, process-retraction,
 queued-NMRA, and private process packets are integrated with their focused
@@ -121,13 +122,16 @@ the private process callback case passes its exact integrated selector after
 The custom-transportation TCK source extraction moved 1,800 lines to a
 cohesive ordinary source file while preserving all 1,036 catalog IDs; 28/36
 focused package registrations passed and the eight failures exactly matched
-the pre-extraction baseline. The timestamped and MOM interaction extractions
-passed 28/28 and 16/16 focused cases, respectively, plus catalog/API/contract
-checks. The untimed save callback case passed 20/20 isolated repeats and was
-not changed. These packets remain subject to combined native and package
-gates. The next vacated implementation seat should take a bounded FOM/Annex-C
-evidence-closure packet or a verified 2025 counterexample confined to
-`cpp/src/internal/fom/**`. Requirement
+the pre-extraction baseline. Timestamped, MOM, resignation/ownership, and
+service-report extractions passed 28/28, 16/16, 24/24, and 238/238 focused
+cases respectively, plus catalog/API/contract checks. The four Attribute
+Relevance Advisory fixture packets now pass eight exact main registrations;
+six acquisition/divestiture and three Confirm Divestiture packets pass their
+focused integrated cases. The untimed save callback case passed 20/20
+isolated repeats and was not changed. These packets remain subject to
+combined native and package gates. After the three native investigation seats
+clear, refill with a bounded FOM/Annex-C evidence-closure packet or a verified
+2025 counterexample confined to `cpp/src/internal/fom/**`. Requirement
 adjudication is a subsection-sized read-only lane, not an open-ended search;
 neither lane invents tests from candidate text. Java parity begins after the
 C++ gates rather than consuming a current C++ seat.
@@ -143,8 +147,8 @@ separate so an audit repair does not get misreported as new RTI conformance:
 | --- | --- | --- |
 | Official 2025 vendor bytes | The 44 C++ headers and seven 1516.2 resources are byte-exact against the pinned archives; narrow vendor-tree Git text exceptions preserve those bytes. Binding inventory and resource CTests pass. | Preserve manifest digests and confirm the fresh installed-package check at the frozen integration commit. |
 | Test metadata and names | API IDs, duplicate roadmap key, lane tags, and 52 symbolic-name lookups are repaired. The local contract-selector guard is clean: 5,161/5,161 native references exact. A rebuilt MinGW Catch2 executable passes taxonomy; binding inventory, resource, traceability, and symbolic-name checks pass too. The long query regression still exposes stale local expectations one at a time (next known guard: latest completed-slice evidence counts versus its plan row, line 5334). The optional strict historical-completion audit reports 110 legacy reference mismatches; the live mapping check passes. | Repair the remaining bounded query-regression guards and historical ledger separately without resynchronizing the Lab or weakening normative mappings; rerun the five passing static gates at the frozen integration commit. |
-| Native process regressions | The ownership case's four invalid early-absence assertions were removed and its earlier exact MinGW CTest passed (60 assertions). The regional callback-gating fixture passes all six native registrations. Retraction and queued-NMRA fixture corrections pass 2/2 integrated registrations each; the adjacent failed-NMRA-report case also passes 2/2. The private registry-bound probe race fix passes its exact integrated test, with 20 isolated repeats and 28 adjacent private cases. A newer broad process partition is red and a shared 2025 callback-drain issue is under repair. | Finish the callback-drain and save-isolation packets, then rerun the process partition serially or with proved-safe concurrency, loopback access, finite timeouts, and a named output log. |
-| Source ownership and comprehensive proof | The latest 1,800-line cohesive custom-transportation extraction created no new size finding; the gate remains 39 hard/18 soft. A loopback-enabled native process partition with `-j2`, 18-second caps, and the then-known NMRA failure excluded finished red: 56/544 registrations failed, including duplicate core/connection registrations and ownership timeouts. A serial rerun reproduced the directed-interaction callback-disabled failure in both executables; other failures need individual classification. The older installed provider produced 48 failed package registrations, all of which passed focused fresh-provider replay. The full fresh-provider checkpoint then passed 2,048/2,048 configured CTests and 2,072/2,072 direct replays with valid JSON/JUnit, including 24/24 process-loss fixture cases. This provider predates any later runtime merge. | Finish partitioned native diagnosis and source ownership/size work; then repeat the combined native and installed-package gates at one frozen commit. Use explicit `--connection-loss-fixture` and preserve a named output log on the next broad native run. |
+| Native process regressions | The 2025 callback-pump spin fix is integrated and its exact acquisition case passes. Four Attribute Relevance Advisory process packets pass 8/8 main core/connection registrations. Six acquisition/divestiture and three ordinary/MOM/mixed Confirm Divestiture cases pass focused main tests. A pre-fixture named process partition remains red at 489/544; the directed timestamped callback, Confirm push, and regional transportation override have independent investigation packets. Retraction and queued-NMRA pass 2/2 each; the private registry-bound callback case passes its exact selector. | Integrate the remaining narrow fixes, then rerun the process partition with loopback access, finite timeouts, and a named output log. Do not infer a partition green from the later focused passes. |
+| Source ownership and comprehensive proof | The custom-transportation, timestamped-interaction, MOM-interaction, resignation/ownership, and service-report extractions preserve the 1,036 TCK IDs and 5,161 exact native contract selectors; each has focused checks. The latest ignored MinGW build-metric snapshot still reports 40 hard/18 soft source-size findings. The fresh installed-provider checkpoint passed 2,048/2,048 configured CTests and 2,072/2,072 direct replays with valid JSON/JUnit, including 24/24 process-loss fixture cases, but predates the callback-runtime merge and later TCK source changes. | Resolve or justify remaining source-size findings, freeze one integration commit, then repeat both native and installed-package gates with explicit `--connection-loss-fixture`, retained JSON/JUnit, and a named native output log. |
 
 The first three packets can be developed in isolated worktrees concurrently.
 The integration owner alone merges them serially and records the exact
