@@ -2,6 +2,7 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <exception>
@@ -50,10 +51,6 @@ TEST_CASE(
     "RTIambassador expands process class Request Attribute Value Update across registered instances",
     "[integration][foundation][object-management][callbacks][callback-controls][transport][process-boundary][public-endpoint][rti.service.request-attribute-value-update][federate.callback.discover-object-instance][federate.callback.provide-attribute-value-update]") {
   auto runScenario = [](CallbackModel callbackModel) {
-    // A process poll can return before its typed callback reaches the evoked
-    // dispatcher. Give the callback a bounded arrival window after each poll.
-    constexpr double callbackArrivalWaitSeconds = 5.0;
-
     class RecordingFederateAmbassador final : public NullFederateAmbassador {
      public:
       void discoverObjectInstance(
@@ -307,6 +304,22 @@ TEST_CASE(
 
     auto providerRti = makeRti();
     auto requesterRti = makeRti();
+    // One Evoke need not deliver the callback under test: advisory callbacks
+    // can be interleaved, and a process poll can return before the typed event
+    // reaches the evoked dispatcher. Wait for the observed callback count.
+    auto evokeUntil = [](auto& rti, auto const& recordedEvents,
+                         std::size_t targetCount) {
+      auto const deadline = std::chrono::steady_clock::now() +
+                            std::chrono::seconds(5);
+      while (recordedEvents.size() < targetCount) {
+        auto const remaining = deadline - std::chrono::steady_clock::now();
+        if (remaining <= std::chrono::steady_clock::duration::zero()) {
+          break;
+        }
+        static_cast<void>(rti->evokeCallback(
+            std::chrono::duration<double>(remaining).count()));
+      }
+    };
     auto configuration = RtiConfiguration::createConfiguration()
                              .withConfigurationName(
                                  L"public-process-class-attribute-client")
@@ -368,7 +381,8 @@ TEST_CASE(
           static_cast<void>(requesterRti->getObjectClassHandle(objectClassNameWide));
         } else {
           static_cast<void>(providerRti->evokeCallback(0.0));
-          static_cast<void>(requesterRti->evokeCallback(callbackArrivalWaitSeconds));
+          evokeUntil(requesterRti, requesterFederate.discoveredObjects,
+                     index + 1U);
         }
       }
       REQUIRE(requesterFederate.discoveredObjects.size() == 2U);
@@ -385,8 +399,7 @@ TEST_CASE(
         static_cast<void>(providerRti->getObjectClassHandle(objectClassNameWide));
         static_cast<void>(providerRti->getObjectClassHandle(objectClassNameWide));
       } else {
-        static_cast<void>(providerRti->evokeCallback(callbackArrivalWaitSeconds));
-        static_cast<void>(providerRti->evokeCallback(callbackArrivalWaitSeconds));
+        evokeUntil(providerRti, providerFederate.providedObjects, 2U);
       }
       REQUIRE(providerFederate.providedObjects.size() == 2U);
       REQUIRE(providerFederate.providedObjects[0] == objectInstances[0]);
