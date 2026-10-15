@@ -465,6 +465,7 @@ TEST_CASE(
   constexpr wchar_t const* synchronizationLabel =
       L"process-synchronization-point";
   constexpr wchar_t const* federateType = L"process-synchronization-type";
+  constexpr double callbackWaitSeconds = 2.0;
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
   auto const port = listener->address().port;
@@ -616,15 +617,17 @@ TEST_CASE(
     senderRti->registerFederationSynchronizationPoint(
         synchronizationLabel, tag);
     REQUIRE(senderFederate.registrationSucceededCount == 0U);
-    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+    // The announcement may already be queued behind registration success.
+    static_cast<void>(senderRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(senderFederate.registrationSucceededCount == 1U);
     REQUIRE(senderFederate.registrationLabel == synchronizationLabel);
-    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+    REQUIRE(senderFederate.announcementCount == 0U);
+    REQUIRE_FALSE(senderRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(senderFederate.announcementCount == 1U);
     REQUIRE(senderFederate.announcementLabel == synchronizationLabel);
     REQUIRE(senderFederate.announcementTag ==
             std::vector<std::uint8_t>(tagBytes.begin(), tagBytes.end()));
-    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE_FALSE(receiverRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(receiverFederate.announcementCount == 1U);
     REQUIRE(receiverFederate.announcementLabel == synchronizationLabel);
     REQUIRE(receiverFederate.announcementTag ==
@@ -632,11 +635,11 @@ TEST_CASE(
 
     senderRti->synchronizationPointAchieved(synchronizationLabel);
     receiverRti->synchronizationPointAchieved(synchronizationLabel);
-    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+    REQUIRE_FALSE(senderRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(senderFederate.synchronizedCount == 1U);
     REQUIRE(senderFederate.synchronizedLabel == synchronizationLabel);
     REQUIRE(senderFederate.failedToSyncCount == 0U);
-    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE_FALSE(receiverRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(receiverFederate.synchronizedCount == 1U);
     REQUIRE(receiverFederate.synchronizedLabel == synchronizationLabel);
     REQUIRE(receiverFederate.failedToSyncCount == 0U);
@@ -648,12 +651,18 @@ TEST_CASE(
   } catch (...) {
     clientError = std::current_exception();
   }
+  if (clientError) {
+    // A failed assertion must not leave the scripted server awaiting a poll or Resign.
+    senderRti.reset();
+    receiverRti.reset();
+  }
   if (listener) {
-    listener.reset();
+    listener->close();
   }
   if (server.joinable()) {
     server.join();
   }
+  listener.reset();
   if (clientError) {
     std::rethrow_exception(clientError);
   }

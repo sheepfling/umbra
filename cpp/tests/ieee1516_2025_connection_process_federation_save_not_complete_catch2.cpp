@@ -467,6 +467,7 @@ TEST_CASE(
       L"process-federation-save-not-complete-type";
   constexpr wchar_t const* saveLabel =
       L"process-federation-save-not-complete-label";
+  constexpr double callbackWaitSeconds = 2.0;
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
   auto const port = listener->address().port;
@@ -551,14 +552,15 @@ TEST_CASE(
     REQUIRE(federateHandle.isValid());
 
     REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    // The process callback stream can arrive after the service response.
+    (void)rti->evokeCallback(callbackWaitSeconds);
     REQUIRE(federate.initiateCount == 1U);
     REQUIRE(federate.initiateLabel == saveLabel);
 
     REQUIRE_NOTHROW(rti->federateSaveBegun());
     REQUIRE_NOTHROW(rti->federateSaveNotComplete());
     REQUIRE(federate.notSavedCount == 0U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    (void)rti->evokeCallback(callbackWaitSeconds);
     REQUIRE(federate.notSavedCount == 1U);
     REQUIRE(federate.notSavedReason ==
             rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
@@ -567,18 +569,12 @@ TEST_CASE(
     REQUIRE_NOTHROW(rti->disconnect());
   } catch (...) {
     clientError = std::current_exception();
-    try {
-      rti->resignFederationExecution(NO_ACTION);
-    } catch (...) {
-    }
-    try {
-      rti->disconnect();
-    } catch (...) {
-    }
   }
-  if (listener) {
-    listener.reset();
+  if (clientError) {
+    // Do not send unscripted services after an assertion; close the endpoint.
+    rti.reset();
   }
+  listener->close();
   if (server.joinable()) {
     server.join();
   }

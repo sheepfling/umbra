@@ -20,6 +20,16 @@ void writeMarker(
   }
 }
 
+void publishPortMarker(
+    std::filesystem::path const& path,
+    unsigned short port) {
+  auto temporary = path;
+  temporary += ".tmp";
+  writeMarker(temporary, std::to_string(port));
+  // Readers must not observe a partially written (but parseable) port.
+  std::filesystem::rename(temporary, path);
+}
+
 unsigned short readUpstreamPort(std::filesystem::path const& path) {
   std::ifstream input(path, std::ios::binary);
   unsigned int port = 0U;
@@ -54,9 +64,8 @@ int main(int argc, char** argv) {
         {"127.0.0.1", readUpstreamPort(directory / "authority.port")},
         {"process-tso-subprocess-" + role, identity});
     proxy.start();
-    writeMarker(
-        directory / (markerPrefix + "port"),
-        std::to_string(proxy.address().port));
+    publishPortMarker(
+        directory / (markerPrefix + "port"), proxy.address().port);
 
     auto const deadline = std::chrono::steady_clock::now() +
         std::chrono::seconds(20);
