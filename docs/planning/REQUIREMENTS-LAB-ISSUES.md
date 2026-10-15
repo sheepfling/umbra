@@ -497,3 +497,22 @@ mapping defects to adjudicate separately, not additional Lab defects.
 No Requirements Lab resynchronization was performed. Source: pinned
 `topics/ieee/hla-1516.1-2025/semantic/requirements.json`, page-67 candidate
 at `content/clauses/04-federation-management-page-067.tex:37`.
+
+### RL-327 — §4.19 timed Request Federation Save candidate stops at page break
+
+The pinned candidate
+`requirement-candidate-content-clauses-04-federation-management-page-065-l109-26`
+begins the rule for a valid timestamped Request Federation Save and each
+time-constrained federate's Initiate Federate Save, but stops at “the timestamp
+of”. The remainder of the sentence is absent from that candidate; the next
+exported candidate starts a different rule for nontime-constrained members.
+This is a separate §4.19 page-boundary recurrence from RL-326's §4.20 fragment,
+not a correction to the pinned export.
+
+Workaround: consult the complete canonical §4.19 rule when reviewing timed-save
+ordering, and do not treat this candidate fragment alone as a complete direct
+conformance obligation. The multi-constrained timed-save Catch2 mapping needs
+its own review because it currently selects unrelated synchronization and
+untimed-save candidates. No Lab resynchronization or IEEE erratum is implied.
+Source: pinned `topics/ieee/hla-1516.1-2025/semantic/requirements.json`,
+`content/clauses/04-federation-management-page-065.tex:109-113`.

@@ -1676,6 +1676,29 @@
       "reproduction": "Read requirement-candidate-content-clauses-04-federation-management-page-067-l37-8 in topics/ieee/hla-1516.1-2025/semantic/requirements.json; compare its start and end with the full page-67 4.20 text. RL-267 concerns a different page-67 candidate's clause attribution.",
       "verification": "The pinned requirement JSON directly shows both truncation boundaries. The canonical PDF was not independently checked in this turn; this is a Lab extraction issue, not IEEE errata or conformance evidence.",
       "detected": "2026-10-15"
+    },
+    {
+      "id": "RL-327",
+      "status": "open",
+      "kind": "requirements-lab-truncated-candidate",
+      "title": "Timed Request Federation Save candidate on page 65 stops at page boundary",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-065-l109-26"
+      ],
+      "exported_clause": "4.19",
+      "normative_clause": "4.19",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/04-federation-management-page-065.tex",
+        "lines": "109-113",
+        "page": 65
+      },
+      "symptom": "The timestamped Request Federation Save candidate stops after 'the timestamp of' without the rest of its condition. The next exported candidate concerns nontime-constrained federates and does not complete this sentence.",
+      "impact": "The truncated candidate cannot by itself specify the full TSO frontier for each constrained federate's timed Initiate Federate Save; mapping a test to it alone can overstate direct requirement coverage.",
+      "workaround": "Preserve the pinned ID/export; consult full canonical 4.19 before reviewing timed-save ordering. Adjudicate unrelated synchronization and untimed-save IDs in the local Catch2 plan separately. Do not resynchronize unchanged Lab inputs.",
+      "reproduction": "Read requirement-candidate-content-clauses-04-federation-management-page-065-l109-26 in topics/ieee/hla-1516.1-2025/semantic/requirements.json and the following candidate beginning at page 66 line 10. RL-326 is a separate 4.20 fragment.",
+      "verification": "The pinned requirement JSON directly shows the unfinished sentence and subsequent distinct candidate. The canonical PDF was not independently checked in this turn; this is a Lab extraction issue, not IEEE errata or conformance evidence.",
+      "detected": "2026-10-15"
     }
   ]
 }
