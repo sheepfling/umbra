@@ -1806,6 +1806,11 @@ def main() -> int:
             "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_callback_gating_catch2.cpp",
             "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_arrival_catch2.cpp",
         ),
+        # 7d3803e0 extracted this same push-receive case into its own fixture.
+        "umbra-cpp-confirm-divestiture-process-push-integration": (
+            "cpp/tests/attribute_ownership_acquisition_catch2.cpp",
+            "cpp/tests/ieee1516_2025_process_confirm_divestiture_push_catch2.cpp",
+        ),
     }
     completed_slices = index.get("recent_completed_slices", [])
     historical_source_findings = completion_ledger_source_pointer_findings(
@@ -5046,8 +5051,8 @@ def main() -> int:
     if (
         push_confirm.get("status") != "implemented-public-foundation-not-conformance-evidence"
         or query_rti_work.source_location_text(push_confirm)
-        != "cpp/tests/attribute_ownership_acquisition_catch2.cpp:2118"
-        or push_confirm.get("assertions") != 41
+        != "cpp/tests/ieee1516_2025_process_confirm_divestiture_push_catch2.cpp:53"
+        or push_confirm.get("assertions") != 43
         or len(push_confirm.get("lab_requirement_ids", [])) != 4
         or len(push_confirm.get("standard_sections", [])) != 4
         or len(push_confirm.get("selected_cpp_api_surface_ids", [])) != 15
@@ -7794,7 +7799,7 @@ def main() -> int:
         "cpp/tests/ieee1516_2025_connection_modify_lookahead_catch2.cpp:458"
     ):
         raise AssertionError("focused process modify-lookahead source pointer drifted")
-    if process_modify_lookahead.get("assertions") != 17:
+    if process_modify_lookahead.get("assertions") != 23:
         raise AssertionError("focused process modify-lookahead assertion count drifted")
     if process_modify_lookahead.get("traceability_state") != "requirements-mapped":
         raise AssertionError("focused process modify-lookahead row is not mapped")
