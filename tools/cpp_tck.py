@@ -107,6 +107,8 @@ LOCAL_TCK_HEADERS = {
     "tck_order_type_controls.hpp",
     "tck_joined_federate_mom_reflections_received_counts.hpp",
     "tck_main_scenarios.hpp",
+    "tck_lookup_lifecycle_scenarios.hpp",
+    "tck_fom_module_scenarios.hpp",
     "tck_region_lifecycle_scenarios.hpp",
     "tck_logical_time.hpp",
     "tck_options.hpp",

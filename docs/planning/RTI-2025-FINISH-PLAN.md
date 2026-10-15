@@ -15,7 +15,7 @@ open indexed families are a different grouping: five `evidence-complete`, four
 planned candidates in the indexed queue. Do not recycle completed process TSO
 work as a supposedly missing case.
 
-The C++ Catch2 plan has 1,502 cases: 1,405 requirement-mapped and 97 explicitly
+The C++ Catch2 plan has 1,503 cases: 1,406 requirement-mapped and 97 explicitly
 classified without a normative mapping. The mapping check records 980 direct
 requirement-to-canonical-section pairs and 2,220 pinned 2025 requirement IDs;
 pair count is not a requirement-completion percentage. The portable C++ TCK
@@ -24,9 +24,9 @@ all 2,048 configured CTests, but its direct replay was stopped after 303
 scenario chunks when subsequent runtime changes superseded that package.
 Fresh post-integration JSON/JUnit and catalog validation remain a release gate.
 The current source-size check is also red: 40 hard findings and 17 soft-limit
-findings, including the portable TCK's 41,710-line `main.cpp` and 36,724-line
-`portable_tck.cpp`. A cohesive lookup-lifecycle extraction removed 744 lines
-from `main.cpp` but did not clear its hard limit.
+findings, including the portable TCK's 40,753-line `main.cpp` and 36,724-line
+`portable_tck.cpp`. Two cohesive lookup-lifecycle and FOM-module extractions
+removed 1,701 lines from `main.cpp` but did not clear its hard limit.
 
 ## Work lanes
 
@@ -95,8 +95,8 @@ checkout. The integration owner cherry-picks verified commits one at a time.
 | Seat | Start-now packet | Exclusive working area | Deliverable |
 | --- | --- | --- | --- |
 | 1. Object/DDM runtime | Preserve the verified process HLA_IMMEDIATE regional delivery and resign-fence behavior. Correct the test wording to describe the proven callback-task-admission boundary, then project the changed behavior through the installed-package regional TCK. Do not invent a later callback-entry recheck without a normative requirement and failing case. | Process object/DDM routing and its focused C++ tests; avoid save/restore and MOM files. | Precise 2025 clause mapping, corrected case/plan/roadmap wording, focused MinGW CTest and lane check. |
-| 2. Save/restore and TCK quality | Preserve the verified fresh-registry Release Multiple Names abort-all case. Extract one cohesive lookup-lifecycle scenario group from the oversized portable TCK translation unit into ordinary `.cpp`/`.hpp` ownership; keep scenario IDs and both callback-model behavior stable. | Portable TCK lookup-lifecycle declarations/implementation and CMake; avoid runtime and MOM files. | Focused MinGW TCK build, both-model CTests, catalog/mapping stability, and measured source-size reduction. |
-| 3. MOM/reporting runtime | Extend the verified backward-NMRA filesystem failure record to the distinct pending-advance `InTimeAdvancingState` rejection. Check the pinned 2025 text, retain the static report-file identity, and avoid unsupported temporal mappings. | MOM time-advance reporting and one official-C++ service-report test; no TCK runner/catalog edits. | One exact mapped native failure case, focused adjacent CTests, lane check, and no false success record. |
+| 2. Save/restore and TCK quality | Preserve the verified fresh-registry Release Multiple Names abort-all case. The lookup-lifecycle and FOM-module scenario groups are now in ordinary `.cpp`/`.hpp` ownership; keep their scenario IDs and both callback-model behavior stable through the full installed-package run. | Portable TCK scenario declarations/implementation and CMake; avoid runtime and MOM files. | Both cohesive extractions built under MinGW and passed 20 plus 48 focused tests; the hard source-size gate remains open. |
+| 3. MOM/reporting runtime | The distinct pending-advance `InTimeAdvancingState` rejection is integrated and its six adjacent CTests pass. Hold further runtime edits during the fresh-package checkpoint; afterward select one separately mapped invalid-time failure or process/MOM reporting route. | MOM time-advance reporting and official-C++ service-report tests; no TCK runner/catalog edits. | Preserve the two green NMRA failure cases and their separate RL-321/RL-322 extraction notes; make no general reporting claim. |
 | 4. Integration and portable TCK | Complete the shared MinGW build and neighboring tests for each incoming slice, merge verified commits serially, update the active roadmap handoff, then rebuild/install a fresh package. Run all 1,034 promoted C++ TCK scenarios in both callback models with direct JSON/JUnit and classify failures. | Integration checkout, installed-package/TCK evidence, shared index merge resolution; no simultaneous lane-owned runtime edits. | A current pass/fail list with reproducible packets, mapped clean branch, build-quality snapshot, and explicit release blockers. |
 
 If a fifth contributor is available, give them FOM/Annex-C evidence closure and
@@ -115,3 +115,6 @@ change to `federation_registry.hpp`, generic process host/dispatch, or another
 shared seam requires a short interface handoff before the second worker edits
 it. Run focused tests on each branch, affected installed-package TCK cases
 after each merge, and the full MinGW/TCK matrices at integration checkpoints.
+During a full package-evidence run, freeze runtime commits that would supersede
+the installed binary; workers can continue independent source-quality work in
+isolation, but integrate it before the TCK executable is built.
