@@ -4,6 +4,7 @@
 #include "tck_callback_controls_scenarios.hpp"
 #include "tck_delay_subscription_scenarios.hpp"
 #include "tck_federation_lifecycle_scenarios.hpp"
+#include "tck_timestamped_interaction_scheduling_scenarios.hpp"
 
 namespace hla_rti_cpp_tck::detail {
 
@@ -264,25 +265,18 @@ void scenarioTimestampedDirectedInteractionSourceResignationFanout(Options const
 void scenarioTimestampedDirectedInteractionSourceResignationFanoutContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedDirectedInteractionTarNmr(Options const&, rti::CallbackModel);
 void scenarioTimestampedDirectedInteractionTarNmrContract(Options const&, rti::CallbackModel);
-void scenarioTimestampedInteractionCrossProducerOrder(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionCrossProducerOrderContract(Options const&, rti::CallbackModel);
-void scenarioTimestampedInteractionFlushQueueFutureInput(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionFlushQueueFutureInputContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionMixedAdvances(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionMixedAdvancesContract(Options const&, rti::CallbackModel);
-void scenarioTimestampedInteractionNoFanout(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionNoFanoutContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionReenable(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionReenableContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionRegulationReenable(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionRegulationReenableContract(Options const&, rti::CallbackModel);
-void scenarioTimestampedInteractionRetractionFanout(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionRetractionFanoutContract(Options const&, rti::CallbackModel);
-void scenarioTimestampedInteractionSourceResignation(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionSourceResignationContract(Options const&, rti::CallbackModel);
-void scenarioTimestampedInteractionSourceResignationFanout(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionSourceResignationFanoutContract(Options const&, rti::CallbackModel);
-void scenarioTimestampedInteractionTsoDesignatorTerminalization(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTsoDesignatorTerminalizationContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractions(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionsContract(Options const&, rti::CallbackModel);
