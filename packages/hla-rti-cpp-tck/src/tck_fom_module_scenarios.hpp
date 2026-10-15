@@ -4,6 +4,9 @@
 
 namespace hla_rti_cpp_tck::detail {
 
+void scenarioMalformedInputs(Options const&, rti::CallbackModel);
+void scenarioFomModel(Options const&, rti::CallbackModel);
+
 void scenarioFomModuleComposition(Options const&, rti::CallbackModel);
 void scenarioFomModuleCompositionContract(Options const&, rti::CallbackModel);
 void scenarioFomAdditionalModuleJoinAtomicity(Options const&, rti::CallbackModel);

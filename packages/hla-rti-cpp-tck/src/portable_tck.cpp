@@ -6,6 +6,7 @@
 #include "tck_api_foundation.hpp"
 #include "tck_configuration_authorization.hpp"
 #include "tck_factory_identity.hpp"
+#include "tck_fom_module_scenarios.hpp"
 #include "tck_main_scenarios.hpp"
 #include "tck_regional_auto_provide_scenarios.hpp"
 #include "tck_custom_transportation_scenarios.hpp"

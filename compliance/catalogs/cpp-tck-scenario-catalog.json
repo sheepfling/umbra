@@ -33205,7 +33205,7 @@
         "transportation-type-api-contract.json",
         "fom-advisory-switches-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioFomModel",
+      "cpp_test": "src/tck_fom_module_scenarios.cpp#scenarioFomModel",
       "runner_id": "cpp-tck.fom-model",
       "parity": "java-tck.fom-model",
       "default_status": "adapter-required",
