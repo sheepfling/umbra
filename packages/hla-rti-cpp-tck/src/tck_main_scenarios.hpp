@@ -2,6 +2,7 @@
 
 #include "tck_harness.hpp"
 #include "tck_callback_controls_scenarios.hpp"
+#include "tck_federation_lifecycle_scenarios.hpp"
 
 namespace hla_rti_cpp_tck::detail {
 
@@ -122,14 +123,6 @@ void scenarioDelaySubscriptionEvaluationTimestampedDirectedInteraction(Options c
 void scenarioDelaySubscriptionEvaluationTimestampedInteraction(Options const&, rti::CallbackModel);
 void scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdate(Options const&, rti::CallbackModel);
 void scenarioDelaySubscriptionEvaluationTimestampedRegionalInteraction(Options const&, rti::CallbackModel);
-void scenarioExplicitMimCreation(Options const&, rti::CallbackModel);
-void scenarioExplicitMimCreationContract(Options const&, rti::CallbackModel);
-void scenarioFederateLookupLifecycle(Options const&, rti::CallbackModel);
-void scenarioFederateLookupLifecycleContract(Options const&, rti::CallbackModel);
-void scenarioFederationLifecycle(Options const&, rti::CallbackModel);
-void scenarioFederationLifecycleContract(Options const&, rti::CallbackModel);
-void scenarioFederationListServices(Options const&, rti::CallbackModel);
-void scenarioFederationListServicesContract(Options const&, rti::CallbackModel);
 void scenarioFederationMomContentReports(Options const&, rti::CallbackModel);
 void scenarioFederationMomContentReportsContract(Options const&, rti::CallbackModel);
 void scenarioFederationMomCurrentFdd(Options const&, rti::CallbackModel);
@@ -315,8 +308,6 @@ void scenarioTimestampedObjectDeletionSourceResignationFanoutContract(Options co
 void scenarioTimestampedObjectDeletionTombstone(Options const&, rti::CallbackModel);
 void scenarioTimestampedObjectDeletionTombstoneContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedRegionalInteraction(Options const&, rti::CallbackModel);
-void scenarioUnnamedJoinOverload(Options const&, rti::CallbackModel);
-void scenarioUnnamedJoinOverloadContract(Options const&, rti::CallbackModel);
 
 void scenarioApiSurfaceInventory(Options const&, rti::CallbackModel);
 void scenarioAsynchronousDelivery(Options const&, rti::CallbackModel);
@@ -517,8 +508,6 @@ void scenarioPassiveRegionalSubscription(Options const&, rti::CallbackModel);
 void scenarioPassiveRegionalSubscriptionContract(Options const&, rti::CallbackModel);
 void scenarioPendingNegotiatedOwnershipSaveRestore(Options const&, rti::CallbackModel);
 void scenarioPendingNegotiatedOwnershipSaveRestoreContract(Options const&, rti::CallbackModel);
-void scenarioPostResignationServiceBoundaries(Options const&, rti::CallbackModel);
-void scenarioPostResignationServiceBoundariesContract(Options const&, rti::CallbackModel);
 void scenarioQueryLitsAfterSourceResignation(Options const&, rti::CallbackModel);
 void scenarioQueryLitsAfterSourceResignationContract(Options const&, rti::CallbackModel);
 void scenarioRTIambassadorFactoryContract(Options const&, rti::CallbackModel);
@@ -571,8 +560,6 @@ void scenarioServiceReportRegionalInteractionFailure(Options const&, rti::Callba
 void scenarioServiceReportRegionalInteractionFailureContract(Options const&, rti::CallbackModel);
 void scenarioServiceReportRegionalInteractionSubscription(Options const&, rti::CallbackModel);
 void scenarioServiceReportRegionalInteractionSubscriptionContract(Options const&, rti::CallbackModel);
-void scenarioStandardExceptionBoundaries(Options const&, rti::CallbackModel);
-void scenarioStandardExceptionBoundariesContract(Options const&, rti::CallbackModel);
 void scenarioFederateApplicationMultipleExecutions(
     Options const&, rti::CallbackModel);
 void scenarioFederateApplicationMultipleExecutionsContract(

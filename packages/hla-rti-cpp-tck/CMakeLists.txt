@@ -28,6 +28,7 @@ endif()
 
 add_executable(hla_rti_cpp_tck
   src/main.cpp
+  src/tck_federation_lifecycle_scenarios.cpp
   src/tck_callback_controls_object_ownership.cpp
   src/tck_callback_controls_time_transport.cpp
   src/tck_connection_lifecycle.cpp
