@@ -5542,7 +5542,7 @@ def main() -> int:
         raise AssertionError("regional callback-gating plan row is absent")
     if (
         query_rti_work.source_location_text(regional_callback_gating)
-        != "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_callback_gating_catch2.cpp:459"
+        != "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_arrival_catch2.cpp:6"
         or regional_callback_gating.get("assertions") != 69
         or regional_callback_gating.get("status")
         != "implemented-private-foundation-not-conformance-evidence"
@@ -5556,12 +5556,12 @@ def main() -> int:
     )
     if (
         regional_callback_focus.get("lane_state") != "complete"
-        or regional_callback_focus.get("mapped_test_count") != 1
-        or regional_callback_focus.get("assertion_count") != 69
-        or regional_callback_focus.get("recorded_assertion_count") != 69
-        or regional_callback_focus.get("requirement_count") != 28
-        or regional_callback_focus.get("standard_section_count") != 16
-        or regional_callback_focus.get("requirement_section_pair_count") != 28
+        or regional_callback_focus.get("mapped_test_count") != 2
+        or regional_callback_focus.get("assertion_count") != 138
+        or regional_callback_focus.get("recorded_assertion_count") != 138
+        or regional_callback_focus.get("requirement_count") != 30
+        or regional_callback_focus.get("standard_section_count") != 18
+        or regional_callback_focus.get("requirement_section_pair_count") != 30
     ):
         raise AssertionError("regional callback-gating lane card drifted")
     regional_callback_handles = regional_callback_focus.get("lane_handles")
