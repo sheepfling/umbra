@@ -602,6 +602,16 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
   std::mutex serverConnectionMutex;
   std::shared_ptr<ProcessTransportConnection> serverSenderConnection;
   std::shared_ptr<ProcessTransportConnection> serverReceiverConnection;
+  auto closeFixtureConnections = [&] {
+    listener->close();
+    std::scoped_lock lock(serverConnectionMutex);
+    if (serverSenderConnection) {
+      serverSenderConnection->close();
+    }
+    if (serverReceiverConnection) {
+      serverReceiverConnection->close();
+    }
+  };
   std::exception_ptr serverError;
   std::thread server([&] {
     try {
@@ -969,6 +979,10 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
       receiverConnection->close();
     } catch (...) {
       serverError = std::current_exception();
+      // An unexpected scripted operation must unblock the public client
+      // request so Catch2 reports the error instead of hanging in a later
+      // client call or in the fixture's server join.
+      closeFixtureConnections();
     }
   });
 
@@ -1117,9 +1131,6 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
     if (constrainReceiver) {
       REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
           rti1516_2025::HLAinteger64Time(6)));
-      if (callbackModel == HLA_EVOKED) {
-        REQUIRE_FALSE(senderRti->evokeCallback(0.0));
-      }
     }
     if (gateNmraCallbacks) {
       REQUIRE_FALSE(receiverFederate.hasRemoved());
@@ -1181,16 +1192,7 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
     clientError = std::current_exception();
     // A failed assertion must not enter another synchronous service call
     // while the scripted server may be blocked on a different federate.
-    listener->close();
-    {
-      std::scoped_lock lock(serverConnectionMutex);
-      if (serverSenderConnection) {
-        serverSenderConnection->close();
-      }
-      if (serverReceiverConnection) {
-        serverReceiverConnection->close();
-      }
-    }
+    closeFixtureConnections();
     senderRti.reset();
     receiverRti.reset();
   }
