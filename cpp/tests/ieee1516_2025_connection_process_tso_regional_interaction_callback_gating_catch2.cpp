@@ -770,11 +770,8 @@ void verifyProcessTsoRegionalInteraction(RegionalInteractionAdvance requestKind)
           serveExpected, sender, senderHandler,
           TransportServiceOperation::time_advance_request,
           "The regional interaction server lost sender TAR.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::receive_interaction,
-          "The regional callback-gating server lost receiver post-send poll.");
+      // The interaction is pushed while callbacks are disabled; reopening
+      // callbacks acknowledges that delivery without a receive poll.
       serveExpected(
           receiver,
           receiverHandler,
