@@ -19,6 +19,7 @@
 #include <stdexcept>
 #include <set>
 #include <string>
+#include <system_error>
 #include <thread>
 #include <vector>
 #include <RTI/RTI1516.h>
@@ -437,14 +438,47 @@ std::filesystem::path temporaryServiceReportDirectory() {
   static std::atomic_uint64_t next{0};
   // CTest starts separate processes whose counters all begin at zero. Claim
   // each directory atomically so parallel cases never share or remove it.
+  // A concurrent claim may report file_exists rather than simply return false.
   for (;;) {
     auto const candidate = std::filesystem::temp_directory_path() /
-        ("umbra-service-report-configuration-" + std::to_string(++next));
-    if (std::filesystem::create_directory(candidate)) {
+        ("umbra-next-message-queued-service-report-" +
+         std::to_string(++next));
+    std::error_code error;
+    if (std::filesystem::create_directory(candidate, error)) {
       return candidate;
+    }
+    if (error && error != std::errc::file_exists) {
+      throw std::filesystem::filesystem_error(
+          "Unable to create a temporary service-report directory",
+          candidate, error);
     }
   }
 }
+
+class TemporaryServiceReportDirectory final {
+ public:
+  TemporaryServiceReportDirectory()
+      : path_(temporaryServiceReportDirectory()) {}
+
+  TemporaryServiceReportDirectory(
+      TemporaryServiceReportDirectory const&) = delete;
+  TemporaryServiceReportDirectory& operator=(
+      TemporaryServiceReportDirectory const&) = delete;
+
+  ~TemporaryServiceReportDirectory() {
+    // The path was claimed by this fixture alone. Do not sweep shared temp
+    // roots or use the directory for another case.
+    std::error_code ignored;
+    std::filesystem::remove_all(path_, ignored);
+  }
+
+  [[nodiscard]] std::filesystem::path const& path() const noexcept {
+    return path_;
+  }
+
+ private:
+  std::filesystem::path path_;
+};
 
 void requireIgnoredConfiguration(ConfigurationResult const& result) {
   REQUIRE_FALSE(result.configurationUsed);
@@ -508,7 +542,8 @@ TEST_CASE(
   };
 
   auto runScenario = [](CallbackModel callbackModel) {
-  auto const serviceReportDirectory = temporaryServiceReportDirectory();
+  TemporaryServiceReportDirectory temporaryDirectory;
+  auto const& serviceReportDirectory = temporaryDirectory.path();
   constexpr wchar_t const* federationName =
       L"process-next-message-queued-execution";
   constexpr wchar_t const* senderName =
