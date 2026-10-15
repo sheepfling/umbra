@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <atomic>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <exception>
@@ -47,29 +48,45 @@ class InteractionTransportationFederateAmbassador final
   void confirmInteractionTransportationTypeChange(
       rti1516_2025::InteractionClassHandle const &interactionClass,
       rti1516_2025::TransportationTypeHandle const &transportationType) override {
-    ++changeCount;
     changedInteractionClass = interactionClass;
     changedTransportationType = transportationType;
+    changeCount.fetch_add(1U, std::memory_order_release);
   }
 
   void reportInteractionTransportationType(
       rti1516_2025::FederateHandle const &federate,
       rti1516_2025::InteractionClassHandle const &interactionClass,
       rti1516_2025::TransportationTypeHandle const &transportationType) override {
-    ++queryCount;
     queriedFederate = federate;
     queriedInteractionClass = interactionClass;
     queriedTransportationType = transportationType;
+    queryCount.fetch_add(1U, std::memory_order_release);
   }
 
-  std::size_t changeCount = 0U;
+  std::atomic_size_t changeCount{0U};
   rti1516_2025::InteractionClassHandle changedInteractionClass;
   rti1516_2025::TransportationTypeHandle changedTransportationType;
-  std::size_t queryCount = 0U;
+  std::atomic_size_t queryCount{0U};
   rti1516_2025::FederateHandle queriedFederate;
   rti1516_2025::InteractionClassHandle queriedInteractionClass;
   rti1516_2025::TransportationTypeHandle queriedTransportationType;
 };
+
+void awaitTransportationCallback(
+    rti1516_2025::RTIambassador &rti,
+    CallbackModel callbackModel,
+    std::atomic_size_t const &count) {
+  for (unsigned attempt = 0U;
+       attempt < 40U && count.load(std::memory_order_acquire) == 0U;
+       ++attempt) {
+    if (callbackModel == HLA_EVOKED) {
+      rti.evokeCallback(0.05);
+    } else {
+      // HLA_IMMEDIATE ignores Evoke; its callback thread needs time to finish.
+      std::this_thread::sleep_for(std::chrono::milliseconds(25));
+    }
+  }
+}
 
 }  // namespace
 
@@ -196,14 +213,16 @@ TEST_CASE(
       REQUIRE_NOTHROW(rti->publishInteractionClass(interactionClass));
       REQUIRE_NOTHROW(rti->requestInteractionTransportationTypeChange(
           interactionClass, transportation));
-      REQUIRE_NOTHROW(rti->evokeCallback(0.0));
-      REQUIRE(federate.changeCount == 1U);
+      REQUIRE_NOTHROW(awaitTransportationCallback(
+          *rti, callbackModel, federate.changeCount));
+      REQUIRE(federate.changeCount.load(std::memory_order_acquire) == 1U);
       REQUIRE(federate.changedInteractionClass == interactionClass);
       REQUIRE(federate.changedTransportationType == transportation);
       REQUIRE_NOTHROW(rti->queryInteractionTransportationType(
           queriedFederate, interactionClass));
-      REQUIRE_NOTHROW(rti->evokeCallback(0.0));
-      REQUIRE(federate.queryCount == 1U);
+      REQUIRE_NOTHROW(awaitTransportationCallback(
+          *rti, callbackModel, federate.queryCount));
+      REQUIRE(federate.queryCount.load(std::memory_order_acquire) == 1U);
       REQUIRE(federate.queriedFederate == queriedFederate);
       REQUIRE(federate.queriedInteractionClass == interactionClass);
       REQUIRE(federate.queriedTransportationType == transportation);
@@ -414,15 +433,17 @@ TEST_CASE(
           objectClass, rti1516_2025::InteractionClassHandleSet{interactionClass}));
       REQUIRE_NOTHROW(rti->requestInteractionTransportationTypeChange(
           interactionClass, transportation));
-      REQUIRE_NOTHROW(rti->evokeCallback(0.0));
-      REQUIRE(federate.changeCount == 1U);
+      REQUIRE_NOTHROW(awaitTransportationCallback(
+          *rti, callbackModel, federate.changeCount));
+      REQUIRE(federate.changeCount.load(std::memory_order_acquire) == 1U);
       REQUIRE(federate.changedInteractionClass == interactionClass);
       REQUIRE(federate.changedTransportationType == transportation);
 
       REQUIRE_NOTHROW(rti->queryInteractionTransportationType(
           queriedFederate, interactionClass));
-      REQUIRE_NOTHROW(rti->evokeCallback(0.0));
-      REQUIRE(federate.queryCount == 1U);
+      REQUIRE_NOTHROW(awaitTransportationCallback(
+          *rti, callbackModel, federate.queryCount));
+      REQUIRE(federate.queryCount.load(std::memory_order_acquire) == 1U);
       REQUIRE(federate.queriedFederate == queriedFederate);
       REQUIRE(federate.queriedInteractionClass == interactionClass);
       REQUIRE(federate.queriedTransportationType == transportation);
