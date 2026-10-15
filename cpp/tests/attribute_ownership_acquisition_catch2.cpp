@@ -805,75 +805,88 @@ TEST_CASE(
           requesterHandler,
           TransportServiceOperation::join_federation_execution,
           "The process ownership-acquisition release-denied server lost requester Join.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::get_object_class_handle,
-          "The process ownership-acquisition release-denied server lost requester class lookup.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::get_attribute_handle,
-          "The process ownership-acquisition release-denied server lost requester attribute lookup.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::subscribe_object_class_attributes,
-          "The process ownership-acquisition release-denied server lost requester Subscribe.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::get_object_class_handle,
-          "The process ownership-acquisition release-denied server lost owner class lookup.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::get_attribute_handle,
-          "The process ownership-acquisition release-denied server lost owner attribute lookup.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::publish_object_class_attributes,
-          "The process ownership-acquisition release-denied server lost owner Publish.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::register_object_instance,
-          "The process ownership-acquisition release-denied server lost owner Register.");
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::publish_object_class_attributes,
-          "The process ownership-acquisition release-denied server lost requester Publish.",
-          true);
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::attribute_ownership_acquisition,
-          "The process ownership-acquisition release-denied server lost Acquisition.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::attribute_ownership_release_denied,
-          "The process ownership-acquisition release-denied server lost Release Denied.",
-          true);
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::query_attribute_ownership,
-          "The process ownership-acquisition release-denied server lost the post-denial owner query.",
-          true);
-      serveExpected(
-          requesterSession,
-          requesterHandler,
-          TransportServiceOperation::resign_federation_execution,
-          "The process ownership-acquisition release-denied server lost requester Resign.",
-          true);
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::resign_federation_execution,
-          "The process ownership-acquisition release-denied server lost owner Resign.");
+      // Both federates may issue their next service independently after a
+      // callback. Keep each scripted session in order without making progress
+      // on one connection wait for an unrelated request on the other.
+      std::exception_ptr ownerWorkerError;
+      std::thread ownerWorker([&] {
+        try {
+          serveExpected(
+              ownerSession, ownerHandler,
+              TransportServiceOperation::get_object_class_handle,
+              "The process ownership-acquisition release-denied server lost owner class lookup.");
+          serveExpected(
+              ownerSession, ownerHandler,
+              TransportServiceOperation::get_attribute_handle,
+              "The process ownership-acquisition release-denied server lost owner attribute lookup.");
+          serveExpected(
+              ownerSession, ownerHandler,
+              TransportServiceOperation::publish_object_class_attributes,
+              "The process ownership-acquisition release-denied server lost owner Publish.");
+          serveExpected(
+              ownerSession, ownerHandler,
+              TransportServiceOperation::register_object_instance,
+              "The process ownership-acquisition release-denied server lost owner Register.");
+          serveExpected(
+              ownerSession, ownerHandler,
+              TransportServiceOperation::attribute_ownership_release_denied,
+              "The process ownership-acquisition release-denied server lost Release Denied.",
+              true);
+          serveExpected(
+              ownerSession, ownerHandler,
+              TransportServiceOperation::resign_federation_execution,
+              "The process ownership-acquisition release-denied server lost owner Resign.");
+        } catch (...) {
+          ownerWorkerError = std::current_exception();
+          requesterConnection->close();
+          ownerConnection->close();
+        }
+      });
+      try {
+        serveExpected(
+            requesterSession, requesterHandler,
+            TransportServiceOperation::get_object_class_handle,
+            "The process ownership-acquisition release-denied server lost requester class lookup.");
+        serveExpected(
+            requesterSession, requesterHandler,
+            TransportServiceOperation::get_attribute_handle,
+            "The process ownership-acquisition release-denied server lost requester attribute lookup.");
+        serveExpected(
+            requesterSession, requesterHandler,
+            TransportServiceOperation::subscribe_object_class_attributes,
+            "The process ownership-acquisition release-denied server lost requester Subscribe.");
+        serveExpected(
+            requesterSession, requesterHandler,
+            TransportServiceOperation::publish_object_class_attributes,
+            "The process ownership-acquisition release-denied server lost requester Publish.",
+            true);
+        serveExpected(
+            requesterSession, requesterHandler,
+            TransportServiceOperation::attribute_ownership_acquisition,
+            "The process ownership-acquisition release-denied server lost Acquisition.");
+        serveExpected(
+            requesterSession, requesterHandler,
+            TransportServiceOperation::query_attribute_ownership,
+            "The process ownership-acquisition release-denied server lost the post-denial owner query.",
+            true);
+        serveExpected(
+            requesterSession, requesterHandler,
+            TransportServiceOperation::resign_federation_execution,
+            "The process ownership-acquisition release-denied server lost requester Resign.",
+            true);
+      } catch (...) {
+        requesterConnection->close();
+        ownerConnection->close();
+        ownerWorker.join();
+        if (ownerWorkerError) {
+          std::rethrow_exception(ownerWorkerError);
+        }
+        throw;
+      }
+      ownerWorker.join();
+      if (ownerWorkerError) {
+        std::rethrow_exception(ownerWorkerError);
+      }
       service.detach(ownerSession);
       service.detach(requesterSession);
       ownerConnection->close();
