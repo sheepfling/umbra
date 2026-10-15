@@ -41,7 +41,7 @@ using umbra::test::process_fom_support_2025::composedProcessDefinition;
 }  // namespace
 TEST_CASE(
     "RTIambassador delivers regional Attribute Relevance Advisory transitions through a configured process endpoint",
-    "[integration][foundation][data-distribution-management][object-management][callbacks][transport][process-boundary][public-endpoint][regional-attribute-relevance][2025][rti.service.get-attribute-relevance-advisory-switch][rti.service.set-attribute-relevance-advisory-switch][rti.service.create-region][rti.service.commit-region-modifications][rti.service.subscribe-object-class-attributes-with-regions][rti.service.register-object-instance-with-regions][rti.service.associate-regions-for-updates][rti.service.unassociate-regions-for-updates][federate.callback.turn-updates-on-for-object-instance][federate.callback.turn-updates-off-for-object-instance]") {
+    "[integration][foundation][data-distribution-management][object-management][callbacks][transport][process-boundary][public-endpoint][regional-attribute-relevance][regional-association-transition][2025][rti.service.get-attribute-relevance-advisory-switch][rti.service.set-attribute-relevance-advisory-switch][rti.service.create-region][rti.service.commit-region-modifications][rti.service.subscribe-object-class-attributes-with-regions][rti.service.register-object-instance-with-regions][rti.service.associate-regions-for-updates][rti.service.unassociate-regions-for-updates][federate.callback.turn-updates-on-for-object-instance][federate.callback.turn-updates-off-for-object-instance]") {
   auto runScenario = [](CallbackModel callbackModel) {
     class RecordingOwnerAmbassador final : public NullFederateAmbassador {
      public:
@@ -190,18 +190,14 @@ TEST_CASE(
             senderHandler,
             TransportServiceOperation::register_object_instance_with_regions,
             "The public regional advisory server lost regional Register.");
+        // Evoked discovery drains a queued callback locally; it does not add
+        // a receive_interaction request to this fixed-order process script.
         if (callbackModel == HLA_IMMEDIATE) {
           serveExpected(
               receiver,
               receiverHandler,
               TransportServiceOperation::get_object_class_handle,
               "The public regional advisory server lost immediate discovery polling.");
-        } else {
-          serveExpected(
-              receiver,
-              receiverHandler,
-              TransportServiceOperation::receive_interaction,
-              "The public regional advisory server lost discovery Receive.");
         }
         serveExpected(
             sender,
