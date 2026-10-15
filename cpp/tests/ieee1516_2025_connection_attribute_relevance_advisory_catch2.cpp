@@ -456,7 +456,7 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "RTIambassador delivers Attribute Relevance Advisory callbacks through a configured process endpoint under HLA_EVOKED and HLA_IMMEDIATE",
-    "[integration][foundation][object-management][data-distribution-management][callbacks][callback-immediate][transport][process-boundary][public-endpoint][2025][rti.service.get-attribute-relevance-advisory-switch][rti.service.set-attribute-relevance-advisory-switch][rti.service.publish-object-class-attributes][rti.service.register-object-instance][rti.service.subscribe-object-class-attributes][rti.service.unsubscribe-object-class-attributes][federate.callback.turn-updates-on-for-object-instance][federate.callback.turn-updates-off-for-object-instance]") {
+    "[integration][foundation][object-management][data-distribution-management][callbacks][callback-immediate][transport][process-boundary][process-attribute-relevance-advisory][public-endpoint][2025][rti.service.get-attribute-relevance-advisory-switch][rti.service.set-attribute-relevance-advisory-switch][rti.service.publish-object-class-attributes][rti.service.register-object-instance][rti.service.subscribe-object-class-attributes][rti.service.unsubscribe-object-class-attributes][federate.callback.turn-updates-on-for-object-instance][federate.callback.turn-updates-off-for-object-instance]") {
   auto runScenario = [](CallbackModel callbackModel) {
   class RecordingAttributeRelevanceFederateAmbassador final
       : public NullFederateAmbassador {
@@ -659,18 +659,14 @@ TEST_CASE(
           ownerHandler,
           TransportServiceOperation::register_object_instance,
           "The public process advisory server lost Register.");
+      // Evoked callbacks drain the client's queued push; they do not issue a
+      // receive_interaction request to this fixed-order process server.
       if (callbackModel == HLA_IMMEDIATE) {
         serveExpected(
             receiver,
             receiverHandler,
             TransportServiceOperation::get_object_class_handle,
             "The public process advisory server lost immediate discovery lookup.");
-      } else {
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::receive_interaction,
-            "The public process advisory server lost discovery Receive.");
       }
       serveExpected(
           receiver,
@@ -688,12 +684,6 @@ TEST_CASE(
             ownerHandler,
             TransportServiceOperation::get_object_class_handle,
             "The public process advisory server lost immediate Turn Updates On lookup.");
-      } else {
-        serveExpected(
-            owner,
-            ownerHandler,
-            TransportServiceOperation::receive_interaction,
-            "The public process advisory server lost Turn Updates On Receive.");
       }
       serveExpected(
           receiver,
@@ -706,12 +696,6 @@ TEST_CASE(
             ownerHandler,
             TransportServiceOperation::get_object_class_handle,
             "The public process advisory server lost immediate Turn Updates Off lookup.");
-      } else {
-        serveExpected(
-            owner,
-            ownerHandler,
-            TransportServiceOperation::receive_interaction,
-            "The public process advisory server lost Turn Updates Off Receive.");
       }
       serveExpected(
           owner,
