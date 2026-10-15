@@ -7713,10 +7713,10 @@ def main() -> int:
     if not isinstance(process_time_advance_available, dict):
         raise AssertionError("focused process Available-form row is absent")
     if query_rti_work.source_location_text(process_time_advance_available) != (
-        "cpp/tests/ieee1516_2025_connection_time_advance_available_catch2.cpp:458"
+        "cpp/tests/ieee1516_2025_connection_process_tso_tara_boundary_catch2.cpp:601"
     ):
         raise AssertionError("focused process Available-form source pointer drifted")
-    if process_time_advance_available.get("assertions") != 15:
+    if process_time_advance_available.get("assertions") != 18:
         raise AssertionError("focused process Available-form assertion count drifted")
     if process_time_advance_available.get("traceability_state") != "requirements-mapped":
         raise AssertionError("focused process Available-form row is not mapped")
@@ -7738,7 +7738,7 @@ def main() -> int:
     )
     if not isinstance(process_time_advance_available_handles, dict) or process_time_advance_available_handles.get(
         "catch2_target"
-    ) != "umbra_ieee1516_2025_connection_catch2":
+    ) != "umbra_ieee1516_2025_catch2":
         raise AssertionError("focused process Available-form target handle drifted")
     process_modify_lookahead_grant = next(
         (
