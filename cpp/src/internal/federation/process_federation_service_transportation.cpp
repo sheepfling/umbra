@@ -243,6 +243,15 @@ ProcessFederationService::handleRequestInteractionTransportationTypeChange(
         plan.interactionClassHandle,
         std::move(plan.transportationName)};
     if (options_.pushReceiveOrderEvents) {
+      auto committedTransportationName =
+          registry_.beginInteractionTransportationTypeChange(
+              changeRequest.federationName,
+              changeRequest.requestingFederateId,
+              plan.interactionClassHandle);
+      if (!committedTransportationName) {
+        return internalError(request);
+      }
+      event.transportationName = std::move(*committedTransportationName);
       if (!session.send(TransportServiceMessage{
               TransportServiceMessageKind::event,
               TransportServiceOperation::receive_interaction,

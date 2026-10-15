@@ -2,9 +2,12 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <cstdint>
 #include <exception>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -53,9 +56,13 @@ class RegionalInteractionTransportationFederateAmbassador final
   void confirmInteractionTransportationTypeChange(
       rti1516_2025::InteractionClassHandle const& interactionClass,
       rti1516_2025::TransportationTypeHandle const& transportationType) override {
-    ++changeCount;
-    changedInteractionClass = interactionClass;
-    changedTransportationType = transportationType;
+    {
+      std::scoped_lock lock(callbackMutex);
+      changedInteractionClass = interactionClass;
+      changedTransportationType = transportationType;
+      ++changeCount;
+    }
+    callbackAvailable.notify_all();
   }
 
   void receiveInteraction(
@@ -65,20 +72,38 @@ class RegionalInteractionTransportationFederateAmbassador final
       rti1516_2025::TransportationTypeHandle const& transportationType,
       rti1516_2025::FederateHandle const& producingFederate,
       rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
-    ++receiveCount;
-    receivedInteractionClass = interactionClass;
-    receivedTransportationType = transportationType;
-    receivedProducingFederate = producingFederate;
-    receivedParameterCount = parameterValues.size();
-    receivedRegionCount = optionalSentRegions == nullptr
-        ? 0U
-        : optionalSentRegions->size();
-    receivedOptionalRegions = optionalSentRegions != nullptr;
-    receivedTag.clear();
-    if (userSuppliedTag.size() != 0U) {
-      auto const* first = static_cast<std::uint8_t const*>(userSuppliedTag.data());
-      receivedTag.assign(first, first + userSuppliedTag.size());
+    {
+      std::scoped_lock lock(callbackMutex);
+      receivedInteractionClass = interactionClass;
+      receivedTransportationType = transportationType;
+      receivedProducingFederate = producingFederate;
+      receivedParameterCount = parameterValues.size();
+      receivedRegionCount = optionalSentRegions == nullptr
+          ? 0U
+          : optionalSentRegions->size();
+      receivedOptionalRegions = optionalSentRegions != nullptr;
+      receivedTag.clear();
+      if (userSuppliedTag.size() != 0U) {
+        auto const* first = static_cast<std::uint8_t const*>(userSuppliedTag.data());
+        receivedTag.assign(first, first + userSuppliedTag.size());
+      }
+      ++receiveCount;
     }
+    callbackAvailable.notify_all();
+  }
+
+  bool waitForChange() {
+    std::unique_lock lock(callbackMutex);
+    return callbackAvailable.wait_for(lock, std::chrono::seconds(2), [this] {
+      return changeCount != 0U;
+    });
+  }
+
+  bool waitForReceive() {
+    std::unique_lock lock(callbackMutex);
+    return callbackAvailable.wait_for(lock, std::chrono::seconds(2), [this] {
+      return receiveCount != 0U;
+    });
   }
 
   std::size_t changeCount = 0U;
@@ -92,6 +117,10 @@ class RegionalInteractionTransportationFederateAmbassador final
   std::size_t receivedRegionCount = 0U;
   bool receivedOptionalRegions = false;
   std::vector<std::uint8_t> receivedTag;
+
+ private:
+  std::mutex callbackMutex;
+  std::condition_variable callbackAvailable;
 };
 
 TEST_CASE(
@@ -124,8 +153,12 @@ TEST_CASE(
     std::thread server([&] {
       try {
         EmbeddedFederationRegistry registry;
+        ProcessFederationServiceOptions options;
+        // The IMMEDIATE model receives unsolicited process events without
+        // calling Evoke; the EVOKED model retains its explicit poll fixture.
+        options.pushReceiveOrderEvents = callbackModel == HLA_IMMEDIATE;
         ProcessFederationService service(
-            registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+            registry, composedProcessDefinition(), options);
         auto senderConnection = listener->accept(
             nullptr,
             {"public-process-transportation-regional-interaction-server", 0x9605U},
@@ -271,11 +304,13 @@ TEST_CASE(
             senderHandler,
             TransportServiceOperation::request_interaction_transportation_type_change,
             "The regional transportation process server lost transportation override.");
-        serveExpected(
-            sender,
-            senderHandler,
-            TransportServiceOperation::receive_interaction,
-            "The regional transportation process server lost transportation confirmation.");
+        if (callbackModel == HLA_EVOKED) {
+          serveExpected(
+              sender,
+              senderHandler,
+              TransportServiceOperation::receive_interaction,
+              "The regional transportation process server lost transportation confirmation.");
+        }
         serveExpected(
             receiver,
             receiverHandler,
@@ -301,11 +336,13 @@ TEST_CASE(
             senderHandler,
             TransportServiceOperation::report_successful_void_service_invocation,
             "The regional transportation process server lost the successful regional Send report.");
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::receive_interaction,
-            "The regional transportation process server lost regional Receive.");
+        if (callbackModel == HLA_EVOKED) {
+          serveExpected(
+              receiver,
+              receiverHandler,
+              TransportServiceOperation::receive_interaction,
+              "The regional transportation process server lost regional Receive.");
+        }
         serveExpected(
             receiver,
             receiverHandler,
@@ -421,7 +458,12 @@ TEST_CASE(
       REQUIRE_NOTHROW(senderRti->publishInteractionClass(senderInteraction));
       REQUIRE_NOTHROW(senderRti->requestInteractionTransportationTypeChange(
           senderInteraction, transportation));
-      REQUIRE_NOTHROW(senderRti->evokeCallback(0.0));
+      // A zero-duration Evoke may legally return before the process callback
+      // reaches the EVOKED dispatcher. IMMEDIATE delivery needs no Evoke.
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE_NOTHROW(senderRti->evokeCallback(1.0));
+      }
+      REQUIRE(senderFederate.waitForChange());
       REQUIRE(senderFederate.changeCount == 1U);
       REQUIRE(senderFederate.changedInteractionClass == senderInteraction);
       REQUIRE(senderFederate.changedTransportationType == transportation);
@@ -443,7 +485,10 @@ TEST_CASE(
           parameterValues,
           rti1516_2025::RegionHandleSet{senderRegion},
           VariableLengthData(tag.data(), tag.size())));
-      REQUIRE_NOTHROW(receiverRti->evokeCallback(0.0));
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE_NOTHROW(receiverRti->evokeCallback(1.0));
+      }
+      REQUIRE(receiverFederate.waitForReceive());
 
       REQUIRE(receiverFederate.receiveCount == 1U);
       REQUIRE(receiverFederate.receivedInteractionClass == receiverInteraction);

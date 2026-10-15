@@ -48492,10 +48492,10 @@
         "hla-1516.1-2025:clause-10.44"
       ],
       "test_case": "RTIambassadors preserve a regional interaction transportation override through a configured process endpoint",
-      "source_location": "cpp/tests/ieee1516_2025_connection_regional_interaction_transportation_override_catch2.cpp:97",
+      "source_location": "cpp/tests/ieee1516_2025_connection_regional_interaction_transportation_override_catch2.cpp:126",
       "primary_lane": "process-transportation-regional-interaction-control",
       "focus_lane": "process-transportation-regional-interaction-control",
-      "assertions": 84,
+      "assertions": 86,
       "callback_models": [
         "HLA_EVOKED",
         "HLA_IMMEDIATE"
