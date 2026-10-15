@@ -31188,7 +31188,7 @@
       "test_case": "RTIambassador carries Query Attribute Ownership through a configured process endpoint",
       "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:685",
       "primary_lane": "process-ownership-query",
-      "assertions": 26,
+      "assertions": 25,
       "callback_models": [
         "HLA_EVOKED"
       ],

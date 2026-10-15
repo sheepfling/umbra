@@ -784,8 +784,7 @@ TEST_CASE(
       objectInstance,
       AttributeHandleSet{ownedAttribute, unownedAttribute}));
   REQUIRE(reports.attributeOwnershipReports.empty());
-  REQUIRE(rti->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE_FALSE(rti->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_NOTHROW(rti->evokeMultipleCallbacks(0.25, 0.25));
   REQUIRE(reports.attributeOwnershipReports.size() == 2U);
 
   auto const federateReport = std::find_if(

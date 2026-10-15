@@ -95,11 +95,12 @@ bool UmbraRtiAmbassador::evokeMultipleCallbacks(
   };
   pumpPeriodicMomUpdates();
   // Evoke Multiple must admit all currently available process-boundary
-  // receive-order events before handing control to the shared dispatcher.
-  // The single-callback service keeps its one-poll behavior; only this
-  // multiple-callback path drains the deterministic polling queue.
+  // receive-order events before handing control to the shared dispatcher
+  // when delivery is enabled. With callbacks disabled, admit one event but
+  // leave the remainder for a later Evoke instead of polling past the gated
+  // callback. The single-callback service also keeps its one-poll behavior.
   if (callbacks_->pendingCount() == 0U) {
-    pumpProcessReceiveOrder(true);
+    pumpProcessReceiveOrder(callbacks_->isEnabled());
   }
 #endif
   auto const result = callbacks_->evokeMultiple(
@@ -148,6 +149,7 @@ void UmbraRtiAmbassador::pumpProcessReceiveOrder(bool drainAll) {
   try {
     // Drain events captured during earlier service requests before polling.
     // This keeps evoked scope callbacks from triggering unrelated network IO.
+    bool polledEventDuringDrain = false;
     while (true) {
       bool delivered = false;
       auto dispatchPending = [&] {
@@ -235,19 +237,29 @@ void UmbraRtiAmbassador::pumpProcessReceiveOrder(bool drainAll) {
       dispatchPending();
       // A background process-stream reader can already have submitted an
       // unsolicited frame to the official callback dispatcher. Return to
-      // Evoke so it can deliver that callback instead of polling or spinning
-      // on the same pending callback in this drain loop.
-      if (!delivered && processClient->pendingCallbackCount() != 0U) {
+      // Evoke instead of polling in that case. A callback submitted by this
+      // drain's own receive poll must not stop Evoke Multiple from admitting
+      // the remaining queued receive-order events.
+      if (!delivered && processClient->pendingCallbackCount() != 0U &&
+          (!drainAll || !polledEventDuringDrain)) {
         break;
       }
       if (!delivered) {
-        auto event = processClient->receiveInteraction(
+        auto poll = processClient->receiveInteraction(
             federationName, receivingFederateId);
-        if (event) {
-          processClient->dispatchReceiveOrder(std::move(*event));
+        if (poll.interaction) {
+          processClient->dispatchReceiveOrder(std::move(*poll.interaction));
           delivered = true;
         }
         dispatchPending();
+        // Typed ownership and other non-interaction results can be handed to
+        // the concurrent process dispatcher before dispatchPending observes
+        // them. Count the buffered result while the client still owns its
+        // queue lock so this drain cannot miss that progress.
+        delivered = delivered || poll.bufferedOtherEvent;
+        // A poll can carry ownership, advisory, discovery, or other typed
+        // receive-order work without returning an interaction event itself.
+        polledEventDuringDrain = polledEventDuringDrain || delivered;
       }
       // Evoke Multiple admits the complete currently available queue. Single
       // callback entry points avoid this drain when work is already pending.

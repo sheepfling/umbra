@@ -824,7 +824,11 @@ class ProcessFederationClient final {
 
   // Poll the private service queue.  A pushed event received while another
   // request is in flight is retained and returned before a new socket read.
-  [[nodiscard]] std::optional<ProcessFederationInteractionEvent>
+  struct ReceiveInteractionPoll final {
+    std::optional<ProcessFederationInteractionEvent> interaction;
+    bool bufferedOtherEvent = false;
+  };
+  [[nodiscard]] ReceiveInteractionPoll
   receiveInteraction(
       std::wstring federationName,
       std::uint64_t receivingFederateId);

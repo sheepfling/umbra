@@ -212,7 +212,7 @@ ProcessFederationClient::requestAttributeValueUpdateClassWithRegions(
       response.payload);
 }
 
-std::optional<ProcessFederationInteractionEvent>
+ProcessFederationClient::ReceiveInteractionPoll
 ProcessFederationClient::receiveInteraction(
     std::wstring federationName,
     std::uint64_t receivingFederateId) {
@@ -228,13 +228,16 @@ ProcessFederationClient::receiveInteraction(
   auto result = decodeProcessFederationReceiveInteractionResult(response.payload);
   auto event = std::move(result.event);
   result.event.reset();
+  bool bufferedOtherEvent = false;
   {
     std::scoped_lock lock(transactionMutex_);
     if (session_) {
+      auto const pendingBefore = pendingEvents_.size();
       bufferReceiveResult(std::move(result));
+      bufferedOtherEvent = pendingEvents_.size() != pendingBefore;
     }
   }
-  return event;
+  return {std::move(event), bufferedOtherEvent};
 }
 
 std::optional<ProcessFederationAttributeUpdateEvent>
