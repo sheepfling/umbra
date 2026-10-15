@@ -123,3 +123,142 @@ TEST_CASE(
     REQUIRE_NOTHROW(rti->disconnect());
   }
 }
+
+TEST_CASE(
+    "Embedded public immediate fresh-registry restore keeps an object-name reservation with its federate",
+    "[integration][development-profile][2025][federation-management]"
+    "[object-management][save-restore][durable-save][filesystem][process-restart]"
+    "[public-immediate-fresh-registry-object-name-ownership]"
+    "[callback-immediate][multi-federate]"
+    "[rti.service.reserve-object-instance-name]"
+    "[rti.service.release-object-instance-name]"
+    "[rti.service.request-federation-save][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][rti.service.request-federation-restore]"
+    "[rti.service.federate-restore-complete]"
+    "[federate.callback.object-instance-name-reservation-succeeded]"
+    "[federate.callback.object-instance-name-reservation-failed]") {
+  auto const saveDirectory = temporaryFederationSaveDirectory();
+  auto const saveStore =
+      std::make_shared<umbra::detail::FilesystemFederationSaveCommitStore>(
+          saveDirectory.path());
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "attribute-update-passel-fom.xml")
+          .wstring();
+  std::wstring const reservedName = L"restored-owned-reservation";
+  std::wstring const saveLabel = L"immediate-owned-reservation";
+  FederateHandle sourceOwnerHandle;
+  FederateHandle sourceOtherHandle;
+
+  auto const flushImmediate = [](RTIambassador& rti) {
+    REQUIRE(rti.getObjectClassHandle(
+                fixture_hla::fom::attribute_fixture_child).isValid());
+  };
+
+  {
+    auto registry = std::make_shared<umbra::detail::EmbeddedFederationRegistry>(
+        nullptr, saveStore);
+    ScopedEmbeddedFederationRegistry scope(registry);
+    ReportingFederateAmbassador ownerReports;
+    ReportingFederateAmbassador otherReports;
+    auto owner = makeRti();
+    auto other = makeRti();
+    REQUIRE_NOTHROW(owner->connect(ownerReports, rti1516_2025::HLA_IMMEDIATE));
+    REQUIRE_NOTHROW(other->connect(otherReports, rti1516_2025::HLA_IMMEDIATE));
+    REQUIRE_NOTHROW(owner->createFederationExecution(
+        federationName, fomModule, standard_hla::mom::integer64_time));
+    REQUIRE_NOTHROW(sourceOwnerHandle = owner->joinFederationExecution(
+        L"name-owner", L"publisher", federationName));
+    REQUIRE_NOTHROW(sourceOtherHandle = other->joinFederationExecution(
+        L"name-other", L"subscriber", federationName));
+
+    REQUIRE_NOTHROW(owner->reserveObjectInstanceName(reservedName));
+    flushImmediate(*owner);
+    REQUIRE(ownerReports.objectInstanceNameReservationSucceededReports.size() == 1U);
+    REQUIRE(ownerReports.objectInstanceNameReservationSucceededReports.front()
+                .objectInstanceName == reservedName);
+    REQUIRE_NOTHROW(other->reserveObjectInstanceName(reservedName));
+    flushImmediate(*other);
+    REQUIRE(otherReports.objectInstanceNameReservationFailedReports.size() == 1U);
+    REQUIRE(otherReports.objectInstanceNameReservationFailedReports.front()
+                .objectInstanceName == reservedName);
+
+    REQUIRE_NOTHROW(owner->requestFederationSave(saveLabel));
+    REQUIRE_NOTHROW(owner->federateSaveBegun());
+    REQUIRE_NOTHROW(other->federateSaveBegun());
+    REQUIRE_NOTHROW(owner->federateSaveComplete());
+    REQUIRE_NOTHROW(other->federateSaveComplete());
+    auto const durable = saveStore->load(federationName, saveLabel);
+    REQUIRE(durable.has_value());
+    auto const image = umbra::detail::FederationStateImageCodec::decode(
+        durable->stateImage);
+    REQUIRE(image.reservedObjectInstanceNames.size() == 1U);
+    REQUIRE(image.reservedObjectInstanceNames.front().objectInstanceName ==
+            reservedName);
+    auto const ownerValue =
+        rti1516_2025::umbra_binding_detail::federateHandleValue(
+            sourceOwnerHandle);
+    REQUIRE(ownerValue.has_value());
+    REQUIRE(image.reservedObjectInstanceNames.front().federateId == *ownerValue);
+
+    REQUIRE_NOTHROW(other->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(other->disconnect());
+    REQUIRE_NOTHROW(owner->disconnect());
+  }
+
+  {
+    auto registry = std::make_shared<umbra::detail::EmbeddedFederationRegistry>(
+        nullptr, saveStore);
+    ScopedEmbeddedFederationRegistry scope(registry);
+    ReportingFederateAmbassador ownerReports;
+    ReportingFederateAmbassador otherReports;
+    auto owner = makeRti();
+    auto other = makeRti();
+    REQUIRE_NOTHROW(owner->connect(ownerReports, rti1516_2025::HLA_IMMEDIATE));
+    REQUIRE_NOTHROW(other->connect(otherReports, rti1516_2025::HLA_IMMEDIATE));
+    REQUIRE_NOTHROW(owner->createFederationExecution(
+        federationName, fomModule, standard_hla::mom::integer64_time));
+    FederateHandle freshOwnerHandle;
+    FederateHandle freshOtherHandle;
+    REQUIRE_NOTHROW(freshOwnerHandle = owner->joinFederationExecution(
+        L"name-owner", L"publisher", federationName));
+    REQUIRE_NOTHROW(freshOtherHandle = other->joinFederationExecution(
+        L"name-other", L"subscriber", federationName));
+    REQUIRE(freshOwnerHandle == sourceOwnerHandle);
+    REQUIRE(freshOtherHandle == sourceOtherHandle);
+
+    REQUIRE_NOTHROW(owner->requestFederationRestore(saveLabel));
+    flushImmediate(*owner);
+    flushImmediate(*other);
+    REQUIRE(ownerReports.requestFederationRestoreSucceededReports ==
+            std::vector<std::wstring>{saveLabel});
+    REQUIRE_NOTHROW(owner->federateRestoreComplete());
+    REQUIRE_NOTHROW(other->federateRestoreComplete());
+
+    REQUIRE_THROWS_AS(other->releaseObjectInstanceName(reservedName),
+                      rti1516_2025::ObjectInstanceNameNotReserved);
+    REQUIRE_NOTHROW(other->reserveObjectInstanceName(reservedName));
+    flushImmediate(*other);
+    REQUIRE(otherReports.objectInstanceNameReservationFailedReports.size() == 1U);
+    REQUIRE(otherReports.objectInstanceNameReservationSucceededReports.empty());
+
+    REQUIRE_NOTHROW(owner->releaseObjectInstanceName(reservedName));
+    REQUIRE_NOTHROW(other->reserveObjectInstanceName(reservedName));
+    flushImmediate(*other);
+    REQUIRE(otherReports.objectInstanceNameReservationSucceededReports.size() == 1U);
+    REQUIRE(otherReports.objectInstanceNameReservationSucceededReports.front()
+                .objectInstanceName == reservedName);
+    REQUIRE_THROWS_AS(owner->releaseObjectInstanceName(reservedName),
+                      rti1516_2025::ObjectInstanceNameNotReserved);
+    REQUIRE_NOTHROW(other->releaseObjectInstanceName(reservedName));
+
+    REQUIRE_NOTHROW(other->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(other->disconnect());
+    REQUIRE_NOTHROW(owner->disconnect());
+  }
+}
