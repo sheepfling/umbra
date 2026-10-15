@@ -978,4 +978,136 @@ TEST_CASE(
   REQUIRE_FALSE(serverError);
 }
 
+TEST_CASE(
+    "RTIambassador reports a process ownership transition after unconditional divestiture",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[transport][process-boundary][process-ownership-transition-query]"
+    "[public-endpoint][query-attribute-ownership]"
+    "[unconditional-attribute-ownership-divestiture]"
+    "[federate.callback.inform-attribute-ownership]"
+    "[federate.callback.attribute-is-not-owned][2025]") {
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener != nullptr);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry, composedProcessOwnershipDefinition());
+      auto connection = listener->accept(
+          nullptr,
+          {"process-ownership-transition-server", 0xA705U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      bool resigned = false;
+      std::size_t requestCount = 0U;
+      while (!resigned && requestCount != 96U &&
+             umbra::test::servePrimaryProcessRequest(
+                 session, handler,
+                 [&](umbra::detail::TransportServiceMessage const& request) {
+                   using umbra::detail::TransportServiceOperation;
+                   switch (request.operation) {
+                     case TransportServiceOperation::create_federation_execution:
+                     case TransportServiceOperation::join_federation_execution:
+                     case TransportServiceOperation::get_object_class_handle:
+                     case TransportServiceOperation::get_attribute_handle:
+                     case TransportServiceOperation::publish_object_class_attributes:
+                     case TransportServiceOperation::register_object_instance:
+                     case TransportServiceOperation::query_attribute_ownership:
+                     case TransportServiceOperation::unconditional_attribute_ownership_divestiture:
+                     case TransportServiceOperation::report_successful_void_service_invocation:
+                     case TransportServiceOperation::receive_interaction:
+                       break;
+                     case TransportServiceOperation::resign_federation_execution:
+                       resigned = true;
+                       break;
+                     default:
+                       throw std::runtime_error(
+                           "The process ownership-transition server received an unexpected operation.");
+                   }
+                   return handler(request);
+                 })) {
+        ++requestCount;
+      }
+      if (!resigned) {
+        throw std::runtime_error(
+            "The process ownership-transition server did not receive Resign.");
+      }
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  auto const federationName = nextFederationName() + L"-process-transition";
+  auto const fomModule = resourcePath("attribute-update-passel-fom.xml").wstring();
+  ReportingFederateAmbassador reports;
+  auto rti = makeRti();
+  auto configuration = rti1516_2025::RtiConfiguration::createConfiguration()
+                           .withConfigurationName(L"process-ownership-transition-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(rti->createFederationExecution(federationName, fomModule));
+  FederateHandle owner;
+  REQUIRE_NOTHROW(owner = rti->joinFederationExecution(
+      L"process-ownership-transition-federate", L"publisher", federationName));
+  REQUIRE(owner.isValid());
+
+  auto const child = rti->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const attribute = rti->getAttributeHandle(
+      child, fixture_hla::fixture::reliable_base_a);
+  REQUIRE(child.isValid());
+  REQUIRE(attribute.isValid());
+  REQUIRE_NOTHROW(rti->publishObjectClassAttributes(
+      child, AttributeHandleSet{attribute}));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = rti->registerObjectInstance(child));
+  REQUIRE(objectInstance.isValid());
+
+  auto queryAndEvoke = [&] {
+    REQUIRE_NOTHROW(rti->queryAttributeOwnership(
+        objectInstance, AttributeHandleSet{attribute}));
+    REQUIRE(reports.attributeOwnershipReports.empty());
+    for (std::size_t pass = 0U;
+         pass != 16U && reports.attributeOwnershipReports.empty(); ++pass) {
+      static_cast<void>(rti->evokeCallback(0.25));
+    }
+    REQUIRE(reports.attributeOwnershipReports.size() == 1U);
+    auto const report = reports.attributeOwnershipReports.front();
+    reports.attributeOwnershipReports.clear();
+    return report;
+  };
+  auto const before = queryAndEvoke();
+  REQUIRE(before.kind ==
+          ReportingFederateAmbassador::AttributeOwnershipReport::Kind::federate);
+  REQUIRE(before.objectInstance == objectInstance);
+  REQUIRE(before.attributes == AttributeHandleSet{attribute});
+  REQUIRE(before.owner == owner);
+
+  unsigned char const tagBytes[] = {0x54, 0xA7};
+  REQUIRE_NOTHROW(rti->unconditionalAttributeOwnershipDivestiture(
+      objectInstance, AttributeHandleSet{attribute},
+      VariableLengthData(tagBytes, sizeof(tagBytes))));
+  auto const after = queryAndEvoke();
+  REQUIRE(after.kind ==
+          ReportingFederateAmbassador::AttributeOwnershipReport::Kind::unowned);
+  REQUIRE(after.objectInstance == objectInstance);
+  REQUIRE(after.attributes == AttributeHandleSet{attribute});
+  REQUIRE_FALSE(after.owner.isValid());
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(rti->disconnect());
+  listener.reset();
+  server.join();
+  REQUIRE_FALSE(serverError);
+}
+
 #endif

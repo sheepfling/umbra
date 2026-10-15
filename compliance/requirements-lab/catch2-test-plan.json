@@ -31283,6 +31283,60 @@
       "next_action": "Keep the RTI-owned MOM result separate from the existing grouped federate-owned/unowned process query. Add ownership-transition and mixed-set process cases, push-mode delivery, packaging/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
     },
     {
+      "id": "umbra-cpp-process-ownership-query-after-unconditional-divestiture",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.queryattributeownership.8e2fc379ef34",
+        "api.2025.cpp.rtiambassador.unconditionalattributeownershipdivestiture.2570df96a3a7",
+        "api.2025.cpp.federateambassador.informattributeownership.6fd57319c7ea",
+        "api.2025.cpp.federateambassador.attributeisnotowned.83a830c0882b"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
+      ],
+      "test_case": "RTIambassador reports a process ownership transition after unconditional divestiture",
+      "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:981",
+      "ctest_target": "umbra_attribute_ownership_query_catch2",
+      "ctest_filter": "^umbra\\.attribute_ownership_query\\.catch2\\.RTIambassador reports a process ownership transition after unconditional divestiture$",
+      "primary_lane": "process-ownership-transition-query",
+      "focus_lane": "process-ownership-transition-query",
+      "assertions": 29,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "delivery_modes": [
+        "configured-process-endpoint",
+        "receive-order-ownership-callback",
+        "federate-owned-to-unowned-transition"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.2",
+        "hla-1516.1-2025:clause-7.17.5",
+        "hla-1516.1-2025:clause-7.18.4"
+      ],
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "ownership-management",
+        "transport",
+        "process-boundary",
+        "process-ownership-transition-query",
+        "public-endpoint",
+        "query-attribute-ownership",
+        "unconditional-attribute-ownership-divestiture",
+        "federate.callback.inform-attribute-ownership",
+        "federate.callback.attribute-is-not-owned",
+        "2025"
+      ],
+      "status": "implemented-public-foundation-not-conformance-evidence",
+      "requirements_lab_api_surface_status": "The official 2025 C++ Query Attribute Ownership service reports a federate owner through a configured process endpoint, then reports the same instance attribute unowned after a successful public Unconditional Attribute Ownership Divestiture call. This is one bounded development-profile state transition; it does not establish complete ownership arbitration or conformance.",
+      "next_action": "Keep the before/after query and divestiture transition green. Add acquisition to a second joined federate, mixed-set transitions, push-mode delivery, package/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
+    },
+    {
       "id": "umbra-cpp-attribute-ownership-acquisition-if-available-integration",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.attributeownershipacquisitionifavailable.8b37c270d6b9",
