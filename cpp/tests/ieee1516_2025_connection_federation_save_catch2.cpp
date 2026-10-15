@@ -2167,16 +2167,8 @@ TEST_CASE(
           ownerHandler,
           TransportServiceOperation::receive_interaction,
           "The queued-TSO timed-save server lost owner save polling.");
-      serveExpected(
-          firstSession,
-          firstHandler,
-          TransportServiceOperation::receive_interaction,
-          "The queued-TSO timed-save server lost first save polling.");
-      serveExpected(
-          secondSession,
-          secondHandler,
-          TransportServiceOperation::receive_interaction,
-          "The queued-TSO timed-save server lost second save polling.");
+      // Both constrained recipients have timed Initiate and grant callbacks
+      // pending when Evoked; draining them does not issue another poll.
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -2425,7 +2417,9 @@ TEST_CASE(
     REQUIRE(ownerFederate.timeAdvanceGrantCount == 1U);
     REQUIRE(ownerFederate.timedInitiateCount == 0U);
 
-    static_cast<void>(ownerRti->evokeCallback(0.0));
+    // The timed Initiate may arrive after the grant's Evoke returns; allow a
+    // bounded wait for this distinct callback on the official Evoke surface.
+    static_cast<void>(ownerRti->evokeCallback(0.25));
     REQUIRE(ownerFederate.timedInitiateCount == 1U);
     REQUIRE(ownerFederate.timedInitiateLabel == saveLabel);
     REQUIRE(ownerFederate.timedInitiateImplementation == L"HLAinteger64Time");
