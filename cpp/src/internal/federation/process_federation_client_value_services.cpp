@@ -271,6 +271,12 @@ ProcessFederationClient::claimDeferredAttributeUpdate(
           ProcessFederationReceiveInteractionRequest{
               federationName, receivingFederateId}),
       false);
+  // A marker may outlive its server-side membership while resignation is in
+  // flight. Rejection of this private claim means there is no callback to
+  // materialize; it is not an application-visible service failure.
+  if (response.status == TransportServiceStatus::rejected) {
+    return std::nullopt;
+  }
   if (response.status != TransportServiceStatus::ok) {
     throw ProcessFederationClientError(
         requestFailure(response.operation, response.status));

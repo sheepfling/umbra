@@ -12,9 +12,13 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <cstdint>
+#include <exception>
 #include <filesystem>
+#include <functional>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -98,6 +102,9 @@ class RegionalReceiver final : public NullFederateAmbassador {
       TransportationTypeHandle const&,
       FederateHandle const&,
       RegionHandleSet const* sentRegions) override {
+    if (onReflection) {
+      onReflection();
+    }
     receivedAttributes = values.size();
     receivedSentRegions = sentRegions == nullptr ? 0U : sentRegions->size();
     if (tag.size() != 0U) {
@@ -114,6 +121,7 @@ class RegionalReceiver final : public NullFederateAmbassador {
   std::size_t receivedSentRegions = 0U;
   std::vector<std::uint8_t> receivedTag;
   std::vector<std::vector<std::uint8_t>> receivedTags;
+  std::function<void()> onReflection;
 };
 
 std::unique_ptr<RTIambassador> makeRti() {
@@ -329,10 +337,170 @@ void runScenario(bool enableDelay, CallbackModel callbackModel) {
     sender->updateAttributeValues(
         object, values, VariableLengthData(sixthTag.data(), sixthTag.size()));
     sender->deleteObjectInstance(object, VariableLengthData{});
+    auto const sentinel = sender->registerObjectInstanceWithRegions(
+        senderClass, senderPairs);
+    REQUIRE(sentinel.isValid());
+    std::array<std::uint8_t, 1U> const seventhTag{0xD7U};
+    sender->updateAttributeValues(
+        sentinel, values, VariableLengthData(seventhTag.data(), seventhTag.size()));
     receiver->enableCallbacks();
-    drainCallbacksFor(*receiver, callbackModel);
-    REQUIRE(receiverFederate.reflections == expectedReflections);
+    pumpCallbacksUntil(*receiver, callbackModel, [&] {
+      return receiverFederate.reflections == expectedReflections + 1U;
+    });
+    REQUIRE(receiverFederate.reflections == expectedReflections + 1U);
+    REQUIRE(receiverFederate.receivedTag ==
+            std::vector<std::uint8_t>(seventhTag.begin(), seventhTag.end()));
   }
+
+  receiver->resignFederationExecution(NO_ACTION);
+  sender->resignFederationExecution(DELETE_OBJECTS);
+  sender->destroyFederationExecution(federationName);
+  receiver->disconnect();
+  sender->disconnect();
+  host.stop();
+  REQUIRE_NOTHROW(host.rethrowIfFailed());
+}
+
+void runResignCallbackFenceScenario() {
+  EmbeddedFederationRegistry registry;
+  ProcessFederationServiceHost host(
+      registry,
+      delayedRegionalDefinition(true),
+      {"127.0.0.1", 0U},
+      {"umbra-delayed-regional-resign-test", 0xD352U},
+      ProcessFederationServiceOptions{true});
+  host.start();
+
+  constexpr wchar_t const* federationName = L"process-delayed-regional-resign";
+  NullFederateAmbassador senderFederate;
+  RegionalReceiver receiverFederate;
+  auto sender = makeRti();
+  auto receiver = makeRti();
+  REQUIRE(sender->connect(
+      senderFederate, HLA_IMMEDIATE,
+      configurationFor(host.address().port, L"delayed-regional-resign-sender")).addressUsed);
+  REQUIRE(receiver->connect(
+      receiverFederate, HLA_IMMEDIATE,
+      configurationFor(host.address().port, L"delayed-regional-resign-receiver")).addressUsed);
+  sender->createFederationExecution(federationName, L"server-owned-fom.xml");
+  sender->joinFederationExecution(L"sender", L"test", federationName);
+  receiver->joinFederationExecution(L"receiver", L"test", federationName);
+  auto const oldMember = registry.memberByName(federationName, L"receiver");
+  REQUIRE(oldMember);
+
+  auto const objectClass = sender->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+  auto const attribute = sender->getAttributeHandle(objectClass, L"Flavor");
+  auto const dimension = sender->getDimensionHandle(L"SodaFlavor");
+  auto const senderRegion = sender->createRegion(DimensionHandleSet{dimension});
+  sender->setRangeBounds(senderRegion, dimension, RangeBounds(0UL, 1UL));
+  sender->commitRegionModifications(RegionHandleSet{senderRegion});
+  AttributeHandleSet const attributes{attribute};
+  AttributeHandleSetRegionHandleSetPairVector const senderPairs{{
+      attributes, RegionHandleSet{senderRegion},
+  }};
+  sender->publishObjectClassAttributes(objectClass, attributes);
+
+  auto const receiverClass = receiver->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+  auto const receiverAttribute = receiver->getAttributeHandle(receiverClass, L"Flavor");
+  auto const receiverDimension = receiver->getDimensionHandle(L"SodaFlavor");
+  auto const receiverRegion = receiver->createRegion(DimensionHandleSet{receiverDimension});
+  receiver->setRangeBounds(receiverRegion, receiverDimension, RangeBounds(0UL, 1UL));
+  receiver->commitRegionModifications(RegionHandleSet{receiverRegion});
+  AttributeHandleSetRegionHandleSetPairVector const receiverPairs{{
+      AttributeHandleSet{receiverAttribute}, RegionHandleSet{receiverRegion},
+  }};
+  receiver->subscribeObjectClassAttributesWithRegions(receiverClass, receiverPairs);
+  auto const object = sender->registerObjectInstanceWithRegions(objectClass, senderPairs);
+  REQUIRE(object.isValid());
+  pumpCallbacksUntil(*receiver, HLA_IMMEDIATE, [&] {
+    return receiverFederate.discoveries == 1U;
+  });
+  REQUIRE(receiverFederate.discoveries == 1U);
+
+  std::mutex gateMutex;
+  std::condition_variable gate;
+  bool entered = false;
+  bool release = false;
+  std::atomic<bool> blockFirst{true};
+  receiverFederate.onReflection = [&] {
+    if (!blockFirst.exchange(false)) {
+      return;
+    }
+    std::unique_lock lock(gateMutex);
+    entered = true;
+    gate.notify_all();
+    gate.wait(lock, [&] { return release; });
+  };
+  std::array<std::uint8_t, 1U> const value{0xE0U};
+  AttributeHandleValueMap values;
+  values.emplace(attribute, VariableLengthData(value.data(), value.size()));
+  std::array<std::uint8_t, 1U> const oldTag{0xE1U};
+  sender->updateAttributeValues(
+      object, values, VariableLengthData(oldTag.data(), oldTag.size()));
+  {
+    std::unique_lock lock(gateMutex);
+    REQUIRE(gate.wait_for(lock, std::chrono::seconds(2), [&] { return entered; }));
+  }
+  std::array<std::uint8_t, 1U> const queuedOldTag{0xE2U};
+  sender->updateAttributeValues(
+      object, values, VariableLengthData(queuedOldTag.data(), queuedOldTag.size()));
+
+  std::atomic<bool> resignFinished{false};
+  std::exception_ptr resignError;
+  std::thread resignThread([&] {
+    try {
+      receiver->resignFederationExecution(NO_ACTION);
+    } catch (...) {
+      resignError = std::current_exception();
+    }
+    resignFinished.store(true, std::memory_order_release);
+  });
+  bool serverResigned = false;
+  for (unsigned attempt = 0U; attempt < 200U; ++attempt) {
+    if (!registry.memberByName(federationName, L"receiver")) {
+      serverResigned = true;
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  auto const completedBeforeCallbackReturn =
+      resignFinished.load(std::memory_order_acquire);
+  {
+    std::scoped_lock lock(gateMutex);
+    release = true;
+  }
+  gate.notify_all();
+  resignThread.join();
+  REQUIRE(serverResigned);
+  REQUIRE_FALSE(completedBeforeCallbackReturn);
+  if (resignError) {
+    std::rethrow_exception(resignError);
+  }
+  REQUIRE(receiverFederate.reflections == 1U);
+  REQUIRE(receiverFederate.receivedTag ==
+          std::vector<std::uint8_t>(oldTag.begin(), oldTag.end()));
+
+  receiver->joinFederationExecution(L"receiver", L"test", federationName);
+  auto const newMember = registry.memberByName(federationName, L"receiver");
+  REQUIRE(newMember);
+  REQUIRE(newMember->id != oldMember->id);
+  auto const newRegion = receiver->createRegion(DimensionHandleSet{receiverDimension});
+  receiver->setRangeBounds(newRegion, receiverDimension, RangeBounds(0UL, 1UL));
+  receiver->commitRegionModifications(RegionHandleSet{newRegion});
+  AttributeHandleSetRegionHandleSetPairVector const newPairs{{
+      AttributeHandleSet{receiverAttribute}, RegionHandleSet{newRegion},
+  }};
+  receiver->subscribeObjectClassAttributesWithRegions(receiverClass, newPairs);
+  std::array<std::uint8_t, 1U> const newTag{0xE3U};
+  sender->updateAttributeValues(
+      object, values, VariableLengthData(newTag.data(), newTag.size()));
+  pumpCallbacksUntil(*receiver, HLA_IMMEDIATE, [&] {
+    return receiverFederate.reflections == 2U;
+  });
+  REQUIRE(receiverFederate.reflections == 2U);
+  REQUIRE(receiverFederate.receivedTags ==
+          std::vector<std::vector<std::uint8_t>>{{0xE1U}, {0xE3U}});
 
   receiver->resignFederationExecution(NO_ACTION);
   sender->resignFederationExecution(DELETE_OBJECTS);
@@ -359,6 +527,17 @@ TEST_CASE(
   SECTION("disabled preserves generation-time exclusion") {
     runScenario(false, HLA_EVOKED);
   }
+}
+
+TEST_CASE(
+    "Process immediate delayed regional callback completes before resign returns",
+    "[integration][object-management][data-distribution-management]"
+    "[delay-subscription-evaluation][process-boundary]"
+    "[process-deferred-regional-resign-fence][2025]"
+    "[rti.service.resign-federation-execution]"
+    "[rti.service.update-attribute-values]"
+    "[federate.callback.reflect-attribute-values]") {
+  runResignCallbackFenceScenario();
 }
 
 TEST_CASE(

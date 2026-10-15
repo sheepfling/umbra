@@ -41053,7 +41053,7 @@
         "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l36-9"
       ],
       "test_case": "Process delayed regional attribute delivery rechecks the original sent region",
-      "source_location": "cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp:348",
+      "source_location": "cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp:516",
       "primary_lane": "process-delayed-regional-attribute",
       "focus_lane": "process-delayed-regional-attribute",
       "assertions": 41,
@@ -41085,6 +41085,47 @@
       "next_action": "The separate process-delayed-regional-attribute-immediate lane now covers bounded HLA_IMMEDIATE callback-entry eligibility. Keep this HLA_EVOKED row and the immediate row distinct; neither establishes all of clause 8.1.8."
     },
     {
+      "id": "umbra-cpp-process-deferred-regional-resign-fence",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e",
+        "api.2025.cpp.rtiambassador.updateattributevalues.e1001477bd23",
+        "api.2025.cpp.federateambassador.reflectattributevalues.2e544a0fcd09"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l61-17"
+      ],
+      "test_case": "Process immediate delayed regional callback completes before resign returns",
+      "source_location": "cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp:532",
+      "primary_lane": "process-deferred-regional-resign-fence",
+      "focus_lane": "process-deferred-regional-resign-fence",
+      "assertions": 15,
+      "callback_models": [
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.12",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11"
+      ],
+      "tags": [
+        "integration",
+        "object-management",
+        "data-distribution-management",
+        "delay-subscription-evaluation",
+        "process-boundary",
+        "process-deferred-regional-resign-fence",
+        "2025",
+        "rti.service.resign-federation-execution",
+        "rti.service.update-attribute-values",
+        "federate.callback.reflect-attribute-values"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence",
+      "requirements_lab_api_surface_status": "Three direct candidate-to-canonical-section pairs: federation-management page-058-l112-33 -> §4.12; object-management page-120-l83-22 -> §6.10; and object-management page-122-l61-17 -> §6.11. The official 2025 C++ HLA_IMMEDIATE process test holds one regional reflection callback open while another passel waits, resigns that receiver concurrently, and requires resignation to wait for the active callback. It then rejoins with a fresh member identity and receives only a new update, not the stale marker. Regional declarations and the enabled Delay Subscription Evaluation switch are setup context, not independent §8.1.8 or §9 evidence in this case. This tests private lifecycle fencing, not the full normative clauses, arbitrary callback families, distributed restart, or conformance.",
+      "next_action": "Audit private claim rejection under forced transport loss and other callback families separately; keep concurrent subscription-versus-callback-entry and installed-package evidence open."
+    },
+    {
       "id": "umbra-cpp-process-delayed-regional-attribute-immediate-callback-entry",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.createregion.db9bf691b557",
@@ -41113,10 +41154,10 @@
         "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l36-9"
       ],
       "test_case": "Process immediate delayed regional attribute delivery rechecks at callback entry",
-      "source_location": "cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp:364",
+      "source_location": "cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp:543",
       "primary_lane": "process-delayed-regional-attribute-immediate",
       "focus_lane": "process-delayed-regional-attribute-immediate",
-      "assertions": 47,
+      "assertions": 51,
       "callback_models": [
         "HLA_IMMEDIATE"
       ],
@@ -41141,7 +41182,7 @@
         "federate.callback.reflect-attribute-values"
       ],
       "status": "implemented-private-foundation-not-conformance-evidence",
-      "requirements_lab_api_surface_status": "A process-owned receive-order regional Update Attribute Values passel waits behind an HLA_IMMEDIATE callback gate, and the authoritative service rechecks the current subscription and committed receiving range when that callback task is admitted. With Delay Subscription Evaluation enabled, a known but initially unsubscribed receiver can receive after a late overlapping declaration; a late disjoint declaration still suppresses. With the switch disabled, generation-time exclusion remains final. In both modes, an initially eligible passel is suppressed after a late disjoint range change. The source's committed range at Update is retained server-side. Two queued readiness markers preserve FIFO, and object deletion before callback entry suppresses a stale passel. The callback control uses the official 2025 C++ API; the claim protocol is private. The §9.8 candidate fragments are linked context (RL-318), not independent complete obligations; RL-018 records the stale Lab clause metadata corrected to canonical §8.1.8. No timestamped, multi-process package, concurrent subscription race, or complete conformance claim follows.",
+      "requirements_lab_api_surface_status": "A process-owned receive-order regional Update Attribute Values passel waits behind an HLA_IMMEDIATE callback gate, and the authoritative service rechecks the current subscription and committed receiving range when that callback task is admitted. With Delay Subscription Evaluation enabled, a known but initially unsubscribed receiver can receive after a late overlapping declaration; a late disjoint declaration still suppresses. With the switch disabled, generation-time exclusion remains final. In both modes, an initially eligible passel is suppressed after a late disjoint range change. The source's committed range at Update is retained server-side. Two queued readiness markers preserve FIFO, and object deletion before callback entry suppresses a stale passel while its positive D7 successor is delivered. The callback control uses the official 2025 C++ API; the claim protocol is private. The §9.8 candidate fragments are linked context (RL-318), not independent complete obligations; RL-018 records the stale Lab clause metadata corrected to canonical §8.1.8. No timestamped, multi-process package, concurrent subscription race, or complete conformance claim follows.",
       "next_action": "Add a deterministic concurrent subscription-versus-callback-entry interlock and fresh installed-package evidence for this private claim protocol; audit immediate ordinary nonregional attribute updates and lifecycle cancellation across a rejoin before broadening clause 8.1.8 coverage."
     },
     {

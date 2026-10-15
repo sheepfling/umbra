@@ -1103,6 +1103,7 @@ struct ProcessFederationCallbackBridge::DeferredAttributeUpdateState final {
   DeferredAttributeUpdateHandler handler;
   std::uint64_t generation = 0U;
   std::size_t inFlight = 0U;
+  std::size_t callbacksInFlight = 0U;
   bool closed = false;
 
   std::uint64_t currentGeneration() {
@@ -1110,9 +1111,19 @@ struct ProcessFederationCallbackBridge::DeferredAttributeUpdateState final {
     return generation;
   }
 
-  bool admitCallback(std::uint64_t admittedGeneration) {
+  bool beginCallback(std::uint64_t admittedGeneration) {
     std::scoped_lock lock(mutex);
-    return !closed && generation == admittedGeneration;
+    if (closed || generation != admittedGeneration) {
+      return false;
+    }
+    ++callbacksInFlight;
+    return true;
+  }
+
+  void finishCallback() noexcept {
+    std::scoped_lock lock(mutex);
+    --callbacksInFlight;
+    idle.notify_all();
   }
 
   std::optional<ProcessFederationAttributeUpdateEvent> materialize(
@@ -1134,6 +1145,10 @@ struct ProcessFederationCallbackBridge::DeferredAttributeUpdateState final {
     } catch (...) {
       std::scoped_lock lock(mutex);
       --inFlight;
+      if (closed || generation != admittedGeneration) {
+        idle.notify_all();
+        return std::nullopt;
+      }
       idle.notify_all();
       throw;
     }
@@ -1155,7 +1170,9 @@ struct ProcessFederationCallbackBridge::DeferredAttributeUpdateState final {
       closed = true;
       handler = {};
     }
-    idle.wait(lock, [this] { return inFlight == 0U; });
+    idle.wait(lock, [this] {
+      return inFlight == 0U && callbacksInFlight == 0U;
+    });
   }
 };
 
@@ -1422,8 +1439,14 @@ void ProcessFederationCallbackBridge::submitDeferredAttributeUpdate(
     session->invoke(
         [state, generation, event = std::move(*event)](
             rti1516_2025::FederateAmbassador& recipient) mutable {
-          if (state->admitCallback(generation)) {
-            deliverAttributeUpdate(event, recipient);
+          if (state->beginCallback(generation)) {
+            try {
+              deliverAttributeUpdate(event, recipient);
+            } catch (...) {
+              state->finishCallback();
+              throw;
+            }
+            state->finishCallback();
           }
         });
   });
