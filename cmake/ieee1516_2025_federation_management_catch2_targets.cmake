@@ -1278,6 +1278,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   umbra_add_embedded_2025_catch2_target(umbra_attribute_ownership_acquisition_catch2
     SOURCES
     cpp/tests/attribute_ownership_acquisition_catch2.cpp
+    cpp/tests/ieee1516_2025_process_idle_immediate_ownership_denial_catch2.cpp
     cpp/tests/ieee1516_2025_negotiated_divestiture_cancellation_process_catch2.cpp
     cpp/tests/ieee1516_2025_process_restored_ownership_assumption_catch2.cpp
     cpp/tests/ieee1516_2025_process_restored_ownership_assumption_immediate_catch2.cpp

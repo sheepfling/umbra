@@ -32005,6 +32005,54 @@
       "next_action": "Keep this immediate two-federate denied-acquisition path and the evoked control green. Multi-acquirer delivery, cancellation races, RTI-owned state, timestamped/DDM behavior, interoperability, package/JUnit/protected-review, Lab validation, and conformance remain separate."
     },
     {
+      "id": "umbra-cpp-attribute-ownership-acquisition-release-denied-process-idle-push-integration",
+      "requirements_lab_mapping_id": "process.transition.attribute-ownership-release-denied-idle-push-public",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+        "api.2025.cpp.federateambassador.requestattributeownershiprelease.c700e99706ae",
+        "api.2025.cpp.rtiambassador.attributeownershipreleasedenied.7b1cc2290e39",
+        "api.2025.cpp.federateambassador.attributeownershipunavailable.39c86b97f321",
+        "api.2025.cpp.rtiambassador.isattributeownedbyfederate.679939b7ba3f"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-038-l27-5",
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40",
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42",
+        "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6"
+      ],
+      "test_case": "RTIambassadors deliver a denied process acquisition while both federates are idle",
+      "source_location": "cpp/tests/ieee1516_2025_process_idle_immediate_ownership_denial_catch2.cpp:137",
+      "ctest_target": "umbra_attribute_ownership_acquisition_catch2",
+      "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors deliver a denied process acquisition while both federates are idle$",
+      "primary_lane": "process-ownership-acquisition-release-denied-idle-push",
+      "focus_lane": "process-ownership-acquisition-release-denied-idle-push",
+      "assertions": 36,
+      "callback_models": ["HLA_IMMEDIATE"],
+      "delivery_modes": [
+        "public-process-endpoint",
+        "two-federate-owner-release-denied-handshake",
+        "idle-immediate-push-callback-delivery-no-evoke-or-progress-service",
+        "typed-release-denied-result"
+      ],
+      "callback_gate_modes": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-7.8",
+        "hla-1516.1-2025:clause-7.12"
+      ],
+      "tags": [
+        "integration", "development-profile", "federation-management",
+        "ownership-management", "transport", "process-boundary",
+        "process-ownership-acquisition-release-denied-idle-push",
+        "public-endpoint", "attribute-ownership-acquisition",
+        "federate.callback.request-attribute-ownership-release",
+        "federate.callback.attribute-ownership-unavailable", "2025"
+      ],
+      "status": "implemented-public-process-foundation-not-conformance-evidence",
+      "requirements_lab_api_surface_status": "The pinned 2025 clause 4 IMMEDIATE model requires callbacks when available. This distinct official C++ process case confirms that the owner receives Request Attribute Ownership Release, and the requester receives Attribute Ownership Unavailable after denial, while each recipient is otherwise idle: the wait uses only the observing callback's condition variable, with no Evoke or other public RTI progress call. The acquisition and denial use the public API, and exact tags and owner retention are checked through thread-safe callback snapshots and public ownership checks. The process service's push path revalidates reservations at send, not through a full callback-entry claim protocol. This is bounded development-profile evidence, not conformance.",
+      "next_action": "Keep this idle IMMEDIATE case and the evoked/immediate active-service denial companions green. Cancellation races between service send and callback entry, multi-acquirer delivery, interoperability, package/JUnit/protected-review, Lab validation, and conformance remain separate."
+    },
+    {
       "id": "umbra-cpp-attribute-ownership-acquisition-cancellation-process-integration",
       "requirements_lab_mapping_id": "process.transition.attribute-ownership-acquisition-cancellation-public",
       "selected_cpp_api_surface_ids": [
