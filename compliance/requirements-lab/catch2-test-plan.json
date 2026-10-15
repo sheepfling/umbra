@@ -26517,7 +26517,7 @@
         "federate.callback.turn-updates-off-for-object-instance"
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
-      "next_action": "This focused public regional process case passes under HLA_EVOKED and HLA_IMMEDIATE (98 assertions), proving that an explicit High regional subscription designator survives overlapping, disjoint, and restored source-region association transitions while owner-directed Turn Updates Off/On callbacks cross the configured endpoint. Package/JUnit/protected-review evidence, Requirements Lab validation, interoperability, and conformance promotion remain open."
+      "next_action": "Reopen this focused public regional process case: both current native core and connection registrations time out after 25 seconds, including a serial run. Locate the first stalled service, callback, or server wire step before attributing the fault to RTI behavior. Preserve the explicit High designator, overlapping/disjoint/restored association transitions, owner-directed Turn Updates Off/On assertions, both callback models, and its eight direct 2025 requirement-section pairs. The nearby embedded regional rate-designator case is a control. Package/JUnit/protected-review evidence, Requirements Lab validation, interoperability, and conformance promotion remain open."
     },
     {
       "id": "umbra-cpp-regional-attribute-relevance-advisory-callback-entry-recheck",
