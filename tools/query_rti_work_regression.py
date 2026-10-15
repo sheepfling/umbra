@@ -4933,8 +4933,8 @@ def main() -> int:
         raise AssertionError("regional transportation plan row is absent")
     if (
         query_rti_work.source_location_text(regional_transport)
-        != "cpp/tests/ieee1516_2025_connection_regional_interaction_transportation_override_catch2.cpp:97"
-        or regional_transport.get("assertions") != 84
+        != "cpp/tests/ieee1516_2025_connection_regional_interaction_transportation_override_catch2.cpp:126"
+        or regional_transport.get("assertions") != 86
         or regional_transport.get("status")
         != "implemented-private-foundation-not-conformance-evidence"
         or len(regional_transport.get("lab_requirement_ids", [])) != 22
