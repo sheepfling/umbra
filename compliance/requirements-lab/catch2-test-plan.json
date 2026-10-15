@@ -31490,7 +31490,7 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
       ],
       "test_case": "RTIambassador resolves mixed process If Available attributes per owner",
-      "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:1811",
+      "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:2113",
       "ctest_target": "umbra_attribute_ownership_query_catch2",
       "ctest_filter": "^umbra\\.attribute_ownership_query\\.catch2\\.RTIambassador resolves mixed process If Available attributes per owner$",
       "primary_lane": "process-ownership-mixed-if-available-query",
@@ -31532,7 +31532,75 @@
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
       "requirements_lab_api_surface_status": "One official 2025 C++ If Available request names two attributes of a discovered object across a configured process endpoint. The original owner has divested one attribute and still holds the other. The evoked requester receives a notification only for the unowned attribute and an unavailable report only for the held attribute, without an owner-release request. Separate public queries preserve the two distinct owners. This is bounded development-profile evidence, not complete ownership arbitration or conformance.",
-      "next_action": "Keep the mixed-set per-attribute outcomes and owner queries green. Add push-mode process delivery, more acquisition/divestiture and resignation races, package/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
+      "next_action": "Keep both evoked and pushed mixed-set per-attribute outcomes and owner queries green. Add more acquisition/divestiture and resignation races, package/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
+    },
+    {
+      "id": "umbra-cpp-process-mixed-ownership-if-available-push",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.queryattributeownership.8e2fc379ef34",
+        "api.2025.cpp.rtiambassador.unconditionalattributeownershipdivestiture.2570df96a3a7",
+        "api.2025.cpp.rtiambassador.attributeownershipacquisitionifavailable.8b37c270d6b9",
+        "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+        "api.2025.cpp.federateambassador.attributeownershipunavailable.39c86b97f321",
+        "api.2025.cpp.federateambassador.requestattributeownershiprelease.c700e99706ae",
+        "api.2025.cpp.federateambassador.informattributeownership.6fd57319c7ea",
+        "api.2025.cpp.federateambassador.attributeisnotowned.83a830c0882b"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36",
+        "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27",
+        "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31",
+        "requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34",
+        "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
+      ],
+      "test_case": "RTIambassador pushes mixed process If Available attributes per owner",
+      "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:2126",
+      "ctest_target": "umbra_attribute_ownership_query_catch2",
+      "ctest_filter": "^umbra\\.attribute_ownership_query\\.catch2\\.RTIambassador pushes mixed process If Available attributes per owner$",
+      "primary_lane": "process-ownership-mixed-if-available-push",
+      "focus_lane": "process-ownership-mixed-if-available-push",
+      "assertions": 57,
+      "callback_models": [
+        "HLA_IMMEDIATE"
+      ],
+      "delivery_modes": [
+        "configured-process-endpoint",
+        "pushed-receive-order-ownership-callback",
+        "mixed-two-attribute-if-available-acquisition",
+        "per-attribute-owner-query"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.2",
+        "hla-1516.1-2025:clause-7.7.3",
+        "hla-1516.1-2025:clause-7.9.1",
+        "hla-1516.1-2025:clause-7.10",
+        "hla-1516.1-2025:clause-7.17.5",
+        "hla-1516.1-2025:clause-7.18.4"
+      ],
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "ownership-management",
+        "transport",
+        "process-boundary",
+        "process-ownership-mixed-if-available-push",
+        "public-endpoint",
+        "query-attribute-ownership",
+        "unconditional-attribute-ownership-divestiture",
+        "attribute-ownership-acquisition-if-available",
+        "federate.callback.attribute-ownership-acquisition-notification",
+        "federate.callback.attribute-ownership-unavailable",
+        "federate.callback.inform-attribute-ownership",
+        "2025"
+      ],
+      "status": "implemented-public-foundation-not-conformance-evidence",
+      "requirements_lab_api_surface_status": "One official 2025 C++ If Available request names two attributes of a discovered object across a configured process endpoint with pushed receive-order callbacks under HLA_IMMEDIATE. The original owner has divested one attribute and still holds the other. The requester receives a notification only for the unowned attribute and an unavailable report only for the held attribute without calling Evoke or eliciting an owner-release request. Separate public queries preserve the two distinct owners. This is bounded development-profile evidence, not complete ownership arbitration or conformance.",
+      "next_action": "Keep both evoked and pushed mixed-set outcomes and queries green. Add additional ownership races, package/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
     },
     {
       "id": "umbra-cpp-attribute-ownership-acquisition-if-available-integration",

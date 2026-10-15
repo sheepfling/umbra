@@ -72,6 +72,7 @@ using umbra::detail::LibXml2FomModuleComposer;
 using umbra::detail::LibXml2FomValidator;
 using umbra::detail::PrevalidatedFomModule;
 using umbra::detail::ProcessFederationService;
+using umbra::detail::ProcessFederationServiceOptions;
 using umbra::detail::ProcessTransportListener;
 using umbra::detail::ProcessTransportServiceDispatcher;
 using umbra::detail::ProcessTransportSession;
@@ -1808,16 +1809,8 @@ TEST_CASE(
   REQUIRE_FALSE(serverError);
 }
 
-TEST_CASE(
-    "RTIambassador resolves mixed process If Available attributes per owner",
-    "[integration][development-profile][federation-management][ownership-management]"
-    "[transport][process-boundary][process-ownership-mixed-if-available-query]"
-    "[public-endpoint][query-attribute-ownership]"
-    "[unconditional-attribute-ownership-divestiture]"
-    "[attribute-ownership-acquisition-if-available]"
-    "[federate.callback.attribute-ownership-acquisition-notification]"
-    "[federate.callback.attribute-ownership-unavailable]"
-    "[federate.callback.inform-attribute-ownership][2025]") {
+void runMixedProcessIfAvailableOwnershipCase(
+    rti1516_2025::CallbackModel callbackModel) {
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener != nullptr);
   auto const port = listener->address().port;
@@ -1828,7 +1821,8 @@ TEST_CASE(
     try {
       EmbeddedFederationRegistry registry;
       ProcessFederationService service(
-          registry, composedProcessOwnershipDefinition());
+          registry, composedProcessOwnershipDefinition(),
+          ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
       auto ownerConnection = listener->accept(
           nullptr, {"process-mixed-ownership-server", 0xA710U},
           [](std::wstring) {}, [](std::wstring) { return false; });
@@ -1846,7 +1840,7 @@ TEST_CASE(
         try {
           bool resigned = false;
           std::size_t requestCount = 0U;
-          while (!resigned && requestCount != 512U &&
+          while (!resigned && requestCount != 2048U &&
                  umbra::test::servePrimaryProcessRequest(
                      session, handler,
                      [&](umbra::detail::TransportServiceMessage const& request) {
@@ -1927,9 +1921,9 @@ TEST_CASE(
   std::exception_ptr clientError;
   try {
     REQUIRE_NOTHROW(owner->connect(
-        ownerReports, HLA_EVOKED, configurationFor(L"mixed-owner")));
+        ownerReports, callbackModel, configurationFor(L"mixed-owner")));
     REQUIRE_NOTHROW(requester->connect(
-        requesterReports, HLA_EVOKED, configurationFor(L"mixed-requester")));
+        requesterReports, callbackModel, configurationFor(L"mixed-requester")));
     REQUIRE_NOTHROW(owner->createFederationExecution(federationName, fomModule));
     FederateHandle ownerHandle;
     FederateHandle requesterHandle;
@@ -1970,11 +1964,22 @@ TEST_CASE(
     ObjectInstanceHandle objectInstance;
     REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(ownerClass));
     REQUIRE(objectInstance.isValid());
+    // The push profile dispatches at ordinary public service boundaries;
+    // never call Evoke in the HLA_IMMEDIATE case.
+    auto advanceCallbacks = [&](RTIambassador& client) {
+      if (callbackModel == HLA_EVOKED) {
+        static_cast<void>(client.evokeMultipleCallbacks(0.01, 0.02));
+      } else {
+        static_cast<void>(client.getObjectClassHandle(
+            fixture_hla::fom::attribute_fixture_child));
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+      }
+    };
     auto const discoveryDeadline =
         std::chrono::steady_clock::now() + std::chrono::seconds(2);
     while (requesterReports.objectDiscoveryReports.empty() &&
            std::chrono::steady_clock::now() < discoveryDeadline) {
-      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+      advanceCallbacks(*requester);
     }
     REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
     REQUIRE(requesterReports.objectDiscoveryReports.front().objectInstance ==
@@ -1989,7 +1994,7 @@ TEST_CASE(
           std::chrono::steady_clock::now() + std::chrono::seconds(2);
       while (ownerReports.attributeOwnershipReports.empty() &&
              std::chrono::steady_clock::now() < deadline) {
-        static_cast<void>(owner->evokeMultipleCallbacks(0.01, 0.02));
+        advanceCallbacks(*owner);
       }
       REQUIRE(ownerReports.attributeOwnershipReports.size() == 1U);
       auto const report = ownerReports.attributeOwnershipReports.front();
@@ -2023,14 +2028,16 @@ TEST_CASE(
     REQUIRE_NOTHROW(requester->attributeOwnershipAcquisitionIfAvailable(
         objectInstance, both,
         VariableLengthData(requestTag, sizeof(requestTag))));
-    REQUIRE(requesterReports.acquisitionNotifications.empty());
-    REQUIRE(requesterReports.acquisitionUnavailableReports.empty());
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE(requesterReports.acquisitionNotifications.empty());
+      REQUIRE(requesterReports.acquisitionUnavailableReports.empty());
+    }
     auto const terminalDeadline =
         std::chrono::steady_clock::now() + std::chrono::seconds(2);
     while ((requesterReports.acquisitionNotifications.empty() ||
             requesterReports.acquisitionUnavailableReports.empty()) &&
            std::chrono::steady_clock::now() < terminalDeadline) {
-      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+      advanceCallbacks(*requester);
     }
     // The standard permits distinct callbacks for the same request; assert
     // per-attribute terminal outcomes without imposing callback order.
@@ -2061,7 +2068,7 @@ TEST_CASE(
     REQUIRE(newOwner.owner == requesterHandle);
     REQUIRE(unchangedOwner.owner == ownerHandle);
     for (std::size_t pass = 0U; pass != 3U; ++pass) {
-      static_cast<void>(owner->evokeMultipleCallbacks(0.01, 0.02));
+      advanceCallbacks(*owner);
     }
     REQUIRE(ownerReports.ownershipReleaseRequests.empty());
 
@@ -2100,6 +2107,32 @@ TEST_CASE(
   if (server.joinable()) server.join();
   if (clientError) std::rethrow_exception(clientError);
   REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassador resolves mixed process If Available attributes per owner",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[transport][process-boundary][process-ownership-mixed-if-available-query]"
+    "[public-endpoint][query-attribute-ownership]"
+    "[unconditional-attribute-ownership-divestiture]"
+    "[attribute-ownership-acquisition-if-available]"
+    "[federate.callback.attribute-ownership-acquisition-notification]"
+    "[federate.callback.attribute-ownership-unavailable]"
+    "[federate.callback.inform-attribute-ownership][2025]") {
+  runMixedProcessIfAvailableOwnershipCase(HLA_EVOKED);
+}
+
+TEST_CASE(
+    "RTIambassador pushes mixed process If Available attributes per owner",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[transport][process-boundary][process-ownership-mixed-if-available-push]"
+    "[public-endpoint][query-attribute-ownership]"
+    "[unconditional-attribute-ownership-divestiture]"
+    "[attribute-ownership-acquisition-if-available]"
+    "[federate.callback.attribute-ownership-acquisition-notification]"
+    "[federate.callback.attribute-ownership-unavailable]"
+    "[federate.callback.inform-attribute-ownership][2025]") {
+  runMixedProcessIfAvailableOwnershipCase(HLA_IMMEDIATE);
 }
 
 #endif
