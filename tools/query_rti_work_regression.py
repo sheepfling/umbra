@@ -7620,7 +7620,7 @@ def main() -> int:
         "cpp/tests/ieee1516_2025_connection_time_advance_next_message_catch2.cpp:458"
     ):
         raise AssertionError("focused process NMR/NMRA source pointer drifted")
-    if process_next_message.get("assertions") != 22:
+    if process_next_message.get("assertions") != 25:
         raise AssertionError("focused process NMR/NMRA assertion count drifted")
     if process_next_message.get("traceability_state") != "requirements-mapped":
         raise AssertionError("focused process NMR/NMRA row is not mapped")
@@ -7631,11 +7631,11 @@ def main() -> int:
         raise AssertionError("focused process NMR/NMRA lane is not complete")
     if process_next_message_focus.get("mapped_test_count") != 1:
         raise AssertionError("focused process NMR/NMRA mapped count drifted")
-    if process_next_message_focus.get("assertion_count") != 22:
+    if process_next_message_focus.get("assertion_count") != 25:
         raise AssertionError("focused process NMR/NMRA lane assertion total drifted")
-    if process_next_message_focus.get("requirement_count") != 4:
+    if process_next_message_focus.get("requirement_count") != 5:
         raise AssertionError("focused process NMR/NMRA requirement total drifted")
-    if process_next_message_focus.get("standard_section_count") != 3:
+    if process_next_message_focus.get("standard_section_count") != 4:
         raise AssertionError("focused process NMR/NMRA section total drifted")
     process_next_message_handles = process_next_message_focus.get("lane_handles")
     if not isinstance(process_next_message_handles, dict) or process_next_message_handles.get(

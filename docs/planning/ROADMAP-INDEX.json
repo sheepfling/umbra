@@ -4390,7 +4390,7 @@
       "process-time-advance-available-focused": 15,
       "process-tso-tara-queued-equal-boundary": 34,
       "process-tso-tara-pregrant-boundary": 1,
-      "process-time-advance-next-message-focused": 22,
+      "process-time-advance-next-message-focused": 25,
       "process-time-advance-next-message-queued-focused": 543,
       "no-tso-cross-federate-grant-scheduler": 26,
       "object-instance-lookup": 18,
