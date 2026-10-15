@@ -955,7 +955,19 @@ TEST_CASE(
       } else {
         REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
       }
-      REQUIRE_FALSE(receiverFederate.received);
+      // Retract precedes the explicit receiver poll, not necessarily an
+      // IMMEDIATE callback. A delivered message must produce Request
+      // Retraction (1516.1-2025, 8.23); the RTI may also request retraction
+      // before actual federate delivery (E.8.22).
+      if (receiverFederate.received) {
+        REQUIRE(callbackModel == HLA_IMMEDIATE);
+        REQUIRE(receiverFederate.requestRetractionCount == 1U);
+      } else {
+        REQUIRE(receiverFederate.requestRetractionCount <= 1U);
+      }
+      if (receiverFederate.requestRetractionCount == 1U) {
+        REQUIRE(receiverFederate.requestRetractionHandle == *retraction);
+      }
     } else if (gateCallbacks) {
       // The process event is admitted while callbacks are disabled, but the
       // official FederateAmbassador must not observe it until the switch is
