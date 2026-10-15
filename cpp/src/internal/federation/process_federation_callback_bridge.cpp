@@ -1526,14 +1526,33 @@ void ProcessFederationCallbackBridge::submitAttributeOwnershipAcquisition(
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
+  auto const releaseClaim = attributeOwnershipReleaseClaim_;
   dispatcher_->submit(
-      [session, event = std::move(event)]() mutable {
+      [session, releaseClaim, event = std::move(event)]() mutable {
         session->invoke(
-            [event = std::move(event)](
+            [releaseClaim, event = std::move(event)](
                 rti1516_2025::FederateAmbassador& recipient) mutable {
+              if (event.kind ==
+                  ProcessFederationAttributeOwnershipAcquisitionEventKind::
+                      request_release) {
+                if (!releaseClaim) {
+                  throw ProcessFederationCallbackBridgeError(
+                      "A process owner-release callback has no entry claim handler.");
+                }
+                auto claimed = releaseClaim(event);
+                if (!claimed) {
+                  return;
+                }
+                event = std::move(*claimed);
+              }
               deliverAttributeOwnershipAcquisition(event, recipient);
             });
       });
+}
+
+void ProcessFederationCallbackBridge::setAttributeOwnershipReleaseClaimHandler(
+    AttributeOwnershipReleaseClaimHandler handler) {
+  attributeOwnershipReleaseClaim_ = std::move(handler);
 }
 
 void ProcessFederationCallbackBridge::submitAttributeOwnershipUnavailable(

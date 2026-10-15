@@ -974,6 +974,7 @@ class ProcessFederationClient final {
       std::shared_ptr<CallbackDispatcher> dispatcher,
       std::shared_ptr<rti1516_2025::umbra_binding_detail::CallbackSession>
           callbackSession);
+  void installAttributeOwnershipReleaseClaimHandler();
 
   [[nodiscard]] bool evokeOne(std::chrono::milliseconds minimumWait);
   [[nodiscard]] bool evokeMultiple(
@@ -997,6 +998,9 @@ class ProcessFederationClient final {
   [[nodiscard]] std::optional<ProcessFederationAttributeUpdateEvent>
   claimDeferredAttributeUpdate(
       std::wstring const& federationName, std::uint64_t receivingFederateId);
+  [[nodiscard]] std::optional<ProcessFederationAttributeOwnershipAcquisitionEvent>
+  claimAttributeOwnershipRelease(
+      ProcessFederationAttributeOwnershipAcquisitionEvent const& event);
   [[nodiscard]] ProcessFederationObjectInstanceDiscoveryEvent
   receivePushedObjectInstanceDiscovery();
   [[nodiscard]] ProcessFederationObjectInstanceRemovalEvent

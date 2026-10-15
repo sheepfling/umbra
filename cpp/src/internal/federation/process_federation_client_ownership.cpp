@@ -1,9 +1,63 @@
 #include "internal/federation/process_federation_client.hpp"
 #include "internal/federation/process_federation_client_error.hpp"
 
+#include <algorithm>
 #include <utility>
 
 namespace umbra::detail {
+
+void ProcessFederationClient::installAttributeOwnershipReleaseClaimHandler() {
+  auto bridge = requireCallbackBridge();
+  bridge->setAttributeOwnershipReleaseClaimHandler(
+      [this](ProcessFederationAttributeOwnershipAcquisitionEvent const& event) {
+        return claimAttributeOwnershipRelease(event);
+      });
+}
+
+std::optional<ProcessFederationAttributeOwnershipAcquisitionEvent>
+ProcessFederationClient::claimAttributeOwnershipRelease(
+    ProcessFederationAttributeOwnershipAcquisitionEvent const& event) {
+  if (event.kind !=
+      ProcessFederationAttributeOwnershipAcquisitionEventKind::request_release) {
+    throw ProcessFederationClientError(
+        "A process owner-release claim requires a release event.");
+  }
+  {
+    std::scoped_lock lock(transactionMutex_);
+    if (closing_.load(std::memory_order_acquire) ||
+        !joinedFederationName_ || joinedFederateId_ != event.receivingFederateId) {
+      return std::nullopt;
+    }
+  }
+  ProcessFederationReceiveInteractionResult claim;
+  claim.attributeOwnershipAcquisitionEvent = event;
+  auto const response = request(
+      TransportServiceOperation::claim_attribute_ownership_release,
+      encodeProcessFederationReceiveInteractionResult(claim), false);
+  if (response.status == TransportServiceStatus::rejected) {
+    return std::nullopt;
+  }
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  auto result = decodeProcessFederationReceiveInteractionResult(response.payload)
+                    .attributeOwnershipAcquisitionEvent;
+  if (!result) {
+    return std::nullopt;
+  }
+  if (result->kind != event.kind || result->requestId != event.requestId ||
+      result->requestingFederateId != event.requestingFederateId ||
+      result->receivingFederateId != event.receivingFederateId ||
+      result->objectInstanceHandle != event.objectInstanceHandle ||
+      result->userSuppliedTag != event.userSuppliedTag ||
+      !std::includes(event.attributeHandles.begin(), event.attributeHandles.end(),
+                     result->attributeHandles.begin(), result->attributeHandles.end())) {
+    throw ProcessFederationClientError(
+        "A process owner-release claim returned an inconsistent callback.");
+  }
+  return result;
+}
 
 ProcessFederationAttributeOwnershipCheckResult
 ProcessFederationClient::attributeOwnershipCheck(

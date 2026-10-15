@@ -76,11 +76,10 @@ bool ProcessFederationService::enqueueAttributeOwnershipAcquisitionWorkItems(
         workItem.userSuppliedTag,
         workItem.candidateIsIfAvailable};
 
-    // The immediate process profile revalidates this reservation when the
-    // service sends the callback event. Pull delivery performs the same check
-    // when the recipient polls in handleReceiveInteraction. The sent event is
-    // not a general callback-entry claim protocol: a later client-side buffer
-    // window remains separate from this bounded push path.
+    // The service checks the reservation before sending a push event. Pull
+    // delivery performs the same check when the recipient polls. The owner
+    // must also claim request_release at callback entry, because a sent event
+    // can remain buffered behind another callback while cancellation wins.
     if (options_.pushReceiveOrderEvents) {
       if (eventKind ==
           ProcessFederationAttributeOwnershipAcquisitionEventKind::

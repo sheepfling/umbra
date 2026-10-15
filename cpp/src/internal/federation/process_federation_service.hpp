@@ -267,6 +267,9 @@ class ProcessFederationService final {
   handleAttributeOwnershipAcquisitionCancellation(
       ProcessTransportSession& session,
       TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage handleClaimAttributeOwnershipRelease(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
   [[nodiscard]] TransportServiceMessage
   handleCancelNegotiatedAttributeOwnershipDivestiture(
       ProcessTransportSession& session,

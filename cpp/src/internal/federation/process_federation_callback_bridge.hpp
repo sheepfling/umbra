@@ -37,6 +37,9 @@ class ProcessFederationCallbackBridge final {
   using DeferredAttributeUpdateHandler = std::function<
       std::optional<ProcessFederationAttributeUpdateEvent>(
           std::wstring const&, std::uint64_t)>;
+  using AttributeOwnershipReleaseClaimHandler = std::function<
+      std::optional<ProcessFederationAttributeOwnershipAcquisitionEvent>(
+          ProcessFederationAttributeOwnershipAcquisitionEvent const&)>;
 
   explicit ProcessFederationCallbackBridge(
       rti1516_2025::FederateAmbassador& recipient,
@@ -99,6 +102,10 @@ class ProcessFederationCallbackBridge final {
   // Attribute Ownership Release callback selected by the process service.
   void submitAttributeOwnershipAcquisition(
       ProcessFederationAttributeOwnershipAcquisitionEvent event);
+  // Recheck a transported owner-release event immediately after callback
+  // admission, before it reaches the official FederateAmbassador.
+  void setAttributeOwnershipReleaseClaimHandler(
+      AttributeOwnershipReleaseClaimHandler handler);
 
   // Queue one Attribute Ownership Unavailable callback caused by an owner-side
   // Attribute Ownership Release Denied request.  It remains distinct from the
@@ -238,6 +245,7 @@ class ProcessFederationCallbackBridge final {
   CallbackCompletionHandler timeRegulationEnabledCompletion_;
   CallbackCompletionHandler timeConstrainedEnabledCompletion_;
   TsoDeliveryCompletionHandler tsoDeliveryCompletion_;
+  AttributeOwnershipReleaseClaimHandler attributeOwnershipReleaseClaim_;
   mutable std::mutex retractionMutex_;
   std::unordered_map<
       std::uint64_t,

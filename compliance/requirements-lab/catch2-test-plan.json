@@ -32119,7 +32119,7 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13"
       ],
       "test_case": "RTIambassadors confirm process acquisition cancellation while requester is idle",
-      "source_location": "cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp:148",
+      "source_location": "cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp:175",
       "ctest_target": "umbra_attribute_ownership_acquisition_catch2",
       "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors confirm process acquisition cancellation while requester is idle$",
       "primary_lane": "process-ownership-acquisition-cancellation-idle-push",
@@ -32150,6 +32150,54 @@
       "status": "implemented-public-process-foundation-not-conformance-evidence",
       "requirements_lab_api_surface_status": "The official 2025 C++ RTIambassador acquisition and cancellation services cross a configured process endpoint in HLA_IMMEDIATE mode. After observing the owner's release request, the requester cancels and receives one Confirm Attribute Ownership Acquisition Cancellation callback through a thread-safe condition-variable observer without Evoke or an intervening public RTI progress call. The callback identifies the exact object and attribute; public ownership checks retain the original owner and leave the requester unowned. The server rejects receive_interaction polls. This is bounded push-mode development-profile evidence, not a cancel-versus-buffered-release race, transport interoperability, validation, or conformance claim.",
       "next_action": "Keep the idle IMMEDIATE case and evoked cancellation control green. Separately address cancellation versus already-buffered release events, mixed and multi-acquirer sets, supplied-empty/repeated sets, RTI-owned, DDM/timestamped, transport/package, JUnit/protected review, validation, and conformance."
+    },
+    {
+      "id": "umbra-cpp-attribute-ownership-acquisition-cancellation-process-buffered-release-integration",
+      "requirements_lab_mapping_id": "process.transition.attribute-ownership-acquisition-cancellation-buffered-release-public",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+        "api.2025.cpp.rtiambassador.cancelattributeownershipacquisition.2c855e13192e",
+        "api.2025.cpp.federateambassador.confirmattributeownershipacquisitioncancellation.7eb7a984121a",
+        "api.2025.cpp.federateambassador.requestattributeownershiprelease.c700e99706ae"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40",
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1",
+        "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13"
+      ],
+      "test_case": "RTIambassadors suppress a buffered process owner release after acquisition cancellation",
+      "source_location": "cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp:434",
+      "ctest_target": "umbra_attribute_ownership_acquisition_catch2",
+      "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors suppress a buffered process owner release after acquisition cancellation$",
+      "primary_lane": "process-ownership-acquisition-cancellation-buffered-release",
+      "focus_lane": "process-ownership-acquisition-cancellation-buffered-release",
+      "assertions": 14,
+      "callback_models": ["HLA_IMMEDIATE"],
+      "delivery_modes": [
+        "public-process-endpoint",
+        "two-federate-cancellation-handshake",
+        "pushed-owner-release-buffered-behind-blocked-callback",
+        "callback-entry-release-claim",
+        "owner-stream-fence-and-post-cancellation-fifo-sentinel"
+      ],
+      "callback_gate_modes": ["blocked-owner-provide-attribute-value-update"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.8",
+        "hla-1516.1-2025:clause-7.15",
+        "hla-1516.1-2025:clause-7.16"
+      ],
+      "tags": [
+        "integration", "development-profile", "federation-management",
+        "ownership-management", "transport", "process-boundary",
+        "process-ownership-acquisition-cancellation-buffered-release",
+        "public-endpoint", "attribute-ownership-acquisition",
+        "rti.service.cancel-attribute-ownership-acquisition",
+        "federate.callback.confirm-attribute-ownership-acquisition-cancellation",
+        "2025"
+      ],
+      "status": "implemented-public-process-foundation-not-conformance-evidence",
+      "requirements_lab_api_surface_status": "The official 2025 C++ process endpoint now rechecks a previously sent owner-side Request Attribute Ownership Release event when that callback enters user code. An HLA_IMMEDIATE owner Provide Attribute Value Update callback blocks the owner dispatcher; a same-stream ownership query fences the already-pushed release, the requester cancels and receives one exact confirmation, and a later callback sentinel proves the stale release is suppressed while ownership stays with the original owner. This is bounded development-profile evidence, not interoperability, validation, or conformance.",
+      "next_action": "Keep the buffered-release cancellation race, earlier owner-entered release control, and release-denial controls green. Separately cover mixed/multi-acquirer sets, supplied-empty/repeated sets, RTI-owned and DDM/timestamped cases, package/JUnit/protected review, validation, and conformance."
     },
     {
       "id": "umbra-cpp-negotiated-divestiture-cancellation-process-integration",

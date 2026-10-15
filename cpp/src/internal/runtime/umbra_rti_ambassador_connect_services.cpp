@@ -221,6 +221,7 @@ ConfigurationResult UmbraRtiAmbassador::connectImpl(
       // endpoint observes the same enable/disable and dispatch model as the
       // embedded endpoint.  The client never owns the recipient.
       processFederationClient->attachCallbackBridge(callbacks_, callbackSession);
+      processFederationClient->installAttributeOwnershipReleaseClaimHandler();
       processFederationClient->setTimeRoleEnableCompletionHandlers(
           [this] {
             std::scoped_lock lock(mutex_);

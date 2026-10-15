@@ -1429,8 +1429,8 @@ enum class ProcessFederationAttributeOwnershipAcquisitionEventKind :
 
 // One regular acquisition callback crossing the process receive fence.  For
 // acquisition_notification the receiving federate is the requester; for
-// request_release it is the current owner.  The service revalidates and
-// commits the registry boundary before projecting the event to the client.
+// request_release it is the current owner. The service revalidates before
+// projection and the client claims that release again at callback entry.
 struct ProcessFederationAttributeOwnershipAcquisitionEvent final {
   ProcessFederationAttributeOwnershipAcquisitionEventKind kind =
       ProcessFederationAttributeOwnershipAcquisitionEventKind::

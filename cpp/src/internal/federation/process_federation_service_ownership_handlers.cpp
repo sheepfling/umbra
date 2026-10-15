@@ -485,6 +485,42 @@ ProcessFederationService::handleAttributeOwnershipAcquisitionCancellation(
               recipientCount}));
 }
 
+TransportServiceMessage ProcessFederationService::handleClaimAttributeOwnershipRelease(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const claim = decodeProcessFederationReceiveInteractionResult(request.payload);
+  if (!claim.attributeOwnershipAcquisitionEvent ||
+      claim.attributeOwnershipAcquisitionEvent->kind !=
+          ProcessFederationAttributeOwnershipAcquisitionEventKind::request_release) {
+    return responseFor(request, TransportServiceStatus::invalid_request, {});
+  }
+  auto event = *claim.attributeOwnershipAcquisitionEvent;
+  std::wstring federationName;
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() || !state->second.federationName ||
+        state->second.federateId != event.receivingFederateId ||
+        !registry_.memberById(*state->second.federationName,
+                              event.receivingFederateId)) {
+      return rejected(request);
+    }
+    federationName = *state->second.federationName;
+  }
+
+  ProcessFederationReceiveInteractionResult result;
+  auto const delivery = registry_.beginAttributeOwnershipAcquisitionRelease(
+      federationName, event.requestingFederateId, event.receivingFederateId,
+      event.objectInstanceHandle, event.requestId, event.attributeHandles);
+  if (delivery && !delivery->candidateAttributeHandles.empty()) {
+    event.attributeHandles = delivery->candidateAttributeHandles;
+    result.attributeOwnershipAcquisitionEvent = std::move(event);
+  }
+  return responseFor(
+      request, TransportServiceStatus::ok,
+      encodeProcessFederationReceiveInteractionResult(result));
+}
+
 TransportServiceMessage
 ProcessFederationService::handleCancelNegotiatedAttributeOwnershipDivestiture(
     ProcessTransportSession& session,

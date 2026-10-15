@@ -70,6 +70,8 @@ TransportServiceMessage ProcessFederationService::handle(
         return handleAttributeOwnershipReleaseDenied(session, request);
       case TransportServiceOperation::cancel_attribute_ownership_acquisition:
         return handleAttributeOwnershipAcquisitionCancellation(session, request);
+      case TransportServiceOperation::claim_attribute_ownership_release:
+        return handleClaimAttributeOwnershipRelease(session, request);
       case TransportServiceOperation::
           cancel_negotiated_attribute_ownership_divestiture:
         return handleCancelNegotiatedAttributeOwnershipDivestiture(

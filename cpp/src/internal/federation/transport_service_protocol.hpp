@@ -352,6 +352,11 @@ enum class TransportServiceOperation : std::uint16_t {
   // carries an unsolicited joined-federate identity marker; no region
   // snapshot crosses the wire.
   claim_deferred_attribute_update = 144U,
+  // A regular owner-release event may be buffered behind an earlier user
+  // callback after crossing transport. Revalidate it when its own callback
+  // enters user code so a successful acquisition cancellation can suppress
+  // that stale release request.
+  claim_attribute_ownership_release = 145U,
 };
 
 enum class TransportServiceStatus : std::uint16_t {

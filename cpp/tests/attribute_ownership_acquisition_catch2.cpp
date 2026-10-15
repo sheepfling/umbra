@@ -456,8 +456,10 @@ TEST_CASE(
                   session,
                   [&](umbra::detail::TransportServiceMessage const& request) {
                     if (allowReceivePolls &&
-                        request.operation ==
-                            umbra::detail::TransportServiceOperation::receive_interaction) {
+                        (request.operation ==
+                             umbra::detail::TransportServiceOperation::receive_interaction ||
+                         request.operation ==
+                             umbra::detail::TransportServiceOperation::claim_attribute_ownership_release)) {
                       if (++receivePollCount > 256U) {
                         throw std::runtime_error(
                             "The process ownership-acquisition release client exceeded the bounded callback poll allowance.");
@@ -758,6 +760,8 @@ void runDeniedProcessAcquisitionCase(
                     if (allowCallbackProgress &&
                         (request.operation ==
                              umbra::detail::TransportServiceOperation::receive_interaction ||
+                         request.operation ==
+                             umbra::detail::TransportServiceOperation::claim_attribute_ownership_release ||
                          (callbackModel == HLA_IMMEDIATE &&
                           request.operation ==
                               umbra::detail::TransportServiceOperation::get_object_class_handle))) {
