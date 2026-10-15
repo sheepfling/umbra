@@ -284,7 +284,7 @@ void runScenario(bool enableDelay, CallbackModel callbackModel) {
 
   // A passel initially eligible for this overlapping declaration must still
   // be suppressed when the committed receiving range becomes disjoint before
-  // callback entry, irrespective of the switch setting.
+  // delivery eligibility, irrespective of the switch setting.
   if (callbackModel == HLA_IMMEDIATE) {
     receiver->disableCallbacks();
   }
@@ -330,7 +330,7 @@ void runScenario(bool enableDelay, CallbackModel callbackModel) {
               std::vector<std::vector<std::uint8_t>>{{0xD5U}});
     }
 
-    // Object deletion after acceptance but before callback entry invalidates
+    // Object deletion after acceptance but before callback-task admission invalidates
     // this passel; the service still consumes its matching readiness marker.
     receiver->disableCallbacks();
     std::array<std::uint8_t, 1U> const sixthTag{0xD6U};
@@ -541,14 +541,14 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Process immediate delayed regional attribute delivery rechecks at callback entry",
+    "Process immediate delayed regional attribute delivery rechecks at callback-task admission",
     "[integration][object-management][data-distribution-management]"
     "[delay-subscription-evaluation][process-boundary]"
     "[process-delayed-regional-attribute-immediate][2025]"
     "[rti.service.update-attribute-values]"
     "[rti.service.subscribe-object-class-attributes-with-regions]"
     "[federate.callback.reflect-attribute-values]") {
-  SECTION("enabled defers eligibility to the HLA_IMMEDIATE callback entry") {
+  SECTION("enabled defers eligibility to HLA_IMMEDIATE callback-task admission") {
     runScenario(true, HLA_IMMEDIATE);
   }
   SECTION("disabled preserves generation-time exclusion") {
