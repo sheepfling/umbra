@@ -31893,7 +31893,7 @@
       "test_case": "RTIambassadors continue Confirm Divestiture with a pushed assumption candidate",
       "source_location": "cpp/tests/ieee1516_2025_confirm_divestiture_process_assumption_catch2.cpp:62",
       "primary_lane": "process-confirm-divestiture-assumption",
-      "assertions": 64,
+      "assertions": 60,
       "callback_models": [
         "HLA_IMMEDIATE"
       ],
@@ -31922,7 +31922,7 @@
         "2025"
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
-      "requirements_lab_api_surface_status": "The official C++ RTIambassador Confirm Divestiture source includes direct ownership-state assertions establishing that the original owner retains ownership and the requester does not acquire it before explicit confirmation, then checks ownership after the resulting acquisition notification. The scripted process server handles the four ownership-query requests in client order. MinGW target build succeeded and the exact focused CTest passed (1/1, 64 assertions) with loopback access. This remains development-profile evidence only; mixed/RTI-owned state, transport interoperability, package/JUnit/protected-review, validation, and conformance remain separate.",
+      "requirements_lab_api_surface_status": "The official C++ RTIambassador Confirm Divestiture source includes direct ownership-state assertions establishing that the original owner retains ownership and the requester does not acquire it before explicit confirmation, then checks ownership after the resulting acquisition notification. Process callbacks may arrive before the subsequent lookup; the case no longer asserts an invalid pre-lookup absence. The scripted process server handles the four ownership-query requests in client order. MinGW target build succeeded and the exact focused CTest passed (1/1, 60 assertions) with loopback access. This remains development-profile evidence only; mixed/RTI-owned state, transport interoperability, package/JUnit/protected-review, validation, and conformance remain separate.",
       "next_action": "Continue the portable C++ TCK family with one new C++ API-backed scenario: use `python tools/query_rti_work.py work portable-cpp-tck-2025 --summary --compact`, then select one uncovered actionable 2025 behavior and add its focused case, exact requirement-to-subsection mapping, target, and CTest. Keep the page-148 l112/l121/l124 fragments unmapped individually until the Lab repairs or links the complete requirement and its exception list."
     },
     {

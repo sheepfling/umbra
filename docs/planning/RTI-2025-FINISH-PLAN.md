@@ -15,18 +15,20 @@ open indexed families are a different grouping: five `evidence-complete`, four
 planned candidates in the indexed queue. Do not recycle completed process TSO
 work as a supposedly missing case.
 
-The C++ Catch2 plan has 1,503 cases: 1,406 requirement-mapped and 97 explicitly
-classified without a normative mapping. The mapping check records 980 direct
+The C++ Catch2 plan has 1,506 cases: 1,409 requirement-mapped and 97 explicitly
+classified without a normative mapping. The mapping check records 981 direct
 requirement-to-canonical-section pairs and 2,220 pinned 2025 requirement IDs;
 pair count is not a requirement-completion percentage. The portable C++ TCK
-catalogs 1,034 promoted scenarios. A pre-integration installed package passed
-all 2,048 configured CTests, but its direct replay was stopped after 303
-scenario chunks when subsequent runtime changes superseded that package.
-Fresh post-integration JSON/JUnit and catalog validation remain a release gate.
-The current source-size check is also red: 40 hard findings and 17 soft-limit
-findings, including the portable TCK's 40,753-line `main.cpp` and 36,724-line
-`portable_tck.cpp`. Two cohesive lookup-lifecycle and FOM-module extractions
-removed 1,701 lines from `main.cpp` but did not clear its hard limit.
+catalogs 1,036 promoted scenarios. A prior installed package passed all 2,048
+configured CTests and 2,068 direct both-model replays with valid JSON/JUnit,
+but later restore, reporting, and TCK-source changes superseded that binary.
+The fresh combined-branch package passed 2,048 configured CTests and 2,072
+direct both-model replays; its JSON/JUnit contains no failures. Full native
+regression remains a release gate. The current
+source-size check is also red: 40 hard findings and 17 soft-limit findings.
+Cohesive callback-control and MOM-query extractions removed a further 5,105
+lines from portable TCK `main.cpp` and 3,374 from `portable_tck.cpp`; both
+drivers remain above the hard ceiling and need further ownership work.
 
 ## Work lanes
 
@@ -88,24 +90,40 @@ C++ gates rather than silently blocking or inflating them.
 
 ## Parallel execution board: current wave
 
-Keep these four seats active from isolated Git worktrees. Each worker has its
-own MinGW `out/` and one vertical slice; no worker uses the dirty integration
-checkout. The integration owner cherry-picks verified commits one at a time.
+Workers use isolated worktrees and exclusive source ownership. The integration
+owner cherry-picks verified commits serially. Completed seats can be reused for
+the next concrete packet; they do not trigger a new Requirements Lab sync.
 
-| Seat | Start-now packet | Exclusive working area | Deliverable |
-| --- | --- | --- | --- |
-| 1. Object/DDM runtime | Preserve the verified process HLA_IMMEDIATE regional delivery and resign-fence behavior. Correct the test wording to describe the proven callback-task-admission boundary, then project the changed behavior through the installed-package regional TCK. Do not invent a later callback-entry recheck without a normative requirement and failing case. | Process object/DDM routing and its focused C++ tests; avoid save/restore and MOM files. | Precise 2025 clause mapping, corrected case/plan/roadmap wording, focused MinGW CTest and lane check. |
-| 2. Save/restore and TCK quality | Preserve the verified fresh-registry Release Multiple Names abort-all case. The lookup-lifecycle and FOM-module scenario groups are now in ordinary `.cpp`/`.hpp` ownership; keep their scenario IDs and both callback-model behavior stable through the full installed-package run. | Portable TCK scenario declarations/implementation and CMake; avoid runtime and MOM files. | Both cohesive extractions built under MinGW and passed 20 plus 48 focused tests; the hard source-size gate remains open. |
-| 3. MOM/reporting runtime | The distinct pending-advance `InTimeAdvancingState` rejection is integrated and its six adjacent CTests pass. Hold further runtime edits during the fresh-package checkpoint; afterward select one separately mapped invalid-time failure or process/MOM reporting route. | MOM time-advance reporting and official-C++ service-report tests; no TCK runner/catalog edits. | Preserve the two green NMRA failure cases and their separate RL-321/RL-322 extraction notes; make no general reporting claim. |
-| 4. Integration and portable TCK | Complete the shared MinGW build and neighboring tests for each incoming slice, merge verified commits serially, update the active roadmap handoff, then rebuild/install a fresh package. Run all 1,034 promoted C++ TCK scenarios in both callback models with direct JSON/JUnit and classify failures. | Integration checkout, installed-package/TCK evidence, shared index merge resolution; no simultaneous lane-owned runtime edits. | A current pass/fail list with reproducible packets, mapped clean branch, build-quality snapshot, and explicit release blockers. |
+| Seat | Packet and present evidence | Exclusive ownership / next gate |
+| --- | --- | --- |
+| 1. Durable and temporal restore | Two-member mixed-interaction image admission and queued ordinary time-grant save ordering are integrated. The combined focused selector passed 11/11, including a new untimed queued-FQR counterexample in both callback models; corrupt-image/commit neighbors passed 5/5. | Registry state-image validation and save/time scheduling only. Keep the FQR standalone admission and the GALT-blocked TAR behavior; full native regression remains due. |
+| 2. MOM/reporting | Process backward-time NMRA failure now has an official-C++ both-model filesystem-report case (43 assertions); its exact and adjacent process checks passed in isolation. RL-321 still records missing §8.11 candidates. | MOM/reporting test and mapped plan row only. Verify on the combined branch; do not infer generic NMRA or MOM conformance. |
+| 3. Portable TCK source quality | Callback-control and MOM declaration-query families moved to ordinary `.cpp`/`.hpp` ownership. Their 140 and 112 focused both-model CTests passed, with all 1,036 catalog IDs retained. | TCK scenario files, CMake, and source-boundary validator only. Both oversized drivers and the repository-wide size gate remain open. |
+| 4. Integration and process fixture | A restricted full native sweep produced Windows socket 10013, so it is not behavioral evidence. The separate lifecycle `NotConnected` came from a test fixture that closed after ten requests while valid service-report requests were interleaved. Its bounded protocol-terminal repair and the adjacent untimed-save case pass in both registered native targets (4/4). The combined MinGW build and fresh installed-package TCK passed 2,048 configured and 2,072 direct both-model cases. | Integration checkout and process fixture. Finish the partitioned full native rerun with loopback access, then record build-quality and explicit blockers. |
 
-If a fifth contributor is available, give them FOM/Annex-C evidence closure and
-any verified 2025 FOM gap confined to `cpp/src/internal/fom/**`. A sixth can
-adjudicate unmapped requirement rows in bounded subsection batches and record
-Requirements Lab defects. Neither should invent tests from candidate text or
-edit another worker's runtime files. The time/callback holding items are
-`evidence-complete`; close them with a bounded review or assign a verified
-counterexample before reserving another implementation seat.
+The next independent FOM/Annex-C seat needs a bounded evidence-closure packet
+or a verified 2025 counterexample confined to `cpp/src/internal/fom/**`.
+Requirement adjudication is a separate subsection-sized read-only lane, not an
+open-ended search; neither lane invents tests from candidate text. Java parity
+begins after the C++ gates rather than consuming a current C++ seat.
+
+## Current release-gate packets
+
+The installed-package C++ TCK is green, but this is not a clean native or
+repository-quality bill. Keep these finite packets separate so an audit repair
+does not get misreported as new RTI conformance:
+
+| Packet | Verified starting point | Close only after |
+| --- | --- | --- |
+| Official 2025 vendor bytes | The pinned archives and manifests agree for all 44 C++ headers and seven 1516.2 resources. Git's LF normalization changed their committed bytes, so header/resource digests fail. | Narrow vendor-tree Git text exceptions and byte-exact reimport from the verified 2025 archives; unchanged manifest digests; binding inventory, resource, and installed-package checks pass. Do not regenerate hashes from normalized copies. |
+| Test metadata and names | Three plan API IDs contain a one-character typo; the roadmap has a duplicate top-level completed-handoff key; three C++ cases lack a required lane tag; 52 literal handle lookups exceed the symbolic-name ratchet. | Correct the IDs/key/tags and use named fixture constants without raising a baseline; rerun traceability, query-matrix, taxonomy, and symbolic-name checks. |
+| Native process regressions | A loopback-enabled bounded sweep exposed timeouts in process TSO/retraction cases and an early discovery assertion in a process ownership case. The ownership case's four invalid pre-lookup/pre-callback absence assertions were removed; its exact MinGW CTest now passes (60 assertions). The regional-interaction callback-gating case still times out in isolation in both registered binaries, so this is not merely partition contention. | Diagnose the remaining scripted process fixtures and fix each distinct root cause in a focused official-C++ lane, add a finite fixture watchdog where needed, then pass the affected process selectors and rerun the process partition with bounded timeouts. |
+| Source ownership and comprehensive proof | Forty hard and 17 soft source-size findings remain despite two cohesive TCK extractions. The full native partition has not passed. | Finish responsibility-based file splits and size checks, then obtain a fresh combined MinGW build, native CTest, installed-package TCK JSON/JUnit, and mapping checks at one frozen commit. |
+
+The first three packets can be developed in isolated worktrees concurrently.
+The integration owner alone merges them serially and records the exact
+green/red state; no tag or completeness claim precedes the final frozen-commit
+checkpoint.
 
 Each runtime branch must include its source, focused C++ test, required CMake
 registration, exact Catch2 plan mapping, and roadmap handoff as one coherent

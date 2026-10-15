@@ -98,26 +98,26 @@
     "issue_query": "python tools/query_rti_work.py lab-issues --summary --compact",
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
-  "active_handoff_note": "2026-10-14 parallel integration checkpoint: the prior installed MinGW package passed 2,048 configured C++ TCK CTests, but direct replay stopped after 303 superseded chunks. Process DDM and both NMRA filesystem failure-report fixes are now integrated and focused green. A fresh post-merge MinGW runtime package is installed; the full native CTest and direct both-model portable TCK runs remain pending. Freeze further runtime edits until package evidence completes. The pre-merge matrix is only a baseline; do not resynchronize unchanged Requirements Lab inputs or promote conformance.",
-  "latest_verified_slice": "2026-10-14: Main MinGW built the process DDM and MOM Catch2 targets after both NMRA failure-report fixes. Six adjacent NMRA/service-report CTests and two process-host DDM/reporting anchors passed, the latter with local loopback access. Fresh-registry Release Multiple Names abort-all passed 33 assertions; process DDM five focused cases and ten repeated resign/rejoin runs also passed. The global mapping gate passes at 1,503 Catch2 cases (1,406 mapped, 97 explicitly internal), 980 direct requirement-section pairs, and two non-actionable source-location gaps. Two cohesive portable TCK extractions preserved 34 scenario bodies, passed 68 focused both-model tests in isolation, and restored the 1,034-ID catalog boundary audit. Full post-merge package evidence, 40 source-size hard findings, external interoperability, and conformance remain open.",
+  "active_handoff_note": "2026-10-14 parallel-wave checkpoint: the combined installed MinGW 2025 C++ package passed 2,048 configured CTests and 2,072 direct both-model TCK replays with valid JSON/JUnit, but native process timing fixtures still time out in isolation. The active packet is the mapped process regional-interaction callback-gating case, not another Requirements Lab sync. Keep vendor-byte, metadata, symbolic-name, process-fixture, and TCK source-ownership repairs as separate bounded lanes; rerun the full native and package gates only at a frozen integration commit. Do not promote conformance.",
+  "latest_verified_slice": "2026-10-14: The combined installed-package C++ TCK passed 2,048/2,048 configured CTests and 2,072/2,072 direct both-model replays (1,036 promoted scenarios per model); JSON/JUnit and the 164-service/56-callback catalog audit passed. The mapping gate passes at 1,506 Catch2 cases (1,409 mapped, 97 explicitly without normative mapping), 981 direct requirement-section pairs, and two non-actionable source-location gaps. A process ownership Confirm Divestiture case now passes 60 assertions after removing invalid early-callback absence checks. All 44 official 2025 C++ header and seven OMT resource digests pass after a byte-exact vendor import, and the symbolic-name ratchet has zero new findings. The native process partition remains red for isolated TSO/retraction fixture timeouts; planning completion-ledger pointer drift, 40 hard/17 soft source-size findings, external interoperability, and conformance remain open.",
   "active_handoff": {
     "state": "investigation",
     "family": "transport-and-conformance",
-    "id": "umbra-cpp-installed-package-post-integration-matrix",
-    "plan_id": "umbra-cpp-process-endpoint-mom-service-report-interlock-integration",
-    "mapping_seed_plan_id": "umbra-cpp-process-endpoint-mom-service-report-interlock-integration",
-    "test_case": "RTIambassador preserves the process HLAsetSwitches Service Reporting interlock",
-    "lane": "process-mom-service-report-interlock",
-    "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1338",
-    "source_target": "cpp/tests/ieee1516_2025_connection_catch2.cpp",
+    "id": "umbra-cpp-process-tso-regional-interaction-native-regression",
+    "plan_id": "umbra-cpp-process-tso-regional-interaction-callback-gating",
+    "mapping_seed_plan_id": "umbra-cpp-process-tso-regional-interaction-callback-gating",
+    "test_case": "RTIambassadors retain a timestamped regional interaction while callbacks are disabled",
+    "lane": "process-tso-regional-interaction-callback-gating",
+    "source_location": "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_arrival_catch2.cpp:6",
+    "source_target": "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_arrival_catch2.cpp",
     "ctest_target": "umbra_ieee1516_2025_connection_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador preserves the process HLAsetSwitches Service Reporting interlock$",
-    "objective": "Use the freshly installed post-merge MinGW 2025 C++ package to run every promoted portable C++ TCK scenario in both callback models, including the process connection-loss fixture, and retain complete direct JSON/JUnit plus catalog validation. Compare any failure against the mapped native Service Reporting interlock and integrated regional DDM cases. Classify every failure before a release decision; do not treat the earlier pre-merge 2,048-CTest pass as final-package evidence or resynchronize unchanged Requirements Lab inputs.",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors retain a timestamped regional interaction while callbacks are disabled$",
+    "objective": "Diagnose the isolated timeout in the scripted two-session process regional-interaction fixture while preserving the mapped 2025 callback-gating behavior. Confirm the last served request, repair the fixture protocol or runtime only where evidence warrants, and make cleanup finite so a failed assertion cannot strand CTest. Recheck the adjacent NMR/NMRA regional interaction and retraction selectors before retrying the native process partition; do not resynchronize unchanged Requirements Lab inputs.",
     "acceptance": [
-      "The final merged runtime builds and installs as a fresh MinGW package, and the complete promoted C++ TCK runs under HLA_EVOKED and HLA_IMMEDIATE.",
-      "Direct JSON/JUnit and catalog validation are complete; no interrupted or pre-merge replay is treated as current evidence.",
-      "Any provider failure is reproduced with an official-API C++ case and exact mapping before a scoped fix, or explicitly classified as a test-harness issue.",
-      "Source-size/build-quality blockers and protected conformance review remain separate release gates."
+      "The exact callback-gating case passes in both registered native executables with a finite timeout and its 2025 requirement/section mapping intact.",
+      "Adjacent NMR, NMRA, regional interaction, and retraction process cases have bounded focused evidence and any distinct failure is classified separately.",
+      "The native process partition is rerun with loopback access and a per-test timeout; a partial or hung run is not called green.",
+      "Source-size, installed-package refresh, planning regression, external interoperability, and protected conformance review remain separate release gates."
     ]
   },
   "last_completed_handoff": {

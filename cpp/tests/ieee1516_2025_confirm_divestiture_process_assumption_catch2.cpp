@@ -445,13 +445,14 @@ TEST_CASE(
     ObjectInstanceHandle objectInstance;
     REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(ownerClass));
     REQUIRE(objectInstance.isValid());
-    REQUIRE(candidateReports.discoveries.empty());
+    // The process callback bridge may deliver discovery before the next
+    // explicit service call; the lookup below is a synchronization point, not
+    // a claim that the callback must remain pending until then.
     REQUIRE_NOTHROW(static_cast<void>(candidate->getObjectClassHandle(
         fixture_hla::fom::attribute_fixture_child)));
     REQUIRE(candidateReports.discoveries.size() == 1U);
     REQUIRE(candidateReports.discoveries.front().objectInstance == objectInstance);
     REQUIRE(candidateReports.discoveries.front().objectClass == candidateClass);
-    REQUIRE(requesterReports.objectDiscoveryReports.empty());
     REQUIRE_NOTHROW(static_cast<void>(requester->getObjectClassHandle(
         fixture_hla::fom::attribute_fixture_child)));
     REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
@@ -485,11 +486,8 @@ TEST_CASE(
     REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, ownerAttribute));
     REQUIRE_FALSE(requester->isAttributeOwnedByFederate(
         objectInstance, requesterAttribute));
-    REQUIRE(candidateReports.assumptions.empty());
-
-    // The candidate's pushed assumption frame is fenced independently while
-    // the owner confirmation remains pending. This proves the assumption
-    // callback is not lost when a regular acquisition is also waiting.
+    // The candidate's pushed assumption remains observable while owner
+    // confirmation is pending; it may arrive before this next lookup.
     REQUIRE_NOTHROW(static_cast<void>(candidate->getObjectClassHandle(
         fixture_hla::fom::attribute_fixture_child)));
     REQUIRE(candidateReports.assumptions.size() == 1U);
@@ -509,7 +507,6 @@ TEST_CASE(
         objectInstance,
         AttributeHandleSet{ownerAttribute},
         confirmationTag));
-    REQUIRE(requesterReports.acquisitionReports.empty());
     REQUIRE_NOTHROW(static_cast<void>(requester->getObjectClassHandle(
         fixture_hla::fom::attribute_fixture_child)));
     REQUIRE(requesterReports.acquisitionReports.size() == 1U);
