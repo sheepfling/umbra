@@ -325,7 +325,7 @@ MAPPED_CORE_CASES = {
         },
         "source_location": "cpp/tests/ieee1516_2025_connection_process_flush_queue_multiple_records_catch2.cpp:459",
         "assertions": 110,
-        "api_surfaces": 22,
+        "api_surfaces": 23,
         "primary_lane": "process-flush-queue-multiple-records",
     },
     "Embedded Flush Queue Request flushes queued TSO and reports optimistic time": {
@@ -3638,12 +3638,13 @@ def main() -> int:
         index, tests, "process-service-report-file-loss", limit=0
     )
     if (
-        process_service_report_loss_focus.get("mapped_test_count") != 1
+        process_service_report_loss_focus.get("mapped_test_count") != 0
         or process_service_report_loss_focus.get("assertion_count") != 15
-        or process_service_report_loss_focus.get("standard_section_count") != 2
-        or process_service_report_loss_focus.get("requirement_section_pair_count") != 2
+        or process_service_report_loss_focus.get("explicit_disposition_count") != 1
+        or process_service_report_loss_focus.get("standard_section_count") != 0
+        or process_service_report_loss_focus.get("requirement_section_pair_count") != 0
     ):
-        raise AssertionError("process service-report file-loss lane mapping drifted")
+        raise AssertionError("process service-report file-loss internal lane drifted")
     service_report_multifederate_focus = query_rti_work.focused_lane_result(
         index, tests, "service-report-file-multifederate", limit=0
     )

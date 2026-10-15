@@ -22,13 +22,17 @@ pair count is not a requirement-completion percentage. The portable C++ TCK
 catalogs 1,036 promoted scenarios. A prior installed package passed all 2,048
 configured CTests and 2,068 direct both-model replays with valid JSON/JUnit,
 but later restore, reporting, and TCK-source changes superseded that binary.
-The fresh combined-branch package passed 2,048 configured CTests and 2,072
-direct both-model replays; its JSON/JUnit contains no failures. Full native
-regression remains a release gate. The current
-source-size check is also red: 40 hard findings and 17 soft-limit findings.
+An earlier combined-branch package passed 2,048 configured CTests and 2,072
+direct both-model replays; its JSON/JUnit contains no failures. Subsequent
+source changes supersede that binary. Full native regression remains a release
+gate. The current source-size check is also red: 40 hard findings and 18
+soft-limit findings.
 Cohesive callback-control and MOM-query extractions removed a further 5,105
 lines from portable TCK `main.cpp` and 3,374 from `portable_tck.cpp`; both
-drivers remain above the hard ceiling and need further ownership work.
+drivers remain above the hard ceiling and need further ownership work. Later
+federation-lifecycle and regional-service-report extractions removed another
+1,173 and 1,026 lines, respectively; the drivers currently measure 34,485
+and 32,326 expanded lines.
 
 ## Work lanes
 
@@ -98,7 +102,7 @@ the next concrete packet; they do not trigger a new Requirements Lab sync.
 | --- | --- | --- |
 | 1. Durable and temporal restore | Two-member mixed-interaction image admission and queued ordinary time-grant save ordering are integrated. The combined focused selector passed 11/11, including a new untimed queued-FQR counterexample in both callback models; corrupt-image/commit neighbors passed 5/5. | Registry state-image validation and save/time scheduling only. Keep the FQR standalone admission and the GALT-blocked TAR behavior; full native regression remains due. |
 | 2. MOM/reporting | Process backward-time NMRA failure now has an official-C++ both-model filesystem-report case (43 assertions); its exact and adjacent process checks passed in isolation. RL-321 still records missing §8.11 candidates. | MOM/reporting test and mapped plan row only. Verify on the combined branch; do not infer generic NMRA or MOM conformance. |
-| 3. Portable TCK source quality | Callback-control and MOM declaration-query families moved to ordinary `.cpp`/`.hpp` ownership. Their 140 and 112 focused both-model CTests passed, with all 1,036 catalog IDs retained. | TCK scenario files, CMake, and source-boundary validator only. Both oversized drivers and the repository-wide size gate remain open. |
+| 3. Portable TCK source quality | Callback-control and MOM declaration-query families moved to ordinary `.cpp`/`.hpp` ownership. Federation-lifecycle and regional-service-report families followed; their 28 and 32 focused both-model cases passed, with all 1,036 catalog IDs retained. | TCK scenario files, CMake, and source-boundary validator only. Both oversized drivers and the repository-wide size gate remain open; an independent inherited/derived scenario extraction is underway. |
 | 4. Integration and process fixture | A restricted full native sweep produced Windows socket 10013, so it is not behavioral evidence. The separate lifecycle `NotConnected` came from a test fixture that closed after ten requests while valid service-report requests were interleaved. Its bounded protocol-terminal repair and the adjacent untimed-save case pass in both registered native targets (4/4). The combined MinGW build and fresh installed-package TCK passed 2,048 configured and 2,072 direct both-model cases. | Integration checkout and process fixture. Finish the partitioned full native rerun with loopback access, then record build-quality and explicit blockers. |
 
 The next independent FOM/Annex-C seat needs a bounded evidence-closure packet
@@ -115,10 +119,10 @@ does not get misreported as new RTI conformance:
 
 | Packet | Verified starting point | Close only after |
 | --- | --- | --- |
-| Official 2025 vendor bytes | The pinned archives and manifests agree for all 44 C++ headers and seven 1516.2 resources. Git's LF normalization changed their committed bytes, so header/resource digests fail. | Narrow vendor-tree Git text exceptions and byte-exact reimport from the verified 2025 archives; unchanged manifest digests; binding inventory, resource, and installed-package checks pass. Do not regenerate hashes from normalized copies. |
-| Test metadata and names | Three plan API IDs contain a one-character typo; the roadmap has a duplicate top-level completed-handoff key; three C++ cases lack a required lane tag; 52 literal handle lookups exceed the symbolic-name ratchet. | Correct the IDs/key/tags and use named fixture constants without raising a baseline; rerun traceability, query-matrix, taxonomy, and symbolic-name checks. |
+| Official 2025 vendor bytes | The 44 C++ headers and seven 1516.2 resources are byte-exact against the pinned archives; narrow vendor-tree Git text exceptions preserve those bytes. Binding inventory and resource CTests pass. | Preserve manifest digests and confirm the fresh installed-package check at the frozen integration commit. |
+| Test metadata and names | API IDs, duplicate roadmap key, lane tags, and 52 symbolic-name lookups are repaired. The local contract-selector guard is clean: 5,161/5,161 native references exact. The query regression still exposes stale local expectations one at a time; taxonomy needs a rebuilt executable. | Finish the bounded query-regression repairs, rebuild the Catch2 target, and pass traceability, taxonomy, and symbolic-name checks without raising baselines. |
 | Native process regressions | A loopback-enabled bounded sweep exposed timeouts in process TSO/retraction cases and an early discovery assertion in a process ownership case. The ownership case's four invalid pre-lookup/pre-callback absence assertions were removed; its exact MinGW CTest now passes (60 assertions). The regional-interaction callback-gating case still times out in isolation in both registered binaries, so this is not merely partition contention. | Diagnose the remaining scripted process fixtures and fix each distinct root cause in a focused official-C++ lane, add a finite fixture watchdog where needed, then pass the affected process selectors and rerun the process partition with bounded timeouts. |
-| Source ownership and comprehensive proof | Forty hard and 17 soft source-size findings remain despite two cohesive TCK extractions. The full native partition has not passed. | Finish responsibility-based file splits and size checks, then obtain a fresh combined MinGW build, native CTest, installed-package TCK JSON/JUnit, and mapping checks at one frozen commit. |
+| Source ownership and comprehensive proof | Forty hard and 18 soft source-size findings remain despite four cohesive TCK extractions. The full native partition has not passed. | Finish responsibility-based file splits and size checks, then obtain a fresh combined MinGW build, native CTest, installed-package TCK JSON/JUnit, and mapping checks at one frozen commit. |
 
 The first three packets can be developed in isolated worktrees concurrently.
 The integration owner alone merges them serially and records the exact
