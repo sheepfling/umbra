@@ -871,6 +871,10 @@ TEST_CASE(
             true);
         serveExpected(
             requesterSession, requesterHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The process ownership-acquisition release-denied server lost the query service report.");
+        serveExpected(
+            requesterSession, requesterHandler,
             TransportServiceOperation::resign_federation_execution,
             "The process ownership-acquisition release-denied server lost requester Resign.",
             true);
