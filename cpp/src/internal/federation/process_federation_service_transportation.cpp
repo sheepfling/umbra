@@ -91,6 +91,17 @@ ProcessFederationService::handleRequestAttributeTransportationTypeChange(
         std::move(plan.attributeHandles),
         std::move(plan.transportationName)};
     if (options_.pushReceiveOrderEvents) {
+      auto delivery = registry_.beginAttributeTransportationTypeChange(
+          changeRequest.federationName,
+          changeRequest.requestingFederateId,
+          plan.requestId);
+      if (!delivery || delivery->attributeHandles.empty() ||
+          delivery->transportationName.empty()) {
+        return internalError(request);
+      }
+      event.objectInstanceHandle = delivery->objectInstanceHandle;
+      event.attributeHandles = std::move(delivery->attributeHandles);
+      event.transportationName = std::move(delivery->transportationName);
       if (!session.send(TransportServiceMessage{
               TransportServiceMessageKind::event,
               TransportServiceOperation::receive_interaction,

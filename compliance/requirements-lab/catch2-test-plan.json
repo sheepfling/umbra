@@ -48208,7 +48208,7 @@
         "requirement-candidate-content-clauses-06-object-management-page-143-l156-42"
       ],
       "test_case": "RTIambassador routes instance transportation type change and query through a configured process endpoint",
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:615",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:714",
       "primary_lane": "process-transportation-instance-control",
       "tags": [
         "integration",
@@ -48226,19 +48226,18 @@
         "2025"
       ],
       "status": "implemented-private-foundation-not-conformance-evidence",
-      "assertions": 30,
+      "assertions": 46,
       "callback_models": [
         "HLA_EVOKED",
         "HLA_IMMEDIATE"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.26",
-        "hla-1516.1-2025:clause-6.27",
         "hla-1516.1-2025:clause-6.28",
         "hla-1516.1-2025:clause-6.29.1"
       ],
-      "requirements_lab_api_surface_status": "This focused native C++ process-boundary case routes Request Attribute Transportation Type Change and Query Attribute Transportation Type through a configured private endpoint under HLA_EVOKED and HLA_IMMEDIATE. It verifies one confirmation callback and one current-type query callback for the same registered instance. It is private foundation evidence only; the embedded service-report file path, interaction transportation, DDM, save/restore, package/JUnit/protected-review, Requirements Lab validation, interoperability, and conformance remain separate.",
-      "next_action": "Keep this lane green, then add interaction transportation through the process endpoint as a separate case. Do not fold service-report-file behavior or broader DDM/ownership semantics into this row."
+      "requirements_lab_api_surface_status": "This focused native C++ process-boundary case requests a non-default attribute transportation type and queries the achieved type through a configured private endpoint under HLA_EVOKED and HLA_IMMEDIATE. It verifies one confirmation and one current-type report for the same registered instance, using an explicit pull for EVOKED and pushed events for IMMEDIATE. It is private foundation evidence only; the precise 2025 clause 6.25 callback-invocation timing boundary, service-report file path, DDM, save/restore, Requirements Lab validation, interoperability, and conformance remain separate.",
+      "next_action": "Keep this non-default override and query lane green; verify clause 6.25 callback-invocation timing separately before claiming full conformance. Do not fold service-report-file behavior or broader DDM/ownership semantics into this row."
     },
     {
       "id": "umbra-cpp-process-endpoint-transportation-interaction-integration",

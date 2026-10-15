@@ -659,20 +659,42 @@ class TransportationTypeFederateAmbassador final : public NullFederateAmbassador
       rti1516_2025::ObjectInstanceHandle const& objectInstance,
       rti1516_2025::AttributeHandleSet const& attributes,
       rti1516_2025::TransportationTypeHandle const& transportationType) override {
-    ++changeCount;
-    changedObjectInstance = objectInstance;
-    changedAttributes = attributes;
-    changedTransportationType = transportationType;
+    {
+      std::scoped_lock lock(callbackMutex);
+      changedObjectInstance = objectInstance;
+      changedAttributes = attributes;
+      changedTransportationType = transportationType;
+      ++changeCount;
+    }
+    callbackAvailable.notify_all();
   }
 
   void reportAttributeTransportationType(
       rti1516_2025::ObjectInstanceHandle const& objectInstance,
       rti1516_2025::AttributeHandle const& attribute,
       rti1516_2025::TransportationTypeHandle const& transportationType) override {
-    ++queryCount;
-    queriedObjectInstance = objectInstance;
-    queriedAttribute = attribute;
-    queriedTransportationType = transportationType;
+    {
+      std::scoped_lock lock(callbackMutex);
+      queriedObjectInstance = objectInstance;
+      queriedAttribute = attribute;
+      queriedTransportationType = transportationType;
+      ++queryCount;
+    }
+    callbackAvailable.notify_all();
+  }
+
+  bool waitForChange() {
+    std::unique_lock lock(callbackMutex);
+    return callbackAvailable.wait_for(lock, std::chrono::seconds(2), [this] {
+      return changeCount != 0U;
+    });
+  }
+
+  bool waitForQuery() {
+    std::unique_lock lock(callbackMutex);
+    return callbackAvailable.wait_for(lock, std::chrono::seconds(2), [this] {
+      return queryCount != 0U;
+    });
   }
 
   std::size_t changeCount = 0U;
@@ -683,11 +705,15 @@ class TransportationTypeFederateAmbassador final : public NullFederateAmbassador
   rti1516_2025::ObjectInstanceHandle queriedObjectInstance;
   rti1516_2025::AttributeHandle queriedAttribute;
   rti1516_2025::TransportationTypeHandle queriedTransportationType;
+
+ private:
+  std::mutex callbackMutex;
+  std::condition_variable callbackAvailable;
 };
 
 TEST_CASE(
     "RTIambassador routes instance transportation type change and query through a configured process endpoint",
-    "[integration][foundation][object-management][transportation][transport][process-boundary][public-endpoint][process-transportation-instance-control][rti.service.request-attribute-transportation-type-change][rti.service.query-attribute-transportation-type]") {
+    "[integration][foundation][object-management][transportation][transport][process-boundary][public-endpoint][process-transportation-instance-control][rti.service.request-attribute-transportation-type-change][rti.service.query-attribute-transportation-type][federate.callback.confirm-attribute-transportation-type-change][federate.callback.report-attribute-transportation-type][2025]") {
   auto runScenario = [](CallbackModel callbackModel) {
     auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
     REQUIRE(listener);
@@ -700,7 +726,9 @@ TEST_CASE(
         L"public-process-transportation-instance-federate";
     constexpr char const* objectName = "HLAobjectRoot.Customer";
     constexpr char const* attributeName = "HLAprivilegeToDeleteObject";
-    constexpr char const* transportationTypeName = "HLAreliable";
+    // The official MIM defaults this attribute to HLAreliable; request an
+    // actual override so the subsequent query can detect an uncommitted change.
+    constexpr char const* transportationTypeName = "HLAbestEffort";
     std::atomic_uint64_t expectedObjectClass{0U};
     std::atomic_uint64_t expectedAttribute{0U};
     std::atomic_uint64_t expectedTransportation{0U};
@@ -708,8 +736,10 @@ TEST_CASE(
     std::thread server([&] {
       try {
         EmbeddedFederationRegistry registry;
+        ProcessFederationServiceOptions options;
+        options.pushReceiveOrderEvents = callbackModel == HLA_IMMEDIATE;
         ProcessFederationService service(
-            registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+            registry, composedProcessDefinition(), options);
         auto connection = listener->accept(
             nullptr,
             {"public-process-transportation-instance-server", 0x9603U},
@@ -757,9 +787,11 @@ TEST_CASE(
             !serveExpected(TransportServiceOperation::register_object_instance) ||
             !serveExpected(
                 TransportServiceOperation::request_attribute_transportation_type_change) ||
-            !serveExpected(TransportServiceOperation::receive_interaction) ||
+            (callbackModel == HLA_EVOKED &&
+             !serveExpected(TransportServiceOperation::receive_interaction)) ||
             !serveExpected(TransportServiceOperation::query_attribute_transportation_type) ||
-            !serveExpected(TransportServiceOperation::receive_interaction) ||
+            (callbackModel == HLA_EVOKED &&
+             !serveExpected(TransportServiceOperation::receive_interaction)) ||
             !serveExpected(TransportServiceOperation::resign_federation_execution)) {
           throw std::runtime_error(
               "The public process transportation-instance server lost a declaration, callback, or Resign operation.");
@@ -798,7 +830,7 @@ TEST_CASE(
           rti->getAttributeHandle(objectClass, L"HLAprivilegeToDeleteObject");
       REQUIRE(attribute.isValid());
       auto const transportation =
-          rti->getTransportationTypeHandle(L"HLAreliable");
+          rti->getTransportationTypeHandle(L"HLAbestEffort");
       REQUIRE(transportation.toString() ==
               L"TransportationTypeHandle(" +
                   std::to_wstring(
@@ -811,7 +843,10 @@ TEST_CASE(
       REQUIRE(objectInstance.isValid());
       REQUIRE_NOTHROW(rti->requestAttributeTransportationTypeChange(
           objectInstance, attributes, transportation));
-      REQUIRE_NOTHROW(rti->evokeCallback(0.0));
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE_NOTHROW(rti->evokeCallback(1.0));
+      }
+      REQUIRE(federate.waitForChange());
       REQUIRE(federate.changeCount == 1U);
       REQUIRE(federate.changedObjectInstance == objectInstance);
       REQUIRE(federate.changedAttributes.size() == 1U);
@@ -819,7 +854,10 @@ TEST_CASE(
       REQUIRE(federate.changedTransportationType == transportation);
       REQUIRE_NOTHROW(rti->queryAttributeTransportationType(
           objectInstance, attribute));
-      REQUIRE_NOTHROW(rti->evokeCallback(0.0));
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE_NOTHROW(rti->evokeCallback(1.0));
+      }
+      REQUIRE(federate.waitForQuery());
       REQUIRE(federate.queryCount == 1U);
       REQUIRE(federate.queriedObjectInstance == objectInstance);
       REQUIRE(federate.queriedAttribute == attribute);

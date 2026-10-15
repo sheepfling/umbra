@@ -3,7 +3,18 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract traces the bounded embedded IEEE 1516.1-2025 transportation-type control slice. Attribute defaults are per-federate and prospective, registered instance attributes capture their effective type, accepted instance changes commit at Confirm Attribute Transportation Type Change, and queries report the current effective type. A focused filesystem process-restart companion now proves one class-level default transportation declaration rehydrates in a fresh registry as part of the typed object-class declaration ledger; instance-level transport changes and broader durable recovery remain separate. Interaction changes apply to future ordinary and regional sends for the invoking publisher and commit at confirmation. The implementation accepts both predefined HLAreliable/HLAbestEffort and execution-scoped FOM transportation types resolved from the composed federation catalog. Save/restore beyond this bounded declaration companion, update-rate policy, remote transport, protected review, catalog evidence, JUnit evidence, and conformance remain outside this contract.",
+  "notes": "This contract traces the bounded embedded IEEE 1516.1-2025 transportation-type control slice. Attribute defaults are per-federate and prospective, registered instance attributes capture their effective type, accepted instance changes commit at Confirm Attribute Transportation Type Change, and queries report the current effective type. The pinned Lab labels the one-confirmation sentence as 6.27 although it precedes that heading and belongs to 6.26 (RL-325); the canonical-section override below preserves its immutable candidate ID. A focused filesystem process-restart companion now proves one class-level default transportation declaration rehydrates in a fresh registry as part of the typed object-class declaration ledger; instance-level transport changes and broader durable recovery remain separate. Interaction changes apply to future ordinary and regional sends for the invoking publisher and commit at confirmation. The implementation accepts both predefined HLAreliable/HLAbestEffort and execution-scoped FOM transportation types resolved from the composed federation catalog. Save/restore beyond this bounded declaration companion, update-rate policy, remote transport, protected review, catalog evidence, JUnit evidence, and conformance remain outside this contract.",
+  "canonical_standard_section_overrides": [
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l11-1",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-6.27",
+      "canonical_clause_id": "clause-6.26",
+      "source_heading": "6.26 Confirm Attribute Transportation Type Change service",
+      "source_path": "content/clauses/06-object-management-page-141.tex",
+      "known_issue_id": "RL-325"
+    }
+  ],
   "requirements": [
     {
       "id": "umbra-attribute-transport-initializes-from-fdd-or-federate-default",
@@ -66,7 +77,7 @@
     {
       "id": "umbra-attribute-transport-one-confirmation-for-one-request",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l11-1",
-      "clause_id": "clause-6.27",
+      "clause_id": "clause-6.26",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueConfirmAttributeTransportationTypeChange",
       "tests": [
