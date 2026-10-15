@@ -868,7 +868,11 @@ TEST_CASE(
 
     auto const objectInstance = senderRti->registerObjectInstance(senderObjectClass);
     REQUIRE(objectInstance.isValid());
-    REQUIRE_FALSE(receiverFederate.discovered);
+    // Registration can push discovery before this call returns in the
+    // IMMEDIATE model. Only EVOKED requires it to remain pending here.
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE_FALSE(receiverFederate.discovered);
+    }
     REQUIRE_FALSE(receiverFederate.received);
 
     // Process Receive Interaction has one shared polling fence: registration
