@@ -54,7 +54,7 @@
         "connection-implementation-contract.json",
         "basic-data-elements-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioApiSurfaceInventory",
+      "cpp_test": "src/tck_api_foundation.cpp#scenarioApiSurfaceInventory",
       "runner_id": "java-tck.api-surface-inventory",
       "native_equivalent_runner_ids": [
         "cpp-tck.variable-length-data"

@@ -70,7 +70,6 @@ void requirePortableServiceReportFailure(
 void verifyDdmClassDimensions(
     Session& session, Options const& options, DdmHandles const& handles,
     std::string const& description);
-void verifyStandardNullFederateAmbassadorContract();
 void waitForConnectionLossAndSignal(
     Session& lost, Options const& options, std::string const& description);
 template <typename Predicate>
@@ -296,7 +295,6 @@ void scenarioTimestampedObjectDeletionTombstone(Options const&, rti::CallbackMod
 void scenarioTimestampedObjectDeletionTombstoneContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedRegionalInteraction(Options const&, rti::CallbackModel);
 
-void scenarioApiSurfaceInventory(Options const&, rti::CallbackModel);
 void scenarioAsynchronousDelivery(Options const&, rti::CallbackModel);
 void scenarioAsynchronousDeliveryContract(Options const&, rti::CallbackModel);
 void scenarioAttributeInteraction(Options const&, rti::CallbackModel);
@@ -439,7 +437,6 @@ void scenarioNegotiatedDivestiturePreDeliveryCancellation(Options const&, rti::C
 void scenarioNegotiatedDivestiturePreDeliveryCancellationContract(Options const&, rti::CallbackModel);
 void scenarioNegotiatedWillingToAcquireContinuation(Options const&, rti::CallbackModel);
 void scenarioNegotiatedWillingToAcquireContinuationContract(Options const&, rti::CallbackModel);
-void scenarioNullFederateAmbassadorContract(Options const&, rti::CallbackModel);
 void scenarioObjectAttributeSubscriptionLifecycle(Options const&, rti::CallbackModel);
 void scenarioObjectAttributeSubscriptionLifecycleContract(Options const&, rti::CallbackModel);
 void scenarioObjectClassAttributeValueUpdateRequestBaseline(Options const&, rti::CallbackModel);
