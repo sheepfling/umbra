@@ -458,7 +458,7 @@ TEST_CASE(
     "RTIambassador delivers a directed interaction through the official Evoke callback surface",
     "[integration][foundation][federation-management][interaction-management][object-management]"
     "[directed-interaction][timestamped-directed-interaction][timestamped-directed-retraction][retract][directed-routing][callbacks][callback-controls][callback-gating][callback-immediate][transport][process-boundary][public-endpoint]"
-    "[process-event.receive-object-instance-discovery][process-event.receive-directed-interaction][process-event.request-retraction][federate.callback.request-retraction]") {
+    "[process-event.receive-object-instance-discovery][process-event.receive-directed-interaction][process-event.request-retraction][federate.callback.request-retraction][process-directed-callback-control]") {
   auto runScenario = [](CallbackModel callbackModel,
                         bool timestamped,
                         bool gateCallbacks,
@@ -733,6 +733,13 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::send_directed_interaction,
           "The public directed callback server lost directed Send.");
+      if (retractBeforeReceive && callbackModel == HLA_IMMEDIATE) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::get_object_class_handle,
+            "The public directed callback server lost pre-retraction admission.");
+      }
       if (retractBeforeReceive) {
         serveExpected(
             sender,
@@ -740,7 +747,38 @@ TEST_CASE(
             TransportServiceOperation::retract,
             "The public directed callback server lost directed Retract.");
       }
-      if (callbackModel == HLA_IMMEDIATE) {
+      if (timestamped && retractBeforeReceive && callbackModel == HLA_IMMEDIATE) {
+        // The pushed retraction may acknowledge its removed reservation before
+        // or after the receiver's lookup fence. Require exactly one of each.
+        bool sawLookup = false;
+        bool sawAcknowledgement = false;
+        for (int operation = 0; operation != 2; ++operation) {
+          if (!umbra::test::servePrimaryProcessRequest(
+                  receiver, receiverHandler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation ==
+                            TransportServiceOperation::get_object_class_handle &&
+                        !sawLookup) {
+                      sawLookup = true;
+                    } else if (request.operation ==
+                                   TransportServiceOperation::acknowledge_tso_delivery &&
+                               !sawAcknowledgement) {
+                      sawAcknowledgement = true;
+                    } else {
+                      throw std::runtime_error(
+                          "The public directed callback server received an unexpected pre-delivery retraction operation.");
+                    }
+                    return receiverHandler(request);
+                  })) {
+            throw std::runtime_error(
+                "The public directed callback server lost the pre-delivery retraction fence.");
+          }
+        }
+        if (!sawLookup || !sawAcknowledgement) {
+          throw std::runtime_error(
+              "The public directed callback server lost the pre-delivery retraction acknowledgement.");
+        }
+      } else if (callbackModel == HLA_IMMEDIATE) {
         serveExpected(
             receiver,
             receiverHandler,
@@ -755,37 +793,18 @@ TEST_CASE(
       }
       // This fixture deliberately receives timestamped interactions in
       // RECEIVE order, so normal delivery has no TSO completion to acknowledge.
-      // The pushed pre-delivery retraction path still acknowledges its removed
-      // pending reservation. Expect that explicit handshake only; waiting for
-      // a TSO ACK after ordinary RECEIVE delivery would deadlock the server
-      // before the client can resign or request post-delivery retraction.
-      if (timestamped &&
-          retractBeforeReceive && callbackModel == HLA_IMMEDIATE) {
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::acknowledge_tso_delivery,
-            "The public directed callback server lost TSO delivery acknowledgement.");
-      }
+      // Normal RECEIVE delivery has no TSO completion to acknowledge.
       if (retractAfterReceive) {
         serveExpected(
             sender,
             senderHandler,
             TransportServiceOperation::retract,
             "The public directed callback server lost post-delivery directed Retract.");
-        if (callbackModel == HLA_IMMEDIATE) {
-          serveExpected(
-              receiver,
-              receiverHandler,
-              TransportServiceOperation::get_object_class_handle,
-              "The public directed callback server lost immediate retraction polling.");
-        } else {
-          serveExpected(
-              receiver,
-              receiverHandler,
-              TransportServiceOperation::receive_interaction,
-              "The public directed callback server lost retraction polling.");
-        }
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::get_object_class_handle,
+            "The public directed callback server lost retraction admission.");
       }
       serveExpected(
           sender,
@@ -881,7 +900,12 @@ TEST_CASE(
     if (callbackModel == HLA_IMMEDIATE) {
       static_cast<void>(receiverRti->getObjectClassHandle(objectClassName));
     } else {
-      REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+      // A zero-duration Evoke may return before the process callback reaches
+      // the dispatcher. Section 10.57 permits a bounded wait for one callback.
+      for (int attempt = 0; attempt != 2 && !receiverFederate.discovered;
+           ++attempt) {
+        static_cast<void>(receiverRti->evokeCallback(0.05));
+      }
     }
     REQUIRE(receiverFederate.discovered);
     REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
@@ -892,7 +916,9 @@ TEST_CASE(
 
     std::array<std::uint8_t, 3U> encodedTag{0x44U, 0x49U, 0x52U};
     VariableLengthData userSuppliedTag(encodedTag.data(), encodedTag.size());
-    if (gateCallbacks) {
+    bool const gatePreDeliveryRetraction =
+        retractBeforeReceive && callbackModel == HLA_IMMEDIATE;
+    if (gateCallbacks || gatePreDeliveryRetraction) {
       REQUIRE_NOTHROW(receiverRti->disableCallbacks());
     }
     std::vector<std::uint8_t> expectedTimestampBytes;
@@ -938,6 +964,12 @@ TEST_CASE(
           *timestamp));
       REQUIRE(retraction->isValid());
       if (retractBeforeReceive) {
+        if (gatePreDeliveryRetraction) {
+          // Admit the pushed event while callbacks are disabled, making this
+          // a true pre-delivery Retract rather than a race with IMMEDIATE.
+          static_cast<void>(receiverRti->getObjectClassHandle(objectClassName));
+          REQUIRE_FALSE(receiverFederate.received);
+        }
         REQUIRE_NOTHROW(senderRti->retract(*retraction));
       }
     } else {
@@ -967,6 +999,10 @@ TEST_CASE(
       }
       if (receiverFederate.requestRetractionCount == 1U) {
         REQUIRE(receiverFederate.requestRetractionHandle == *retraction);
+      }
+      if (gatePreDeliveryRetraction) {
+        REQUIRE_NOTHROW(receiverRti->enableCallbacks());
+        REQUIRE_FALSE(receiverFederate.received);
       }
     } else if (gateCallbacks) {
       // The process event is admitted while callbacks are disabled, but the
@@ -1016,10 +1052,12 @@ TEST_CASE(
       REQUIRE(receiverFederate.received);
       REQUIRE(receiverFederate.requestRetractionCount == 0U);
       REQUIRE_NOTHROW(senderRti->retract(*retraction));
-      if (callbackModel == HLA_IMMEDIATE) {
-        static_cast<void>(receiverRti->getObjectClassHandle(objectClassName));
-      } else {
-        REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+      // The pushed retraction frame is sent before the producer's Retract
+      // response. This lookup fences admission on the receiver stream; Evoke
+      // then exposes it only in the EVOKED model.
+      static_cast<void>(receiverRti->getObjectClassHandle(objectClassName));
+      if (callbackModel == HLA_EVOKED) {
+        static_cast<void>(receiverRti->evokeCallback(0.05));
       }
       REQUIRE(receiverFederate.requestRetractionCount == 1U);
       REQUIRE(receiverFederate.requestRetractionHandle == *retraction);
