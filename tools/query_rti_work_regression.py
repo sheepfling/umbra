@@ -3807,13 +3807,14 @@ def main() -> int:
     if (
         process_save_focus.get("lane_state") != "complete"
         or process_save_focus.get("mapped_test_count") != 1
-        or process_save_focus.get("assertion_count") != 15
+        or process_save_focus.get("assertion_count") != 70
+        or process_save_focus.get("recorded_assertion_count") != 15
         or process_save_focus.get("requirement_count") != 5
         or process_save_focus.get("standard_section_count") != 4
         or process_save_focus.get("requirement_section_pair_count") != 5
         or process_save_focus.get("lane_handles", {}).get("catch2_target")
-        != "umbra_ieee1516_2025_catch2"
-        or "untimed federation save callbacks"
+        != "umbra_ieee1516_2025_connection_catch2"
+        or "RTIambassadors carry untimed federation save callbacks through the configured process endpoint"
         not in str(
             process_save_focus.get("lane_handles", {}).get("ctest_filter") or ""
         )
@@ -4366,10 +4367,10 @@ def main() -> int:
     if not isinstance(process_query_time_bounds_multi_federate, dict):
         raise AssertionError("focused process multi-federate GALT/LITS row is absent")
     if query_rti_work.source_location_text(process_query_time_bounds_multi_federate) != (
-        "cpp/tests/ieee1516_2025_connection_process_query_time_bounds_multi_federate_catch2.cpp:459"
+        "cpp/tests/ieee1516_2025_connection_process_query_time_bounds_multi_federate_catch2.cpp:460"
     ):
         raise AssertionError("focused process multi-federate GALT/LITS source pointer drifted")
-    if process_query_time_bounds_multi_federate.get("assertions") != 24:
+    if process_query_time_bounds_multi_federate.get("assertions") != 39:
         raise AssertionError("focused process multi-federate GALT/LITS assertion count drifted")
     if process_query_time_bounds_multi_federate.get("callback_models") != ["HLA_IMMEDIATE"]:
         raise AssertionError(
@@ -4387,9 +4388,11 @@ def main() -> int:
     if (
         process_query_time_bounds_multi_federate_focus.get("lane_state") != "complete"
         or process_query_time_bounds_multi_federate_focus.get("mapped_test_count") != 1
-        or process_query_time_bounds_multi_federate_focus.get("assertion_count") != 24
-        or process_query_time_bounds_multi_federate_focus.get("requirement_count") != 5
-        or process_query_time_bounds_multi_federate_focus.get("standard_section_count") != 4
+        or process_query_time_bounds_multi_federate_focus.get("assertion_count") != 39
+        or process_query_time_bounds_multi_federate_focus.get("recorded_assertion_count") != 39
+        or process_query_time_bounds_multi_federate_focus.get("requirement_count") != 8
+        or process_query_time_bounds_multi_federate_focus.get("standard_section_count") != 7
+        or process_query_time_bounds_multi_federate_focus.get("requirement_section_pair_count") != 8
     ):
         raise AssertionError("focused process multi-federate GALT/LITS lane totals drifted")
     process_query_time_bounds_multi_federate_handles = (
@@ -5016,12 +5019,18 @@ def main() -> int:
     if not isinstance(object_queue_row, dict):
         raise AssertionError("queue lost the object/ownership handoff")
     if (
-        object_queue_row.get("state") != "new-case-needed"
-        or object_queue_row.get("action_state") != "new-case-needed"
+        object_queue_row.get("state") != "complete-pointer"
+        or object_queue_row.get("action_state") != "evidence-complete"
         or object_queue_row.get("planned_count") != 0
-        or object_queue_row.get("next_test_query") is not None
-        or object_queue_row.get("next_test_state") != "not-specified"
-        or not str(object_queue_row.get("next_action") or "").strip()
+        or object_queue_row.get("next_test_query")
+        != "Process immediate delayed regional attribute delivery rechecks at callback-task admission"
+        or object_queue_row.get("next_test_state") != "complete"
+        or object_queue_row.get("next_test_pointer", {}).get("case_query")
+        != "umbra-cpp-process-delayed-regional-attribute-immediate-callback-entry"
+        or object_queue_row.get("next_test_pointer", {}).get("requirement_section_pair_count")
+        != 10
+        or "callback-task admission"
+        not in str(object_queue_row.get("next_action") or "")
     ):
         raise AssertionError("object/ownership queue handoff drifted")
     push_confirm = next(

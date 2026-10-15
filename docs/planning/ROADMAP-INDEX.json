@@ -3747,7 +3747,7 @@
         "catch2_target": "umbra_ieee1516_2025_connection_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors expose defined GALT and LITS across configured process federates$",
         "ctest_label": "process-boundary",
-        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+        "source": "cpp/tests/ieee1516_2025_connection_process_query_time_bounds_multi_federate_catch2.cpp"
       },
       "process-query-time-bounds-queued-tso": {
         "catch2_target": "umbra_ieee1516_2025_connection_catch2",
@@ -4381,7 +4381,7 @@
       "process-flush-queue-multiple-records": 110,
       "process-flush-queue-retraction": 110,
       "process-query-time-bounds-immediate": 14,
-      "process-query-time-bounds-multi-federate": 24,
+      "process-query-time-bounds-multi-federate": 39,
       "process-query-time-bounds-queued-tso": 31,
       "process-query-time-bounds-zero-lookahead": 28,
       "process-query-lookahead-focused": 13,
@@ -9897,18 +9897,21 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_process_query_time_bounds_multi_federate_catch2.cpp:459",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_query_time_bounds_multi_federate_catch2.cpp:460",
       "primary_lane": "process-query-time-bounds-multi-federate",
       "focus_lane": "process-query-time-bounds-multi-federate",
-      "assertions": 24,
-      "requirements": 5,
+      "assertions": 39,
+      "requirements": 8,
       "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1",
         "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.18.1",
-        "hla-1516.1-2025:clause-8.19.3"
+        "hla-1516.1-2025:clause-8.19.3",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.21.5"
       ],
-      "api_surfaces": 4,
+      "api_surfaces": 7,
       "callback_models": [
         "HLA_IMMEDIATE"
       ],
