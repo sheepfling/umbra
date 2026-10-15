@@ -5,13 +5,22 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <fstream>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <system_error>
 #include <utility>
 #include <vector>
+
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 
 namespace hla_rti_cpp_tck {
 namespace {
@@ -146,6 +155,27 @@ class Participant final {
   bool joined_ = false;
 };
 
+std::filesystem::path filesystemAccessPath(std::filesystem::path const& path) {
+#ifdef _WIN32
+  // MinGW's lexical normalization may damage an existing extended-path
+  // designator, so preserve it before any path transformation.
+  if (path.native().starts_with(L"\\\\?\\")) {
+    return path;
+  }
+  auto absolute = path.is_absolute()
+      ? path.lexically_normal()
+      : std::filesystem::absolute(path).lexically_normal();
+  absolute.make_preferred();
+  auto const native = absolute.native();
+  if (native.starts_with(L"\\\\")) {
+    return std::filesystem::path(L"\\\\?\\UNC\\" + native.substr(2));
+  }
+  return std::filesystem::path(L"\\\\?\\" + native);
+#else
+  return path;
+#endif
+}
+
 class TemporaryRoot final {
  public:
   explicit TemporaryRoot(std::filesystem::path path) : path_(std::move(path)) {}
@@ -153,7 +183,7 @@ class TemporaryRoot final {
   TemporaryRoot& operator=(TemporaryRoot const&) = delete;
   ~TemporaryRoot() {
     std::error_code ignored;
-    std::filesystem::remove_all(path_, ignored);
+    std::filesystem::remove_all(filesystemAccessPath(path_), ignored);
   }
   [[nodiscard]] std::filesystem::path const& path() const { return path_; }
 
@@ -194,16 +224,95 @@ void drainEvokedCallbacks(Participant& participant, rti::CallbackModel callbackM
 
 std::vector<std::filesystem::path> filesIn(std::filesystem::path const& directory) {
   std::vector<std::filesystem::path> files;
-  if (!std::filesystem::exists(directory)) {
+  auto const accessDirectory = filesystemAccessPath(directory);
+  if (!std::filesystem::exists(accessDirectory)) {
     return files;
   }
-  for (auto const& entry : std::filesystem::directory_iterator(directory)) {
+  for (auto const& entry : std::filesystem::directory_iterator(accessDirectory)) {
     if (entry.is_regular_file()) {
+#ifdef _WIN32
+      files.push_back(entry.path());
+#else
       files.push_back(std::filesystem::absolute(entry.path()).lexically_normal());
+#endif
     }
   }
   return files;
 }
+
+std::uintmax_t reportFileSize(std::filesystem::path const& file) {
+#ifdef _WIN32
+  WIN32_FILE_ATTRIBUTE_DATA attributes{};
+  if (!GetFileAttributesExW(
+          filesystemAccessPath(file).c_str(), GetFileExInfoStandard, &attributes)) {
+    throw std::filesystem::filesystem_error(
+        "Unable to read a service-report file size",
+        file,
+        std::error_code(static_cast<int>(GetLastError()), std::system_category()));
+  }
+  if ((attributes.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0U) {
+    throw std::runtime_error("A service-report file path resolved to a directory");
+  }
+  return (static_cast<std::uintmax_t>(attributes.nFileSizeHigh) << 32U) |
+      attributes.nFileSizeLow;
+#else
+  return std::filesystem::file_size(file);
+#endif
+}
+
+#ifdef _WIN32
+void verifyLongPathFileOperations(std::filesystem::path const& root) {
+  auto const probeRoot = root / "long-path-probe";
+  std::filesystem::create_directories(probeRoot);
+  {
+    TemporaryRoot cleanup(probeRoot);
+    for (auto const targetLength :
+         {static_cast<std::size_t>(MAX_PATH), static_cast<std::size_t>(MAX_PATH) + 12U}) {
+      auto const rootLength = probeRoot.native().size();
+      if (rootLength + 2U >= targetLength ||
+          targetLength - rootLength - 1U > 255U) {
+        throw std::runtime_error("The TCK cannot construct its Windows long-path probe");
+      }
+      auto const file = probeRoot /
+          std::wstring(targetLength - rootLength - 1U, L'x');
+      if (file.native().size() != targetLength) {
+        throw std::runtime_error("The TCK long-path probe has an unexpected length");
+      }
+      auto const accessFile = filesystemAccessPath(file);
+      auto const handle = CreateFileW(
+          accessFile.c_str(),
+          GENERIC_WRITE,
+          FILE_SHARE_READ,
+          nullptr,
+          CREATE_NEW,
+          FILE_ATTRIBUTE_NORMAL,
+          nullptr);
+      if (handle == INVALID_HANDLE_VALUE) {
+        throw std::filesystem::filesystem_error(
+            "Unable to create the TCK long-path probe",
+            file,
+            std::error_code(static_cast<int>(GetLastError()), std::system_category()));
+      }
+      DWORD written = 0U;
+      auto const wrote = WriteFile(handle, "x", 1U, &written, nullptr);
+      CloseHandle(handle);
+      if (!wrote || written != 1U) {
+        throw std::runtime_error("Unable to write the TCK long-path probe");
+      }
+    }
+    auto const files = filesIn(probeRoot);
+    if (files.size() != 2U ||
+        reportFileSize(files[0]) != 1U ||
+        reportFileSize(files[1]) != 1U) {
+      throw std::runtime_error(
+          "The TCK could not enumerate and size files at and beyond MAX_PATH");
+    }
+  }
+  if (std::filesystem::exists(filesystemAccessPath(probeRoot))) {
+    throw std::runtime_error("The TCK could not remove its long-path probe files");
+  }
+}
+#endif
 
 }  // namespace
 
@@ -284,13 +393,16 @@ void runServiceReportConnectFailure(
       configuration.logicalTimeImplementation);
   static_cast<void>(participant.join(federateName, federation));
   auto const reportFiles = filesIn(repairedDirectory);
-  if (reportFiles.size() != 1U || std::filesystem::file_size(reportFiles.front()) == 0U) {
+  if (reportFiles.size() != 1U || reportFileSize(reportFiles.front()) == 0U) {
     throw std::runtime_error(
         "The same ambassador did not create one report file after Connect was repaired");
   }
   participant.resign();
   participant.destroyFederation(federation);
   participant.disconnect();
+#ifdef _WIN32
+  verifyLongPathFileOperations(root);
+#endif
 } catch (rti::Exception const& failure) {
   auto const name = failure.name();
   auto const message = failure.what();
@@ -381,7 +493,7 @@ void runServiceReportCreationFailure(
   auto const discoveryCountBeforeRejectedJoin = host.recorder().countForClass(momClass);
   auto const validFilesBeforeRejectedJoin = filesIn(validReportDirectory);
   if (validFilesBeforeRejectedJoin.size() != 1U ||
-      std::filesystem::file_size(validFilesBeforeRejectedJoin.front()) == 0U) {
+      reportFileSize(validFilesBeforeRejectedJoin.front()) == 0U) {
     throw std::runtime_error(
         "The successful host join did not create exactly one initial report file");
   }
@@ -431,7 +543,7 @@ void runServiceReportCreationFailure(
   static_cast<void>(rejected.join(rejectedName, federation));
   drainEvokedCallbacks(host, configuration.callbackModel);
   auto const retryFiles = filesIn(reportDirectoryToBlock);
-  if (retryFiles.size() != 1U || std::filesystem::file_size(retryFiles.front()) == 0U ||
+  if (retryFiles.size() != 1U || reportFileSize(retryFiles.front()) == 0U ||
       host.recorder().countForClass(momClass) != discoveryCountBeforeRejectedJoin + 1U) {
     throw std::runtime_error(
         "A corrected report directory could not retry Join with one public MOM/file identity");
