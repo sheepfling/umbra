@@ -37127,6 +37127,72 @@
       "next_action": "Keep the EVOKED pending-advance slice separate from queued/in-transit TSO, timed/durable snapshots, changed membership, distributed transport, package/JUnit/protected-review evidence, and conformance; next take one focused source-only or failing runtime case from the time/save/restore lane."
     },
     {
+      "id": "umbra-cpp-untimed-save-fqr-queued-pregrant-admission-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.requestfederationsave.32986a607094",
+        "api.2025.cpp.rtiambassador.federatesavebegun.4d2693ce9551",
+        "api.2025.cpp.rtiambassador.federatesavecomplete.e775cf801fae",
+        "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.flushqueuerequest.923ef48b62c9",
+        "api.2025.cpp.rtiambassador.querylogicaltime.cb29c063787c",
+        "api.2025.cpp.federateambassador.initiatefederatesave.47c9e9fdb49f",
+        "api.2025.cpp.federateambassador.federationsaved.5c6a41e2de0c",
+        "api.2025.cpp.federateambassador.flushqueuegrant.1586703b34eb"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24",
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l40-9",
+        "requirement-candidate-content-clauses-04-federation-management-page-068-l115-29",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17",
+        "requirement-candidate-content-clauses-08-time-management-page-201-l40-12",
+        "requirement-candidate-content-clauses-08-time-management-page-202-l104-28"
+      ],
+      "test_case": "Embedded untimed save initiates a queued Flush Queue Request before grant",
+      "source_location": "cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp:420",
+      "primary_lane": "untimed-save-fqr-pregrant-admission",
+      "focus_lane": "untimed-save-fqr-pregrant-admission",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "save-restore",
+        "time-management",
+        "callbacks",
+        "untimed-save-fqr-pregrant-admission",
+        "rti.service.request-federation-save",
+        "rti.service.federate-save-begun",
+        "rti.service.federate-save-complete",
+        "rti.service.flush-queue-request",
+        "rti.service.enable-time-constrained",
+        "rti.service.enable-time-regulation",
+        "rti.service.query-logical-time",
+        "federate.callback.initiate-federate-save",
+        "federate.callback.flush-queue-grant",
+        "federate.callback.federation-saved"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "assertions": 38,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-4.20",
+        "hla-1516.1-2025:clause-4.22",
+        "hla-1516.1-2025:clause-4.23",
+        "hla-1516.1-2025:clause-8.12.3",
+        "hla-1516.1-2025:clause-8.13.3"
+      ],
+      "requirements_lab_api_surface_status": "Direct pinned pairs: page-065-l96-24 -> 4.19; page-067-l37-8 and page-067-l40-9 -> 4.20; page-068-l115-29 -> 4.22; page-069-l70-17 -> 4.23; page-201-l40-12 -> 8.12.3; page-202-l104-28 -> 8.13.3. This HLA_EVOKED/HLA_IMMEDIATE official C++ case verifies that an untimed save still initiates a queued Flush Queue Request before its matching Flush Queue Grant, including a re-entrant Save Complete and one Federation Saved callback. It is an embedded development-profile boundary check, not a timed-save, durable restore, distributed transport, package, or conformance claim.",
+      "ctest_target": "umbra_ieee1516_2025_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded untimed save initiates a queued Flush Queue Request before grant$",
+      "ctest_label": "untimed-save-fqr-pregrant-admission",
+      "next_action": "Retain the separate untimed FQR initiation when optimizing ordinary grant save admission; expand multi-member, GALT-churn, durable restore, and transport boundaries only with separately mapped evidence."
+    },
+    {
       "id": "umbra-cpp-restore-pending-flush-queue-immediate-integration",
       "primary_lane": "restore-pending-request-rescheduling",
       "focus_lane": "restore-pending-request-rescheduling",

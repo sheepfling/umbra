@@ -193,6 +193,20 @@ EmbeddedFederationRegistry::planImmediateFederationSaveTimeAdvanceAdmissions(
       continue;
     }
 
+    // An ordinary queued grant admits the untimed save directly before its
+    // Time Advance Grant callback. Do not queue a separate initiation ahead
+    // of that grant: it could commit a save before the grant boundary that
+    // owns this member's pending request. Flush Queue Grant has no equivalent
+    // untimed admission, so its separate callback remains necessary.
+    if (member.time.advanceMode != FederateTimeAdvanceMode::flush_queue_request) {
+      auto const grant = federation->second.pendingTimeAdvanceGrants.find(
+          member.membership.id);
+      if (grant != federation->second.pendingTimeAdvanceGrants.end() &&
+          grant->second.dispatchQueued) {
+        continue;
+      }
+    }
+
     auto const route = federation->second.interactionCallbackRoutes.find(
         member.membership.id);
     if (route == federation->second.interactionCallbackRoutes.end() ||

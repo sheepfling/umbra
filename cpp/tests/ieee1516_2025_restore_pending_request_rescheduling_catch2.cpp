@@ -418,6 +418,74 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded untimed save initiates a queued Flush Queue Request before grant",
+    "[integration][development-profile][federation-management][save-restore]"
+    "[time-management][callbacks][untimed-save-fqr-pregrant-admission]"
+    "[rti.service.request-federation-save][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][rti.service.flush-queue-request]"
+    "[rti.service.enable-time-constrained][rti.service.enable-time-regulation]"
+    "[rti.service.query-logical-time][federate.callback.initiate-federate-save]"
+    "[federate.callback.flush-queue-grant][federate.callback.federation-saved]") {
+  auto runScenario = [](CallbackModel callbackModel) {
+    ReportingFederateAmbassador reports;
+    auto rti = makeRti();
+    auto const federationName = nextFederationName();
+    auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                            "cpp" / "tests" / "data" / "switch-nrg-enabled-fom.xml")
+                               .wstring();
+    std::wstring const saveLabel = L"untimed-queued-flush";
+    rti1516_2025::HLAinteger64Time logicalTime;
+
+    REQUIRE_NOTHROW(rti->connect(reports, callbackModel));
+    REQUIRE_NOTHROW(rti->createFederationExecution(
+        federationName, fomModule, standard_hla::mom::integer64_time));
+    REQUIRE_NOTHROW(rti->joinFederationExecution(
+        L"untimed-queued-flush-member", L"time-managed", federationName));
+    REQUIRE_NOTHROW(rti->enableTimeConstrained());
+    REQUIRE_NOTHROW(rti->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+    while (rti->evokeCallback(0.0)) {
+    }
+
+    // The ordinary-grant path admits an untimed save itself, but FQG does not.
+    // Even though this FQR is already queued for grant, its separate direct
+    // initiation must remain before FQG and save the pending request.
+    reports.callbackOrder.clear();
+    reports.onInitiateFederateSave = [&] {
+      rti->federateSaveBegun();
+      rti->federateSaveComplete();
+    };
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE_NOTHROW(rti->flushQueueRequest(rti1516_2025::HLAinteger64Time(6)));
+    while (rti->evokeCallback(0.0)) {
+    }
+    REQUIRE(reports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
+    REQUIRE(reports.federationSavedReportCount == 1U);
+    REQUIRE(reports.flushQueueGrantReports.size() == 1U);
+    REQUIRE(reports.flushQueueGrantReports.front().value == L"6");
+    auto const saveCallback = std::find(
+        reports.callbackOrder.begin(), reports.callbackOrder.end(), "save-initiate");
+    auto const flushGrant = std::find(
+        reports.callbackOrder.begin(), reports.callbackOrder.end(), "flush-grant");
+    REQUIRE(saveCallback != reports.callbackOrder.end());
+    REQUIRE(flushGrant != reports.callbackOrder.end());
+    REQUIRE(saveCallback < flushGrant);
+    REQUIRE_NOTHROW(rti->queryLogicalTime(logicalTime));
+    REQUIRE(logicalTime.getTime() == 6);
+
+    REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(rti->disconnect());
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(rti1516_2025::HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
     "Embedded federation restore reschedules saved pending TARA, NMR, and NMRA requests",
     "[integration][development-profile][federation-management][save-restore]"
     "[restore-pending-request-rescheduling]"

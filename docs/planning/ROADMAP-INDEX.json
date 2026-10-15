@@ -648,6 +648,7 @@
       "time-role": "time-save-restore",
       "modify-lookahead": "time-save-restore",
       "flush-queue-request": "time-save-restore",
+      "untimed-save-fqr-pregrant-admission": "time-save-restore",
       "time-advance-request-logical-time-gating": "time-save-restore",
       "float64-time-representation": "time-save-restore",
       "flush-queue-grant-logical-time-gating": "time-save-restore",
