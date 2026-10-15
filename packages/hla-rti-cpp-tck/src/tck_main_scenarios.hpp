@@ -437,8 +437,6 @@ void scenarioObjectRegistrationDiscoveryLifecycle(Options const&, rti::CallbackM
 void scenarioObjectRegistrationDiscoveryLifecycleContract(Options const&, rti::CallbackModel);
 void scenarioObjectRegistrationDiscoveryMultiRecipient(Options const&, rti::CallbackModel);
 void scenarioObjectRegistrationDiscoveryMultiRecipientContract(Options const&, rti::CallbackModel);
-void scenarioObjectRemovalMultiRecipientFifo(Options const&, rti::CallbackModel);
-void scenarioObjectRemovalMultiRecipientFifoContract(Options const&, rti::CallbackModel);
 void scenarioOrderTypeControls(Options const&, rti::CallbackModel);
 void scenarioOrderTypeControlsContract(Options const&, rti::CallbackModel);
 void scenarioOrdinaryEdges(Options const&, rti::CallbackModel);
@@ -478,8 +476,6 @@ void scenarioReceiveOrderInteractionCallbackCancellation(Options const&, rti::Ca
 void scenarioReceiveOrderInteractionCallbackCancellationContract(Options const&, rti::CallbackModel);
 void scenarioReceiveOrderMultiAttributeUpdateCallbackCancellation(Options const&, rti::CallbackModel);
 void scenarioReceiveOrderMultiAttributeUpdateCallbackCancellationContract(Options const&, rti::CallbackModel);
-void scenarioReceiveOrderObjectRemovalSubscriptionWithdrawal(Options const&, rti::CallbackModel);
-void scenarioReceiveOrderObjectRemovalSubscriptionWithdrawalContract(Options const&, rti::CallbackModel);
 void scenarioRegionLifecycle(Options const&, rti::CallbackModel);
 void scenarioRegionLifecycleContract(Options const&, rti::CallbackModel);
 void scenarioRegionalDeclarationRelevanceAdvisories(Options const&, rti::CallbackModel);
@@ -507,8 +503,6 @@ void scenarioResignCancelPendingAcquisition(Options const&, rti::CallbackModel);
 void scenarioResignCancelPendingAcquisitionContract(Options const&, rti::CallbackModel);
 void scenarioResignDeleteObjects(Options const&, rti::CallbackModel);
 void scenarioResignDeleteObjectsContract(Options const&, rti::CallbackModel);
-void scenarioResignDeleteObjectsMultiRecipientFifo(Options const&, rti::CallbackModel);
-void scenarioResignDeleteObjectsMultiRecipientFifoContract(Options const&, rti::CallbackModel);
 void scenarioResignPendingAcquisitionRejection(Options const&, rti::CallbackModel);
 void scenarioResignPendingAcquisitionRejectionContract(Options const&, rti::CallbackModel);
 void scenarioResignUnconditionalDivestiture(Options const&, rti::CallbackModel);

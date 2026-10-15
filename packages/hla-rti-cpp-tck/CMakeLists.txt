@@ -123,6 +123,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_object_publication_registration_fence_scenarios.cpp
   src/tck_object_registration_discovery_scenarios.cpp
   src/tck_object_management_scenarios.cpp
+  src/tck_object_removal_fanout_scenarios.cpp
   src/tck_ownership_management_scenarios.cpp
   src/tck_region_lifecycle_scenarios.cpp
   src/tck_delay_subscription_scenarios.cpp
