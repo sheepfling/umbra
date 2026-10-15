@@ -32,6 +32,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_callback_controls_time_transport.cpp
   src/tck_connection_lifecycle.cpp
   src/portable_tck.cpp
+  src/tck_portable_mom_declaration_queries.cpp
   src/tck_api_foundation.cpp
   src/tck_configuration_authorization.cpp
   src/tck_federation_mom_save_conditionals.cpp
