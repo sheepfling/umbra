@@ -804,11 +804,15 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::time_advance_request,
           "The timestamped regional process server lost sender TAR.");
+      // Finish the sender's synchronous service-report handshake before
+      // waiting for the other session's pushed TSO acknowledgement.
       serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::receive_interaction,
-          "The timestamped regional process server lost receiver post-send poll.");
+          sender,
+          senderHandler,
+          TransportServiceOperation::report_successful_void_service_invocation,
+          "The timestamped regional process server lost sender TAR reporting.");
+      // The receiver already has the pushed TSO event. Its Evoke call sends
+      // the acknowledgement directly; it does not issue another receive poll.
       serveExpected(
           receiver,
           receiverHandler,
