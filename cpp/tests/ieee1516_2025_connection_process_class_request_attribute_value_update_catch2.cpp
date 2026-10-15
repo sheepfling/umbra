@@ -50,6 +50,10 @@ TEST_CASE(
     "RTIambassador expands process class Request Attribute Value Update across registered instances",
     "[integration][foundation][object-management][callbacks][callback-controls][transport][process-boundary][public-endpoint][rti.service.request-attribute-value-update][federate.callback.discover-object-instance][federate.callback.provide-attribute-value-update]") {
   auto runScenario = [](CallbackModel callbackModel) {
+    // A process poll can return before its typed callback reaches the evoked
+    // dispatcher. Give the callback a bounded arrival window after each poll.
+    constexpr double callbackArrivalWaitSeconds = 5.0;
+
     class RecordingFederateAmbassador final : public NullFederateAmbassador {
      public:
       void discoverObjectInstance(
@@ -224,91 +228,74 @@ TEST_CASE(
           throw std::runtime_error(
               "The public process class declarations were rejected.");
         }
-        serveExpected(
-            provider,
-            providerHandler,
-            TransportServiceOperation::get_object_class_handle,
-            "The public process class server lost provider class lookup.");
-        serveExpected(
-            provider,
-            providerHandler,
-            TransportServiceOperation::get_attribute_handle,
-            "The public process class server lost provider attribute lookup.");
-        serveExpected(
-            requester,
-            requesterHandler,
-            TransportServiceOperation::get_object_class_handle,
-            "The public process class server lost requester class lookup.");
-        serveExpected(
-            requester,
-            requesterHandler,
-            TransportServiceOperation::get_attribute_handle,
-            "The public process class server lost requester attribute lookup.");
-        serveExpected(
-            provider,
-            providerHandler,
-            TransportServiceOperation::publish_object_class_attributes,
-            "The public process class server lost Publish.");
-        for (std::size_t index = 0U; index < 2U; ++index) {
-          serveExpected(
-              provider,
-              providerHandler,
-              TransportServiceOperation::register_object_instance,
-              "The public process class server lost Register.");
-          if (callbackModel == HLA_IMMEDIATE) {
-            serveExpected(
-                provider,
-                providerHandler,
-                TransportServiceOperation::get_object_class_handle,
-                "The public process class server lost immediate advisory flush.");
-            serveExpected(
-                requester,
-                requesterHandler,
-                TransportServiceOperation::get_object_class_handle,
-                "The public process class server lost immediate discovery flush.");
-          } else {
-            serveExpected(
-                provider,
-                providerHandler,
-                TransportServiceOperation::receive_interaction,
-                "The public process class server lost advisory polling.");
-            serveExpected(
-                requester,
-                requesterHandler,
-                TransportServiceOperation::receive_interaction,
-                "The public process class server lost discovery polling.");
+        // Once both federates join, unsolicited callbacks may already be
+        // queued when Evoke begins. In that case Evoke does not issue a
+        // process poll. Serve each session independently instead of scripting
+        // alternating polls that might never arrive.
+        auto serveJoinedSession = [&](ProcessTransportSession& session,
+                                      auto const& handler,
+                                      bool isProvider) {
+          bool resigned = false;
+          while (!resigned) {
+            if (!umbra::test::servePrimaryProcessRequest(
+                    session,
+                    handler,
+                    [&](TransportServiceMessage const& request) {
+                      auto const operation = request.operation;
+                      bool const providerOperation =
+                          operation == TransportServiceOperation::publish_object_class_attributes ||
+                          operation == TransportServiceOperation::register_object_instance;
+                      bool const requesterOperation =
+                          operation == TransportServiceOperation::request_attribute_value_update_class;
+                      bool const commonOperation =
+                          operation == TransportServiceOperation::get_object_class_handle ||
+                          operation == TransportServiceOperation::get_attribute_handle ||
+                          operation == TransportServiceOperation::receive_interaction ||
+                          operation == TransportServiceOperation::resign_federation_execution;
+                      if (!commonOperation &&
+                          !(isProvider ? providerOperation : requesterOperation)) {
+                        throw std::runtime_error(
+                            "The public process class server received an unexpected operation.");
+                      }
+                      auto response = handler(request);
+                      if (response.status != TransportServiceStatus::ok) {
+                        throw std::runtime_error(
+                            "The public process class server rejected an operation.");
+                      }
+                      resigned = operation ==
+                          TransportServiceOperation::resign_federation_execution;
+                      return response;
+                    })) {
+              throw std::runtime_error(
+                  "The public process class server lost a joined session.");
+            }
           }
-        }
-        serveExpected(
-            requester,
-            requesterHandler,
-            TransportServiceOperation::request_attribute_value_update_class,
-            "The public process class server lost class Request Attribute Value Update.");
-        for (std::size_t index = 0U; index < 2U; ++index) {
-          if (callbackModel == HLA_IMMEDIATE) {
-            serveExpected(
-                provider,
-                providerHandler,
-                TransportServiceOperation::get_object_class_handle,
-                "The public process class server lost immediate Provide flush.");
-          } else {
-            serveExpected(
-                provider,
-                providerHandler,
-                TransportServiceOperation::receive_interaction,
-                "The public process class server lost Provide polling.");
+        };
+        std::exception_ptr providerSessionError;
+        std::thread providerWorker([&] {
+          try {
+            serveJoinedSession(provider, providerHandler, true);
+          } catch (...) {
+            providerSessionError = std::current_exception();
+            providerConnection->close();
+            requesterConnection->close();
           }
+        });
+        std::exception_ptr requesterSessionError;
+        try {
+          serveJoinedSession(requester, requesterHandler, false);
+        } catch (...) {
+          requesterSessionError = std::current_exception();
+          providerConnection->close();
+          requesterConnection->close();
         }
-        serveExpected(
-            provider,
-            providerHandler,
-            TransportServiceOperation::resign_federation_execution,
-            "The public process class server lost provider Resign.");
-        serveExpected(
-            requester,
-            requesterHandler,
-            TransportServiceOperation::resign_federation_execution,
-            "The public process class server lost requester Resign.");
+        providerWorker.join();
+        if (providerSessionError) {
+          std::rethrow_exception(providerSessionError);
+        }
+        if (requesterSessionError) {
+          std::rethrow_exception(requesterSessionError);
+        }
         service.detach(provider);
         service.detach(requester);
         providerConnection->close();
@@ -381,7 +368,7 @@ TEST_CASE(
           static_cast<void>(requesterRti->getObjectClassHandle(objectClassNameWide));
         } else {
           static_cast<void>(providerRti->evokeCallback(0.0));
-          static_cast<void>(requesterRti->evokeCallback(0.0));
+          static_cast<void>(requesterRti->evokeCallback(callbackArrivalWaitSeconds));
         }
       }
       REQUIRE(requesterFederate.discoveredObjects.size() == 2U);
@@ -398,8 +385,8 @@ TEST_CASE(
         static_cast<void>(providerRti->getObjectClassHandle(objectClassNameWide));
         static_cast<void>(providerRti->getObjectClassHandle(objectClassNameWide));
       } else {
-        static_cast<void>(providerRti->evokeCallback(0.0));
-        static_cast<void>(providerRti->evokeCallback(0.0));
+        static_cast<void>(providerRti->evokeCallback(callbackArrivalWaitSeconds));
+        static_cast<void>(providerRti->evokeCallback(callbackArrivalWaitSeconds));
       }
       REQUIRE(providerFederate.providedObjects.size() == 2U);
       REQUIRE(providerFederate.providedObjects[0] == objectInstances[0]);
@@ -418,35 +405,17 @@ TEST_CASE(
       requesterRti->disconnect();
     } catch (...) {
       clientError = std::current_exception();
-      if (providerJoined) {
-        try {
-          providerRti->resignFederationExecution(DELETE_OBJECTS);
-        } catch (...) {
-        }
-      }
-      if (requesterJoined) {
-        try {
-          requesterRti->resignFederationExecution(NO_ACTION);
-        } catch (...) {
-        }
-      }
-      try {
-        providerRti->disconnect();
-      } catch (...) {
-      }
-      try {
-        requesterRti->disconnect();
-      } catch (...) {
-      }
+      // An assertion may abort before either joined session resigns. Close
+      // both sockets so their server workers can exit rather than deadlocking
+      // cleanup on a scripted resignation or another outstanding request.
+      requesterRti.reset();
+      providerRti.reset();
     }
     listener.reset();
     if (server.joinable()) {
       server.join();
     }
     if (clientError) {
-      if (serverError) {
-        std::rethrow_exception(serverError);
-      }
       std::rethrow_exception(clientError);
     }
     REQUIRE_FALSE(serverError);
