@@ -456,20 +456,47 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "RTIambassador removes a regional subscription through a configured process endpoint",
-    "[integration][foundation][data-distribution-management][object-management][callbacks][transport][process-boundary][public-endpoint][rti.service.subscribe-object-class-attributes-with-regions][rti.service.unsubscribe-object-class-attributes-with-regions][rti.service.register-object-instance-with-regions][rti.service.associate-regions-for-updates][rti.service.unassociate-regions-for-updates][rti.service.update-attribute-values][rti.service.set-attribute-scope-advisory-switch][rti.service.get-attribute-scope-advisory-switch][federate.callback.discover-object-instance][federate.callback.reflect-attribute-values][federate.callback.attributes-in-scope][federate.callback.attributes-out-of-scope]") {
+    "[integration][foundation][data-distribution-management][object-management][callbacks][transport][process-boundary][process-regional-unsubscribe][2025][public-endpoint][rti.service.subscribe-object-class-attributes-with-regions][rti.service.unsubscribe-object-class-attributes-with-regions][rti.service.register-object-instance-with-regions][rti.service.associate-regions-for-updates][rti.service.unassociate-regions-for-updates][rti.service.update-attribute-values][rti.service.set-attribute-scope-advisory-switch][rti.service.get-attribute-scope-advisory-switch][federate.callback.discover-object-instance][federate.callback.reflect-attribute-values][federate.callback.attributes-in-scope][federate.callback.attributes-out-of-scope]") {
   auto runScenario = [](CallbackModel callbackModel) {
   class RecordingRegionalFederateAmbassador final : public NullFederateAmbassador {
    public:
+    struct State {
+      bool discovered = false;
+      rti1516_2025::ObjectInstanceHandle discoveredObjectInstance;
+      rti1516_2025::ObjectClassHandle discoveredObjectClass;
+      std::wstring discoveredObjectInstanceName;
+      rti1516_2025::FederateHandle discoveredProducingFederate;
+      bool reflected = false;
+      rti1516_2025::ObjectInstanceHandle reflectedObjectInstance;
+      std::size_t reflectedAttributeCount = 0U;
+      rti1516_2025::TransportationTypeHandle reflectedTransportationType;
+      rti1516_2025::FederateHandle reflectedProducingFederate;
+      bool reflectedHasOptionalSentRegions = false;
+      std::size_t reflectedTagSize = 0U;
+      bool outOfScope = false;
+      std::size_t outOfScopeCount = 0U;
+      rti1516_2025::ObjectInstanceHandle outOfScopeObjectInstance;
+      std::size_t outOfScopeAttributeCount = 0U;
+      bool inScope = false;
+      std::size_t inScopeCount = 0U;
+      rti1516_2025::ObjectInstanceHandle inScopeObjectInstance;
+      std::size_t inScopeAttributeCount = 0U;
+    };
+
     void discoverObjectInstance(
         rti1516_2025::ObjectInstanceHandle const& objectInstance,
         rti1516_2025::ObjectClassHandle const& objectClass,
         std::wstring const& objectInstanceName,
         rti1516_2025::FederateHandle const& producingFederate) override {
-      discovered = true;
-      discoveredObjectInstance = objectInstance;
-      discoveredObjectClass = objectClass;
-      discoveredObjectInstanceName = objectInstanceName;
-      discoveredProducingFederate = producingFederate;
+      {
+        std::scoped_lock lock(callbackMutex);
+        state.discovered = true;
+        state.discoveredObjectInstance = objectInstance;
+        state.discoveredObjectClass = objectClass;
+        state.discoveredObjectInstanceName = objectInstanceName;
+        state.discoveredProducingFederate = producingFederate;
+      }
+      callbackAvailable.notify_all();
     }
 
     void reflectAttributeValues(
@@ -479,53 +506,63 @@ TEST_CASE(
         rti1516_2025::TransportationTypeHandle const& transportationType,
         rti1516_2025::FederateHandle const& producingFederate,
         rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
-      reflected = true;
-      reflectedObjectInstance = objectInstance;
-      reflectedAttributeCount = attributeValues.size();
-      reflectedTransportationType = transportationType;
-      reflectedProducingFederate = producingFederate;
-      reflectedHasOptionalSentRegions = optionalSentRegions != nullptr;
-      reflectedTagSize = userSuppliedTag.size();
+      {
+        std::scoped_lock lock(callbackMutex);
+        state.reflected = true;
+        state.reflectedObjectInstance = objectInstance;
+        state.reflectedAttributeCount = attributeValues.size();
+        state.reflectedTransportationType = transportationType;
+        state.reflectedProducingFederate = producingFederate;
+        state.reflectedHasOptionalSentRegions = optionalSentRegions != nullptr;
+        state.reflectedTagSize = userSuppliedTag.size();
+      }
+      callbackAvailable.notify_all();
     }
 
     void attributesOutOfScope(
         rti1516_2025::ObjectInstanceHandle const& objectInstance,
         rti1516_2025::AttributeHandleSet const& attributes) override {
-      outOfScope = true;
-      ++outOfScopeCount;
-      outOfScopeObjectInstance = objectInstance;
-      outOfScopeAttributeCount = attributes.size();
+      {
+        std::scoped_lock lock(callbackMutex);
+        state.outOfScope = true;
+        ++state.outOfScopeCount;
+        state.outOfScopeObjectInstance = objectInstance;
+        state.outOfScopeAttributeCount = attributes.size();
+      }
+      callbackAvailable.notify_all();
     }
 
     void attributesInScope(
         rti1516_2025::ObjectInstanceHandle const& objectInstance,
         rti1516_2025::AttributeHandleSet const& attributes) override {
-      inScope = true;
-      ++inScopeCount;
-      inScopeObjectInstance = objectInstance;
-      inScopeAttributeCount = attributes.size();
+      {
+        std::scoped_lock lock(callbackMutex);
+        state.inScope = true;
+        ++state.inScopeCount;
+        state.inScopeObjectInstance = objectInstance;
+        state.inScopeAttributeCount = attributes.size();
+      }
+      callbackAvailable.notify_all();
     }
 
-    bool discovered = false;
-    rti1516_2025::ObjectInstanceHandle discoveredObjectInstance;
-    rti1516_2025::ObjectClassHandle discoveredObjectClass;
-    std::wstring discoveredObjectInstanceName;
-    rti1516_2025::FederateHandle discoveredProducingFederate;
-    bool reflected = false;
-    rti1516_2025::ObjectInstanceHandle reflectedObjectInstance;
-    std::size_t reflectedAttributeCount = 0U;
-    rti1516_2025::TransportationTypeHandle reflectedTransportationType;
-    rti1516_2025::FederateHandle reflectedProducingFederate;
-    bool reflectedHasOptionalSentRegions = false;
-    std::size_t reflectedTagSize = 0U;
-    bool outOfScope = false;
-    std::size_t outOfScopeCount = 0U;
-    rti1516_2025::ObjectInstanceHandle outOfScopeObjectInstance;
-    std::size_t outOfScopeAttributeCount = 0U;
-    bool inScope = false;
-    std::size_t inScopeCount = 0U;
-    rti1516_2025::ObjectInstanceHandle inScopeObjectInstance;
-    std::size_t inScopeAttributeCount = 0U;
+    [[nodiscard]] State snapshot() const {
+      std::scoped_lock lock(callbackMutex);
+      return state;
+    }
+
+    void waitFor(
+        std::function<bool(State const&)> predicate,
+        std::chrono::milliseconds maximumWait) {
+      std::unique_lock lock(callbackMutex);
+      callbackAvailable.wait_for(lock, maximumWait, [&] {
+        return predicate(state);
+      });
+    }
+
+   private:
+    mutable std::mutex callbackMutex;
+    std::condition_variable callbackAvailable;
+    State state;
   } receiverFederate;
 
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
@@ -568,16 +605,46 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
+        // The immediate callback scheduler may interleave an idle receive
+        // poll with a public request. An empty poll is not that request; keep
+        // serving until the exact primary operation arrives, with a bound.
+        for (unsigned emptyPollCount = 0U; emptyPollCount < 32U;
+             ++emptyPollCount) {
+          bool servedEmptyPoll = false;
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
+                  [&](TransportServiceMessage const& request) {
+                    if (callbackModel == HLA_IMMEDIATE &&
+                        request.operation ==
+                            TransportServiceOperation::receive_interaction) {
+                      auto response = handler(request);
+                      if (response.status != TransportServiceStatus::ok ||
+                          response.payload !=
+                              umbra::detail::encodeProcessFederationReceiveInteractionResult(
+                                  umbra::detail::ProcessFederationReceiveInteractionResult{})) {
+                        throw std::runtime_error(
+                            "The regional-unsubscribe server received a nonempty idle callback poll.");
+                      }
+                      servedEmptyPoll = true;
+                      return response;
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          std::string(description) + " expected operation " +
+                          std::to_string(static_cast<unsigned>(operation)) +
+                          " but received " +
+                          std::to_string(static_cast<unsigned>(request.operation)));
+                    }
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(description);
+          }
+          if (!servedEmptyPoll) {
+            return;
+          }
         }
+        throw std::runtime_error(
+            std::string(description) + " saw too many idle callback polls.");
       };
 
       auto senderRecordingHandler = [&](TransportServiceMessage const& request) {
@@ -639,13 +706,13 @@ TEST_CASE(
       ProcessTransportSession receiver(receiverConnection);
       auto receiverHandler = service.handlerFor(receiver);
       auto serveReceiverEvent = [&](char const* description) {
-        serveExpected(
-            receiver,
-            receiverHandler,
-            callbackModel == HLA_IMMEDIATE
-                ? TransportServiceOperation::get_object_class_handle
-                : TransportServiceOperation::receive_interaction,
-            description);
+        if (callbackModel == HLA_EVOKED) {
+          serveExpected(
+              receiver,
+              receiverHandler,
+              TransportServiceOperation::receive_interaction,
+              description);
+        }
       };
       serveExpected(
           receiver,
@@ -731,8 +798,16 @@ TEST_CASE(
           senderRecordingHandler,
           TransportServiceOperation::update_attribute_values,
           "The public regional-unsubscribe server lost re-enabled regional Update.");
-      serveReceiverEvent(
-          "The public regional-unsubscribe server lost reflected Update Receive.");
+      if (callbackModel == HLA_IMMEDIATE) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::claim_deferred_attribute_update,
+            "The public regional-unsubscribe server lost the regional Update claim.");
+      } else {
+        serveReceiverEvent(
+            "The public regional-unsubscribe server lost reflected Update Receive.");
+      }
       serveExpected(
           sender,
           senderRecordingHandler,
@@ -779,11 +854,22 @@ TEST_CASE(
                                L"public-process-regional-unsubscribe-client")
                            .withRtiAddress(
                                L"tcp://127.0.0.1:" + std::to_wstring(port));
-  auto pumpReceiverCallbacks = [&] {
+  auto awaitReceiverCallback = [&](
+      std::function<bool(RecordingRegionalFederateAmbassador::State const&)>
+          predicate) {
     if (callbackModel == HLA_IMMEDIATE) {
-      static_cast<void>(receiverRti->getObjectClassHandle(objectClassNameWide));
+      receiverFederate.waitFor(std::move(predicate), std::chrono::seconds(2));
     } else {
-      static_cast<void>(receiverRti->evokeCallback(0.0));
+      static_cast<void>(receiverRti->evokeCallback(2.0));
+    }
+  };
+  auto probeNoOwnUnsubscribeScopeCallback = [&] {
+    if (callbackModel == HLA_IMMEDIATE) {
+      receiverFederate.waitFor(
+          [](auto const& state) { return state.outOfScope; },
+          std::chrono::milliseconds(100));
+    } else {
+      static_cast<void>(receiverRti->evokeCallback(0.1));
     }
   };
   std::exception_ptr clientError;
@@ -869,19 +955,21 @@ TEST_CASE(
             rti1516_2025::RegionHandleSet{senderRegion},
         }});
     REQUIRE(objectInstance.isValid());
-    pumpReceiverCallbacks();
-    REQUIRE(receiverFederate.discovered);
-    REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
+    awaitReceiverCallback([](auto const& state) { return state.discovered; });
+    auto receiverState = receiverFederate.snapshot();
+    REQUIRE(receiverState.discovered);
+    REQUIRE(receiverState.discoveredObjectInstance == objectInstance);
 
     REQUIRE_NOTHROW(receiverRti->unsubscribeObjectClassAttributesWithRegions(
         receiverObjectClass,
         receiverPairs));
-    pumpReceiverCallbacks();
+    probeNoOwnUnsubscribeScopeCallback();
     // Clause 10.1.3 suppresses the advisory for a scope loss caused by this
     // federate's own unsubscribe. Owner-side region changes below still cover
     // the Attributes Out Of Scope callback path.
-    REQUIRE_FALSE(receiverFederate.outOfScope);
-    REQUIRE(receiverFederate.outOfScopeCount == 0U);
+    receiverState = receiverFederate.snapshot();
+    REQUIRE_FALSE(receiverState.outOfScope);
+    REQUIRE(receiverState.outOfScopeCount == 0U);
 
     std::array<std::uint8_t, 3U> encodedValue{0x55U, 0x4EU, 0x53U};
     std::array<std::uint8_t, 3U> encodedTag{0x55U, 0x4EU, 0x53U};
@@ -893,20 +981,24 @@ TEST_CASE(
         encodedTag.data(), encodedTag.size());
     REQUIRE_NOTHROW(senderRti->updateAttributeValues(
         objectInstance, attributeValues, userSuppliedTag));
-    REQUIRE_FALSE(receiverFederate.reflected);
+    receiverState = receiverFederate.snapshot();
+    REQUIRE_FALSE(receiverState.reflected);
     REQUIRE(recipientCount.load(std::memory_order_acquire) == 0U);
     REQUIRE(expectedObjectInstance.load(std::memory_order_acquire) != 0U);
     REQUIRE(expectedSenderFederate.load(std::memory_order_acquire) != 0U);
 
-    REQUIRE_FALSE(receiverFederate.inScope);
+    REQUIRE_FALSE(receiverState.inScope);
     REQUIRE_NOTHROW(receiverRti->subscribeObjectClassAttributesWithRegions(
         receiverObjectClass,
         receiverPairs));
-    pumpReceiverCallbacks();
-    REQUIRE(receiverFederate.inScope);
-    REQUIRE(receiverFederate.inScopeCount == 1U);
-    REQUIRE(receiverFederate.inScopeObjectInstance == objectInstance);
-    REQUIRE(receiverFederate.inScopeAttributeCount == 1U);
+    awaitReceiverCallback([](auto const& state) {
+      return state.inScopeCount == 1U;
+    });
+    receiverState = receiverFederate.snapshot();
+    REQUIRE(receiverState.inScope);
+    REQUIRE(receiverState.inScopeCount == 1U);
+    REQUIRE(receiverState.inScopeObjectInstance == objectInstance);
+    REQUIRE(receiverState.inScopeAttributeCount == 1U);
 
     std::array<std::uint8_t, 3U> reenabledValue{0x52U, 0x45U, 0x45U};
     rti1516_2025::AttributeHandleValueMap reenabledValues;
@@ -916,10 +1008,13 @@ TEST_CASE(
             reenabledValue.data(), reenabledValue.size()));
     REQUIRE_NOTHROW(senderRti->updateAttributeValues(
         objectInstance, reenabledValues, userSuppliedTag));
-    pumpReceiverCallbacks();
-    REQUIRE(receiverFederate.reflected);
-    REQUIRE(receiverFederate.reflectedObjectInstance == objectInstance);
-    REQUIRE(receiverFederate.reflectedAttributeCount == 1U);
+    INFO("Re-enabled regional update recipient count: "
+         << recipientCount.load(std::memory_order_acquire));
+    awaitReceiverCallback([](auto const& state) { return state.reflected; });
+    receiverState = receiverFederate.snapshot();
+    REQUIRE(receiverState.reflected);
+    REQUIRE(receiverState.reflectedObjectInstance == objectInstance);
+    REQUIRE(receiverState.reflectedAttributeCount == 1U);
     REQUIRE(recipientCount.load(std::memory_order_acquire) == 1U);
 
     REQUIRE_NOTHROW(senderRti->associateRegionsForUpdates(
@@ -935,10 +1030,13 @@ TEST_CASE(
             rti1516_2025::AttributeHandleSet{senderAttribute},
             rti1516_2025::RegionHandleSet{senderRegion},
         }}));
-    pumpReceiverCallbacks();
-    REQUIRE(receiverFederate.outOfScopeCount == 1U);
-    REQUIRE(receiverFederate.outOfScopeObjectInstance == objectInstance);
-    REQUIRE(receiverFederate.outOfScopeAttributeCount == 1U);
+    awaitReceiverCallback([](auto const& state) {
+      return state.outOfScopeCount == 1U;
+    });
+    receiverState = receiverFederate.snapshot();
+    REQUIRE(receiverState.outOfScopeCount == 1U);
+    REQUIRE(receiverState.outOfScopeObjectInstance == objectInstance);
+    REQUIRE(receiverState.outOfScopeAttributeCount == 1U);
 
     REQUIRE_NOTHROW(senderRti->associateRegionsForUpdates(
         objectInstance,
@@ -946,10 +1044,13 @@ TEST_CASE(
             rti1516_2025::AttributeHandleSet{senderAttribute},
             rti1516_2025::RegionHandleSet{senderRegion},
         }}));
-    pumpReceiverCallbacks();
-    REQUIRE(receiverFederate.inScopeCount == 2U);
-    REQUIRE(receiverFederate.inScopeObjectInstance == objectInstance);
-    REQUIRE(receiverFederate.inScopeAttributeCount == 1U);
+    awaitReceiverCallback([](auto const& state) {
+      return state.inScopeCount == 2U;
+    });
+    receiverState = receiverFederate.snapshot();
+    REQUIRE(receiverState.inScopeCount == 2U);
+    REQUIRE(receiverState.inScopeObjectInstance == objectInstance);
+    REQUIRE(receiverState.inScopeAttributeCount == 1U);
 
     senderRti->resignFederationExecution(DELETE_OBJECTS);
     senderJoined = false;

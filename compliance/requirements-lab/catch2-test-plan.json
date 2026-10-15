@@ -26779,7 +26779,9 @@
       ],
       "test_case": "RTIambassador removes a regional subscription through a configured process endpoint",
       "source_location": "cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp:457",
-      "assertions": 110,
+      "primary_lane": "process-regional-unsubscribe",
+      "focus_lane": "process-regional-unsubscribe",
+      "assertions": 108,
       "callback_models": [
         "HLA_EVOKED",
         "HLA_IMMEDIATE"
@@ -26814,6 +26816,7 @@
         "callbacks",
         "transport",
         "process-boundary",
+        "process-regional-unsubscribe",
         "public-endpoint",
         "2025",
         "regional-subscription-removal",
