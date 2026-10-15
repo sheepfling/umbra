@@ -7668,7 +7668,7 @@ def main() -> int:
         "cpp/tests/ieee1516_2025_connection_time_advance_next_message_queued_tso_catch2.cpp:458"
     ):
         raise AssertionError("focused process queued-TSO source pointer drifted")
-    if process_next_message_queued.get("assertions") != 101:
+    if process_next_message_queued.get("assertions") != 232:
         raise AssertionError("focused process queued-TSO assertion count drifted")
     if process_next_message_queued.get("callback_models") != [
         "HLA_EVOKED",
@@ -7686,13 +7686,13 @@ def main() -> int:
     )
     if process_next_message_queued_focus.get("lane_state") != "complete":
         raise AssertionError("focused process queued-TSO lane is not complete")
-    if process_next_message_queued_focus.get("mapped_test_count") != 1:
+    if process_next_message_queued_focus.get("mapped_test_count") != 13:
         raise AssertionError("focused process queued-TSO mapped count drifted")
-    if process_next_message_queued_focus.get("assertion_count") != 101:
+    if process_next_message_queued_focus.get("assertion_count") != 543:
         raise AssertionError("focused process queued-TSO lane assertion total drifted")
-    if process_next_message_queued_focus.get("requirement_count") != 19:
+    if process_next_message_queued_focus.get("requirement_count") != 53:
         raise AssertionError("focused process queued-TSO requirement total drifted")
-    if process_next_message_queued_focus.get("standard_section_count") != 12:
+    if process_next_message_queued_focus.get("standard_section_count") != 29:
         raise AssertionError("focused process queued-TSO section total drifted")
     process_next_message_queued_handles = process_next_message_queued_focus.get(
         "lane_handles"
