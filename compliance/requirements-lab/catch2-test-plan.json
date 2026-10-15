@@ -28412,7 +28412,9 @@
         "requirement-candidate-content-clauses-06-object-management-page-137-l43-9"
       ],
       "test_case": "RTIambassador expands process class Request Attribute Value Update across registered instances",
-      "source_location": "cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp:49",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp:51",
+      "primary_lane": "process-class-request-attribute-value-update",
+      "focus_lane": "process-class-request-attribute-value-update",
       "assertions": 50,
       "callback_models": [
         "HLA_EVOKED",
@@ -28438,6 +28440,7 @@
         "callback-controls",
         "transport",
         "process-boundary",
+        "process-class-request-attribute-value-update",
         "public-endpoint",
         "2025",
         "rti.service.request-attribute-value-update",

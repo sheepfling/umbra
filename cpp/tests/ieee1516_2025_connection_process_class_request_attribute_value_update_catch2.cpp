@@ -49,7 +49,11 @@ using umbra::test::process_fom_support_2025::composedProcessDefinition;
 
 TEST_CASE(
     "RTIambassador expands process class Request Attribute Value Update across registered instances",
-    "[integration][foundation][object-management][callbacks][callback-controls][transport][process-boundary][public-endpoint][rti.service.request-attribute-value-update][federate.callback.discover-object-instance][federate.callback.provide-attribute-value-update]") {
+    "[integration][foundation][object-management][callbacks][callback-controls]"
+    "[transport][process-boundary][process-class-request-attribute-value-update]"
+    "[public-endpoint][rti.service.request-attribute-value-update]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.provide-attribute-value-update]") {
   auto runScenario = [](CallbackModel callbackModel) {
     class RecordingFederateAmbassador final : public NullFederateAmbassador {
      public:
