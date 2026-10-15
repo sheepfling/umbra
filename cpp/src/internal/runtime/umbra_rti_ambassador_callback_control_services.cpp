@@ -234,11 +234,11 @@ void UmbraRtiAmbassador::pumpProcessReceiveOrder(bool drainAll) {
       };
       dispatchPending();
       // A background process-stream reader can already have submitted an
-      // unsolicited frame to the official callback dispatcher. Do not issue
-      // a redundant network poll when that callback is waiting for this
-      // Evoke service to make it visible to the federate.
+      // unsolicited frame to the official callback dispatcher. Return to
+      // Evoke so it can deliver that callback instead of polling or spinning
+      // on the same pending callback in this drain loop.
       if (!delivered && processClient->pendingCallbackCount() != 0U) {
-        delivered = true;
+        break;
       }
       if (!delivered) {
         auto event = processClient->receiveInteraction(

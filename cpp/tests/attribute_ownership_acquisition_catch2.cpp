@@ -308,9 +308,35 @@ TEST_CASE(
       serveExpected(TransportServiceOperation::register_object_instance);
       serveExpected(TransportServiceOperation::publish_object_class_attributes);
       serveExpected(TransportServiceOperation::attribute_ownership_acquisition);
-      serveExpected(TransportServiceOperation::receive_interaction);
-      serveExpected(TransportServiceOperation::receive_interaction);
-      serveExpected(TransportServiceOperation::resign_federation_execution);
+      // A pushed ownership callback can be available before Evoke polls the
+      // process endpoint. Poll count is a transport detail, not this case's
+      // ownership-notification contract.
+      bool resigned = false;
+      std::size_t receivePollCount = 0U;
+      while (!resigned) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](umbra::detail::TransportServiceMessage const& request) {
+                  if (request.operation ==
+                      TransportServiceOperation::receive_interaction) {
+                    if (++receivePollCount > 8U) {
+                      throw std::runtime_error(
+                          "The process ownership-acquisition client exceeded the bounded callback poll allowance.");
+                    }
+                    return handler(request);
+                  }
+                  if (request.operation ==
+                      TransportServiceOperation::resign_federation_execution) {
+                    resigned = true;
+                    return handler(request);
+                  }
+                  throw std::runtime_error(
+                      "The process ownership-acquisition server received an unexpected operation after acquisition.");
+                })) {
+          throw std::runtime_error(
+              "The process ownership-acquisition server lost a request after acquisition.");
+        }
+      }
       service.detach(session);
       connection->close();
     } catch (...) {
@@ -365,7 +391,14 @@ TEST_CASE(
       AttributeHandleSet{acquirableAttribute},
       tag));
   REQUIRE(reports.acquisitionReports.empty());
-  static_cast<void>(rti->evokeMultipleCallbacks(0.0, 0.0));
+  // The process stream may publish the notification just after the service
+  // response. A zero-duration Evoke need not wait for that future arrival.
+  auto const notificationDeadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(2);
+  while (reports.acquisitionReports.empty() &&
+         std::chrono::steady_clock::now() < notificationDeadline) {
+    static_cast<void>(rti->evokeMultipleCallbacks(0.01, 0.02));
+  }
   REQUIRE(reports.acquisitionReports.size() == 1U);
   auto const& report = reports.acquisitionReports.front();
   REQUIRE(report.kind ==
