@@ -1486,16 +1486,8 @@ TEST_CASE(
   REQUIRE_FALSE(serverError);
 }
 
-TEST_CASE(
-    "RTIambassador resolves competing process If Available acquisitions to one queried owner",
-    "[integration][development-profile][federation-management][ownership-management]"
-    "[transport][process-boundary][process-ownership-competing-if-available-query]"
-    "[public-endpoint][query-attribute-ownership]"
-    "[unconditional-attribute-ownership-divestiture]"
-    "[attribute-ownership-acquisition-if-available]"
-    "[federate.callback.attribute-ownership-acquisition-notification]"
-    "[federate.callback.attribute-ownership-unavailable]"
-    "[federate.callback.inform-attribute-ownership][2025]") {
+void runCompetingProcessIfAvailableOwnershipCase(
+    rti1516_2025::CallbackModel callbackModel) {
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener != nullptr);
   auto const port = listener->address().port;
@@ -1506,7 +1498,8 @@ TEST_CASE(
     try {
       EmbeddedFederationRegistry registry;
       ProcessFederationService service(
-          registry, composedProcessOwnershipDefinition());
+          registry, composedProcessOwnershipDefinition(),
+          ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
       auto ownerConnection = listener->accept(
           nullptr, {"process-competing-ownership-server", 0xA70DU},
           [](std::wstring) {}, [](std::wstring) { return false; });
@@ -1621,11 +1614,11 @@ TEST_CASE(
     // Connect all three endpoints before the service workers begin. Neither
     // request order nor federate handle is used as a winner assertion.
     REQUIRE_NOTHROW(owner->connect(
-        ownerReports, HLA_EVOKED, configurationFor(L"competing-owner")));
+        ownerReports, callbackModel, configurationFor(L"competing-owner")));
     REQUIRE_NOTHROW(first->connect(
-        firstReports, HLA_EVOKED, configurationFor(L"competing-first")));
+        firstReports, callbackModel, configurationFor(L"competing-first")));
     REQUIRE_NOTHROW(second->connect(
-        secondReports, HLA_EVOKED, configurationFor(L"competing-second")));
+        secondReports, callbackModel, configurationFor(L"competing-second")));
     REQUIRE_NOTHROW(owner->createFederationExecution(federationName, fomModule));
     FederateHandle ownerHandle;
     FederateHandle firstHandle;
@@ -1670,12 +1663,23 @@ TEST_CASE(
     ObjectInstanceHandle objectInstance;
     REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(ownerClass));
     REQUIRE(objectInstance.isValid());
+    // In HLA_IMMEDIATE, push callbacks are dispatched at ordinary public
+    // service boundaries. Never invoke Evoke in that path.
+    auto advanceCallbacks = [&](RTIambassador& candidate) {
+      if (callbackModel == HLA_EVOKED) {
+        static_cast<void>(candidate.evokeMultipleCallbacks(0.01, 0.02));
+      } else {
+        static_cast<void>(candidate.getObjectClassHandle(
+            fixture_hla::fom::attribute_fixture_child));
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+      }
+    };
     auto awaitDiscovery = [&](auto& candidate, auto& reports) {
       auto const deadline =
           std::chrono::steady_clock::now() + std::chrono::seconds(2);
       while (reports.objectDiscoveryReports.empty() &&
              std::chrono::steady_clock::now() < deadline) {
-        static_cast<void>(candidate.evokeMultipleCallbacks(0.01, 0.02));
+        advanceCallbacks(candidate);
       }
       REQUIRE(reports.objectDiscoveryReports.size() == 1U);
       REQUIRE(reports.objectDiscoveryReports.front().objectInstance ==
@@ -1697,7 +1701,7 @@ TEST_CASE(
           std::chrono::steady_clock::now() + std::chrono::seconds(2);
       while (ownerReports.attributeOwnershipReports.empty() &&
              std::chrono::steady_clock::now() < deadline) {
-        static_cast<void>(owner->evokeMultipleCallbacks(0.01, 0.02));
+        advanceCallbacks(*owner);
       }
       REQUIRE(ownerReports.attributeOwnershipReports.size() == 1U);
       auto result = ownerReports.attributeOwnershipReports.front();
@@ -1718,10 +1722,12 @@ TEST_CASE(
     REQUIRE_NOTHROW(second->attributeOwnershipAcquisitionIfAvailable(
         objectInstance, AttributeHandleSet{attribute},
         VariableLengthData(secondTag, sizeof(secondTag))));
-    REQUIRE(firstReports.acquisitionNotifications.empty());
-    REQUIRE(firstReports.acquisitionUnavailableReports.empty());
-    REQUIRE(secondReports.acquisitionNotifications.empty());
-    REQUIRE(secondReports.acquisitionUnavailableReports.empty());
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE(firstReports.acquisitionNotifications.empty());
+      REQUIRE(firstReports.acquisitionUnavailableReports.empty());
+      REQUIRE(secondReports.acquisitionNotifications.empty());
+      REQUIRE(secondReports.acquisitionUnavailableReports.empty());
+    }
 
     auto awaitTerminal = [&](auto& candidate, auto& reports) {
       auto const deadline =
@@ -1729,7 +1735,7 @@ TEST_CASE(
       while (reports.acquisitionNotifications.empty() &&
              reports.acquisitionUnavailableReports.empty() &&
              std::chrono::steady_clock::now() < deadline) {
-        static_cast<void>(candidate.evokeMultipleCallbacks(0.01, 0.02));
+        advanceCallbacks(candidate);
       }
       REQUIRE(reports.acquisitionNotifications.size() +
                   reports.acquisitionUnavailableReports.size() == 1U);
@@ -1745,8 +1751,8 @@ TEST_CASE(
                 AttributeHandleSet{attribute});
       }
     };
-    // Evoking the second candidate first exercises callback-time arbitration.
-    // The test observes the winner instead of requiring a particular one.
+    // Polling the second candidate first exercises callback-time arbitration
+    // under HLA_EVOKED. Neither callback model requires a particular winner.
     awaitTerminal(*second, secondReports);
     awaitTerminal(*first, firstReports);
     REQUIRE(firstReports.acquisitionNotifications.size() +
@@ -1807,6 +1813,32 @@ TEST_CASE(
   if (server.joinable()) server.join();
   if (clientError) std::rethrow_exception(clientError);
   REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassador resolves competing process If Available acquisitions to one queried owner",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[transport][process-boundary][process-ownership-competing-if-available-query]"
+    "[public-endpoint][query-attribute-ownership]"
+    "[unconditional-attribute-ownership-divestiture]"
+    "[attribute-ownership-acquisition-if-available]"
+    "[federate.callback.attribute-ownership-acquisition-notification]"
+    "[federate.callback.attribute-ownership-unavailable]"
+    "[federate.callback.inform-attribute-ownership][2025]") {
+  runCompetingProcessIfAvailableOwnershipCase(HLA_EVOKED);
+}
+
+TEST_CASE(
+    "RTIambassador pushes competing process If Available acquisitions to one queried owner",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[transport][process-boundary][process-ownership-competing-if-available-push]"
+    "[public-endpoint][query-attribute-ownership]"
+    "[unconditional-attribute-ownership-divestiture]"
+    "[attribute-ownership-acquisition-if-available]"
+    "[federate.callback.attribute-ownership-acquisition-notification]"
+    "[federate.callback.attribute-ownership-unavailable]"
+    "[federate.callback.inform-attribute-ownership][2025]") {
+  runCompetingProcessIfAvailableOwnershipCase(HLA_IMMEDIATE);
 }
 
 void runMixedProcessIfAvailableOwnershipCase(

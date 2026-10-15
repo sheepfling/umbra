@@ -31422,12 +31422,12 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
       ],
       "test_case": "RTIambassador resolves competing process If Available acquisitions to one queried owner",
-      "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:1475",
+      "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:1818",
       "ctest_target": "umbra_attribute_ownership_query_catch2",
       "ctest_filter": "^umbra\\.attribute_ownership_query\\.catch2\\.RTIambassador resolves competing process If Available acquisitions to one queried owner$",
       "primary_lane": "process-ownership-competing-if-available-query",
       "focus_lane": "process-ownership-competing-if-available-query",
-      "assertions": 55,
+      "assertions": 66,
       "callback_models": [
         "HLA_EVOKED"
       ],
@@ -31464,7 +31464,75 @@
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
       "requirements_lab_api_surface_status": "Two joined candidates request the same unowned attribute through the official 2025 C++ If Available service over a configured process endpoint. The bounded HLA_EVOKED case requires one acquisition notification, one unavailable callback, and a public ownership query naming the actual winner, without assuming which candidate wins. It does not establish all regular-acquisition arbitration, timing, transport interoperability, or conformance.",
-      "next_action": "Keep both terminal outcomes and the queried winner green. Add a distinct regular-acquisition pending/release-denied competition, mixed-set and push-mode ownership transitions, package/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
+      "next_action": "Keep evoked and pushed competing outcomes and the queried winner green. Add a distinct regular-acquisition pending/release-denied competition, package/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
+    },
+    {
+      "id": "umbra-cpp-process-competing-ownership-if-available-push",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.queryattributeownership.8e2fc379ef34",
+        "api.2025.cpp.rtiambassador.unconditionalattributeownershipdivestiture.2570df96a3a7",
+        "api.2025.cpp.rtiambassador.attributeownershipacquisitionifavailable.8b37c270d6b9",
+        "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+        "api.2025.cpp.federateambassador.attributeownershipunavailable.39c86b97f321",
+        "api.2025.cpp.federateambassador.informattributeownership.6fd57319c7ea",
+        "api.2025.cpp.federateambassador.attributeisnotowned.83a830c0882b"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36",
+        "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27",
+        "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31",
+        "requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34",
+        "requirement-candidate-content-clauses-07-ownership-management-page-163-l147-43",
+        "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
+      ],
+      "test_case": "RTIambassador pushes competing process If Available acquisitions to one queried owner",
+      "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:1831",
+      "ctest_target": "umbra_attribute_ownership_query_catch2",
+      "ctest_filter": "^umbra\\.attribute_ownership_query\\.catch2\\.RTIambassador pushes competing process If Available acquisitions to one queried owner$",
+      "primary_lane": "process-ownership-competing-if-available-push",
+      "focus_lane": "process-ownership-competing-if-available-push",
+      "assertions": 62,
+      "callback_models": [
+        "HLA_IMMEDIATE"
+      ],
+      "delivery_modes": [
+        "configured-process-endpoint",
+        "pushed-receive-order-ownership-callback",
+        "two-candidate-if-available-acquisition",
+        "queried-winner"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.2",
+        "hla-1516.1-2025:clause-7.7.3",
+        "hla-1516.1-2025:clause-7.9.1",
+        "hla-1516.1-2025:clause-7.10",
+        "hla-1516.1-2025:clause-7.17.5",
+        "hla-1516.1-2025:clause-7.18.4"
+      ],
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "ownership-management",
+        "transport",
+        "process-boundary",
+        "process-ownership-competing-if-available-push",
+        "public-endpoint",
+        "query-attribute-ownership",
+        "unconditional-attribute-ownership-divestiture",
+        "attribute-ownership-acquisition-if-available",
+        "federate.callback.attribute-ownership-acquisition-notification",
+        "federate.callback.attribute-ownership-unavailable",
+        "federate.callback.inform-attribute-ownership",
+        "2025"
+      ],
+      "status": "implemented-public-foundation-not-conformance-evidence",
+      "requirements_lab_api_surface_status": "Two joined candidates request the same unowned attribute through the official 2025 C++ If Available service over a configured process endpoint with HLA_IMMEDIATE pushed receive-order callbacks. The bounded case requires exactly one acquisition notification, one unavailable callback, and a public ownership query naming the actual winner without Evoke calls or assuming candidate order. It does not establish all regular-acquisition arbitration, timing, transport interoperability, or conformance.",
+      "next_action": "Keep evoked and pushed competing outcomes and the queried winner green. Add distinct regular-acquisition pending/release-denied competition, package/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
     },
     {
       "id": "umbra-cpp-process-mixed-ownership-if-available-query",
