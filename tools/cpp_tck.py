@@ -125,6 +125,7 @@ LOCAL_TCK_HEADERS = {
     "tck_portable_service_report_scenarios.hpp",
     "tck_timestamped_interaction_scheduling_scenarios.hpp",
     "tck_custom_transportation_scenarios.hpp",
+    "tck_custom_transportation_interaction_scenarios.hpp",
     "tck_federation_lifecycle_scenarios.hpp",
     "tck_inherited_derived_delivery_scenarios.hpp",
     "tck_callback_controls_scenarios.hpp",

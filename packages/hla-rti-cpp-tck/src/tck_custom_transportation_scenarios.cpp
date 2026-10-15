@@ -1,4 +1,5 @@
 #include "tck_custom_transportation_scenarios.hpp"
+#include "tck_custom_transportation_interaction_scenarios.hpp"
 #include "tck_main_scenarios.hpp"
 
 namespace hla_rti_cpp_tck::detail {
