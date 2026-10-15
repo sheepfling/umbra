@@ -114,6 +114,7 @@ LOCAL_TCK_HEADERS = {
     "tck_federation_lifecycle_scenarios.hpp",
     "tck_callback_controls_scenarios.hpp",
     "tck_portable_mom_declaration_queries.hpp",
+    "tck_portable_region_service_reports.hpp",
     "tck_lookup_lifecycle_scenarios.hpp",
     "tck_fom_module_scenarios.hpp",
     "tck_region_lifecycle_scenarios.hpp",
