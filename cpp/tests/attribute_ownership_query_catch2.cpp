@@ -180,6 +180,11 @@ class ReportingFederateAmbassador final
     VariableLengthData userSuppliedTag;
   };
 
+  struct OwnershipReleaseRequestReport final {
+    ObjectInstanceHandle objectInstance;
+    AttributeHandleSet attributes;
+  };
+
   struct InteractionReport final {
     InteractionClassHandle interactionClass;
     ParameterHandleValueMap parameterValues;
@@ -269,6 +274,13 @@ class ReportingFederateAmbassador final
     });
   }
 
+  void requestAttributeOwnershipRelease(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleSet const& candidateAttributes,
+      VariableLengthData const&) override {
+    ownershipReleaseRequests.push_back({objectInstance, candidateAttributes});
+  }
+
   void receiveInteraction(
       InteractionClassHandle const& interactionClass,
       ParameterHandleValueMap const& parameterValues,
@@ -291,6 +303,7 @@ class ReportingFederateAmbassador final
   std::vector<AttributeOwnershipReport> attributeOwnershipReports;
   std::vector<AcquisitionNotificationReport> acquisitionNotifications;
   std::vector<AcquisitionUnavailableReport> acquisitionUnavailableReports;
+  std::vector<OwnershipReleaseRequestReport> ownershipReleaseRequests;
   std::vector<InteractionReport> interactionReports;
 };
 
@@ -1783,6 +1796,300 @@ TEST_CASE(
       }
     }
     for (auto* client : {second.get(), first.get(), owner.get()}) {
+      try {
+        client->disconnect();
+      } catch (...) {
+      }
+    }
+  }
+  listener.reset();
+  if (server.joinable()) server.join();
+  if (clientError) std::rethrow_exception(clientError);
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassador resolves mixed process If Available attributes per owner",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[transport][process-boundary][process-ownership-mixed-if-available-query]"
+    "[public-endpoint][query-attribute-ownership]"
+    "[unconditional-attribute-ownership-divestiture]"
+    "[attribute-ownership-acquisition-if-available]"
+    "[federate.callback.attribute-ownership-acquisition-notification]"
+    "[federate.callback.attribute-ownership-unavailable]"
+    "[federate.callback.inform-attribute-ownership][2025]") {
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener != nullptr);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry, composedProcessOwnershipDefinition());
+      auto ownerConnection = listener->accept(
+          nullptr, {"process-mixed-ownership-server", 0xA710U},
+          [](std::wstring) {}, [](std::wstring) { return false; });
+      auto requesterConnection = listener->accept(
+          nullptr, {"process-mixed-ownership-server", 0xA711U},
+          [](std::wstring) {}, [](std::wstring) { return false; });
+      ProcessTransportSession ownerSession(ownerConnection);
+      ProcessTransportSession requesterSession(requesterConnection);
+      auto ownerHandler = service.handlerFor(ownerSession);
+      auto requesterHandler = service.handlerFor(requesterSession);
+
+      auto serveJoinedFederate = [&](auto& session, auto const& handler,
+                                     auto const& connection,
+                                     std::exception_ptr& workerError) {
+        try {
+          bool resigned = false;
+          std::size_t requestCount = 0U;
+          while (!resigned && requestCount != 512U &&
+                 umbra::test::servePrimaryProcessRequest(
+                     session, handler,
+                     [&](umbra::detail::TransportServiceMessage const& request) {
+                       using umbra::detail::TransportServiceOperation;
+                       switch (request.operation) {
+                         case TransportServiceOperation::create_federation_execution:
+                         case TransportServiceOperation::join_federation_execution:
+                         case TransportServiceOperation::get_object_class_handle:
+                         case TransportServiceOperation::get_attribute_handle:
+                         case TransportServiceOperation::subscribe_object_class_attributes:
+                         case TransportServiceOperation::publish_object_class_attributes:
+                         case TransportServiceOperation::register_object_instance:
+                         case TransportServiceOperation::query_attribute_ownership:
+                         case TransportServiceOperation::unconditional_attribute_ownership_divestiture:
+                         case TransportServiceOperation::attribute_ownership_acquisition_if_available:
+                         case TransportServiceOperation::receive_interaction:
+                         case TransportServiceOperation::report_successful_void_service_invocation:
+                           break;
+                         case TransportServiceOperation::resign_federation_execution:
+                           resigned = true;
+                           break;
+                         default:
+                           throw std::runtime_error(
+                               "The mixed-attribute server received an unexpected operation.");
+                       }
+                       return handler(request);
+                     })) {
+            ++requestCount;
+          }
+          if (!resigned) {
+            throw std::runtime_error(
+                "The mixed-attribute server did not receive Resign.");
+          }
+        } catch (...) {
+          workerError = std::current_exception();
+        }
+        try {
+          service.detach(session);
+        } catch (...) {
+          if (!workerError) workerError = std::current_exception();
+        }
+        connection->close();
+      };
+
+      std::exception_ptr ownerError;
+      std::exception_ptr requesterError;
+      std::jthread ownerWorker([&] {
+        serveJoinedFederate(
+            ownerSession, ownerHandler, ownerConnection, ownerError);
+      });
+      std::jthread requesterWorker([&] {
+        serveJoinedFederate(
+            requesterSession, requesterHandler, requesterConnection,
+            requesterError);
+      });
+      ownerWorker.join();
+      requesterWorker.join();
+      if (ownerError) std::rethrow_exception(ownerError);
+      if (requesterError) std::rethrow_exception(requesterError);
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  auto const federationName = nextFederationName() + L"-process-mixed";
+  auto const fomModule = resourcePath("attribute-update-passel-fom.xml").wstring();
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador requesterReports;
+  auto owner = makeRti();
+  auto requester = makeRti();
+  auto configurationFor = [port](std::wstring name) {
+    return rti1516_2025::RtiConfiguration::createConfiguration()
+        .withConfigurationName(std::move(name))
+        .withRtiAddress(L"tcp://127.0.0.1:" + std::to_wstring(port));
+  };
+  bool ownerJoined = false;
+  bool requesterJoined = false;
+  std::exception_ptr clientError;
+  try {
+    REQUIRE_NOTHROW(owner->connect(
+        ownerReports, HLA_EVOKED, configurationFor(L"mixed-owner")));
+    REQUIRE_NOTHROW(requester->connect(
+        requesterReports, HLA_EVOKED, configurationFor(L"mixed-requester")));
+    REQUIRE_NOTHROW(owner->createFederationExecution(federationName, fomModule));
+    FederateHandle ownerHandle;
+    FederateHandle requesterHandle;
+    REQUIRE_NOTHROW(ownerHandle = owner->joinFederationExecution(
+        L"mixed-owner", L"publisher", federationName));
+    ownerJoined = true;
+    REQUIRE_NOTHROW(requesterHandle = requester->joinFederationExecution(
+        L"mixed-requester", L"publisher", federationName));
+    requesterJoined = true;
+    REQUIRE(ownerHandle.isValid());
+    REQUIRE(requesterHandle.isValid());
+    REQUIRE(ownerHandle != requesterHandle);
+
+    auto const ownerClass = owner->getObjectClassHandle(
+        fixture_hla::fom::attribute_fixture_child);
+    auto const freeAttribute = owner->getAttributeHandle(
+        ownerClass, fixture_hla::fixture::reliable_base_a);
+    auto const heldAttribute = owner->getAttributeHandle(
+        ownerClass, fixture_hla::fixture::reliable_base_b);
+    REQUIRE(ownerClass.isValid());
+    REQUIRE(freeAttribute.isValid());
+    REQUIRE(heldAttribute.isValid());
+    REQUIRE(freeAttribute != heldAttribute);
+
+    auto const requesterClass = requester->getObjectClassHandle(
+        fixture_hla::fom::attribute_fixture_child);
+    auto const requesterFree = requester->getAttributeHandle(
+        requesterClass, fixture_hla::fixture::reliable_base_a);
+    auto const requesterHeld = requester->getAttributeHandle(
+        requesterClass, fixture_hla::fixture::reliable_base_b);
+    REQUIRE(requesterClass == ownerClass);
+    REQUIRE(requesterFree == freeAttribute);
+    REQUIRE(requesterHeld == heldAttribute);
+    AttributeHandleSet const both{freeAttribute, heldAttribute};
+    REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(
+        requesterClass, both));
+    REQUIRE_NOTHROW(owner->publishObjectClassAttributes(ownerClass, both));
+    ObjectInstanceHandle objectInstance;
+    REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(ownerClass));
+    REQUIRE(objectInstance.isValid());
+    auto const discoveryDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (requesterReports.objectDiscoveryReports.empty() &&
+           std::chrono::steady_clock::now() < discoveryDeadline) {
+      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+    }
+    REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
+    REQUIRE(requesterReports.objectDiscoveryReports.front().objectInstance ==
+            objectInstance);
+    REQUIRE_NOTHROW(requester->publishObjectClassAttributes(
+        requesterClass, both));
+
+    auto queryOne = [&](AttributeHandle const& attribute) {
+      REQUIRE_NOTHROW(owner->queryAttributeOwnership(
+          objectInstance, AttributeHandleSet{attribute}));
+      auto const deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(2);
+      while (ownerReports.attributeOwnershipReports.empty() &&
+             std::chrono::steady_clock::now() < deadline) {
+        static_cast<void>(owner->evokeMultipleCallbacks(0.01, 0.02));
+      }
+      REQUIRE(ownerReports.attributeOwnershipReports.size() == 1U);
+      auto const report = ownerReports.attributeOwnershipReports.front();
+      ownerReports.attributeOwnershipReports.clear();
+      REQUIRE(report.objectInstance == objectInstance);
+      REQUIRE(report.attributes == AttributeHandleSet{attribute});
+      return report;
+    };
+    auto const initialFree = queryOne(freeAttribute);
+    auto const initialHeld = queryOne(heldAttribute);
+    REQUIRE(initialFree.kind ==
+            ReportingFederateAmbassador::AttributeOwnershipReport::Kind::federate);
+    REQUIRE(initialHeld.kind ==
+            ReportingFederateAmbassador::AttributeOwnershipReport::Kind::federate);
+    REQUIRE(initialFree.owner == ownerHandle);
+    REQUIRE(initialHeld.owner == ownerHandle);
+
+    unsigned char const divestitureTag[] = {0x54, 0x10};
+    REQUIRE_NOTHROW(owner->unconditionalAttributeOwnershipDivestiture(
+        objectInstance, AttributeHandleSet{freeAttribute},
+        VariableLengthData(divestitureTag, sizeof(divestitureTag))));
+    auto const unowned = queryOne(freeAttribute);
+    auto const stillHeld = queryOne(heldAttribute);
+    REQUIRE(unowned.kind ==
+            ReportingFederateAmbassador::AttributeOwnershipReport::Kind::unowned);
+    REQUIRE(stillHeld.kind ==
+            ReportingFederateAmbassador::AttributeOwnershipReport::Kind::federate);
+    REQUIRE(stillHeld.owner == ownerHandle);
+
+    unsigned char const requestTag[] = {0xA7, 0x10, 0x11};
+    REQUIRE_NOTHROW(requester->attributeOwnershipAcquisitionIfAvailable(
+        objectInstance, both,
+        VariableLengthData(requestTag, sizeof(requestTag))));
+    REQUIRE(requesterReports.acquisitionNotifications.empty());
+    REQUIRE(requesterReports.acquisitionUnavailableReports.empty());
+    auto const terminalDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while ((requesterReports.acquisitionNotifications.empty() ||
+            requesterReports.acquisitionUnavailableReports.empty()) &&
+           std::chrono::steady_clock::now() < terminalDeadline) {
+      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+    }
+    // The standard permits distinct callbacks for the same request; assert
+    // per-attribute terminal outcomes without imposing callback order.
+    REQUIRE(requesterReports.acquisitionNotifications.size() == 1U);
+    REQUIRE(requesterReports.acquisitionUnavailableReports.size() == 1U);
+    auto const& acquired = requesterReports.acquisitionNotifications.front();
+    auto const& unavailable =
+        requesterReports.acquisitionUnavailableReports.front();
+    REQUIRE(acquired.objectInstance == objectInstance);
+    REQUIRE(unavailable.objectInstance == objectInstance);
+    REQUIRE(acquired.attributes == AttributeHandleSet{freeAttribute});
+    REQUIRE(unavailable.attributes == AttributeHandleSet{heldAttribute});
+    REQUIRE(acquired.userSuppliedTag.size() == sizeof(requestTag));
+    REQUIRE(unavailable.userSuppliedTag.size() == sizeof(requestTag));
+    REQUIRE(std::equal(
+        requestTag, requestTag + sizeof(requestTag),
+        static_cast<unsigned char const*>(acquired.userSuppliedTag.data())));
+    REQUIRE(std::equal(
+        requestTag, requestTag + sizeof(requestTag),
+        static_cast<unsigned char const*>(unavailable.userSuppliedTag.data())));
+
+    auto const newOwner = queryOne(freeAttribute);
+    auto const unchangedOwner = queryOne(heldAttribute);
+    REQUIRE(newOwner.kind ==
+            ReportingFederateAmbassador::AttributeOwnershipReport::Kind::federate);
+    REQUIRE(unchangedOwner.kind ==
+            ReportingFederateAmbassador::AttributeOwnershipReport::Kind::federate);
+    REQUIRE(newOwner.owner == requesterHandle);
+    REQUIRE(unchangedOwner.owner == ownerHandle);
+    for (std::size_t pass = 0U; pass != 3U; ++pass) {
+      static_cast<void>(owner->evokeMultipleCallbacks(0.01, 0.02));
+    }
+    REQUIRE(ownerReports.ownershipReleaseRequests.empty());
+
+    REQUIRE_NOTHROW(requester->resignFederationExecution(
+        rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES));
+    requesterJoined = false;
+    REQUIRE_NOTHROW(owner->resignFederationExecution(
+        rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES));
+    ownerJoined = false;
+    REQUIRE_NOTHROW(requester->disconnect());
+    REQUIRE_NOTHROW(owner->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (requesterJoined) {
+      try {
+        requester->resignFederationExecution(
+            rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST);
+      } catch (...) {
+      }
+    }
+    if (ownerJoined) {
+      try {
+        owner->resignFederationExecution(
+            rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST);
+      } catch (...) {
+      }
+    }
+    for (auto* client : {requester.get(), owner.get()}) {
       try {
         client->disconnect();
       } catch (...) {
