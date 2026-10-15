@@ -441,6 +441,66 @@
       "next_action": "Keep this pending-advance NMRA failure distinct from backward-time and accepted-request records. Cover another NMRA failure class, process-endpoint reports, and MOM-interaction routing only as separately mapped C++ slices; do not infer general reporting completeness."
     },
     {
+      "id": "umbra-cpp-process-service-report-next-message-request-available-pending-failure",
+      "primary_lane": "process-service-report-next-message-request-available-pending-failure",
+      "focus_lane": "process-service-report-next-message-request-available-pending-failure",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
+        "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+        "api.2025.cpp.rtiambassador.nextmessagerequestavailable.53e69adb796b",
+        "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891",
+        "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
+        "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c",
+        "api.2025.cpp.federateambassador.timeregulationenabled.ff68bfc39f00",
+        "api.2025.cpp.federateambassador.timeconstrainedenabled.c5eb5c65565d",
+        "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l21-6",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l104-34"
+      ],
+      "test_case": "RTIambassador reports a pending process NMRA failure to the joined federate file",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_nmra_pending_failure_report_catch2.cpp:82",
+      "assertions": 39,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.11.3",
+        "hla-1516.1-2025:clause-8.11.5",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.1",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "tags": [
+        "integration",
+        "development-profile",
+        "2025",
+        "time-management",
+        "mom",
+        "service-report-file",
+        "service-reporting",
+        "service-failure",
+        "process-boundary",
+        "public-endpoint",
+        "next-message-request-available",
+        "process-service-report-next-message-request-available-pending-failure",
+        "rti.service.time-advance-request",
+        "rti.service.next-message-request-available",
+        "federate.callback.time-advance-grant"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "This HLA_EVOKED official-C++ two-member loopback case keeps the constrained joined federate's TAR(5) pending behind a time-regulating peer, then verifies NMRA(6) throws InTimeAdvancingState and appends exactly one failed report to that member's stable filesystem report path without a false success record. Regulator TAR(5) later releases the preserved original grant. The public exception corresponds to full pinned 2025 §8.11.3(f)/§8.11.5(c), but the pinned Lab has no direct candidate for those service-flow items (RL-322); no ID is invented. Only the separate §11.5/§11.5.1/§11.5.2 reporting assertions have the five listed direct candidate pairs. Exact exception text and serial are implementation assertions. This is current-provider process development-profile evidence, not general process reliability, Lab validation, interoperability, or conformance.",
+      "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador reports a pending process NMRA failure to the joined federate file$",
+      "ctest_label": "process-service-report-next-message-request-available-pending-failure",
+      "next_action": "This is the process/file parity companion to the embedded pending-NMRA failure case. Keep other NMRA failure classes and the MOM-interaction destination as separately mapped official-C++ slices; no general failure-routing or conformance claim."
+    },
+    {
       "id": "umbra-cpp-service-report-request-interaction-transportation-type-change",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.requestinteractiontransportationtypechange.d8afce747757",

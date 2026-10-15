@@ -360,8 +360,8 @@
     },
     "current_snapshot": {
       "source": "python tools/query_rti_work.py dashboard --summary --compact",
-      "plan_cases": 1503,
-      "mapped_cases": 1406,
+      "plan_cases": 1504,
+      "mapped_cases": 1407,
       "unmapped_cases": 97,
       "explicit_unmapped_cases": 97,
       "unclassified_unmapped_cases": 0,
@@ -376,6 +376,23 @@
       "service_report_store_mapped_cases": 13
     },
     "latest_completed_slice": {
+      "lane": "process-service-report-next-message-request-available-pending-failure",
+      "owner": "mom-after-base-services",
+      "plan_id": "umbra-cpp-process-service-report-next-message-request-available-pending-failure",
+      "test_case": "RTIambassador reports a pending process NMRA failure to the joined federate file",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_nmra_pending_failure_report_catch2.cpp:82",
+      "primary_lane": "process-service-report-next-message-request-available-pending-failure",
+      "focus_lane": "process-service-report-next-message-request-available-pending-failure",
+      "assertions": 39,
+      "requirements": 5,
+      "standard_sections": 3,
+      "api_surfaces": 10,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "next_action": "A dedicated official-C++ two-member process loopback case holds TAR(5) pending, verifies NMRA(6) throws InTimeAdvancingState with one failed report in the same joined federate's filesystem file and no false success, then releases the original grant with regulator TAR(5). The MinGW connection target and exact loopback CTest passed 1/1. Its five direct pairs are §11.5 reporting; full §8.11.3(f)/§8.11.5(c) remains a pinned extraction gap (RL-322). Development-profile evidence only. Next: separately cover an invalid-time NMRA failure or the MOM-interaction destination, not generic process conformance."
+    },
+    "previous_completed_slice": {
       "lane": "service-report-next-message-request-available-pending-failure",
       "owner": "mom-after-base-services",
       "plan_id": "umbra-cpp-service-report-next-message-request-available-pending-failure",
@@ -390,24 +407,7 @@
       "callback_models": [
         "HLA_EVOKED"
       ],
-      "next_action": "The official-C++ embedded case keeps Time Advance Request(5) pending, verifies Next Message Request Available(6) throws InTimeAdvancingState with one failed filesystem report and no false success, then observes the original grant at 5. Its five direct pairs are §11.5 reporting; full §8.11.3(f)/§8.11.5(c) has no candidate in the pinned Lab bundle (RL-322). Focused MinGW available-advance/reporting CTest passed 6/6. Development-profile evidence only. Next: separately cover an invalid-time NMRA failure or the process/MOM routes; do not infer all failures or conformance."
-    },
-    "previous_completed_slice": {
-      "lane": "service-report-next-message-request-available-failure",
-      "owner": "mom-after-base-services",
-      "plan_id": "umbra-cpp-service-report-next-message-request-available-backward-failure",
-      "test_case": "Embedded service reporting records a rejected backward Next Message Request Available",
-      "source_location": "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp:113",
-      "primary_lane": "service-report-next-message-request-available-failure",
-      "focus_lane": "service-report-next-message-request-available-failure",
-      "assertions": 20,
-      "requirements": 5,
-      "standard_sections": 3,
-      "api_surfaces": 5,
-      "callback_models": [
-        "HLA_EVOKED"
-      ],
-      "next_action": "The official-C++ embedded case proves backward Next Message Request Available(4) at current time 5 throws LogicalTimeAlreadyPassed, retains time and grant state, and appends one failed filesystem service-report record without a premature success record. Its five direct pairs are §11.5 reporting; full §8.11.3(d)/§8.11.5(a) flow text has no candidate in the pinned Lab bundle (RL-321). Focused MinGW available-advance/reporting CTest passed 5/5. Development-profile evidence only. Next: separately cover a pending-request NMRA failure and its file report; do not infer all NMRA failures, process routing, or conformance."
+      "next_action": "The official-C++ embedded case keeps Time Advance Request(5) pending, verifies Next Message Request Available(6) throws InTimeAdvancingState with one failed filesystem report and no false success, then observes the original grant at 5. Its five direct pairs are §11.5 reporting; full §8.11.3(f)/§8.11.5(c) has no candidate in the pinned Lab bundle (RL-322). Focused MinGW available-advance/reporting CTest passed 6/6. Development-profile evidence only. Next: separately cover process parity or another failure class; do not infer all NMRA failures or conformance."
     },
     "prior_completed_slices": [
       {
@@ -526,6 +526,7 @@
       "service-report-directory-config": "mom-after-base-services",
       "service-report-next-message-request-available-failure": "mom-after-base-services",
       "service-report-next-message-request-available-pending-failure": "mom-after-base-services",
+      "process-service-report-next-message-request-available-pending-failure": "mom-after-base-services",
       "timestamped-regional-request-provider-response": "object-ddm-ownership",
       "object-class-request-provider-response": "time-save-restore",
       "timestamped-update-failure-service-report-file": "mom-after-base-services",
@@ -1587,6 +1588,12 @@
         "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records a pending-advance Next Message Request Available failure$",
         "ctest_label": "service-report-next-message-request-available-pending-failure",
         "source": "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp"
+      },
+      "process-service-report-next-message-request-available-pending-failure": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador reports a pending process NMRA failure to the joined federate file$",
+        "ctest_label": "process-service-report-next-message-request-available-pending-failure",
+        "source": "cpp/tests/ieee1516_2025_connection_process_nmra_pending_failure_report_catch2.cpp"
       },
       "ddm-nonvoid-failure": {
         "catch2_target": "umbra_ieee1516_2025_catch2",
@@ -4653,6 +4660,7 @@
       "service-report-directory-config": 8,
       "service-report-next-message-request-available-failure": 20,
       "service-report-next-message-request-available-pending-failure": 21,
+      "process-service-report-next-message-request-available-pending-failure": 39,
       "ddm-nonvoid-failure": 272,
       "ddm-mutation-failure": 72,
       "service-report-writer-failure": 27,
@@ -28924,6 +28932,7 @@
         "service-report-next-message-request-available-boundary",
         "service-report-next-message-request-available-failure",
         "service-report-next-message-request-available-pending-failure",
+        "process-service-report-next-message-request-available-pending-failure",
         "associate-regions-for-updates-service-report-file",
         "unpublish-object-class-attributes-ownership-pending",
         "publish-object-class-attributes-service-report-file",
@@ -28938,7 +28947,7 @@
         "ddm-nonvoid-failure",
         "ddm-mutation-failure"
       ],
-      "next_action": "The accepted Next Message Request Available boundary and backward-time failure retain their existing mapped C++ cases. The pending-advance failure case at cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp:171 adds one filesystem-reporting slice: it proves InTimeAdvancingState with no false success record while the earlier grant remains pending. RL-322 records missing full §8.11.3(f)/§8.11.5(c) candidates; the five direct pairs are only §11.5 reporting. Focused MinGW available-advance/reporting CTest passed 6/6. Next separate official-C++ slice: invalid-time NMRA failure or process/MOM route reporting; do not infer general conformance."
+      "next_action": "The embedded and new process pending-NMRA failure cases now each prove one failed filesystem report, no false success, and the earlier TAR grant preserved. The process case is at cpp/tests/ieee1516_2025_connection_process_nmra_pending_failure_report_catch2.cpp:82; the dedicated MinGW connection target and exact loopback CTest passed 1/1. Its five direct pairs are only §11.5 reporting, while RL-322 records the missing full §8.11.3(f)/§8.11.5(c) candidates. Next separate official-C++ slice: invalid-time NMRA failure or the MOM-interaction report destination; neither current-provider test implies general conformance."
     },
     {
       "id": "transport-and-conformance",
