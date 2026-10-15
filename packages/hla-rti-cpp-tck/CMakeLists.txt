@@ -28,6 +28,8 @@ endif()
 
 add_executable(hla_rti_cpp_tck
   src/main.cpp
+  src/tck_callback_controls_object_ownership.cpp
+  src/tck_callback_controls_time_transport.cpp
   src/tck_connection_lifecycle.cpp
   src/portable_tck.cpp
   src/tck_api_foundation.cpp
