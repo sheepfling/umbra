@@ -733,12 +733,14 @@ TEST_CASE(
 
   std::exception_ptr serverError;
   std::thread server([&] {
+    std::shared_ptr<umbra::detail::ProcessTransportConnection> ownerConnection;
+    std::shared_ptr<umbra::detail::ProcessTransportConnection> requesterConnection;
     try {
       EmbeddedFederationRegistry registry;
       ProcessFederationService service(
           registry,
           composedProcessOwnershipDefinition());
-      auto ownerConnection = listener->accept(
+      ownerConnection = listener->accept(
           nullptr,
           {"process-ownership-acquisition-release-denied-server", 0xA707U},
           [](std::wstring) {},
@@ -766,7 +768,10 @@ TEST_CASE(
                       return handler(request);
                     }
                     if (request.operation != operation) {
-                      throw std::runtime_error(description);
+                      throw std::runtime_error(
+                          std::string(description) + " (received operation " +
+                          std::to_string(static_cast<unsigned>(request.operation)) +
+                          ").");
                     }
                     servedExpected = true;
                     return handler(request);
@@ -788,7 +793,7 @@ TEST_CASE(
           TransportServiceOperation::join_federation_execution,
           "The process ownership-acquisition release-denied server lost owner Join.");
 
-      auto requesterConnection = listener->accept(
+      requesterConnection = listener->accept(
           nullptr,
           {"process-ownership-acquisition-release-denied-server", 0xA708U},
           [](std::wstring) {},
@@ -875,6 +880,12 @@ TEST_CASE(
       requesterConnection->close();
     } catch (...) {
       serverError = std::current_exception();
+      if (requesterConnection) {
+        requesterConnection->close();
+      }
+      if (ownerConnection) {
+        ownerConnection->close();
+      }
     }
   });
 
@@ -1057,10 +1068,12 @@ TEST_CASE(
   if (server.joinable()) {
     server.join();
   }
+  if (serverError) {
+    std::rethrow_exception(serverError);
+  }
   if (clientError) {
     std::rethrow_exception(clientError);
   }
-  REQUIRE_FALSE(serverError);
 }
 
 TEST_CASE(
