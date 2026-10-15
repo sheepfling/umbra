@@ -589,10 +589,8 @@ TEST_CASE(
               regulatingSession,
               regulatingHandler,
               TransportServiceOperation::report_successful_void_service_invocation) ||
-          !serveExpected(
-              constrainedSession,
-              constrainedHandler,
-              TransportServiceOperation::receive_interaction) ||
+          // The cross-federate grant is pushed to the constrained client;
+          // its Evoke call drains that callback without another receive poll.
           !serveExpected(
               regulatingSession,
               regulatingHandler,
