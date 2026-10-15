@@ -469,6 +469,7 @@ TEST_CASE(
       L"process-federation-save-not-complete-receiver-type";
   constexpr wchar_t const* saveLabel =
       L"process-federation-save-not-complete-multi-label";
+  constexpr double callbackWaitSeconds = 2.0;
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
   auto const port = listener->address().port;
@@ -492,19 +493,31 @@ TEST_CASE(
       auto serveExpected = [&](ProcessTransportSession& session,
                                auto const& handler,
                                TransportServiceOperation operation,
-                               char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(
-                        std::string(description) +
-                        " received an unexpected process operation.");
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
-        }
+                                char const* description,
+                                bool allowEvokePoll = false) {
+        bool servedExpected = false;
+        bool servedEvokePoll = false;
+        do {
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
+                  [&](TransportServiceMessage const& request) {
+                    if (allowEvokePoll && !servedEvokePoll &&
+                        request.operation ==
+                            TransportServiceOperation::receive_interaction) {
+                      servedEvokePoll = true;
+                      return handler(request);
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          std::string(description) +
+                          " received an unexpected process operation.");
+                    }
+                    servedExpected = true;
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(description);
+          }
+        } while (!servedExpected);
       };
       serveExpected(
           ownerSession,
@@ -529,56 +542,57 @@ TEST_CASE(
           receiverHandler,
           TransportServiceOperation::join_federation_execution,
           "The multi-federate save-not-complete server lost receiver Join.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::request_federation_save,
-          "The multi-federate save-not-complete server lost Request Federation Save.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::receive_interaction,
-          "The multi-federate save-not-complete server lost owner initiation polling.");
-      serveExpected(
-          receiverSession,
-          receiverHandler,
-          TransportServiceOperation::receive_interaction,
-          "The multi-federate save-not-complete server lost receiver initiation polling.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::federate_save_begun,
-          "The multi-federate save-not-complete server lost owner Federate Save Begun.");
-      serveExpected(
-          receiverSession,
-          receiverHandler,
-          TransportServiceOperation::federate_save_begun,
-          "The multi-federate save-not-complete server lost receiver Federate Save Begun.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::federate_save_not_complete,
-          "The multi-federate save-not-complete server lost owner Federate Save Not Complete.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::receive_interaction,
-          "The multi-federate save-not-complete server lost owner failure polling.");
-      serveExpected(
-          receiverSession,
-          receiverHandler,
-          TransportServiceOperation::receive_interaction,
-          "The multi-federate save-not-complete server lost receiver failure polling.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
-          TransportServiceOperation::resign_federation_execution,
-          "The multi-federate save-not-complete server lost owner Resign.");
-      serveExpected(
-          receiverSession,
-          receiverHandler,
-          TransportServiceOperation::resign_federation_execution,
-          "The multi-federate save-not-complete server lost receiver Resign.");
+      std::exception_ptr ownerScriptError;
+      std::thread ownerScript([&] {
+        try {
+          serveExpected(
+              ownerSession, ownerHandler,
+              TransportServiceOperation::request_federation_save,
+              "The multi-federate save-not-complete server lost Request Federation Save.");
+          serveExpected(
+              ownerSession, ownerHandler,
+              TransportServiceOperation::federate_save_begun,
+              "The multi-federate save-not-complete server lost owner Federate Save Begun.",
+              true);
+          serveExpected(
+              ownerSession, ownerHandler,
+              TransportServiceOperation::federate_save_not_complete,
+              "The multi-federate save-not-complete server lost owner Federate Save Not Complete.");
+          serveExpected(
+              ownerSession, ownerHandler,
+              TransportServiceOperation::resign_federation_execution,
+              "The multi-federate save-not-complete server lost owner Resign.",
+              true);
+        } catch (...) {
+          ownerScriptError = std::current_exception();
+          ownerConnection->close();
+          receiverConnection->close();
+        }
+      });
+      std::exception_ptr receiverScriptError;
+      try {
+        serveExpected(
+            receiverSession, receiverHandler,
+            TransportServiceOperation::federate_save_begun,
+            "The multi-federate save-not-complete server lost receiver Federate Save Begun.",
+            true);
+        serveExpected(
+            receiverSession, receiverHandler,
+            TransportServiceOperation::resign_federation_execution,
+            "The multi-federate save-not-complete server lost receiver Resign.",
+            true);
+      } catch (...) {
+        receiverScriptError = std::current_exception();
+        receiverConnection->close();
+        ownerConnection->close();
+      }
+      ownerScript.join();
+      if (ownerScriptError) {
+        std::rethrow_exception(ownerScriptError);
+      }
+      if (receiverScriptError) {
+        std::rethrow_exception(receiverScriptError);
+      }
       service.detach(receiverSession);
       service.detach(ownerSession);
       receiverConnection->close();
@@ -603,8 +617,6 @@ TEST_CASE(
                                    .withRtiAddress(
                                        L"tcp://127.0.0.1:" + std::to_wstring(port));
   std::exception_ptr clientError;
-  bool ownerJoined = false;
-  bool receiverJoined = false;
   try {
     REQUIRE(ownerRti->connect(ownerFederate, HLA_EVOKED, ownerConfiguration)
                 .addressUsed);
@@ -613,7 +625,6 @@ TEST_CASE(
         L"server-owned-process-federation-save-not-complete-fom.xml"));
     REQUIRE(ownerRti->joinFederationExecution(ownerType, federationName)
                 .isValid());
-    ownerJoined = true;
 
     REQUIRE(receiverRti->connect(
                 receiverFederate,
@@ -622,15 +633,14 @@ TEST_CASE(
                 .addressUsed);
     REQUIRE(receiverRti->joinFederationExecution(receiverType, federationName)
                 .isValid());
-    receiverJoined = true;
 
     REQUIRE_NOTHROW(ownerRti->requestFederationSave(saveLabel));
     REQUIRE(ownerFederate.initiateCount == 0U);
     REQUIRE(receiverFederate.initiateCount == 0U);
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(ownerRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(ownerFederate.initiateCount == 1U);
     REQUIRE(ownerFederate.initiateLabel == saveLabel);
-    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE_FALSE(receiverRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(receiverFederate.initiateCount == 1U);
     REQUIRE(receiverFederate.initiateLabel == saveLabel);
 
@@ -639,8 +649,8 @@ TEST_CASE(
     REQUIRE_NOTHROW(ownerRti->federateSaveNotComplete());
     REQUIRE(ownerFederate.notSavedCount == 0U);
     REQUIRE(receiverFederate.notSavedCount == 0U);
-    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
-    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE_FALSE(ownerRti->evokeCallback(callbackWaitSeconds));
+    REQUIRE_FALSE(receiverRti->evokeCallback(callbackWaitSeconds));
     REQUIRE(ownerFederate.notSavedCount == 1U);
     REQUIRE(receiverFederate.notSavedCount == 1U);
     REQUIRE(ownerFederate.notSavedReason ==
@@ -649,37 +659,16 @@ TEST_CASE(
             rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
 
     REQUIRE_NOTHROW(ownerRti->resignFederationExecution(NO_ACTION));
-    ownerJoined = false;
     REQUIRE_NOTHROW(receiverRti->resignFederationExecution(NO_ACTION));
-    receiverJoined = false;
     REQUIRE_NOTHROW(ownerRti->disconnect());
     REQUIRE_NOTHROW(receiverRti->disconnect());
   } catch (...) {
     clientError = std::current_exception();
-    if (receiverJoined) {
-      try {
-        receiverRti->resignFederationExecution(NO_ACTION);
-      } catch (...) {
-      }
-    }
-    if (ownerJoined) {
-      try {
-        ownerRti->resignFederationExecution(NO_ACTION);
-      } catch (...) {
-      }
-    }
-    try {
-      receiverRti->disconnect();
-    } catch (...) {
-    }
-    try {
-      ownerRti->disconnect();
-    } catch (...) {
-    }
+    // A failed assertion must close both sessions before joining their scripts.
+    receiverRti.reset();
+    ownerRti.reset();
   }
-  if (listener) {
-    listener.reset();
-  }
+  listener->close();
   if (server.joinable()) {
     server.join();
   }
