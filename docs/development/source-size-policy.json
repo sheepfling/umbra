@@ -226,8 +226,8 @@
     },
     {
       "path": "cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp",
-      "max_lines": 1011,
-      "reason": "Complete 2025 regional class Request Attribute Value Update process-boundary lane extracted from the mapped connection suite; keep region selection, discovery/reflection, sent-region metadata, and both callback-model sections together."
+      "max_lines": 1045,
+      "reason": "Complete 2025 regional class Request Attribute Value Update process-boundary lane, including bounded pushed-callback synchronization and legitimate deferred-attribute claim handling; keep region selection, discovery/reflection, sent-region metadata, and both callback-model sections together. Guard further growth at 1045 lines."
     },
     {
       "path": "cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_invalid_region_catch2.cpp",
