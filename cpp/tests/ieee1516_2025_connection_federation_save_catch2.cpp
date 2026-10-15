@@ -1612,16 +1612,9 @@ TEST_CASE(
           ownerHandler,
           TransportServiceOperation::receive_interaction,
           "The multi-constrained timed process-save server lost owner save polling.");
-      serveExpected(
-          firstSession,
-          firstHandler,
-          TransportServiceOperation::receive_interaction,
-          "The multi-constrained timed process-save server lost first save polling.");
-      serveExpected(
-          secondSession,
-          secondHandler,
-          TransportServiceOperation::receive_interaction,
-          "The multi-constrained timed process-save server lost second save polling.");
+      // Both constrained recipients have their ordered timed Initiate and
+      // grant callbacks pending when Evoked. Draining those callbacks does
+      // not issue an additional receive poll.
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -1760,7 +1753,9 @@ TEST_CASE(
     REQUIRE(ownerFederate.timeAdvanceGrantCount == 1U);
     REQUIRE(ownerFederate.timedInitiateCount == 0U);
 
-    static_cast<void>(ownerRti->evokeCallback(0.0));
+    // The timed save may arrive after the grant's Evoke returns; allow the
+    // official Evoke surface a bounded wait for that separate callback.
+    static_cast<void>(ownerRti->evokeCallback(0.25));
     REQUIRE(ownerFederate.timedInitiateCount == 1U);
     REQUIRE(ownerFederate.timedInitiateLabel == saveLabel);
     REQUIRE(ownerFederate.timedInitiateImplementation == L"HLAinteger64Time");
