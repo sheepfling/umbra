@@ -9291,7 +9291,9 @@ def main() -> int:
         raise AssertionError("focused multi-recipient default-region restore row is not mapped")
     if len(restored_default_region_multi.get("lab_requirement_ids", [])) != 18:
         raise AssertionError("focused multi-recipient default-region restore requirement mapping drifted")
-    if len(restored_default_region_multi.get("standard_sections", [])) != 14:
+    # The mapped view includes §6.11 from its direct requirement pair in
+    # addition to the 14 sections explicitly listed on the plan row.
+    if len(restored_default_region_multi.get("standard_sections", [])) != 15:
         raise AssertionError("focused multi-recipient default-region restore section mapping drifted")
     if len(restored_default_region_multi.get("selected_cpp_api_surface_ids", [])) != 24:
         raise AssertionError("focused multi-recipient default-region restore API mapping drifted")
