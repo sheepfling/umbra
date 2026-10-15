@@ -34,6 +34,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_callback_controls_time_transport.cpp
   src/tck_connection_lifecycle.cpp
   src/portable_tck.cpp
+  src/tck_custom_transportation_scenarios.cpp
   src/tck_regional_auto_provide_scenarios.cpp
   src/tck_portable_region_service_reports.cpp
   src/tck_portable_mom_declaration_queries.cpp
