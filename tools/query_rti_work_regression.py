@@ -56,6 +56,7 @@ REPOSITORY_ROOT = SCRIPT_ROOT.parent
 sys.path.insert(0, str(SCRIPT_ROOT))
 
 import query_rti_work  # noqa: E402  (repository tool import after path setup)
+from completion_ledger_source import completion_ledger_source_pointer_findings  # noqa: E402
 
 
 _LIVE_SOURCE_LOCATION_TEXT = query_rti_work.source_location_text
@@ -1790,10 +1791,9 @@ def main() -> int:
         )
     ):
         raise AssertionError("latest verified restore CTest handles are incomplete")
-    # The completion ledger is intentionally historical for assertion/status
-    # metrics, but its source pointer must remain navigable after a fixture is
-    # edited or split.  Reconcile only rows that still have a live plan id and
-    # source location; retired historical rows remain audit-only.
+    # The completion ledger records source locations at the time of evidence.
+    # Its lines need not track later edits. Both its historical path and the
+    # current plan path must remain navigable; a moved file requires review.
     plan_source_locations = {
         row.get("id"): row.get("source_location")
         for row in plan.get("tests", [])
@@ -1801,26 +1801,43 @@ def main() -> int:
         and isinstance(row.get("id"), str)
         and isinstance(row.get("source_location"), str)
     }
-    historical_source_drift = [
-        (
-            row.get("plan_id"),
-            row.get("source_location"),
-            plan_source_locations.get(row.get("plan_id")),
-        )
-        for row in index.get("recent_completed_slices", [])
-        if isinstance(row, dict)
-        and row.get("plan_id") in plan_source_locations
-        and isinstance(row.get("source_location"), str)
-        and row.get("source_location") != plan_source_locations.get(row.get("plan_id"))
-    ]
-    if historical_source_drift:
+    reviewed_source_relocations = {
+        "umbra-cpp-process-tso-regional-interaction-callback-gating": (
+            "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_callback_gating_catch2.cpp",
+            "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_arrival_catch2.cpp",
+        ),
+    }
+    completed_slices = index.get("recent_completed_slices", [])
+    historical_source_findings = completion_ledger_source_pointer_findings(
+        completed_slices,
+        plan_source_locations,
+        reviewed_source_relocations,
+        REPOSITORY_ROOT,
+    )
+    if historical_source_findings:
         raise AssertionError(
-            "completion-ledger source pointers drifted from the live Catch2 plan: "
-            + "; ".join(
-                f"{plan_id}: {old} != {new}"
-                for plan_id, old, new in historical_source_drift[:4]
-            )
+            "completion-ledger source provenance is not navigable: "
+            + "; ".join(historical_source_findings[:4])
         )
+    regional_history = next(
+        row for row in completed_slices
+        if isinstance(row, dict)
+        and row.get("plan_id") == "umbra-cpp-process-tso-regional-interaction-callback-gating"
+    )
+    unreviewed_history = dict(regional_history)
+    unreviewed_history["source_location"] = (
+        "cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp:457"
+    )
+    if not any(
+        "unreviewed source relocation" in finding
+        for finding in completion_ledger_source_pointer_findings(
+            [unreviewed_history],
+            plan_source_locations,
+            {},
+            REPOSITORY_ROOT,
+        )
+    ):
+        raise AssertionError("completion-ledger source relocation counterexample was not rejected")
     contract_drift = query_rti_work.contract_drift_report(
         query_rti_work.DEFAULT_CONTRACT_DIRECTORY,
         source_locations,
