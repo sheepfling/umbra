@@ -114,6 +114,7 @@ LOCAL_TCK_HEADERS = {
     "tck_regional_auto_provide_scenarios.hpp",
     "tck_portable_mom_interaction_counts.hpp",
     "tck_portable_resignation_ownership.hpp",
+    "tck_portable_service_report_scenarios.hpp",
     "tck_timestamped_interaction_scheduling_scenarios.hpp",
     "tck_custom_transportation_scenarios.hpp",
     "tck_federation_lifecycle_scenarios.hpp",
