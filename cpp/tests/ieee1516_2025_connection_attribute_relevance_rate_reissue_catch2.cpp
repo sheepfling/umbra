@@ -12,6 +12,7 @@
 #include <iterator>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <set>
@@ -572,122 +573,140 @@ TEST_CASE(
             TransportServiceOperation::join_federation_execution,
             "The rate-reissue server lost second receiver Join.");
 
-        serveExpected(
-            owner,
-            ownerHandler,
-            TransportServiceOperation::set_attribute_relevance_advisory_switch,
-            "The rate-reissue server lost advisory-switch Set.");
-        serveExpected(
-            owner,
-            ownerHandler,
-            TransportServiceOperation::get_attribute_relevance_advisory_switch,
-            "The rate-reissue server lost advisory-switch Get.");
-        for (auto const operation : {
-                 TransportServiceOperation::get_object_class_handle,
-                 TransportServiceOperation::get_attribute_handle,
-                 TransportServiceOperation::get_attribute_handle,
-             }) {
+        // An evoked callback can need a receive_interaction poll before its
+        // push reaches the client queue. A single fixed cross-session script
+        // deadlocks if it waits for another federate's next public service.
+        // Retain exact operation order within each session while serving all
+        // three sessions independently.
+        std::mutex workerErrorMutex;
+        std::exception_ptr workerError;
+        auto runWorker = [&](auto const& script) {
+          try {
+            script();
+          } catch (...) {
+            {
+              std::lock_guard lock(workerErrorMutex);
+              if (!workerError) {
+                workerError = std::current_exception();
+              }
+            }
+            ownerConnection->close();
+            firstConnection->close();
+            secondConnection->close();
+          }
+        };
+        auto ownerScript = [&] {
           serveExpected(
-              owner,
-              ownerHandler,
-              operation,
-              "The rate-reissue server lost owner handle lookup.");
-        }
-        serveExpected(
-            owner,
-            ownerHandler,
-            TransportServiceOperation::publish_object_class_attributes,
-            "The rate-reissue server lost Publish.");
-
-        for (auto* receiver : {&firstReceiver, &secondReceiver}) {
-          auto const& handler = receiver == &firstReceiver
-                                    ? firstReceiverHandler
-                                    : secondReceiverHandler;
+              owner, ownerHandler,
+              TransportServiceOperation::set_attribute_relevance_advisory_switch,
+              "The rate-reissue server lost advisory-switch Set.");
           serveExpected(
-              *receiver,
-              handler,
+              owner, ownerHandler,
+              TransportServiceOperation::get_attribute_relevance_advisory_switch,
+              "The rate-reissue server lost advisory-switch Get.");
+          for (auto const operation : {
+                   TransportServiceOperation::get_object_class_handle,
+                   TransportServiceOperation::get_attribute_handle,
+                   TransportServiceOperation::get_attribute_handle,
+               }) {
+            serveExpected(owner, ownerHandler, operation,
+                          "The rate-reissue server lost owner handle lookup.");
+          }
+          serveExpected(
+              owner, ownerHandler,
+              TransportServiceOperation::publish_object_class_attributes,
+              "The rate-reissue server lost Publish.");
+          serveExpected(
+              owner, ownerHandler,
+              TransportServiceOperation::register_object_instance,
+              "The rate-reissue server lost Register.");
+          serveExpected(
+              owner, ownerHandler,
+              TransportServiceOperation::resign_federation_execution,
+              "The rate-reissue server lost owner Resign.");
+        };
+        auto firstReceiverScript = [&] {
+          serveExpected(
+              firstReceiver, firstReceiverHandler,
               TransportServiceOperation::get_object_class_handle,
-              "The rate-reissue server lost receiver class lookup.");
+              "The rate-reissue server lost first receiver class lookup.");
           serveExpected(
-              *receiver,
-              handler,
+              firstReceiver, firstReceiverHandler,
               TransportServiceOperation::get_attribute_handle,
-              "The rate-reissue server lost receiver Name lookup.");
+              "The rate-reissue server lost first receiver Name lookup.");
           serveExpected(
-              *receiver,
-              handler,
+              firstReceiver, firstReceiverHandler,
               TransportServiceOperation::subscribe_object_class_attributes,
-              "The rate-reissue server lost initial receiver Subscribe.");
+              "The rate-reissue server lost first initial Subscribe.");
+          serveExpected(
+              firstReceiver, firstReceiverHandler,
+              TransportServiceOperation::get_attribute_handle,
+              "The rate-reissue server lost first receiver PayRate lookup.");
+          for (auto const* description : {
+                   "The rate-reissue server lost first High Subscribe.",
+                   "The rate-reissue server lost first Medium Subscribe.",
+                   "The rate-reissue server lost first High re-subscribe.",
+               }) {
+            serveExpected(
+                firstReceiver, firstReceiverHandler,
+                TransportServiceOperation::subscribe_object_class_attributes,
+                description);
+          }
+          serveExpected(
+              firstReceiver, firstReceiverHandler,
+              TransportServiceOperation::unsubscribe_object_class_attributes,
+              "The rate-reissue server lost first PayRate Unsubscribe.");
+          serveExpected(
+              firstReceiver, firstReceiverHandler,
+              TransportServiceOperation::resign_federation_execution,
+              "The rate-reissue server lost first receiver Resign.");
+        };
+        auto secondReceiverScript = [&] {
+          serveExpected(
+              secondReceiver, secondReceiverHandler,
+              TransportServiceOperation::get_object_class_handle,
+              "The rate-reissue server lost second receiver class lookup.");
+          serveExpected(
+              secondReceiver, secondReceiverHandler,
+              TransportServiceOperation::get_attribute_handle,
+              "The rate-reissue server lost second receiver Name lookup.");
+          serveExpected(
+              secondReceiver, secondReceiverHandler,
+              TransportServiceOperation::subscribe_object_class_attributes,
+              "The rate-reissue server lost second initial Subscribe.");
+          serveExpected(
+              secondReceiver, secondReceiverHandler,
+              TransportServiceOperation::get_attribute_handle,
+              "The rate-reissue server lost second receiver PayRate lookup.");
+          serveExpected(
+              secondReceiver, secondReceiverHandler,
+              TransportServiceOperation::subscribe_object_class_attributes,
+              "The rate-reissue server lost second Medium Subscribe.");
+          serveExpected(
+              secondReceiver, secondReceiverHandler,
+              TransportServiceOperation::subscribe_object_class_attributes,
+              "The rate-reissue server lost second Low Subscribe.");
+          serveExpected(
+              secondReceiver, secondReceiverHandler,
+              TransportServiceOperation::unsubscribe_object_class_attributes,
+              "The rate-reissue server lost second PayRate Unsubscribe.");
+          serveExpected(
+              secondReceiver, secondReceiverHandler,
+              TransportServiceOperation::resign_federation_execution,
+              "The rate-reissue server lost second receiver Resign.");
+        };
+
+        std::thread ownerWorker([&] { runWorker(ownerScript); });
+        std::thread firstReceiverWorker(
+            [&] { runWorker(firstReceiverScript); });
+        std::thread secondReceiverWorker(
+            [&] { runWorker(secondReceiverScript); });
+        ownerWorker.join();
+        firstReceiverWorker.join();
+        secondReceiverWorker.join();
+        if (workerError) {
+          std::rethrow_exception(workerError);
         }
-
-        serveExpected(
-            owner,
-            ownerHandler,
-            TransportServiceOperation::register_object_instance,
-            "The rate-reissue server lost Register.");
-        serveExpected(
-            firstReceiver,
-            firstReceiverHandler,
-            TransportServiceOperation::get_attribute_handle,
-            "The rate-reissue server lost first receiver PayRate lookup.");
-        serveExpected(
-            firstReceiver,
-            firstReceiverHandler,
-            TransportServiceOperation::subscribe_object_class_attributes,
-            "The rate-reissue server lost first High Subscribe.");
-        serveExpected(
-            secondReceiver,
-            secondReceiverHandler,
-            TransportServiceOperation::get_attribute_handle,
-            "The rate-reissue server lost second receiver PayRate lookup.");
-        serveExpected(
-            secondReceiver,
-            secondReceiverHandler,
-            TransportServiceOperation::subscribe_object_class_attributes,
-            "The rate-reissue server lost second Medium Subscribe.");
-        serveExpected(
-            secondReceiver,
-            secondReceiverHandler,
-            TransportServiceOperation::subscribe_object_class_attributes,
-            "The rate-reissue server lost second Low Subscribe.");
-
-        serveExpected(
-            firstReceiver,
-            firstReceiverHandler,
-            TransportServiceOperation::subscribe_object_class_attributes,
-            "The rate-reissue server lost first Medium Subscribe.");
-        serveExpected(
-            firstReceiver,
-            firstReceiverHandler,
-            TransportServiceOperation::subscribe_object_class_attributes,
-            "The rate-reissue server lost first High re-subscribe.");
-
-        serveExpected(
-            firstReceiver,
-            firstReceiverHandler,
-            TransportServiceOperation::unsubscribe_object_class_attributes,
-            "The rate-reissue server lost first PayRate Unsubscribe.");
-        serveExpected(
-            secondReceiver,
-            secondReceiverHandler,
-            TransportServiceOperation::unsubscribe_object_class_attributes,
-            "The rate-reissue server lost second PayRate Unsubscribe.");
-
-        serveExpected(
-            owner,
-            ownerHandler,
-            TransportServiceOperation::resign_federation_execution,
-            "The rate-reissue server lost owner Resign.");
-        serveExpected(
-            firstReceiver,
-            firstReceiverHandler,
-            TransportServiceOperation::resign_federation_execution,
-            "The rate-reissue server lost first receiver Resign.");
-        serveExpected(
-            secondReceiver,
-            secondReceiverHandler,
-            TransportServiceOperation::resign_federation_execution,
-            "The rate-reissue server lost second receiver Resign.");
         service.detach(owner);
         service.detach(firstReceiver);
         service.detach(secondReceiver);
