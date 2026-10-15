@@ -26624,6 +26624,8 @@
       ],
       "test_case": "RTIambassador routes a remote regional subscription and scoped update through a configured process endpoint",
       "source_location": "cpp/tests/ieee1516_2025_connection_regional_subscription_update_catch2.cpp:457",
+      "primary_lane": "process-regional-subscription-update",
+      "focus_lane": "process-regional-subscription-update",
       "assertions": 66,
       "callback_models": [
         "HLA_EVOKED",
@@ -26631,6 +26633,7 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11",
         "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-9.3",
         "hla-1516.1-2025:clause-9.5"
@@ -26643,6 +26646,7 @@
         "callbacks",
         "transport",
         "process-boundary",
+        "process-regional-subscription-update",
         "public-endpoint",
         "2025",
         "rti.service.subscribe-object-class-attributes-with-regions",

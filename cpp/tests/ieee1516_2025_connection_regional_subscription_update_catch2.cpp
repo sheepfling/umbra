@@ -456,20 +456,41 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "RTIambassador routes a remote regional subscription and scoped update through a configured process endpoint",
-    "[integration][foundation][data-distribution-management][object-management][callbacks][transport][process-boundary][public-endpoint][rti.service.subscribe-object-class-attributes-with-regions][rti.service.update-attribute-values][federate.callback.reflect-attribute-values]") {
+    "[integration][foundation][data-distribution-management][object-management][callbacks][transport][process-boundary][process-regional-subscription-update][public-endpoint][2025][rti.service.subscribe-object-class-attributes-with-regions][rti.service.update-attribute-values][federate.callback.reflect-attribute-values]") {
   auto runScenario = [](CallbackModel callbackModel) {
   class RecordingRegionalFederateAmbassador final : public NullFederateAmbassador {
    public:
+    struct State {
+      bool discovered = false;
+      rti1516_2025::ObjectInstanceHandle discoveredObjectInstance;
+      rti1516_2025::ObjectClassHandle discoveredObjectClass;
+      std::wstring discoveredObjectInstanceName;
+      rti1516_2025::FederateHandle discoveredProducingFederate;
+      bool received = false;
+      rti1516_2025::ObjectInstanceHandle objectInstance;
+      rti1516_2025::TransportationTypeHandle transportationType;
+      rti1516_2025::FederateHandle producingFederate;
+      std::size_t attributeCount = 0U;
+      bool hasOptionalSentRegions = false;
+      std::size_t sentRegionCount = 0U;
+      std::vector<std::uint8_t> value;
+      std::vector<std::uint8_t> tag;
+    };
+
     void discoverObjectInstance(
         rti1516_2025::ObjectInstanceHandle const& objectInstance,
         rti1516_2025::ObjectClassHandle const& objectClass,
         std::wstring const& objectInstanceName,
         rti1516_2025::FederateHandle const& producingFederate) override {
-      discovered = true;
-      discoveredObjectInstance = objectInstance;
-      discoveredObjectClass = objectClass;
-      discoveredObjectInstanceName = objectInstanceName;
-      discoveredProducingFederate = producingFederate;
+      {
+        std::scoped_lock lock(callbackMutex);
+        state.discovered = true;
+        state.discoveredObjectInstance = objectInstance;
+        state.discoveredObjectClass = objectClass;
+        state.discoveredObjectInstanceName = objectInstanceName;
+        state.discoveredProducingFederate = producingFederate;
+      }
+      callbackAvailable.notify_all();
     }
 
     void reflectAttributeValues(
@@ -479,44 +500,50 @@ TEST_CASE(
         rti1516_2025::TransportationTypeHandle const& transportationType,
         rti1516_2025::FederateHandle const& producingFederate,
         rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
-      received = true;
-      this->objectInstance = objectInstance;
-      this->transportationType = transportationType;
-      this->producingFederate = producingFederate;
-      this->attributeCount = attributeValues.size();
-      this->hasOptionalSentRegions = optionalSentRegions != nullptr;
-      this->sentRegionCount = optionalSentRegions == nullptr
-          ? 0U
-          : optionalSentRegions->size();
-      this->tag.clear();
-      if (userSuppliedTag.size() != 0U) {
-        auto const* first = static_cast<std::uint8_t const*>(userSuppliedTag.data());
-        this->tag.assign(first, first + userSuppliedTag.size());
-      }
-      if (!attributeValues.empty()) {
-        auto const& value = attributeValues.begin()->second;
-        this->value.clear();
-        if (value.size() != 0U) {
-          auto const* first = static_cast<std::uint8_t const*>(value.data());
-          this->value.assign(first, first + value.size());
+      {
+        std::scoped_lock lock(callbackMutex);
+        state.received = true;
+        state.objectInstance = objectInstance;
+        state.transportationType = transportationType;
+        state.producingFederate = producingFederate;
+        state.attributeCount = attributeValues.size();
+        state.hasOptionalSentRegions = optionalSentRegions != nullptr;
+        state.sentRegionCount = optionalSentRegions == nullptr
+            ? 0U
+            : optionalSentRegions->size();
+        state.tag.clear();
+        if (userSuppliedTag.size() != 0U) {
+          auto const* first = static_cast<std::uint8_t const*>(userSuppliedTag.data());
+          state.tag.assign(first, first + userSuppliedTag.size());
+        }
+        if (!attributeValues.empty()) {
+          auto const& value = attributeValues.begin()->second;
+          state.value.clear();
+          if (value.size() != 0U) {
+            auto const* first = static_cast<std::uint8_t const*>(value.data());
+            state.value.assign(first, first + value.size());
+          }
         }
       }
+      callbackAvailable.notify_all();
     }
 
-    bool discovered = false;
-    rti1516_2025::ObjectInstanceHandle discoveredObjectInstance;
-    rti1516_2025::ObjectClassHandle discoveredObjectClass;
-    std::wstring discoveredObjectInstanceName;
-    rti1516_2025::FederateHandle discoveredProducingFederate;
-    bool received = false;
-    rti1516_2025::ObjectInstanceHandle objectInstance;
-    rti1516_2025::TransportationTypeHandle transportationType;
-    rti1516_2025::FederateHandle producingFederate;
-    std::size_t attributeCount = 0U;
-    bool hasOptionalSentRegions = false;
-    std::size_t sentRegionCount = 0U;
-    std::vector<std::uint8_t> value;
-    std::vector<std::uint8_t> tag;
+    [[nodiscard]] State snapshot() const {
+      std::scoped_lock lock(callbackMutex);
+      return state;
+    }
+
+    void waitForBoth(std::chrono::milliseconds maximumWait) {
+      std::unique_lock lock(callbackMutex);
+      callbackAvailable.wait_for(lock, maximumWait, [&] {
+        return state.discovered && state.received;
+      });
+    }
+
+   private:
+    mutable std::mutex callbackMutex;
+    std::condition_variable callbackAvailable;
+    State state;
   } receiverFederate;
 
   using umbra::detail::EmbeddedFederationRegistry;
@@ -566,16 +593,46 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
+        // The immediate callback scheduler can issue an idle receive poll
+        // between public requests. Serve only an empty poll, then continue
+        // waiting for the exact primary operation with a finite bound.
+        for (unsigned emptyPollCount = 0U; emptyPollCount < 32U;
+             ++emptyPollCount) {
+          bool servedEmptyPoll = false;
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
+                  [&](TransportServiceMessage const& request) {
+                    if (callbackModel == HLA_IMMEDIATE &&
+                        request.operation ==
+                            TransportServiceOperation::receive_interaction) {
+                      auto response = handler(request);
+                      if (response.status != TransportServiceStatus::ok ||
+                          response.payload !=
+                              umbra::detail::encodeProcessFederationReceiveInteractionResult(
+                                  umbra::detail::ProcessFederationReceiveInteractionResult{})) {
+                        throw std::runtime_error(
+                            "The regional-subscription server received a nonempty idle callback poll.");
+                      }
+                      servedEmptyPoll = true;
+                      return response;
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          std::string(description) + " expected operation " +
+                          std::to_string(static_cast<unsigned>(operation)) +
+                          " but received " +
+                          std::to_string(static_cast<unsigned>(request.operation)));
+                    }
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(description);
+          }
+          if (!servedEmptyPoll) {
+            return;
+          }
         }
+        throw std::runtime_error(
+            std::string(description) + " saw too many idle callback polls.");
       };
 
       auto senderRecordingHandler = [&](TransportServiceMessage const& request) {
@@ -692,8 +749,8 @@ TEST_CASE(
         serveExpected(
             receiver,
             receiverHandler,
-            TransportServiceOperation::get_object_class_handle,
-            "The public process regional-subscription server lost immediate event polling.");
+            TransportServiceOperation::claim_deferred_attribute_update,
+            "The public process regional-subscription server lost the regional Update claim.");
       } else {
         serveExpected(
             receiver,
@@ -818,23 +875,22 @@ TEST_CASE(
         objectInstance, attributeValues, userSuppliedTag));
 
     if (callbackModel == HLA_IMMEDIATE) {
-      static_cast<void>(receiverRti->getObjectClassHandle(objectClassNameWide));
+      receiverFederate.waitForBoth(std::chrono::seconds(2));
     } else {
-      for (std::size_t evokeCount = 0U; evokeCount < 5U &&
-           !receiverFederate.received; ++evokeCount) {
-        static_cast<void>(receiverRti->evokeCallback(0.0));
-      }
+      static_cast<void>(receiverRti->evokeCallback(2.0));
+      static_cast<void>(receiverRti->evokeCallback(2.0));
     }
-    REQUIRE(receiverFederate.discovered);
-    REQUIRE(receiverFederate.received);
-    REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
-    REQUIRE(receiverFederate.objectInstance == objectInstance);
-    REQUIRE(receiverFederate.attributeCount == 1U);
-    REQUIRE(receiverFederate.value == std::vector<std::uint8_t>{0x52U, 0x45U, 0x47U});
-    REQUIRE(receiverFederate.tag == std::vector<std::uint8_t>{0x52U, 0x45U, 0x47U});
-    REQUIRE(receiverFederate.hasOptionalSentRegions);
-    REQUIRE(receiverFederate.sentRegionCount == 1U);
-    REQUIRE(receiverFederate.transportationType.isValid());
+    auto const received = receiverFederate.snapshot();
+    REQUIRE(received.discovered);
+    REQUIRE(received.received);
+    REQUIRE(received.discoveredObjectInstance == objectInstance);
+    REQUIRE(received.objectInstance == objectInstance);
+    REQUIRE(received.attributeCount == 1U);
+    REQUIRE(received.value == std::vector<std::uint8_t>{0x52U, 0x45U, 0x47U});
+    REQUIRE(received.tag == std::vector<std::uint8_t>{0x52U, 0x45U, 0x47U});
+    REQUIRE(received.hasOptionalSentRegions);
+    REQUIRE(received.sentRegionCount == 1U);
+    REQUIRE(received.transportationType.isValid());
     REQUIRE(recipientCount.load(std::memory_order_acquire) == 1U);
     REQUIRE(expectedObjectInstance.load(std::memory_order_acquire) != 0U);
     REQUIRE(expectedSenderFederate.load(std::memory_order_acquire) != 0U);
