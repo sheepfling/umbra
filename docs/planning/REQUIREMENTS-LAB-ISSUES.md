@@ -476,3 +476,24 @@ attribute-transportation C++ case and its focused contract check to canonical
 §6.26 for this rule. Do not claim that it covers §6.27's change-default
 service. No Lab resynchronization was performed; this is a Lab extraction
 attribution issue, not an IEEE erratum or conformance result.
+
+### RL-326 — §4.20 timed Initiate Federate Save candidate ends mid-sentence
+
+The pinned 2025 candidate
+`requirement-candidate-content-clauses-04-federation-management-page-067-l37-8`
+contains only “time-constrained, it shall expect to receive an Initiate
+Federate Save service invocation only when it is in”. It begins without the
+subject and ends before the required state is named, so the exported fragment
+cannot stand alone as the timed-save obligation. This is distinct from the
+page-67 clause-boundary attribution recurrence in RL-267; do not silently
+rewrite that earlier issue.
+
+Workaround: preserve the pinned ID/export, read the surrounding canonical
+§4.20 text before judging the timed-save behavior, and do not promote this
+fragment by itself as complete direct conformance evidence. The current
+multi-constrained timed-save Catch2 row also selects several coherent but
+unrelated §4.14/§4.15 and untimed §4.19 anchors; those are local test-plan
+mapping defects to adjudicate separately, not additional Lab defects.
+No Requirements Lab resynchronization was performed. Source: pinned
+`topics/ieee/hla-1516.1-2025/semantic/requirements.json`, page-67 candidate
+at `content/clauses/04-federation-management-page-067.tex:37`.

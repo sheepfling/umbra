@@ -1653,6 +1653,29 @@
       "reproduction": "Compare the affected ID in topics/ieee/hla-1516.1-2025/semantic/requirements.json with page 141 in topics/ieee/hla-1516.1-2025/semantic/content-blocks.json: the one-request/one-confirmation sentence occurs before the 6.27 heading.",
       "verification": "The pinned reconstructed semantic page establishes the heading order. The canonical PDF was not independently checked in this turn; this is a Lab source-attribution issue, not IEEE errata or conformance evidence.",
       "detected": "2026-10-15"
+    },
+    {
+      "id": "RL-326",
+      "status": "open",
+      "kind": "requirements-lab-truncated-candidate",
+      "title": "Timed Initiate Federate Save candidate on page 67 ends mid-sentence",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8"
+      ],
+      "exported_clause": "4.20",
+      "normative_clause": "4.20",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/04-federation-management-page-067.tex",
+        "lines": "37-44",
+        "page": 67
+      },
+      "symptom": "The exported candidate begins 'time-constrained' without its subject and ends 'only when it is in' without naming the required state. It is a sentence fragment, not a self-contained timed-save obligation.",
+      "impact": "A C++ timed-save case using this fragment alone could overstate direct requirement coverage or infer the wrong state boundary. Its current plan row also selects unrelated coherent synchronization and untimed-save candidates; those are separate local mapping defects.",
+      "workaround": "Preserve the pinned ID/export. Consult the surrounding canonical 4.20 text before interpreting timed Initiate Federate Save; do not promote the fragment alone as complete conformance evidence. Adjudicate the local Catch2 plan's unrelated anchors separately. Do not resynchronize unchanged Lab inputs.",
+      "reproduction": "Read requirement-candidate-content-clauses-04-federation-management-page-067-l37-8 in topics/ieee/hla-1516.1-2025/semantic/requirements.json; compare its start and end with the full page-67 4.20 text. RL-267 concerns a different page-67 candidate's clause attribution.",
+      "verification": "The pinned requirement JSON directly shows both truncation boundaries. The canonical PDF was not independently checked in this turn; this is a Lab extraction issue, not IEEE errata or conformance evidence.",
+      "detected": "2026-10-15"
     }
   ]
 }
