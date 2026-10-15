@@ -467,11 +467,15 @@ TEST_CASE(
           rti1516_2025::ObjectClassHandle const& objectClass,
           std::wstring const& objectInstanceName,
           rti1516_2025::FederateHandle const& producingFederate) override {
-        ++discoveryCount;
-        discoveredObjectInstance = objectInstance;
-        discoveredObjectClass = objectClass;
-        discoveredObjectInstanceName = objectInstanceName;
-        discoveredProducingFederate = producingFederate;
+        {
+          std::scoped_lock lock(callbackMutex);
+          discoveredObjectInstance = objectInstance;
+          discoveredObjectClass = objectClass;
+          discoveredObjectInstanceName = objectInstanceName;
+          discoveredProducingFederate = producingFederate;
+          ++discoveryCount;
+        }
+        callbackAvailable.notify_all();
       }
 
       void receiveDirectedInteraction(
@@ -481,18 +485,44 @@ TEST_CASE(
           rti1516_2025::VariableLengthData const& userSuppliedTag,
           rti1516_2025::TransportationTypeHandle const& transportationType,
           rti1516_2025::FederateHandle const& producingFederate) override {
-        ++receiveCount;
-        receivedInteractionClass = interactionClass;
-        receivedObjectInstance = objectInstance;
-        receivedParameterCount = parameterValues.size();
-        receivedTransportationType = transportationType;
-        receivedProducingFederate = producingFederate;
-        receivedTag.clear();
-        if (userSuppliedTag.size() != 0U) {
-          auto const* first =
-              static_cast<std::uint8_t const*>(userSuppliedTag.data());
-          receivedTag.assign(first, first + userSuppliedTag.size());
+        {
+          std::scoped_lock lock(callbackMutex);
+          receivedInteractionClass = interactionClass;
+          receivedObjectInstance = objectInstance;
+          receivedParameterCount = parameterValues.size();
+          receivedTransportationType = transportationType;
+          receivedProducingFederate = producingFederate;
+          receivedTag.clear();
+          if (userSuppliedTag.size() != 0U) {
+            auto const* first =
+                static_cast<std::uint8_t const*>(userSuppliedTag.data());
+            receivedTag.assign(first, first + userSuppliedTag.size());
+          }
+          ++receiveCount;
         }
+        callbackAvailable.notify_all();
+      }
+
+      [[nodiscard]] std::unique_lock<std::mutex> waitForDiscoveryAndLock(
+          std::chrono::milliseconds timeout) {
+        std::unique_lock lock(callbackMutex);
+        callbackAvailable.wait_for(lock, timeout, [this] {
+          return discoveryCount != 0U;
+        });
+        return lock;
+      }
+
+      [[nodiscard]] std::unique_lock<std::mutex> waitForReceiveAndLock(
+          std::chrono::milliseconds timeout) {
+        std::unique_lock lock(callbackMutex);
+        callbackAvailable.wait_for(lock, timeout, [this] {
+          return receiveCount != 0U;
+        });
+        return lock;
+      }
+
+      [[nodiscard]] std::unique_lock<std::mutex> lockCallbacks() {
+        return std::unique_lock(callbackMutex);
       }
 
       std::size_t discoveryCount = 0U;
@@ -507,6 +537,10 @@ TEST_CASE(
       rti1516_2025::TransportationTypeHandle receivedTransportationType;
       rti1516_2025::FederateHandle receivedProducingFederate;
       std::vector<std::uint8_t> receivedTag;
+
+     private:
+      std::mutex callbackMutex;
+      std::condition_variable callbackAvailable;
     };
 
     constexpr wchar_t const* federationName =
@@ -522,6 +556,13 @@ TEST_CASE(
     constexpr wchar_t const* attributeName = L"DirectedTargetMarker";
     constexpr wchar_t const* interactionClassName =
         L"HLAinteractionRoot.UmbraDirectedFixtureInteraction";
+    // Clause 10.57 permits Evoke Callback to return immediately when its
+    // supplied wait is zero; allow the process response and callback bridge
+    // time to publish each expected callback before checking the recipients.
+    constexpr double callbackWaitSeconds = 2.0;
+    auto const immediateCallbackWait = callbackModel == HLA_IMMEDIATE
+                                           ? std::chrono::seconds(2)
+                                           : std::chrono::seconds(0);
 
     auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
     REQUIRE(listener);
@@ -876,10 +917,11 @@ TEST_CASE(
         static_cast<void>(receiverOneRti->getObjectClassHandle(objectClassName));
         static_cast<void>(receiverTwoRti->getObjectClassHandle(objectClassName));
       } else {
-        static_cast<void>(receiverOneRti->evokeCallback(0.0));
-        static_cast<void>(receiverTwoRti->evokeCallback(0.0));
+        static_cast<void>(receiverOneRti->evokeCallback(callbackWaitSeconds));
+        static_cast<void>(receiverTwoRti->evokeCallback(callbackWaitSeconds));
       }
-      for (auto const* receiver : {&receiverOneFederate, &receiverTwoFederate}) {
+      for (auto* receiver : {&receiverOneFederate, &receiverTwoFederate}) {
+        auto callbackLock = receiver->waitForDiscoveryAndLock(immediateCallbackWait);
         REQUIRE(receiver->discoveryCount == 1U);
         REQUIRE(receiver->discoveredObjectInstance == objectInstance);
         REQUIRE(receiver->discoveredObjectClass == senderObjectClass);
@@ -898,11 +940,12 @@ TEST_CASE(
         static_cast<void>(receiverOneRti->getObjectClassHandle(objectClassName));
         static_cast<void>(receiverTwoRti->getObjectClassHandle(objectClassName));
       } else {
-        static_cast<void>(receiverOneRti->evokeCallback(0.0));
-        static_cast<void>(receiverTwoRti->evokeCallback(0.0));
+        static_cast<void>(receiverOneRti->evokeCallback(callbackWaitSeconds));
+        static_cast<void>(receiverTwoRti->evokeCallback(callbackWaitSeconds));
       }
       auto const expectedTag = std::vector<std::uint8_t>{0x4DU, 0x52U, 0x32U};
-      for (auto const* receiver : {&receiverOneFederate, &receiverTwoFederate}) {
+      for (auto* receiver : {&receiverOneFederate, &receiverTwoFederate}) {
+        auto callbackLock = receiver->waitForReceiveAndLock(immediateCallbackWait);
         REQUIRE(receiver->receiveCount == 1U);
         REQUIRE(receiver->receivedInteractionClass == senderInteraction);
         REQUIRE(receiver->receivedObjectInstance == objectInstance);
@@ -911,8 +954,11 @@ TEST_CASE(
         REQUIRE(receiver->receivedTag == expectedTag);
         REQUIRE(receiver->receivedTransportationType.isValid());
       }
-      REQUIRE(senderFederate.discoveryCount == 0U);
-      REQUIRE(senderFederate.receiveCount == 0U);
+      {
+        auto callbackLock = senderFederate.lockCallbacks();
+        REQUIRE(senderFederate.discoveryCount == 0U);
+        REQUIRE(senderFederate.receiveCount == 0U);
+      }
 
       // The registered target still owns its attributes.  Divest them on
       // sender resignation so the directed-routing fixture can leave the
