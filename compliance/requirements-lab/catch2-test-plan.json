@@ -31857,7 +31857,7 @@
       ],
       "test_case": "RTIambassadors deliver Confirm Divestiture through a configured process endpoint in push receive mode",
       "primary_lane": "process-confirm-divestiture-push",
-      "assertions": 41,
+      "assertions": 43,
       "callback_models": [
         "HLA_IMMEDIATE"
       ],
@@ -31888,9 +31888,9 @@
         "2025"
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
-      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:2027",
-      "requirements_lab_api_surface_status": "The official C++ RTIambassador Confirm Divestiture service crosses the configured process endpoint with pushReceiveOrderEvents enabled. The focused two-federate HLA_IMMEDIATE case uses ordinary public lookups as observation fences, but allows pushed callbacks to arrive before those lookups. It re-enters public Confirm Divestiture from the pushed Request Divestiture Confirmation callback, checks that the requester cannot acquire before owner confirmation, then verifies exactly one acquisition notification with the transferred object, attribute, and confirmation tag. This is public process-foundation evidence only; assumption-search continuation, mixed/RTI-owned state, transport interoperability, package/JUnit/protected-review, validation, and conformance remain separate.",
-      "next_action": "The 41-assertion push-receive case passes under MinGW after moving the empty-acquisition assertion before owner confirmation. Under HLA_IMMEDIATE, the notification may already be present by the time the later lookup executes; retain the lookup as an observation fence and the exact post-fence callback checks. The scripted server must still serve report_successful_void_service_invocation after re-entrant Confirm Divestiture. Next expand distinct ownership interoperability and conformance evidence without treating this development-profile result as validation."
+      "source_location": "cpp/tests/ieee1516_2025_process_confirm_divestiture_push_catch2.cpp:54",
+      "requirements_lab_api_surface_status": "The official C++ RTIambassador Confirm Divestiture service crosses the configured process endpoint with pushReceiveOrderEvents enabled. The focused two-federate HLA_IMMEDIATE case uses ordinary public lookups as observation fences, while synchronized callback snapshots allow pushed discovery and acquisition notifications to arrive before those lookups. It re-enters public Confirm Divestiture from the pushed Request Divestiture Confirmation callback, checks that the requester cannot acquire before owner confirmation, then verifies exactly one acquisition notification with the transferred object, attribute, and confirmation tag. This is public process-foundation evidence only; assumption-search continuation, mixed/RTI-owned state, transport interoperability, package/JUnit/protected-review, validation, and conformance remain separate.",
+      "next_action": "The 43-assertion push-receive case passed 30 serial MinGW repetitions and the five adjacent process Confirm Divestiture cases passed in parallel after removing an invalid pre-fence no-discovery assertion and synchronizing push callback observations. HLA_IMMEDIATE discovery may arrive immediately after registration. Keep the lookup as an observation fence, the exact post-fence callback checks, and the report_successful_void_service_invocation server expectation after re-entrant Confirm Divestiture. Next expand distinct ownership interoperability and conformance evidence without treating this development-profile result as validation."
     },
     {
       "id": "umbra-cpp-confirm-divestiture-process-assumption-integration",

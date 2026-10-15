@@ -1285,6 +1285,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     cpp/tests/ieee1516_2025_process_unconsumed_pushed_ownership_assumption_evoked_catch2.cpp
     cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_evoked_save_restore_catch2.cpp
     cpp/tests/ieee1516_2025_confirm_divestiture_process_assumption_catch2.cpp
+    cpp/tests/ieee1516_2025_process_confirm_divestiture_push_catch2.cpp
   )
 
   # Keep the 2025 unconditional-divestiture/assumption path independently
