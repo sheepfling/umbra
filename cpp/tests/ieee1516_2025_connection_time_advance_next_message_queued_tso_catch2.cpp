@@ -597,6 +597,37 @@ TEST_CASE(
           [](std::wstring) { return false; });
       ProcessTransportSession receiver(receiverConnection);
       auto receiverHandler = service.handlerFor(receiver);
+      // Immediate callbacks can acknowledge the selected TSO concurrently
+      // with the caller's logical-time query; either request may arrive first.
+      auto serveImmediateQueryAndAcknowledgement = [&](char const* description) {
+        bool queryServed = false;
+        bool acknowledgementServed = false;
+        for (int operation = 0; operation != 2; ++operation) {
+          if (!umbra::test::servePrimaryProcessRequest(
+                  receiver,
+                  receiverHandler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation ==
+                            TransportServiceOperation::query_logical_time &&
+                        !queryServed) {
+                      queryServed = true;
+                    } else if (
+                        request.operation ==
+                            TransportServiceOperation::acknowledge_tso_delivery &&
+                        !acknowledgementServed) {
+                      acknowledgementServed = true;
+                    } else {
+                      throw std::runtime_error(description);
+                    }
+                    return receiverHandler(request);
+                  })) {
+            throw std::runtime_error(description);
+          }
+        }
+        if (!queryServed || !acknowledgementServed) {
+          throw std::runtime_error(description);
+        }
+      };
       serveExpected(
           receiver,
           receiverHandler,
@@ -773,6 +804,11 @@ TEST_CASE(
       serveExpected(
           receiver,
           receiverHandler,
+          TransportServiceOperation::report_failed_service_invocation,
+          "The queued next-message server lost rejected receiver NMRA report.");
+      serveExpected(
+          receiver,
+          receiverHandler,
           TransportServiceOperation::query_logical_time,
           "The queued next-message server lost post-rejection Query Logical Time.");
       serveExpected(
@@ -854,17 +890,15 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::report_successful_void_service_invocation,
           "The queued next-message server lost the future-input sender TAR report.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::query_logical_time,
-          "The queued next-message server lost future-input Query Logical Time.");
       if (callbackModel == HLA_IMMEDIATE) {
+        serveImmediateQueryAndAcknowledgement(
+            "The queued next-message server lost the immediate future-input query or TSO acknowledgement.");
+      } else {
         serveExpected(
             receiver,
             receiverHandler,
-            TransportServiceOperation::acknowledge_tso_delivery,
-            "The queued next-message server lost immediate future-input TSO acknowledgement.");
+            TransportServiceOperation::query_logical_time,
+            "The queued next-message server lost future-input Query Logical Time.");
       }
       serveExpected(
           receiver,
@@ -898,17 +932,15 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::report_successful_void_service_invocation,
           "The queued next-message server lost the future NMRA sender TAR report.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::query_logical_time,
-          "The queued next-message server lost future-input NMRA Query Logical Time.");
       if (callbackModel == HLA_IMMEDIATE) {
+        serveImmediateQueryAndAcknowledgement(
+            "The queued next-message server lost the immediate future-input NMRA query or TSO acknowledgement.");
+      } else {
         serveExpected(
             receiver,
             receiverHandler,
-            TransportServiceOperation::acknowledge_tso_delivery,
-            "The queued next-message server lost immediate future-input NMRA TSO acknowledgement.");
+            TransportServiceOperation::query_logical_time,
+            "The queued next-message server lost future-input NMRA Query Logical Time.");
       }
       serveExpected(
           receiver,
