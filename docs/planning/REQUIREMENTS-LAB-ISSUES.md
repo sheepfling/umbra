@@ -444,3 +444,20 @@ rule to canonical §10.59.4 when planning or reviewing C++ callback evidence.
 Do not infer a §10.60.6 validation claim from the exported label. No Lab
 resynchronization was performed. This is a source-to-clause attribution issue,
 not an IEEE erratum or a new conformance result.
+
+### RL-324 — Attribute transportation default-on-reacquisition is attributed to §6.25.1
+
+The pinned 2025 candidate `requirement-candidate-content-clauses-06-object-
+management-page-139-l150-40` exports the rule that a newly owning federate
+uses the class attribute's default transportation type as §6.25.1. The
+reconstructed page-139 source places that sentence in the introductory §6.25
+paragraph, before the `6.25.1 Supplied arguments` heading. This is a new
+occurrence of the heading-boundary attribution problem; RL-177 and RL-317 do
+not cover this candidate.
+
+Workaround: preserve the pinned candidate ID and export, but use canonical
+§6.25 for this rule when reviewing ownership/transportation evidence. Do not
+invent a requirement ID for the separate §6.25 callback-invocation timing
+sentence, which is not directly mapped by the current process attribute-
+transportation case. No Lab resynchronization was performed. This records a
+Lab extraction issue, not an IEEE erratum or conformance result.
