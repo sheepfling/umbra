@@ -31337,6 +31337,68 @@
       "next_action": "Keep the before/after query and divestiture transition green. Add acquisition to a second joined federate, mixed-set transitions, push-mode delivery, package/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
     },
     {
+      "id": "umbra-cpp-process-ownership-query-after-second-federate-acquisition",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.queryattributeownership.8e2fc379ef34",
+        "api.2025.cpp.rtiambassador.unconditionalattributeownershipdivestiture.2570df96a3a7",
+        "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+        "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+        "api.2025.cpp.federateambassador.informattributeownership.6fd57319c7ea",
+        "api.2025.cpp.federateambassador.attributeisnotowned.83a830c0882b"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36",
+        "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27",
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
+      ],
+      "test_case": "RTIambassador reports a process owner after another federate acquires a divested attribute",
+      "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:1131",
+      "ctest_target": "umbra_attribute_ownership_query_catch2",
+      "ctest_filter": "^umbra\\.attribute_ownership_query\\.catch2\\.RTIambassador reports a process owner after another federate acquires a divested attribute$",
+      "primary_lane": "process-ownership-acquisition-query",
+      "focus_lane": "process-ownership-acquisition-query",
+      "assertions": 47,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "delivery_modes": [
+        "configured-process-endpoint",
+        "receive-order-ownership-callback",
+        "federate-owned-to-unowned-to-second-federate-owned-transition"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.2",
+        "hla-1516.1-2025:clause-7.7.3",
+        "hla-1516.1-2025:clause-7.8",
+        "hla-1516.1-2025:clause-7.17.5",
+        "hla-1516.1-2025:clause-7.18.4"
+      ],
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "ownership-management",
+        "transport",
+        "process-boundary",
+        "process-ownership-acquisition-query",
+        "public-endpoint",
+        "query-attribute-ownership",
+        "unconditional-attribute-ownership-divestiture",
+        "attribute-ownership-acquisition",
+        "federate.callback.attribute-ownership-acquisition-notification",
+        "federate.callback.inform-attribute-ownership",
+        "federate.callback.attribute-is-not-owned",
+        "2025"
+      ],
+      "status": "implemented-public-foundation-not-conformance-evidence",
+      "requirements_lab_api_surface_status": "The official 2025 C++ process profile reports the original owner, then reports the same attribute unowned after public Unconditional Attribute Ownership Divestiture. A second joined federate acquires that known object attribute and receives Attribute Ownership Acquisition Notification; a further public ownership query reports the second federate's handle. This bounded one-attribute transition is development-profile evidence, not complete acquisition arbitration or conformance.",
+      "next_action": "Keep the three ownership-query states and the second federate notification green. Add mixed-set and competing acquisition transitions, push-mode delivery, package/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
+    },
+    {
       "id": "umbra-cpp-attribute-ownership-acquisition-if-available-integration",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.attributeownershipacquisitionifavailable.8b37c270d6b9",

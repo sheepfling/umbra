@@ -167,6 +167,12 @@ class ReportingFederateAmbassador final
     FederateHandle owner;
   };
 
+  struct AcquisitionNotificationReport final {
+    ObjectInstanceHandle objectInstance;
+    AttributeHandleSet attributes;
+    VariableLengthData userSuppliedTag;
+  };
+
   struct InteractionReport final {
     InteractionClassHandle interactionClass;
     ParameterHandleValueMap parameterValues;
@@ -234,6 +240,17 @@ class ReportingFederateAmbassador final
     });
   }
 
+  void attributeOwnershipAcquisitionNotification(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleSet const& attributes,
+      VariableLengthData const& userSuppliedTag) override {
+    acquisitionNotifications.push_back({
+        objectInstance,
+        attributes,
+        userSuppliedTag,
+    });
+  }
+
   void receiveInteraction(
       InteractionClassHandle const& interactionClass,
       ParameterHandleValueMap const& parameterValues,
@@ -254,6 +271,7 @@ class ReportingFederateAmbassador final
   std::vector<ObjectRemovalReport> objectRemovalReports;
   std::vector<AttributeReflectionReport> attributeReflectionReports;
   std::vector<AttributeOwnershipReport> attributeOwnershipReports;
+  std::vector<AcquisitionNotificationReport> acquisitionNotifications;
   std::vector<InteractionReport> interactionReports;
 };
 
@@ -1107,6 +1125,331 @@ TEST_CASE(
   REQUIRE_NOTHROW(rti->disconnect());
   listener.reset();
   server.join();
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassador reports a process owner after another federate acquires a divested attribute",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[transport][process-boundary][process-ownership-acquisition-query]"
+    "[public-endpoint][query-attribute-ownership]"
+    "[unconditional-attribute-ownership-divestiture]"
+    "[attribute-ownership-acquisition]"
+    "[federate.callback.attribute-ownership-acquisition-notification]"
+    "[federate.callback.inform-attribute-ownership]"
+    "[federate.callback.attribute-is-not-owned][2025]") {
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener != nullptr);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry, composedProcessOwnershipDefinition());
+      auto ownerConnection = listener->accept(
+          nullptr,
+          {"process-ownership-acquisition-query-server", 0xA70BU},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession ownerSession(ownerConnection);
+      auto ownerHandler = service.handlerFor(ownerSession);
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               umbra::detail::TransportServiceOperation expected,
+                               char const* description) {
+        bool matched = false;
+        std::size_t requestCount = 0U;
+        while (!matched && requestCount != 256U) {
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  session,
+                  [&](umbra::detail::TransportServiceMessage const& request) {
+                    using umbra::detail::TransportServiceOperation;
+                    if (request.operation == expected) {
+                      matched = true;
+                    } else if (
+                        request.operation !=
+                            TransportServiceOperation::receive_interaction &&
+                        request.operation !=
+                            TransportServiceOperation::report_successful_void_service_invocation) {
+                      throw std::runtime_error(description);
+                    }
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(description);
+          }
+          ++requestCount;
+        }
+        if (!matched) {
+          throw std::runtime_error(description);
+        }
+      };
+
+      using umbra::detail::TransportServiceOperation;
+      serveExpected(
+          ownerSession, ownerHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The process acquisition-query server lost Create.");
+      serveExpected(
+          ownerSession, ownerHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The process acquisition-query server lost owner Join.");
+
+      auto acquirerConnection = listener->accept(
+          nullptr,
+          {"process-ownership-acquisition-query-server", 0xA70CU},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession acquirerSession(acquirerConnection);
+      auto acquirerHandler = service.handlerFor(acquirerSession);
+      serveExpected(
+          acquirerSession, acquirerHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The process acquisition-query server lost acquirer Join.");
+      serveExpected(
+          acquirerSession, acquirerHandler,
+          TransportServiceOperation::get_object_class_handle,
+          "The process acquisition-query server lost acquirer class lookup.");
+      serveExpected(
+          acquirerSession, acquirerHandler,
+          TransportServiceOperation::get_attribute_handle,
+          "The process acquisition-query server lost acquirer attribute lookup.");
+      serveExpected(
+          acquirerSession, acquirerHandler,
+          TransportServiceOperation::subscribe_object_class_attributes,
+          "The process acquisition-query server lost acquirer Subscribe.");
+
+      serveExpected(
+          ownerSession, ownerHandler,
+          TransportServiceOperation::get_object_class_handle,
+          "The process acquisition-query server lost owner class lookup.");
+      serveExpected(
+          ownerSession, ownerHandler,
+          TransportServiceOperation::get_attribute_handle,
+          "The process acquisition-query server lost owner attribute lookup.");
+      serveExpected(
+          ownerSession, ownerHandler,
+          TransportServiceOperation::publish_object_class_attributes,
+          "The process acquisition-query server lost owner Publish.");
+      serveExpected(
+          ownerSession, ownerHandler,
+          TransportServiceOperation::register_object_instance,
+          "The process acquisition-query server lost owner Register.");
+      serveExpected(
+          acquirerSession, acquirerHandler,
+          TransportServiceOperation::publish_object_class_attributes,
+          "The process acquisition-query server lost acquirer Publish.");
+      serveExpected(
+          ownerSession, ownerHandler,
+          TransportServiceOperation::query_attribute_ownership,
+          "The process acquisition-query server lost the initial owner query.");
+      serveExpected(
+          ownerSession, ownerHandler,
+          TransportServiceOperation::unconditional_attribute_ownership_divestiture,
+          "The process acquisition-query server lost Divestiture.");
+      serveExpected(
+          ownerSession, ownerHandler,
+          TransportServiceOperation::query_attribute_ownership,
+          "The process acquisition-query server lost the unowned query.");
+      serveExpected(
+          ownerSession, ownerHandler,
+          TransportServiceOperation::get_object_class_handle,
+          "The process acquisition-query server lost the unowned-query fence.");
+      serveExpected(
+          acquirerSession, acquirerHandler,
+          TransportServiceOperation::attribute_ownership_acquisition,
+          "The process acquisition-query server lost Acquisition.");
+      serveExpected(
+          acquirerSession, acquirerHandler,
+          TransportServiceOperation::get_object_class_handle,
+          "The process acquisition-query server lost the notification fence.");
+      serveExpected(
+          ownerSession, ownerHandler,
+          TransportServiceOperation::query_attribute_ownership,
+          "The process acquisition-query server lost the new-owner query.");
+      serveExpected(
+          ownerSession, ownerHandler,
+          TransportServiceOperation::get_object_class_handle,
+          "The process acquisition-query server lost the new-owner query fence.");
+      serveExpected(
+          acquirerSession, acquirerHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The process acquisition-query server lost acquirer Resign.");
+      serveExpected(
+          ownerSession, ownerHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The process acquisition-query server lost owner Resign.");
+      service.detach(acquirerSession);
+      service.detach(ownerSession);
+      acquirerConnection->close();
+      ownerConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  auto const federationName = nextFederationName() + L"-process-acquisition-query";
+  auto const fomModule = resourcePath("attribute-update-passel-fom.xml").wstring();
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador acquirerReports;
+  auto owner = makeRti();
+  auto acquirer = makeRti();
+  auto ownerConfiguration = rti1516_2025::RtiConfiguration::createConfiguration()
+                                .withConfigurationName(L"process-acquisition-query-owner")
+                                .withRtiAddress(
+                                    L"tcp://127.0.0.1:" + std::to_wstring(port));
+  auto acquirerConfiguration = rti1516_2025::RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(L"process-acquisition-query-acquirer")
+                                   .withRtiAddress(
+                                       L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool ownerJoined = false;
+  bool acquirerJoined = false;
+  try {
+    REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED, ownerConfiguration));
+    REQUIRE_NOTHROW(owner->createFederationExecution(federationName, fomModule));
+    FederateHandle ownerHandle;
+    REQUIRE_NOTHROW(ownerHandle = owner->joinFederationExecution(
+        L"process-acquisition-query-owner", L"publisher", federationName));
+    ownerJoined = true;
+    REQUIRE(ownerHandle.isValid());
+
+    REQUIRE_NOTHROW(acquirer->connect(
+        acquirerReports, HLA_EVOKED, acquirerConfiguration));
+    FederateHandle acquirerHandle;
+    REQUIRE_NOTHROW(acquirerHandle = acquirer->joinFederationExecution(
+        L"process-acquisition-query-acquirer", L"publisher", federationName));
+    acquirerJoined = true;
+    REQUIRE(acquirerHandle.isValid());
+    REQUIRE(acquirerHandle != ownerHandle);
+
+    auto const acquirerClass = acquirer->getObjectClassHandle(
+        fixture_hla::fom::attribute_fixture_child);
+    auto const acquirerAttribute = acquirer->getAttributeHandle(
+        acquirerClass, fixture_hla::fixture::reliable_base_a);
+    REQUIRE(acquirerClass.isValid());
+    REQUIRE(acquirerAttribute.isValid());
+    REQUIRE_NOTHROW(acquirer->subscribeObjectClassAttributes(
+        acquirerClass, AttributeHandleSet{acquirerAttribute}));
+
+    auto const ownerClass = owner->getObjectClassHandle(
+        fixture_hla::fom::attribute_fixture_child);
+    auto const ownerAttribute = owner->getAttributeHandle(
+        ownerClass, fixture_hla::fixture::reliable_base_a);
+    REQUIRE(ownerClass == acquirerClass);
+    REQUIRE(ownerAttribute == acquirerAttribute);
+    REQUIRE_NOTHROW(owner->publishObjectClassAttributes(
+        ownerClass, AttributeHandleSet{ownerAttribute}));
+    ObjectInstanceHandle objectInstance;
+    REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(ownerClass));
+    REQUIRE(objectInstance.isValid());
+    for (std::size_t pass = 0U;
+         pass != 32U && acquirerReports.objectDiscoveryReports.empty(); ++pass) {
+      static_cast<void>(acquirer->evokeMultipleCallbacks(0.01, 0.02));
+    }
+    REQUIRE(acquirerReports.objectDiscoveryReports.size() == 1U);
+    REQUIRE(acquirerReports.objectDiscoveryReports.front().objectInstance ==
+            objectInstance);
+    REQUIRE_NOTHROW(acquirer->publishObjectClassAttributes(
+        acquirerClass, AttributeHandleSet{acquirerAttribute}));
+
+    auto queryAndEvoke = [&] {
+      REQUIRE_NOTHROW(owner->queryAttributeOwnership(
+          objectInstance, AttributeHandleSet{ownerAttribute}));
+      REQUIRE(ownerReports.attributeOwnershipReports.empty());
+      for (std::size_t pass = 0U;
+           pass != 32U && ownerReports.attributeOwnershipReports.empty();
+           ++pass) {
+        static_cast<void>(owner->evokeMultipleCallbacks(0.01, 0.02));
+      }
+      REQUIRE(ownerReports.attributeOwnershipReports.size() == 1U);
+      auto const report = ownerReports.attributeOwnershipReports.front();
+      ownerReports.attributeOwnershipReports.clear();
+      REQUIRE(report.objectInstance == objectInstance);
+      REQUIRE(report.attributes == AttributeHandleSet{ownerAttribute});
+      return report;
+    };
+    auto const before = queryAndEvoke();
+    REQUIRE(before.kind ==
+            ReportingFederateAmbassador::AttributeOwnershipReport::Kind::federate);
+    REQUIRE(before.owner == ownerHandle);
+
+    unsigned char const divestitureTag[] = {0x54, 0xA7};
+    REQUIRE_NOTHROW(owner->unconditionalAttributeOwnershipDivestiture(
+        objectInstance, AttributeHandleSet{ownerAttribute},
+        VariableLengthData(divestitureTag, sizeof(divestitureTag))));
+    auto const unowned = queryAndEvoke();
+    REQUIRE(unowned.kind ==
+            ReportingFederateAmbassador::AttributeOwnershipReport::Kind::unowned);
+    REQUIRE_FALSE(unowned.owner.isValid());
+    REQUIRE(owner->getObjectClassHandle(
+                fixture_hla::fom::attribute_fixture_child) == ownerClass);
+
+    unsigned char const acquisitionTag[] = {0xA7, 0x0C};
+    REQUIRE_NOTHROW(acquirer->attributeOwnershipAcquisition(
+        objectInstance, AttributeHandleSet{acquirerAttribute},
+        VariableLengthData(acquisitionTag, sizeof(acquisitionTag))));
+    REQUIRE(acquirerReports.acquisitionNotifications.empty());
+    for (std::size_t pass = 0U;
+         pass != 32U && acquirerReports.acquisitionNotifications.empty();
+         ++pass) {
+      static_cast<void>(acquirer->evokeMultipleCallbacks(0.01, 0.02));
+    }
+    REQUIRE(acquirerReports.acquisitionNotifications.size() == 1U);
+    auto const& notification = acquirerReports.acquisitionNotifications.front();
+    REQUIRE(notification.objectInstance == objectInstance);
+    REQUIRE(notification.attributes == AttributeHandleSet{acquirerAttribute});
+    REQUIRE(notification.userSuppliedTag.size() == sizeof(acquisitionTag));
+    REQUIRE(acquirer->getObjectClassHandle(
+                fixture_hla::fom::attribute_fixture_child) == acquirerClass);
+
+    auto const acquired = queryAndEvoke();
+    REQUIRE(acquired.kind ==
+            ReportingFederateAmbassador::AttributeOwnershipReport::Kind::federate);
+    REQUIRE(acquired.owner == acquirerHandle);
+    REQUIRE(owner->getObjectClassHandle(
+                fixture_hla::fom::attribute_fixture_child) == ownerClass);
+
+    REQUIRE_NOTHROW(acquirer->resignFederationExecution(
+        rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES));
+    acquirerJoined = false;
+    REQUIRE_NOTHROW(owner->resignFederationExecution(rti1516_2025::NO_ACTION));
+    ownerJoined = false;
+    REQUIRE_NOTHROW(acquirer->disconnect());
+    REQUIRE_NOTHROW(owner->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (acquirerJoined) {
+      try {
+        acquirer->resignFederationExecution(
+            rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+      } catch (...) {
+      }
+    }
+    if (ownerJoined) {
+      try {
+        owner->resignFederationExecution(rti1516_2025::NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      acquirer->disconnect();
+    } catch (...) {
+    }
+    try {
+      owner->disconnect();
+    } catch (...) {
+    }
+  }
+  listener.reset();
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
   REQUIRE_FALSE(serverError);
 }
 
