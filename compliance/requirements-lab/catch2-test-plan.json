@@ -26517,7 +26517,7 @@
         "federate.callback.turn-updates-off-for-object-instance"
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
-      "next_action": "Reopen this focused public regional process case: both current native core and connection registrations time out after 25 seconds, including a serial run. Locate the first stalled service, callback, or server wire step before attributing the fault to RTI behavior. Preserve the explicit High designator, overlapping/disjoint/restored association transitions, owner-directed Turn Updates Off/On assertions, both callback models, and its eight direct 2025 requirement-section pairs. The nearby embedded regional rate-designator case is a control. Package/JUnit/protected-review evidence, Requirements Lab validation, interoperability, and conformance promotion remain open."
+      "next_action": "The fixed-order public process fixture no longer expects a Receive poll for pushed discovery. The exact core/connection registrations and two embedded control registrations pass 4/4 on main; the isolated public case also passed 40 repeats per registration. The High designator, overlapping/disjoint/restored association transitions, owner-directed Turn Updates Off/On, both callback models, and eight direct 2025 requirement-section pairs remain asserted. This is focused development-profile evidence, not package/JUnit/protected-review evidence, Requirements Lab validation, interoperability, or conformance."
     },
     {
       "id": "umbra-cpp-regional-attribute-relevance-advisory-callback-entry-recheck",
