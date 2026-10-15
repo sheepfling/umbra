@@ -32021,7 +32021,7 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6"
       ],
       "test_case": "RTIambassadors deliver a denied process acquisition while both federates are idle",
-      "source_location": "cpp/tests/ieee1516_2025_process_idle_immediate_ownership_denial_catch2.cpp:137",
+      "source_location": "cpp/tests/ieee1516_2025_process_idle_immediate_ownership_denial_catch2.cpp:136",
       "ctest_target": "umbra_attribute_ownership_acquisition_catch2",
       "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors deliver a denied process acquisition while both federates are idle$",
       "primary_lane": "process-ownership-acquisition-release-denied-idle-push",
