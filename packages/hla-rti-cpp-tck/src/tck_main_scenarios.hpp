@@ -359,7 +359,6 @@ void scenarioDirectedInteractionTargetLifecycleContract(Options const&, rti::Cal
 void scenarioDirectedInteractions(Options const&, rti::CallbackModel);
 void scenarioDivestitureIfWantedMixedAcquirers(Options const&, rti::CallbackModel);
 void scenarioDivestitureIfWantedMixedAcquirersContract(Options const&, rti::CallbackModel);
-void scenarioEncoderRoundTrip(Options const&, rti::CallbackModel);
 void scenarioEnumContract(Options const&, rti::CallbackModel);
 void scenarioExceptionHierarchyContract(Options const&, rti::CallbackModel);
 void scenarioFactoryDiscovery(Options const&, rti::CallbackModel);

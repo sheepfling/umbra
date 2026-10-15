@@ -23,5 +23,6 @@ void verifyVariableLengthDataContract();
 void verifyStandardDataElementContract();
 void verifyBasicDataElementsContract();
 void verifyCompositeDataElementsContract();
+void scenarioEncoderRoundTrip(Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

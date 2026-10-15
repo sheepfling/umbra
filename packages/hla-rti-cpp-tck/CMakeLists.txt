@@ -118,6 +118,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_delay_subscription_scenarios.cpp
   src/tck_federation_save_restore_interlocks.cpp
   src/tck_data_encoding.cpp
+  src/tck_encoder_round_trip_scenarios.cpp
   src/tck_logical_time.cpp
   src/pending_negotiated_restore_tck.cpp
   src/service_report_creation_failure_tck.cpp

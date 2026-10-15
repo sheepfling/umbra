@@ -615,7 +615,7 @@
         "basic-data-elements-helper-requirements-contract.json",
         "opaque-data-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioEncoderRoundTrip",
+      "cpp_test": "src/tck_encoder_round_trip_scenarios.cpp#scenarioEncoderRoundTrip",
       "runner_id": "java-tck.encoder-round-trip",
       "native_equivalent_runner_ids": [
         "cpp-tck.ieee1516-2025-basic-data-elements"
