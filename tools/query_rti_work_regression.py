@@ -7242,7 +7242,7 @@ def main() -> int:
     )
     if timestamped_regional_focus.get("lane_state") != "complete":
         raise AssertionError("focused timestamped regional process lane is not complete")
-    if timestamped_regional_focus.get("mapped_test_count") != 1:
+    if timestamped_regional_focus.get("mapped_test_count") != 3:
         raise AssertionError("focused timestamped regional process mapped count drifted")
     if timestamped_regional_focus.get("assertion_count") != 71:
         raise AssertionError("focused timestamped regional process lane assertion total drifted")
