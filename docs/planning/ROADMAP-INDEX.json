@@ -98,47 +98,11 @@
     "issue_query": "python tools/query_rti_work.py lab-issues --summary --compact",
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
-  "last_completed_handoff": {
-    "state": "completed-portable-cpp-tck-receive-order-attribute-update-extraction",
-    "family": "time-save-restore",
-    "lane": "receive-order-attribute-update",
-    "id": "cpp-tck.receive-order-attribute-update",
-    "plan_id": "cpp-tck.receive-order-attribute-update",
-    "mapping_seed_plan_id": "cpp-tck.receive-order-attribute-update-contract",
-    "supporting_plan_ids": [],
-    "mapping_seed_policy": "Preserve the promoted receive-order attribute-update scenario and pure-standard contract IDs, their direct 2025 requirement/subsection mappings, linked Java parity, and both callback-model behaviors.",
-    "test_case": "Deliver consecutive ordinary receive-order attribute updates in producer order",
-    "objective": "Extract the receive-order attribute-update scenario and pure-standard contract from portable_tck.cpp into a cohesive C++ TCK module. Preserve both promoted IDs, direct 2025 mappings, linked Java parity, and evoked/immediate behavior.",
-    "latest_verified_progress": "Receive-order attribute-update scenario and contract moved to a dedicated C++ TCK module. MinGW/Ninja built the target; all four focused CTests passed; two-model JSON/JUnit validated with zero failures; cpp_tck.py reported no findings. Metrics: 77 translation units, 268.3s summed compiler time; portable_tck.cpp is 36,677 lines (reduced by 147), main.cpp is 43,224 lines. Metrics remain partial due repository-wide source-size blockers; local installed-package evidence only.",
-    "source_target": "packages/hla-rti-cpp-tck/src/tck_receive_order_attribute_update.cpp",
-    "source_location": "packages/hla-rti-cpp-tck/src/tck_receive_order_attribute_update.cpp#scenarioReceiveOrderAttributeUpdate",
-    "implementation_target": "packages/hla-rti-cpp-tck/src/tck_receive_order_attribute_update.cpp; packages/hla-rti-cpp-tck/src/tck_receive_order_attribute_update.hpp; packages/hla-rti-cpp-tck/CMakeLists.txt; compliance/catalogs/cpp-tck-scenario-catalog.json; tools/cpp_tck.py; docs/planning/ROADMAP-INDEX.json",
-    "implementation_location": "packages/hla-rti-cpp-tck/src/tck_receive_order_attribute_update.cpp#scenarioReceiveOrderAttributeUpdate",
-    "target_file": "packages/hla-rti-cpp-tck/src/tck_receive_order_attribute_update.cpp",
-    "ctest_target": "hla_rti_cpp_tck",
-    "ctest_filter": "^hla_rti_cpp_tck[.]cpp_tck_receive_order_attribute_update(_contract)?[.](evoked|immediate)$",
-    "ctest_label": "receive-order-attribute-update",
-    "commands": {
-      "focused_build": "cmake --build out/cpp-tck-build --config Debug --target hla_rti_cpp_tck --parallel 4",
-      "focused_ctest": "ctest --test-dir out/cpp-tck-build -C Debug -R \"^hla_rti_cpp_tck[.]cpp_tck_receive_order_attribute_update(_contract)?[.](evoked|immediate)$\" --output-on-failure",
-      "direct_matrix": "python tools/run_cpp_tck.py --package-prefix out/cpp-tck-package --build-directory out/cpp-tck-build --generator Ninja --cxx-compiler C:\\Users\\peanu\\scoop\\apps\\gcc\\current\\bin\\g++.exe --build-parallel 4 --scenario cpp-tck.receive-order-attribute-update --scenario cpp-tck.receive-order-attribute-update-contract --callback-model both --results out/cpp-tck-receive-order-attribute-update-results.json --junit out/cpp-tck-receive-order-attribute-update-results.xml",
-      "mapping_check": "python tools/cpp_tck.py --results out/cpp-tck-receive-order-attribute-update-results.json --promotion promoted --scenario cpp-tck.receive-order-attribute-update --scenario cpp-tck.receive-order-attribute-update-contract",
-      "build_metrics": "python tools/build_quality.py capture out/cpp-tck-build --label cpp-tck-receive-order-attribute-update-module-extraction --status partial --note \"Focused C++ TCK build and evidence passed; full inventory and source-size gates remain incomplete.\"",
-      "diff_check": "git diff --check"
-    },
-    "mapping_status": "Both promoted scenario IDs, direct 2025 mappings, contract references, linked Java parity, and evoked/immediate behavior are preserved; local installed-package evidence only, not external certification.",
-    "passed_ctest_count": 4,
-    "acceptance": [
-      "Move only the receive-order attribute-update scenario and pure-standard contract into the dedicated C++ TCK module; leave unrelated scenarios in their current owners.",
-      "Preserve both promoted catalog IDs, their direct 2025 mappings, Java parity, and evoked/immediate behavior.",
-      "Pass four focused CTests and both-model JSON/JUnit validation; record compile metrics without claiming a clean repository-wide bill of health."
-    ]
-  },
   "active_handoff_note": "2026-10-14 parallel integration checkpoint: the prior installed MinGW package passed 2,048 configured C++ TCK CTests, but direct replay stopped after 303 superseded chunks. Process DDM and both NMRA filesystem failure-report fixes are now integrated and focused green. A fresh post-merge MinGW runtime package is installed; the full native CTest and direct both-model portable TCK runs remain pending. Freeze further runtime edits until package evidence completes. The pre-merge matrix is only a baseline; do not resynchronize unchanged Requirements Lab inputs or promote conformance.",
   "latest_verified_slice": "2026-10-14: Main MinGW built the process DDM and MOM Catch2 targets after both NMRA failure-report fixes. Six adjacent NMRA/service-report CTests and two process-host DDM/reporting anchors passed, the latter with local loopback access. Fresh-registry Release Multiple Names abort-all passed 33 assertions; process DDM five focused cases and ten repeated resign/rejoin runs also passed. The global mapping gate passes at 1,503 Catch2 cases (1,406 mapped, 97 explicitly internal), 980 direct requirement-section pairs, and two non-actionable source-location gaps. Two cohesive portable TCK extractions preserved 34 scenario bodies, passed 68 focused both-model tests in isolation, and restored the 1,034-ID catalog boundary audit. Full post-merge package evidence, 40 source-size hard findings, external interoperability, and conformance remain open.",
   "active_handoff": {
     "state": "investigation",
-    "family": "portable-cpp-tck-2025",
+    "family": "transport-and-conformance",
     "id": "umbra-cpp-installed-package-post-integration-matrix",
     "plan_id": "umbra-cpp-process-endpoint-mom-service-report-interlock-integration",
     "mapping_seed_plan_id": "umbra-cpp-process-endpoint-mom-service-report-interlock-integration",

@@ -1741,7 +1741,7 @@ TEST_CASE(
 
 TEST_CASE(
     "RTIambassador applies 2025 exception precedence when resign is disconnected and invalid",
-    "[api-contract][foundation][2025][exceptions][exception-precedence]"
+    "[api-contract][integration][foundation][2025][exceptions][exception-precedence]"
     "[rti.service.resign-federation-execution]") {
   rti1516_2025::RTIambassadorFactory factory;
   auto rti = factory.createRTIambassador();

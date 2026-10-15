@@ -79,7 +79,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Process federation service host shutdown interrupts a stalled hello handshake",
-    "[integration][internal][transport][process-service-host]"
+    "[integration][internal][foundation][transport][process-service-host]"
     "[process-service-host-lifecycle]") {
   EmbeddedFederationRegistry registry;
   ProcessFederationServiceHost host(

@@ -601,7 +601,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Pending service-report file cleanup discards rolled-back joins only",
-    "[internal][unit][service-report-store][join-transaction][filesystem]") {
+    "[internal][unit][service-reporting][service-report-store][join-transaction][filesystem]") {
   auto const directory = temporaryDirectory();
   std::filesystem::create_directories(directory);
   auto const rolledBackPath = directory / "rolled-back.log";

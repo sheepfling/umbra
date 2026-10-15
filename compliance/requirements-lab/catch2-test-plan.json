@@ -8139,7 +8139,6 @@
         "requirement-candidate-content-clauses-08-time-management-page-200-l164-49",
         "requirement-candidate-content-clauses-08-time-management-page-201-l40-12"
       ],
-      "test_case": "Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants",
       "tags": [
         "integration",
         "development-profile",
@@ -47523,7 +47522,7 @@
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.getinteractionclasshandle.99bb9271fea0",
         "api.2025.cpp.rtiambassador.getparameterhandle.396bff598c35",
-        "api.2025.cpp.rtiambassador.publishinteractionclass.b9b848c4482f",
+        "api.2025.cpp.rtiambassador.publishinteractionclass.b9a848c4482f",
         "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
         "api.2025.cpp.rtiambassador.sendinteraction.dd73a76182aa",
         "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
@@ -47623,7 +47622,7 @@
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.getinteractionclasshandle.99bb9271fea0",
         "api.2025.cpp.rtiambassador.getparameterhandle.396bff598c35",
-        "api.2025.cpp.rtiambassador.publishinteractionclass.b9b848c4482f",
+        "api.2025.cpp.rtiambassador.publishinteractionclass.b9a848c4482f",
         "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
         "api.2025.cpp.rtiambassador.sendinteraction.dd73a76182aa",
         "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
@@ -47717,7 +47716,7 @@
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.getinteractionclasshandle.99bb9271fea0",
         "api.2025.cpp.rtiambassador.getparameterhandle.396bff598c35",
-        "api.2025.cpp.rtiambassador.publishinteractionclass.b9b848c4482f",
+        "api.2025.cpp.rtiambassador.publishinteractionclass.b9a848c4482f",
         "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
         "api.2025.cpp.rtiambassador.sendinteraction.dd73a76182aa",
         "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
@@ -64821,7 +64820,6 @@
       "next_action": "This focused native C++ regression saves one publisher and two subscriber federates, each with independent active/passive ordinary interaction selectors, restores all four selectors into a fresh registry, and checks unrelated declarations do not leak across members (111 assertions). It exercises route-free declaration persistence only; it does not claim mixed regional or directed declarations, transportation/order overrides in the same image, pending callbacks, timestamped/retraction behavior, DDM delivery, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
       "source_location": "cpp/tests/ieee1516_2025_federation_registry_mixed_interaction_publication_subscription_multi_federate_filesystem_restart_catch2.cpp:3",
       "assertions": 111,
-      "assertions": 79,
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ a\\ mixed\\ interaction\\ publication\\ and\\ active/passive\\ subscriptions\\ for\\ multiple\\ federates$",
       "primary_lane": "multi-federate-mixed-subscription-restore"
@@ -70335,8 +70333,6 @@
       "test_case": "Embedded public fresh-registry restore rebinds queued timestamped object deletion and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
       "primary_lane": "public-object-deletion-tso-restore",
       "focus_lane": "public-object-deletion-tso-restore",
-      "ctest_target": "umbra_ieee1516_2025_catch2",
-      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh-registry\\ restore\\ rebinds\\ queued\\ timestamped\\ object\\ deletion\\ and\\ preserves\\ report-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$",
       "ctest_label": "public-object-deletion-tso-restore",
       "tags": [
         "integration",
@@ -70398,8 +70394,7 @@
       "requirements_lab_api_surface_status": "This public C++ fresh-registry save/restore regression exercises timestamped object deletion, callback gating, and service-report-file lifetime across a restored registry under both official callback models. It does not claim regional or directed DDM, alternate advance modes, ownership/resignation action matrices beyond the teardown path, distributed transport, package/JUnit/protected-review evidence, Lab validation, or conformance.",
       "next_action": "Keep this bounded public C++ object-deletion restore vector green. The next bounded companion is the separate HLA_IMMEDIATE delivered-object-deletion retraction path; do not broaden this row into regional DDM, transport, package, or conformance claims.",
       "ctest_target": "umbra_public_object_deletion_tso_restore_catch2",
-      "ctest_filter": "^umbra\\.public_object_deletion_tso_restore\\.catch2\\.Embedded\\ public\\ fresh-registry\\ restore\\ rebinds\\ queued\\ timestamped\\ object\\ deletion\\ and\\ preserves\\ report-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$",
-      "primary_lane": "public-object-deletion-tso-restore"
+      "ctest_filter": "^umbra\\.public_object_deletion_tso_restore\\.catch2\\.Embedded\\ public\\ fresh-registry\\ restore\\ rebinds\\ queued\\ timestamped\\ object\\ deletion\\ and\\ preserves\\ report-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },
     {
       "id": "umbra-cpp-federation-management-fom-preparation-failure-atomicity-integration",
