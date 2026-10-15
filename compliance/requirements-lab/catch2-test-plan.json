@@ -16845,6 +16845,7 @@
     {
       "id": "umbra-cpp-process-endpoint-directed-interaction-callback-integration",
       "requirements_lab_mapping_id": "m16.transition.process-directed-interaction-callback",
+      "focus_lane": "process-directed-callback-control",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.getobjectclasshandle.36d1b269a059",
         "api.2025.cpp.rtiambassador.getattributehandle.aa05f6c28dcb",
@@ -16898,6 +16899,7 @@
         "callback-immediate",
         "transport",
         "process-boundary",
+        "process-directed-callback-control",
         "public-endpoint",
         "process-event.receive-object-instance-discovery",
         "process-event.receive-directed-interaction",
