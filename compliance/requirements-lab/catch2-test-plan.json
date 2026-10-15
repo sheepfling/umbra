@@ -15444,7 +15444,7 @@
         "hla-1516.1-2025:clause-4.26"
       ],
       "test_case": "RTIambassadors carry federation save status responses through the configured process endpoint",
-      "source_location": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp:2182",
+      "source_location": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp:2598",
       "primary_lane": "process-federation-save-status",
       "focus_lane": "process-federation-save-status",
       "assertions": 19,
@@ -15494,7 +15494,7 @@
         "hla-1516.1-2025:clause-4.24.3"
       ],
       "test_case": "RTIambassadors carry federation save abort through the configured process endpoint",
-      "source_location": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp:2329",
+      "source_location": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp:2758",
       "primary_lane": "process-federation-save-abort",
       "focus_lane": "process-federation-save-abort",
       "assertions": 13,
