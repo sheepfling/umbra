@@ -134,12 +134,12 @@
       "Pass four focused CTests and both-model JSON/JUnit validation; record compile metrics without claiming a clean repository-wide bill of health."
     ]
   },
-  "active_handoff_note": "2026-10-14 finish-plan selection: the prior process TSO handoff is complete. Re-run the clean installed-package portable C++ TCK before interpreting its six last-documented provider failures. The next active investigation uses the existing mapped public process Service Reporting interlock case as its native anchor; it does not claim the package failure still reproduces. See docs/planning/RTI-2025-FINISH-PLAN.md. No Requirements Lab resync or conformance promotion is implied.",
-  "latest_verified_slice": "2026-10-14: MinGW built umbra_flush_queue_future_input_catch2. The public C++ prequeued timestamp-12/FQR(10) test passed under HLA_EVOKED and HLA_IMMEDIATE (69 assertions); its post-submission companion also passed, for 2/2 focused CTests. Direct mappings cover five requirements across §§8.12 and 8.12.3. The Lab defines the queue at FQR invocation and no HLA_EVOKED callback-start cutoff for later arrivals; the later-arrival behavior remains implementation evidence. Build-metrics snapshot 20261014T215419.408675Z-d875a684 is partial: 1,280 translation units, 3,869.6 seconds summed compiler time, 219 unmeasured commands; this target was not separately listed in the target-specific totals. Metrics capture reports repository-wide size/growth blockers and two source-location gaps, so no clean bill of health is claimed. No full-suite, external interoperability, validation, or conformance claim is made.",
+  "active_handoff_note": "2026-10-14 parallel integration checkpoint: the previously installed MinGW package passed its 2,048 configured C++ TCK CTests, but its direct scenario replay was stopped after 303 superseded chunks because the process DDM runtime changed and a MOM reporting fix remains isolated. Rebuild and reinstall after serial integration, then retain complete both-model JSON/JUnit. The completed pre-merge CTest matrix is a baseline, not release-candidate evidence. Do not resynchronize unchanged Requirements Lab inputs or promote conformance.",
+  "latest_verified_slice": "2026-10-14: Main MinGW built the process connection Catch2 target after the immediate regional DSE and callback-resign fence commits. Five focused process DDM CTests passed, and the concurrent resign/rejoin case passed ten repeated runs. The official C++ fresh-registry Release Multiple Names abort-all case passed 33 assertions on main. The global mapping gate passes at 1,501 Catch2 cases (1,404 mapped, 97 explicitly internal), with 980 distinct direct requirement-section pairs and two non-actionable source-location gaps. The three new lanes each resolve one roadmap item and exact canonical 2025 pairs. A full post-merge installed-package matrix, source-size release gates, external interoperability, and conformance remain open.",
   "active_handoff": {
     "state": "investigation",
     "family": "portable-cpp-tck-2025",
-    "id": "umbra-cpp-installed-package-service-report-interlock-triage",
+    "id": "umbra-cpp-installed-package-post-integration-matrix",
     "plan_id": "umbra-cpp-process-endpoint-mom-service-report-interlock-integration",
     "mapping_seed_plan_id": "umbra-cpp-process-endpoint-mom-service-report-interlock-integration",
     "test_case": "RTIambassador preserves the process HLAsetSwitches Service Reporting interlock",
@@ -148,12 +148,12 @@
     "source_target": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1295",
     "ctest_target": "umbra_ieee1516_2025_connection_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador preserves the process HLAsetSwitches Service Reporting interlock$",
-    "objective": "Run the complete portable C++ TCK against a fresh installed MinGW package in both callback models, retain direct JSON/JUnit, and determine whether the last-documented Service Reporting subscription interlock failure still reproduces. Compare the installed path with this passing native public C++ anchor. If reproduced, isolate and fix the provider discrepancy and add the exact focused C++ regression; otherwise record the fresh pass. Triage the other four last-documented provider-failure outcomes separately. Do not resynchronize unchanged Requirements Lab inputs or claim conformance from raw evidence.",
+    "objective": "After the isolated NMRA failure-reporting slice is reviewed and serially integrated, rebuild and install a fresh MinGW 2025 C++ package. Run every promoted portable C++ TCK scenario in both callback models, including the process connection-loss fixture, and retain complete direct JSON/JUnit plus catalog validation. Compare any failure against the mapped native Service Reporting interlock and the newly integrated regional DDM cases. Classify every failure before a release decision; do not treat the earlier pre-merge 2,048-CTest pass as final-package evidence or resynchronize unchanged Requirements Lab inputs.",
     "acceptance": [
-      "The fresh installed-package both-model TCK outcome is recorded with direct JSON/JUnit and catalog validation; no cached result is treated as current.",
-      "The native mapped process interlock anchor builds under MinGW and passes its exact CTest selector and lane mapping check.",
-      "A reproduced provider failure receives an official-API C++ regression and fix; a nonreproduced failure is explicitly marked superseded by fresh evidence.",
-      "Keep all other TCK failures and protected review as separate follow-ups."
+      "The final merged runtime builds and installs as a fresh MinGW package, and the complete promoted C++ TCK runs under HLA_EVOKED and HLA_IMMEDIATE.",
+      "Direct JSON/JUnit and catalog validation are complete; no interrupted or pre-merge replay is treated as current evidence.",
+      "Any provider failure is reproduced with an official-API C++ case and exact mapping before a scoped fix, or explicitly classified as a test-harness issue.",
+      "Source-size/build-quality blockers and protected conformance review remain separate release gates."
     ]
   },
   "last_completed_handoff": {
@@ -28302,6 +28302,8 @@
         "subscribe-object-class-attributes-default-update-rate"
       ],
       "focused_lane_tags": [
+        "process-delayed-regional-attribute-immediate",
+        "process-deferred-regional-resign-fence",
         "passive-regional-interaction-transition",
         "ddm-clause6-service-expansion",
         "interaction-subscription-mode-exclusivity",
@@ -28361,17 +28363,21 @@
         "subscribe-object-class-attributes-default-update-rate",
         "implicit-self-unsubscribe-no-out-of-scope-advisory"
       ],
-      "next_task": "After integrating the custom regional initial-reflection transport fix, rebuild the installed 2025 C++ package and rerun the base and contract `cpp-tck.custom-transportation-regional-attribute-delivery` scenarios under HLA_EVOKED and HLA_IMMEDIATE.",
-      "next_action": "Use `umbra-cpp-custom-regional-initial-transport-reflection` as the HLA_EVOKED diagnostic baseline; the existing pre-fix installed package fails all four cells and cannot validate the local correction until rebuilt. If package evidence is green, return to the separate process HLA_IMMEDIATE delayed regional attribute callback-entry gap using `umbra-cpp-process-delayed-regional-attribute-receive-fence` as its evoked baseline. Do not promote complete 6.11, 9.8, or 8.1.8 conformance from these bounded cases.",
-      "next_lane": "custom-regional-initial-transport",
+      "next_task": "After the verified process HLA_IMMEDIATE regional callback-entry and resign-fence slices, investigate the remaining claim-to-callback concurrent subscription/range mutation window without redoing the evoked or immediate cases.",
+      "next_action": "The integrated process DDM target and five focused CTests pass; the callback-resign race case also passed ten repeats. Use the existing D2/D3 immediate case and evoked receive-fence case as baselines. Determine whether a completed receiver mutation can cross the private claim-to-callback boundary; add a distinct official-C++ regression and exact 2025 mapping only if the gap is demonstrated. The installed-package regional TCK projection is a separate post-merge checkpoint. Do not promote general §§6.11, 8.1.8, or 9.8 conformance from these bounded cases.",
+      "next_lane": "process-delayed-regional-attribute-immediate",
       "next_test_role": "baseline",
-      "next_test_query": "Embedded regional discovery reflects an initial value with its custom FOM transportation",
-      "next_ctest_filter": "[custom-regional-initial-transport]",
+      "next_test_query": "Process immediate delayed regional attribute delivery rechecks at callback entry",
+      "next_ctest_filter": "[process-delayed-regional-attribute-immediate]",
       "next_plan_ids": [
-        "umbra-cpp-custom-regional-initial-transport-reflection"
+        "umbra-cpp-process-delayed-regional-attribute-immediate-callback-entry"
       ],
       "next_standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.11",
+        "hla-1516.1-2025:clause-8.1.8",
+        "hla-1516.1-2025:clause-9.5",
+        "hla-1516.1-2025:clause-9.6",
         "hla-1516.1-2025:clause-9.8"
       ]
     },
@@ -28481,6 +28487,7 @@
         "umbra-cpp-process-endpoint-directed-interaction-callback-integration"
       ],
       "focused_lane_tags": [
+        "public-fresh-registry-release-multiple-name-atomicity",
         "tso-regional-attribute-update-timed-negotiated-mixed-candidate-continuation-after-restore",
         "tso-regional-attribute-update-timed-negotiated-retained-regular-pre-delivery-cancel-after-restore",
         "tso-regional-attribute-update-timed-negotiated-regular-candidate-continuation-after-restore",
