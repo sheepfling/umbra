@@ -35338,7 +35338,7 @@
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioInheritedObjectAttributeProjection",
+      "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioInheritedObjectAttributeProjection",
       "runner_id": "cpp-tck.inherited-object-attribute-projection",
       "parity": "java-tck.inherited-object-attribute-projection",
       "default_status": "adapter-required",
@@ -35367,7 +35367,7 @@
       "contract_refs": [
         "standard-inherited-object-attribute-projection-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioInheritedObjectAttributeProjectionContract",
+      "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioInheritedObjectAttributeProjectionContract",
       "runner_id": "cpp-tck.inherited-object-attribute-projection-contract",
       "parity": "cpp-tck.inherited-object-attribute-projection",
       "default_status": "adapter-required",
@@ -40092,7 +40092,7 @@
         "unpublish-interaction-class-api-contract.json",
         "unpublish-interaction-class-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioInheritedInteractionClassDelivery",
+      "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioInheritedInteractionClassDelivery",
       "runner_id": "cpp-tck.inherited-interaction-class-delivery",
       "parity": "java-tck.inherited-interaction-class-delivery",
       "default_status": "adapter-required",
@@ -40119,7 +40119,7 @@
         "fom-root-hierarchy-requirements-contract.json",
         "receive-order-interaction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioInheritedInteractionClassDeliveryContract",
+      "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioInheritedInteractionClassDeliveryContract",
       "runner_id": "cpp-tck.inherited-interaction-class-delivery-contract",
       "parity": "cpp-tck.inherited-interaction-class-delivery",
       "default_status": "adapter-required",
@@ -40185,7 +40185,7 @@
         "time-advance-api-contract.json",
         "time-advance-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInheritedInteractionClassDelivery",
+      "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioTimestampedInheritedInteractionClassDelivery",
       "runner_id": "cpp-tck.timestamped-inherited-interaction-class-delivery",
       "parity": "java-tck.timestamped-inherited-interaction-class-delivery",
       "default_status": "adapter-required",
@@ -40222,7 +40222,7 @@
         "timestamped-interaction-requirements-contract.json",
         "receive-order-interaction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInheritedInteractionClassDeliveryContract",
+      "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioTimestampedInheritedInteractionClassDeliveryContract",
       "runner_id": "cpp-tck.timestamped-inherited-interaction-class-delivery-contract",
       "parity": "cpp-tck.timestamped-inherited-interaction-class-delivery",
       "default_status": "adapter-required",
@@ -40267,7 +40267,7 @@
         "standard-directed-derived-object-target-contract.json",
         "standard-directed-interaction-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioDirectedDerivedObjectTargetDelivery",
+      "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioDirectedDerivedObjectTargetDelivery",
       "runner_id": "cpp-tck.directed-interaction-derived-object-target",
       "parity": "java-tck.directed-interaction-derived-object-target",
       "default_status": "adapter-required",
@@ -40300,7 +40300,7 @@
         "standard-directed-derived-object-target-contract.json",
         "standard-directed-interaction-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioDirectedDerivedObjectTargetDeliveryContract",
+      "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioDirectedDerivedObjectTargetDeliveryContract",
       "runner_id": "cpp-tck.directed-interaction-derived-object-target-contract",
       "parity": "cpp-tck.directed-interaction-derived-object-target",
       "default_status": "adapter-required",
@@ -40345,7 +40345,7 @@
         "standard-directed-derived-object-target-contract.json",
         "standard-directed-interaction-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioDirectedDerivedObjectTargetEligibility",
+      "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioDirectedDerivedObjectTargetEligibility",
       "runner_id": "cpp-tck.directed-derived-object-target-eligibility",
       "parity": "java-tck.directed-derived-object-target-eligibility",
       "default_status": "adapter-required",
@@ -40378,7 +40378,7 @@
         "standard-directed-derived-object-target-contract.json",
         "standard-directed-interaction-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioDirectedDerivedObjectTargetEligibilityContract",
+      "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioDirectedDerivedObjectTargetEligibilityContract",
       "runner_id": "cpp-tck.directed-derived-object-target-eligibility-contract",
       "parity": "cpp-tck.directed-derived-object-target-eligibility",
       "default_status": "adapter-required",
@@ -40438,7 +40438,7 @@
         "standard-directed-derived-object-target-contract.json",
         "standard-timestamped-directed-interactions-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedDerivedObjectTargetDelivery",
+      "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioTimestampedDirectedDerivedObjectTargetDelivery",
       "runner_id": "cpp-tck.timestamped-directed-interaction-derived-object-target",
       "parity": "java-tck.timestamped-directed-interaction-derived-object-target",
       "default_status": "adapter-required",
@@ -40485,7 +40485,7 @@
         "standard-directed-derived-object-target-contract.json",
         "standard-timestamped-directed-interactions-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedDerivedObjectTargetDeliveryContract",
+      "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioTimestampedDirectedDerivedObjectTargetDeliveryContract",
       "runner_id": "cpp-tck.timestamped-directed-interaction-derived-object-target-contract",
       "parity": "cpp-tck.timestamped-directed-interaction-derived-object-target",
       "default_status": "adapter-required",

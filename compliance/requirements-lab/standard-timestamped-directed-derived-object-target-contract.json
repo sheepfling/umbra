@@ -13,7 +13,7 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador directed-interaction, logical-time, time-advance, and order-type declarations with FederateAmbassador discovery and timestamped directed-interaction callbacks",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedDirectedDerivedObjectTargetDeliveryContract"
+        "packages/hla-rti-cpp-tck/src/tck_inherited_derived_delivery_scenarios.cpp::scenarioTimestampedDirectedDerivedObjectTargetDeliveryContract"
       ]
     }
   ]
