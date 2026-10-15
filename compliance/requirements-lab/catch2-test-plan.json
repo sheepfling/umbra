@@ -16941,6 +16941,53 @@
       "next_action": "This focused public process-boundary case composes the dedicated 2025 directed FOM, declares target publication/subscription through the endpoint, registers the target, and proves that official FederateAmbassador callbacks preserve discovery-before-directed-delivery ordering, target identity, producer, transportation, and tag under both HLA_EVOKED and HLA_IMMEDIATE. Its timestamped sections carry the HLAinteger64Time encoding through the timestamped Send Directed Interaction overload and official callback with RECEIVE order classifications and an execution-owned retraction identity. The paired timestamped-retraction-before-receive sections issue Retract before the receiver crosses its callback boundary and prove that the process request-retraction control event suppresses the pending directed delivery under both callback models. The paired timestamped-retraction-after-receive sections issue Retract after the receiver has crossed that boundary and prove exactly one legal official Request Retraction callback with the original handle under both callback models. Its callback-gating sections disable the receiver before admission, prove the directed event remains queued, and deliver it only after Enable Callbacks under both models. This remains private process-foundation evidence: the process profile has no time-regulation service and therefore does not claim regional/DDM, installable-package callback evidence, protected review, Lab validation, interoperability, or conformance."
     },
     {
+      "id": "umbra-cpp-process-object-retraction-callback-gate",
+      "primary_lane": "process-object-retraction-callback-gate",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.updateattributevalues.e1001477bd23",
+        "api.2025.cpp.rtiambassador.deleteobjectinstance.c05d20bc2175",
+        "api.2025.cpp.rtiambassador.retract.d2de2342935e",
+        "api.2025.cpp.rtiambassador.disablecallbacks.d279fd678306",
+        "api.2025.cpp.rtiambassador.enablecallbacks.a4711464793a",
+        "api.2025.cpp.federateambassador.reflectattributevalues.2e544a0fcd09",
+        "api.2025.cpp.federateambassador.removeobjectinstance.98c2549d1804",
+        "api.2025.cpp.federateambassador.requestretraction.071956ceac30"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-210-l27-5",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
+        "requirement-candidate-content-clauses-10-support-services-page-286-l125-38"
+      ],
+      "test_case": "RTIambassadors suppress retracted pushed object callbacks across Enable Callbacks",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_object_retraction_callback_gate_catch2.cpp:290",
+      "callback_models": ["HLA_IMMEDIATE"],
+      "delivery_modes": [
+        "timestamped-attribute-update-retracted-before-callback",
+        "timestamped-object-removal-retracted-before-callback"
+      ],
+      "callback_gate_modes": ["disabled-queued-retracted-reenabled"],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3",
+        "hla-1516.1-2025:clause-10.60.6"
+      ],
+      "tags": [
+        "integration", "object-management", "time-management", "retraction",
+        "callbacks", "process-boundary", "public-endpoint",
+        "process-object-retraction-callback-gate",
+        "rti.service.update-attribute-values", "rti.service.delete-object-instance",
+        "rti.service.retract", "rti.service.disable-callbacks",
+        "rti.service.enable-callbacks", "federate.callback.reflect-attribute-values",
+        "federate.callback.remove-object-instance", "2025"
+      ],
+      "status": "implemented-private-foundation-not-conformance-evidence",
+      "requirements_lab_api_surface_status": "Direct candidate-to-2025-section pairs are time-management page-210-l27-5 -> 8.22.3, page-211-l89-23 -> 8.23.3, and support-services page-286-l125-38 -> 10.60.6. Through the official C++ API, an HLA_IMMEDIATE process receiver disables callbacks, admits a pushed timestamped attribute update or object removal, observes a legal producer Retract, then enables callbacks. Neither the withdrawn callback nor Request Retraction may appear because the original callback did not begin. The object service calls establish the two delivery families; this focused regression does not claim full Update Attribute Values or Delete Object Instance conformance, interoperability, or Lab validation.",
+      "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors suppress retracted pushed object callbacks across Enable Callbacks$",
+      "ctest_label": "process-boundary",
+      "next_action": "Retain attribute and removal suppression as separate HLA_IMMEDIATE sections. Extend HLA_EVOKED and timestamp-order callback queues in distinct focused rows."
+    },
+    {
       "id": "umbra-cpp-callback-control-integration",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891",

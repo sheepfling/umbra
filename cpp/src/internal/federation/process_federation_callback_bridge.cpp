@@ -1384,10 +1384,12 @@ void ProcessFederationCallbackBridge::submitAttributeUpdate(
        tsoCompletion,
        tsoMessageId,
        event = std::move(event)]() mutable {
+        bool suppressCallback = false;
         bool acknowledgeSuppressed = false;
         if (retractionState) {
           std::scoped_lock lock(retractionState->mutex);
           if (retractionState->retractionRequested) {
+            suppressCallback = true;
             if (!retractionState->deliveryAcknowledged) {
               retractionState->deliveryAcknowledged = true;
               acknowledgeSuppressed = true;
@@ -1396,8 +1398,8 @@ void ProcessFederationCallbackBridge::submitAttributeUpdate(
             retractionState->callbackStarted = true;
           }
         }
-        if (acknowledgeSuppressed) {
-          if (tsoCompletion && tsoMessageId) {
+        if (suppressCallback) {
+          if (acknowledgeSuppressed && tsoCompletion && tsoMessageId) {
             tsoCompletion(*tsoMessageId);
           }
           return;
@@ -1597,10 +1599,12 @@ void ProcessFederationCallbackBridge::submitObjectInstanceRemoval(
        tsoCompletion,
        tsoMessageId,
        event = std::move(event)]() mutable {
+        bool suppressCallback = false;
         bool acknowledgeSuppressed = false;
         if (retractionState) {
           std::scoped_lock lock(retractionState->mutex);
           if (retractionState->retractionRequested) {
+            suppressCallback = true;
             if (!retractionState->deliveryAcknowledged) {
               retractionState->deliveryAcknowledged = true;
               acknowledgeSuppressed = true;
@@ -1609,8 +1613,8 @@ void ProcessFederationCallbackBridge::submitObjectInstanceRemoval(
             retractionState->callbackStarted = true;
           }
         }
-        if (acknowledgeSuppressed) {
-          if (tsoCompletion && tsoMessageId) {
+        if (suppressCallback) {
+          if (acknowledgeSuppressed && tsoCompletion && tsoMessageId) {
             tsoCompletion(*tsoMessageId);
           }
           return;
