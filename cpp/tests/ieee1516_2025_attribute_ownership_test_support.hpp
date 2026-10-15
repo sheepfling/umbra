@@ -138,6 +138,15 @@ class ReportingFederateAmbassador final
     AttributeHandleSet attributes;
   };
 
+  struct AttributeOwnershipReport final {
+    enum class Kind { federate, unowned, rti };
+
+    Kind kind = Kind::unowned;
+    ObjectInstanceHandle objectInstance;
+    AttributeHandleSet attributes;
+    FederateHandle owner;
+  };
+
   void discoverObjectInstance(
       ObjectInstanceHandle const& objectInstance,
       ObjectClassHandle const& objectClass,
@@ -194,11 +203,46 @@ class ReportingFederateAmbassador final
     acquisitionCancellationReports.push_back({objectInstance, attributes});
   }
 
+  void informAttributeOwnership(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleSet const& attributes,
+      FederateHandle const& owner) override {
+    attributeOwnershipReports.push_back({
+        AttributeOwnershipReport::Kind::federate,
+        objectInstance,
+        attributes,
+        owner,
+    });
+  }
+
+  void attributeIsNotOwned(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleSet const& attributes) override {
+    attributeOwnershipReports.push_back({
+        AttributeOwnershipReport::Kind::unowned,
+        objectInstance,
+        attributes,
+        FederateHandle(),
+    });
+  }
+
+  void attributeIsOwnedByRTI(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleSet const& attributes) override {
+    attributeOwnershipReports.push_back({
+        AttributeOwnershipReport::Kind::rti,
+        objectInstance,
+        attributes,
+        FederateHandle(),
+    });
+  }
+
   std::vector<ObjectDiscoveryReport> objectDiscoveryReports;
   std::vector<ObjectRemovalReport> objectRemovalReports;
   std::vector<AcquisitionReport> acquisitionReports;
   std::vector<ReleaseRequestReport> releaseRequests;
   std::vector<AcquisitionCancellationReport> acquisitionCancellationReports;
+  std::vector<AttributeOwnershipReport> attributeOwnershipReports;
 };
 
 inline std::unique_ptr<RTIambassador> makeRti() {

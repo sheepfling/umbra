@@ -721,10 +721,11 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "RTIambassadors deliver Attribute Ownership Unavailable after a denied process acquisition",
+    "RTIambassadors retain the queried owner after a denied process acquisition",
     "[integration][development-profile][federation-management][ownership-management]"
     "[transport][process-boundary][process-ownership-acquisition-release-denied][public-endpoint]"
-    "[attribute-ownership-acquisition][federate.callback.attribute-ownership-unavailable][2025]") {
+    "[attribute-ownership-acquisition][federate.callback.attribute-ownership-unavailable]"
+    "[query-attribute-ownership][federate.callback.inform-attribute-ownership][2025]") {
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener != nullptr);
   auto const port = listener->address().port;
@@ -854,6 +855,12 @@ TEST_CASE(
       serveExpected(
           requesterSession,
           requesterHandler,
+          TransportServiceOperation::query_attribute_ownership,
+          "The process ownership-acquisition release-denied server lost the post-denial owner query.",
+          true);
+      serveExpected(
+          requesterSession,
+          requesterHandler,
           TransportServiceOperation::resign_federation_execution,
           "The process ownership-acquisition release-denied server lost requester Resign.",
           true);
@@ -896,11 +903,13 @@ TEST_CASE(
     REQUIRE_NOTHROW(owner->createFederationExecution(
         federationName,
         fomModule));
-    REQUIRE_NOTHROW(owner->joinFederationExecution(
+    FederateHandle ownerHandle;
+    REQUIRE_NOTHROW(ownerHandle = owner->joinFederationExecution(
         L"process-ownership-acquisition-release-denied-owner",
         L"publisher",
         federationName));
     ownerJoined = true;
+    REQUIRE(ownerHandle.isValid());
 
     REQUIRE_NOTHROW(requester->connect(
         requesterReports, HLA_EVOKED, requesterConfiguration));
@@ -990,6 +999,24 @@ TEST_CASE(
     REQUIRE(variableLengthDataBytes(unavailable.userSuppliedTag) ==
             std::vector<unsigned char>(
                 denialTagBytes, denialTagBytes + sizeof(denialTagBytes)));
+
+    REQUIRE_NOTHROW(requester->queryAttributeOwnership(
+        objectInstance, AttributeHandleSet{requesterAttribute}));
+    REQUIRE(requesterReports.attributeOwnershipReports.empty());
+    auto const ownerQueryDeadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (requesterReports.attributeOwnershipReports.empty() &&
+           std::chrono::steady_clock::now() < ownerQueryDeadline) {
+      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+    }
+    REQUIRE(requesterReports.attributeOwnershipReports.size() == 1U);
+    auto const& ownership = requesterReports.attributeOwnershipReports.front();
+    REQUIRE(ownership.kind ==
+            ReportingFederateAmbassador::AttributeOwnershipReport::Kind::federate);
+    REQUIRE(ownership.objectInstance == objectInstance);
+    REQUIRE(ownership.attributes == AttributeHandleSet{requesterAttribute});
+    REQUIRE(ownership.owner == ownerHandle);
+    REQUIRE(requesterReports.acquisitionReports.size() == 1U);
 
     REQUIRE_NOTHROW(requester->resignFederationExecution(
         rti1516_2025::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS));
