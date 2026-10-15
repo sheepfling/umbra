@@ -49004,8 +49004,8 @@
         "hla-1516.1-2025:clause-4.26"
       ],
       "requirements_lab_api_surface_status": "This HLA_EVOKED process-boundary case exercises the same seven direct requirement-to-subsection pairs as the HLA_IMMEDIATE terminal-status seed: save request, save-begun, save-failure, and terminal save-status reporting. It additionally verifies that the failure and status callbacks remain pending until Evoke Callback and that the queried status is NO_SAVE_IN_PROGRESS. The Initiate Federate Save label candidate remains unmapped because RL-267 records its pinned subsection-export mismatch; no callback ordering or private process-protocol behavior is claimed as normative. This is private development-profile evidence, not validation, interoperability, or conformance evidence.",
-      "ctest_target": "umbra_ieee1516_2025_connection_catch2",
-      "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors expose terminal federation save status after a process save failure$",
+      "ctest_target": "umbra_ieee1516_2025_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.RTIambassadors expose terminal federation save status after a process save failure$",
       "ctest_label": "process-federation-save-not-complete-status-terminal",
       "next_action": "Keep this HLA_EVOKED callback-gating and terminal-status evidence separate from the HLA_IMMEDIATE push-mode seed, restore behavior, and cross-federate callback-order tests."
     },

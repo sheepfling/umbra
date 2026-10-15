@@ -467,6 +467,7 @@ TEST_CASE(
       L"process-federation-save-status-after-failure-type";
   constexpr wchar_t const* saveLabel =
       L"process-federation-save-status-after-failure-label";
+  constexpr double callbackWaitSeconds = 2.0;
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
   auto const port = listener->address().port;
@@ -488,19 +489,31 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
-                               char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(
-                        std::string(description) +
-                        " received an unexpected process operation.");
-                  }
-                  return handler(request);
-                })) {
-          throw std::runtime_error(description);
-        }
+                               char const* description,
+                               bool allowEvokePoll = false) {
+        bool servedExpected = false;
+        bool servedEvokePoll = false;
+        do {
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
+                  [&](TransportServiceMessage const& request) {
+                    if (allowEvokePoll && !servedEvokePoll &&
+                        request.operation ==
+                            TransportServiceOperation::receive_interaction) {
+                      servedEvokePoll = true;
+                      return handler(request);
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          std::string(description) +
+                          " received an unexpected process operation.");
+                    }
+                    servedExpected = true;
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(description);
+          }
+        } while (!servedExpected);
       };
       serveExpected(
           TransportServiceOperation::create_federation_execution,
@@ -512,26 +525,18 @@ TEST_CASE(
           TransportServiceOperation::request_federation_save,
           "The terminal save-status server lost Request Federation Save.");
       serveExpected(
-          TransportServiceOperation::receive_interaction,
-          "The terminal save-status server lost save-initiation polling.");
-      serveExpected(
           TransportServiceOperation::federate_save_begun,
-          "The terminal save-status server lost Federate Save Begun.");
+          "The terminal save-status server lost Federate Save Begun.", true);
       serveExpected(
           TransportServiceOperation::federate_save_not_complete,
           "The terminal save-status server lost Federate Save Not Complete.");
       serveExpected(
-          TransportServiceOperation::receive_interaction,
-          "The terminal save-status server lost save-failure polling.");
-      serveExpected(
           TransportServiceOperation::query_federation_save_status,
-          "The terminal save-status server lost the post-failure status query.");
-      serveExpected(
-          TransportServiceOperation::receive_interaction,
-          "The terminal save-status server lost terminal-status polling.");
+          "The terminal save-status server lost the post-failure status query.",
+          true);
       serveExpected(
           TransportServiceOperation::resign_federation_execution,
-          "The terminal save-status server lost Resign.");
+          "The terminal save-status server lost Resign.", true);
       service.detach(session);
       connection->close();
     } catch (...) {
@@ -557,20 +562,21 @@ TEST_CASE(
     REQUIRE(federateHandle.isValid());
 
     REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    // Wait for the independent callback stream after the service response.
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.initiateCount == 1U);
     REQUIRE(federate.initiateLabel == saveLabel);
 
     REQUIRE_NOTHROW(rti->federateSaveBegun());
     REQUIRE_NOTHROW(rti->federateSaveNotComplete());
     REQUIRE(federate.notSavedCount == 0U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.notSavedCount == 1U);
     REQUIRE(federate.notSavedReason ==
             rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
 
     REQUIRE_NOTHROW(rti->queryFederationSaveStatus());
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE_FALSE(rti->evokeCallback(callbackWaitSeconds));
     REQUIRE(federate.federationSaveStatusReports.size() == 1U);
     REQUIRE(federate.federationSaveStatusReports.back().size() == 1U);
     REQUIRE(federate.federationSaveStatusReports.back()[0].first ==
@@ -582,18 +588,12 @@ TEST_CASE(
     REQUIRE_NOTHROW(rti->disconnect());
   } catch (...) {
     clientError = std::current_exception();
-    try {
-      rti->resignFederationExecution(NO_ACTION);
-    } catch (...) {
-    }
-    try {
-      rti->disconnect();
-    } catch (...) {
-    }
   }
-  if (listener) {
-    listener.reset();
+  if (clientError) {
+    // Closing the client unblocks the scripted server after an assertion.
+    rti.reset();
   }
+  listener->close();
   if (server.joinable()) {
     server.join();
   }
