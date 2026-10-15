@@ -461,3 +461,18 @@ invent a requirement ID for the separate §6.25 callback-invocation timing
 sentence, which is not directly mapped by the current process attribute-
 transportation case. No Lab resynchronization was performed. This records a
 Lab extraction issue, not an IEEE erratum or conformance result.
+
+### RL-325 — Attribute transportation confirmation rule is attributed to §6.27
+
+The pinned 2025 candidate `requirement-candidate-content-clauses-06-object-
+management-page-141-l11-1` exports the one-request/one-confirmation rule as
+§6.27. In the reconstructed page-141 source, that sentence precedes the
+`6.27 Change Default Attribute Transportation Type` heading and belongs to
+§6.26, Confirm Attribute Transportation Type Change. This candidate was not
+covered by RL-324 or the older heading-boundary issues.
+
+Workaround: retain the pinned candidate ID and export, but map the existing
+attribute-transportation C++ case and its focused contract check to canonical
+§6.26 for this rule. Do not claim that it covers §6.27's change-default
+service. No Lab resynchronization was performed; this is a Lab extraction
+attribution issue, not an IEEE erratum or conformance result.

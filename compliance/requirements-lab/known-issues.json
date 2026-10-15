@@ -1630,6 +1630,29 @@
       "reproduction": "Compare the affected ID in topics/ieee/hla-1516.1-2025/semantic/requirements.json with the page-139 layout_body in topics/ieee/hla-1516.1-2025/semantic/content-blocks.json: the default-on-reacquisition sentence precedes the 6.25.1 heading.",
       "verification": "The pinned reconstructed semantic page establishes the heading order. The canonical PDF was not independently checked in this turn; this is a Lab source-attribution issue, not IEEE errata or conformance evidence.",
       "detected": "2026-10-15"
+    },
+    {
+      "id": "RL-325",
+      "status": "open",
+      "kind": "requirements-lab-source-clause-attribution",
+      "title": "Attribute transportation one-request/one-confirmation candidate has change-default clause label",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-141-l11-1"
+      ],
+      "exported_clause": "6.27",
+      "normative_clause": "6.26",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "semantic/content-blocks.json",
+        "lines": "2963-2968",
+        "page": 141
+      },
+      "symptom": "The candidate stating that all attributes from one Request Attribute Transportation Type Change invocation belong in one Confirm invocation is labeled 6.27, but the reconstructed page places it before the 6.27 Change Default Attribute Transportation Type heading, under 6.26 Confirm Attribute Transportation Type Change.",
+      "impact": "The current attribute-transportation process test and focused contract could falsely claim direct coverage of 6.27's change-default service instead of 6.26's confirmation rule.",
+      "workaround": "Preserve the candidate ID and pinned export; map its direct C++ evidence and focused contract to canonical 6.26, not 6.27. Do not claim this candidate validates the change-default service.",
+      "reproduction": "Compare the affected ID in topics/ieee/hla-1516.1-2025/semantic/requirements.json with page 141 in topics/ieee/hla-1516.1-2025/semantic/content-blocks.json: the one-request/one-confirmation sentence occurs before the 6.27 heading.",
+      "verification": "The pinned reconstructed semantic page establishes the heading order. The canonical PDF was not independently checked in this turn; this is a Lab source-attribution issue, not IEEE errata or conformance evidence.",
+      "detected": "2026-10-15"
     }
   ]
 }
