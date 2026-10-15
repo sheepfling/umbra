@@ -15984,7 +15984,7 @@
         "hla-1516.1-2025:clause-4.35"
       ],
       "test_case": "RTIambassadors carry federation restore status through the configured process endpoint",
-      "source_location": "cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp:1259",
+      "source_location": "cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp:1279",
       "primary_lane": "process-federation-restore-status",
       "focus_lane": "process-federation-restore-status",
       "assertions": 34,
