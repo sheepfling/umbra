@@ -380,3 +380,12 @@ Workaround: treat the three IDs as one linked paragraph group when planning
 focused evidence; no fragment independently establishes the full obligation.
 The pinned bundle is unchanged. This is an extraction/usability issue, not
 IEEE errata; the canonical PDF was not separately checked in this turn.
+### RL-319 — Annex C.3 extendable-variant merge rule is clipped
+
+The pinned §C.3 candidate for `HLAextendableVariantRecord` stops mid-sentence
+at the end of semantic page 110. Page 111 continues with the discriminant
+enumerator conflict rule and the `HLAother` rejection. Read both pages before
+planning variant-record merge tests; do not treat the clipped candidate as
+complete validation. The separate public C++ data-type-addition test addresses
+only the earlier, intact §C.3 requirement. This is a Requirements Lab
+extraction issue, not IEEE errata.

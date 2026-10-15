@@ -9608,6 +9608,36 @@
       "next_action": "This bounded public C++ regression now has an exact 2025 Lab requirement, canonical subsection, official overload surfaces, and a source pointer. Keep it green while broader FOM composition, package/JUnit/protected-review, validation, interoperability, and conformance remain separate."
     },
     {
+      "id": "umbra-cpp-annex-c-data-type-added-at-create-integration",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.createfederationexecution.b7555a12e578"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8"
+      ],
+      "test_case": "Embedded Create Federation Execution resolves a data type supplied by a later FOM module",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "fom",
+        "annex-c",
+        "annex-c-data-type-merge",
+        "rti.service.create-federation-execution"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/fom_declaration_management_catch2.cpp:120",
+      "assertions": 5,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.2-2025:clause-C.3"
+      ],
+      "requirements_lab_api_surface_status": "The official vector Create Federation Execution overload rejects a schema-valid array type reference when its element type is absent, then accepts the same consumer followed by a provider module under the same federation name. This bounds Annex C.3 evidence to addition and merged visibility of a previously absent data type at creation; it does not validate every C.3 duplicate or variant-record rule, package behavior, interoperability, or conformance.",
+      "next_action": "Keep this public C++ creation boundary green. Review the remaining Annex C.3 candidate rules separately, particularly the clipped extendable-variant-record statement, without promoting this one case to complete Annex C coverage."
+    },
+    {
       "id": "umbra-cpp-fom-additional-module-join-composition-integration",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",

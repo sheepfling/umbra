@@ -118,6 +118,38 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded Create Federation Execution resolves a data type supplied by a later FOM module",
+    "[integration][development-profile][federation-management][fom][annex-c]"
+    "[annex-c-data-type-merge][rti.service.create-federation-execution]") {
+  rti1516_2025::NullFederateAmbassador federate;
+  auto creator = makeRti();
+  auto const federationName = nextFederationName();
+  auto const consumer = testDataPath("data-type-reference-consumer-fom.xml").wstring();
+  auto const provider = testDataPath("data-type-reference-provider-fom.xml").wstring();
+
+  REQUIRE_NOTHROW(creator->connect(federate, rti1516_2025::HLA_EVOKED));
+
+  // IEEE 1516.2-2025 Annex C.3 adds previously absent data types while
+  // composing the module set. The array element type is unresolved in the
+  // consumer alone but supplied by the later, separately valid provider.
+  REQUIRE_THROWS_AS(
+      creator->createFederationExecution(
+          federationName,
+          std::vector<std::wstring>{consumer},
+          L"HLAinteger64Time"),
+      rti1516_2025::InconsistentFOM);
+  REQUIRE_NOTHROW(creator->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{consumer, provider},
+      L"HLAinteger64Time"));
+
+  // Reusing the same name also confirms that the rejected composition did
+  // not reserve a partially created federation execution.
+  REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(creator->disconnect());
+}
+
+TEST_CASE(
     "Embedded Join Federation Execution composes an additional FOM module for all members",
     "[integration][development-profile][federation-management][fom][fom-module-management]"
     "[rti.service.join-federation-execution]"

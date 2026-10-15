@@ -1493,6 +1493,30 @@
       "reproduction": "Compare the three page-233 candidate statements in the pinned corpus bundle with topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-233.tex lines 13-20.",
       "verification": "The bundle contains three partial statements while the reconstructed semantic page presents the continuous 9.8 discovery rule. The canonical PDF was not independently checked in this turn, so this records a pinned-export usability issue, not IEEE errata.",
       "detected": "2026-10-14"
+    },
+    {
+      "id": "RL-319",
+      "status": "open",
+      "kind": "requirements-lab-incomplete-normative-statement",
+      "title": "Annex C.3 extendable-variant candidate stops mid-conflict rule",
+      "affected_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l90-20"
+      ],
+      "exported_clause": "C.3",
+      "normative_clause": "C.3",
+      "document_id": "hla-1516.2-2025",
+      "source": {
+        "path": "sections/semantic/clause-7-annexes-a-c/page-110.tex",
+        "lines": "90-91",
+        "page": 110
+      },
+      "symptom": "The pinned candidate ends after `If the same named discriminant`, before the continuation on the next semantic page. The omitted text states when a discriminant enumerator used by multiple named alternatives makes the merge fail, and also rejects an HLAother alternative in an HLAextendableVariantRecord.",
+      "impact": "A bounded requirement card cannot show the complete Annex C.3 failure conditions. Mapping a variant-record test to the fragment alone could overstate merge-rule coverage or miss the cross-page conflict and HLAother cases.",
+      "workaround": "Keep the stable candidate ID and pinned export unchanged. Read the page-110 block together with the page-111 continuation in the unchanged Requirements Lab before designing C.3 variant-record tests. Do not promote the fragment as complete Annex C.3 validation; the separate public C++ data-type-addition case covers only the earlier, intact C.3 requirement.",
+      "reproduction": "Compare requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l90-20 in .compliance/corpus-bundle.json with topics/ieee/hla-1516.2-2025/output/semantic/content-block-content-15162-page-110.tex lines 122-125 and content-block-content-15162-page-111.tex lines 35-38 in the unchanged Document-Recreation lab.",
+      "recurrence_of": "RL-314",
+      "verification": "The pinned candidate stops mid-sentence at the end of the page-110 block. The Lab's page-111 semantic block supplies the conflict and HLAother continuation. The canonical PDF was not independently checked in this turn, so this is a Lab extraction/usability issue, not IEEE errata.",
+      "detected": "2026-10-14"
     }
   ]
 }
