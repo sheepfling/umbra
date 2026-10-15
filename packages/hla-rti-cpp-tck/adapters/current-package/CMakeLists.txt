@@ -342,6 +342,8 @@ if(NOT _tck_test_scenarios)
          NOT _tck_filtered_scenario STREQUAL "cpp-tck.federate-lost-mom-report-contract" AND
          NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-automatic-unconditional-divestiture" AND
          NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract" AND
+         NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-automatic-delete-then-divest" AND
+         NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-automatic-delete-then-divest-contract" AND
          NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-automatic-cancel-pending-acquisition" AND
          NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract" AND
          NOT _tck_filtered_scenario STREQUAL "cpp-tck.automatic-resign-directive-delete-objects" AND

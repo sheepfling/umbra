@@ -415,6 +415,8 @@ void scenarioConnectionLossAutomaticCancelPendingAcquisition(Options const&, rti
 void scenarioConnectionLossAutomaticCancelPendingAcquisitionContract(Options const&, rti::CallbackModel);
 void scenarioConnectionLossAutomaticUnconditionalDivestiture(Options const&, rti::CallbackModel);
 void scenarioConnectionLossAutomaticUnconditionalDivestitureContract(Options const&, rti::CallbackModel);
+void scenarioConnectionLossAutomaticDeleteThenDivest(Options const&, rti::CallbackModel);
+void scenarioConnectionLossAutomaticDeleteThenDivestContract(Options const&, rti::CallbackModel);
 void scenarioConnectionLossContract(Options const&, rti::CallbackModel);
 void scenarioCustomTransportationInteractionDeliveryContract(Options const&, rti::CallbackModel);
 void scenarioCustomTransportationRegionalAttributeDelivery(Options const&, rti::CallbackModel);

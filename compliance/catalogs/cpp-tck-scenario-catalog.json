@@ -35058,6 +35058,107 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.connection-loss-automatic-delete-then-divest",
+      "category": "connection",
+      "title": "Delete the lost member's object and release its attribute on a surviving object",
+      "api_methods": [
+        "RTIambassador.setAutomaticResignDirective",
+        "RTIambassador.getAutomaticResignDirective",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "FederateAmbassador.connectionLost",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "FederateAmbassador.requestAttributeOwnershipAssumption",
+        "FederateAmbassador.removeObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-connection-loss-callback",
+        "cpp-1516.1-connection-loss-cleanup",
+        "cpp-1516.1-automatic-resign-directive",
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior",
+        "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+        "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+        "requirement-candidate-content-clauses-10-support-services-page-275-l119-36"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.1",
+        "hla-1516.1-2025:clause-4.4",
+        "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-10.44",
+        "hla-1516.1-2025:clause-10.45.3"
+      ],
+      "mapping_note": "Direct pairs: req-federate-connection-lost -> 4.1.1; req-connection-lost-service-behavior -> 4.4; page-050-l36-11 -> 4; page-274-l181-57 -> 10.44; page-275-l119-36 -> 10.45.3. The two-object deletion/divestiture effects are tested after an adapter-managed transport loss; callback ordering is not asserted as a normative cross-service rule.",
+      "contract_refs": [
+        "connection-lost-api-contract.json",
+        "connection-lost-requirements-contract.json",
+        "support-switches-api-contract.json",
+        "support-switches-service-requirements-contract.json",
+        "standard-connection-loss-automatic-ownership-cleanup-contract.json"
+      ],
+      "cpp_test": "src/tck_connection_lifecycle.cpp#scenarioConnectionLossAutomaticDeleteThenDivest",
+      "runner_id": "cpp-tck.connection-loss-automatic-delete-then-divest",
+      "parity": "cpp-tck.connection-loss-automatic-delete-then-divest-contract",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.connection-loss-automatic-delete-then-divest-contract",
+      "category": "connection",
+      "title": "Pure standard C++ contract for two-object automatic delete-then-divest cleanup after connection loss",
+      "api_methods": [
+        "RTIambassador.setAutomaticResignDirective",
+        "RTIambassador.getAutomaticResignDirective",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "FederateAmbassador.connectionLost",
+        "FederateAmbassador.requestAttributeOwnershipAssumption",
+        "FederateAmbassador.removeObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-connection-loss-callback",
+        "cpp-1516.1-connection-loss-cleanup",
+        "cpp-1516.1-automatic-resign-directive",
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior",
+        "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+        "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+        "requirement-candidate-content-clauses-10-support-services-page-275-l119-36"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.1",
+        "hla-1516.1-2025:clause-4.4",
+        "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-10.44",
+        "hla-1516.1-2025:clause-10.45.3"
+      ],
+      "mapping_note": "Same five direct 2025 pairs as the base case; this independently dispatchable contract keeps the standard public C++ API separate from the provider-owned fault fixture.",
+      "contract_refs": [
+        "standard-connection-loss-automatic-ownership-cleanup-contract.json"
+      ],
+      "cpp_test": "src/tck_connection_lifecycle.cpp#scenarioConnectionLossAutomaticDeleteThenDivestContract",
+      "runner_id": "cpp-tck.connection-loss-automatic-delete-then-divest-contract",
+      "parity": "cpp-tck.connection-loss-automatic-delete-then-divest",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
       "category": "connection",
       "title": "Cancel a lost member's pending ownership acquisition and preserve survivor ownership cleanup",

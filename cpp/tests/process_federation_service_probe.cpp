@@ -354,6 +354,8 @@ int runPublicServer(
       std::filesystem::exists(directory / "timestamped.mode");
   bool const automaticDeleteObjects = std::filesystem::exists(
       directory / "automatic-delete-objects.mode");
+  bool const automaticDeleteThenDivest = std::filesystem::exists(
+      directory / "automatic-delete-then-divest.mode");
   bool const federateLostMomReport = std::filesystem::exists(
       directory / "federate-lost-mom-report.mode");
   std::unique_ptr<ProcessTransportSession> sender;
@@ -997,6 +999,142 @@ int runPublicServer(
     receiver->connection()->close();
     writeText(directory / "server.ok", "ok\n");
     return 0;
+  }
+
+  if (automaticDeleteThenDivest) {
+    // Each socket has exactly one reader.  Discovery and ownership callbacks
+    // can make Evoke issue zero or more receive polls, so fixed cross-socket
+    // request ordering would deadlock before the loss-readiness marker.
+    std::thread senderReader;
+    std::thread receiverReader;
+    std::exception_ptr senderError;
+    std::exception_ptr receiverError;
+    std::atomic_bool lossStarted{false};
+    auto serveScript = [&](ProcessTransportSession& session,
+                           ProcessTransportServiceDispatcher::Handler const& handler,
+                           auto const& expected,
+                           std::size_t preLossCount,
+                           std::exception_ptr& error) {
+      try {
+        std::size_t nextOperation = 0U;
+        while (nextOperation < expected.size()) {
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation ==
+                            TransportServiceOperation::receive_interaction ||
+                        request.operation ==
+                            TransportServiceOperation::report_successful_service_invocation ||
+                        request.operation ==
+                            TransportServiceOperation::report_successful_void_service_invocation) {
+                      return handler(request);
+                    }
+                    if (request.operation != expected[nextOperation] ||
+                        (nextOperation >= preLossCount &&
+                         !lossStarted.load(std::memory_order_acquire))) {
+                      throw std::runtime_error(
+                          "The automatic delete-then-divest fixture received an unexpected or premature operation " +
+                          std::to_string(static_cast<unsigned int>(request.operation)) +
+                          " (expected " +
+                          std::to_string(static_cast<unsigned int>(expected[nextOperation])) +
+                          ").");
+                    }
+                    ++nextOperation;
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(
+                "The automatic delete-then-divest fixture lost a public request.");
+          }
+        }
+      } catch (...) {
+        error = std::current_exception();
+      }
+    };
+    std::array const senderOperations{
+        TransportServiceOperation::get_object_class_handle,
+        TransportServiceOperation::get_attribute_handle,
+        TransportServiceOperation::publish_object_class_attributes,
+        TransportServiceOperation::subscribe_object_class_attributes,
+        TransportServiceOperation::register_object_instance,
+        TransportServiceOperation::get_object_instance_name,
+        TransportServiceOperation::unconditional_attribute_ownership_divestiture,
+        TransportServiceOperation::get_object_instance_handle,
+        TransportServiceOperation::is_attribute_owned_by_federate,
+        TransportServiceOperation::resign_federation_execution};
+    std::array const receiverOperations{
+        TransportServiceOperation::get_object_class_handle,
+        TransportServiceOperation::get_attribute_handle,
+        TransportServiceOperation::publish_object_class_attributes,
+        TransportServiceOperation::subscribe_object_class_attributes,
+        TransportServiceOperation::attribute_ownership_acquisition_if_available,
+        TransportServiceOperation::is_attribute_owned_by_federate,
+        TransportServiceOperation::register_object_instance,
+        TransportServiceOperation::set_automatic_resign_directive,
+        TransportServiceOperation::get_automatic_resign_directive};
+    try {
+      senderReader = std::thread([&] {
+        serveScript(*sender, senderHandler, senderOperations, 7U, senderError);
+      });
+      receiverReader = std::thread([&] {
+        serveScript(
+            *receiver, receiverHandler, receiverOperations,
+            receiverOperations.size(), receiverError);
+      });
+      waitForFile(directory / "connection-loss-ready.ok", [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "ready") {
+          throw std::runtime_error(
+              "The automatic delete-then-divest fixture readiness marker is invalid.");
+        }
+        return true;
+      });
+      receiverReader.join();
+      if (receiverError) {
+        std::rethrow_exception(receiverError);
+      }
+      lossStarted.store(true, std::memory_order_release);
+      auto const lost = registry.connectionLost(
+          L"process-execution", receiverMember->id);
+      if (lost.status != FederationRegistryStatus::applied ||
+          !service.dispatchConnectionLossResult(
+              L"process-execution", std::move(lost), receiverMember->id)) {
+        throw std::runtime_error(
+            "The automatic delete-then-divest fixture could not apply Connection Lost.");
+      }
+      service.detach(*receiver);
+      receiver->connection()->close();
+      writeText(directory / "receiver-closed.ok", "ok\n");
+      waitForFile(directory / "receiver-loss.ok", [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "callback-ok") {
+          throw std::runtime_error(
+              "The automatic delete-then-divest fixture loss marker is invalid.");
+        }
+        return true;
+      });
+      senderReader.join();
+      if (senderError) {
+        std::rethrow_exception(senderError);
+      }
+      service.detach(*sender);
+      sender->connection()->close();
+      writeText(directory / "server.ok", "ok\n");
+      return 0;
+    } catch (...) {
+      sender->connection()->close();
+      receiver->connection()->close();
+      if (senderReader.joinable()) {
+        senderReader.join();
+      }
+      if (receiverReader.joinable()) {
+        receiverReader.join();
+      }
+      throw;
+    }
   }
 
   if (connectionLoss) {

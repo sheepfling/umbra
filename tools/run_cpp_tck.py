@@ -987,6 +987,8 @@ CONNECTION_LOSS_SCENARIOS = (
     "cpp-tck.federate-lost-mom-report-contract",
     "cpp-tck.connection-loss-automatic-unconditional-divestiture",
     "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
+    "cpp-tck.connection-loss-automatic-delete-then-divest",
+    "cpp-tck.connection-loss-automatic-delete-then-divest-contract",
     "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
     "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract",
     "cpp-tck.automatic-resign-directive-delete-objects",

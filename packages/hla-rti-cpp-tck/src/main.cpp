@@ -37705,6 +37705,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.connection-loss-cleanup-contract",
       "cpp-tck.connection-loss-automatic-unconditional-divestiture",
       "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
+      "cpp-tck.connection-loss-automatic-delete-then-divest",
+      "cpp-tck.connection-loss-automatic-delete-then-divest-contract",
       "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
       "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract",
       "java-tck.ddm",
@@ -40069,6 +40071,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract") {
     return scenarioConnectionLossAutomaticUnconditionalDivestitureContract;
   }
+  if (id == "cpp-tck.connection-loss-automatic-delete-then-divest") {
+    return scenarioConnectionLossAutomaticDeleteThenDivest;
+  }
+  if (id == "cpp-tck.connection-loss-automatic-delete-then-divest-contract") {
+    return scenarioConnectionLossAutomaticDeleteThenDivestContract;
+  }
   if (id == "cpp-tck.connection-loss-automatic-cancel-pending-acquisition") {
     return scenarioConnectionLossAutomaticCancelPendingAcquisition;
   }
@@ -40222,6 +40230,8 @@ int run(Options const& options) {
            scenario == "cpp-tck.connection-loss-cleanup-contract" ||
            scenario == "cpp-tck.connection-loss-automatic-unconditional-divestiture" ||
            scenario == "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract" ||
+           scenario == "cpp-tck.connection-loss-automatic-delete-then-divest" ||
+           scenario == "cpp-tck.connection-loss-automatic-delete-then-divest-contract" ||
            scenario == "cpp-tck.connection-loss-automatic-cancel-pending-acquisition" ||
            scenario == "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract") &&
           !options.connectionLossServerManaged) {

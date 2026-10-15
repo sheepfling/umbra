@@ -355,6 +355,131 @@ void scenarioConnectionLossAutomaticUnconditionalDivestitureContract(
   scenarioConnectionLossAutomaticUnconditionalDivestiture(options, model);
 }
 
+void scenarioConnectionLossAutomaticDeleteThenDivest(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      options.connectionLossServerManaged,
+      "Automatic connection-loss delete-then-divest requires an adapter-managed fault fixture");
+  Session survivor(options, model, "owner");
+  Session lost(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "connection-loss-automatic-delete-then-divest");
+  connectAndJoin(survivor, lost, options, federation, options.fom);
+
+  auto const survivorClass =
+      survivor.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const lostClass =
+      lost.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const survivorAttribute = survivor.rtiAmbassador().getAttributeHandle(
+      survivorClass, options.attributeName);
+  auto const lostAttribute = lost.rtiAmbassador().getAttributeHandle(
+      lostClass, options.attributeName);
+  require(
+      survivorClass.isValid() && lostClass.isValid() &&
+          survivorAttribute.isValid() && lostAttribute.isValid(),
+      "automatic delete-then-divest setup returned an invalid class or attribute handle");
+
+  rti::AttributeHandleSet const survivorAttributes{survivorAttribute};
+  rti::AttributeHandleSet const lostAttributes{lostAttribute};
+  survivor.rtiAmbassador().publishObjectClassAttributes(
+      survivorClass, survivorAttributes);
+  lost.rtiAmbassador().publishObjectClassAttributes(lostClass, lostAttributes);
+  survivor.rtiAmbassador().subscribeObjectClassAttributes(
+      survivorClass, survivorAttributes, true, L"");
+  lost.rtiAmbassador().subscribeObjectClassAttributes(
+      lostClass, lostAttributes, true, L"");
+
+  auto const retainedObject =
+      survivor.rtiAmbassador().registerObjectInstance(survivorClass);
+  auto const retainedName =
+      survivor.rtiAmbassador().getObjectInstanceName(retainedObject);
+  require(retainedObject.isValid(), "automatic delete-then-divest retained object is invalid");
+  waitFor(
+      lost,
+      [&] { return lost.recorder().hasDiscovery(retainedObject); },
+      options,
+      "automatic delete-then-divest retained-object discovery");
+  survivor.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+      retainedObject, survivorAttributes, rti::VariableLengthData{});
+  std::vector<std::uint8_t> const acquisitionTagBytes{0xD4U, 0x25U};
+  rti::VariableLengthData const acquisitionTag(
+      acquisitionTagBytes.data(), acquisitionTagBytes.size());
+  lost.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+      retainedObject, lostAttributes, acquisitionTag);
+  waitFor(
+      lost,
+      [&] { return lost.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "automatic delete-then-divest setup acquisition");
+  auto const acquisition = lost.recorder().ownershipAcquisition();
+  require(
+      acquisition->object == retainedObject &&
+          acquisition->attributes == lostAttributes &&
+          acquisition->tag == acquisitionTagBytes &&
+          lost.rtiAmbassador().isAttributeOwnedByFederate(
+              retainedObject, lostAttribute),
+      "automatic delete-then-divest did not establish lost-member ownership of the retained attribute");
+
+  auto const deletedObject =
+      lost.rtiAmbassador().registerObjectInstance(lostClass);
+  require(
+      deletedObject.isValid() && deletedObject != retainedObject,
+      "automatic delete-then-divest departing object is invalid or duplicated");
+  waitFor(
+      survivor,
+      [&] { return survivor.recorder().hasDiscovery(deletedObject); },
+      options,
+      "automatic delete-then-divest departing-object discovery");
+  lost.rtiAmbassador().setAutomaticResignDirective(
+      rti::DELETE_OBJECTS_THEN_DIVEST);
+  require(
+      lost.rtiAmbassador().getAutomaticResignDirective() ==
+          rti::DELETE_OBJECTS_THEN_DIVEST,
+      "automatic delete-then-divest directive did not round-trip");
+
+  survivor.recorder().clearOwnershipRecords();
+  survivor.recorder().clearRemovals();
+  auto const lostFederate = lost.federateHandle();
+  waitForConnectionLossAndSignal(
+      lost, options, "automatic delete-then-divest");
+  waitFor(
+      survivor,
+      [&] {
+        return survivor.recorder().ownershipAssumption().has_value() &&
+            survivor.recorder().hasRemoval(deletedObject, {}, lostFederate);
+      },
+      options,
+      "automatic delete-then-divest survivor callbacks");
+  auto const assumption = survivor.recorder().ownershipAssumption();
+  require(
+      assumption->object == retainedObject &&
+          assumption->attributes == survivorAttributes &&
+          assumption->tag.empty(),
+      "automatic delete-then-divest offered the wrong retained attribute");
+  auto const removals = survivor.recorder().removals();
+  require(
+      removals.size() == 1U && removals.front().object == deletedObject &&
+          removals.front().tag.empty() &&
+          removals.front().producer == lostFederate,
+      "automatic delete-then-divest did not remove exactly the departing object");
+  require(
+      survivor.rtiAmbassador().getObjectInstanceHandle(retainedName) ==
+          retainedObject &&
+          !survivor.rtiAmbassador().isAttributeOwnedByFederate(
+              retainedObject, survivorAttribute),
+      "automatic delete-then-divest removed the retained object or left its attribute owned");
+  survivor.resign(rti::NO_ACTION);
+  survivor.disconnect();
+}
+
+void scenarioConnectionLossAutomaticDeleteThenDivestContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioConnectionLossAutomaticDeleteThenDivest(options, model);
+}
+
 void scenarioConnectionLossAutomaticCancelPendingAcquisition(
     Options const& options,
     rti::CallbackModel model) {
