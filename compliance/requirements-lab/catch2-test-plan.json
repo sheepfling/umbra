@@ -15275,24 +15275,18 @@
         "api.2025.cpp.federateambassador.federationsaved.5c6a41e2de0c"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-04-federation-management-page-060-l139-34",
-        "requirement-candidate-content-clauses-04-federation-management-page-061-l11-1",
-        "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24",
-        "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-        "requirement-candidate-content-clauses-04-federation-management-page-067-l16-1",
-        "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
-        "requirement-candidate-content-clauses-04-federation-management-page-067-l142-36"
+        "requirement-candidate-content-clauses-04-federation-management-page-065-l93-23",
+        "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25",
+        "requirement-source-refinement-time-constrained-save-boundary",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l133-38"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-4.14",
-        "hla-1516.1-2025:clause-4.15",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20",
-        "hla-1516.1-2025:clause-4.21.1"
+        "hla-1516.1-2025:clause-4.23"
       ],
       "test_case": "RTIambassadors admit timestamped federation saves to multiple constrained recipients through a configured process endpoint",
-      "source_location": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp:1046",
+      "source_location": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp:1423",
       "primary_lane": "process-federation-save-timed-multiple-constrained",
       "focus_lane": "process-federation-save-timed-multiple-constrained",
       "assertions": 61,
@@ -15327,8 +15321,8 @@
         "federate.callback.federation-saved"
       ],
       "status": "implemented-private-foundation-not-conformance-evidence",
-      "requirements_lab_api_surface_status": "This focused native C++ case sends timestamped Request Federation Save in a three-federate federation with two constrained recipients and one time-regulating requester. It checks that each constrained member receives a timed Initiate Federate Save at its own advance boundary before that member's timeAdvanceGrant, and that all three complete a successful save. The case processes the requester's callbacks before polling the two constrained clients, so it does not establish the cross-federate rule that requester/non-constrained Initiation waits for every constrained member's admission; that barrier remains a separate evidence claim. It does not exercise queued TSO delivery, alternate advance modes, save replacement, status/abort/failure, restore, push-mode transport, protected review, validation, interoperability, or conformance.",
-      "next_action": "Keep this multiple-constrained per-recipient boundary case distinct from the cross-federate admission barrier. Do not map it to the all-constrained-before-nonconstrained candidate; inspect the queued-TSO variant as a separate slice."
+      "requirements_lab_api_surface_status": "This private native C++ HLA_EVOKED process case requests a timestamped save at time 5 from a time-regulating owner with two time-constrained recipients. Each constrained recipient is advancing when its timed Initiate Federate Save arrives before its own Time Advance Grant; all three call Federate Save Begun and Federate Save Complete and receive Federation Saved. The direct mappings cover a requested save under a valid timestamp setup (4.19), only the Time Advancing admission portion of the broader 4.20 refinement, and the all-initiated-members Federation Saved callback rule (4.23). They do not validate rejection of invalid timestamps or the refinement's stop-providing/resume conditions. The requester is polled before the constrained clients, so this case does not establish the all-constrained-before-nontime-constrained admission barrier. The pinned RL-326/327 fragments are incomplete; other page-66/67 candidates in the former row carry wrong exported subsection ownership and are not direct mappings here. Queued TSO, alternate advance modes, save replacement/status/failure, restore, push-mode transport, protected review, validation, interoperability, and conformance remain untested.",
+      "next_action": "Keep this positive, per-recipient timed-save case distinct from the cross-federate admission barrier and queued-TSO variant. Validate the stop-providing/resume and invalid-timestamp conditions separately; revisit the incomplete or misattributed Lab candidates only after an upstream Lab correction, without expanding this row's direct mappings by assumption."
     },
     {
       "id": "umbra-cpp-process-endpoint-federation-save-timed-queued-tso-integration",
