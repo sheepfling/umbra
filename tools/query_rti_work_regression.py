@@ -7755,7 +7755,7 @@ def main() -> int:
         "cpp/tests/ieee1516_2025_connection_modify_lookahead_grant_catch2.cpp:458"
     ):
         raise AssertionError("focused process grant-time lookahead source pointer drifted")
-    if process_modify_lookahead_grant.get("assertions") != 34:
+    if process_modify_lookahead_grant.get("assertions") != 51:
         raise AssertionError("focused process grant-time lookahead assertion count drifted")
     if process_modify_lookahead_grant.get("traceability_state") != "requirements-mapped":
         raise AssertionError("focused process grant-time lookahead row is not mapped")
@@ -7768,9 +7768,9 @@ def main() -> int:
         raise AssertionError("focused process grant-time lookahead mapped count drifted")
     if process_modify_lookahead_grant_focus.get("assertion_count") != 34:
         raise AssertionError("focused process grant-time lookahead lane assertion total drifted")
-    if process_modify_lookahead_grant_focus.get("requirement_count") != 6:
+    if process_modify_lookahead_grant_focus.get("requirement_count") != 9:
         raise AssertionError("focused process grant-time lookahead requirement total drifted")
-    if process_modify_lookahead_grant_focus.get("standard_section_count") != 4:
+    if process_modify_lookahead_grant_focus.get("standard_section_count") != 7:
         raise AssertionError("focused process grant-time lookahead section total drifted")
     process_modify_lookahead_grant_handles = process_modify_lookahead_grant_focus.get(
         "lane_handles"
