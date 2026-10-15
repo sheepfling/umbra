@@ -14,6 +14,7 @@
 #include "internal/federation/process_federation_service.hpp"
 #include "internal/federation/process_transport.hpp"
 #include "internal/federation/process_transport_session.hpp"
+#include "ieee1516_2025_connection_test_support.hpp"
 #include "process_public_service_fixture.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
@@ -24,12 +25,14 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
+#include <exception>
 #include <filesystem>
 #include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #ifndef UMBRA_SOURCE_DIRECTORY
@@ -43,6 +46,7 @@ namespace standard_hla = umbra::detail::hla::wide;
 
 using rti1516_2025::AttributeHandle;
 using rti1516_2025::AttributeHandleSet;
+using rti1516_2025::AttributeHandleValueMap;
 using rti1516_2025::FederateHandle;
 using rti1516_2025::HLA_EVOKED;
 using rti1516_2025::HLA_IMMEDIATE;
@@ -149,6 +153,11 @@ class ReportingFederateAmbassador final
     ObjectInstanceHandle objectInstance;
   };
 
+  struct AttributeReflectionReport final {
+    ObjectInstanceHandle objectInstance;
+    AttributeHandleValueMap attributeValues;
+  };
+
   struct AttributeOwnershipReport final {
     enum class Kind { federate, unowned, rti };
 
@@ -179,6 +188,16 @@ class ReportingFederateAmbassador final
       VariableLengthData const&,
       FederateHandle const&) override {
     objectRemovalReports.push_back({objectInstance});
+  }
+
+  void reflectAttributeValues(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleValueMap const& attributeValues,
+      VariableLengthData const&,
+      TransportationTypeHandle const&,
+      FederateHandle const&,
+      RegionHandleSet const*) override {
+    attributeReflectionReports.push_back({objectInstance, attributeValues});
   }
 
   void informAttributeOwnership(
@@ -233,6 +252,7 @@ class ReportingFederateAmbassador final
 
   std::vector<ObjectDiscoveryReport> objectDiscoveryReports;
   std::vector<ObjectRemovalReport> objectRemovalReports;
+  std::vector<AttributeReflectionReport> attributeReflectionReports;
   std::vector<AttributeOwnershipReport> attributeOwnershipReports;
   std::vector<InteractionReport> interactionReports;
 };
@@ -817,6 +837,144 @@ TEST_CASE(
   if (server.joinable()) {
     server.join();
   }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassador reports RTI ownership of a joined-federate MOM attribute through a process endpoint",
+    "[integration][development-profile][federation-management][mom]"
+    "[ownership-management][rti-owned-state][query-attribute-ownership]"
+    "[transport][process-boundary][process-rti-owned-mom-ownership-query]"
+    "[public-endpoint][2025][rti.service.query-attribute-ownership]"
+    "[federate.callback.attribute-is-owned-by-rti]") {
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener != nullptr);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory =
+      umbra::test::connection_support_2025::temporaryServiceReportDirectory();
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      umbra::detail::ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessOwnershipDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-rti-owned-query-server", 0xA703U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      bool resigned = false;
+      std::size_t requestCount = 0U;
+      while (!resigned && requestCount != 96U &&
+             umbra::test::servePrimaryProcessRequest(
+                 session, handler,
+                 [&](umbra::detail::TransportServiceMessage const& request) {
+                   using umbra::detail::TransportServiceOperation;
+                   switch (request.operation) {
+                     case TransportServiceOperation::create_federation_execution:
+                     case TransportServiceOperation::join_federation_execution:
+                     case TransportServiceOperation::get_object_class_handle:
+                     case TransportServiceOperation::get_attribute_handle:
+                     case TransportServiceOperation::subscribe_object_class_attributes:
+                     case TransportServiceOperation::receive_interaction:
+                     case TransportServiceOperation::query_attribute_ownership:
+                     case TransportServiceOperation::report_successful_void_service_invocation:
+                       break;
+                     case TransportServiceOperation::resign_federation_execution:
+                       resigned = true;
+                       break;
+                     default:
+                       throw std::runtime_error(
+                           "The process RTI-owned query server received an unexpected operation.");
+                   }
+                   return handler(request);
+                 })) {
+        ++requestCount;
+      }
+      if (!resigned) {
+        throw std::runtime_error(
+            "The process RTI-owned query server did not receive Resign.");
+      }
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  auto const federationName = nextFederationName() + L"-process-rti-owned";
+  auto const fomModule = resourcePath("attribute-update-passel-fom.xml").wstring();
+  ReportingFederateAmbassador reports;
+  auto rti = makeRti();
+  auto configuration = rti1516_2025::RtiConfiguration::createConfiguration()
+                           .withConfigurationName(L"process-rti-owned-query-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(rti->createFederationExecution(federationName, fomModule));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"process-rti-owned-query-federate", L"observer", federationName));
+
+  auto const momClass = rti->getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const reportFileAttribute = rti->getAttributeHandle(
+      momClass, L"HLAreportServiceFile");
+  REQUIRE(momClass.isValid());
+  REQUIRE(reportFileAttribute.isValid());
+  REQUIRE_NOTHROW(rti->subscribeObjectClassAttributes(
+      momClass, AttributeHandleSet{reportFileAttribute}));
+  for (std::size_t pass = 0U;
+       pass != 16U &&
+       (reports.objectDiscoveryReports.empty() ||
+        reports.attributeReflectionReports.empty());
+       ++pass) {
+    static_cast<void>(rti->evokeCallback(0.25));
+  }
+  REQUIRE(reports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(reports.objectDiscoveryReports.front().objectClass == momClass);
+  REQUIRE(reports.attributeReflectionReports.size() == 1U);
+  auto const momObject = reports.objectDiscoveryReports.front().objectInstance;
+  auto const& reflected = reports.attributeReflectionReports.front();
+  REQUIRE(reflected.objectInstance == momObject);
+  REQUIRE(reflected.attributeValues.size() == 1U);
+  rti1516_2025::HLAunicodeString advertisedPath;
+  REQUIRE_NOTHROW(advertisedPath.decode(
+      reflected.attributeValues.at(reportFileAttribute)));
+  auto const reportPath = std::filesystem::path(advertisedPath.get());
+  REQUIRE(reportPath.is_absolute());
+  REQUIRE(reportPath.parent_path() ==
+          std::filesystem::absolute(reportDirectory).lexically_normal());
+  REQUIRE(std::filesystem::exists(reportPath));
+
+  REQUIRE_NOTHROW(rti->queryAttributeOwnership(
+      momObject, AttributeHandleSet{reportFileAttribute}));
+  REQUIRE(reports.attributeOwnershipReports.empty());
+  for (std::size_t pass = 0U;
+       pass != 16U && reports.attributeOwnershipReports.empty();
+       ++pass) {
+    static_cast<void>(rti->evokeCallback(0.25));
+  }
+  REQUIRE(reports.attributeOwnershipReports.size() == 1U);
+  auto const& ownership = reports.attributeOwnershipReports.front();
+  REQUIRE(ownership.kind ==
+          ReportingFederateAmbassador::AttributeOwnershipReport::Kind::rti);
+  REQUIRE(ownership.objectInstance == momObject);
+  REQUIRE(ownership.attributes == AttributeHandleSet{reportFileAttribute});
+  REQUIRE_FALSE(ownership.owner.isValid());
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(rti->disconnect());
+  listener.reset();
+  server.join();
+  std::error_code cleanupError;
+  std::filesystem::remove_all(reportDirectory, cleanupError);
+  REQUIRE_FALSE(cleanupError);
   REQUIRE_FALSE(serverError);
 }
 
