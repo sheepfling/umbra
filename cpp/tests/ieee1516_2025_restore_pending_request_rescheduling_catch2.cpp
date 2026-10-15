@@ -471,7 +471,9 @@ TEST_CASE(
     REQUIRE(reports.initiateFederateSaveReports.empty());
     REQUIRE_NOTHROW(submitAdvance(*rti, 5));
     if (!immediate) {
-      REQUIRE_NOTHROW(static_cast<void>(rti->evokeCallback(0.0)));
+      // Initiate Federate Save and Time Advance Grant are separate callbacks.
+      while (rti->evokeCallback(0.0)) {
+      }
     }
     REQUIRE(reports.initiateFederateSaveReports == std::vector<std::wstring>{saveLabel});
     REQUIRE(reports.timeAdvanceGrantReports.size() == 1U);

@@ -457,8 +457,9 @@ TEST_CASE(
     REQUIRE(nmraReports.timeAdvanceGrantReports.front().value == L"9");
     REQUIRE(fqrReports.callbackOrder ==
             std::vector<std::string>{"directed", "flush-grant"});
+    // Section 8.9 includes already-queued TSO at the TARA request time.
     REQUIRE(taraReports.callbackOrder ==
-            std::vector<std::string>{"grant", "directed"});
+            std::vector<std::string>{"directed", "grant"});
     REQUIRE(nmraReports.callbackOrder ==
             std::vector<std::string>{"directed", "grant"});
 
