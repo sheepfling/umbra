@@ -54,10 +54,14 @@ STANDARD_HEADERS = {
     "sstream",
     "stdexcept",
     "string",
+    "system_error",
     "thread",
     "type_traits",
     "utility",
     "vector",
+}
+PLATFORM_INCLUDES = {
+    ("service_report_creation_failure_tck.cpp", "windows.h"),
 }
 LOCAL_TCK_HEADERS = {
     "pending_negotiated_restore_tck.hpp",
@@ -307,6 +311,7 @@ def validate_sources() -> list[str]:
                 delimiter == "<"
                 and include not in OFFICIAL_API_HEADERS
                 and include not in STANDARD_HEADERS
+                and (path.name, include) not in PLATFORM_INCLUDES
             ):
                 findings.append(f"portable C++ TCK includes a non-standard header at {path}:{line_number}: {include}")
     fom_directory = SOURCE_ROOT / "fom"
