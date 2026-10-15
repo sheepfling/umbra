@@ -602,18 +602,14 @@ TEST_CASE(
             senderHandler,
             TransportServiceOperation::register_object_instance_with_regions,
             "The public regional advisory server lost regional Register.");
+        // Evoked discovery/advisory callbacks drain the client's queued push;
+        // they do not add receive_interaction requests to this wire script.
         if (callbackModel == HLA_IMMEDIATE) {
           serveExpected(
               receiver,
               receiverHandler,
               TransportServiceOperation::get_object_class_handle,
               "The public regional advisory server lost immediate discovery polling.");
-        } else {
-          serveExpected(
-              receiver,
-              receiverHandler,
-              TransportServiceOperation::receive_interaction,
-              "The public regional advisory server lost discovery Receive.");
         }
         serveExpected(
             receiver,
@@ -626,12 +622,6 @@ TEST_CASE(
               senderHandler,
               TransportServiceOperation::get_object_class_handle,
               "The public regional advisory server lost immediate advisory-off polling.");
-        } else {
-          serveExpected(
-              sender,
-              senderHandler,
-              TransportServiceOperation::receive_interaction,
-              "The public regional advisory server lost advisory-off Receive.");
         }
         serveExpected(
             receiver,
@@ -644,12 +634,6 @@ TEST_CASE(
               senderHandler,
               TransportServiceOperation::get_object_class_handle,
               "The public regional advisory server lost immediate advisory-on polling.");
-        } else {
-          serveExpected(
-              sender,
-              senderHandler,
-              TransportServiceOperation::receive_interaction,
-              "The public regional advisory server lost advisory-on Receive.");
         }
         serveExpected(
             sender,
