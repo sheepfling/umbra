@@ -1,5 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "hla_test_names.hpp"
+
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
 #include <RTI/time/HLAinteger64Interval.h>
@@ -20,6 +22,8 @@
 #endif
 
 namespace {
+
+namespace fixture_hla = umbra::test::hla::wide;
 
 using rti1516_2025::FederateHandle;
 using rti1516_2025::HLA_EVOKED;
@@ -172,27 +176,27 @@ TEST_CASE(
   }
 
   auto const publisherTargetClass = publisher->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraDirectedReceiptTargetBase.UmbraDirectedReceiptTargetChild");
+      fixture_hla::fom::directed_receipt_target_child);
   auto const receiverKnownTargetClass = receiver->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraDirectedReceiptTargetBase");
+      fixture_hla::fom::directed_receipt_target_base);
   auto const receiverRegisteredTargetClass = receiver->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraDirectedReceiptTargetBase.UmbraDirectedReceiptTargetChild");
+      fixture_hla::fom::directed_receipt_target_child);
   auto const publisherMarker = publisher->getAttributeHandle(
-      publisherTargetClass, L"TargetMarker");
+      publisherTargetClass, fixture_hla::fixture::target_marker);
   auto const receiverMarker = receiver->getAttributeHandle(
-      receiverKnownTargetClass, L"TargetMarker");
+      receiverKnownTargetClass, fixture_hla::fixture::target_marker);
   auto const publisherChildInteraction = publisher->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraDirectedReceiptBase.UmbraDirectedReceiptChild");
+      fixture_hla::fom::directed_receipt_child);
   auto const receiverBaseInteraction = receiver->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraDirectedReceiptBase");
+      fixture_hla::fom::directed_receipt_base);
   auto const receiverChildInteraction = receiver->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraDirectedReceiptBase.UmbraDirectedReceiptChild");
+      fixture_hla::fom::directed_receipt_child);
   auto const publisherBaseParameter = publisher->getParameterHandle(
-      publisherChildInteraction, L"BaseParameter");
+      publisherChildInteraction, fixture_hla::fixture::base_parameter);
   auto const publisherChildParameter = publisher->getParameterHandle(
-      publisherChildInteraction, L"ChildParameter");
+      publisherChildInteraction, fixture_hla::fixture::child_parameter);
   auto const receiverBaseParameter = receiver->getParameterHandle(
-      receiverBaseInteraction, L"BaseParameter");
+      receiverBaseInteraction, fixture_hla::fixture::base_parameter);
   REQUIRE(publisherTargetClass.isValid());
   REQUIRE(receiverKnownTargetClass.isValid());
   REQUIRE(receiverRegisteredTargetClass.isValid());

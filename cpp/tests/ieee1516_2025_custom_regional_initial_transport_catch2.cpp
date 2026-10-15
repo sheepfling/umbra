@@ -27,17 +27,19 @@ TEST_CASE(
       L"initial-transport-receiver", L"test", federationName));
 
   auto const ownerClass = owner->getObjectClassHandle(
-      L"HLAobjectRoot.TckTransportRegionalObject");
-  auto const ownerAttribute = owner->getAttributeHandle(ownerClass, L"RegionalValue");
-  auto const ownerX = owner->getDimensionHandle(L"TckDimensionX");
-  auto const ownerY = owner->getDimensionHandle(L"TckDimensionY");
+      fixture_hla::fom::tck_transport_regional_object);
+  auto const ownerAttribute = owner->getAttributeHandle(
+      ownerClass, fixture_hla::fixture::regional_value);
+  auto const ownerX = owner->getDimensionHandle(fixture_hla::fixture::tck_dimension_x);
+  auto const ownerY = owner->getDimensionHandle(fixture_hla::fixture::tck_dimension_y);
   auto const receiverClass = receiver->getObjectClassHandle(
-      L"HLAobjectRoot.TckTransportRegionalObject");
+      fixture_hla::fom::tck_transport_regional_object);
   auto const receiverAttribute = receiver->getAttributeHandle(
-      receiverClass, L"RegionalValue");
-  auto const receiverX = receiver->getDimensionHandle(L"TckDimensionX");
-  auto const receiverY = receiver->getDimensionHandle(L"TckDimensionY");
-  auto const receiverCustom = receiver->getTransportationTypeHandle(L"TckBestEffort");
+      receiverClass, fixture_hla::fixture::regional_value);
+  auto const receiverX = receiver->getDimensionHandle(fixture_hla::fixture::tck_dimension_x);
+  auto const receiverY = receiver->getDimensionHandle(fixture_hla::fixture::tck_dimension_y);
+  auto const receiverCustom = receiver->getTransportationTypeHandle(
+      fixture_hla::fixture::tck_best_effort);
   REQUIRE(ownerClass.isValid());
   REQUIRE(ownerAttribute.isValid());
   REQUIRE(ownerX.isValid());

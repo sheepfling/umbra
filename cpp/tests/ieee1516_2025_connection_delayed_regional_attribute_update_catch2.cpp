@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "hla_test_names.hpp"
 #include "internal/federation/federation_registry.hpp"
 #include "internal/federation/process_federation_service_host.hpp"
 #include "internal/fom/fom_validation.hpp"
@@ -26,6 +27,8 @@
 #include <vector>
 
 namespace {
+
+namespace fixture_hla = umbra::test::hla::wide;
 
 using namespace rti1516_2025;
 using namespace umbra::detail;
@@ -193,12 +196,14 @@ void runScenario(bool enableDelay, CallbackModel callbackModel) {
   REQUIRE(registry.delaySubscriptionEvaluationSwitchFor(
               federationName, receiverMembership->id) == enableDelay);
 
-  auto const senderClass = sender->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
-  auto const senderAttribute = sender->getAttributeHandle(senderClass, L"Flavor");
-  auto const senderDimension = sender->getDimensionHandle(L"SodaFlavor");
-  auto const receiverClass = receiver->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
-  auto const receiverAttribute = receiver->getAttributeHandle(receiverClass, L"Flavor");
-  auto const receiverDimension = receiver->getDimensionHandle(L"SodaFlavor");
+  auto const senderClass = sender->getObjectClassHandle(fixture_hla::fom::food_drink_soda);
+  auto const senderAttribute = sender->getAttributeHandle(
+      senderClass, fixture_hla::fixture::flavor);
+  auto const senderDimension = sender->getDimensionHandle(fixture_hla::fixture::soda_flavor);
+  auto const receiverClass = receiver->getObjectClassHandle(fixture_hla::fom::food_drink_soda);
+  auto const receiverAttribute = receiver->getAttributeHandle(
+      receiverClass, fixture_hla::fixture::flavor);
+  auto const receiverDimension = receiver->getDimensionHandle(fixture_hla::fixture::soda_flavor);
   REQUIRE(senderClass.isValid());
   REQUIRE(senderAttribute.isValid());
   REQUIRE(senderDimension.isValid());
@@ -388,9 +393,10 @@ void runResignCallbackFenceScenario() {
   auto const oldMember = registry.memberByName(federationName, L"receiver");
   REQUIRE(oldMember);
 
-  auto const objectClass = sender->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
-  auto const attribute = sender->getAttributeHandle(objectClass, L"Flavor");
-  auto const dimension = sender->getDimensionHandle(L"SodaFlavor");
+  auto const objectClass = sender->getObjectClassHandle(fixture_hla::fom::food_drink_soda);
+  auto const attribute = sender->getAttributeHandle(
+      objectClass, fixture_hla::fixture::flavor);
+  auto const dimension = sender->getDimensionHandle(fixture_hla::fixture::soda_flavor);
   auto const senderRegion = sender->createRegion(DimensionHandleSet{dimension});
   sender->setRangeBounds(senderRegion, dimension, RangeBounds(0UL, 1UL));
   sender->commitRegionModifications(RegionHandleSet{senderRegion});
@@ -400,9 +406,10 @@ void runResignCallbackFenceScenario() {
   }};
   sender->publishObjectClassAttributes(objectClass, attributes);
 
-  auto const receiverClass = receiver->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
-  auto const receiverAttribute = receiver->getAttributeHandle(receiverClass, L"Flavor");
-  auto const receiverDimension = receiver->getDimensionHandle(L"SodaFlavor");
+  auto const receiverClass = receiver->getObjectClassHandle(fixture_hla::fom::food_drink_soda);
+  auto const receiverAttribute = receiver->getAttributeHandle(
+      receiverClass, fixture_hla::fixture::flavor);
+  auto const receiverDimension = receiver->getDimensionHandle(fixture_hla::fixture::soda_flavor);
   auto const receiverRegion = receiver->createRegion(DimensionHandleSet{receiverDimension});
   receiver->setRangeBounds(receiverRegion, receiverDimension, RangeBounds(0UL, 1UL));
   receiver->commitRegionModifications(RegionHandleSet{receiverRegion});

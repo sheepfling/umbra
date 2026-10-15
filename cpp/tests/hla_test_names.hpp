@@ -29,6 +29,10 @@ inline constexpr wchar_t dimension_fixture_object[] =
     L"HLAobjectRoot.UmbraDimensionFixtureObject";
 inline constexpr wchar_t directed_fixture_object[] =
     L"HLAobjectRoot.UmbraDirectedFixtureObject";
+inline constexpr wchar_t directed_receipt_target_base[] =
+    L"HLAobjectRoot.UmbraDirectedReceiptTargetBase";
+inline constexpr wchar_t directed_receipt_target_child[] =
+    L"HLAobjectRoot.UmbraDirectedReceiptTargetBase.UmbraDirectedReceiptTargetChild";
 inline constexpr wchar_t parameter_fixture_base[] =
     L"HLAinteractionRoot.UmbraParameterFixtureBase";
 inline constexpr wchar_t parameter_fixture_child[] =
@@ -39,6 +43,8 @@ inline constexpr wchar_t transportation_fixture_object[] =
     L"HLAobjectRoot.UmbraTransportationFixtureObject";
 inline constexpr wchar_t transportation_regional_object[] =
     L"HLAobjectRoot.UmbraTransportationRegionalObject";
+inline constexpr wchar_t tck_transport_regional_object[] =
+    L"HLAobjectRoot.TckTransportRegionalObject";
 
 inline constexpr wchar_t customer_seated[] =
     L"HLAinteractionRoot.CustomerTransactions.CustomerSeated";
@@ -54,6 +60,17 @@ inline constexpr wchar_t dimension_fixture_interaction[] =
     L"HLAinteractionRoot.UmbraDimensionFixtureInteraction";
 inline constexpr wchar_t directed_fixture_interaction[] =
     L"HLAinteractionRoot.UmbraDirectedFixtureInteraction";
+inline constexpr wchar_t directed_receipt_base[] =
+    L"HLAinteractionRoot.UmbraDirectedReceiptBase";
+inline constexpr wchar_t directed_receipt_child[] =
+    L"HLAinteractionRoot.UmbraDirectedReceiptBase.UmbraDirectedReceiptChild";
+inline constexpr wchar_t interaction_base[] =
+    L"HLAinteractionRoot.UmbraInteractionBase";
+inline constexpr wchar_t interaction_middle[] =
+    L"HLAinteractionRoot.UmbraInteractionBase.UmbraInteractionMiddle";
+inline constexpr wchar_t interaction_child[] =
+    L"HLAinteractionRoot.UmbraInteractionBase.UmbraInteractionMiddle."
+    L"UmbraInteractionChild";
 inline constexpr wchar_t parameter_fixture_child_interaction[] =
     L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild";
 inline constexpr wchar_t transportation_fixture_interaction[] =
@@ -76,9 +93,12 @@ inline constexpr wchar_t missing_interaction_base[] =
 
 namespace fixture {
 
+inline constexpr wchar_t added_after_registration[] = L"AddedAfterRegistration";
 inline constexpr wchar_t bar_quantity[] = L"BarQuantity";
+inline constexpr wchar_t base_parameter[] = L"BaseParameter";
 inline constexpr wchar_t best_effort_base[] = L"BestEffortBase";
 inline constexpr wchar_t best_effort_child[] = L"BestEffortChild";
+inline constexpr wchar_t child_parameter[] = L"ChildParameter";
 inline constexpr wchar_t directed_target_marker[] = L"DirectedTargetMarker";
 inline constexpr wchar_t efficiency[] = L"Efficiency";
 inline constexpr wchar_t flavor[] = L"Flavor";
@@ -89,13 +109,18 @@ inline constexpr wchar_t missing_parameter[] = L"MissingParameter";
 inline constexpr wchar_t name[] = L"Name";
 inline constexpr wchar_t organic[] = L"Organic";
 inline constexpr wchar_t pay_rate[] = L"PayRate";
+inline constexpr wchar_t regional_value[] = L"RegionalValue";
 inline constexpr wchar_t reliable_base_a[] = L"ReliableBaseA";
 inline constexpr wchar_t reliable_base_b[] = L"ReliableBaseB";
 inline constexpr wchar_t reliable_child[] = L"ReliableChild";
 inline constexpr wchar_t server_id[] = L"ServerId";
 inline constexpr wchar_t soda_flavor[] = L"SodaFlavor";
 inline constexpr wchar_t sweetener[] = L"Sweetener";
+inline constexpr wchar_t target_marker[] = L"TargetMarker";
 inline constexpr wchar_t temperature_ok[] = L"TemperatureOk";
+inline constexpr wchar_t tck_best_effort[] = L"TckBestEffort";
+inline constexpr wchar_t tck_dimension_x[] = L"TckDimensionX";
+inline constexpr wchar_t tck_dimension_y[] = L"TckDimensionY";
 inline constexpr wchar_t umbra_custom_transport[] = L"UmbraCustomTransport";
 inline constexpr wchar_t umbra_dimension_fixture[] = L"UmbraDimensionFixture";
 inline constexpr wchar_t umbra_extended_set_switches[] =

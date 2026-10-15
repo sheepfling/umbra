@@ -1074,8 +1074,9 @@ TEST_CASE(
         L"restore-pending-nmra-attribute-receiver", L"subscriber", federationName));
 
     objectClass = publisher->getObjectClassHandle(
-        L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
-    reliableAttribute = publisher->getAttributeHandle(objectClass, L"ReliableBaseA");
+        fixture_hla::fom::attribute_fixture_child);
+    reliableAttribute = publisher->getAttributeHandle(
+        objectClass, fixture_hla::fixture::reliable_base_a);
     rti1516_2025::AttributeHandleSet const attributes{reliableAttribute};
     rti1516_2025::AttributeHandleValueMap const attributeValues{
         {reliableAttribute,
@@ -1414,9 +1415,11 @@ TEST_CASE(
         L"restore-pending-nmra-delete-receiver", L"subscriber", federationName));
 
     auto const objectClass = publisher->getObjectClassHandle(
-        L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
-    auto const reliableAttribute = publisher->getAttributeHandle(objectClass, L"ReliableBaseA");
-    auto const bestEffortAttribute = publisher->getAttributeHandle(objectClass, L"BestEffortBase");
+        fixture_hla::fom::attribute_fixture_child);
+    auto const reliableAttribute = publisher->getAttributeHandle(
+        objectClass, fixture_hla::fixture::reliable_base_a);
+    auto const bestEffortAttribute = publisher->getAttributeHandle(
+        objectClass, fixture_hla::fixture::best_effort_base);
     rti1516_2025::AttributeHandleSet const attributes{
         reliableAttribute,
         bestEffortAttribute};

@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "hla_test_names.hpp"
 #include "internal/fom/hla_names.hpp"
 
 #include <RTI/NullFederateAmbassador.h>
@@ -21,6 +22,7 @@
 namespace {
 
 namespace standard_hla = umbra::detail::hla::wide;
+namespace fixture_hla = umbra::test::hla::wide;
 
 using rti1516_2025::FederateHandle;
 using rti1516_2025::HLA_EVOKED;
@@ -182,10 +184,10 @@ TEST_CASE(
       federationName));
 
   auto const interactionClass = publisher->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
+      fixture_hla::fom::parameter_fixture_child_interaction);
   auto const identifier = publisher->getParameterHandle(
       interactionClass,
-      L"Identifier");
+      fixture_hla::fixture::identifier);
   REQUIRE(interactionClass.isValid());
   REQUIRE(identifier.isValid());
   ParameterHandleValueMap parameterValues;
@@ -347,8 +349,9 @@ TEST_CASE(
       federationName));
 
   auto const interactionClass = publisher->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
-  auto const identifier = publisher->getParameterHandle(interactionClass, L"Identifier");
+      fixture_hla::fom::parameter_fixture_child_interaction);
+  auto const identifier = publisher->getParameterHandle(
+      interactionClass, fixture_hla::fixture::identifier);
   REQUIRE(interactionClass.isValid());
   REQUIRE(identifier.isValid());
   ParameterHandleValueMap parameterValues;
@@ -436,8 +439,9 @@ TEST_CASE(
       federationName));
 
   auto const interactionClass = publisher->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraParameterFixtureBase.UmbraParameterFixtureChild");
-  auto const identifier = publisher->getParameterHandle(interactionClass, L"Identifier");
+      fixture_hla::fom::parameter_fixture_child_interaction);
+  auto const identifier = publisher->getParameterHandle(
+      interactionClass, fixture_hla::fixture::identifier);
   REQUIRE(interactionClass.isValid());
   REQUIRE(identifier.isValid());
   ParameterHandleValueMap parameterValues;

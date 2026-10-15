@@ -42,6 +42,7 @@
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
+#include "internal/fom/hla_names.hpp"
 #include "internal/handles/attribute_handle.hpp"
 #include "internal/handles/dimension_handle.hpp"
 #include "internal/handles/federate_handle.hpp"
@@ -52,6 +53,8 @@
 #include "internal/handles/region_handle.hpp"
 #include "internal/handles/transportation_type_handle.hpp"
 namespace {
+
+namespace standard_hla = umbra::detail::hla::wide;
 
 using rti1516_2025::CallbackModel;
 using rti1516_2025::ConfigurationResult;
@@ -658,7 +661,7 @@ void verifyProcessTimeAdvanceFederationScheduler(
       REQUIRE_FALSE(constrainedRti->evokeCallback(0.0));
     } else {
       static_cast<void>(
-          constrainedRti->getObjectClassHandle(L"HLAobjectRoot"));
+          constrainedRti->getObjectClassHandle(standard_hla::fom::object_root));
     }
     REQUIRE(constrainedFederate.timeAdvanceGrantCount == 0U);
 

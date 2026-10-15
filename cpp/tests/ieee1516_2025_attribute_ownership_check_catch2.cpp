@@ -39,9 +39,11 @@ TEST_CASE(
       requester->joinFederationExecution(L"ownership-check-requester", L"subscriber", federationName));
 
   auto const child = owner->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
-  auto const reliableBaseA = owner->getAttributeHandle(child, L"ReliableBaseA");
-  auto const unownedChild = owner->getAttributeHandle(child, L"UnownedChild");
+      fixture_hla::fom::attribute_fixture_child);
+  auto const reliableBaseA = owner->getAttributeHandle(
+      child, fixture_hla::fixture::reliable_base_a);
+  auto const unownedChild = owner->getAttributeHandle(
+      child, fixture_hla::fixture::unowned_child);
   REQUIRE(child.isValid());
   REQUIRE(reliableBaseA.isValid());
   REQUIRE(unownedChild.isValid());
@@ -121,8 +123,9 @@ TEST_CASE(
       L"merge-owner", L"publisher", federationName));
 
   auto const objectClass = owner->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
-  auto const reliableBaseA = owner->getAttributeHandle(objectClass, L"ReliableBaseA");
+      fixture_hla::fom::attribute_fixture_child);
+  auto const reliableBaseA = owner->getAttributeHandle(
+      objectClass, fixture_hla::fixture::reliable_base_a);
   AttributeHandleSet const initiallyPublished{reliableBaseA};
   REQUIRE_NOTHROW(owner->publishObjectClassAttributes(objectClass, initiallyPublished));
   ObjectInstanceHandle objectInstance;
@@ -133,11 +136,12 @@ TEST_CASE(
   REQUIRE_NOTHROW(joining->joinFederationExecution(
       L"merge-joiner", L"subscriber", federationName, additionalModules));
   auto const joiningClass = joining->getObjectClassHandle(
-      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
-  auto const joiningBaseAttribute = joining->getAttributeHandle(joiningClass, L"ReliableBaseA");
+      fixture_hla::fom::attribute_fixture_child);
+  auto const joiningBaseAttribute = joining->getAttributeHandle(
+      joiningClass, fixture_hla::fixture::reliable_base_a);
   auto const addedAttribute = joining->getAttributeHandle(
       joiningClass,
-      L"AddedAfterRegistration");
+      fixture_hla::fixture::added_after_registration);
   AttributeHandleSet const subscribedAttributes{joiningBaseAttribute, addedAttribute};
   REQUIRE_NOTHROW(joining->subscribeObjectClassAttributes(joiningClass, subscribedAttributes));
   while (joining->evokeMultipleCallbacks(0.0, 0.0)) {

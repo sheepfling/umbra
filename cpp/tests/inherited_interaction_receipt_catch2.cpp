@@ -17,6 +17,8 @@
 
 namespace {
 
+namespace fixture_hla = umbra::test::hla::wide;
+
 using rti1516_2025::FederateHandle;
 using rti1516_2025::HLA_EVOKED;
 using rti1516_2025::InteractionClassHandle;
@@ -104,15 +106,13 @@ TEST_CASE(
   }
 
   auto const publisherChild = publisher->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraInteractionBase.UmbraInteractionMiddle."
-      L"UmbraInteractionChild");
+      fixture_hla::fom::interaction_child);
   auto const subscriberBase = subscriber->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraInteractionBase");
+      fixture_hla::fom::interaction_base);
   auto const subscriberMiddle = subscriber->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraInteractionBase.UmbraInteractionMiddle");
+      fixture_hla::fom::interaction_middle);
   auto const subscriberChild = subscriber->getInteractionClassHandle(
-      L"HLAinteractionRoot.UmbraInteractionBase.UmbraInteractionMiddle."
-      L"UmbraInteractionChild");
+      fixture_hla::fom::interaction_child);
   REQUIRE(publisherChild.isValid());
   REQUIRE(subscriberBase.isValid());
   REQUIRE(subscriberMiddle.isValid());

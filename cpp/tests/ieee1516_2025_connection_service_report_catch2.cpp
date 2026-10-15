@@ -1,5 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "hla_test_names.hpp"
+
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -29,9 +31,13 @@
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
+#include "internal/fom/hla_names.hpp"
 #include "process_public_service_fixture.hpp"
 
 namespace {
+
+namespace fixture_hla = umbra::test::hla::wide;
+namespace standard_hla = umbra::detail::hla::wide;
 
 using rti1516_2025::HLA_EVOKED;
 using rti1516_2025::NO_ACTION;
@@ -520,8 +526,8 @@ TEST_CASE(
     REQUIRE(rti->getServiceReportingSwitch());
     REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
     REQUIRE(rti->getSendServiceReportsToFileSwitch());
-    REQUIRE_NOTHROW(rti->getObjectClassHandle(L"HLAobjectRoot"));
-    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    REQUIRE_NOTHROW(rti->getObjectClassHandle(standard_hla::fom::object_root));
+    auto const barQuantity = rti->getDimensionHandle(fixture_hla::fixture::bar_quantity);
     REQUIRE(barQuantity.isValid());
     REQUIRE(rti->getDimensionName(barQuantity) == L"BarQuantity");
     REQUIRE(rti->getDimensionUpperBound(barQuantity) == 25UL);
@@ -564,24 +570,24 @@ TEST_CASE(
 
     REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(false));
     REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
-    REQUIRE_NOTHROW(rti->getObjectClassHandle(L"HLAobjectRoot"));
+    REQUIRE_NOTHROW(rti->getObjectClassHandle(standard_hla::fom::object_root));
     REQUIRE(readReport(reportFile) == enabledText);
     REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
 
     REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
     REQUIRE(rti->getSendServiceReportsToFileSwitch());
-    REQUIRE_NOTHROW(rti->getObjectClassHandle(L"HLAobjectRoot"));
+    REQUIRE_NOTHROW(rti->getObjectClassHandle(standard_hla::fom::object_root));
     auto const fileReenabledText = readReport(reportFile);
     REQUIRE(fileReenabledText.size() > enabledText.size());
 
     REQUIRE_NOTHROW(rti->setServiceReportingSwitch(false));
     REQUIRE_FALSE(rti->getServiceReportingSwitch());
-    REQUIRE_NOTHROW(rti->getObjectClassHandle(L"HLAobjectRoot"));
+    REQUIRE_NOTHROW(rti->getObjectClassHandle(standard_hla::fom::object_root));
     REQUIRE(readReport(reportFile) == fileReenabledText);
 
     REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
     REQUIRE(rti->getServiceReportingSwitch());
-    REQUIRE_NOTHROW(rti->getObjectClassHandle(L"HLAobjectRoot"));
+    REQUIRE_NOTHROW(rti->getObjectClassHandle(standard_hla::fom::object_root));
     REQUIRE(readReport(reportFile).size() > fileReenabledText.size());
     REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
 
@@ -751,11 +757,11 @@ TEST_CASE(
     REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
 
     auto const drink =
-        rti->getObjectClassHandle(L"HLAobjectRoot.Food.Drink");
+        rti->getObjectClassHandle(fixture_hla::fom::food_drink);
     auto const mainCourseServed = rti->getInteractionClassHandle(
-        L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
-    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
-    auto const serverId = rti->getDimensionHandle(L"ServerId");
+        fixture_hla::fom::main_course_served);
+    auto const barQuantity = rti->getDimensionHandle(fixture_hla::fixture::bar_quantity);
+    auto const serverId = rti->getDimensionHandle(fixture_hla::fixture::server_id);
     REQUIRE(drink.isValid());
     REQUIRE(mainCourseServed.isValid());
     REQUIRE(barQuantity.isValid());
@@ -965,7 +971,7 @@ TEST_CASE(
     REQUIRE_FALSE(rti->getServiceReportingSwitch());
     REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
 
-    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    auto const barQuantity = rti->getDimensionHandle(fixture_hla::fixture::bar_quantity);
     REQUIRE(barQuantity.isValid());
     auto const region = rti->createRegion(
         rti1516_2025::DimensionHandleSet{barQuantity});
@@ -1156,7 +1162,7 @@ TEST_CASE(
     auto const initialText = readReport(reportFile);
     REQUIRE_FALSE(initialText.empty());
 
-    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    auto const barQuantity = rti->getDimensionHandle(fixture_hla::fixture::bar_quantity);
     REQUIRE(barQuantity.isValid());
     REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
     REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
@@ -1338,7 +1344,7 @@ TEST_CASE(
     auto const initialText = readReport(reportFile);
     REQUIRE_FALSE(initialText.empty());
 
-    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    auto const barQuantity = rti->getDimensionHandle(fixture_hla::fixture::bar_quantity);
     REQUIRE(barQuantity.isValid());
     auto const region = rti->createRegion(
         rti1516_2025::DimensionHandleSet{barQuantity});
@@ -1521,7 +1527,7 @@ TEST_CASE(
     auto const initialText = readReport(reportFile);
     REQUIRE_FALSE(initialText.empty());
 
-    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    auto const barQuantity = rti->getDimensionHandle(fixture_hla::fixture::bar_quantity);
     REQUIRE(barQuantity.isValid());
     auto const region = rti->createRegion(
         rti1516_2025::DimensionHandleSet{barQuantity});
@@ -1709,7 +1715,7 @@ TEST_CASE(
     auto const initialText = readReport(reportFile);
     REQUIRE_FALSE(initialText.empty());
 
-    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    auto const barQuantity = rti->getDimensionHandle(fixture_hla::fixture::bar_quantity);
     REQUIRE(barQuantity.isValid());
     auto const region = rti->createRegion(
         rti1516_2025::DimensionHandleSet{barQuantity});
@@ -1904,7 +1910,7 @@ TEST_CASE(
     auto const initialText = readReport(reportFile);
     REQUIRE_FALSE(initialText.empty());
 
-    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    auto const barQuantity = rti->getDimensionHandle(fixture_hla::fixture::bar_quantity);
     REQUIRE(barQuantity.isValid());
     auto const region = rti->createRegion(
         rti1516_2025::DimensionHandleSet{barQuantity});
@@ -2322,7 +2328,7 @@ TEST_CASE(
     REQUIRE_FALSE(std::filesystem::exists(reportFile));
 
     REQUIRE_THROWS_AS(
-        rti->getObjectClassHandle(L"HLAobjectRoot"),
+        rti->getObjectClassHandle(standard_hla::fom::object_root),
         RTIinternalError);
     REQUIRE(reportFiles().empty());
 
@@ -2533,7 +2539,7 @@ TEST_CASE(
     permissionsRemoved = true;
 
     REQUIRE_THROWS_AS(
-        rti->getObjectClassHandle(L"HLAobjectRoot"),
+        rti->getObjectClassHandle(standard_hla::fom::object_root),
         RTIinternalError);
     auto const filesAfterFailure = reportFiles();
     REQUIRE(filesAfterFailure.size() == 1U);
