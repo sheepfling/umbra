@@ -462,9 +462,13 @@ class TimestampedRegionalInteractionTransportationFederateAmbassador final
   void confirmInteractionTransportationTypeChange(
       rti1516_2025::InteractionClassHandle const& interactionClass,
       rti1516_2025::TransportationTypeHandle const& transportationType) override {
-    ++changeCount;
-    changedInteractionClass = interactionClass;
-    changedTransportationType = transportationType;
+    {
+      std::scoped_lock lock(callbackMutex);
+      changedInteractionClass = interactionClass;
+      changedTransportationType = transportationType;
+      ++changeCount;
+    }
+    callbackAvailable.notify_all();
   }
 
   void receiveInteraction(
@@ -478,49 +482,89 @@ class TimestampedRegionalInteractionTransportationFederateAmbassador final
       rti1516_2025::OrderType sentOrderType,
       rti1516_2025::OrderType receivedOrderType,
       rti1516_2025::MessageRetractionHandle const* optionalRetraction) override {
-    ++receiveCount;
-    callbackOrder.push_back('I');
-    receivedInteractionClass = interactionClass;
-    receivedTransportationType = transportationType;
-    receivedProducingFederate = producingFederate;
-    receivedParameterCount = parameterValues.size();
-    receivedOptionalRegions = optionalSentRegions != nullptr;
-    receivedRegionCount = optionalSentRegions == nullptr
-        ? 0U
-        : optionalSentRegions->size();
-    receivedOptionalRetraction = optionalRetraction != nullptr;
-    receivedRetractionValid = optionalRetraction != nullptr &&
-        optionalRetraction->isValid();
-    receivedTimestampImplementation = time.implementationName();
-    receivedTimestampValue = -1;
-    if (auto const* integerTime =
-            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
-      receivedTimestampValue = integerTime->getTime();
+    {
+      std::scoped_lock lock(callbackMutex);
+      callbackOrder.push_back('I');
+      receivedInteractionClass = interactionClass;
+      receivedTransportationType = transportationType;
+      receivedProducingFederate = producingFederate;
+      receivedParameterCount = parameterValues.size();
+      receivedOptionalRegions = optionalSentRegions != nullptr;
+      receivedRegionCount = optionalSentRegions == nullptr
+          ? 0U
+          : optionalSentRegions->size();
+      receivedOptionalRetraction = optionalRetraction != nullptr;
+      receivedRetractionValid = optionalRetraction != nullptr &&
+          optionalRetraction->isValid();
+      receivedTimestampImplementation = time.implementationName();
+      receivedTimestampValue = -1;
+      if (auto const* integerTime =
+              dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+        receivedTimestampValue = integerTime->getTime();
+      }
+      receivedSentOrder = sentOrderType;
+      receivedOrder = receivedOrderType;
+      receivedTag.clear();
+      if (userSuppliedTag.size() != 0U) {
+        auto const* data =
+            static_cast<std::uint8_t const*>(userSuppliedTag.data());
+        receivedTag.assign(data, data + userSuppliedTag.size());
+      }
+      ++receiveCount;
     }
-    receivedSentOrder = sentOrderType;
-    receivedOrder = receivedOrderType;
-    receivedTag.clear();
-    if (userSuppliedTag.size() != 0U) {
-      auto const* data =
-          static_cast<std::uint8_t const*>(userSuppliedTag.data());
-      receivedTag.assign(data, data + userSuppliedTag.size());
-    }
+    callbackAvailable.notify_all();
   }
 
   void timeConstrainedEnabled(rti1516_2025::LogicalTime const&) override {
-    ++timeConstrainedEnabledCount;
+    {
+      std::scoped_lock lock(callbackMutex);
+      ++timeConstrainedEnabledCount;
+    }
+    callbackAvailable.notify_all();
   }
 
   void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
-    ++timeAdvanceGrantCount;
-    callbackOrder.push_back('G');
-    timeAdvanceGrantValue = -1;
-    if (auto const* integerTime =
-            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
-      timeAdvanceGrantValue = integerTime->getTime();
+    {
+      std::scoped_lock lock(callbackMutex);
+      callbackOrder.push_back('G');
+      timeAdvanceGrantValue = -1;
+      if (auto const* integerTime =
+              dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+        timeAdvanceGrantValue = integerTime->getTime();
+      }
+      ++timeAdvanceGrantCount;
     }
+    callbackAvailable.notify_all();
   }
 
+  bool waitForChange() {
+    std::unique_lock lock(callbackMutex);
+    return callbackAvailable.wait_for(lock, std::chrono::seconds(2), [this] {
+      return changeCount != 0U;
+    });
+  }
+
+  bool waitForTimeConstrained() {
+    std::unique_lock lock(callbackMutex);
+    return callbackAvailable.wait_for(lock, std::chrono::seconds(2), [this] {
+      return timeConstrainedEnabledCount != 0U;
+    });
+  }
+
+  bool hasInteractionAndGrant() {
+    std::scoped_lock lock(callbackMutex);
+    return receiveCount != 0U && timeAdvanceGrantCount != 0U;
+  }
+
+  bool waitForInteractionAndGrant() {
+    std::unique_lock lock(callbackMutex);
+    return callbackAvailable.wait_for(lock, std::chrono::seconds(2), [this] {
+      return receiveCount != 0U && timeAdvanceGrantCount != 0U;
+    });
+  }
+
+  std::mutex callbackMutex;
+  std::condition_variable callbackAvailable;
   std::size_t changeCount = 0U;
   rti1516_2025::InteractionClassHandle changedInteractionClass;
   rti1516_2025::TransportationTypeHandle changedTransportationType;
@@ -577,8 +621,10 @@ TEST_CASE(
     std::thread server([&] {
       try {
         EmbeddedFederationRegistry registry;
+        ProcessFederationServiceOptions options;
+        options.pushReceiveOrderEvents = callbackModel == HLA_IMMEDIATE;
         ProcessFederationService service(
-            registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+            registry, composedProcessDefinition(), options);
         auto senderConnection = listener->accept(
             nullptr,
             {"public-process-transportation-timestamped-regional-server", 0x9607U},
@@ -726,11 +772,13 @@ TEST_CASE(
             senderHandler,
             TransportServiceOperation::request_interaction_transportation_type_change,
             "The timestamped regional transportation server lost transportation override.");
-        serveExpected(
-            sender,
-            senderHandler,
-            TransportServiceOperation::receive_interaction,
-            "The timestamped regional transportation server lost transportation confirmation.");
+        if (callbackModel == HLA_EVOKED) {
+          serveExpected(
+              sender,
+              senderHandler,
+              TransportServiceOperation::receive_interaction,
+              "The timestamped regional transportation server lost transportation confirmation.");
+        }
         serveExpected(
             receiver,
             receiverHandler,
@@ -772,11 +820,13 @@ TEST_CASE(
             "The timestamped regional transportation server lost receiver TAR.");
         umbra::test::serveExpectedSuccessfulVoidInvocationReport(
             serveExpected, receiver, receiverHandler);
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::receive_interaction,
-            "The timestamped regional transportation server lost receiver pre-send poll.");
+        if (callbackModel == HLA_EVOKED) {
+          serveExpected(
+              receiver,
+              receiverHandler,
+              TransportServiceOperation::receive_interaction,
+              "The timestamped regional transportation server lost receiver pre-send poll.");
+        }
 
         if (!umbra::test::servePrimaryProcessRequest(
                 sender, senderHandler,
@@ -807,21 +857,58 @@ TEST_CASE(
             "The timestamped regional transportation server lost sender TAR.");
         umbra::test::serveExpectedSuccessfulVoidInvocationReport(
             serveExpected, sender, senderHandler);
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::receive_interaction,
-            "The timestamped regional transportation server lost receiver TSO Receive.");
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::acknowledge_tso_delivery,
-            "The timestamped regional transportation server lost TSO acknowledgement.");
-        serveExpected(
-            receiver,
-            receiverHandler,
-            TransportServiceOperation::unsubscribe_interaction_class_with_regions,
-            "The timestamped regional transportation server lost regional Unsubscribe.");
+        // Timestamped payloads arrive as unsolicited process events before
+        // their grant. Evoked callback entry may issue an empty poll while the
+        // event frame is in flight, but it must not replace the TSO
+        // acknowledgement or allow Unsubscribe ahead of acknowledgement.
+        bool acknowledgedTso = false;
+        bool unsubscribed = false;
+        while (!unsubscribed) {
+          if (!umbra::test::servePrimaryProcessRequest(
+                  receiver, receiverHandler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation ==
+                        TransportServiceOperation::receive_interaction) {
+                      if (callbackModel != HLA_EVOKED) {
+                        throw std::runtime_error(
+                            "Immediate delivery unexpectedly issued a receiver poll.");
+                      }
+                    } else if (request.operation ==
+                               TransportServiceOperation::acknowledge_tso_delivery) {
+                      if (acknowledgedTso) {
+                        throw std::runtime_error(
+                            "The receiver acknowledged the TSO interaction twice.");
+                      }
+                      acknowledgedTso = true;
+                    } else if (request.operation ==
+                               TransportServiceOperation::unsubscribe_interaction_class_with_regions) {
+                      if (!acknowledgedTso) {
+                        throw std::runtime_error(
+                            "The receiver unsubscribed before TSO acknowledgement.");
+                      }
+                      unsubscribed = true;
+                    } else {
+                      throw std::runtime_error(
+                          "The timestamped regional transportation server lost receiver delivery order.");
+                    }
+                    auto response = receiverHandler(request);
+                    if (response.status != TransportServiceStatus::ok) {
+                      throw std::runtime_error(
+                          "The timestamped regional transportation server rejected receiver delivery.");
+                    }
+                    if (request.operation ==
+                            TransportServiceOperation::receive_interaction &&
+                        umbra::detail::decodeProcessFederationReceiveInteractionResult(
+                            response.payload).event) {
+                      throw std::runtime_error(
+                          "The receiver polling path duplicated the pushed TSO interaction.");
+                    }
+                    return response;
+                  })) {
+            throw std::runtime_error(
+                "The timestamped regional transportation server lost receiver delivery.");
+          }
+        }
         serveExpected(
             sender,
             senderHandler,
@@ -938,13 +1025,16 @@ TEST_CASE(
       REQUIRE_NOTHROW(senderRti->publishInteractionClass(senderInteraction));
       REQUIRE_NOTHROW(senderRti->requestInteractionTransportationTypeChange(
           senderInteraction, transportation));
-      // The process endpoint exposes confirmation as a receive-order poll.
-      // Evoked and immediate callback models differ only in how the callback
-      // is dispatched after that poll; both models must make the poll.
-      static_cast<void>(senderRti->evokeCallback(0.0));
-      REQUIRE(senderFederate.changeCount == 1U);
-      REQUIRE(senderFederate.changedInteractionClass == senderInteraction);
-      REQUIRE(senderFederate.changedTransportationType == transportation);
+      if (callbackModel == HLA_EVOKED) {
+        static_cast<void>(senderRti->evokeCallback(1.0));
+      }
+      REQUIRE(senderFederate.waitForChange());
+      {
+        std::scoped_lock lock(senderFederate.callbackMutex);
+        REQUIRE(senderFederate.changeCount == 1U);
+        REQUIRE(senderFederate.changedInteractionClass == senderInteraction);
+        REQUIRE(senderFederate.changedTransportationType == transportation);
+      }
 
       REQUIRE_FALSE(receiverRti->getConveyRegionDesignatorSetsSwitch());
       REQUIRE_NOTHROW(receiverRti->setConveyRegionDesignatorSetsSwitch(true));
@@ -960,15 +1050,21 @@ TEST_CASE(
       }
       REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
       if (callbackModel == HLA_EVOKED) {
-        static_cast<void>(receiverRti->evokeCallback(0.0));
+        static_cast<void>(receiverRti->evokeCallback(1.0));
       }
-      REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
+      REQUIRE(receiverFederate.waitForTimeConstrained());
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
+      }
       REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
           rti1516_2025::HLAinteger64Time(5)));
-      // Keep the empty pre-send receive poll explicit.  The service uses it
-      // to complete the receiver's constrained TAR before a timestamped
-      // interaction is admitted, independent of callback dispatch model.
-      static_cast<void>(receiverRti->evokeCallback(0.0));
+      // In the evoked model this poll completes the receiver's constrained
+      // TAR before the timestamped interaction is admitted. Immediate
+      // delivery does not use Evoke as a process-poll fence.
+      if (callbackModel == HLA_EVOKED) {
+        static_cast<void>(receiverRti->evokeCallback(0.0));
+      }
 
       ParameterHandleValueMap parameterValues;
       std::array<std::uint8_t, 2U> const parameterBytes{0x05U, 0x00U};
@@ -986,35 +1082,43 @@ TEST_CASE(
       REQUIRE(recipientCount.load(std::memory_order_acquire) == 1U);
       REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
           rti1516_2025::HLAinteger64Time(5)));
-      // Sender TAR is a request/response operation and its grant does not
-      // require a second sender receive poll.  The receiver needs one poll
-      // to admit the queued timestamped event.  In the evoked model a
-      // second local evoke drains the grant callback queued alongside the
-      // interaction; immediate delivery has already run it synchronously.
-      static_cast<void>(receiverRti->evokeCallback(0.0));
+      // The timestamped event is pushed before its matching grant. In the
+      // evoked model, keep invoking the official callback service within a
+      // bounded deadline until both callbacks have run. In the immediate
+      // model, wait for the callback thread without invoking Evoke (§10.57).
       if (callbackModel == HLA_EVOKED) {
-        static_cast<void>(receiverRti->evokeCallback(0.0));
+        auto const deadline = std::chrono::steady_clock::now() +
+            std::chrono::seconds(2);
+        while (!receiverFederate.hasInteractionAndGrant() &&
+               std::chrono::steady_clock::now() < deadline) {
+          static_cast<void>(receiverRti->evokeCallback(0.2));
+        }
+      } else {
+        REQUIRE(receiverFederate.waitForInteractionAndGrant());
       }
 
-      REQUIRE(receiverFederate.receiveCount == 1U);
-      REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
-      REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I', 'G'});
-      REQUIRE(receiverFederate.receivedInteractionClass == receiverInteraction);
-      REQUIRE(receiverFederate.receivedTransportationType == transportation);
-      REQUIRE(receiverFederate.receivedProducingFederate == senderHandle);
-      REQUIRE(receiverFederate.receivedParameterCount == 1U);
-      REQUIRE(receiverFederate.receivedOptionalRegions);
-      REQUIRE(receiverFederate.receivedRegionCount == 1U);
-      REQUIRE(receiverFederate.receivedOptionalRetraction);
-      REQUIRE(receiverFederate.receivedRetractionValid);
-      REQUIRE(receiverFederate.receivedTimestampImplementation ==
-              L"HLAinteger64Time");
-      REQUIRE(receiverFederate.receivedTimestampValue == 5);
-      REQUIRE(receiverFederate.receivedSentOrder == rti1516_2025::TIMESTAMP);
-      REQUIRE(receiverFederate.receivedOrder == rti1516_2025::TIMESTAMP);
-      REQUIRE(receiverFederate.timeAdvanceGrantValue == 5);
-      REQUIRE(receiverFederate.receivedTag ==
-              std::vector<std::uint8_t>{0x54U, 0x53U, 0x4FU});
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.receiveCount == 1U);
+        REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
+        REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I', 'G'});
+        REQUIRE(receiverFederate.receivedInteractionClass == receiverInteraction);
+        REQUIRE(receiverFederate.receivedTransportationType == transportation);
+        REQUIRE(receiverFederate.receivedProducingFederate == senderHandle);
+        REQUIRE(receiverFederate.receivedParameterCount == 1U);
+        REQUIRE(receiverFederate.receivedOptionalRegions);
+        REQUIRE(receiverFederate.receivedRegionCount == 1U);
+        REQUIRE(receiverFederate.receivedOptionalRetraction);
+        REQUIRE(receiverFederate.receivedRetractionValid);
+        REQUIRE(receiverFederate.receivedTimestampImplementation ==
+                L"HLAinteger64Time");
+        REQUIRE(receiverFederate.receivedTimestampValue == 5);
+        REQUIRE(receiverFederate.receivedSentOrder == rti1516_2025::TIMESTAMP);
+        REQUIRE(receiverFederate.receivedOrder == rti1516_2025::TIMESTAMP);
+        REQUIRE(receiverFederate.timeAdvanceGrantValue == 5);
+        REQUIRE(receiverFederate.receivedTag ==
+                std::vector<std::uint8_t>{0x54U, 0x53U, 0x4FU});
+      }
 
       REQUIRE_NOTHROW(receiverRti->unsubscribeInteractionClassWithRegions(
           receiverInteraction,
