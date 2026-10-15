@@ -31900,7 +31900,7 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
       ],
       "test_case": "RTIambassadors retain the queried owner after a denied process acquisition",
-      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:724",
+      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:1114",
       "ctest_target": "umbra_attribute_ownership_acquisition_catch2",
       "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors retain the queried owner after a denied process acquisition$",
       "primary_lane": "process-ownership-acquisition-release-denied",
@@ -31940,7 +31940,69 @@
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
       "requirements_lab_api_surface_status": "The official 2025 C++ RTIambassador regular acquisition requests release from the current owner through a configured process endpoint. The owner's public Attribute Ownership Release Denied call terminates the pending acquisition, delivers one Attribute Ownership Unavailable callback with the denial tag, and a later public Query Attribute Ownership reports the same original federate as owner. This bounded HLA_EVOKED development-profile path does not establish complete ownership arbitration or conformance.",
-      "next_action": "Keep the two-federate denied-acquisition terminal path, exact denial-tag propagation, and post-denial queried owner green. Multi-acquirer delivery, cancellation races, push mode, RTI-owned state, timestamped/DDM behavior, interoperability, package/JUnit/protected-review, Lab validation, and conformance remain separate."
+      "next_action": "Keep the two-federate denied-acquisition terminal path, exact denial-tag propagation, post-denial queried owner, and separate immediate callback companion green. Multi-acquirer delivery, cancellation races, RTI-owned state, timestamped/DDM behavior, interoperability, package/JUnit/protected-review, Lab validation, and conformance remain separate."
+    },
+    {
+      "id": "umbra-cpp-attribute-ownership-acquisition-release-denied-process-push-integration",
+      "requirements_lab_mapping_id": "process.transition.attribute-ownership-release-denied-push-public",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+        "api.2025.cpp.rtiambassador.attributeownershipreleasedenied.7b1cc2290e39",
+        "api.2025.cpp.federateambassador.attributeownershipunavailable.39c86b97f321",
+        "api.2025.cpp.rtiambassador.queryattributeownership.8e2fc379ef34",
+        "api.2025.cpp.federateambassador.informattributeownership.6fd57319c7ea"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-038-l27-5",
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40",
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42",
+        "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
+      ],
+      "test_case": "RTIambassadors push a denied process acquisition and retain its queried owner",
+      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:1123",
+      "ctest_target": "umbra_attribute_ownership_acquisition_catch2",
+      "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors push a denied process acquisition and retain its queried owner$",
+      "primary_lane": "process-ownership-acquisition-release-denied-push",
+      "focus_lane": "process-ownership-acquisition-release-denied-push",
+      "assertions": 40,
+      "callback_models": [
+        "HLA_IMMEDIATE"
+      ],
+      "delivery_modes": [
+        "public-process-endpoint",
+        "two-federate-owner-release-denied-handshake",
+        "immediate-push-callback-delivery-no-evoke",
+        "typed-release-denied-result",
+        "post-denial-public-owner-query"
+      ],
+      "callback_gate_modes": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-7.8",
+        "hla-1516.1-2025:clause-7.12",
+        "hla-1516.1-2025:clause-7.17.5",
+        "hla-1516.1-2025:clause-7.18.4"
+      ],
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "ownership-management",
+        "transport",
+        "process-boundary",
+        "process-ownership-acquisition-release-denied-push",
+        "public-endpoint",
+        "attribute-ownership-acquisition",
+        "federate.callback.attribute-ownership-unavailable",
+        "query-attribute-ownership",
+        "federate.callback.inform-attribute-ownership",
+        "2025"
+      ],
+      "status": "implemented-public-foundation-not-conformance-evidence",
+      "requirements_lab_api_surface_status": "The official 2025 C++ RTIambassador regular acquisition crosses a configured process endpoint in HLA_IMMEDIATE mode, consistent with the clause 4 callback model. Its owner receives Request Attribute Ownership Release without Evoke, the owner denies release through the public service, and the requester receives one Attribute Ownership Unavailable callback with the exact denial tag without Evoke. A later public Query Attribute Ownership still reports the original owner. Process push revalidates at service-send time, not through a full callback-entry claim protocol. This is bounded development-profile evidence, not full ownership arbitration or conformance.",
+      "next_action": "Keep this immediate two-federate denied-acquisition path and the evoked control green. Multi-acquirer delivery, cancellation races, RTI-owned state, timestamped/DDM behavior, interoperability, package/JUnit/protected-review, Lab validation, and conformance remain separate."
     },
     {
       "id": "umbra-cpp-attribute-ownership-acquisition-cancellation-process-integration",

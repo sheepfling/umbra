@@ -720,12 +720,8 @@ TEST_CASE(
   REQUIRE_FALSE(serverError);
 }
 
-TEST_CASE(
-    "RTIambassadors retain the queried owner after a denied process acquisition",
-    "[integration][development-profile][federation-management][ownership-management]"
-    "[transport][process-boundary][process-ownership-acquisition-release-denied][public-endpoint]"
-    "[attribute-ownership-acquisition][federate.callback.attribute-ownership-unavailable]"
-    "[query-attribute-ownership][federate.callback.inform-attribute-ownership][2025]") {
+void runDeniedProcessAcquisitionCase(
+    rti1516_2025::CallbackModel callbackModel) {
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener != nullptr);
   auto const port = listener->address().port;
@@ -739,7 +735,8 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationService service(
           registry,
-          composedProcessOwnershipDefinition());
+          composedProcessOwnershipDefinition(),
+          ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
       ownerConnection = listener->accept(
           nullptr,
           {"process-ownership-acquisition-release-denied-server", 0xA707U},
@@ -751,19 +748,22 @@ TEST_CASE(
                                auto const& handler,
                                umbra::detail::TransportServiceOperation operation,
                                char const* description,
-                               bool allowReceivePolls = false) {
+                               bool allowCallbackProgress = false) {
         bool servedExpected = false;
-        std::size_t receivePollCount = 0U;
+        std::size_t progressCount = 0U;
         while (!servedExpected) {
           if (!ProcessTransportServiceDispatcher::serveOne(
                   session,
                   [&](umbra::detail::TransportServiceMessage const& request) {
-                    if (allowReceivePolls &&
-                        request.operation ==
-                            umbra::detail::TransportServiceOperation::receive_interaction) {
-                      if (++receivePollCount > 256U) {
+                    if (allowCallbackProgress &&
+                        (request.operation ==
+                             umbra::detail::TransportServiceOperation::receive_interaction ||
+                         (callbackModel == HLA_IMMEDIATE &&
+                          request.operation ==
+                              umbra::detail::TransportServiceOperation::get_object_class_handle))) {
+                      if (++progressCount > 256U) {
                         throw std::runtime_error(
-                            "The process ownership-acquisition release-denied client exceeded the bounded callback poll allowance.");
+                            "The process ownership-acquisition release-denied client exceeded the bounded callback progress allowance.");
                       }
                       return handler(request);
                     }
@@ -927,7 +927,7 @@ TEST_CASE(
   bool requesterJoined = false;
   try {
     REQUIRE_NOTHROW(owner->connect(
-        ownerReports, HLA_EVOKED, ownerConfiguration));
+        ownerReports, callbackModel, ownerConfiguration));
     REQUIRE_NOTHROW(owner->createFederationExecution(
         federationName,
         fomModule));
@@ -940,7 +940,7 @@ TEST_CASE(
     REQUIRE(ownerHandle.isValid());
 
     REQUIRE_NOTHROW(requester->connect(
-        requesterReports, HLA_EVOKED, requesterConfiguration));
+        requesterReports, callbackModel, requesterConfiguration));
     REQUIRE_NOTHROW(requester->joinFederationExecution(
         L"process-ownership-acquisition-release-denied-requester",
         L"publisher",
@@ -972,11 +972,22 @@ TEST_CASE(
     ObjectInstanceHandle objectInstance;
     REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(ownerClass));
     REQUIRE(objectInstance.isValid());
+    // HLA_IMMEDIATE dispatches pending callbacks during ordinary public
+    // service calls. It must not need an Evoke call.
+    auto advanceCallbacks = [&](RTIambassador& client) {
+      if (callbackModel == HLA_EVOKED) {
+        static_cast<void>(client.evokeMultipleCallbacks(0.01, 0.02));
+      } else {
+        static_cast<void>(client.getObjectClassHandle(
+            fixture_hla::fom::attribute_fixture_child));
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+      }
+    };
     auto const discoveryDeadline =
         std::chrono::steady_clock::now() + std::chrono::seconds(2);
     while (requesterReports.objectDiscoveryReports.empty() &&
            std::chrono::steady_clock::now() < discoveryDeadline) {
-      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+      advanceCallbacks(*requester);
     }
     REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
     REQUIRE(requesterReports.objectDiscoveryReports.front().objectInstance ==
@@ -993,12 +1004,14 @@ TEST_CASE(
         objectInstance,
         AttributeHandleSet{requesterAttribute},
         acquisitionTag));
-    REQUIRE(ownerReports.releaseRequests.empty());
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE(ownerReports.releaseRequests.empty());
+    }
     auto const releaseDeadline =
         std::chrono::steady_clock::now() + std::chrono::seconds(2);
     while (ownerReports.releaseRequests.empty() &&
            std::chrono::steady_clock::now() < releaseDeadline) {
-      static_cast<void>(owner->evokeMultipleCallbacks(0.01, 0.02));
+      advanceCallbacks(*owner);
     }
     REQUIRE(ownerReports.releaseRequests.size() == 1U);
     auto const& releaseRequest = ownerReports.releaseRequests.front();
@@ -1011,12 +1024,14 @@ TEST_CASE(
         objectInstance,
         AttributeHandleSet{ownerAttribute},
         denialTag));
-    REQUIRE(requesterReports.acquisitionReports.empty());
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE(requesterReports.acquisitionReports.empty());
+    }
     auto const unavailableDeadline =
         std::chrono::steady_clock::now() + std::chrono::seconds(2);
     while (requesterReports.acquisitionReports.empty() &&
            std::chrono::steady_clock::now() < unavailableDeadline) {
-      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+      advanceCallbacks(*requester);
     }
     REQUIRE(requesterReports.acquisitionReports.size() == 1U);
     auto const& unavailable = requesterReports.acquisitionReports.front();
@@ -1030,12 +1045,14 @@ TEST_CASE(
 
     REQUIRE_NOTHROW(requester->queryAttributeOwnership(
         objectInstance, AttributeHandleSet{requesterAttribute}));
-    REQUIRE(requesterReports.attributeOwnershipReports.empty());
+    if (callbackModel == HLA_EVOKED) {
+      REQUIRE(requesterReports.attributeOwnershipReports.empty());
+    }
     auto const ownerQueryDeadline =
         std::chrono::steady_clock::now() + std::chrono::seconds(2);
     while (requesterReports.attributeOwnershipReports.empty() &&
            std::chrono::steady_clock::now() < ownerQueryDeadline) {
-      static_cast<void>(requester->evokeMultipleCallbacks(0.01, 0.02));
+      advanceCallbacks(*requester);
     }
     REQUIRE(requesterReports.attributeOwnershipReports.size() == 1U);
     auto const& ownership = requesterReports.attributeOwnershipReports.front();
@@ -1091,6 +1108,25 @@ TEST_CASE(
   if (clientError) {
     std::rethrow_exception(clientError);
   }
+}
+
+TEST_CASE(
+    "RTIambassadors retain the queried owner after a denied process acquisition",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[transport][process-boundary][process-ownership-acquisition-release-denied][public-endpoint]"
+    "[attribute-ownership-acquisition][federate.callback.attribute-ownership-unavailable]"
+    "[query-attribute-ownership][federate.callback.inform-attribute-ownership][2025]") {
+  runDeniedProcessAcquisitionCase(HLA_EVOKED);
+}
+
+TEST_CASE(
+    "RTIambassadors push a denied process acquisition and retain its queried owner",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[transport][process-boundary][process-ownership-acquisition-release-denied-push]"
+    "[public-endpoint][attribute-ownership-acquisition]"
+    "[federate.callback.attribute-ownership-unavailable][query-attribute-ownership]"
+    "[federate.callback.inform-attribute-ownership][2025]") {
+  runDeniedProcessAcquisitionCase(HLA_IMMEDIATE);
 }
 
 TEST_CASE(
