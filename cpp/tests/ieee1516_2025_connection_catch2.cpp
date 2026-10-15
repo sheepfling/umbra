@@ -113,6 +113,8 @@ TEST_CASE(
   REQUIRE(port != 0U);
 
   std::exception_ptr serverError;
+  std::atomic_size_t primaryRequestCount = 0U;
+  std::atomic_bool serverTimedOut = false;
   std::thread server([&] {
     try {
       EmbeddedFederationRegistry registry;
@@ -136,18 +138,51 @@ TEST_CASE(
           [](std::wstring) { return false; });
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
-      if (!umbra::test::servePrimaryProcessRequest(session, handler) ||
-          !umbra::test::servePrimaryProcessRequest(session, handler) ||
-          !umbra::test::servePrimaryProcessRequest(session, handler) ||
-          !umbra::test::servePrimaryProcessRequest(session, handler) ||
-          !umbra::test::servePrimaryProcessRequest(session, handler) ||
-          !umbra::test::servePrimaryProcessRequest(session, handler) ||
-          !umbra::test::servePrimaryProcessRequest(session, handler) ||
-          !umbra::test::servePrimaryProcessRequest(session, handler) ||
-          !umbra::test::servePrimaryProcessRequest(session, handler) ||
-          !umbra::test::servePrimaryProcessRequest(session, handler)) {
+      // Successful service reports (wire operations 140 and 143) interleave
+      // with public calls. A fixed service-count budget would close the peer
+      // before Resign; a stalled peer must not hang this fixture.
+      std::jthread timeoutGuard([connection, &serverTimedOut](
+                                    std::stop_token stop) {
+        std::mutex waitMutex;
+        std::condition_variable_any waitCondition;
+        std::unique_lock waitLock(waitMutex);
+        waitCondition.wait_for(
+            waitLock, stop, std::chrono::seconds(30), [] { return false; });
+        if (!stop.stop_requested()) {
+          serverTimedOut = true;
+          connection->close();
+        }
+      });
+      std::size_t destroyRequestCount = 0U;
+      constexpr std::size_t maxPrimaryRequests = 32U;
+      for (;;) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](umbra::detail::TransportServiceMessage const& request) {
+                  ++primaryRequestCount;
+                  if (request.operation ==
+                      umbra::detail::TransportServiceOperation::
+                          destroy_federation_execution) {
+                    ++destroyRequestCount;
+                  }
+                  return handler(request);
+                })) {
+          break;
+        }
+        if (primaryRequestCount > maxPrimaryRequests) {
+          throw std::runtime_error(
+              "The public process endpoint exceeded its bounded lifecycle request budget.");
+        }
+      }
+      if (serverTimedOut) {
         throw std::runtime_error(
-            "The public process endpoint server did not receive Create, Join, Destroy-while-joined, Enable/Disable Time Regulation, Query Logical Time, Resign, Destroy, and missing-Destroy.");
+            "The public process endpoint timed out before client disconnect.");
+      }
+      if (destroyRequestCount != 3U) {
+        throw std::runtime_error(
+            "The public process endpoint ended after " +
+            std::to_string(primaryRequestCount.load()) +
+            " primary requests without joined-Destroy, successful Destroy, and missing-Destroy.");
       }
       service.detach(session);
       connection->close();
@@ -163,6 +198,7 @@ TEST_CASE(
                            .withRtiAddress(
                                L"tcp://127.0.0.1:" + std::to_wstring(port));
   std::exception_ptr clientError;
+  std::string clientPhase = "connect";
   std::optional<ConfigurationResult> connectionResult;
   std::optional<rti1516_2025::FederateHandle> joinedHandle;
   try {
@@ -188,9 +224,12 @@ TEST_CASE(
     CHECK_THROWS_AS(
         rti->disableTimeRegulation(),
         rti1516_2025::TimeRegulationIsNotEnabled);
+    clientPhase = "resign";
     rti->resignFederationExecution(NO_ACTION);
+    clientPhase = "destroy";
     CHECK_NOTHROW(
         rti->destroyFederationExecution(L"process-public-execution"));
+    clientPhase = "missing destroy";
     CHECK_THROWS_AS(
         rti->destroyFederationExecution(L"process-public-execution"),
         rti1516_2025::FederationExecutionDoesNotExist);
@@ -198,12 +237,14 @@ TEST_CASE(
   } catch (...) {
     clientError = std::current_exception();
   }
+  rti.reset();
   if (listener) {
-    listener.reset();
+    listener->close();
   }
   if (server.joinable()) {
     server.join();
   }
+  listener.reset();
   auto exceptionText = [](rti1516_2025::Exception const& error) {
     std::string message;
     for (auto const character : error.name()) {
@@ -219,7 +260,10 @@ TEST_CASE(
     try {
       std::rethrow_exception(clientError);
     } catch (rti1516_2025::Exception const& error) {
-      FAIL_CHECK("process endpoint client threw: " << exceptionText(error));
+      FAIL_CHECK(
+          "process endpoint client threw during " << clientPhase << " after "
+          << primaryRequestCount.load() << " primary requests: "
+          << exceptionText(error));
     } catch (std::exception const& error) {
       FAIL_CHECK("process endpoint client threw: " << error.what());
     } catch (...) {
