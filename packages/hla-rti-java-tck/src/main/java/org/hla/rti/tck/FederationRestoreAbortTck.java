@@ -128,6 +128,7 @@ final class FederationRestoreAbortTck {
          "restore initiation returned incomplete metadata");
    }
 
+
    private static <T> T last(List<T> values) {
       return values.get(values.size() - 1);
    }

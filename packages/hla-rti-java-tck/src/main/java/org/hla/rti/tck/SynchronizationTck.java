@@ -107,6 +107,12 @@ final class SynchronizationTck {
 
          String explicitLabel = "java-tck-sync-explicit-" + UUID.randomUUID();
          byte[] explicitTag = new byte[] {0x04, 0x05};
+         FederateHandleSet invalidMembers = owner.getFederateHandleSetFactory().create();
+         invalidMembers.add(JavaTckSupport.invalidHandle(FederateHandle.class));
+         JavaTckSupport.expectFailure(() -> owner.registerFederationSynchronizationPoint(
+               "java-tck-sync-invalid-explicit-" + UUID.randomUUID(), explicitTag,
+               invalidMembers),
+            "InvalidFederateHandle", "explicit synchronization set with an invalid handle");
          FederateHandleSet explicitMembers = owner.getFederateHandleSetFactory().create();
          explicitMembers.add(ownerHandle);
          explicitMembers.add(peerHandle);

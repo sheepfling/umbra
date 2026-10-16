@@ -27,6 +27,7 @@ final class InteractionServiceBoundariesTck {
    static void run(RtiFactory factory, String fom, String timeImplementation,
          String interactionName, String parameterName, CallbackModel callbackModel)
          throws Exception {
+      verifyLifecycleBoundaries(factory, callbackModel);
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador active = factory.getRtiAmbassador();
       RTIambassador passive = factory.getRtiAmbassador();
@@ -64,7 +65,18 @@ final class InteractionServiceBoundariesTck {
                && interactionName.equals(active.getInteractionClassName(activeClass))
                && interactionName.equals(passive.getInteractionClassName(passiveClass)),
             "adapter FOM did not resolve the ordinary interaction class consistently");
+         JavaTckSupport.check(publisherParameter != null && activeParameter != null
+               && passiveParameter != null,
+            "adapter FOM did not resolve the ordinary interaction parameter");
 
+         byte[] value = new byte[] {0x42, 0x11};
+         byte[] tag = new byte[] {0x49, 0x4e, 0x54};
+         ParameterHandleValueMap parameters =
+            publisher.getParameterHandleValueMapFactory().create(1);
+         parameters.put(publisherParameter, value.clone());
+         JavaTckSupport.expectFailure(
+            () -> publisher.sendInteraction(publisherClass, parameters, tag.clone()),
+            "InteractionClassNotPublished", "sending before interaction publication");
          publisher.publishInteractionClass(publisherClass);
          published = true;
          active.subscribeInteractionClass(activeClass);
@@ -72,11 +84,22 @@ final class InteractionServiceBoundariesTck {
          passive.subscribeInteractionClassPassively(passiveClass);
          passiveSubscribed = true;
 
-         byte[] value = new byte[] {0x42, 0x11};
-         byte[] tag = new byte[] {0x49, 0x4e, 0x54};
-         ParameterHandleValueMap parameters =
+         InteractionClassHandle invalidClass =
+            JavaTckSupport.invalidHandle(InteractionClassHandle.class);
+         JavaTckSupport.expectFailure(
+            () -> publisher.sendInteraction(invalidClass, parameters, tag.clone()),
+            "InteractionClassNotDefined", "sending with an invalid interaction class");
+         ParameterHandle invalidParameter =
+            JavaTckSupport.invalidHandle(ParameterHandle.class);
+         ParameterHandleValueMap invalidParameters =
             publisher.getParameterHandleValueMapFactory().create(1);
-         parameters.put(publisherParameter, value.clone());
+         invalidParameters.put(invalidParameter, new byte[0]);
+         JavaTckSupport.expectFailure(
+            () -> publisher.sendInteraction(publisherClass, invalidParameters, tag.clone()),
+            "InteractionParameterNotDefined", "sending with an invalid parameter");
+         JavaTckSupport.check(activeCallbacks.interactions.isEmpty()
+               && passiveCallbacks.interactions.isEmpty(),
+            "a failed interaction send unexpectedly delivered a callback");
          publisher.sendInteraction(publisherClass, parameters, tag.clone());
 
          await(active, callbackModel, activeCallbacks,
@@ -85,8 +108,8 @@ final class InteractionServiceBoundariesTck {
             value, tag, producer, active, "active interaction subscriber");
 
          for (int pass = 0; pass < 8; ++pass) settle(passive, callbackModel);
-         JavaTckSupport.check(!passiveCallbacks.interactions.isEmpty(),
-            "passive interaction subscription did not receive the subscribed delivery");
+         JavaTckSupport.check(passiveCallbacks.interactions.size() == 1,
+            "passive interaction subscription did not receive exactly one relevant delivery");
          assertDelivery(passiveCallbacks.interactions.get(0), passiveClass, passiveParameter,
             value, tag, producer, passive, "passive interaction subscriber");
       } finally {
@@ -112,6 +135,26 @@ final class InteractionServiceBoundariesTck {
          if (passiveConnected) disconnect(passive);
          if (activeConnected) disconnect(active);
          if (publisherConnected) disconnect(publisher);
+      }
+   }
+
+   private static void verifyLifecycleBoundaries(RtiFactory factory, CallbackModel callbackModel)
+         throws Exception {
+      RTIambassador lifecycle = factory.getRtiAmbassador();
+      InteractionClassHandle invalidClass =
+         JavaTckSupport.invalidHandle(InteractionClassHandle.class);
+      ParameterHandleValueMap emptyParameters =
+         lifecycle.getParameterHandleValueMapFactory().create(0);
+      JavaTckSupport.expectFailure(
+         () -> lifecycle.sendInteraction(invalidClass, emptyParameters, new byte[0]),
+         "NotConnected", "sending an interaction before connection");
+      lifecycle.connect(callbacks(), callbackModel);
+      try {
+         JavaTckSupport.expectFailure(
+            () -> lifecycle.sendInteraction(invalidClass, emptyParameters, new byte[0]),
+            "FederateNotExecutionMember", "sending before federation membership");
+      } finally {
+         lifecycle.disconnect();
       }
    }
 

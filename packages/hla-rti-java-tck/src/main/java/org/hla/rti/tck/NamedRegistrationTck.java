@@ -94,9 +94,13 @@ final class NamedRegistrationTck {
 
          String objectName = federation + "-named-object";
          ownerCallbacks.clear();
+         memberCallbacks.discoveries.clear();
          owner.reserveObjectInstanceName(objectName);
          await(owner, callbackModel, () -> ownerCallbacks.singleSucceeded.contains(objectName),
             "named object reservation");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(member);
+         JavaTckSupport.check(memberCallbacks.discoveries.isEmpty(),
+            "Reserve Object Instance Name caused an object-discovery callback");
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass, objectName);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "named registration returned an invalid object handle");
@@ -107,6 +111,8 @@ final class NamedRegistrationTck {
 
          await(member, callbackModel, () -> !memberCallbacks.discoveries.isEmpty(),
             "named object discovery");
+         JavaTckSupport.check(memberCallbacks.discoveries.size() == 1,
+            "named registration did not produce exactly one discovery callback");
          Discovery discovered = memberCallbacks.discoveries.get(0);
          JavaTckSupport.check(object.equals(discovered.object),
             "named discovery returned the wrong object handle");

@@ -28,8 +28,9 @@ final class ObjectAttributeSubscriptionLifecycleTck {
 
    private ObjectAttributeSubscriptionLifecycleTck() { }
 
-   static void run(RtiFactory factory, String fom, String timeImplementation,
-         String objectClassName, String attributeName, CallbackModel callbackModel)
+   static void run(RtiFactory factory, String fom, String mim, String timeImplementation,
+         String objectClassName, String attributeName, String secondaryAttributeName,
+         CallbackModel callbackModel)
          throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador subscriber = factory.getRtiAmbassador();
@@ -41,12 +42,14 @@ final class ObjectAttributeSubscriptionLifecycleTck {
       boolean published = false, subscribed = false;
       ObjectClassHandle publisherClass = null, subscriberClass = null;
       AttributeHandle publisherAttribute = null, subscriberAttribute = null;
+      AttributeHandle publisherSecondaryAttribute = null, subscriberSecondaryAttribute = null;
       try {
          publisher.connect(publisherCallbacks.proxy(), callbackModel);
          publisherConnected = true;
          subscriber.connect(subscriberCallbacks.proxy(), callbackModel);
          subscriberConnected = true;
-         publisher.createFederationExecution(federation, fom, timeImplementation);
+         publisher.createFederationExecutionWithMIM(
+            federation, new String[] {fom}, mim, timeImplementation);
          created = true;
          FederateHandle producer = publisher.joinFederationExecution(
             "java-tck-object-subscription-publisher", federation);
@@ -58,52 +61,122 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          subscriberClass = subscriber.getObjectClassHandle(objectClassName);
          publisherAttribute = publisher.getAttributeHandle(publisherClass, attributeName);
          subscriberAttribute = subscriber.getAttributeHandle(subscriberClass, attributeName);
+         publisherSecondaryAttribute = publisher.getAttributeHandle(
+            publisherClass, secondaryAttributeName);
+         subscriberSecondaryAttribute = subscriber.getAttributeHandle(
+            subscriberClass, secondaryAttributeName);
          JavaTckSupport.check(publisherClass != null && subscriberClass != null
-               && publisherAttribute != null && subscriberAttribute != null,
+               && publisherAttribute != null && subscriberAttribute != null
+               && publisherSecondaryAttribute != null && subscriberSecondaryAttribute != null
+               && !publisherAttribute.equals(publisherSecondaryAttribute)
+               && !subscriberAttribute.equals(subscriberSecondaryAttribute),
             "adapter FOM did not resolve object-attribute subscription lifecycle handles");
          AttributeHandleSet publisherAttributes = JavaTckSupport.attributeSet(
-            publisher, publisherAttribute);
+            publisher, publisherAttribute, publisherSecondaryAttribute);
          AttributeHandleSet subscriberAttributes = JavaTckSupport.attributeSet(
             subscriber, subscriberAttribute);
          publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
          published = true;
 
-         subscriber.subscribeObjectClassAttributesPassively(subscriberClass, subscriberAttributes);
-         subscribed = true;
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
-            "passive-subscription registration returned an invalid object handle");
+             "pre-subscription registration returned an invalid object handle");
+
+         byte[] initialValue = new byte[] {0x49, 0x4e, 0x49};
+         byte[] initialFilteredValue = new byte[] {0x46, 0x49, 0x4c};
+         byte[] initialTag = new byte[] {0x49, 0x30};
+         sendUpdate(publisher, publisherAttribute, publisherSecondaryAttribute, object,
+            initialValue, initialFilteredValue, initialTag);
+
+         ObjectClassHandle momFederateClass = subscriber.getObjectClassHandle(
+            "HLAobjectRoot.HLAmanager.HLAfederate");
+         JavaTckSupport.check(momFederateClass != null
+               && !subscriberClass.equals(momFederateClass),
+            "standard MOM fixture did not provide a distinct HLAfederate class");
+         AttributeHandle momFederateHandleAttribute = subscriber.getAttributeHandle(
+            momFederateClass, "HLAfederateHandle");
+         JavaTckSupport.check(momFederateHandleAttribute != null,
+            "standard MOM fixture did not provide the HLAfederateHandle attribute");
+         ObjectClassHandle objectClassForInvalidSubscribe = subscriberClass;
+         AttributeHandleSet outOfClassAttributes = JavaTckSupport.attributeSet(
+            subscriber, momFederateHandleAttribute);
+         JavaTckSupport.expectFailure(
+            () -> subscriber.subscribeObjectClassAttributes(objectClassForInvalidSubscribe,
+               outOfClassAttributes),
+            "AttributeNotDefined",
+            "subscribing with an attribute handle from the unrelated standard HLAfederate class");
+         pumpQuiet(subscriber, callbackModel);
+         JavaTckSupport.check(subscriberCallbacks.discoveries.isEmpty()
+               && subscriberCallbacks.reflections.isEmpty(),
+            "rejected out-of-class subscription changed discovery or reflection state");
+
+         AttributeHandleSet emptyAttributes = JavaTckSupport.attributeSet(subscriber);
+         subscriber.subscribeObjectClassAttributes(subscriberClass, emptyAttributes);
+         pumpQuiet(subscriber, callbackModel);
+         JavaTckSupport.check(subscriberCallbacks.discoveries.isEmpty()
+               && subscriberCallbacks.reflections.isEmpty(),
+            "empty active object-attribute subscription affected a pre-existing object");
+
+         subscriber.subscribeObjectClassAttributesPassively(subscriberClass, subscriberAttributes);
+         subscribed = true;
          pumpQuiet(subscriber, callbackModel);
          JavaTckSupport.check(subscriberCallbacks.discoveries.isEmpty(),
             "passive object-attribute subscription unexpectedly discovered an object");
 
+         ObjectInstanceHandle laterObject = publisher.registerObjectInstance(publisherClass);
+         JavaTckSupport.check(laterObject != null && laterObject.encodedLength() > 0,
+            "passive-subscription registration returned an invalid object handle");
+         pumpQuiet(subscriber, callbackModel);
+         JavaTckSupport.check(subscriberCallbacks.discoveries.isEmpty()
+               && subscriberCallbacks.reflections.isEmpty(),
+            "passive object-attribute subscription affected a later registration");
+
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberAttributes);
          await(subscriber, callbackModel,
-            () -> !subscriberCallbacks.discoveries.isEmpty(),
+            () -> subscriberCallbacks.discoveries.size() == 2,
             "active object-attribute subscription discovery");
-         Discovery discovery = subscriberCallbacks.discoveries.get(0);
-         JavaTckSupport.check(object.equals(discovery.object)
-               && subscriberClass.equals(discovery.objectClass),
-            "active object-attribute subscription returned the wrong discovery identity");
+         Discovery discovery = findDiscovery(subscriberCallbacks.discoveries, object);
+         Discovery laterDiscovery = findDiscovery(subscriberCallbacks.discoveries, laterObject);
+         JavaTckSupport.check(discovery != null && laterDiscovery != null
+               && subscriberClass.equals(discovery.objectClass)
+               && subscriberClass.equals(laterDiscovery.objectClass),
+            "active object-attribute subscription returned the wrong discovery identities");
          String objectName = publisher.getObjectInstanceName(object);
          JavaTckSupport.check(objectName != null && !objectName.isEmpty()
                && object.equals(subscriber.getObjectInstanceHandle(objectName))
                && subscriberClass.equals(subscriber.getKnownObjectClassHandle(object)),
             "active object-attribute subscription did not establish stable identity lookups");
+         String laterObjectName = publisher.getObjectInstanceName(laterObject);
+         JavaTckSupport.check(laterObjectName != null && !laterObjectName.isEmpty()
+               && laterObject.equals(subscriber.getObjectInstanceHandle(laterObjectName))
+               && subscriberClass.equals(subscriber.getKnownObjectClassHandle(laterObject)),
+            "active object-attribute subscription did not identify the later registration");
+
+         await(subscriber, callbackModel, () -> !subscriberCallbacks.reflections.isEmpty(),
+            "initial active object-attribute subscription reflection");
+         assertReflection(subscriberCallbacks.reflections.get(0), object, subscriberAttribute,
+            subscriberSecondaryAttribute, initialValue, initialTag, producer,
+            "initial active object-attribute subscription");
+         subscriberCallbacks.reflections.clear();
 
          byte[] activeValue = new byte[] {0x41, 0x43, 0x54};
+         byte[] activeFilteredValue = new byte[] {0x46, 0x49, 0x4c};
          byte[] activeTag = new byte[] {0x41, 0x31};
-         sendUpdate(publisher, publisherAttribute, object, activeValue, activeTag);
+         sendUpdate(publisher, publisherAttribute, publisherSecondaryAttribute, object,
+            activeValue, activeFilteredValue, activeTag);
          await(subscriber, callbackModel, () -> !subscriberCallbacks.reflections.isEmpty(),
             "active object-attribute subscription reflection");
          assertReflection(subscriberCallbacks.reflections.get(0), object, subscriberAttribute,
-            activeValue, activeTag, producer, "active object-attribute subscription");
+            subscriberSecondaryAttribute, activeValue, activeTag, producer,
+            "active object-attribute subscription");
 
          subscriberCallbacks.reflections.clear();
          subscriber.subscribeObjectClassAttributesPassively(subscriberClass, subscriberAttributes);
          byte[] downgradedValue = new byte[] {0x44, 0x4f, 0x57};
+         byte[] downgradedFilteredValue = new byte[] {0x46, 0x49, 0x4c};
          byte[] downgradedTag = new byte[] {0x44, 0x32};
-         sendUpdate(publisher, publisherAttribute, object, downgradedValue, downgradedTag);
+         sendUpdate(publisher, publisherAttribute, publisherSecondaryAttribute, object,
+            downgradedValue, downgradedFilteredValue, downgradedTag);
          pumpQuiet(subscriber, callbackModel);
          JavaTckSupport.check(subscriberCallbacks.reflections.isEmpty(),
             "passive object-attribute downgrade did not suppress reflection");
@@ -112,19 +185,24 @@ final class ObjectAttributeSubscriptionLifecycleTck {
 
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberAttributes);
          byte[] reactivatedValue = new byte[] {0x52, 0x45, 0x41};
+         byte[] reactivatedFilteredValue = new byte[] {0x46, 0x49, 0x4c};
          byte[] reactivatedTag = new byte[] {0x52, 0x33};
-         sendUpdate(publisher, publisherAttribute, object, reactivatedValue, reactivatedTag);
+         sendUpdate(publisher, publisherAttribute, publisherSecondaryAttribute, object,
+            reactivatedValue, reactivatedFilteredValue, reactivatedTag);
          await(subscriber, callbackModel, () -> !subscriberCallbacks.reflections.isEmpty(),
             "reactivated object-attribute subscription reflection");
          assertReflection(subscriberCallbacks.reflections.get(0), object, subscriberAttribute,
-            reactivatedValue, reactivatedTag, producer, "reactivated object-attribute subscription");
+            subscriberSecondaryAttribute, reactivatedValue, reactivatedTag, producer,
+            "reactivated object-attribute subscription");
 
          subscriberCallbacks.reflections.clear();
          subscriber.unsubscribeObjectClassAttributes(subscriberClass, subscriberAttributes);
          subscribed = false;
          byte[] withdrawnValue = new byte[] {0x57, 0x49, 0x54};
+         byte[] withdrawnFilteredValue = new byte[] {0x46, 0x49, 0x4c};
          byte[] withdrawnTag = new byte[] {0x57, 0x34};
-         sendUpdate(publisher, publisherAttribute, object, withdrawnValue, withdrawnTag);
+         sendUpdate(publisher, publisherAttribute, publisherSecondaryAttribute, object,
+            withdrawnValue, withdrawnFilteredValue, withdrawnTag);
          pumpQuiet(subscriber, callbackModel);
          JavaTckSupport.check(subscriberCallbacks.reflections.isEmpty(),
             "unsubscribed object-attribute declaration unexpectedly reflected an update");
@@ -136,7 +214,8 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          }
          if (publisherJoined && published) {
             try { publisher.unpublishObjectClassAttributes(publisherClass,
-               JavaTckSupport.attributeSet(publisher, publisherAttribute)); }
+               JavaTckSupport.attributeSet(publisher, publisherAttribute,
+                  publisherSecondaryAttribute)); }
             catch (Exception ignored) { }
          }
          if (subscriberJoined) {
@@ -160,18 +239,30 @@ final class ObjectAttributeSubscriptionLifecycleTck {
    }
 
    private static void sendUpdate(RTIambassador publisher, AttributeHandle attribute,
-         ObjectInstanceHandle object, byte[] value, byte[] tag) throws Exception {
-      AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(1);
+         AttributeHandle filteredAttribute, ObjectInstanceHandle object, byte[] value,
+         byte[] filteredValue, byte[] tag) throws Exception {
+      AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(2);
       values.put(attribute, value);
+      values.put(filteredAttribute, filteredValue);
       publisher.updateAttributeValues(object, values, tag);
    }
 
+   private static Discovery findDiscovery(List<Discovery> discoveries,
+         ObjectInstanceHandle object) {
+      for (Discovery discovery : discoveries) {
+         if (object.equals(discovery.object)) return discovery;
+      }
+      return null;
+   }
+
    private static void assertReflection(Reflection reflection, ObjectInstanceHandle object,
-         AttributeHandle attribute, byte[] value, byte[] tag, FederateHandle producer,
-         String description) {
+         AttributeHandle attribute, AttributeHandle excludedAttribute, byte[] value, byte[] tag,
+         FederateHandle producer, String description) {
       JavaTckSupport.check(object.equals(reflection.object),
          description + " returned the wrong object handle");
       JavaTckSupport.check(reflection.values.size() == 1
+            && reflection.values.containsKey(attribute)
+            && !reflection.values.containsKey(excludedAttribute)
             && Arrays.equals(value, reflection.values.get(attribute)),
          description + " returned the wrong attribute set or value");
       JavaTckSupport.check(Arrays.equals(tag, reflection.tag),

@@ -23,6 +23,7 @@ final class UnnamedJoinOverloadTck {
    static void run(RtiFactory factory, String fom, String timeImplementation,
          CallbackModel callbackModel, String federateType) throws Exception {
       Member owner = new Member(factory.getRtiAmbassador());
+      Member secondUnnamed = new Member(factory.getRtiAmbassador());
       Member namedMember = new Member(factory.getRtiAmbassador());
       Member observer = new Member(factory.getRtiAmbassador());
       String suffix = UUID.randomUUID().toString();
@@ -31,6 +32,7 @@ final class UnnamedJoinOverloadTck {
       boolean created = false;
       try {
          owner.connect(callbackModel);
+         secondUnnamed.connect(callbackModel);
          namedMember.connect(callbackModel);
          observer.connect(callbackModel);
 
@@ -43,8 +45,20 @@ final class UnnamedJoinOverloadTck {
          String generatedName = owner.rti.getFederateName(generatedHandle);
          JavaTckSupport.check(generatedName != null && !generatedName.isEmpty(),
             "unnamed join did not assign a federate name");
+         JavaTckSupport.check(!generatedName.equals(namedFederate),
+            "generated federate name collided with the named control federate");
          JavaTckSupport.check(generatedHandle.equals(owner.rti.getFederateHandle(generatedName)),
             "generated federate name did not resolve to the join handle");
+
+         FederateHandle secondGeneratedHandle = secondUnnamed.rti.joinFederationExecution(
+            federateType, federation);
+         secondUnnamed.joined = true;
+         String secondGeneratedName = secondUnnamed.rti.getFederateName(secondGeneratedHandle);
+         JavaTckSupport.check(secondGeneratedName != null && !secondGeneratedName.isEmpty()
+               && !generatedName.equals(secondGeneratedName)
+               && secondGeneratedHandle.equals(secondUnnamed.rti.getFederateHandle(
+                  secondGeneratedName)),
+            "unnamed joins did not receive distinct, reversible generated federate names");
 
          FederateHandle namedHandle = namedMember.rti.joinFederationExecution(
             namedFederate, federateType, federation);
@@ -56,17 +70,21 @@ final class UnnamedJoinOverloadTck {
 
          observer.rti.listFederationExecutionMembers(federation);
          BooleanSupplier completeReport = () -> observer.callbacks.hasMembers(
-            federation, generatedName, federateType, namedFederate, federateType);
+            federation, generatedName, secondGeneratedName, federateType,
+            namedFederate, federateType);
          verifyCallbackBoundary(observer, callbackModel, completeReport);
 
          namedMember.rti.resignFederationExecution(ResignAction.NO_ACTION);
          namedMember.joined = false;
+         secondUnnamed.rti.resignFederationExecution(ResignAction.NO_ACTION);
+         secondUnnamed.joined = false;
          owner.rti.resignFederationExecution(ResignAction.NO_ACTION);
          owner.joined = false;
          owner.rti.destroyFederationExecution(federation);
          created = false;
       } finally {
          namedMember.close();
+         secondUnnamed.close();
          owner.close();
          if (created) {
             try { owner.rti.destroyFederationExecution(federation); }
@@ -128,10 +146,12 @@ final class UnnamedJoinOverloadTck {
       private final List<MemberReport> reports = new CopyOnWriteArrayList<>();
 
       private boolean hasMembers(String federation, String generatedName,
-            String generatedType, String namedName, String namedType) {
+            String secondGeneratedName, String generatedType, String namedName,
+            String namedType) {
          for (MemberReport report : reports) {
-            if (federation.equals(report.federation) && report.members.size() == 2
+            if (federation.equals(report.federation) && report.members.size() == 3
                   && report.has(generatedName, generatedType)
+                  && report.has(secondGeneratedName, generatedType)
                   && report.has(namedName, namedType)) return true;
          }
          return false;

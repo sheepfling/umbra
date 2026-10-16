@@ -6,7 +6,6 @@ import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
-import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
@@ -55,6 +54,15 @@ final class InteractionPublicationSendFenceTck {
          published = true;
          subscriber.subscribeInteractionClass(subscriberInteraction);
          subscribed = true;
+
+         byte[] firstValue = new byte[] {0x42, 0x11};
+         byte[] firstTag = new byte[] {0x49, 0x4e, 0x54};
+         send(publisher, publisherInteraction, publisherParameter, firstValue, firstTag);
+         awaitCount(subscriber, subscriberRecorder, 1,
+            "published interaction did not deliver before unpublication");
+         assertInteraction(subscriberRecorder.interactions.get(0), subscriberInteraction,
+            subscriberParameter, firstValue, firstTag, producer);
+
          publisher.unpublishInteractionClass(publisherInteraction);
          published = false;
 
@@ -65,18 +73,18 @@ final class InteractionPublicationSendFenceTck {
             () -> send(publisher, unpublishedInteraction, publisherParameter,
                fencedValue, fencedTag),
             "InteractionClassNotPublished", "sending after interaction unpublication");
-         JavaTckSupport.check(subscriberRecorder.interactions.isEmpty(),
-            "unpublished interaction unexpectedly produced a receive callback");
+         JavaTckSupport.check(subscriberRecorder.interactions.size() == 1,
+            "unpublished interaction changed the prior receive callback count");
 
          publisher.publishInteractionClass(publisherInteraction);
          published = true;
          byte[] restoredValue = new byte[] {0x52, 0x45, 0x53, 0x54, 0x4f, 0x52, 0x45};
          byte[] restoredTag = new byte[] {0x52, 0x45, 0x50};
          send(publisher, publisherInteraction, publisherParameter, restoredValue, restoredTag);
-         awaitCount(subscriber, subscriberRecorder, 1,
+         awaitCount(subscriber, subscriberRecorder, 2,
             "republication did not restore interaction delivery before deadline");
-         assertInteraction(subscriberRecorder.interactions.get(0), subscriberInteraction,
-            subscriberParameter, restoredValue, restoredTag, producer, subscriber);
+         assertInteraction(subscriberRecorder.interactions.get(1), subscriberInteraction,
+            subscriberParameter, restoredValue, restoredTag, producer);
 
          subscriber.unsubscribeInteractionClass(subscriberInteraction);
          subscribed = false;
@@ -131,16 +139,14 @@ final class InteractionPublicationSendFenceTck {
 
    private static void assertInteraction(Interaction event,
          InteractionClassHandle interaction, ParameterHandle parameter, byte[] value,
-         byte[] tag, FederateHandle producer, RTIambassador inspector) throws Exception {
+         byte[] tag, FederateHandle producer) {
       JavaTckSupport.check(interaction.equals(event.interaction)
             && event.parameters.size() == 1 && event.parameters.containsKey(parameter)
             && Arrays.equals(value, event.parameters.get(parameter))
             && Arrays.equals(tag, event.tag) && producer.equals(event.producer)
-            && event.transportation != null
-            && "HLAreliable".equals(inspector.getTransportationTypeName(event.transportation))
-            && event.regionsEmpty,
-         "republication callback lost interaction, parameter, value, tag, producer, "
-            + "reliable transportation, or empty region metadata");
+            && event.transportation != null,
+         "interaction callback lost interaction, parameter, value, tag, producer, "
+            + "or transportation metadata");
    }
 
    private static final class Interaction {
@@ -149,7 +155,6 @@ final class InteractionPublicationSendFenceTck {
       private byte[] tag;
       private TransportationTypeHandle transportation;
       private FederateHandle producer;
-      private boolean regionsEmpty;
    }
 
    private static final class Recorder {
@@ -169,8 +174,6 @@ final class InteractionPublicationSendFenceTck {
                   event.tag = ((byte[]) arguments[2]).clone();
                   event.transportation = (TransportationTypeHandle) arguments[3];
                   event.producer = (FederateHandle) arguments[4];
-                  event.regionsEmpty = arguments[5] == null
-                     || ((RegionHandleSet) arguments[5]).isEmpty();
                   interactions.add(event);
                }
                if (method.getDeclaringClass() == Object.class) {

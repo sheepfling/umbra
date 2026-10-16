@@ -86,7 +86,7 @@ final class FederationSaveRestoreInterlocksTck {
          peer.federateSaveBegun();
          assertInterlocks(owner, peer, ownerObjectClass, peerObjectClass, ownerAttributes,
             peerAttributes, ownerInteraction, peerInteraction, object, attributeValues,
-            parameters, "SaveInProgress");
+            parameters, saveLabel, "SaveInProgress");
          owner.federateSaveComplete();
          peer.federateSaveComplete();
          await(owner, peer, callbackModel, objectClassName,
@@ -106,7 +106,7 @@ final class FederationSaveRestoreInterlocksTck {
             "restore initiation callbacks");
          assertInterlocks(owner, peer, ownerObjectClass, peerObjectClass, ownerAttributes,
             peerAttributes, ownerInteraction, peerInteraction, object, attributeValues,
-            parameters, "RestoreInProgress");
+            parameters, saveLabel, "RestoreInProgress");
          owner.federateRestoreComplete();
          peer.federateRestoreComplete();
          await(owner, peer, callbackModel, objectClassName,
@@ -132,7 +132,9 @@ final class FederationSaveRestoreInterlocksTck {
          AttributeHandleSet ownerAttributes, AttributeHandleSet peerAttributes,
          InteractionClassHandle ownerInteraction, InteractionClassHandle peerInteraction,
          ObjectInstanceHandle object, AttributeHandleValueMap attributeValues,
-         ParameterHandleValueMap parameters, String expected) throws Exception {
+         ParameterHandleValueMap parameters, String saveLabel, String expected) throws Exception {
+      JavaTckSupport.expectFailure(() -> owner.requestFederationRestore(saveLabel), expected,
+         "requesting another federation restore during " + expected);
       JavaTckSupport.expectFailure(
          () -> owner.publishObjectClassAttributes(ownerObjectClass, ownerAttributes), expected,
          "publishing object attributes during " + expected);

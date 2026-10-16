@@ -61,6 +61,8 @@ final class UpdateRateQueriesTck {
          double configuredRate = subscriber.getUpdateRateValue(rateName);
          JavaTckSupport.check(configuredRate > 0.0,
             "adapter named update rate must resolve to a positive value");
+         JavaTckSupport.check(publisher.getUpdateRateValue(rateName) == configuredRate,
+            "the same FOM update-rate designator resolved to different values across federates");
          AttributeHandleSet publisherAttributes =
             JavaTckSupport.attributeSet(publisher, publisherAttribute);
          AttributeHandleSet subscriberAttributes =

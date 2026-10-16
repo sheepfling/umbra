@@ -184,7 +184,7 @@
     {
       "id": "java-tck.unnamed-join-overload",
       "category": "federation-management",
-      "title": "Verify generated federate-name identity and member reporting for the unnamed join overload",
+      "title": "Verify two unnamed joins receive distinct generated names and appear in member reporting",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecution",
@@ -199,11 +199,13 @@
         "FederateAmbassador.reportFederationExecutionMembers"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-057-l56-8",
         "cpp-1516.1-federation-create-join-resign-destroy",
         "cpp-1516.1-federation-query-reports",
         "cpp-1516.1-federate-lookup"
       ],
       "contract_refs": [
+        "unnamed-join-generated-name-requirements-contract.json",
         "standard-unnamed-join-overload-contract.json",
         "federation-execution-api-contract.json",
         "federation-listing-api-contract.json",
@@ -255,6 +257,44 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federationMembership",
       "default_status": "run"
+    },
+    {
+      "id": "java-tck.federate-application-multiple-executions",
+      "category": "lifecycle",
+      "title": "Join federates in two executions and reuse an ambassador after resignation",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "FederateHandle.encodedLength",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-039-l4-1"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-039-l4-1",
+          "standard_section": "hla-1516.1-2025:clause-4"
+        }
+      ],
+      "mapping_note": "Clause 4 maps to the successful participation sequence: one application creates two executions, joins multiple federates to both, resigns and reuses an RTIambassador in the other execution, then cleanly tears down both executions.",
+      "contract_refs": [
+        "federate-application-multiple-executions-requirements-contract.json",
+        "federate-application-multiple-executions-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#federateApplicationMultipleExecutions",
+      "parity": "cpp-tck.federate-application-multiple-executions",
+      "default_status": "unsupported",
+      "exclusion": "The Java scenario uses only the official IEEE 1516.1-2025 API but remains unsupported by default until it is executed against an adapter-supplied Java provider with the configured FOM, time implementation, and callback model."
     },
     {
       "id": "java-tck.duplicate-federate-name-join-boundary",
@@ -667,7 +707,6 @@
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.getAttributeHandleValueMapFactory",
-        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.unpublishObjectClass",
@@ -2700,10 +2739,24 @@
       "id": "java-tck.standard-exception-boundaries",
       "category": "api-surface",
       "title": "Verify a portable subset of standard service exception boundaries",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4",
+          "standard_section": "hla-1516.1-2025:clause-4"
+        }
+      ],
+      "mapping_note": "Direct Clause 4 assertions are limited to create, join, and destroy federation execution before connect; each must fail with NotConnected. Other portable typed-exception checks are not separately mapped here. The C++ InvalidResignAction/NotConnected precedence and cross-implementation logical-time mismatch are excluded because the Java API cannot construct those inputs portably; no internal exception-ordering requirement is claimed.",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
+        "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
@@ -2730,6 +2783,40 @@
       "parity": "cpp-tck.standard-exception-boundaries",
       "default_status": "unsupported",
       "exclusion": "Ports the portable typed-exception subset: FederateIsExecutionMember, AttributeAlreadyOwned, AttributeAcquisitionWasNotRequested, AttributeDivestitureWasNotRequested, DeletePrivilegeNotHeld, and ObjectInstanceNameInUse. Does not claim the C++ invalid-enum cases, which cannot be represented as Java enum values, or cross-implementation logical-time interval mismatch, which cannot be constructed portably through the Java standard API. Requires adapter-supplied provider JAR, FOM, time implementation, and callback model."
+    },
+    {
+      "id": "java-tck.federation-management-requires-connection",
+      "category": "federation-management",
+      "title": "Require an RTI connection for federation Create, Destroy, Join, and Resign services",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.resignFederationExecution"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4",
+          "standard_section": "hla-1516.1-2025:clause-4"
+        }
+      ],
+      "mapping_note": "Directly asserts only that Create, Destroy, Join, and Resign Federation Execution invoked before Connect fail with NotConnected, mapped to Clause 4. It makes no claim about successful lifecycle behavior or provider conformance.",
+      "contract_refs": [
+        "standard-service-exception-boundaries-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#federationManagementRequiresConnection",
+      "parity": "cpp-tck.federation-management-requires-connection",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied Java IEEE 1516.1-2025 provider, FOM, logical-time implementation, and callback configuration; provider runtime remains unverified."
     },
     {
       "id": "java-tck.connection-loss-cleanup",
@@ -2802,7 +2889,7 @@
     {
       "id": "java-tck.asynchronous-delivery",
       "category": "asynchronous-delivery",
-      "title": "Gate receive-order reflection and verify callback servicing",
+      "title": "Gate receive-order attribute reflections with asynchronous delivery",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.enableTimeConstrained",
@@ -2821,6 +2908,25 @@
         "cpp-1516.1-asynchronous-delivery-disable",
         "cpp-1516.1-callback-servicing"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-204-l113-31",
+        "requirement-candidate-content-clauses-08-time-management-page-205-l73-17"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.15.3",
+        "hla-1516.1-2025:clause-8.16.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l113-31",
+          "standard_section": "hla-1516.1-2025:clause-8.15.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-205-l73-17",
+          "standard_section": "hla-1516.1-2025:clause-8.16.5"
+        }
+      ],
+      "mapping_note": "Direct service assertions: enabling asynchronous delivery releases the queued receive-order attribute reflection; disabling it gates the next receive-order update until re-enabled. The scenario checks object, attribute, value, tag, and producer metadata under both callback models and makes no claim about timestamped delivery.",
       "contract_refs": [
         "asynchronous-delivery-requirements-contract.json"
       ],
@@ -2893,7 +2999,7 @@
         "RTIambassador.unsubscribeObjectClass"
       ],
       "requirement_ids": [
-        "java-1516.1-object-class-attribute-declaration"
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27"
       ],
       "contract_refs": [
         "object-class-attribute-declaration-requirements-contract.json",
@@ -2904,6 +3010,48 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#declarationManagement",
       "default_status": "run"
+    },
+    {
+      "id": "java-tck.base-subscription-rejects-derived-only-attribute",
+      "category": "declarations",
+      "title": "Reject a derived-only attribute when subscribing the base object class",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "java-1516.1-object-class-attribute-declaration"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "Maps only the intended direct assertion: a base-class subscription naming an attribute defined only on a derived class is rejected with AttributeNotDefined, under Clause 5.8. FOM/setup/cleanup and exception-fixture details are supplemental. Java provider execution remains unsupported/unvalidated; this catalog row is not evidence of Java runtime or conformance coverage.",
+      "contract_refs": [
+        "standard-declaration-management-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#baseSubscriptionRejectsDerivedOnlyAttribute",
+      "parity": "cpp-tck.base-subscription-rejects-derived-only-attribute",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied known-class FOM with base and derived object classes, a derived-only attribute, provider, endpoint, and callback configuration; provider runtime evidence is not yet available."
     },
     {
       "id": "java-tck.object-management",
@@ -3057,6 +3205,28 @@
         "cpp-1516.1-attribute-value-update-response",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-135-l140-37",
+        "requirement-candidate-content-clauses-06-object-management-page-135-l143-38",
+        "requirement-candidate-content-clauses-06-object-management-page-135-l155-42",
+        "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l110-31"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.21",
+        "hla-1516.1-2025:clause-6.21.5"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l140-37", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l143-38", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l155-42", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5", "standard_section": "hla-1516.1-2025:clause-6.21.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l110-31", "standard_section": "hla-1516.1-2025:clause-6.10" }
+      ],
+      "mapping_note": "Direct mappings cover the object-instance Request Attribute Value Update and owner callback (6.21), request-tag propagation to Provide Attribute Value Update (6.21.5), and ordinary Update/Reflect response content (6.10). Adapter setup, discovery, and cleanup are not separate claims; this scenario does not exercise the class-designator overload. It remains opt-in until run against a Java IEEE 1516.1-2025 provider.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -3109,6 +3279,28 @@
         "cpp-1516.1-attribute-value-update-response",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-135-l140-37",
+        "requirement-candidate-content-clauses-06-object-management-page-135-l143-38",
+        "requirement-candidate-content-clauses-06-object-management-page-135-l155-42",
+        "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l110-31"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.21",
+        "hla-1516.1-2025:clause-6.21.5"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l140-37", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l143-38", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l155-42", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5", "standard_section": "hla-1516.1-2025:clause-6.21.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l110-31", "standard_section": "hla-1516.1-2025:clause-6.10" }
+      ],
+      "mapping_note": "Direct mappings cover instance- and class-scoped Request Attribute Value Update solicitation and the owner callback (6.21), request-tag propagation (6.21.5), and the provider's ordinary Update/Reflect response content and tag (6.10). Invalid ObjectClass/Attribute failures and no-callback checks after invalid requests are supplemental; adapter setup, discovery, and cleanup are setup. The class overload exercises one base-class object only; subclass expansion and multi-instance fan-out are not claimed. The Java scenario remains opt-in until run against a Java IEEE 1516.1-2025 provider.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -3211,10 +3403,21 @@
         "FederateAmbassador.discoverObjectInstance"
       ],
       "requirement_ids": [
-        "cpp-1516.1-object-management",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to the count/presence assertions showing each of two registered objects is discovered exactly once by each of two active subscribers (§5.8). Publisher loopback suppression, callback ordering/final-event metadata, object lookup round-trips, fixture setup, and teardown remain supplemental and are not mapped here. Java provider execution remains unvalidated.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -3255,13 +3458,17 @@
         "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.localDeleteObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.updateAttributeValues",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution(DELETE_OBJECTS)",
         "RTIambassador.resignFederationExecution(NO_ACTION)",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
-        "FederateAmbassador.discoverObjectInstance"
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.removeObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
       ],
       "requirement_ids": [
         "cpp-1516.1-object-registration-discovery",
@@ -3270,6 +3477,28 @@
         "cpp-1516.1-local-object-instance-deletion",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-107-l39-9",
+        "requirement-candidate-content-clauses-06-object-management-page-107-l45-11",
+        "requirement-candidate-content-clauses-06-object-management-page-107-l51-13",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l101-27",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l67-18",
+        "requirement-candidate-content-clauses-06-object-management-page-119-l103-29",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l110-31",
+        "requirement-candidate-content-clauses-06-object-management-page-132-l140-38",
+        "requirement-candidate-content-clauses-06-object-management-page-132-l146-40"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.1.2",
+        "hla-1516.1-2025:clause-6.5.3",
+        "hla-1516.1-2025:clause-6.8.4",
+        "hla-1516.1-2025:clause-6.9.3",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.18.1"
+      ],
+      "mapping_note": "Direct mappings shared with the C++ scenario: object-management page-107-l39-9, page-107-l45-11, and page-107-l51-13 -> §6.1.2 for active-subscriber discovery identity; page-115-l101-27 -> §6.5.3 for the object-name reservation service boundary; page-118-l28-5 and page-118-l67-18 -> §6.8.4 for successful unnamed registration; page-119-l103-29 -> §6.9.3 for object-name and known-class lookup; page-132-l140-38 and page-132-l146-40 -> §6.18.1 for recipient-local deletion and lookup cleanup. Java adds direct page-120-l83-22 and page-120-l110-31 -> §6.10 for the ordinary update/reflection after re-subscription. Other pre-connect/pre-join exception precedence, invalid-class registration, unreserved named registration, and unknown-object local deletion remain internal boundary assertions without a separate normative mapping; federation setup and teardown are fixture operations.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -3289,13 +3518,16 @@
     {
       "id": "java-tck.object-attribute-subscription-lifecycle",
       "category": "object-attribute-subscription-lifecycle",
-      "title": "Exercise passive, active, downgraded, and withdrawn ordinary object-attribute subscriptions",
+      "title": "Exercise cross-class attribute rejection, empty/passive/active discovery, filtered reflection, downgrade, reactivation, and withdrawal",
       "api_methods": [
-        "RTIambassador.createFederationExecution",
+        "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getAttributeHandleValueMapFactory",
         "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes(AttributeNotDefined rejection)",
         "RTIambassador.subscribeObjectClassAttributesPassively",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -3312,10 +3544,26 @@
         "FederateAmbassador.reflectAttributeValues"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l63-18",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l66-19",
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-object-registration-discovery",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l63-18",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l66-19",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l72-21",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l75-22",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l87-26"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "mapping_note": "Direct mappings: declaration-management page-096-l57-16, page-096-l84-25, and page-096-l87-26 -> §5.8 for active-subscription discovery of a pre-existing object and a later registration; page-096-l63-18 and page-096-l66-19 -> §5.8 for initial reflection filtered to the active subscribed attribute set; page-096-l72-21 and page-096-l75-22 -> §5.8 for an empty active set producing no discovery/reflection. The Java scenario publishes and updates two adapter-configured attributes while subscribing to only one. The out-of-class AttributeNotDefined boundary uses the standard HLAfederate MOM attribute and is a source-derived clause-5.8 declaration-validity assertion documented by standard-object-attribute-subscription-lifecycle-contract.json; no additional extracted requirement candidate is claimed for that assertion.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -3323,6 +3571,9 @@
         "attribute-lookup-api-contract.json",
         "object-class-attribute-declaration-api-contract.json",
         "object-class-attribute-declaration-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "standard-object-attribute-subscription-lifecycle-contract.json",
         "attribute-value-update-request-api-contract.json",
         "receive-order-attribute-update-api-contract.json",
         "receive-order-attribute-update-requirements-contract.json",
@@ -3332,7 +3583,7 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#objectAttributeSubscriptionLifecycle",
       "parity": "cpp-tck.object-attribute-subscription-lifecycle",
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied compatible object class/attribute FOM and Java IEEE 1516.1-2025 provider."
+      "exclusion": "Requires an adapter-supplied compatible FOM, the standard MIM module, a distinct second attribute configured with hla.rti.tck.objectClassSecondAttribute, and a Java IEEE 1516.1-2025 provider."
     },
     {
       "id": "java-tck.object-publication-registration-fence",
@@ -3362,6 +3613,21 @@
         "cpp-1516.1-object-registration-negative-boundaries",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-082-l191-62",
+        "requirement-candidate-content-clauses-05-declaration-management-page-090-l79-22",
+        "requirement-candidate-content-clauses-05-declaration-management-page-091-l121-35",
+        "requirement-candidate-content-clauses-05-declaration-management-page-091-l127-37",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l22-3",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l28-5"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.2",
+        "hla-1516.1-2025:clause-5.2",
+        "hla-1516.1-2025:clause-5.3",
+        "hla-1516.1-2025:clause-6.8.4"
+      ],
+      "mapping_note": "Direct mappings: declaration-management page-082-l191-62 -> §5.1.2 for publication being a prerequisite to object registration (ObjectClassNotPublished while the class is unpublished, followed by successful registration after republication); page-090-l79-22 -> §5.2 for whole-class unpublication; page-091-l121-35 and page-091-l127-37 -> §5.3 for active subscription and discovery of the republished instance; object-management page-118-l22-3 and page-118-l28-5 -> §6.8.4 for successful Register Object Instance and stable instance-name/handle/class lookups. Resignation and disconnect are fixture cleanup only and have no separate normative claim.",
       "contract_refs": [
         "object-class-attribute-declaration-api-contract.json",
         "object-class-attribute-declaration-requirements-contract.json",
@@ -3594,6 +3860,28 @@
         "cpp-1516.1-local-object-instance-deletion",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-06-object-management-page-119-l103-29",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
+        "requirement-candidate-content-clauses-06-object-management-page-132-l140-38",
+        "requirement-candidate-content-clauses-06-object-management-page-132-l146-40"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.12",
+        "hla-1516.1-2025:clause-6.9.3",
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.16.4",
+        "hla-1516.1-2025:clause-6.17.1",
+        "hla-1516.1-2025:clause-6.18.1"
+      ],
+      "mapping_note": "Direct mappings: federation-management page-058-l112-33 -> §4.12 for Delete Objects resignation cleanup; object-management page-119-l103-29 -> §6.9.3 for object-instance lookup before and after removal; page-129-l123-34, page-129-l138-39, and page-129-l144-41 -> §6.16 for ordinary non-timestamped deletion; page-130-l167-50 and page-130-l8-1 -> §6.16.4 for deletion tag handling; page-131-l101-29 and page-131-l110-32 -> §6.17.1 for removal callback delivery; page-132-l140-38 and page-132-l146-40 -> §6.18.1 for recipient-local deletion. Delete-privilege transfer/authorization is not tested. Unknown-handle and pre-connect/pre-join exception precedence remain internal boundary assertions; setup/teardown is fixture behavior.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -4064,6 +4352,43 @@
       "id": "java-tck.connection-loss-automatic-delete-then-divest",
       "category": "connection",
       "title": "Delete the lost member's object and release its retained attribute after connection loss",
+      "selected_requirements_lab_requirement_ids": [
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior",
+        "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+        "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+        "requirement-candidate-content-clauses-10-support-services-page-275-l119-36"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.1",
+        "hla-1516.1-2025:clause-4.4",
+        "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-10.44",
+        "hla-1516.1-2025:clause-10.45.3"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "req-federate-connection-lost",
+          "standard_section": "hla-1516.1-2025:clause-4.1.1"
+        },
+        {
+          "requirement_id": "req-connection-lost-service-behavior",
+          "standard_section": "hla-1516.1-2025:clause-4.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+          "standard_section": "hla-1516.1-2025:clause-4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+          "standard_section": "hla-1516.1-2025:clause-10.44"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-275-l119-36",
+          "standard_section": "hla-1516.1-2025:clause-10.45.3"
+        }
+      ],
+      "mapping_note": "Direct pairs: req-federate-connection-lost -> Clause 4.1.1; req-connection-lost-service-behavior -> Clause 4.4; page-050-l36-11 -> Clause 4; page-274-l181-57 -> Clause 10.44; page-275-l119-36 -> Clause 10.45.3. The two-object deletion/divestiture effects are tested after an adapter-managed transport loss; callback ordering is not asserted as a normative cross-service rule.",
       "api_methods": [
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
@@ -4594,8 +4919,21 @@
         "FederateAmbassador.discoverObjectInstance"
       ],
       "requirement_ids": [
-        "java-1516.1-object-registration-discovery"
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to the late member's active subscription discovering an already-registered object (§5.8). Hierarchy selection, callback-queue cancellation/timing, invalid-registration boundaries, lookup identity, and duplicate-subscription behavior are supplemental assertions and are not mapped here. Java provider execution remains unvalidated.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -4644,9 +4982,56 @@
         "FederateAmbassador.receiveInteraction"
       ],
       "requirement_ids": [
-        "java-1516.1-attribute-update-and-callback-control",
-        "java-1516.1-interaction-declaration-and-delivery"
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l96-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l176-57",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l32-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l56-18",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l65-21",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l110-31",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l112-34",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l41-12",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l53-16",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l127-38"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l96-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l176-57",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l32-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l56-18",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l65-21",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l110-31",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l112-34",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l41-12",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l53-16",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l127-38"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.3",
+        "hla-1516.1-2025:clause-5.1.4",
+        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-6.12.4",
+        "hla-1516.1-2025:clause-6.13"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l96-29", "standard_section": "hla-1516.1-2025:clause-5.8" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l176-57", "standard_section": "hla-1516.1-2025:clause-5.1.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l32-10", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l56-18", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l65-21", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l110-31", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l41-12", "standard_section": "hla-1516.1-2025:clause-6.12.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l53-16", "standard_section": "hla-1516.1-2025:clause-6.12.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l127-38", "standard_section": "hla-1516.1-2025:clause-6.13" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l127-38", "standard_section": "hla-1516.1-2025:clause-6.13" }
+      ],
+      "mapping_note": "Direct mappings cover the later object discovery caused by an active attribute subscription (§5.8), ordinary attribute value/tag update (§6.10), reflected value and producing-federate metadata (§6.11.1), active interaction declaration/class/parameter behavior (§5.1.3 and §5.1.4), send to a subscribed interaction recipient and tag (§6.12.4), and producer identity in Receive Interaction (§6.13). The passive observer's delivery after a separate active declaration establishes relevance is supplemental: the standard's explicit passive-delivery statement has no immutable Lab requirement candidate. Transportation assertions check only that callback handles are valid, not a specific transportation value. Fixture setup, lookup, callback servicing, pre-connect/pre-join errors, invalid-handle errors, and Java callback-control behavior are not separate claims. The linked contract remains experimental public-API evidence, not conformance evidence. Java provider runtime remains unvalidated.",
       "contract_refs": [
         "connection-callback-api-contract.json",
         "object-class-attribute-declaration-api-contract.json",
@@ -4694,6 +5079,22 @@
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l96-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
+        "requirement-candidate-content-clauses-05-declaration-management-page-097-l20-4",
+        "requirement-candidate-content-clauses-05-declaration-management-page-097-l23-5",
+        "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4",
+        "requirement-candidate-content-clauses-05-declaration-management-page-098-l20-5",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l110-31"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-5.9.4",
+        "hla-1516.1-2025:clause-6.10"
+      ],
+      "mapping_note": "Direct mappings shared with the C++ scenario: declaration-management page-096-l96-29, page-096-l117-36, page-097-l20-4, and page-097-l23-5 -> §5.8 for active/passive subscription relevance and callback eligibility; page-098-l17-4 and page-098-l20-5 -> §5.9.4 for passive declaration semantics; object-management page-120-l83-22 and page-120-l110-31 -> §6.10 for ordinary Update Attribute Values and reflected value/tag/producer metadata. Java additionally verifies FOM handle/name round-trips and empty ordinary reflection regions; setup/teardown is fixture behavior.",
       "contract_refs": [
         "receive-order-attribute-update-api-contract.json",
         "receive-order-attribute-update-requirements-contract.json",
@@ -4787,11 +5188,60 @@
         "RTIambassador.disconnect"
       ],
       "requirement_ids": [
-        "cpp-1516.1-order-type-control",
-        "cpp-1516.1-transportation-type-control",
-        "cpp-1516.1-order-transport-invalid-handle-boundaries",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-08-time-management-page-188-l69-21",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l75-23",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l81-25",
+        "requirement-candidate-content-clauses-10-support-services-page-255-l122-31",
+        "requirement-candidate-content-clauses-10-support-services-page-256-l53-11",
+        "requirement-candidate-content-clauses-10-support-services-page-256-l152-37",
+        "requirement-candidate-content-clauses-10-support-services-page-257-l108-25"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-188-l69-21",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l75-23",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l81-25",
+        "requirement-candidate-content-clauses-10-support-services-page-255-l122-31",
+        "requirement-candidate-content-clauses-10-support-services-page-256-l53-11",
+        "requirement-candidate-content-clauses-10-support-services-page-256-l152-37",
+        "requirement-candidate-content-clauses-10-support-services-page-257-l108-25"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-10.17.4",
+        "hla-1516.1-2025:clause-10.19",
+        "hla-1516.1-2025:clause-10.20.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l69-21",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l75-23",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l81-25",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-255-l122-31",
+          "standard_section": "hla-1516.1-2025:clause-10.17.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-256-l53-11",
+          "standard_section": "hla-1516.1-2025:clause-10.19"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-256-l152-37",
+          "standard_section": "hla-1516.1-2025:clause-10.19"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-257-l108-25",
+          "standard_section": "hla-1516.1-2025:clause-10.20.4"
+        }
+      ],
+      "mapping_note": "Maps the directly asserted mandatory order names/values and API mappings (§8.2, §§10.17.4, 10.19), plus HLAreliable/HLAbestEffort transportation handles and name round-trips (§§10.19, 10.20.4). Java-only transportation-handle-factory default identity checks, lifecycle checks, and invalid-input checks are supplemental. Java remains unsupported pending provider execution; Java's OrderType enum has no direct equivalent to C++'s deliberately invalid cast, so no Java equivalent is claimed.",
       "contract_refs": [
         "standard-order-and-transportation-lookups-contract.json",
         "order-type-api-contract.json",
@@ -5350,6 +5800,19 @@
         "cpp-1516.1-update-rate-value-for-attribute",
         "cpp-1516.1-update-rate-subscription-state"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-251-l74-17"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-10.11.6"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-251-l74-17",
+          "standard_section": "hla-1516.1-2025:clause-10.11.6"
+        }
+      ],
+      "mapping_note": "Direct mapping: page 251, line 74 maps to Clause 10.11.6 for querying the per-attribute update rate after an active named-rate subscription. The scenario also checks named-rate lookup consistency across federates, passive/default subscriptions, reset after unsubscribe, and invalid query inputs; it makes no claim beyond the mapped per-attribute query requirement.",
       "contract_refs": [
         "standard-update-rate-queries-contract.json",
         "update-rate-value-api-contract.json",
@@ -5413,7 +5876,7 @@
     {
       "id": "java-tck.fom-model",
       "category": "fom-model",
-      "title": "Load a rich adapter FOM and verify hierarchy, metadata, and typed delivery",
+      "title": "Load a rich adapter FOM and verify qualified identity for repeated object-class names, hierarchy, metadata, and typed delivery",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
@@ -5472,6 +5935,7 @@
         "cpp-1516.2-fom-dimension-and-metadata-lookups"
       ],
       "contract_refs": [
+        "fom-qualified-object-class-name-identity-requirements-contract.json",
         "fom-root-hierarchy-requirements-contract.json",
         "fom-data-representation-requirements-contract.json",
         "fom-record-member-data-type-requirements-contract.json",
@@ -5487,6 +5951,31 @@
       "parity": "cpp-tck.fom-model",
       "default_status": "unsupported",
       "exclusion": "Requires an adapter-supplied rich FOM with typed object and interaction hierarchies, dimension TckDimension (upper bound 64), update rates TckFast/TckSlow, and transportation TckBestEffort. Configure hla.rti.tck.fom, hla.rti.tck.dimension, hla.rti.tck.fomUpdateRate, hla.rti.tck.fomSlowUpdateRate, hla.rti.tck.customTransportationType, and the hla.rti.tck.typed* names in the adapter. Provider runtime verification remains pending."
+    },
+    {
+      "id": "java-tck.fom-qualified-class-name-identity",
+      "category": "fom-model",
+      "title": "Resolve repeated local object-class names by fully qualified superclass paths",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4a-page-040-l22-4"
+      ],
+      "contract_refs": [
+        "fom-qualified-object-class-name-identity-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomQualifiedClassNameIdentity",
+      "parity": "cpp-tck.fom-qualified-class-name-identity",
+      "default_status": "unsupported",
+      "exclusion": "Requires the adapter-supplied FOM to contain two object classes named TckClassNameProbe beneath HLAobjectRoot.TckTypedObject and HLAobjectRoot.TckTransportRegionalObject. Java source/catalog coverage is present; provider runtime evidence is pending."
     },
     {
       "id": "java-tck.fom-transportation-handle-stability",
@@ -5533,6 +6022,7 @@
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishInteractionClass",
@@ -5919,13 +6409,42 @@
         "RTIambassador.disconnect"
       ],
       "requirement_ids": [
-        "cpp-1516.1-publish-object-class-directed-interactions-membership-boundary-after-resignation",
-        "cpp-1516.1-unpublish-object-class-directed-interactions-set-membership-boundary-after-resignation",
-        "cpp-1516.1-unpublish-object-class-directed-interactions-whole-class-membership-boundary-after-resignation",
-        "cpp-1516.1-subscribe-object-class-directed-interactions-membership-boundary-after-resignation",
-        "cpp-1516.1-unsubscribe-object-class-directed-interactions-set-membership-boundary-after-resignation",
-        "cpp-1516.1-unsubscribe-object-class-directed-interactions-whole-class-membership-boundary-after-resignation"
+        "requirement-candidate-content-clauses-05-declaration-management-page-094-l117-31",
+        "requirement-candidate-content-clauses-05-declaration-management-page-095-l83-22",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-102-l172-49"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-094-l117-31",
+        "requirement-candidate-content-clauses-05-declaration-management-page-095-l83-22",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-102-l172-49"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.6",
+        "hla-1516.1-2025:clause-5.7",
+        "hla-1516.1-2025:clause-5.12",
+        "hla-1516.1-2025:clause-5.13"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-094-l117-31",
+          "standard_section": "hla-1516.1-2025:clause-5.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-095-l83-22",
+          "standard_section": "hla-1516.1-2025:clause-5.7"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+          "standard_section": "hla-1516.1-2025:clause-5.12"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-102-l172-49",
+          "standard_section": "hla-1516.1-2025:clause-5.13"
+        }
+      ],
+      "mapping_note": "Maps only the six intended post-resignation FederateNotExecutionMember outcomes across directed Publish (§5.6), both Unpublish overloads (§5.7), Subscribe (§5.12), and both Unsubscribe overloads (§5.13). The service-level candidates are shared by the tested overloads. FOM association, setup, lookups, and cleanup are supplemental; Java remains unsupported pending provider execution, so this row is not Java runtime or conformance evidence.",
       "contract_refs": [
         "directed-interaction-declarations-valid-inputs-after-resignation-api-contract.json",
         "directed-interaction-declarations-valid-inputs-after-resignation-requirements-contract.json"
@@ -5953,11 +6472,42 @@
         "RTIambassador.disconnect"
       ],
       "requirement_ids": [
-        "cpp-1516.1-publish-interaction-class-membership-boundary-after-resignation",
-        "cpp-1516.1-unpublish-interaction-class-membership-boundary-after-resignation",
-        "cpp-1516.1-subscribe-interaction-class-membership-boundary-after-resignation",
-        "cpp-1516.1-unsubscribe-interaction-class-membership-boundary-after-resignation"
+        "requirement-candidate-content-clauses-05-declaration-management-page-093-l17-1",
+        "requirement-candidate-content-clauses-05-declaration-management-page-093-l140-35",
+        "requirement-candidate-content-clauses-05-declaration-management-page-099-l75-20",
+        "requirement-candidate-content-clauses-05-declaration-management-page-100-l129-35"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-093-l17-1",
+        "requirement-candidate-content-clauses-05-declaration-management-page-093-l140-35",
+        "requirement-candidate-content-clauses-05-declaration-management-page-099-l75-20",
+        "requirement-candidate-content-clauses-05-declaration-management-page-100-l129-35"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.4",
+        "hla-1516.1-2025:clause-5.5",
+        "hla-1516.1-2025:clause-5.10",
+        "hla-1516.1-2025:clause-5.11"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-093-l17-1",
+          "standard_section": "hla-1516.1-2025:clause-5.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-093-l140-35",
+          "standard_section": "hla-1516.1-2025:clause-5.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-099-l75-20",
+          "standard_section": "hla-1516.1-2025:clause-5.10"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-100-l129-35",
+          "standard_section": "hla-1516.1-2025:clause-5.11"
+        }
+      ],
+      "mapping_note": "Direct assertions cover only the four post-resignation FederateNotExecutionMember outcomes for Publish (§5.4), Unpublish (§5.5), Subscribe (§5.10), and Unsubscribe Interaction Class (§5.11), using the corresponding exact Lab declaration candidates. FOM/setup/lookup/cleanup and successful joined-state calls are supplemental. The Java row is unsupported pending execution against a Java provider; this catalog parity is not Java runtime or conformance evidence.",
       "contract_refs": [
         "interaction-declarations-valid-inputs-after-resignation-api-contract.json",
         "interaction-declarations-valid-inputs-after-resignation-requirements-contract.json"
@@ -5987,9 +6537,40 @@
         "FederateAmbassador.reportInteractionTransportationType"
       ],
       "requirement_ids": [
-        "cpp-1516.1-query-interaction-transportation-type-membership-boundary-after-resignation",
-        "cpp-1516.1-report-interaction-transportation-type-callback"
+        "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
+        "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
+        "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
+        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
+        "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
+        "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
+        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.32.5",
+        "hla-1516.1-2025:clause-6.33.6"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
+          "standard_section": "hla-1516.1-2025:clause-6.32.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
+          "standard_section": "hla-1516.1-2025:clause-6.33.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
+          "standard_section": "hla-1516.1-2025:clause-6.33.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
+          "standard_section": "hla-1516.1-2025:clause-6.33.6"
+        }
+      ],
+      "mapping_note": "Maps only the post-resignation FederateNotExecutionMember query outcome (§6.32.5) and the successful query's callback assertions for publisher, interaction class, and resolvable transportation handle (§6.33.6). Fixture setup/lookups, cleanup, callback count/order, and provider runtime remain supplemental/unverified; Java stays unsupported, with no conformance claim.",
       "contract_refs": [
         "interaction-transportation-query-valid-inputs-after-resignation-api-contract.json",
         "interaction-transportation-query-valid-inputs-after-resignation-requirements-contract.json"
@@ -6001,26 +6582,80 @@
     },
     {
       "id": "java-tck.directed-interaction-target-lifecycle",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l161-52",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l185-60",
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33",
+        "requirement-candidate-content-clauses-05-declaration-management-page-102-l163-46",
+        "requirement-candidate-content-clauses-06-object-management-page-127-l37-11",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l86-24"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.4",
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-5.12",
+        "hla-1516.1-2025:clause-5.13",
+        "hla-1516.1-2025:clause-6.14.3",
+        "hla-1516.1-2025:clause-6.15.1"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l161-52", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l185-60", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10", "standard_section": "hla-1516.1-2025:clause-5.1.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29", "standard_section": "hla-1516.1-2025:clause-5.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33", "standard_section": "hla-1516.1-2025:clause-5.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-102-l163-46", "standard_section": "hla-1516.1-2025:clause-5.13" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l37-11", "standard_section": "hla-1516.1-2025:clause-6.14.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l83-23", "standard_section": "hla-1516.1-2025:clause-6.15.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l86-24", "standard_section": "hla-1516.1-2025:clause-6.15.1" }
+      ],
+      "mapping_note": "Direct candidate-to-clause anchors cover directed-interaction publication (5.1.4), known-target delivery (5.1.5), subscription/unsubscription services (5.12 and 5.13), directed send and its ObjectInstanceNotKnown exception (6.14.3), and receive callback content/metadata (6.15.1). Object deletion/removal assertions, handle lookup, discovery, declarations used only as fixture setup, and cleanup are not mapped as independent requirements here. Assertions suppressing an already queued callback across unsubscribe, unpublish, or target deletion are supplementary lifecycle regressions; the cited clauses are not claimed to specify those exact queue-cutoff boundaries. Java source compiles against the official 1516.1-2025 API, but the catalog remains unsupported until execution against an independent Java provider confirms runtime behavior.",
       "category": "directed-interaction",
       "title": "Fence directed delivery and callback metadata across target deletion",
       "api_methods": [
         "RTIambassador.connect(receiver callback model plus an independent HLA_IMMEDIATE observer)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getInteractionClassHandleSetFactory",
+        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.subscribeObjectClassDirectedInteractions",
         "RTIambassador.registerObjectInstance",
+        "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.sendDirectedInteraction",
+        "RTIambassador.getTransportationTypeName",
         "RTIambassador.deleteObjectInstance",
         "RTIambassador.unsubscribeObjectClassDirectedInteractions",
         "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.unsubscribeObjectClass",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.receiveDirectedInteraction",
         "FederateAmbassador.removeObjectInstance"
       ],
       "requirement_ids": [
-        "java-1516.1-directed-interaction-delivery",
-        "java-1516.1-object-registration-discovery"
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l161-52",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l185-60",
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33",
+        "requirement-candidate-content-clauses-05-declaration-management-page-102-l163-46",
+        "requirement-candidate-content-clauses-06-object-management-page-127-l37-11",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l86-24"
       ],
       "contract_refs": [
         "directed-interaction-api-contract.json",
@@ -6107,8 +6742,6 @@
         "RTIambassador.changeDefaultAttributeTransportationType",
         "RTIambassador.changeAttributeOrderType",
         "RTIambassador.changeInteractionOrderType",
-        "RTIambassador.changeAttributeTransportationType",
-        "RTIambassador.changeInteractionTransportationType",
         "RTIambassador.queryAttributeTransportationType",
         "RTIambassador.queryInteractionTransportationType",
         "RTIambassador.requestAttributeTransportationTypeChange",
@@ -6121,9 +6754,107 @@
         "FederateAmbassador.receiveInteraction"
       ],
       "requirement_ids": [
-        "java-1516.1-order-type-control",
-        "java-1516.1-transportation-type-control"
+        "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
+        "requirement-candidate-content-clauses-06-object-management-page-140-l178-51",
+        "requirement-candidate-content-clauses-06-object-management-page-140-l181-52",
+        "requirement-candidate-content-clauses-06-object-management-page-141-l137-36",
+        "requirement-candidate-content-clauses-06-object-management-page-141-l143-38",
+        "requirement-candidate-content-clauses-06-object-management-page-142-l173-48",
+        "requirement-candidate-content-clauses-06-object-management-page-143-l156-42",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l94-22",
+        "requirement-candidate-content-clauses-06-object-management-page-145-l119-33",
+        "requirement-candidate-content-clauses-06-object-management-page-145-l122-34",
+        "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
+        "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
+        "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
+        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
+        "requirement-candidate-content-clauses-06-object-management-page-140-l178-51",
+        "requirement-candidate-content-clauses-06-object-management-page-140-l181-52",
+        "requirement-candidate-content-clauses-06-object-management-page-141-l137-36",
+        "requirement-candidate-content-clauses-06-object-management-page-141-l143-38",
+        "requirement-candidate-content-clauses-06-object-management-page-142-l173-48",
+        "requirement-candidate-content-clauses-06-object-management-page-143-l156-42",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l94-22",
+        "requirement-candidate-content-clauses-06-object-management-page-145-l119-33",
+        "requirement-candidate-content-clauses-06-object-management-page-145-l122-34",
+        "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
+        "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
+        "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
+        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.25.1",
+        "hla-1516.1-2025:clause-6.26",
+        "hla-1516.1-2025:clause-6.27",
+        "hla-1516.1-2025:clause-6.28",
+        "hla-1516.1-2025:clause-6.29.1",
+        "hla-1516.1-2025:clause-6.30.3",
+        "hla-1516.1-2025:clause-6.31.3",
+        "hla-1516.1-2025:clause-6.32.5",
+        "hla-1516.1-2025:clause-6.33.6"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
+          "standard_section": "hla-1516.1-2025:clause-6.25.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-140-l178-51",
+          "standard_section": "hla-1516.1-2025:clause-6.26"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-140-l181-52",
+          "standard_section": "hla-1516.1-2025:clause-6.26"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l137-36",
+          "standard_section": "hla-1516.1-2025:clause-6.27"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l143-38",
+          "standard_section": "hla-1516.1-2025:clause-6.27"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-142-l173-48",
+          "standard_section": "hla-1516.1-2025:clause-6.28"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-143-l156-42",
+          "standard_section": "hla-1516.1-2025:clause-6.29.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l94-22",
+          "standard_section": "hla-1516.1-2025:clause-6.30.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-145-l119-33",
+          "standard_section": "hla-1516.1-2025:clause-6.31.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-145-l122-34",
+          "standard_section": "hla-1516.1-2025:clause-6.31.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
+          "standard_section": "hla-1516.1-2025:clause-6.32.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
+          "standard_section": "hla-1516.1-2025:clause-6.33.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
+          "standard_section": "hla-1516.1-2025:clause-6.33.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
+          "standard_section": "hla-1516.1-2025:clause-6.33.6"
+        }
+      ],
+      "mapping_note": "Catalog mapping is limited to the directly asserted transportation-type controls, confirmation boundaries, query/report results, prospective class default, and resulting update/send transport (§§6.25.1–6.33.6). Order-control effects and invalid-input cases are supplemental/unmapped. Java row status remains run-ready in the catalog but does not constitute provider execution or conformance evidence; its OrderType enum has no equivalent to the C++ invalid enum cast.",
       "contract_refs": [
         "order-type-api-contract.json",
         "order-type-requirements-contract.json",
@@ -6292,6 +7023,49 @@
       "exclusion": "Provider, FOM, endpoint, and callback model are adapter-supplied. Remains unsupported by default until executed against an IEEE 1516.1-2025 Java provider."
     },
     {
+      "id": "java-tck.receive-order-attribute-update-receiver-resignation-fence",
+      "category": "attribute-value-update",
+      "title": "Prevent a queued receive-order reflection from crossing receiver resignation and rejoin",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "java-1516.1-attribute-value-update-reflection",
+        "java-1516.1-object-registration-discovery",
+        "java-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "attribute-value-update-request-api-contract.json",
+        "receive-order-attribute-update-api-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "resign-action-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#receiveOrderAttributeUpdateReceiverResignationFence",
+      "parity": "cpp-tck.receive-order-attribute-update-receiver-resignation-fence-contract",
+      "default_status": "unsupported",
+      "exclusion": "Provider, FOM, endpoint, logical-time implementation, and callback model are adapter-supplied. Experimental parity source only; no Java provider-runtime evidence is claimed."
+    },
+    {
       "id": "java-tck.receive-order-multi-attribute-update-callback-cancellation",
       "category": "attribute-value-update",
       "title": "Cancel a queued multi-attribute receive-order reflection after subscription withdrawal",
@@ -6347,6 +7121,7 @@
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.publishInteractionClass",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.sendInteraction",
@@ -6433,6 +7208,7 @@
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.publishInteractionClass",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.subscribeInteractionClassPassively",
@@ -6450,6 +7226,26 @@
         "cpp-1516.1-interaction-parameter-delivery",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.3",
+        "hla-1516.1-2025:clause-5.1.4",
+        "hla-1516.1-2025:clause-6.12.4",
+        "hla-1516.1-2025:clause-6.13"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l176-57", "standard_section": "hla-1516.1-2025:clause-5.1.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l32-10", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l56-18", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l65-21", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l17-4", "standard_section": "hla-1516.1-2025:clause-6.12.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l41-12", "standard_section": "hla-1516.1-2025:clause-6.12.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l47-14", "standard_section": "hla-1516.1-2025:clause-6.12.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l53-16", "standard_section": "hla-1516.1-2025:clause-6.12.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l88-25", "standard_section": "hla-1516.1-2025:clause-6.13" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l127-38", "standard_section": "hla-1516.1-2025:clause-6.13" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l136-41", "standard_section": "hla-1516.1-2025:clause-6.13" }
+      ],
+      "mapping_note": "Direct mappings: page-083-l176-57 -> Clause 5.1.3; page-084-l32-10, l56-18, and l65-21 -> Clause 5.1.4; page-124-l17-4, l41-12, l47-14, and l53-16 -> Clause 6.12.4; page-125-l88-25, l127-38, and l136-41 -> Clause 6.13. These cover declaration and ordinary interaction send/receive content. Pre-connect/pre-join and invalid-handle/send-fence checks are supplementary internal boundary assertions, not additional normative mappings.",
       "contract_refs": [
         "receive-order-interaction-api-contract.json",
         "receive-order-interaction-requirements-contract.json",
@@ -6476,12 +7272,12 @@
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.publishInteractionClass",
         "RTIambassador.unpublishInteractionClass",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.sendInteraction",
         "RTIambassador.unsubscribeInteractionClass",
-        "RTIambassador.getTransportationTypeName",
         "RTIambassador.evokeCallback",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
@@ -6492,6 +7288,16 @@
         "java-1516.1-interaction-declaration-and-delivery",
         "java-1516.1-interaction-parameter-delivery"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.3"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-source-refinement-send-interaction-published-class",
+          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+        }
+      ],
+      "mapping_note": "Direct mapping: requirement-source-refinement-send-interaction-published-class -> Clause 5.1.3 for ordinary nonregional receive-order interaction sends accepted while published, rejected with InteractionClassNotPublished after unpublication without another callback, and accepted again after republication. Other fixture lifecycle checks are supplementary; this remains experimental public-API evidence, not conformance evidence.",
       "contract_refs": [
         "publish-interaction-class-api-contract.json",
         "publish-interaction-class-requirements-contract.json",
@@ -9133,6 +9939,24 @@
     },
     {
       "id": "java-tck.interaction-multi-recipient-fifo",
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.4",
+        "hla-1516.1-2025:clause-6.12",
+        "hla-1516.1-2025:clause-6.12.4",
+        "hla-1516.1-2025:clause-6.13"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l32-10", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-123-l145-40", "standard_section": "hla-1516.1-2025:clause-6.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l41-12", "standard_section": "hla-1516.1-2025:clause-6.12.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l47-14", "standard_section": "hla-1516.1-2025:clause-6.12.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l53-16", "standard_section": "hla-1516.1-2025:clause-6.12.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l76-21", "standard_section": "hla-1516.1-2025:clause-6.13" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l88-25", "standard_section": "hla-1516.1-2025:clause-6.13" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l127-38", "standard_section": "hla-1516.1-2025:clause-6.13" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l136-41", "standard_section": "hla-1516.1-2025:clause-6.13" }
+      ],
+      "mapping_note": "Direct mappings: page-084-l32-10 -> Clause 5.1.4; page-123-l145-40 -> Clause 6.12; page-124-l41-12, l47-14, and l53-16 -> Clause 6.12.4; page-125-l76-21, l88-25, l127-38, and l136-41 -> Clause 6.13. These cover active interaction subscription, available-parameter sends, corresponding receive content, sender exclusion, tag, producer identity, and delivery metadata. Per-recipient FIFO comparison is an additional regression assertion; the native process evidence is private-foundation, so no separate conformance claim is made for FIFO ordering. Fixture lifecycle and callback-driver operations are supplementary.",
       "category": "interaction-management",
       "title": "Deliver ordinary receive-order interactions to two active subscribers in producer order",
       "api_methods": [
@@ -9141,6 +9965,7 @@
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.publishInteractionClass",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.sendInteraction",
@@ -9174,6 +9999,40 @@
     },
     {
       "id": "java-tck.directed-interaction-multi-recipient-fifo",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l161-52",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l185-60",
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l22-3",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
+        "requirement-candidate-content-clauses-06-object-management-page-126-l167-46",
+        "requirement-candidate-content-clauses-06-object-management-page-127-l37-11",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l86-24"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.4",
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-5.12",
+        "hla-1516.1-2025:clause-6.8.4",
+        "hla-1516.1-2025:clause-6.14",
+        "hla-1516.1-2025:clause-6.14.3",
+        "hla-1516.1-2025:clause-6.15.1"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l161-52", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l185-60", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10", "standard_section": "hla-1516.1-2025:clause-5.1.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29", "standard_section": "hla-1516.1-2025:clause-5.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l22-3", "standard_section": "hla-1516.1-2025:clause-6.8.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l28-5", "standard_section": "hla-1516.1-2025:clause-6.8.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-126-l167-46", "standard_section": "hla-1516.1-2025:clause-6.14" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l37-11", "standard_section": "hla-1516.1-2025:clause-6.14.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l83-23", "standard_section": "hla-1516.1-2025:clause-6.15.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l86-24", "standard_section": "hla-1516.1-2025:clause-6.15.1" }
+      ],
+      "mapping_note": "The direct candidate-to-clause anchors are drawn from the 2025 native evidence matrix: interaction declaration and directed-interaction semantics (5.1.4, 5.1.5, 5.12), target registration/discovery (6.8.4), directed send (6.14, 6.14.3), and directed receive (6.15.1). Producer-order FIFO comparison is an additional regression assertion; the native process case is classified private-foundation, so FIFO is not claimed as independently established conformance evidence. Attribute declarations are fixture setup, and callback driving/lifecycle are supplementary.",
       "category": "directed-interaction",
       "title": "Deliver ordinary directed interactions to two universal subscribers in producer order",
       "api_methods": [
@@ -9184,6 +10043,7 @@
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
@@ -9229,6 +10089,19 @@
     },
     {
       "id": "java-tck.directed-interaction-mixed-subscription-fanout",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-5.12"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10", "standard_section": "hla-1516.1-2025:clause-5.1.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29", "standard_section": "hla-1516.1-2025:clause-5.12" }
+      ],
+      "mapping_note": "Direct mappings are limited to the known-target delivery anchor (page-085-l32-10 -> Clause 5.1.5) and the effective directed-subscription selector anchor (page-101-l104-29 -> Clause 5.12). The broader by-ownership versus universal recipient partition, sender/unsubscribed-member exclusion, and per-recipient ordering are supplemental regression assertions only; RL-028 records that the pinned Requirements Lab has no granular candidate for those predicates. This public-API scenario is experimental evidence, not a standalone conformance claim. Provider, FOM, endpoint, and callback model remain adapter-supplied.",
       "category": "directed-interaction",
       "title": "Route ordinary directed interactions by ownership and universal subscription kind",
       "api_methods": [
@@ -9239,6 +10112,7 @@
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
@@ -9285,6 +10159,23 @@
     },
     {
       "id": "java-tck.directed-interaction-subscription-kind",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l128-37",
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-5.12"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29", "standard_section": "hla-1516.1-2025:clause-5.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33", "standard_section": "hla-1516.1-2025:clause-5.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l128-37", "standard_section": "hla-1516.1-2025:clause-5.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10", "standard_section": "hla-1516.1-2025:clause-5.1.5" }
+      ],
+      "mapping_note": "Direct native-matrix anchors are page-101-l104-29 (effective selector), page-101-l116-33 (supplied-class resubscription), and page-101-l128-37 (empty-set no-op), all in Clause 5.12, plus page-085-l32-10 (known-target delivery) in Clause 5.1.5. Broader by-ownership versus universal recipient eligibility remains supplementary because RL-028 records no granular pinned-Lab candidate for those predicates; this test does not make a separate conformance claim for that matrix. Only standard API behavior with adapter-supplied provider, FOM, endpoint, and callback configuration is exercised.",
       "category": "directed-interaction",
       "title": "Distinguish by-ownership and universal directed-interaction subscriptions, including live kind changes",
       "api_methods": [
@@ -9295,6 +10186,9 @@
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getInteractionClassHandleSetFactory",
+        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
@@ -9303,7 +10197,13 @@
         "RTIambassador.registerObjectInstance",
         "RTIambassador.sendDirectedInteraction",
         "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
         "RTIambassador.getTransportationTypeName",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeCallback",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.receiveDirectedInteraction"
       ],
@@ -9326,7 +10226,8 @@
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
         "receive-order-interaction-api-contract.json",
-        "receive-order-interaction-requirements-contract.json"
+        "receive-order-interaction-requirements-contract.json",
+        "standard-directed-interaction-subscription-kind-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#directedInteractionSubscriptionKind",
       "default_status": "unsupported",
@@ -9334,6 +10235,30 @@
     },
     {
       "id": "java-tck.directed-derived-object-target-eligibility",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
+        "requirement-candidate-content-clauses-06-object-management-page-126-l167-46",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l86-24"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-5.12",
+        "hla-1516.1-2025:clause-6.8.4",
+        "hla-1516.1-2025:clause-6.14",
+        "hla-1516.1-2025:clause-6.15.1"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10", "standard_section": "hla-1516.1-2025:clause-5.1.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29", "standard_section": "hla-1516.1-2025:clause-5.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l28-5", "standard_section": "hla-1516.1-2025:clause-6.8.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-126-l167-46", "standard_section": "hla-1516.1-2025:clause-6.14" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l83-23", "standard_section": "hla-1516.1-2025:clause-6.15.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l86-24", "standard_section": "hla-1516.1-2025:clause-6.15.1" }
+      ],
+      "mapping_note": "Direct source-matrix mappings are limited to generic known-target delivery (5.1.5), the effective directed-subscription selector (5.12), object registration (6.8.4), ordinary directed send (6.14), and receiveDirectedInteraction content/metadata (6.15.1). Derived-class target applicability, inheritance from the class on which the interaction is published, by-ownership versus universal eligibility, handle-stability checks, discovery metadata, and publisher/attribute-only exclusion are supplemental assertions; the referenced standard-directed-derived-object-target-contract.json is explicitly experimental public-API evidence, not conformance evidence. This source uses only standard Java APIs with provider, model FOM, endpoint, and callback configuration adapter-supplied; Java runtime execution remains required before promotion.",
       "category": "directed-interaction",
       "title": "Deliver receive-order directed interactions to a derived target owner and a universal subscriber, excluding non-eligible subscribers",
       "api_methods": [
@@ -9344,6 +10269,11 @@
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getInteractionClassHandleSetFactory",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "RtiFactory.getEncoderFactory",
+        "EncoderFactory.createHLAinteger32BE",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
@@ -9351,8 +10281,15 @@
         "RTIambassador.subscribeObjectClassDirectedInteractionsUniversally",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.sendDirectedInteraction",
-        "RTIambassador.unsubscribeObjectClassDirectedInteractions",
         "RTIambassador.getTransportationTypeName",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.receiveDirectedInteraction"
       ],
@@ -9426,11 +10363,35 @@
         "FederateAmbassador.receiveInteraction(time)"
       ],
       "requirement_ids": [
-        "java-1516.1-order-type-control",
-        "java-1516.1-time-advance-and-grant",
-        "java-1516.1-attribute-value-update-reflection",
-        "java-1516.1-interaction-parameter-delivery"
+        "requirement-candidate-content-clauses-08-time-management-page-212-l48-9",
+        "requirement-candidate-content-clauses-08-time-management-page-213-l94-26",
+        "requirement-candidate-content-clauses-08-time-management-page-214-l87-22"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-212-l48-9",
+        "requirement-candidate-content-clauses-08-time-management-page-213-l94-26",
+        "requirement-candidate-content-clauses-08-time-management-page-214-l87-22"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.24.4",
+        "hla-1516.1-2025:clause-8.25.3",
+        "hla-1516.1-2025:clause-8.26.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-212-l48-9",
+          "standard_section": "hla-1516.1-2025:clause-8.24.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-213-l94-26",
+          "standard_section": "hla-1516.1-2025:clause-8.25.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-214-l87-22",
+          "standard_section": "hla-1516.1-2025:clause-8.26.4"
+        }
+      ],
+      "mapping_note": "Maps only the standard OrderType behaviors intended by parity: prospective class defaults, per-instance attribute order effect on later updates, and interaction order effect on the later send (§§8.24.4, 8.25.3, 8.26.4). Time-management setup/grant callbacks and delivery mechanics are not mapped. Java remains unsupported pending provider execution; Java OrderType is an enum and has no equivalent to a C++ invalid-enum cast, and no conformance claim is made.",
       "contract_refs": [
         "order-type-api-contract.json",
         "order-type-requirements-contract.json",
@@ -9809,6 +10770,15 @@
         "cpp-1516.1-query-galt-lits",
         "cpp-1516.1-time-bounds-pending-advance"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
+        "requirement-candidate-content-clauses-08-time-management-page-207-l112-28"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.18.1",
+        "hla-1516.1-2025:clause-8.19.3"
+      ],
+      "mapping_note": "Direct mappings: time-management page-206-l29-4 -> §8.18.1 for Query GALT, and page-207-l112-28 -> §8.19.3 for Query LITS. The scenario verifies undefined and defined minimum bounds through active and pending regulator advances, then the undefined state after regulation ends.",
       "contract_refs": [
         "standard-time-bounds-queries-contract.json",
         "time-bounds-api-contract.json",
@@ -9822,6 +10792,51 @@
       "parity": "cpp-tck.time-bounds-queries",
       "default_status": "unsupported",
       "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, logical-time implementation, and callback configuration; runtime evidence is not yet available."
+    },
+    {
+      "id": "java-tck.time-constrained-enable-galt-equality",
+      "category": "time-management",
+      "title": "Release delayed time-constrained enablement when GALT reaches current logical time",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant",
+        "FederateAmbassador.timeConstrainedEnabled"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-time-role-callbacks",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-192-l72-20"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.6.3"
+      ],
+      "mapping_note": "Direct mapping: time-management page-192-l72-20 -> §8.6.3 for delayed time-constrained enablement becoming eligible when GALT reaches or exceeds current logical time; the scenario checks the callback is absent below equality and reports the current time at equality.",
+      "contract_refs": [
+        "standard-time-constrained-enable-galt-equality-contract.json",
+        "time-role-api-contract.json",
+        "time-role-requirements-contract.json",
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#timeConstrainedEnableGaltEquality",
+      "parity": "cpp-tck.time-constrained-enable-galt-equality",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, logical-time implementation, endpoint, and callback configuration; runtime evidence is not yet available."
     },
     {
       "id": "java-tck.query-lits-source-resignation",
@@ -10063,14 +11078,27 @@
         "FederateAmbassador.timeAdvanceGrant"
       ],
       "requirement_ids": [
-        "cpp-1516.1-time-advance-and-grant",
-        "cpp-1516.1-time-role-callbacks",
-        "cpp-1516.1-time-management-negative-boundaries"
+        "requirement-candidate-content-clauses-08-time-management-page-208-l66-15",
+        "requirement-candidate-content-clauses-08-time-management-page-208-l72-17",
+        "requirement-candidate-content-clauses-08-time-management-page-208-l75-18",
+        "requirement-candidate-content-clauses-08-time-management-page-208-l78-19",
+        "requirement-candidate-content-clauses-08-time-management-page-208-l84-21",
+        "requirement-candidate-content-clauses-08-time-management-page-208-l162-43"
       ],
       "contract_refs": [
         "standard-time-advance-contract.json",
         "standard-modify-lookahead-contract.json"
       ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.20.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l66-15", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l72-17", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l75-18", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l78-19", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l84-21", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l162-43", "standard_section": "hla-1516.1-2025:clause-8.20.4"}
+      ],
+      "mapping_note": "The planned Java surface mirrors only the direct Modify Lookahead request, zero acceptance, immediate increase, deferred decrease, decrease as logical time advances, and requested-value assertions. Query/modify precondition and invalid-input probes, grant setup, callback delivery, and cleanup remain supplemental. Java provider execution is unsupported pending an adapter/provider and is not conformance evidence.",
       "java_test": "org.hla.rti.tck.RtiTckMain#modifyLookaheadContract",
       "parity": "cpp-tck.modify-lookahead",
       "default_status": "unsupported",
@@ -10112,8 +11140,15 @@
         "RTIambassador.disconnect"
       ],
       "requirement_ids": [
-        "java-1516.1-interaction-declaration-and-delivery",
-        "java-1516.1-time-advance-and-grant"
+        "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+        "requirement-candidate-content-clauses-08-time-management-page-200-l131-38",
+        "requirement-candidate-content-clauses-08-time-management-page-200-l164-49",
+        "requirement-candidate-content-clauses-08-time-management-page-195-l164-49",
+        "requirement-candidate-content-clauses-08-time-management-page-198-l177-52",
+        "requirement-candidate-content-clauses-08-time-management-page-199-l40-12",
+        "requirement-candidate-content-clauses-08-time-management-page-206-l149-37",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l97-28",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l112-33"
       ],
       "contract_refs": [
         "federation-execution-api-contract.json",
@@ -10128,6 +11163,27 @@
         "next-message-request-available-api-contract.json",
         "next-message-request-available-requirements-contract.json"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.12",
+        "hla-1516.1-2025:clause-8.9",
+        "hla-1516.1-2025:clause-8.11",
+        "hla-1516.1-2025:clause-8.11.3",
+        "hla-1516.1-2025:clause-8.18.1",
+        "hla-1516.1-2025:clause-6.13"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "standard_section": "hla-1516.1-2025:clause-8.1.6"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l131-38", "standard_section": "hla-1516.1-2025:clause-8.12"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l164-49", "standard_section": "hla-1516.1-2025:clause-8.12"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l164-49", "standard_section": "hla-1516.1-2025:clause-8.9"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-198-l177-52", "standard_section": "hla-1516.1-2025:clause-8.11"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l149-37", "standard_section": "hla-1516.1-2025:clause-8.18.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l97-28", "standard_section": "hla-1516.1-2025:clause-6.13"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l112-33", "standard_section": "hla-1516.1-2025:clause-6.13"}
+      ],
+      "mapping_note": "Direct mappings cover TSO delivery before the alternate-advance grant (§8.1.6); FQR delivery of an already queued message and its optimistic-time report (§8.12); TARA delivery before grant (§8.9); NMRA target selection and delivery before grant (§8.11, §8.11.3); queried logical time (§8.18.1); and callback time/order plus retraction-designator fields (§6.13). The FQR case sends the interaction before issuing FQR. Any broader normative relationship between the FQR request argument and TSO arrivals before an HLA_EVOKED grant callback begins remains supplemental/unresolved; the test does not claim it. Adapter setup, transport lookup, remaining callback metadata, and teardown are supplemental. Java provider execution remains unsupported, not conformance evidence.",
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedInteractionMixedAdvances",
       "parity": "cpp-tck.timestamped-interaction-mixed-advances",
       "default_status": "unsupported",
@@ -10203,6 +11259,76 @@
       "exclusion": "Provider runtime verification is pending; execute only with adapter-supplied standard API, FOM, logical-time, and callback configuration."
     },
     {
+      "id": "java-tck.timestamped-interaction-tar-post-grant-cutoff",
+      "category": "time",
+      "title": "Prevent delivery of late TSO timestamps at or below a completed TAR grant",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.makeEpsilon",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant",
+        "FederateAmbassador.receiveInteraction(time)"
+      ],
+      "requirement_ids": [
+        "java-1516.1-interaction-declaration-and-delivery",
+        "java-1516.1-time-advance-and-grant"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-196-l9-1",
+        "requirement-candidate-content-clauses-08-time-management-page-196-l12-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.9.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-196-l9-1",
+          "standard_section": "hla-1516.1-2025:clause-8.9.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-196-l12-2",
+          "standard_section": "hla-1516.1-2025:clause-8.9.5"
+        }
+      ],
+      "mapping_note": "Direct mappings page-196-l9-1 and page-196-l12-2 -> Clause 8.9.5 only: after receiver TAR(5) grants, a newly regulating producer sends at timestamp 5 and attempts timestamp 4; an accepted timestamp-4 message and the accepted equal-time timestamp-5 message remain undelivered through receiver TAR(6). Sender rejection of timestamp 4 is permitted; no TARA/NMR, transport-lateness, or cross-process claim is made.",
+      "contract_refs": [
+        "timestamped-interaction-api-contract.json",
+        "timestamped-interaction-requirements-contract.json",
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#timestampedInteractionTarPostGrantCutoff",
+      "parity": "cpp-tck.timestamped-interaction-tar-post-grant-cutoff",
+      "default_status": "unsupported",
+      "adapter_inputs": [
+        "provider Java API JAR and service-loaded RtiFactory",
+        "FOM containing the selected interaction class and parameter",
+        "provider-supported logical-time implementation",
+        "callback model selected by the adapter"
+      ],
+      "exclusion": "Provider runtime verification is pending; execute only with adapter-supplied standard API, FOM, logical-time, and callback configuration."
+    },
+    {
       "id": "java-tck.timestamped-interaction-tara-equal-boundary",
       "category": "time",
       "title": "Deliver a timestamped interaction at the equal-time TARA boundary after its grant",
@@ -10221,6 +11347,7 @@
         "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
         "RTIambassador.timeAdvanceRequestAvailable",
         "RTIambassador.flushQueueRequest",
         "RTIambassador.nextMessageRequestAvailable",
@@ -10272,17 +11399,28 @@
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
         "RTIambassador.publishInteractionClass",
         "RTIambassador.changeInteractionOrderType",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.sendInteraction(time)",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.makeEpsilon",
+        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.flushQueueRequest",
         "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.evokeCallback",
         "RTIambassador.queryLogicalTime",
         "RTIambassador.queryLookahead",
         "RTIambassador.getTransportationTypeName",
+        "LogicalTime.add",
+        "LogicalTime.compareTo",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
         "FederateAmbassador.receiveInteraction(time)",
         "FederateAmbassador.timeRegulationEnabled",
         "FederateAmbassador.flushQueueGrant",
@@ -10292,6 +11430,33 @@
         "java-1516.1-interaction-declaration-and-delivery",
         "java-1516.1-time-advance-and-grant"
       ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l131-38",
+          "standard_section": "hla-1516.1-2025:clause-8.12"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l140-41",
+          "standard_section": "hla-1516.1-2025:clause-8.12"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l164-49",
+          "standard_section": "hla-1516.1-2025:clause-8.12"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l37-11",
+          "standard_section": "hla-1516.1-2025:clause-8.12.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l40-12",
+          "standard_section": "hla-1516.1-2025:clause-8.12.3"
+        }
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.12",
+        "hla-1516.1-2025:clause-8.12.3"
+      ],
+      "mapping_note": "Direct parity mappings are limited to the two timestamped interactions queued before Flush Queue Request, including delivery above the request boundary (§8.12), and Flush Queue Grant frontier/query behavior (§8.12.3). The post-grant send checks grant-time-plus-lookahead. This does not claim callback-start cutoffs or arrivals after FQR invocation.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",
@@ -10796,6 +11961,54 @@
         "java-1516.1-interaction-declaration-and-delivery",
         "java-1516.1-time-advance-and-grant"
       ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-123-l145-40",
+          "standard_section": "hla-1516.1-2025:clause-6.12"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l54-15",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l19-5",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l25-7",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+          "standard_section": "hla-1516.1-2025:clause-8.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+          "standard_section": "hla-1516.1-2025:clause-8.3.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+          "standard_section": "hla-1516.1-2025:clause-8.8.3"
+        }
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.12",
+        "hla-1516.1-2025:clause-8",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.3.1",
+        "hla-1516.1-2025:clause-8.8.3"
+      ],
+      "mapping_note": "Direct coverage includes timestamped Send/Receive Interaction, the regulation role transition and supplied lookahead, the completion callback, and constrained delivery/grant behavior. Query Lookahead is checked but not independently mapped to a requirement; no Modify Lookahead clause is claimed. Federation lifecycle setup/cleanup and provider-specific callback timing are not claimed.",
+
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",
@@ -10908,6 +12121,32 @@
         "java-1516.1-directed-interaction-delivery",
         "java-1516.1-time-advance-and-grant"
       ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+          "standard_section": "hla-1516.1-2025:clause-8.1.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+          "standard_section": "hla-1516.1-2025:clause-8.8.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+          "standard_section": "hla-1516.1-2025:clause-8.8.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+          "standard_section": "hla-1516.1-2025:clause-8.22.3"
+        }
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.8.3"
+      ],
+      "mapping_note": "Direct assertions cover the timestamped directed-interaction callback before independent TAR and NMR grants, grant-time and callback metadata, and rejection of retraction after delivery. The source-backed requirement pairs are limited to the four mappings above; no Flush Queue or DDM-region behavior is claimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "directed-interaction-api-contract.json",
@@ -10973,6 +12212,54 @@
         "java-1516.1-directed-interaction-delivery",
         "java-1516.1-time-advance-and-grant"
       ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+          "standard_section": "hla-1516.1-2025:clause-5.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l54-15",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l19-5",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l25-7",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+          "standard_section": "hla-1516.1-2025:clause-8.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+          "standard_section": "hla-1516.1-2025:clause-8.3.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+          "standard_section": "hla-1516.1-2025:clause-8.8.3"
+        }
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-8",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.3.1",
+        "hla-1516.1-2025:clause-8.8.3"
+      ],
+      "mapping_note": "Direct coverage includes the registered, known target required for directed reception; timestamped Send/Receive Directed Interaction; regulation disable/re-enable and supplied lookahead; the regulation-enabled callback; and constrained delivery/grant ordering. Query Lookahead is checked but not independently mapped, and clause 8.20.4 is not claimed because the scenario does not invoke Modify Lookahead. No Delete Object Instance, regional-DDM, lifecycle setup/cleanup, or provider-specific callback timing is claimed.",
+
       "contract_refs": [
         "federation-execution-api-contract.json",
         "directed-interaction-api-contract.json",
@@ -11038,6 +12325,32 @@
         "java-1516.1-directed-interaction-delivery",
         "java-1516.1-time-advance-and-grant"
       ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+          "standard_section": "hla-1516.1-2025:clause-8.1.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+          "standard_section": "hla-1516.1-2025:clause-8.8.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+          "standard_section": "hla-1516.1-2025:clause-8.8.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+          "standard_section": "hla-1516.1-2025:clause-8.22.3"
+        }
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.8.3"
+      ],
+      "mapping_note": "Direct assertions cover the timestamped directed-interaction callback before independent TAR and NMR grants, grant-time and callback metadata, and rejection of retraction after delivery. The source-backed requirement pairs are limited to the four mappings above; no Flush Queue or DDM-region behavior is claimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "directed-interaction-api-contract.json",
@@ -11970,7 +13283,22 @@
         "java-1516.1-attribute-value-update-reflection",
         "java-1516.1-time-advance-and-grant",
         "cpp-1516.1-alternate-advance-negative-boundaries",
-        "cpp-1516.1-next-message-request"
+        "cpp-1516.1-next-message-request",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l98-27",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
+        "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+        "requirement-candidate-content-clauses-08-time-management-page-200-l131-38",
+        "requirement-candidate-content-clauses-08-time-management-page-200-l164-49",
+        "requirement-candidate-content-clauses-08-time-management-page-201-l40-12",
+        "requirement-candidate-content-clauses-08-time-management-page-195-l164-49",
+        "requirement-candidate-content-clauses-08-time-management-page-198-l177-52",
+        "requirement-candidate-content-clauses-08-time-management-page-199-l40-12",
+        "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
+        "requirement-candidate-content-clauses-08-time-management-page-197-l50-13",
+        "requirement-candidate-content-clauses-08-time-management-page-206-l149-37"
       ],
       "contract_refs": [
         "timestamped-attribute-update-api-contract.json",
@@ -11988,6 +13316,36 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.12",
+        "hla-1516.1-2025:clause-8.12.3",
+        "hla-1516.1-2025:clause-8.9",
+        "hla-1516.1-2025:clause-8.11",
+        "hla-1516.1-2025:clause-8.11.3",
+        "hla-1516.1-2025:clause-8.10.2",
+        "hla-1516.1-2025:clause-8.18.1"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l98-27", "standard_section": "hla-1516.1-2025:clause-6.10"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "standard_section": "hla-1516.1-2025:clause-8.1.6"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l131-38", "standard_section": "hla-1516.1-2025:clause-8.12"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l164-49", "standard_section": "hla-1516.1-2025:clause-8.12"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l40-12", "standard_section": "hla-1516.1-2025:clause-8.12.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l164-49", "standard_section": "hla-1516.1-2025:clause-8.9"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-198-l177-52", "standard_section": "hla-1516.1-2025:clause-8.11"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l20-3", "standard_section": "hla-1516.1-2025:clause-8.10.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l50-13", "standard_section": "hla-1516.1-2025:clause-8.10.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l149-37", "standard_section": "hla-1516.1-2025:clause-8.18.1"}
+      ],
+      "mapping_note": "Direct mappings cover the timestamped attribute update request and returned retraction designator (§6.10), reflected values and their time/order/retraction metadata (§6.11.1), TSO delivery before the advance grant (§8.1.6), queued delivery and Flush Queue grant reporting (§8.12, §8.12.3), TARA delivery/grant (§8.9), NMRA target/delivery/grant (§8.11, §8.11.3), NMR target/delivery/grant (§8.10.2), and queried logical time (§8.18.1). Expired-time exception probes, post-NMR update timing, and retraction after delivery are supplemental; the test does not assert a general FQR request-argument rule. Java provider runtime remains unverified, so this is not conformance evidence.",
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedAttributeUpdateAlternateAdvances",
       "parity": "cpp-tck.timestamped-attribute-update-alternate-advances",
       "default_status": "unsupported",
@@ -12005,17 +13363,34 @@
         "RTIambassador.getAttributeHandle",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getAttributeHandleValueMapFactory",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.getName",
+        "LogicalTimeFactory.makeEpsilon",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.flushQueueRequest",
         "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.evokeCallback",
         "RTIambassador.queryLogicalTime",
         "RTIambassador.getTransportationTypeName",
+        "LogicalTime.add",
+        "LogicalTime.compareTo",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
         "FederateAmbassador.flushQueueGrant",
         "FederateAmbassador.timeAdvanceGrant"
       ],
@@ -12023,6 +13398,33 @@
         "java-1516.1-attribute-value-update-reflection",
         "java-1516.1-time-advance-and-grant"
       ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l131-38",
+          "standard_section": "hla-1516.1-2025:clause-8.12"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l140-41",
+          "standard_section": "hla-1516.1-2025:clause-8.12"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l164-49",
+          "standard_section": "hla-1516.1-2025:clause-8.12"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l37-11",
+          "standard_section": "hla-1516.1-2025:clause-8.12.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l40-12",
+          "standard_section": "hla-1516.1-2025:clause-8.12.3"
+        }
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.12",
+        "hla-1516.1-2025:clause-8.12.3"
+      ],
+      "mapping_note": "Direct parity mappings cover only the two timestamped attribute updates queued before Flush Queue Request, including delivery of timestamp 12 above the request time, under Clause 8.12; and Flush Queue Grant optimistic-frontier plus logical-time query behavior under Clause 8.12.3. They do not claim callback-start cutoffs or post-invocation TSO arrivals.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-attribute-update-api-contract.json",
@@ -12194,14 +13596,23 @@
         "RTIambassador.getAttributeHandle",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getAttributeHandleValueMapFactory",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.getName",
+        "LogicalTimeFactory.makeEpsilon",
+        "LogicalTime.add",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.disableTimeConstrained",
         "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.queryLogicalTime",
         "RTIambassador.getTransportationTypeName",
+        "RTIambassador.retract",
         "RTIambassador.disableTimeRegulation",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
@@ -12219,6 +13630,46 @@
         "java-1516.1-attribute-value-update-reflection",
         "java-1516.1-time-advance-and-grant"
       ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+          "standard_section": "hla-1516.1-2025:clause-6.10"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+          "standard_section": "hla-1516.1-2025:clause-8.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+          "standard_section": "hla-1516.1-2025:clause-8.1.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+          "standard_section": "hla-1516.1-2025:clause-8.5.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l63-17",
+          "standard_section": "hla-1516.1-2025:clause-8.6.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-193-l58-12",
+          "standard_section": "hla-1516.1-2025:clause-8.7.5"
+        }
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.5.5",
+        "hla-1516.1-2025:clause-8.6.3",
+        "hla-1516.1-2025:clause-8.7.5"
+      ],
+      "mapping_note": "Direct parity mappings are limited to timestamped Update/Reflect behavior, the asserted time-management enable/disable and re-enable callback sequence, and reflection-before-grant delivery. Clause 4 lifecycle setup/cleanup, default-region behavior, and provider-specific callback timing are not claimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -12277,6 +13728,54 @@
         "java-1516.1-attribute-value-update-reflection",
         "java-1516.1-time-advance-and-grant"
       ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+          "standard_section": "hla-1516.1-2025:clause-6.10"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l19-5",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l25-7",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+          "standard_section": "hla-1516.1-2025:clause-8.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+          "standard_section": "hla-1516.1-2025:clause-8.3.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+          "standard_section": "hla-1516.1-2025:clause-8.8.3"
+        }
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.3.1",
+        "hla-1516.1-2025:clause-8.8.3"
+      ],
+      "mapping_note": "Direct coverage is limited to timestamped Update/Reflect, the regulation role transition and supplied lookahead, its completion callback, and constrained delivery/grant behavior. Query Lookahead is checked but intentionally unmapped: the current Lab candidate points to Modify Lookahead clause 8.20.4, which this scenario does not invoke. Federation lifecycle setup/cleanup and provider-specific callback timing are not claimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -12579,6 +14078,69 @@
         "java-1516.1-object-registration-discovery",
         "java-1516.1-time-advance-and-grant"
       ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+          "standard_section": "hla-1516.1-2025:clause-6.16"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+          "standard_section": "hla-1516.1-2025:clause-6.16"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l159-46",
+          "standard_section": "hla-1516.1-2025:clause-6.16"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+          "standard_section": "hla-1516.1-2025:clause-6.16.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l89-25",
+          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l95-27",
+          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+          "standard_section": "hla-1516.1-2025:clause-8.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+          "standard_section": "hla-1516.1-2025:clause-8.1.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+          "standard_section": "hla-1516.1-2025:clause-8.3.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+          "standard_section": "hla-1516.1-2025:clause-8.8.3"
+        }
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.16.4",
+        "hla-1516.1-2025:clause-6.17.1",
+        "hla-1516.1-2025:clause-8",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.3.1",
+        "hla-1516.1-2025:clause-8.8.3"
+      ],
+      "mapping_note": "Direct coverage includes timestamped Delete Object Instance and Remove Object Instance metadata, queued delivery across the Time Regulation role transition, and removal-before-grant ordering. The publisher no-self-removal rule is not claimed. Query Lookahead is checked but intentionally unmapped: the current Lab candidate points to Modify Lookahead clause 8.20.4, which this scenario does not invoke. Federation lifecycle setup/cleanup and provider-specific callback timing are not claimed.",
+
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json",
@@ -13970,9 +15532,11 @@
         "FederateAmbassador.federationSynchronized"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-061-l77-17",
         "java-1516.1-synchronization-point"
       ],
       "contract_refs": [
+        "synchronization-set-valid-federate-requirements-contract.json",
         "synchronization-point-api-contract.json",
         "synchronization-point-requirements-contract.json"
       ],
@@ -20213,6 +21777,19 @@
         "cpp-1516.1-object-instance-name-lifecycle",
         "cpp-1516.1-object-registration-negative-boundaries"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-116-l99-26"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.6.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-116-l99-26",
+          "standard_section": "hla-1516.1-2025:clause-6.6.4"
+        }
+      ],
+      "mapping_note": "Adapter regression only, not provider-conformance evidence. The direct Clause 6.6.4 mapping covers the observable boundary that Reserve Object Instance Name produces its success callback without discovering an object before Register Object Instance; after registration the existing assertion requires exactly one matching discovery. The scenario's other reservation, release, and identity checks are not included in this direct mapping.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-attribute-declaration-api-contract.json",
@@ -21859,12 +23436,43 @@
         "FederateAmbassador.receiveDirectedInteraction"
       ],
       "requirement_ids": [
-        "cpp-1516.1-directed-interaction-publication",
-        "cpp-1516.1-directed-interaction-subscription",
-        "cpp-1516.1-directed-interaction-delivery",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l161-52",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l185-60",
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33",
+        "requirement-candidate-content-clauses-06-object-management-page-127-l37-11",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l86-24"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l161-52",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l185-60",
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33",
+        "requirement-candidate-content-clauses-06-object-management-page-127-l37-11",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
+        "requirement-candidate-content-clauses-06-object-management-page-128-l86-24"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.4",
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-5.12",
+        "hla-1516.1-2025:clause-6.14.3",
+        "hla-1516.1-2025:clause-6.15.1"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l161-52", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l185-60", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10", "standard_section": "hla-1516.1-2025:clause-5.1.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29", "standard_section": "hla-1516.1-2025:clause-5.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33", "standard_section": "hla-1516.1-2025:clause-5.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l37-11", "standard_section": "hla-1516.1-2025:clause-6.14.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l83-23", "standard_section": "hla-1516.1-2025:clause-6.15.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l86-24", "standard_section": "hla-1516.1-2025:clause-6.15.1" }
+      ],
+      "mapping_note": "Direct candidate-to-clause anchors cover directed-interaction publication/unpublication (§5.1.4), known-target delivery (§5.1.5), interaction subscription (§5.12), the sendDirectedInteraction publication-state exception (§6.14.3), and received parameter/tag/producer callback content (§6.15.1). The no-delivery check after the failed send, fixture setup, discovery, lookups, and cleanup are not separate claims. Java source is portable, but provider behavior remains unvalidated until execution against an independent Java provider.",
       "contract_refs": [
         "directed-interaction-api-contract.json",
         "directed-interaction-requirements-contract.json",
@@ -21984,12 +23592,24 @@
         "cpp-1516.1-time-advance-request"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-08-time-management-page-184-l121-36"
+        "requirement-candidate-content-clauses-08-time-management-page-184-l121-36",
+        "requirement-candidate-content-clauses-08-time-management-page-204-l74-21"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-8.1.5"
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.15.3"
       ],
-      "mapping_note": "Direct pair: requirement-candidate-content-clauses-08-time-management-page-184-l121-36 -> \u00a78.1.5. RO progress is callback-path liveness only; the mapped observable is the TSO time gate and release before the matching grant.",
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l121-36",
+          "standard_section": "hla-1516.1-2025:clause-8.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l74-21",
+          "standard_section": "hla-1516.1-2025:clause-8.15.3"
+        }
+      ],
+      "mapping_note": "Direct pairs: page-184-l121-36 -> \u00a78.1.5 for the TSO time gate with receive-order progress as a positive control; page-204-l74-21 -> \u00a78.15.3 for TAR's inclusive equal-time cutoff: both timestamp-5 interactions precede the TAR(5) grant, while timestamp 6 remains pending until TAR(6).",
       "contract_refs": [
         "standard-asynchronous-delivery-tso-exclusion-api-contract.json",
         "standard-asynchronous-delivery-tso-exclusion-requirements-contract.json"
@@ -22027,12 +23647,15 @@
         "FederateAmbassador.federationRestoreStatusResponse"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l156-41",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l159-42",
         "cpp-1516.1-federation-save-lifecycle",
         "cpp-1516.1-federation-save-status",
         "cpp-1516.1-federation-restore-lifecycle",
         "cpp-1516.1-federation-restore-status"
       ],
       "contract_refs": [
+        "federation-restored-success-callback-requirements-contract.json",
         "save-control-api-contract.json",
         "save-control-requirements-contract.json",
         "restore-control-api-contract.json",
@@ -22103,6 +23726,53 @@
       "exclusion": "Requires a live multi-federate provider, adapter-supplied FOM and logical-time implementation, and callback model; immediate-mode callback servicing uses the adapter-supplied object-class name. Exercises ordinary untimed save/restore and the timestamped-save membership boundary only, with standard APIs."
     },
     {
+      "id": "java-tck.federate-save-initiation-eligibility",
+      "category": "federation-save-restore",
+      "title": "Verify untimed save initiation for all unconstrained joined federates",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.requestFederationSave",
+        "RTIambassador.federateSaveBegun",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.initiateFederateSave",
+        "FederateAmbassador.federationSaved",
+        "FederateAmbassador.federationNotSaved"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-save-lifecycle"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-042-l10-3",
+        "requirement-candidate-content-clauses-04-federation-management-page-043-l65-19"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-042-l10-3",
+          "standard_section": "hla-1516.1-2025:clause-4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-043-l65-19",
+          "standard_section": "hla-1516.1-2025:clause-4"
+        }
+      ],
+      "mapping_note": "Clause 4 maps two directly asserted obligations: both joined federates are unconstrained and receive their matching Initiate Federate Save callback; the untimed request instructs all joined federates, including its requester, to save. Each member completes the save and receives Federation Saved without a failure callback.",
+      "contract_refs": [
+        "federate-save-initiation-eligibility-api-contract.json",
+        "federate-save-initiation-eligibility-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#federateSaveInitiationEligibility",
+      "parity": "cpp-tck.federate-save-initiation-eligibility",
+      "default_status": "unsupported",
+      "exclusion": "The Java scenario uses only the official IEEE 1516.1-2025 API but remains unsupported by default until it is executed against an adapter-supplied Java provider with the configured FOM, time implementation, and callback model."
+    },
+    {
       "id": "java-tck.federate-save-initiation-time-constrained-eligibility",
       "category": "federation-save-restore",
       "title": "Wait for every time-constrained member to become eligible before untimed save initiation",
@@ -22135,6 +23805,43 @@
         "cpp-1516.1-time-advance-request",
         "cpp-1516.1-time-advance-and-grant"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-043-l65-19",
+        "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24",
+        "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
+        "requirement-candidate-content-clauses-08-time-management-page-178-l15-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.2",
+        "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-4.19.6",
+        "hla-1516.1-2025:clause-4.20",
+        "hla-1516.1-2025:clause-8.1.7"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-043-l65-19",
+          "standard_section": "hla-1516.1-2025:clause-4.1.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24",
+          "standard_section": "hla-1516.1-2025:clause-4.19"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
+          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
+          "standard_section": "hla-1516.1-2025:clause-4.20"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l15-2",
+          "standard_section": "hla-1516.1-2025:clause-8.1.7"
+        }
+      ],
+      "mapping_note": "The Java scenario requests an untimed save while two members are time constrained and neither is Time Advancing. It observes no initiation before constrained TARs, then observes exactly one matching Initiate Federate Save callback for all joined members after both TARs are accepted; neither constrained member receives a Time Advance Grant first. Direct mappings cover untimed-save participation and eligibility under Clauses 4.1.2, 4.19, 4.19.6, and 4.20, plus the Time Advancing interval under Clause 8.1.7. It does not issue a Time Advance Request during an active save, so Clause 8.8.3 is not claimed. The installed-package C++ pair passes both callback models; Java provider runtime remains unverified.",
       "contract_refs": [
         "federate-save-initiation-eligibility-api-contract.json",
         "federate-save-initiation-eligibility-requirements-contract.json"
@@ -22172,13 +23879,17 @@
         "FederateAmbassador.requestFederationRestoreSucceeded",
         "FederateAmbassador.federationRestoreBegun",
         "FederateAmbassador.initiateFederateRestore",
-        "FederateAmbassador.federationRestored"
+        "FederateAmbassador.federationRestored",
+        "FederateAmbassador.federationNotRestored"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l156-41",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l159-42",
         "cpp-1516.1-federation-save-service-interlocks",
         "cpp-1516.1-federation-restore-service-interlocks"
       ],
       "contract_refs": [
+        "federation-restored-success-callback-requirements-contract.json",
         "save-restore-interlock-api-contract.json",
         "save-restore-interlock-requirements-contract.json",
         "standard-federation-save-restore-interlocks-contract.json"
@@ -22327,15 +24038,15 @@
     {
       "id": "java-tck.fqr-timed-federation-save-callback",
       "category": "timed-federation-save-restore",
-      "title": "Initiate a timestamped federation save at the actual FQR frontier before the later grant",
+      "title": "Submit a timestamped federation save before FQR and initiate it before the later grant",
       "api_methods": [
         "RTIambassador.getTimeFactory",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.sendInteraction(time)",
+        "RTIambassador.requestFederationSave(time)",
         "RTIambassador.flushQueueRequest",
         "RTIambassador.queryLogicalTime",
-        "RTIambassador.requestFederationSave(time)",
         "RTIambassador.timeAdvanceRequest",
         "RTIambassador.federateSaveBegun",
         "RTIambassador.federateSaveComplete",
@@ -22349,6 +24060,31 @@
         "cpp-1516.1-timed-federation-save",
         "cpp-1516.1-time-advance-request"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-184-l106-31",
+        "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-4.19.6",
+        "hla-1516.1-2025:clause-4.20"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l106-31",
+          "standard_section": "hla-1516.1-2025:clause-8.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
+          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
+          "standard_section": "hla-1516.1-2025:clause-4.20"
+        }
+      ],
+      "mapping_note": "Direct assertions are limited to FQR's distinct actual/optimistic grant values (§8.1.5), submission of a timed save at logical time 6 while the regulator is at 4 before FQR's actual grant at 5, and the constrained member's save-initiation callback at time 6 before the subsequent grant at 7 (§4.19.6, §4.20). The schedule keeps the save request beyond the sender's current time plus lookahead at submission; no broader save/restore or time-management behavior is implied.",
       "contract_refs": [
         "flush-queue-request-api-contract.json",
         "flush-queue-request-requirements-contract.json",
@@ -26141,6 +27877,7 @@
         "RTIambassador.registerObjectInstance",
         "RTIambassador.getObjectInstanceName",
         "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.updateAttributeValues",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
@@ -26156,6 +27893,13 @@
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.2-fom-root-hierarchy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l102-31"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "mapping_note": "Direct mapping: declaration-management page-096-l102-31 -> §5.8. Base and derived subscribers verify the class reported by object discovery against their closest matching subscription, while the publisher confirms the object's derived class.",
       "contract_refs": [
         "object-class-attribute-declaration-api-contract.json",
         "publish-object-class-attributes-api-contract.json",

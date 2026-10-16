@@ -104,8 +104,9 @@ final class InheritedObjectAttributeProjectionTck {
             "derived-class registration returned a null object handle");
          String objectName = publisher.getObjectInstanceName(object);
          JavaTckSupport.check(objectName != null && !objectName.isEmpty()
-               && object.equals(publisher.getObjectInstanceHandle(objectName)),
-            "publisher object identity lookup did not round-trip");
+               && object.equals(publisher.getObjectInstanceHandle(objectName))
+               && publisherDerivedClass.equals(publisher.getKnownObjectClassHandle(object)),
+            "publisher object identity or actual-class lookup did not round-trip");
 
          await(baseSubscriber, model, baseClassName,
             () -> baseEvents.discoveries().size() == 1,
@@ -113,10 +114,10 @@ final class InheritedObjectAttributeProjectionTck {
          await(derivedSubscriber, model, derivedClassName,
             () -> derivedEvents.discoveries().size() == 1,
             "derived-class subscriber discovery");
-         checkDiscovery(baseEvents.discoveries(), object, publisherFederate,
+         checkDiscovery(baseEvents.discoveries(), object, subscriberBaseClass, publisherFederate,
             baseSubscriber, objectName, "base-class subscriber");
-         checkDiscovery(derivedEvents.discoveries(), object, publisherFederate,
-            derivedSubscriber, objectName, "derived-class subscriber");
+         checkDiscovery(derivedEvents.discoveries(), object, subscriberDerivedClass,
+            publisherFederate, derivedSubscriber, objectName, "derived-class subscriber");
 
          AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(2);
          values.put(publisherIdentity, IDENTITY.clone());
@@ -162,10 +163,11 @@ final class InheritedObjectAttributeProjectionTck {
    }
 
    private static void checkDiscovery(List<Discovery> discoveries, ObjectInstanceHandle object,
-         FederateHandle producer, RTIambassador subscriber, String name, String description)
-         throws Exception {
+         ObjectClassHandle expectedClass, FederateHandle producer, RTIambassador subscriber,
+         String name, String description) throws Exception {
       JavaTckSupport.check(discoveries.size() == 1
             && object.equals(discoveries.get(0).object)
+            && expectedClass.equals(discoveries.get(0).objectClass)
             && name.equals(discoveries.get(0).name)
             && producer.equals(discoveries.get(0).producer),
          description + " received duplicate or incorrect discovery metadata");
@@ -222,10 +224,12 @@ final class InheritedObjectAttributeProjectionTck {
 
    private static final class Discovery {
       final ObjectInstanceHandle object;
+      final ObjectClassHandle objectClass;
       final String name;
       final FederateHandle producer;
       Discovery(Object[] args) {
          object = (ObjectInstanceHandle) args[0];
+         objectClass = (ObjectClassHandle) args[1];
          name = (String) args[2];
          producer = (FederateHandle) args[3];
       }

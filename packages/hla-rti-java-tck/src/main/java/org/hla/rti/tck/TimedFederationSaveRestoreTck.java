@@ -320,6 +320,9 @@ final class TimedFederationSaveRestoreTck {
          JavaTckSupport.check(sent != null && sent.retractionHandleIsValid && sent.handle != null,
             "FQR timed-save queued interaction returned no retraction handle");
 
+         actorRecorder.saveTimeline.clear();
+         // Submit while current time is 4; FQR will first grant the actual time 5.
+         constrainedRegulator.requestFederationSave(saveLabel, saveTime);
          constrainedRegulator.flushQueueRequest(flushRequestTime);
          await(callbackModel, objectClassName, "FQR timed-save flush delivery",
             () -> actorRecorder.interactions.size() == 1
@@ -338,8 +341,6 @@ final class TimedFederationSaveRestoreTck {
                && delivered.retraction != null && sent.handle.equals(delivered.retraction),
             "FQR timed-save delivered incorrect queued interaction data");
 
-         constrainedRegulator.requestFederationSave(saveLabel, saveTime);
-         actorRecorder.saveTimeline.clear();
          constrainedRegulator.timeAdvanceRequest(laterAdvance);
          sender.timeAdvanceRequest(laterAdvance);
          await(callbackModel, objectClassName, "FQR timed-save initiation callbacks",

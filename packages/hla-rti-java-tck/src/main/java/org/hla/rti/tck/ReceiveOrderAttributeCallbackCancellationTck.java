@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.BooleanSupplier;
 
 /** Verifies that withdrawal cancels only callbacks that are still pending. */
 final class ReceiveOrderAttributeCallbackCancellationTck {
@@ -151,6 +152,159 @@ final class ReceiveOrderAttributeCallbackCancellationTck {
             try { publisher.disconnect(); } catch (Exception ignored) { }
          }
       }
+   }
+
+   /** Verifies a queued reflection belongs to the resigned membership, not its rejoin. */
+   static void runReceiverResignationFence(RtiFactory factory, String fom,
+         String timeImplementation, String objectClassName, String attributeName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador receiver = factory.getRtiAmbassador();
+      RTIambassador control = factory.getRtiAmbassador();
+      Recorder publisherRecorder = new Recorder();
+      Recorder receiverRecorder = new Recorder();
+      Recorder controlRecorder = new Recorder();
+      String federation = "java-tck-receiver-resignation-fence-" + UUID.randomUUID();
+      boolean publisherConnected = false, receiverConnected = false;
+      boolean controlConnected = false, created = false;
+      boolean publisherJoined = false, receiverJoined = false, controlJoined = false;
+      boolean publisherPublished = false, receiverSubscribed = false;
+      boolean controlSubscribed = false;
+      ObjectClassHandle publisherClass = null, receiverClass = null, controlClass = null;
+      AttributeHandle publisherAttribute = null, receiverAttribute = null, controlAttribute = null;
+      AttributeHandleSet publisherAttributes = null;
+      AttributeHandleSet receiverAttributes = null;
+      AttributeHandleSet controlAttributes = null;
+      try {
+         publisher.connect(publisherRecorder.proxy(), callbackModel);
+         publisherConnected = true;
+         receiver.connect(receiverRecorder.proxy(), callbackModel);
+         receiverConnected = true;
+         control.connect(controlRecorder.proxy(), callbackModel);
+         controlConnected = true;
+         publisher.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         FederateHandle producer = publisher.joinFederationExecution(
+            "java-tck-resignation-fence-owner", federation);
+         publisherJoined = true;
+         receiver.joinFederationExecution("java-tck-resignation-fence-member", federation);
+         receiverJoined = true;
+         control.joinFederationExecution("java-tck-resignation-fence-control", federation);
+         controlJoined = true;
+
+         publisherClass = publisher.getObjectClassHandle(objectClassName);
+         receiverClass = receiver.getObjectClassHandle(objectClassName);
+         controlClass = control.getObjectClassHandle(objectClassName);
+         publisherAttribute = publisher.getAttributeHandle(publisherClass, attributeName);
+         receiverAttribute = receiver.getAttributeHandle(receiverClass, attributeName);
+         controlAttribute = control.getAttributeHandle(controlClass, attributeName);
+         JavaTckSupport.check(publisherClass != null && receiverClass != null
+               && controlClass != null && publisherAttribute != null
+               && receiverAttribute != null && controlAttribute != null,
+            "adapter FOM did not resolve receiver-resignation-fence handles");
+         publisherAttributes = JavaTckSupport.attributeSet(
+            publisher, publisherAttribute);
+         publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
+         publisherPublished = true;
+         receiverAttributes = JavaTckSupport.attributeSet(receiver, receiverAttribute);
+         receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
+         receiverSubscribed = true;
+         controlAttributes = JavaTckSupport.attributeSet(control, controlAttribute);
+         control.subscribeObjectClassAttributes(controlClass, controlAttributes);
+         controlSubscribed = true;
+
+         ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
+         await(receiver, callbackModel, () -> object.equals(receiverRecorder.discoveredObject),
+            "resignation-fence initial receiver discovery");
+         await(control, callbackModel, () -> object.equals(controlRecorder.discoveredObject),
+            "resignation-fence control discovery");
+         receiverRecorder.discoveredObject = null;
+         receiverRecorder.reflections.clear();
+         controlRecorder.reflections.clear();
+         if (callbackModel == CallbackModel.HLA_IMMEDIATE) receiver.disableCallbacks();
+
+         byte[] value = new byte[] {(byte) 0xD3};
+         byte[] oldTag = new byte[] {(byte) 0xE1};
+         AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(1);
+         values.put(publisherAttribute, value.clone());
+         publisher.updateAttributeValues(object, values, oldTag.clone());
+         await(control, callbackModel, () -> controlRecorder.reflections.size() == 1,
+            "resignation-fence control reflection");
+         JavaTckSupport.check(receiverRecorder.reflections.isEmpty(),
+            "target reflection was not held until the membership boundary");
+
+         receiver.resignFederationExecution(ResignAction.NO_ACTION);
+         receiverJoined = false;
+         receiverRecorder.discoveredObject = null;
+         receiver.joinFederationExecution("java-tck-resignation-fence-member", federation);
+         receiverJoined = true;
+         receiverClass = receiver.getObjectClassHandle(objectClassName);
+         receiverAttribute = receiver.getAttributeHandle(receiverClass, attributeName);
+         JavaTckSupport.check(receiverClass != null && receiverAttribute != null,
+            "rejoined receiver resolved invalid handles");
+         receiverAttributes = JavaTckSupport.attributeSet(receiver, receiverAttribute);
+         receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
+         receiverSubscribed = true;
+         if (callbackModel == CallbackModel.HLA_IMMEDIATE) receiver.enableCallbacks();
+         await(receiver, callbackModel,
+            () -> object.equals(receiverRecorder.discoveredObject),
+            "resignation-fence post-rejoin discovery");
+         JavaTckSupport.check(receiverRecorder.reflections.stream()
+               .noneMatch(event -> Arrays.equals(oldTag, event.tag)),
+            "queued old-membership reflection leaked across resignation and rejoin");
+
+         byte[] newTag = new byte[] {(byte) 0xE2};
+         publisher.updateAttributeValues(object, values, newTag.clone());
+         await(receiver, callbackModel, () -> receiverRecorder.reflections.stream()
+               .anyMatch(event -> Arrays.equals(newTag, event.tag)),
+            "resignation-fence new-membership reflection");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(receiver);
+         long oldCount = receiverRecorder.reflections.stream()
+            .filter(event -> Arrays.equals(oldTag, event.tag)).count();
+         long newCount = receiverRecorder.reflections.stream()
+            .filter(event -> Arrays.equals(newTag, event.tag)).count();
+         JavaTckSupport.check(oldCount == 0 && newCount == 1,
+            "membership fence changed old/new receive-order reflection counts");
+         assertReflection(receiverRecorder.reflections.stream()
+               .filter(event -> Arrays.equals(newTag, event.tag)).findFirst().get(),
+            object, receiverAttribute, value, newTag, producer, receiver,
+            "resignation-fence new-membership update");
+      } finally {
+         if (receiverJoined && receiverSubscribed) {
+            try { receiver.unsubscribeObjectClassAttributes(receiverClass, receiverAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (controlJoined && controlSubscribed) {
+            try { control.unsubscribeObjectClassAttributes(controlClass, controlAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined && publisherPublished) {
+            try { publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (receiverJoined) try { receiver.resignFederationExecution(ResignAction.NO_ACTION); }
+         catch (Exception ignored) { }
+         if (controlJoined) try { control.resignFederationExecution(ResignAction.NO_ACTION); }
+         catch (Exception ignored) { }
+         if (publisherJoined) try { publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
+         catch (Exception ignored) { }
+         if (created) try { publisher.destroyFederationExecution(federation); }
+         catch (Exception ignored) { }
+         if (controlConnected) try { control.disconnect(); } catch (Exception ignored) { }
+         if (receiverConnected) try { receiver.disconnect(); } catch (Exception ignored) { }
+         if (publisherConnected) try { publisher.disconnect(); } catch (Exception ignored) { }
+      }
+   }
+
+   private static void await(RTIambassador ambassador, CallbackModel callbackModel,
+         BooleanSupplier condition, String description) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (!condition.getAsBoolean() && System.nanoTime() < deadline) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(ambassador);
+         else Thread.yield();
+      }
+      JavaTckSupport.check(condition.getAsBoolean(),
+         description + " did not arrive before the bounded deadline");
    }
 
    private static void awaitBoth(RTIambassador active, RTIambassador cancelled,

@@ -97,8 +97,10 @@ final class AsynchronousDeliveryTsoExclusionTck {
             "adapter members selected different logical-time factories");
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
          LogicalTime initial = sender.queryLogicalTime();
-         LogicalTime tsoTime = offset(initial, epsilon, 5);
-         LogicalTime receiverTarget = offset(receiver.queryLogicalTime(), epsilon, 5);
+         LogicalTime tsoTimeFive = offset(initial, epsilon, 5);
+         LogicalTime tsoTimeSix = offset(initial, epsilon, 6);
+         LogicalTime receiverTargetFive = offset(receiver.queryLogicalTime(), epsilon, 5);
+         LogicalTime receiverTargetSix = offset(receiver.queryLogicalTime(), epsilon, 6);
          LogicalTimeInterval lookahead = (LogicalTimeInterval) timeFactory.makeEpsilon();
 
          receiver.enableTimeConstrained();
@@ -113,22 +115,22 @@ final class AsynchronousDeliveryTsoExclusionTck {
          receiver.enableAsynchronousDelivery();
          asynchronous = true;
 
-         byte[] tsoValue = {(byte) 0x71, 0x53};
-         byte[] tsoTag = {0x54, 0x53, 0x4f};
          byte[] roValue = {0x52, 0x4f};
          byte[] roTag = {0x52, 0x4f, 0x31};
-         ParameterHandleValueMap tsoParameters =
-            sender.getParameterHandleValueMapFactory().create(1);
-         tsoParameters.put(senderTimestampedParameter, tsoValue.clone());
          ParameterHandleValueMap receiveOrderParameters =
             sender.getParameterHandleValueMapFactory().create(1);
          receiveOrderParameters.put(senderReceiveOrderParameter, roValue.clone());
-         Object tsoSend = sender.sendInteraction(
-            senderTimestampedClass, tsoParameters, tsoTag.clone(), tsoTime);
-         JavaTckSupport.check(tsoSend != null,
-            "timestamped interaction send returned no result");
+         byte[] tsoTagFiveFirst = {0x54, 0x35, 0x31};
+         byte[] tsoTagFiveSecond = {0x54, 0x35, 0x32};
+         byte[] tsoTagSix = {0x54, 0x36, 0x31};
+         sendTimestamped(sender, senderTimestampedClass, senderTimestampedParameter,
+            (byte) 0x71, tsoTagFiveFirst, tsoTimeFive);
+         sendTimestamped(sender, senderTimestampedClass, senderTimestampedParameter,
+            (byte) 0x72, tsoTagFiveSecond, tsoTimeFive);
+         sendTimestamped(sender, senderTimestampedClass, senderTimestampedParameter,
+            (byte) 0x73, tsoTagSix, tsoTimeSix);
          sender.sendInteraction(senderReceiveOrderClass, receiveOrderParameters, roTag.clone());
-         sender.timeAdvanceRequest(tsoTime);
+         sender.timeAdvanceRequest(tsoTimeSix);
 
          await(receiver, callbackModel, objectClassName,
             () -> !receiverCallbacks.receiveOrder.isEmpty(),
@@ -146,26 +148,59 @@ final class AsynchronousDeliveryTsoExclusionTck {
                && producer.equals(receiveOrder.producer),
             "asynchronous receive-order progress returned the wrong application data");
 
-         receiver.timeAdvanceRequest(receiverTarget);
+         receiver.timeAdvanceRequest(receiverTargetFive);
          await(receiver, callbackModel, objectClassName,
-            () -> receiverCallbacks.timestamped.size() == 1
+            () -> receiverCallbacks.timestamped.size() == 2
                && receiverCallbacks.timeAdvanceGrants.size() == 1,
-            "timestamped interaction release before its matching grant");
-         Delivery timestamped = receiverCallbacks.timestamped.get(0);
-         JavaTckSupport.check(receiverTimestampedClass.equals(timestamped.interaction)
-               && timestamped.parameters.size() == 1
-               && Arrays.equals(tsoValue,
-                  timestamped.parameters.get(receiverTimestampedParameter))
-               && Arrays.equals(tsoTag, timestamped.tag)
-               && producer.equals(timestamped.producer)
-               && tsoTime.equals(timestamped.time)
-               && timestamped.sentOrder == OrderType.TIMESTAMP
-               && timestamped.receivedOrder == OrderType.TIMESTAMP
-               && receiverTarget.equals(receiverCallbacks.timeAdvanceGrants.get(0)),
-            "timestamped interaction or matching grant returned incorrect metadata");
+            "equal-time timestamped interactions release before the TAR(5) grant");
+         byte[][] expectedValues = {{(byte) 0x71}, {(byte) 0x72}};
+         byte[][] expectedTags = {tsoTagFiveFirst, tsoTagFiveSecond};
+         for (int index = 0; index < 2; ++index) {
+            Delivery timestamped = receiverCallbacks.timestamped.get(index);
+            JavaTckSupport.check(receiverTimestampedClass.equals(timestamped.interaction)
+                  && timestamped.parameters.size() == 1
+                  && Arrays.equals(expectedValues[index],
+                     timestamped.parameters.get(receiverTimestampedParameter))
+                  && Arrays.equals(expectedTags[index], timestamped.tag)
+                  && producer.equals(timestamped.producer)
+                  && tsoTimeFive.equals(timestamped.time)
+                  && timestamped.sentOrder == OrderType.TIMESTAMP
+                  && timestamped.receivedOrder == OrderType.TIMESTAMP,
+               "equal-time timestamped interaction returned incorrect metadata");
+         }
+         JavaTckSupport.check(receiverTargetFive.equals(
+               receiverCallbacks.timeAdvanceGrants.get(0)),
+            "TAR(5) returned the wrong grant time");
+         for (int pass = 0; pass < 8; ++pass) {
+            if (callbackModel == CallbackModel.HLA_EVOKED) {
+               receiver.evokeMultipleCallbacks(0.0, 0.0);
+            } else {
+               receiver.getObjectClassHandle(objectClassName);
+               Thread.yield();
+            }
+         }
+         JavaTckSupport.check(receiverCallbacks.timestamped.size() == 2
+               && receiverCallbacks.timeAdvanceGrants.size() == 1,
+            "callback servicing after TAR(5) delivered another TSO event");
+         receiver.timeAdvanceRequest(receiverTargetSix);
+         await(receiver, callbackModel, objectClassName,
+            () -> receiverCallbacks.timestamped.size() == 3
+               && receiverCallbacks.timeAdvanceGrants.size() == 2,
+            "timestamp-6 interaction release before the TAR(6) grant");
+         Delivery timestampSix = receiverCallbacks.timestamped.get(2);
+         JavaTckSupport.check(receiverTimestampedClass.equals(timestampSix.interaction)
+               && timestampSix.parameters.size() == 1
+               && Arrays.equals(new byte[] {(byte) 0x73},
+                  timestampSix.parameters.get(receiverTimestampedParameter))
+               && Arrays.equals(tsoTagSix, timestampSix.tag)
+               && producer.equals(timestampSix.producer)
+               && tsoTimeSix.equals(timestampSix.time)
+               && receiverTargetSix.equals(receiverCallbacks.timeAdvanceGrants.get(1)),
+            "future TSO interaction was not held until TAR(6)");
          JavaTckSupport.check(receiverCallbacks.sequence.equals(
-               Arrays.asList("receiveOrder", "timestamped", "timeAdvanceGrant")),
-            "timestamped receive callback did not precede its matching grant");
+               Arrays.asList("receiveOrder", "timestamped", "timestamped",
+                  "timeAdvanceGrant", "timestamped", "timeAdvanceGrant")),
+            "timestamped callback and TAR grant order was incorrect");
       } finally {
          if (asynchronous && receiverJoined) {
             try { receiver.disableAsynchronousDelivery(); } catch (Exception ignored) { }
@@ -360,6 +395,16 @@ final class AsynchronousDeliveryTsoExclusionTck {
       LogicalTime result = start;
       for (int index = 0; index < steps; ++index) result = (LogicalTime) result.add(interval);
       return result;
+   }
+
+   private static void sendTimestamped(RTIambassador sender,
+         InteractionClassHandle interactionClass, ParameterHandle parameter,
+         byte value, byte[] tag, LogicalTime time) throws Exception {
+      ParameterHandleValueMap values = sender.getParameterHandleValueMapFactory().create(1);
+      values.put(parameter, new byte[] {value});
+      Object result = sender.sendInteraction(interactionClass, values, tag.clone(), time);
+      JavaTckSupport.check(result != null,
+         "timestamped interaction send returned no result");
    }
 
    private static void await(RTIambassador ambassador, CallbackModel model,

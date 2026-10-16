@@ -293,6 +293,10 @@ adapter-configured attributes and verifies that exact active set and rate in
 the standard MIM report; configure the second and third attributes with
 `hla.rti.tck.objectClassSecondAttribute` and
 `hla.rti.tck.objectClassThirdAttribute`.
+The ordinary subscription-lifecycle scenario also requires a distinct second
+attribute through `hla.rti.tck.objectClassSecondAttribute`; it publishes and
+updates both attributes while subscribing to only the primary one, checking
+that initial and subsequent reflection contain only the subscribed value.
 The passive companion uses the standard passive attribute-set subscription
 operation and verifies that the same complete attribute list and rate are
 reported with the active flag false.
@@ -574,6 +578,12 @@ single-attribute subscribers, preservation of per-update tags and producer
 metadata, and suppression of updates for an unsubscribed attribute and the
 publisher. Keep it unsupported by default until run against a Java provider.
 
+The opt-in `java-tck.time-constrained-enable-galt-equality` scenario compiles
+against the pinned IEEE 1516.1-2025 Java API. It checks that constrained-enable
+notification follows the GALT equality boundary; provider-runtime execution
+remains pending, and the paired C++ installed-package immediate-callback case
+is not yet green.
+
 The opt-in `java-tck.ordinary-multi-attribute-value-update-request-response`
 scenario uses the adapter-supplied multi-attribute FOM and names. It exercises
 full, first-only, and second-only instance requests, checks the provider callback
@@ -825,6 +835,16 @@ subscriber receives the update. In immediate mode it waits until both subscriber
 have received the update before withdrawing one subscription. It verifies the
 object, attribute, value, tag, producer, and transport callback data; it remains
 unsupported by default pending Java-provider execution.
+
+The opt-in `java-tck.receive-order-attribute-update-receiver-resignation-fence`
+scenario queues an update for a receiver, resigns and rejoins that receiver
+before callback delivery, and verifies the old tagged reflection does not
+cross the membership boundary while one later update reaches the new
+membership. It is parity-linked to the C++ public-API contract candidate and
+uses only `hla.rti1516_2025` types plus adapter-supplied FOM, endpoint,
+logical-time implementation, and callback model. All 388 Java source files
+compile against the pinned API JAR; Java provider-runtime execution remains
+unverified.
 
 The `java-tck.interaction-subscription-lifecycle` scenario exercises passive
 and active interaction subscriptions, activation without replay, delivery

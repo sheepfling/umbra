@@ -176,12 +176,27 @@ final class TimestampedInteractionMixedAdvancesTck {
          LogicalTime publisherTarget = offset(initial, epsilon, equalBoundary ? 4 : 5);
          LogicalTime taraBoundary = offset(initial, epsilon,
             boundaryMode == BoundaryMode.TARA_STRICTLY_AFTER ? 6 : 5);
+         LogicalTime taraFollowupBoundary = offset(initial, epsilon, 6);
          LogicalTime requestBoundary = offset(initial, epsilon, 10);
          byte[] payload = new byte[] {0x49, 0x4e, 0x54, 0x2d, 0x41};
          byte[] tag = new byte[] {0x49, 0x4e, 0x54, 0x2d, 0x46};
          ParameterHandleValueMap parameters =
             publisher.getParameterHandleValueMapFactory().create(1);
          parameters.put(publisherParameter, payload);
+         if (boundaryMode == BoundaryMode.TARA_EQUAL) {
+            publisher.timeAdvanceRequest(publisherTarget);
+            JavaTckSupport.drain(publisher);
+            JavaTckSupport.check(publisherRecorder.timeAdvanceGrantTimes.size() == 1
+                  && publisherTarget.equals(publisherRecorder.timeAdvanceGrantTimes.get(0)),
+               "producer did not reach the pre-message frontier before TARA");
+            taraReceiver.timeAdvanceRequestAvailable(taraBoundary);
+            JavaTckSupport.drain(taraReceiver);
+            JavaTckSupport.check(taraRecorder.timeAdvanceGrantTimes.size() == 1
+                  && taraBoundary.equals(taraRecorder.timeAdvanceGrantTimes.get(0))
+                  && taraRecorder.timedInteractionCount == 0
+                  && taraRecorder.callbackOrder.equals(Arrays.asList("timeAdvanceGrant")),
+               "equal-time TARA did not grant before the interaction arrived");
+         }
          MessageRetractionReturn retraction = publisher.sendInteraction(
             publisherClass, parameters, tag, messageTime);
          JavaTckSupport.check(retraction != null && retraction.retractionHandleIsValid
@@ -192,15 +207,24 @@ final class TimestampedInteractionMixedAdvancesTck {
                Arrays.asList(flushReceiver, taraReceiver, nmraReceiver)) {
             JavaTckSupport.drain(receiver);
          }
-         JavaTckSupport.check(flushRecorder.timedInteractionCount == 0
-               && taraRecorder.timedInteractionCount == 0
-               && nmraRecorder.timedInteractionCount == 0,
-            "timestamped interaction was delivered before an advance request");
+         if (boundaryMode != BoundaryMode.TARA_EQUAL) {
+            JavaTckSupport.check(flushRecorder.timedInteractionCount == 0
+                  && taraRecorder.timedInteractionCount == 0
+                  && nmraRecorder.timedInteractionCount == 0,
+               "timestamped interaction was delivered before an advance request");
+         } else {
+            publisher.timeAdvanceRequest(messageTime);
+            JavaTckSupport.drain(publisher);
+            JavaTckSupport.check(publisherRecorder.timeAdvanceGrantTimes.size() == 2
+                  && messageTime.equals(publisherRecorder.timeAdvanceGrantTimes.get(1)),
+               "producer did not advance the late equal-time TSO frontier");
+            taraReceiver.timeAdvanceRequestAvailable(taraFollowupBoundary);
+         }
 
          flushReceiver.flushQueueRequest(requestBoundary);
          if (boundaryMode == BoundaryMode.TAR_EQUAL) {
             taraReceiver.timeAdvanceRequest(taraBoundary);
-         } else {
+         } else if (boundaryMode != BoundaryMode.TARA_EQUAL) {
             taraReceiver.timeAdvanceRequestAvailable(taraBoundary);
          }
          nmraReceiver.nextMessageRequestAvailable(requestBoundary);
@@ -224,8 +248,11 @@ final class TimestampedInteractionMixedAdvancesTck {
             producer, messageTime, retraction.handle, OrderType.TIMESTAMP,
             nmraReceiver, expectedTransportationName, "next-message-available receiver");
 
-         JavaTckSupport.check(publisherRecorder.timeAdvanceGrantTimes.size() == 1
-               && publisherTarget.equals(publisherRecorder.timeAdvanceGrantTimes.get(0)),
+         JavaTckSupport.check(publisherRecorder.timeAdvanceGrantTimes.size()
+               == (boundaryMode == BoundaryMode.TARA_EQUAL ? 2 : 1)
+               && publisherTarget.equals(publisherRecorder.timeAdvanceGrantTimes.get(0))
+               && (boundaryMode != BoundaryMode.TARA_EQUAL
+                  || messageTime.equals(publisherRecorder.timeAdvanceGrantTimes.get(1))),
             "producer TAR did not grant the requested logical time");
          JavaTckSupport.check(flushRecorder.flushQueueGrantTimes.size() == 1
                && flushRecorder.timeAdvanceGrantTimes.isEmpty()
@@ -233,10 +260,13 @@ final class TimestampedInteractionMixedAdvancesTck {
                   Arrays.asList("receiveInteraction", "flushQueueGrant")),
             "Flush Queue Request did not deliver the interaction before its sole grant");
          List<String> expectedTaraOrder = boundaryMode == BoundaryMode.TARA_EQUAL
-            ? Arrays.asList("timeAdvanceGrant", "receiveInteraction")
+            ? Arrays.asList("timeAdvanceGrant", "receiveInteraction", "timeAdvanceGrant")
             : Arrays.asList("receiveInteraction", "timeAdvanceGrant");
          JavaTckSupport.check(taraRecorder.flushQueueGrantTimes.isEmpty()
-               && taraRecorder.timeAdvanceGrantTimes.size() == 1
+               && taraRecorder.timeAdvanceGrantTimes.size()
+                  == (boundaryMode == BoundaryMode.TARA_EQUAL ? 2 : 1)
+               && (boundaryMode != BoundaryMode.TARA_EQUAL
+                  || messageTime.equals(taraRecorder.timeAdvanceGrantTimes.get(1)))
                && taraRecorder.callbackOrder.equals(expectedTaraOrder),
             boundaryMode == BoundaryMode.TARA_EQUAL
                ? "TARA did not defer the later equal-time interaction until after its grant"
@@ -247,6 +277,8 @@ final class TimestampedInteractionMixedAdvancesTck {
                   Arrays.asList("receiveInteraction", "timeAdvanceGrant")),
             "NMRA did not deliver the interaction before its sole grant");
          JavaTckSupport.check(taraBoundary.equals(taraRecorder.timeAdvanceGrantTimes.get(0))
+               && (boundaryMode != BoundaryMode.TARA_EQUAL
+                  || messageTime.equals(taraRecorder.timeAdvanceGrantTimes.get(1)))
                && messageTime.equals(nmraRecorder.timeAdvanceGrantTimes.get(0)),
             "TAR/TARA or NMRA reported the wrong grant time");
          JavaTckSupport.check(flushRecorder.flushQueueGrantTime != null
@@ -258,9 +290,11 @@ final class TimestampedInteractionMixedAdvancesTck {
                   flushRecorder.flushQueueGrantTime) >= 0
                && flushRecorder.flushQueueGrantTime.equals(flushReceiver.queryLogicalTime()),
             "Flush Queue Grant/query returned inconsistent actual or optimistic time");
-         JavaTckSupport.check(taraBoundary.equals(taraReceiver.queryLogicalTime())
+         JavaTckSupport.check((boundaryMode == BoundaryMode.TARA_EQUAL
+               ? messageTime : taraBoundary).equals(taraReceiver.queryLogicalTime())
                && messageTime.equals(nmraReceiver.queryLogicalTime())
-               && publisherTarget.equals(publisher.queryLogicalTime()),
+               && (boundaryMode == BoundaryMode.TARA_EQUAL
+                  ? messageTime : publisherTarget).equals(publisher.queryLogicalTime()),
             "logical-time queries did not agree with their respective grants");
       } finally {
          if (flushJoined) {

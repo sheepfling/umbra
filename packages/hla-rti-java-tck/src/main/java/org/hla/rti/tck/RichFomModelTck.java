@@ -45,6 +45,37 @@ final class RichFomModelTck {
 
    private RichFomModelTck() { }
 
+   static void runQualifiedClassNameIdentity(RtiFactory factory, String fom,
+         String timeImplementation, CallbackModel callbackModel) throws Exception {
+      RTIambassador rti = factory.getRtiAmbassador();
+      Recorder recorder = new Recorder();
+      String federation = "java-tck-qualified-class-name-" + UUID.randomUUID();
+      boolean connected = false;
+      boolean created = false;
+      boolean joined = false;
+      try {
+         rti.connect(recorder.proxy(), callbackModel);
+         connected = true;
+         rti.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         rti.joinFederationExecution("qualified-name-tck", federation);
+         joined = true;
+         String firstName = "HLAobjectRoot.TckTypedObject.TckClassNameProbe";
+         String secondName =
+            "HLAobjectRoot.TckTransportRegionalObject.TckClassNameProbe";
+         ObjectClassHandle first = rti.getObjectClassHandle(firstName);
+         ObjectClassHandle second = rti.getObjectClassHandle(secondName);
+         check(!first.equals(second)
+               && firstName.equals(rti.getObjectClassName(first))
+               && secondName.equals(rti.getObjectClassName(second)),
+            "duplicate local object-class names did not resolve by qualified paths");
+      } finally {
+         if (joined) resign(rti, ResignAction.NO_ACTION);
+         if (created) destroy(rti, federation);
+         if (connected) disconnect(rti);
+      }
+   }
+
    static void run(RtiFactory factory, String fom, String timeImplementation,
          CallbackModel callbackModel) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
@@ -238,6 +269,17 @@ final class RichFomModelTck {
             && typedDerivedInteractionName.equals(
                ambassador.getInteractionClassName(typedDerivedInteraction)),
          "FOM model class names did not round-trip");
+
+      String firstQualifiedProbe =
+         "HLAobjectRoot.TckTypedObject.TckClassNameProbe";
+      String secondQualifiedProbe =
+         "HLAobjectRoot.TckTransportRegionalObject.TckClassNameProbe";
+      ObjectClassHandle firstProbe = ambassador.getObjectClassHandle(firstQualifiedProbe);
+      ObjectClassHandle secondProbe = ambassador.getObjectClassHandle(secondQualifiedProbe);
+      check(!firstProbe.equals(secondProbe)
+            && firstQualifiedProbe.equals(ambassador.getObjectClassName(firstProbe))
+            && secondQualifiedProbe.equals(ambassador.getObjectClassName(secondProbe)),
+         "duplicate local object-class names were not uniquely resolved by qualified paths");
 
       String dimensionName = System.getProperty("hla.rti.tck.dimension", "TckDimension");
       DimensionHandle dimension = ambassador.getDimensionHandle(dimensionName);

@@ -26,6 +26,7 @@ final class StandardExceptionBoundariesTck {
          throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador member = factory.getRtiAmbassador();
+      RTIambassador disconnected = factory.getRtiAmbassador();
       Recorder ownerRecorder = new Recorder();
       Recorder memberRecorder = new Recorder();
       String federation = "java-tck-standard-exception-boundaries-" + UUID.randomUUID();
@@ -37,6 +38,16 @@ final class StandardExceptionBoundariesTck {
       boolean ownerJoined = false;
       boolean memberJoined = false;
       try {
+         JavaTckSupport.expectFailure(
+            () -> disconnected.createFederationExecution(federation, fom, timeImplementation),
+            "NotConnected", "creating a federation execution before connect");
+         JavaTckSupport.expectFailure(
+            () -> disconnected.joinFederationExecution(ownerName, federation),
+            "NotConnected", "joining a federation execution before connect");
+         JavaTckSupport.expectFailure(
+            () -> disconnected.destroyFederationExecution(federation),
+            "NotConnected", "destroying a federation execution before connect");
+
          owner.connect(ownerRecorder.proxy(), callbackModel);
          ownerConnected = true;
          member.connect(memberRecorder.proxy(), callbackModel);
