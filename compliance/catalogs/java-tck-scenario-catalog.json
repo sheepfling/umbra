@@ -11617,6 +11617,68 @@
       "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, logical-time implementation, and callback configuration; runtime evidence is not yet available."
     },
     {
+      "id": "java-tck.time-coordinated-interaction",
+      "category": "time",
+      "title": "Deliver a timestamped interaction only when the constrained receiver advances to its logical timestamp",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.makeEpsilon",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "java-1516.1-interaction-declaration-and-delivery",
+        "java-1516.1-time-advance-and-grant"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l9-1",
+          "standard_section": "hla-1516.1-2025:clause-8.1.3"
+        }
+      ],
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "timestamped-interaction-api-contract.json",
+        "timestamped-interaction-requirements-contract.json",
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.3"],
+      "mapping_note": "Direct mapping is limited to the Clause 8.1.3 statement that time-axis coordination is through messages: the test holds one timestamped interaction behind receiver time 2, then verifies delivery at time 5 before the matching grant. No alternate-advance or unrelated time-management behavior is claimed.",
+      "java_test": "org.hla.rti.tck.RtiTckMain#timeCoordinatedInteraction",
+      "parity": "cpp-tck.time-coordinated-interaction",
+      "default_status": "unsupported",
+      "adapter_inputs": [
+        "provider Java API JAR and service-loaded RtiFactory",
+        "adapter-supplied FOM containing the selected interaction class and parameter",
+        "provider-supported logical-time implementation",
+        "callback model selected by the adapter"
+      ],
+      "exclusion": "The scenario uses only the official IEEE 1516.1-2025 Java API; provider-runtime verification remains pending, so no Java conformance claim is made."
+    },
+    {
       "id": "java-tck.timestamped-interaction-mixed-advances",
       "category": "time",
       "title": "Deliver a timestamped interaction strictly before the TARA boundary through Flush Queue, TARA, and NMRA",

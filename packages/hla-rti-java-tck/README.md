@@ -1099,6 +1099,14 @@ and tag, producer, time/order/retraction metadata, grant times, and logical-time
 queries. It remains unsupported by default until run through a compatible
 provider adapter.
 
+The `java-tck.time-coordinated-interaction` scenario mirrors the focused C++
+Clause 8.1.3 case: a timestamped interaction remains queued when its constrained
+receiver advances only to time 2, then arrives with its original time and
+standard delivery metadata before the receiver's matching time-5 grant. The
+provider, FOM, logical-time implementation, interaction/parameter names, and
+callback model are adapter inputs; Java provider-runtime verification remains
+pending.
+
 The `java-tck.timestamped-regional-interaction-alternate-advances` scenario
 additionally checks the distinct Flush Queue actual/optimistic frontier (5/7),
 then sends a timestamped regional interaction at actual time plus queried

@@ -2187,6 +2187,14 @@ public final class RtiTckMain {
                "cpp-1516.1-time-role-callbacks",
                "cpp-1516.1-mom-service-reporting"
             }, false), RtiTckMain::modifyLookaheadServiceReport);
+       run(new Scenario("java-tck.time-coordinated-interaction",
+             "deliver a timestamped interaction only when the constrained receiver advances to its logical timestamp",
+             "time",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.queryLogicalTime;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.sendInteraction(time);RTIambassador.timeAdvanceRequest;RTIambassador.evokeCallback;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeAdvanceGrant",
+             new String[] {
+                "java-1516.1-interaction-declaration-and-delivery",
+                "java-1516.1-time-advance-and-grant"
+             }, false), RtiTckMain::timeCoordinatedInteraction);
       run(new Scenario("java-tck.timestamped-interaction-mixed-advances",
             "timestamped interaction strictly before the TARA boundary through Flush Queue, TARA, and NMRA", "time",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction(time);RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.flushQueueRequest;RTIambassador.timeAdvanceRequestAvailable;RTIambassador.nextMessageRequestAvailable;RTIambassador.timeAdvanceRequest;RTIambassador.queryLogicalTime;FederateAmbassador.receiveInteraction(time);FederateAmbassador.flushQueueGrant;FederateAmbassador.timeAdvanceGrant;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
@@ -7200,7 +7208,12 @@ public final class RtiTckMain {
          timeImplementation(), objectClassName(), attributeName(), callbackModel());
    }
 
-   private static void timestampedInteractionMixedAdvances() throws Exception {
+    private static void timeCoordinatedInteraction() throws Exception {
+       TimeCoordinatedInteractionTck.run(factory(), requireFom(), timeImplementation(),
+          interactionClassName(), parameterName(), callbackModel());
+    }
+
+    private static void timestampedInteractionMixedAdvances() throws Exception {
       TimestampedInteractionMixedAdvancesTck.run(factory(), requireFom(),
          timeImplementation(), interactionClassName(), parameterName(), callbackModel());
    }
@@ -9097,6 +9110,8 @@ public final class RtiTckMain {
             method = "modifyLookaheadContract"; break;
          case "java-tck.modify-lookahead-service-report":
             method = "modifyLookaheadServiceReport"; break;
+          case "java-tck.time-coordinated-interaction":
+             method = "timeCoordinatedInteraction"; break;
          case "java-tck.timestamped-interaction-mixed-advances":
             method = "timestampedInteractionMixedAdvances"; break;
           case "java-tck.timestamped-interaction-preferred-receive-conversion":

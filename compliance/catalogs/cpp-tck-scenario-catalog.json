@@ -11466,10 +11466,10 @@
           "standard_section": "hla-1516.1-2025:clause-8.1.3"
         }
       ],
-      "mapping_note": "Direct mapping is limited to the §8.1.3 statement that time-axis coordination is through messages: this scenario sends one timestamped interaction, proves it is not delivered at receiver time 2, then verifies the delivered callback carries timestamp 5 as the receiver advances to 5. This is experimental adapter evidence, not a provider conformance claim.",
+      "mapping_note": "Direct mapping is limited to the §8.1.3 statement that time-axis coordination is through messages: this scenario sends one timestamped interaction, proves it is not delivered at receiver time 2, then verifies the delivered callback carries timestamp 5 as the receiver advances to 5. Fresh installed-package direct reruns passed both callback models twice at out/mgw/tck-current-integrated/time-coordinated-final-recheck-20261016.json and time-coordinated-confirmation-20261016.json. An earlier same-day artifact failed both models at the pre-message receiver grant and remains diagnostic; its failure was not reproduced in the two reruns. This is experimental adapter evidence, not a provider conformance claim.",
       "cpp_test": "src/portable_tck.cpp#scenarioTimeCoordinatedInteractionPortable",
       "runner_id": "cpp-tck.time-coordinated-interaction",
-      "parity": "not-applicable: focused §8.1.3 logical-time message-coordination scenario has no exact Java test counterpart",
+      "parity": "java-tck.time-coordinated-interaction",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
