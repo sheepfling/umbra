@@ -307,6 +307,19 @@ active subscription as a positive control for the publisher's standard Start
 Registration callback, then clears the control and verifies that the passive
 subscription produces no new callback. It does not claim a Stop Registration
 effect, and Java provider runtime verification remains pending.
+The opt-in `java-tck.selective-attribute-unsubscription` case first confirms
+that a two-attribute subscription receives both values, removes only the
+configured primary attribute, and verifies that later updates still reflect
+the secondary attribute without the removed value. It uses only the standard
+Java API; Java provider runtime verification remains pending.
+The opt-in `java-tck.whole-class-attribute-unsubscription` case confirms both
+configured attributes are initially reflected, invokes the standard
+whole-class unsubscribe service, and verifies that later updates produce no
+reflection. The opt-in `java-tck.empty-attribute-unsubscription-is-no-op`
+case submits an empty set to the standard attribute-set unsubscribe service
+and verifies both previously subscribed values continue to arrive. Both cases
+use adapter-supplied FOM/names and only the standard Java API; Java provider
+runtime verification remains pending.
 The opt-in `java-tck.empty-attribute-subscription-is-no-op` case creates an
 active non-empty attribute subscription, submits an empty active set, and
 verifies the original subscription still delivers the next update. The

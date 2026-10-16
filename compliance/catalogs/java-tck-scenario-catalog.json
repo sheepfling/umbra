@@ -3741,6 +3741,181 @@
       "exclusion": "Requires an adapter-supplied compatible FOM, object class, distinct primary/secondary attributes, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider; Java provider runtime verification remains pending."
     },
     {
+      "id": "java-tck.selective-attribute-unsubscription",
+      "category": "object-attribute-unsubscription",
+      "title": "Remove only the requested attribute from a multi-attribute subscription",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes(attribute set)",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeCallback",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.9.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4",
+          "standard_section": "hla-1516.1-2025:clause-5.9.4"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to page-098-l17-4 -> §5.9.4: after confirming a two-attribute subscription receives both values, the scenario supplies only Value to Unsubscribe Object Class Attributes and confirms that a later update omits Value while Name continues to be reflected. Registration, update delivery, and cleanup are fixture behavior and are not asserted as separate requirements. Java provider runtime evidence is not recorded.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-class-lookup-api-contract.json",
+        "attribute-lookup-api-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "attribute-value-update-request-api-contract.json",
+        "object-instance-registration-api-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#selectiveAttributeUnsubscription",
+      "parity": "cpp-tck.selective-attribute-unsubscription",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied compatible FOM, object class, distinct primary/secondary attributes, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider; Java provider runtime verification remains pending."
+    },
+    {
+      "id": "java-tck.whole-class-attribute-unsubscription",
+      "category": "object-attribute-unsubscription",
+      "title": "Remove all attributes from a class subscription with the whole-class service",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClass",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeCallback",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-098-l20-5",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-098-l20-5"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.9.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l20-5",
+          "standard_section": "hla-1516.1-2025:clause-5.9.4"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to page-098-l20-5 -> §5.9.4: after confirming an active two-attribute subscription receives both values, the scenario invokes Unsubscribe Object Class and verifies that a later update delivers neither attribute. The attribute-set overload is covered separately; registration, update delivery, and cleanup are fixture behavior and are not asserted as separate requirements. Java provider runtime evidence is not recorded.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-class-lookup-api-contract.json",
+        "attribute-lookup-api-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "attribute-value-update-request-api-contract.json",
+        "object-instance-registration-api-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#wholeClassAttributeUnsubscription",
+      "parity": "cpp-tck.whole-class-attribute-unsubscription",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied compatible FOM, object class, distinct primary/secondary attributes, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider; Java provider runtime verification remains pending."
+    },
+    {
+      "id": "java-tck.empty-attribute-unsubscription-is-no-op",
+      "category": "object-attribute-unsubscription",
+      "title": "Preserve all active class-attribute subscriptions after an empty-set unsubscription",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes(empty set)",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeCallback",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-098-l23-6",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-098-l23-6"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.9.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l23-6",
+          "standard_section": "hla-1516.1-2025:clause-5.9.4"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to page-098-l23-6 -> §5.9.4: after establishing an active two-attribute subscription and confirming delivery, the scenario calls Unsubscribe Object Class Attributes with an empty set and confirms both attributes remain reflected on the next update. Active-subscription preservation is demonstrated; passive-state preservation is not separately asserted. Java provider runtime evidence is not recorded.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-class-lookup-api-contract.json",
+        "attribute-lookup-api-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "attribute-value-update-request-api-contract.json",
+        "object-instance-registration-api-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#emptyAttributeUnsubscriptionNoOp",
+      "parity": "cpp-tck.empty-attribute-unsubscription-is-no-op",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied compatible FOM, object class, distinct primary/secondary attributes, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider; Java provider runtime verification remains pending."
+    },
+    {
       "id": "java-tck.passive-subscription-no-start-registration",
       "category": "passive-subscription-no-start-registration",
       "title": "Ensure a passive subscription does not trigger Start Registration at a publisher",

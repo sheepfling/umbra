@@ -465,6 +465,405 @@ final class ObjectAttributeSubscriptionLifecycleTck {
       }
    }
 
+   static void runSelectiveAttributeUnsubscription(RtiFactory factory, String fom,
+         String timeImplementation, String objectClassName, String firstAttributeName,
+         String secondAttributeName, CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador subscriber = factory.getRtiAmbassador();
+      Recorder publisherCallbacks = new Recorder();
+      Recorder subscriberCallbacks = new Recorder();
+      String federation = "java-tck-selective-attribute-unsubscription-" + UUID.randomUUID();
+      boolean publisherConnected = false, subscriberConnected = false, created = false;
+      boolean publisherJoined = false, subscriberJoined = false;
+      boolean published = false, subscribed = false, firstAttributeUnsubscribed = false;
+      ObjectClassHandle publisherClass = null, subscriberClass = null;
+      AttributeHandle publisherFirst = null, publisherSecond = null;
+      AttributeHandle subscriberFirst = null, subscriberSecond = null;
+      try {
+         publisher.connect(publisherCallbacks.proxy(), callbackModel);
+         publisherConnected = true;
+         subscriber.connect(subscriberCallbacks.proxy(), callbackModel);
+         subscriberConnected = true;
+         publisher.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         publisher.joinFederationExecution("java-tck-selective-unsubscription-publisher", federation);
+         publisherJoined = true;
+         subscriber.joinFederationExecution("java-tck-selective-unsubscription-subscriber", federation);
+         subscriberJoined = true;
+
+         publisherClass = publisher.getObjectClassHandle(objectClassName);
+         subscriberClass = subscriber.getObjectClassHandle(objectClassName);
+         publisherFirst = publisher.getAttributeHandle(publisherClass, firstAttributeName);
+         publisherSecond = publisher.getAttributeHandle(publisherClass, secondAttributeName);
+         subscriberFirst = subscriber.getAttributeHandle(subscriberClass, firstAttributeName);
+         subscriberSecond = subscriber.getAttributeHandle(subscriberClass, secondAttributeName);
+         JavaTckSupport.check(publisherClass != null && subscriberClass != null
+               && publisherFirst != null && publisherSecond != null
+               && subscriberFirst != null && subscriberSecond != null
+               && !publisherFirst.equals(publisherSecond)
+               && !subscriberFirst.equals(subscriberSecond),
+            "adapter FOM did not resolve distinct unsubscription attributes");
+
+         AttributeHandleSet publisherAttributes = JavaTckSupport.attributeSet(
+            publisher, publisherFirst, publisherSecond);
+         publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
+         published = true;
+         subscriber.subscribeObjectClassAttributes(subscriberClass,
+            JavaTckSupport.attributeSet(subscriber, subscriberFirst, subscriberSecond));
+         subscribed = true;
+
+         ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
+         JavaTckSupport.check(object != null && object.encodedLength() > 0,
+            "selective-unsubscription registration returned an invalid object handle");
+         await(subscriber, callbackModel,
+            () -> findDiscovery(subscriberCallbacks.discoveries, object) != null,
+            "selective-unsubscription object discovery");
+
+         byte[] initialFirstValue = new byte[] {0x53, 0x45, 0x4c, 0x31};
+         byte[] initialSecondValue = new byte[] {0x52, 0x45, 0x4d, 0x31};
+         byte[] initialTag = new byte[] {0x49, 0x4e, 0x49};
+         sendUpdate(publisher, publisherFirst, publisherSecond, object,
+            initialFirstValue, initialSecondValue, initialTag);
+         await(subscriber, callbackModel, () -> !subscriberCallbacks.reflections.isEmpty(),
+            "initial two-attribute subscription reflection");
+         JavaTckSupport.check(subscriberCallbacks.reflections.size() == 1,
+            "initial two-attribute subscription produced an unexpected reflection count");
+         Reflection initialReflection = subscriberCallbacks.reflections.get(0);
+         JavaTckSupport.check(object.equals(initialReflection.object)
+               && initialReflection.values.size() == 2
+               && Arrays.equals(initialFirstValue, initialReflection.values.get(subscriberFirst))
+               && Arrays.equals(initialSecondValue, initialReflection.values.get(subscriberSecond))
+               && Arrays.equals(initialTag, initialReflection.tag),
+            "initial subscription did not reflect both subscribed attributes");
+
+         subscriberCallbacks.reflections.clear();
+         subscriber.unsubscribeObjectClassAttributes(subscriberClass,
+            JavaTckSupport.attributeSet(subscriber, subscriberFirst));
+         firstAttributeUnsubscribed = true;
+
+         byte[] nextFirstValue = new byte[] {0x53, 0x45, 0x4c, 0x32};
+         byte[] nextSecondValue = new byte[] {0x52, 0x45, 0x4d, 0x32};
+         byte[] nextTag = new byte[] {0x41, 0x46, 0x54};
+         sendUpdate(publisher, publisherFirst, publisherSecond, object,
+            nextFirstValue, nextSecondValue, nextTag);
+         await(subscriber, callbackModel, () -> !subscriberCallbacks.reflections.isEmpty(),
+            "remaining-attribute reflection after selective unsubscription");
+         JavaTckSupport.check(subscriberCallbacks.reflections.size() == 1,
+            "selective unsubscription produced an unexpected reflection count");
+         Reflection remainingReflection = subscriberCallbacks.reflections.get(0);
+         JavaTckSupport.check(object.equals(remainingReflection.object)
+               && remainingReflection.values.size() == 1
+               && !remainingReflection.values.containsKey(subscriberFirst)
+               && Arrays.equals(nextSecondValue,
+                  remainingReflection.values.get(subscriberSecond))
+               && Arrays.equals(nextTag, remainingReflection.tag),
+            "unsubscribing one attribute removed another subscribed attribute or delivered the removed value");
+
+         subscriber.unsubscribeObjectClassAttributes(subscriberClass,
+            JavaTckSupport.attributeSet(subscriber, subscriberSecond));
+         subscribed = false;
+         publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes);
+         published = false;
+         subscriber.resignFederationExecution(ResignAction.NO_ACTION);
+         subscriberJoined = false;
+         publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS);
+         publisherJoined = false;
+         publisher.destroyFederationExecution(federation);
+         created = false;
+      } finally {
+         if (subscriberJoined && subscribed && subscriberClass != null
+               && subscriberFirst != null && subscriberSecond != null) {
+            try {
+               AttributeHandleSet activeAttributes = firstAttributeUnsubscribed
+                  ? JavaTckSupport.attributeSet(subscriber, subscriberSecond)
+                  : JavaTckSupport.attributeSet(subscriber, subscriberFirst, subscriberSecond);
+               subscriber.unsubscribeObjectClassAttributes(subscriberClass, activeAttributes);
+            } catch (Exception ignored) { }
+         }
+         if (publisherJoined && published && publisherClass != null
+               && publisherFirst != null && publisherSecond != null) {
+            try { publisher.unpublishObjectClassAttributes(publisherClass,
+               JavaTckSupport.attributeSet(publisher, publisherFirst, publisherSecond)); }
+            catch (Exception ignored) { }
+         }
+         if (subscriberJoined) {
+            try { subscriber.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined) {
+            try { publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
+            catch (Exception ignored) { }
+         }
+         if (created) {
+            try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (subscriberConnected) {
+            try { subscriber.disconnect(); } catch (Exception ignored) { }
+         }
+         if (publisherConnected) {
+            try { publisher.disconnect(); } catch (Exception ignored) { }
+         }
+      }
+   }
+
+   static void runWholeClassAttributeUnsubscription(RtiFactory factory, String fom,
+         String timeImplementation, String objectClassName, String firstAttributeName,
+         String secondAttributeName, CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador subscriber = factory.getRtiAmbassador();
+      Recorder publisherCallbacks = new Recorder();
+      Recorder subscriberCallbacks = new Recorder();
+      String federation = "java-tck-whole-class-attribute-unsubscription-" + UUID.randomUUID();
+      boolean publisherConnected = false, subscriberConnected = false, created = false;
+      boolean publisherJoined = false, subscriberJoined = false;
+      boolean published = false, subscribed = false;
+      ObjectClassHandle publisherClass = null, subscriberClass = null;
+      AttributeHandle publisherFirst = null, publisherSecond = null;
+      AttributeHandle subscriberFirst = null, subscriberSecond = null;
+      try {
+         publisher.connect(publisherCallbacks.proxy(), callbackModel);
+         publisherConnected = true;
+         subscriber.connect(subscriberCallbacks.proxy(), callbackModel);
+         subscriberConnected = true;
+         publisher.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         publisher.joinFederationExecution("java-tck-whole-unsubscribe-publisher", federation);
+         publisherJoined = true;
+         subscriber.joinFederationExecution("java-tck-whole-unsubscribe-subscriber", federation);
+         subscriberJoined = true;
+
+         publisherClass = publisher.getObjectClassHandle(objectClassName);
+         subscriberClass = subscriber.getObjectClassHandle(objectClassName);
+         publisherFirst = publisher.getAttributeHandle(publisherClass, firstAttributeName);
+         publisherSecond = publisher.getAttributeHandle(publisherClass, secondAttributeName);
+         subscriberFirst = subscriber.getAttributeHandle(subscriberClass, firstAttributeName);
+         subscriberSecond = subscriber.getAttributeHandle(subscriberClass, secondAttributeName);
+         JavaTckSupport.check(publisherClass != null && subscriberClass != null
+               && publisherFirst != null && publisherSecond != null
+               && subscriberFirst != null && subscriberSecond != null
+               && !publisherFirst.equals(publisherSecond)
+               && !subscriberFirst.equals(subscriberSecond),
+            "adapter FOM did not resolve distinct whole-class unsubscription attributes");
+
+         AttributeHandleSet publisherAttributes = JavaTckSupport.attributeSet(
+            publisher, publisherFirst, publisherSecond);
+         publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
+         published = true;
+         subscriber.subscribeObjectClassAttributes(subscriberClass,
+            JavaTckSupport.attributeSet(subscriber, subscriberFirst, subscriberSecond));
+         subscribed = true;
+
+         ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
+         JavaTckSupport.check(object != null && object.encodedLength() > 0,
+            "whole-class unsubscription registration returned an invalid object handle");
+         await(subscriber, callbackModel,
+            () -> findDiscovery(subscriberCallbacks.discoveries, object) != null,
+            "whole-class unsubscription object discovery");
+
+         byte[] firstValue = new byte[] {0x41, 0x4c, 0x4c, 0x31};
+         byte[] secondValue = new byte[] {0x41, 0x4c, 0x4c, 0x31, 0x32};
+         byte[] firstTag = new byte[] {0x41, 0x4c, 0x31};
+         sendUpdate(publisher, publisherFirst, publisherSecond, object,
+            firstValue, secondValue, firstTag);
+         await(subscriber, callbackModel, () -> !subscriberCallbacks.reflections.isEmpty(),
+            "whole-class unsubscription positive delivery control");
+         JavaTckSupport.check(subscriberCallbacks.reflections.size() == 1,
+            "whole-class positive control produced an unexpected reflection count");
+         Reflection beforeUnsubscribe = subscriberCallbacks.reflections.get(0);
+         JavaTckSupport.check(object.equals(beforeUnsubscribe.object)
+               && beforeUnsubscribe.values.size() == 2
+               && beforeUnsubscribe.values.containsKey(subscriberFirst)
+               && beforeUnsubscribe.values.containsKey(subscriberSecond),
+            "active subscription did not receive both attributes before class unsubscription");
+
+         subscriberCallbacks.reflections.clear();
+         subscriber.unsubscribeObjectClass(subscriberClass);
+         subscribed = false;
+         byte[] nextFirstValue = new byte[] {0x41, 0x4c, 0x4c, 0x32};
+         byte[] nextSecondValue = new byte[] {0x41, 0x4c, 0x4c, 0x32, 0x32};
+         byte[] nextTag = new byte[] {0x41, 0x4c, 0x32};
+         sendUpdate(publisher, publisherFirst, publisherSecond, object,
+            nextFirstValue, nextSecondValue, nextTag);
+         pumpQuiet(subscriber, callbackModel);
+         JavaTckSupport.check(subscriberCallbacks.reflections.isEmpty(),
+            "whole-class unsubscription left one or more attributes subscribed");
+
+         publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes);
+         published = false;
+         subscriber.resignFederationExecution(ResignAction.NO_ACTION);
+         subscriberJoined = false;
+         publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS);
+         publisherJoined = false;
+         publisher.destroyFederationExecution(federation);
+         created = false;
+      } finally {
+         if (subscriberJoined && subscribed && subscriberClass != null) {
+            try { subscriber.unsubscribeObjectClass(subscriberClass); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined && published && publisherClass != null
+               && publisherFirst != null && publisherSecond != null) {
+            try { publisher.unpublishObjectClassAttributes(publisherClass,
+               JavaTckSupport.attributeSet(publisher, publisherFirst, publisherSecond)); }
+            catch (Exception ignored) { }
+         }
+         if (subscriberJoined) {
+            try { subscriber.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined) {
+            try { publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
+            catch (Exception ignored) { }
+         }
+         if (created) {
+            try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (subscriberConnected) {
+            try { subscriber.disconnect(); } catch (Exception ignored) { }
+         }
+         if (publisherConnected) {
+            try { publisher.disconnect(); } catch (Exception ignored) { }
+         }
+      }
+   }
+
+   static void runEmptyAttributeUnsubscriptionNoOp(RtiFactory factory, String fom,
+         String timeImplementation, String objectClassName, String firstAttributeName,
+         String secondAttributeName, CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador subscriber = factory.getRtiAmbassador();
+      Recorder publisherCallbacks = new Recorder();
+      Recorder subscriberCallbacks = new Recorder();
+      String federation = "java-tck-empty-attribute-unsubscription-" + UUID.randomUUID();
+      boolean publisherConnected = false, subscriberConnected = false, created = false;
+      boolean publisherJoined = false, subscriberJoined = false;
+      boolean published = false, subscribed = false;
+      ObjectClassHandle publisherClass = null, subscriberClass = null;
+      AttributeHandle publisherFirst = null, publisherSecond = null;
+      AttributeHandle subscriberFirst = null, subscriberSecond = null;
+      try {
+         publisher.connect(publisherCallbacks.proxy(), callbackModel);
+         publisherConnected = true;
+         subscriber.connect(subscriberCallbacks.proxy(), callbackModel);
+         subscriberConnected = true;
+         publisher.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         publisher.joinFederationExecution("java-tck-empty-unsubscribe-publisher", federation);
+         publisherJoined = true;
+         subscriber.joinFederationExecution("java-tck-empty-unsubscribe-subscriber", federation);
+         subscriberJoined = true;
+
+         publisherClass = publisher.getObjectClassHandle(objectClassName);
+         subscriberClass = subscriber.getObjectClassHandle(objectClassName);
+         publisherFirst = publisher.getAttributeHandle(publisherClass, firstAttributeName);
+         publisherSecond = publisher.getAttributeHandle(publisherClass, secondAttributeName);
+         subscriberFirst = subscriber.getAttributeHandle(subscriberClass, firstAttributeName);
+         subscriberSecond = subscriber.getAttributeHandle(subscriberClass, secondAttributeName);
+         JavaTckSupport.check(publisherClass != null && subscriberClass != null
+               && publisherFirst != null && publisherSecond != null
+               && subscriberFirst != null && subscriberSecond != null
+               && !publisherFirst.equals(publisherSecond)
+               && !subscriberFirst.equals(subscriberSecond),
+            "adapter FOM did not resolve distinct empty-set unsubscription attributes");
+
+         AttributeHandleSet publisherAttributes = JavaTckSupport.attributeSet(
+            publisher, publisherFirst, publisherSecond);
+         AttributeHandleSet subscriberAttributes = JavaTckSupport.attributeSet(
+            subscriber, subscriberFirst, subscriberSecond);
+         publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
+         published = true;
+         subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberAttributes);
+         subscribed = true;
+
+         ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
+         JavaTckSupport.check(object != null && object.encodedLength() > 0,
+            "empty-set unsubscription registration returned an invalid object handle");
+         await(subscriber, callbackModel,
+            () -> findDiscovery(subscriberCallbacks.discoveries, object) != null,
+            "empty-set unsubscription object discovery");
+
+         byte[] firstValue = new byte[] {0x45, 0x4d, 0x50, 0x31};
+         byte[] secondValue = new byte[] {0x54, 0x41, 0x49, 0x31};
+         byte[] firstTag = new byte[] {0x45, 0x4d, 0x31};
+         sendUpdate(publisher, publisherFirst, publisherSecond, object,
+            firstValue, secondValue, firstTag);
+         await(subscriber, callbackModel, () -> !subscriberCallbacks.reflections.isEmpty(),
+            "empty-set unsubscription positive delivery control");
+         JavaTckSupport.check(subscriberCallbacks.reflections.size() == 1,
+            "empty-set positive control produced an unexpected reflection count");
+         Reflection beforeUnsubscribe = subscriberCallbacks.reflections.get(0);
+         JavaTckSupport.check(object.equals(beforeUnsubscribe.object)
+               && beforeUnsubscribe.values.size() == 2
+               && beforeUnsubscribe.values.containsKey(subscriberFirst)
+               && beforeUnsubscribe.values.containsKey(subscriberSecond),
+            "active subscription did not receive both attributes before empty-set unsubscription");
+
+         subscriberCallbacks.reflections.clear();
+         subscriber.unsubscribeObjectClassAttributes(subscriberClass,
+            JavaTckSupport.attributeSet(subscriber));
+         byte[] nextFirstValue = new byte[] {0x45, 0x4d, 0x50, 0x32};
+         byte[] nextSecondValue = new byte[] {0x54, 0x41, 0x49, 0x32};
+         byte[] nextTag = new byte[] {0x45, 0x4d, 0x32};
+         sendUpdate(publisher, publisherFirst, publisherSecond, object,
+            nextFirstValue, nextSecondValue, nextTag);
+         await(subscriber, callbackModel, () -> !subscriberCallbacks.reflections.isEmpty(),
+            "active subscription delivery after empty-set unsubscription");
+         JavaTckSupport.check(subscriberCallbacks.reflections.size() == 1,
+            "empty-set unsubscription produced an unexpected reflection count");
+         Reflection afterUnsubscribe = subscriberCallbacks.reflections.get(0);
+         JavaTckSupport.check(object.equals(afterUnsubscribe.object)
+               && afterUnsubscribe.values.size() == 2
+               && Arrays.equals(nextFirstValue, afterUnsubscribe.values.get(subscriberFirst))
+               && Arrays.equals(nextSecondValue, afterUnsubscribe.values.get(subscriberSecond))
+               && Arrays.equals(nextTag, afterUnsubscribe.tag),
+            "empty attribute set removed an existing class subscription");
+
+         subscriber.unsubscribeObjectClassAttributes(subscriberClass, subscriberAttributes);
+         subscribed = false;
+         publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes);
+         published = false;
+         subscriber.resignFederationExecution(ResignAction.NO_ACTION);
+         subscriberJoined = false;
+         publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS);
+         publisherJoined = false;
+         publisher.destroyFederationExecution(federation);
+         created = false;
+      } finally {
+         if (subscriberJoined && subscribed && subscriberClass != null
+               && subscriberFirst != null && subscriberSecond != null) {
+            try { subscriber.unsubscribeObjectClassAttributes(subscriberClass,
+               JavaTckSupport.attributeSet(subscriber, subscriberFirst, subscriberSecond)); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined && published && publisherClass != null
+               && publisherFirst != null && publisherSecond != null) {
+            try { publisher.unpublishObjectClassAttributes(publisherClass,
+               JavaTckSupport.attributeSet(publisher, publisherFirst, publisherSecond)); }
+            catch (Exception ignored) { }
+         }
+         if (subscriberJoined) {
+            try { subscriber.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined) {
+            try { publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
+            catch (Exception ignored) { }
+         }
+         if (created) {
+            try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (subscriberConnected) {
+            try { subscriber.disconnect(); } catch (Exception ignored) { }
+         }
+         if (publisherConnected) {
+            try { publisher.disconnect(); } catch (Exception ignored) { }
+         }
+      }
+   }
+
    static void runEmptyAttributeSubscriptionNoOp(RtiFactory factory, String fom, String mim,
          String timeImplementation, String objectClassName, String attributeName,
          CallbackModel callbackModel) throws Exception {

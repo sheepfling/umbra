@@ -887,6 +887,36 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-federation-create-join-resign-destroy"
             }, false), RtiTckMain::attributeSubscriptionInvocationsAccumulate);
+      run(new Scenario("java-tck.selective-attribute-unsubscription",
+            "remove only the requested attribute from a multi-attribute subscription",
+            "object-attribute-unsubscription",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes(attribute set);RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            new String[] {
+               "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4",
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-attribute-update-reflect",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::selectiveAttributeUnsubscription);
+      run(new Scenario("java-tck.whole-class-attribute-unsubscription",
+            "remove all attributes from a class subscription with the whole-class service",
+            "object-attribute-unsubscription",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClass;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            new String[] {
+               "requirement-candidate-content-clauses-05-declaration-management-page-098-l20-5",
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-attribute-update-reflect",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::wholeClassAttributeUnsubscription);
+      run(new Scenario("java-tck.empty-attribute-unsubscription-is-no-op",
+            "preserve all active class-attribute subscriptions after an empty-set unsubscription",
+            "object-attribute-unsubscription",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes(empty set);RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            new String[] {
+               "requirement-candidate-content-clauses-05-declaration-management-page-098-l23-6",
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-attribute-update-reflect",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::emptyAttributeUnsubscriptionNoOp);
       run(new Scenario("java-tck.passive-subscription-no-start-registration",
             "ensure a passive subscription does not trigger Start Registration at a publisher",
             "passive-subscription-no-start-registration",
@@ -8780,6 +8810,12 @@ public final class RtiTckMain {
             method = "objectAttributeSubscriptionLifecycle"; break;
          case "java-tck.attribute-subscription-invocations-accumulate":
             method = "attributeSubscriptionInvocationsAccumulate"; break;
+         case "java-tck.selective-attribute-unsubscription":
+            method = "selectiveAttributeUnsubscription"; break;
+         case "java-tck.whole-class-attribute-unsubscription":
+            method = "wholeClassAttributeUnsubscription"; break;
+         case "java-tck.empty-attribute-unsubscription-is-no-op":
+            method = "emptyAttributeUnsubscriptionNoOp"; break;
          case "java-tck.passive-subscription-no-start-registration":
             method = "passiveSubscriptionDoesNotStartRegistration"; break;
          case "java-tck.empty-attribute-subscription-is-no-op":
@@ -10630,6 +10666,24 @@ public final class RtiTckMain {
 
     private static void attributeSubscriptionInvocationsAccumulate() throws Exception {
        ObjectAttributeSubscriptionLifecycleTck.runAccumulatingAttributeSubscriptionInvocations(
+          factory(), requireFom(), timeImplementation(), objectClassName(), attributeName(),
+          requireAdapterValue(OBJECT_CLASS_SECOND_ATTRIBUTE_PROPERTY), callbackModel());
+    }
+
+    private static void selectiveAttributeUnsubscription() throws Exception {
+       ObjectAttributeSubscriptionLifecycleTck.runSelectiveAttributeUnsubscription(
+          factory(), requireFom(), timeImplementation(), objectClassName(), attributeName(),
+          requireAdapterValue(OBJECT_CLASS_SECOND_ATTRIBUTE_PROPERTY), callbackModel());
+    }
+
+    private static void wholeClassAttributeUnsubscription() throws Exception {
+       ObjectAttributeSubscriptionLifecycleTck.runWholeClassAttributeUnsubscription(
+          factory(), requireFom(), timeImplementation(), objectClassName(), attributeName(),
+          requireAdapterValue(OBJECT_CLASS_SECOND_ATTRIBUTE_PROPERTY), callbackModel());
+    }
+
+    private static void emptyAttributeUnsubscriptionNoOp() throws Exception {
+       ObjectAttributeSubscriptionLifecycleTck.runEmptyAttributeUnsubscriptionNoOp(
           factory(), requireFom(), timeImplementation(), objectClassName(), attributeName(),
           requireAdapterValue(OBJECT_CLASS_SECOND_ATTRIBUTE_PROPERTY), callbackModel());
     }

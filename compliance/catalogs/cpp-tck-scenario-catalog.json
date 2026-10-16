@@ -9045,7 +9045,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.9.4"
         }
       ],
-      "mapping_note": "Direct mapping is limited to the page-098-l17-4 rule: when an attribute set is supplied to Unsubscribe Object Class Attributes, only those attributes are removed. The scenario first verifies a two-attribute subscription, unsubscribes Value alone, then confirms Value is absent while Name continues to be reflected. Adapter evidence only, not a provider conformance claim.",
+      "mapping_note": "Direct mapping is limited to the page-098-l17-4 rule: when an attribute set is supplied to Unsubscribe Object Class Attributes, only those attributes are removed. The scenario first verifies a two-attribute subscription, unsubscribes Value alone, then confirms Value is absent while Name continues to be reflected. Installed-package CTest and direct runs passed under HLA_EVOKED and HLA_IMMEDIATE; evidence is out/mgw/cpp-tck-selective-attribute-unsubscription-20261016/results.json. Adapter evidence only, not a provider conformance claim.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -9057,9 +9057,9 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioSelectiveAttributeUnsubscriptionPortable",
       "runner_id": "cpp-tck.selective-attribute-unsubscription",
-      "parity": "not-applicable: no exact Java TCK case isolates selective attribute removal from an existing subscription",
+      "parity": "java-tck.selective-attribute-unsubscription",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.whole-class-attribute-unsubscription",
@@ -9097,7 +9097,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.9.4"
         }
       ],
-      "mapping_note": "Direct mapping is limited to the whole-class branch of page-098-l20-5: after subscribing two attributes and confirming delivery, the scenario invokes the official C++ `unsubscribeObjectClass` service and verifies that a subsequent update delivers neither attribute. The supplied-set branch is covered separately by cpp-tck.selective-attribute-unsubscription. Adapter evidence only, not a provider conformance claim.",
+      "mapping_note": "Direct mapping is limited to the whole-class branch of page-098-l20-5: after subscribing two attributes and confirming delivery, the scenario invokes the official C++ `unsubscribeObjectClass` service and verifies that a subsequent update delivers neither attribute. The supplied-set branch is covered separately by cpp-tck.selective-attribute-unsubscription. Installed-package CTest and direct runs passed under HLA_EVOKED and HLA_IMMEDIATE; evidence is out/mgw/cpp-tck-whole-class-attribute-unsubscription-20261016/results.json. Adapter evidence only, not a provider conformance claim.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -9109,9 +9109,9 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioWholeClassAttributeUnsubscriptionPortable",
       "runner_id": "cpp-tck.whole-class-attribute-unsubscription",
-      "parity": "not-applicable: no exact Java TCK case isolates whole-class removal of an existing multi-attribute subscription",
+      "parity": "java-tck.whole-class-attribute-unsubscription",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.empty-attribute-unsubscription-is-no-op",
@@ -9149,7 +9149,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.9.4"
         }
       ],
-      "mapping_note": "Direct mapping is limited to page-098-l23-6: after establishing an active two-attribute subscription and confirming both values are delivered, the scenario calls Unsubscribe Object Class Attributes with an empty set and confirms both attributes remain reflected on the next update. Active-subscription preservation is demonstrated; passive-state preservation is not separately asserted. Adapter evidence only, not a provider conformance claim.",
+      "mapping_note": "Direct mapping is limited to page-098-l23-6: after establishing an active two-attribute subscription and confirming both values are delivered, the scenario calls Unsubscribe Object Class Attributes with an empty set and confirms both attributes remain reflected on the next update. Active-subscription preservation is demonstrated; passive-state preservation is not separately asserted. Installed-package CTest and direct runs passed under HLA_EVOKED and HLA_IMMEDIATE; evidence is out/mgw/cpp-tck-empty-attribute-unsubscription-20261016/results.json. Adapter evidence only, not a provider conformance claim.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -9161,9 +9161,9 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioEmptyAttributeUnsubscriptionIsNoOpPortable",
       "runner_id": "cpp-tck.empty-attribute-unsubscription-is-no-op",
-      "parity": "not-applicable: no exact Java TCK case isolates the empty-set Unsubscribe Object Class Attributes no-op",
+      "parity": "java-tck.empty-attribute-unsubscription-is-no-op",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.object-attribute-subscription-lifecycle",
