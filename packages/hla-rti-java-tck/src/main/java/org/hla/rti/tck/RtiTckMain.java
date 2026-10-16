@@ -877,6 +877,24 @@ public final class RtiTckMain {
                "cpp-1516.1-object-registration-discovery",
                "cpp-1516.1-federation-create-join-resign-destroy"
             }, false), RtiTckMain::objectAttributeSubscriptionLifecycle);
+      run(new Scenario("java-tck.attribute-subscription-invocations-accumulate",
+            "accumulate disjoint attributes from repeated class subscription invocations",
+            "object-attribute-subscription-accumulation",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            new String[] {
+               "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40",
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-attribute-update-reflect",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::attributeSubscriptionInvocationsAccumulate);
+      run(new Scenario("java-tck.passive-subscription-no-start-registration",
+            "ensure a passive subscription does not trigger Start Registration at a publisher",
+            "passive-subscription-no-start-registration",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.subscribeObjectClassAttributesPassively;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.startRegistrationForObjectClass",
+            new String[] {
+               "requirement-candidate-content-clauses-05-declaration-management-page-096-l144-45",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::passiveSubscriptionDoesNotStartRegistration);
       run(new Scenario("java-tck.empty-attribute-subscription-is-no-op",
             "preserve an existing active attribute subscription after an empty subscription request",
             "object-attribute-subscription-empty-set-no-op",
@@ -1474,6 +1492,16 @@ public final class RtiTckMain {
                "cpp-1516.1-update-rate-value-for-attribute",
                "cpp-1516.1-update-rate-subscription-state"}, false),
          RtiTckMain::updateRateQueries);
+      run(new Scenario("java-tck.default-rate-subscription-no-reduction",
+            "reflect every ordinary update under a default-rate attribute subscription",
+            "default-rate-subscription-no-reduction",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            new String[] {
+               "requirement-candidate-content-clauses-05-declaration-management-page-097-l26-6",
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-attribute-update-reflect",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::defaultRateSubscriptionNoReduction);
       run(new Scenario("java-tck.federation-teardown-isolation",
             "preserve named update-rate history in a live federation after a sibling federation is destroyed",
             "federation-isolation",
@@ -8750,6 +8778,10 @@ public final class RtiTckMain {
             method = "namedRegistrationMultiRecipient"; break;
          case "java-tck.object-attribute-subscription-lifecycle":
             method = "objectAttributeSubscriptionLifecycle"; break;
+         case "java-tck.attribute-subscription-invocations-accumulate":
+            method = "attributeSubscriptionInvocationsAccumulate"; break;
+         case "java-tck.passive-subscription-no-start-registration":
+            method = "passiveSubscriptionDoesNotStartRegistration"; break;
          case "java-tck.empty-attribute-subscription-is-no-op":
             method = "emptyAttributeSubscriptionNoOp"; break;
          case "java-tck.object-publication-registration-fence":
@@ -8902,6 +8934,8 @@ public final class RtiTckMain {
          case "java-tck.attribute-relevance-known-class-disabled":
             method = "attributeRelevanceKnownClassDisabled"; break;
          case "java-tck.update-rate-queries": method = "updateRateQueries"; break;
+         case "java-tck.default-rate-subscription-no-reduction":
+            method = "defaultRateSubscriptionNoReduction"; break;
          case "java-tck.federation-teardown-isolation":
             method = "federationTeardownIsolation"; break;
          case "java-tck.ordinary-edges": method = "ordinaryEdges"; break;
@@ -10217,6 +10251,12 @@ public final class RtiTckMain {
          requireAdapterValue(UPDATE_RATE_DESIGNATOR_PROPERTY), callbackModel());
    }
 
+   private static void defaultRateSubscriptionNoReduction() throws Exception {
+      ReceiveOrderAttributeUpdateTck.runDefaultRateSubscriptionNoReduction(
+         factory(), requireFom(), timeImplementation(), objectClassName(), attributeName(),
+         callbackModel());
+   }
+
    private static void federationTeardownIsolation() throws Exception {
       FederationTeardownIsolationTck.run(factory(), requireUpdateRateFom(), timeImplementation(),
          requireAdapterValue(UPDATE_RATE_OBJECT_CLASS_PROPERTY),
@@ -10585,6 +10625,18 @@ public final class RtiTckMain {
        ObjectAttributeSubscriptionLifecycleTck.run(factory(), requireFom(), requireMim(),
           timeImplementation(),
           objectClassName(), attributeName(), requireAdapterValue(OBJECT_CLASS_SECOND_ATTRIBUTE_PROPERTY),
+          callbackModel());
+    }
+
+    private static void attributeSubscriptionInvocationsAccumulate() throws Exception {
+       ObjectAttributeSubscriptionLifecycleTck.runAccumulatingAttributeSubscriptionInvocations(
+          factory(), requireFom(), timeImplementation(), objectClassName(), attributeName(),
+          requireAdapterValue(OBJECT_CLASS_SECOND_ATTRIBUTE_PROPERTY), callbackModel());
+    }
+
+    private static void passiveSubscriptionDoesNotStartRegistration() throws Exception {
+       ObjectAttributeSubscriptionLifecycleTck.runPassiveSubscriptionDoesNotStartRegistration(
+          factory(), requireFom(), timeImplementation(), objectClassName(), attributeName(),
           callbackModel());
     }
 

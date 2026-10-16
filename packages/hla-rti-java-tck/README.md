@@ -297,6 +297,16 @@ The ordinary subscription-lifecycle scenario also requires a distinct second
 attribute through `hla.rti.tck.objectClassSecondAttribute`; it publishes and
 updates both attributes while subscribing to only the primary one, checking
 that initial and subsequent reflection contain only the subscribed value.
+The opt-in `java-tck.attribute-subscription-invocations-accumulate` case
+subscribes to the configured primary attribute, waits for discovery, then
+subscribes to the distinct configured second attribute and verifies one update
+reflects both. Its FOM and names come from the adapter; Java provider runtime
+verification remains pending.
+The opt-in `java-tck.passive-subscription-no-start-registration` case uses an
+active subscription as a positive control for the publisher's standard Start
+Registration callback, then clears the control and verifies that the passive
+subscription produces no new callback. It does not claim a Stop Registration
+effect, and Java provider runtime verification remains pending.
 The opt-in `java-tck.empty-attribute-subscription-is-no-op` case creates an
 active non-empty attribute subscription, submits an empty active set, and
 verifies the original subscription still delivers the next update. The
@@ -388,6 +398,13 @@ to arrive. Its adapter supplies `hla.rti.tck.updateRateFom`,
 `hla.rti.tck.updateRateBestEffortAttribute`, and
 `hla.rti.tck.updateRateDesignator`, along with the provider's standard logical-
 time and callback configuration.
+
+The opt-in `java-tck.default-rate-subscription-no-reduction` case omits the
+optional update-rate designator, sends three distinct ordinary updates before
+servicing an evoked callback, and verifies that every original value and tag is
+reflected. Its FOM, object class, attribute, endpoint, callback model, and
+logical-time implementation are adapter-supplied; Java provider runtime
+verification remains pending.
 
 The opt-in `java-tck.mixed-update-rate-subscriptions` case uses the same
 adapter inputs to verify ordinary receive-order updates are independently

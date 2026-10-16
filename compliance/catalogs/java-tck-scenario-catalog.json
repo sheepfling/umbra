@@ -3686,6 +3686,110 @@
       "exclusion": "Requires an adapter-supplied compatible FOM, the standard MIM module, a distinct second attribute configured with hla.rti.tck.objectClassSecondAttribute, and a Java IEEE 1516.1-2025 provider."
     },
     {
+      "id": "java-tck.attribute-subscription-invocations-accumulate",
+      "category": "object-attribute-subscription-accumulation",
+      "title": "Accumulate disjoint attributes from repeated class subscription invocations",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to page-096-l129-40 -> §5.8: the scenario subscribes to one attribute, waits for discovery, invokes the same service again with a disjoint second attribute, and verifies one later update reflects both values. It does not assert active/passive replacement behavior. Java provider runtime evidence is not recorded.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-class-lookup-api-contract.json",
+        "attribute-lookup-api-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "attribute-value-update-request-api-contract.json",
+        "object-instance-registration-api-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#attributeSubscriptionInvocationsAccumulate",
+      "parity": "cpp-tck.attribute-subscription-invocations-accumulate",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied compatible FOM, object class, distinct primary/secondary attributes, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider; Java provider runtime verification remains pending."
+    },
+    {
+      "id": "java-tck.passive-subscription-no-start-registration",
+      "category": "passive-subscription-no-start-registration",
+      "title": "Ensure a passive subscription does not trigger Start Registration at a publisher",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes(active positive control)",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributesPassively",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.startRegistrationForObjectClass"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l144-45",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l144-45"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l144-45",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to page-096-l144-45 -> §5.8: an active subscription first proves the publisher receives Start Registration; after unsubscribing and clearing that positive control, a passive subscription is submitted and the publisher receives no new Start Registration callback. The scenario does not assert a Stop Registration effect. Java provider runtime evidence is not recorded.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-class-lookup-api-contract.json",
+        "attribute-lookup-api-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "subscribe-object-class-attributes-api-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#passiveSubscriptionDoesNotStartRegistration",
+      "parity": "cpp-tck.passive-subscription-no-start-registration",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied compatible FOM, object class and attribute, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider; Java provider runtime verification remains pending."
+    },
+    {
       "id": "java-tck.empty-attribute-subscription-is-no-op",
       "category": "empty-attribute-subscription-is-no-op",
       "title": "Preserve an active attribute subscription after an empty subscription request",
@@ -5985,6 +6089,61 @@
       "parity": "cpp-tck.update-rate-queries",
       "default_status": "unsupported",
       "exclusion": "Requires adapter-supplied rate FOM, object-class and attribute names, named update-rate designator, and Java IEEE 1516.1-2025 provider; configure hla.rti.tck.updateRateFom, hla.rti.tck.updateRateObjectClass, hla.rti.tck.updateRateAttribute, and hla.rti.tck.updateRateDesignator. Provider runtime verification remains pending."
+    },
+    {
+      "id": "java-tck.default-rate-subscription-no-reduction",
+      "category": "default-rate-subscription-no-reduction",
+      "title": "Reflect every update in a burst under a default-rate attribute subscription",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.subscribeObjectClassAttributes(default update rate)",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-097-l26-6",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-097-l26-6"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-097-l26-6",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to page-097-l26-6 -> §5.8: with the optional update-rate designator omitted, three distinct ordinary updates are sent before callback servicing and all three are reflected with their original values and tags. The scenario does not claim a named-rate or rate-query behavior. Java provider runtime evidence is not recorded.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-class-lookup-api-contract.json",
+        "attribute-lookup-api-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "attribute-value-update-request-api-contract.json",
+        "object-instance-registration-api-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#defaultRateSubscriptionNoReduction",
+      "parity": "cpp-tck.default-rate-subscription-no-reduction",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied compatible FOM, object-class and attribute names, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider; Java provider runtime verification remains pending."
     },
     {
       "id": "java-tck.federation-teardown-isolation",

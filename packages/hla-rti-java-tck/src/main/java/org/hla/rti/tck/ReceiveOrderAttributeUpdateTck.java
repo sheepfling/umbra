@@ -132,6 +132,120 @@ final class ReceiveOrderAttributeUpdateTck {
       }
    }
 
+   static void runDefaultRateSubscriptionNoReduction(RtiFactory factory, String fom,
+         String timeImplementation, String objectClassName, String attributeName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador receiver = factory.getRtiAmbassador();
+      Recorder publisherCallbacks = new Recorder();
+      Recorder receiverCallbacks = new Recorder();
+      String federation = "java-tck-default-rate-subscription-" + UUID.randomUUID();
+      boolean publisherConnected = false, receiverConnected = false, created = false;
+      boolean publisherJoined = false, receiverJoined = false;
+      boolean published = false, subscribed = false;
+      ObjectClassHandle publisherClass = null, receiverClass = null;
+      AttributeHandle publisherAttribute = null, receiverAttribute = null;
+      try {
+         publisher.connect(publisherCallbacks.proxy(), callbackModel);
+         publisherConnected = true;
+         receiver.connect(receiverCallbacks.proxy(), callbackModel);
+         receiverConnected = true;
+         publisher.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         publisher.joinFederationExecution("java-tck-default-rate-publisher", federation);
+         publisherJoined = true;
+         receiver.joinFederationExecution("java-tck-default-rate-receiver", federation);
+         receiverJoined = true;
+
+         publisherClass = publisher.getObjectClassHandle(objectClassName);
+         receiverClass = receiver.getObjectClassHandle(objectClassName);
+         publisherAttribute = publisher.getAttributeHandle(publisherClass, attributeName);
+         receiverAttribute = receiver.getAttributeHandle(receiverClass, attributeName);
+         JavaTckSupport.check(publisherClass != null && receiverClass != null
+               && publisherAttribute != null && receiverAttribute != null,
+            "adapter FOM did not resolve default-rate subscription handles");
+
+         AttributeHandleSet publisherAttributes = JavaTckSupport.attributeSet(
+            publisher, publisherAttribute);
+         AttributeHandleSet receiverAttributes = JavaTckSupport.attributeSet(
+            receiver, receiverAttribute);
+         publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
+         published = true;
+         receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
+         subscribed = true;
+
+         ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
+         JavaTckSupport.check(object != null && object.encodedLength() > 0,
+            "default-rate subscription registration returned an invalid handle");
+         await(receiver, callbackModel, () -> receiverCallbacks.discoveries.contains(object),
+            "default-rate subscription discovery");
+         receiverCallbacks.reflections.clear();
+         publisherCallbacks.reflections.clear();
+
+         byte[][] values = {
+            {0x44, 0x45, 0x46, 0x31},
+            {0x44, 0x45, 0x46, 0x32},
+            {0x44, 0x45, 0x46, 0x33}
+         };
+         byte[][] tags = {
+            {0x54, 0x41, 0x47, 0x31},
+            {0x54, 0x41, 0x47, 0x32},
+            {0x54, 0x41, 0x47, 0x33}
+         };
+         for (int index = 0; index < values.length; index++) {
+            send(publisher, object, publisherAttribute, values[index], tags[index]);
+         }
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            JavaTckSupport.check(receiverCallbacks.reflections.isEmpty(),
+               "evoked default-rate updates arrived before callback servicing");
+         }
+         await(receiver, callbackModel,
+            () -> receiverCallbacks.reflections.size() >= values.length,
+            "default-rate subscription update burst");
+         JavaTckSupport.check(receiverCallbacks.reflections.size() == values.length,
+            "default-rate subscription did not reflect every update in the burst");
+         for (int index = 0; index < values.length; index++) {
+            Reflection reflection = receiverCallbacks.reflections.get(index);
+            JavaTckSupport.check(object.equals(reflection.object)
+                  && reflection.values.size() == 1
+                  && Arrays.equals(values[index], reflection.values.get(receiverAttribute))
+                  && Arrays.equals(tags[index], reflection.tag),
+               "default-rate subscription altered or reduced update " + (index + 1));
+         }
+         JavaTckSupport.check(publisherCallbacks.reflections.isEmpty(),
+            "default-rate attribute update looped a reflection back to its publisher");
+      } finally {
+         if (receiverJoined && subscribed) {
+            try { receiver.unsubscribeObjectClassAttributes(receiverClass,
+               JavaTckSupport.attributeSet(receiver, receiverAttribute)); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined && published) {
+            try { publisher.unpublishObjectClassAttributes(publisherClass,
+               JavaTckSupport.attributeSet(publisher, publisherAttribute)); }
+            catch (Exception ignored) { }
+         }
+         if (receiverJoined) {
+            try { receiver.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined) {
+            try { publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
+            catch (Exception ignored) { }
+         }
+         if (created) {
+            try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (receiverConnected) {
+            try { receiver.disconnect(); } catch (Exception ignored) { }
+         }
+         if (publisherConnected) {
+            try { publisher.disconnect(); } catch (Exception ignored) { }
+         }
+      }
+   }
+
    private static void send(RTIambassador publisher, ObjectInstanceHandle object,
          AttributeHandle attribute, byte[] value, byte[] tag) throws Exception {
       AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(1);
