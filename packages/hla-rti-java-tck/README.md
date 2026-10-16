@@ -10,13 +10,13 @@ the evidence model and provider-matrix workflow.
 
 ## Scope
 
-The catalog currently contains 502 scenarios. The default lane covers factory discovery,
+The catalog currently contains 514 scenarios. The default lane covers factory discovery,
 basic and composite standard encoding, federation creation/join/resign/destroy/query, ordinary
 publication/subscription, named and unnamed object registration and discovery,
 single and multiple name-reservation callbacks, released-name reuse after object
 deletion, instance- and class-scoped attribute value update requests, attribute
 update/reflection, object deletion and removal callbacks,
-ordinary interaction delivery, support lookups, negative cases, relevance
+ordinary and timestamped interaction delivery (including the RO-positive/TSO-gated asynchronous-delivery boundary), support lookups, negative cases, relevance
 advisories, directed interactions, derived-target subscription eligibility,
 and transportation/order controls. The `java-tck.callback-reentrancy` case
 checks the official API's callback-service exception boundary; because the
@@ -1043,6 +1043,13 @@ and tag, producer, time/order/retraction metadata, grant times, and logical-time
 queries. It remains unsupported by default until run through a compatible
 provider adapter.
 
+The `java-tck.timestamped-regional-interaction-alternate-advances` scenario
+additionally checks the distinct Flush Queue actual/optimistic frontier (5/7),
+then sends a timestamped regional interaction at actual time plus queried
+lookahead (6) without changing the receiver's logical time. The C++ and Java
+scenarios retain matching parity links and adapter-supplied DDM FOM/time
+configuration; Java runtime verification remains adapter-dependent.
+
 The `java-tck.timestamped-directed-alternate-advances` scenario applies the
 same Flush Queue, TARA, and NMRA comparison to directed interactions addressed
 to a registered object. It verifies target discovery, no delivery before an
@@ -1095,12 +1102,14 @@ metadata. Callback mode remains adapter-selected, and the scenario stays
 unsupported by default pending Java-provider execution.
 
 The `java-tck.timestamped-attribute-update-alternate-advances` scenario sends
-one timestamped attribute update to three constrained receivers using Flush
-Queue, Time Advance Request Available, and Next Message Request Available. It
-checks reflection-before-grant ordering, payload/tag and producer metadata,
-timestamp/order/retraction handles, grant/query consistency, Flush Queue actual
-and optimistic bounds, and the terminal retraction exception. It remains
-unsupported by default until executed through a compatible provider adapter.
+one timestamped attribute update to constrained receivers using Flush Queue,
+Time Advance Request Available, Next Message Request Available, and Next Message
+Request. It checks reflection-before-grant ordering and, after the early NMR
+grant at time five, sends from an owned object at time seven with lookahead one
+while confirming logical time remains five. It also checks payload/tag,
+producer metadata, timestamp/order/retraction handles, grant/query consistency,
+Flush Queue actual and optimistic bounds, and terminal retraction. It remains
+unsupported by default pending Java-provider runtime verification.
 
 The `java-tck.timestamped-object-deletion-mixed-advances` scenario queues one
 timestamped object deletion for three constrained recipients using Flush Queue,

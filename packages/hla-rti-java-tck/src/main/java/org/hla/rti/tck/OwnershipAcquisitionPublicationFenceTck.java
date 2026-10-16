@@ -125,7 +125,7 @@ final class OwnershipAcquisitionPublicationFenceTck {
 
          await(owner, callbackModel, () -> !ownerRecorder.releaseRequests.isEmpty(),
             "ownership release request");
-         JavaTckSupport.drain(owner);
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
          JavaTckSupport.check(ownerRecorder.releaseRequests.size() == 1,
             "mixed acquisition returned an unexpected release-request count");
          OwnershipEvent release = ownerRecorder.releaseRequests.get(0);
@@ -133,7 +133,7 @@ final class OwnershipAcquisitionPublicationFenceTck {
             "ownership release request for the actually owned subset");
          await(requester, callbackModel, () -> !requesterRecorder.acquisitions.isEmpty(),
             "direct acquisition of the unowned subset");
-         JavaTckSupport.drain(requester);
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(requester);
          JavaTckSupport.check(requesterRecorder.acquisitions.size() == 1,
             "mixed acquisition returned an unexpected acquisition-notification count");
          OwnershipEvent acquisition = requesterRecorder.acquisitions.get(0);
@@ -155,7 +155,7 @@ final class OwnershipAcquisitionPublicationFenceTck {
          owner.attributeOwnershipReleaseDenied(object, ownerFirstOnly, denialTag);
          await(requester, callbackModel, () -> !requesterRecorder.unavailable.isEmpty(),
             "release denial notification");
-         JavaTckSupport.drain(requester);
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(requester);
          JavaTckSupport.check(requesterRecorder.unavailable.size() == 1,
             "release denial returned an unexpected unavailable-notification count");
          checkEvent(requesterRecorder.unavailable.get(0), object, requesterFirstOnly, denialTag,

@@ -69,8 +69,14 @@ final class AsynchronousInteractionDeliveryTck {
             "time-constrained callback");
 
          byte[] value = new byte[] {(byte) 0xa5, 0x51};
-         byte[] firstTag = new byte[] {0x41, 0x53, 0x59, 0x31};
-         send(publisher, publisherInteraction, publisherParameter, value, firstTag);
+         byte[][] backlogTags = new byte[][] {
+            new byte[] {0x41, 0x53, 0x59, 0x31},
+            new byte[] {0x41, 0x53, 0x59, 0x32},
+            new byte[] {0x41, 0x53, 0x59, 0x33}
+         };
+         for (byte[] tag : backlogTags) {
+            send(publisher, publisherInteraction, publisherParameter, value, tag);
+         }
          serviceRepeatedly(receiver, callbackModel, objectClassName, 8);
          JavaTckSupport.check(receiverRecorder.deliveries.isEmpty(),
             "receive-order interaction bypassed disabled asynchronous delivery");
@@ -80,10 +86,29 @@ final class AsynchronousInteractionDeliveryTck {
             "AsynchronousDeliveryAlreadyEnabled",
             "enabling asynchronous delivery twice was accepted");
          await(receiver, callbackModel, objectClassName,
-            () -> receiverRecorder.deliveries.size() == 1,
-            "asynchronous-delivery enable did not release the retained interaction");
-         verify(receiver, receiverRecorder.deliveries.get(0), receiverInteraction,
-            receiverParameter, value, firstTag, producer, "enable release");
+            () -> receiverRecorder.deliveries.size() >= backlogTags.length,
+            "asynchronous-delivery enable did not release the complete retained backlog");
+         JavaTckSupport.check(receiverRecorder.deliveries.size() == backlogTags.length,
+            "asynchronous-delivery enable duplicated a retained interaction");
+         boolean[] receivedBacklog = new boolean[backlogTags.length];
+         for (Delivery delivery : receiverRecorder.deliveries) {
+            int tagIndex = -1;
+            for (int index = 0; index < backlogTags.length; ++index) {
+               if (Arrays.equals(backlogTags[index], delivery.tag)) {
+                  tagIndex = index;
+                  break;
+               }
+            }
+            JavaTckSupport.check(tagIndex >= 0 && !receivedBacklog[tagIndex],
+               "asynchronous-delivery backlog omitted or duplicated a message tag");
+            receivedBacklog[tagIndex] = true;
+            verify(receiver, delivery, receiverInteraction, receiverParameter, value,
+               backlogTags[tagIndex], producer, "enable release");
+         }
+         for (boolean received : receivedBacklog) {
+            JavaTckSupport.check(received,
+               "asynchronous-delivery enable omitted a retained interaction");
+         }
 
          receiverRecorder.deliveries.clear();
          receiverRecorder.callbackSequence.clear();
@@ -91,7 +116,7 @@ final class AsynchronousInteractionDeliveryTck {
          JavaTckSupport.expectFailure(receiver::disableAsynchronousDelivery,
             "AsynchronousDeliveryAlreadyDisabled",
             "disabling asynchronous delivery twice was accepted");
-         byte[] secondTag = new byte[] {0x41, 0x53, 0x59, 0x32};
+         byte[] secondTag = new byte[] {0x41, 0x53, 0x59, 0x34};
          send(publisher, publisherInteraction, publisherParameter, value, secondTag);
          serviceRepeatedly(receiver, callbackModel, objectClassName, 8);
          JavaTckSupport.check(receiverRecorder.deliveries.isEmpty(),

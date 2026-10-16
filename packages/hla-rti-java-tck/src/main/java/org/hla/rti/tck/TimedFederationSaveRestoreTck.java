@@ -227,6 +227,172 @@ final class TimedFederationSaveRestoreTck {
       }
    }
 
+   static void runFqrTimedSave(RtiFactory factory, String fom, String timeImplementation,
+         String interactionClassName, String parameterName, String objectClassName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador constrainedRegulator = factory.getRtiAmbassador();
+      RTIambassador sender = factory.getRtiAmbassador();
+      Recorder actorRecorder = new Recorder();
+      Recorder senderRecorder = new Recorder();
+      String federation = "java-tck-fqr-timed-save-" + UUID.randomUUID();
+      String actorName = "java-tck-fqr-save-actor";
+      String senderName = "java-tck-fqr-save-sender";
+      String saveLabel = "java-tck-fqr-timed-save-callback";
+      boolean actorConnected = false;
+      boolean senderConnected = false;
+      boolean created = false;
+      boolean actorJoined = false;
+      boolean senderJoined = false;
+      boolean actorConstrained = false;
+      boolean actorRegulating = false;
+      boolean senderRegulating = false;
+      boolean subscribed = false;
+      boolean published = false;
+      InteractionClassHandle actorInteraction = null;
+      InteractionClassHandle senderInteraction = null;
+      try {
+         constrainedRegulator.connect(actorRecorder.proxy(), callbackModel);
+         actorConnected = true;
+         sender.connect(senderRecorder.proxy(), callbackModel);
+         senderConnected = true;
+         constrainedRegulator.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         constrainedRegulator.joinFederationExecution(actorName, federation);
+         actorJoined = true;
+         sender.joinFederationExecution(senderName, federation);
+         senderJoined = true;
+
+         actorInteraction = constrainedRegulator.getInteractionClassHandle(interactionClassName);
+         senderInteraction = sender.getInteractionClassHandle(interactionClassName);
+         ParameterHandle actorParameter = constrainedRegulator.getParameterHandle(
+            actorInteraction, parameterName);
+         ParameterHandle senderParameter = sender.getParameterHandle(
+            senderInteraction, parameterName);
+         JavaTckSupport.check(actorInteraction.equals(senderInteraction)
+               && actorParameter.equals(senderParameter),
+            "FQR timed-save interaction handles differed across members");
+         sender.publishInteractionClass(senderInteraction);
+         published = true;
+         sender.changeInteractionOrderType(senderInteraction, OrderType.TIMESTAMP);
+         constrainedRegulator.subscribeInteractionClass(actorInteraction);
+         subscribed = true;
+
+         LogicalTimeFactory<?, ?> timeFactory = constrainedRegulator.getTimeFactory();
+         JavaTckSupport.check(timeFactory.getName().equals(sender.getTimeFactory().getName()),
+            "FQR timed-save members selected different logical-time factories");
+         LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
+         constrainedRegulator.enableTimeConstrained();
+         actorConstrained = true;
+         await(callbackModel, objectClassName, "FQR save actor Time Constrained",
+            () -> actorRecorder.timeConstrainedEnabled, constrainedRegulator);
+         constrainedRegulator.enableTimeRegulation(epsilon);
+         actorRegulating = true;
+         await(callbackModel, objectClassName, "FQR save actor Time Regulation",
+            () -> actorRecorder.timeRegulationEnabled, constrainedRegulator);
+         sender.enableTimeRegulation(epsilon);
+         senderRegulating = true;
+         await(callbackModel, objectClassName, "FQR save sender Time Regulation",
+            () -> senderRecorder.timeRegulationEnabled, sender);
+
+         LogicalTime actorInitial = constrainedRegulator.queryLogicalTime();
+         LogicalTime senderInitial = sender.queryLogicalTime();
+         JavaTckSupport.check(actorInitial.equals(senderInitial),
+            "FQR timed-save members began at different logical times");
+         LogicalTime initialAdvance = offset(actorInitial, epsilon, 4);
+         constrainedRegulator.timeAdvanceRequest(initialAdvance);
+         sender.timeAdvanceRequest(initialAdvance);
+         await(callbackModel, objectClassName, "FQR timed-save initial grants",
+            () -> initialAdvance.equals(actorRecorder.timeAdvanceGrant)
+               && initialAdvance.equals(senderRecorder.timeAdvanceGrant),
+            constrainedRegulator, sender);
+
+         LogicalTime messageTime = offset(actorInitial, epsilon, 7);
+         LogicalTime flushRequestTime = offset(actorInitial, epsilon, 10);
+         LogicalTime actualGrantTime = offset(actorInitial, epsilon, 5);
+         LogicalTime saveTime = offset(actorInitial, epsilon, 6);
+         LogicalTime laterAdvance = offset(actorInitial, epsilon, 7);
+         byte[] payload = new byte[] {0x46, 0x51, 0x52};
+         byte[] tag = new byte[] {0x53, 0x41, 0x56};
+         ParameterHandleValueMap parameters = sender.getParameterHandleValueMapFactory().create(1);
+         parameters.put(senderParameter, payload);
+         MessageRetractionReturn sent = sender.sendInteraction(
+            senderInteraction, parameters, tag, messageTime);
+         JavaTckSupport.check(sent != null && sent.retractionHandleIsValid && sent.handle != null,
+            "FQR timed-save queued interaction returned no retraction handle");
+
+         constrainedRegulator.flushQueueRequest(flushRequestTime);
+         await(callbackModel, objectClassName, "FQR timed-save flush delivery",
+            () -> actorRecorder.interactions.size() == 1
+               && actorRecorder.flushQueueGrantTimes.size() == 1,
+            constrainedRegulator);
+         JavaTckSupport.check(messageTime.equals(actorRecorder.flushQueueOptimisticTime)
+               && actualGrantTime.equals(actorRecorder.flushQueueGrantTimes.get(0))
+               && actualGrantTime.equals(constrainedRegulator.queryLogicalTime()),
+            "FQR timed-save did not preserve actual=5 and optimistic=7 frontiers");
+         TimedInteraction delivered = actorRecorder.interactions.get(0);
+         JavaTckSupport.check(actorInteraction.equals(delivered.interaction)
+               && delivered.parameters.size() == 1
+               && Arrays.equals(payload, delivered.parameters.get(actorParameter))
+               && Arrays.equals(tag, delivered.tag)
+               && messageTime.equals(delivered.time)
+               && delivered.retraction != null && sent.handle.equals(delivered.retraction),
+            "FQR timed-save delivered incorrect queued interaction data");
+
+         constrainedRegulator.requestFederationSave(saveLabel, saveTime);
+         actorRecorder.saveTimeline.clear();
+         constrainedRegulator.timeAdvanceRequest(laterAdvance);
+         sender.timeAdvanceRequest(laterAdvance);
+         await(callbackModel, objectClassName, "FQR timed-save initiation callbacks",
+            () -> actorRecorder.saveInitiations.size() == 1
+               && senderRecorder.saveInitiations.size() == 1,
+            constrainedRegulator, sender);
+         verifyTimedSave(actorRecorder.saveInitiations.get(0), saveLabel, saveTime);
+         verifyTimedSave(senderRecorder.saveInitiations.get(0), saveLabel, saveTime);
+
+         constrainedRegulator.federateSaveBegun();
+         sender.federateSaveBegun();
+         constrainedRegulator.federateSaveComplete();
+         sender.federateSaveComplete();
+         await(callbackModel, objectClassName, "FQR timed-save completion and grants",
+            () -> actorRecorder.savedCount == 1 && senderRecorder.savedCount == 1
+               && laterAdvance.equals(actorRecorder.timeAdvanceGrant)
+               && laterAdvance.equals(senderRecorder.timeAdvanceGrant),
+            constrainedRegulator, sender);
+         int saveCallbackIndex = actorRecorder.saveTimeline.indexOf("initiateFederateSave");
+         int grantCallbackIndex = actorRecorder.saveTimeline.indexOf("timeAdvanceGrant");
+         JavaTckSupport.check(actorRecorder.saveFailures.isEmpty()
+               && senderRecorder.saveFailures.isEmpty()
+               && saveCallbackIndex >= 0 && grantCallbackIndex > saveCallbackIndex,
+            "FQR timed-save initiation did not precede the matching later grant");
+      } finally {
+         if (actorConstrained && actorJoined) {
+            try { constrainedRegulator.disableTimeConstrained(); } catch (Exception ignored) { }
+         }
+         if (actorRegulating && actorJoined) {
+            try { constrainedRegulator.disableTimeRegulation(); } catch (Exception ignored) { }
+         }
+         if (senderRegulating && senderJoined) {
+            try { sender.disableTimeRegulation(); } catch (Exception ignored) { }
+         }
+         if (subscribed && actorJoined && actorInteraction != null) {
+            try { constrainedRegulator.unsubscribeInteractionClass(actorInteraction); }
+            catch (Exception ignored) { }
+         }
+         if (published && senderJoined && senderInteraction != null) {
+            try { sender.unpublishInteractionClass(senderInteraction); }
+            catch (Exception ignored) { }
+         }
+         if (senderJoined) resign(sender);
+         if (actorJoined) resign(constrainedRegulator);
+         if (created) {
+            try { constrainedRegulator.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (senderConnected) disconnect(sender);
+         if (actorConnected) disconnect(constrainedRegulator);
+      }
+   }
+
    private static void verifyTimedSave(SaveInitiation initiation, String label,
          LogicalTime<?, ?> expectedTime) {
       JavaTckSupport.check(label.equals(initiation.label)
@@ -331,6 +497,8 @@ final class TimedFederationSaveRestoreTck {
       private final List<RestoreInitiation> restoreInitiations = new CopyOnWriteArrayList<>();
       private final List<Object> restoreFailures = new CopyOnWriteArrayList<>();
       private final List<LogicalTime<?, ?>> flushQueueGrantTimes = new CopyOnWriteArrayList<>();
+      private volatile LogicalTime<?, ?> flushQueueOptimisticTime;
+      private final List<String> saveTimeline = new CopyOnWriteArrayList<>();
       private volatile LogicalTime<?, ?> timeAdvanceGrant;
       private volatile int savedCount;
       private volatile int restoreBegunCount;
@@ -348,6 +516,7 @@ final class TimedFederationSaveRestoreTck {
                } else if ("initiateFederateSave".equals(name)) {
                   saveInitiations.add(new SaveInitiation((String) arguments[0],
                      arguments.length > 1 ? (LogicalTime<?, ?>) arguments[1] : null));
+                  saveTimeline.add(name);
                } else if ("federationSaved".equals(name)) {
                   savedCount++;
                } else if ("federationNotSaved".equals(name)) {
@@ -367,11 +536,13 @@ final class TimedFederationSaveRestoreTck {
                   restoreFailures.add(arguments[0]);
                } else if ("timeAdvanceGrant".equals(name)) {
                   timeAdvanceGrant = (LogicalTime<?, ?>) arguments[0];
+                  saveTimeline.add(name);
                } else if ("receiveInteraction".equals(name) && arguments.length == 10) {
                   interactions.add(new TimedInteraction(arguments));
                   callbackOrder.add(name);
                } else if ("flushQueueGrant".equals(name) && arguments.length == 2) {
                   flushQueueGrantTimes.add((LogicalTime<?, ?>) arguments[0]);
+                  flushQueueOptimisticTime = (LogicalTime<?, ?>) arguments[1];
                   callbackOrder.add(name);
                } else if ("requestRetraction".equals(name) && arguments.length == 1) {
                   retractions.add((MessageRetractionHandle) arguments[0]);

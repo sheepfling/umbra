@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/** Portable future-input delivery and optimistic frontier for Flush Queue Request. */
+/** Portable Flush Queue future-input and post-grant timestamp-bound behavior. */
 final class TimestampedInteractionFlushQueueFutureInputTck {
    private TimestampedInteractionFlushQueueFutureInputTck() {
    }
@@ -64,6 +64,8 @@ final class TimestampedInteractionFlushQueueFutureInputTck {
             receiverClass, parameterName);
          publisher.publishInteractionClass(publisherClass);
          publisher.changeInteractionOrderType(publisherClass, OrderType.TIMESTAMP);
+         receiver.publishInteractionClass(receiverClass);
+         receiver.changeInteractionOrderType(receiverClass, OrderType.TIMESTAMP);
          receiver.subscribeInteractionClass(receiverClass);
 
          LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
@@ -74,13 +76,16 @@ final class TimestampedInteractionFlushQueueFutureInputTck {
          JavaTckSupport.drain(receiver);
          publisher.enableTimeRegulation(epsilon);
          JavaTckSupport.drain(publisher);
+         receiver.enableTimeRegulation((LogicalTimeInterval) receiver.getTimeFactory().makeEpsilon());
+         JavaTckSupport.drain(receiver);
          JavaTckSupport.check(receiverRecorder.timeConstrainedEnabled
-               && publisherRecorder.timeRegulationEnabled,
+               && publisherRecorder.timeRegulationEnabled
+               && receiverRecorder.timeRegulationEnabled,
             "time-management enable callbacks were not delivered through the API");
 
          LogicalTime initial = publisher.queryLogicalTime();
          LogicalTime receiverInitial = receiver.queryLogicalTime();
-         LogicalTime firstTime = offset(initial, epsilon, 9);
+         LogicalTime firstTime = offset(initial, epsilon, 1);
          LogicalTime secondTime = offset(initial, epsilon, 12);
          LogicalTime publisherTarget = offset(initial, epsilon, 4);
          LogicalTime requestBoundary = offset(receiverInitial, epsilon, 10);
@@ -106,8 +111,8 @@ final class TimestampedInteractionFlushQueueFutureInputTck {
                "future interactions were delivered before callback servicing");
          }
          publisher.timeAdvanceRequest(publisherTarget);
-         JavaTckSupport.drain(publisher);
          JavaTckSupport.drain(receiver);
+         JavaTckSupport.drain(publisher);
 
          JavaTckSupport.check(publisherRecorder.timeAdvanceGrantTimes.size() == 1
                && publisherTarget.equals(publisherRecorder.timeAdvanceGrantTimes.get(0)),
@@ -135,6 +140,19 @@ final class TimestampedInteractionFlushQueueFutureInputTck {
                && compareTime(optimistic, flushGrant) >= 0
                && flushGrant.equals(receiver.queryLogicalTime()),
             "Flush Queue Grant/query returned an inconsistent actual or optimistic frontier");
+
+         LogicalTimeInterval receiverLookahead = receiver.queryLookahead();
+         JavaTckSupport.check(receiverLookahead.equals(receiver.getTimeFactory().makeEpsilon()),
+            "receiver lookahead changed unexpectedly");
+         LogicalTime postGrantSendTime = offset(flushGrant, receiverLookahead, 1);
+         MessageRetractionReturn postGrantSend = receiver.sendInteraction(receiverClass,
+            oneParameter(receiver, receiverParameter, firstPayload), firstTag,
+            postGrantSendTime);
+         JavaTckSupport.check(postGrantSend != null && postGrantSend.retractionHandleIsValid
+               && postGrantSend.handle != null,
+            "post-grant TSO send at current logical time plus lookahead returned no retraction handle");
+         JavaTckSupport.check(flushGrant.equals(receiver.queryLogicalTime()),
+            "post-grant TSO send changed the federate's logical time");
       } finally {
          if (receiverJoined) {
             try { receiver.resignFederationExecution(ResignAction.NO_ACTION); }

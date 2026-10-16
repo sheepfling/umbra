@@ -2126,6 +2126,7 @@ final class TimestampedRegionalInteractionTck {
       boolean taraConnected = false, nmraConnected = false, created = false;
       boolean ownerJoined = false, flushJoined = false, taraJoined = false, nmraJoined = false;
       boolean published = false, regulating = false;
+      boolean flushPublished = false, flushRegulating = false;
       boolean[] subscribed = new boolean[receivers.length];
       boolean[] constrained = new boolean[receivers.length];
       InteractionClassHandle ownerInteraction = null;
@@ -2193,6 +2194,12 @@ final class TimestampedRegionalInteractionTck {
                "timestamped interaction alternate members selected different time factories");
          }
          LogicalTimeInterval epsilon = (LogicalTimeInterval) ownerFactory.makeEpsilon();
+         LogicalTimeInterval ownerLookahead = intervalSteps(epsilon, regionalSource ? 5 : 1);
+         if (regionalSource) {
+            flushReceiver.publishInteractionClass(receiverInteractions[0]);
+            flushReceiver.changeInteractionOrderType(receiverInteractions[0], OrderType.TIMESTAMP);
+            flushPublished = true;
+         }
          for (int i = 0; i < receivers.length; ++i) {
             receivers[i].enableTimeConstrained(); constrained[i] = true;
             final int index = i;
@@ -2200,7 +2207,12 @@ final class TimestampedRegionalInteractionTck {
                () -> receiverRecorders[index].timeConstrainedEnabled,
                "alternate timeConstrainedEnabled callback");
          }
-         owner.enableTimeRegulation(epsilon); regulating = true;
+         if (regionalSource) {
+            flushReceiver.enableTimeRegulation(epsilon); flushRegulating = true;
+            await(callbackModel, flushReceiver, () -> flushRecorder.timeRegulationEnabled,
+               "Flush Queue receiver timeRegulationEnabled callback");
+         }
+         owner.enableTimeRegulation(ownerLookahead); regulating = true;
          await(callbackModel, owner, () -> ownerRecorder.timeRegulationEnabled,
             "alternate timeRegulationEnabled callback");
 
@@ -2211,9 +2223,9 @@ final class TimestampedRegionalInteractionTck {
             check(initial.equals(receiverInitials[i]),
                "timestamped interaction alternate members began at different times");
          }
-         LogicalTime messageTime = addSteps(initial, epsilon, 3);
+         LogicalTime messageTime = addSteps(initial, epsilon, regionalSource ? 7 : 3);
          LogicalTime publisherTarget = addSteps(initial, epsilon, 2);
-         LogicalTime requestBoundary = addSteps(initial, epsilon, 5);
+         LogicalTime requestBoundary = addSteps(initial, epsilon, regionalSource ? 10 : 5);
          byte[] value = new byte[] {0x41, 0x56, 0x41, 0x2D, 0x52};
          byte[] tag = new byte[] {0x41, 0x56, 0x41, 0x2D, 0x44};
          ParameterHandleValueMap parameters = owner.getParameterHandleValueMapFactory().create(1);
@@ -2231,6 +2243,38 @@ final class TimestampedRegionalInteractionTck {
          ownerRecorder.callbackOrder.clear();
 
          flushReceiver.flushQueueRequest(requestBoundary);
+         if (regionalSource) {
+            await(callbackModel, flushReceiver,
+               () -> flushRecorder.interactions.size() == 1
+                  && flushRecorder.flushQueueGrantTimes.size() == 1,
+               "distinct regional Flush Queue grant and interaction");
+            LogicalTime flushGrant = flushRecorder.flushQueueGrantTimes.get(0);
+            LogicalTime flushOptimistic = flushRecorder.flushQueueOptimisticTime;
+            check(addSteps(initial, epsilon, 5).equals(flushGrant)
+                  && messageTime.equals(flushOptimistic),
+               "regional Flush Queue did not expose the distinct actual/optimistic frontier");
+            LogicalTimeInterval receiverLookahead = flushReceiver.queryLookahead();
+            check(epsilon.equals(receiverLookahead),
+               "regional Flush Queue receiver returned the wrong lookahead");
+            LogicalTime postGrantTime = (LogicalTime) flushGrant.add(receiverLookahead);
+            DimensionHandle flushFirst = flushReceiver.getDimensionHandle(firstDimensionName);
+            DimensionHandle flushSecond = flushReceiver.getDimensionHandle(secondDimensionName);
+            RegionHandle postGrantRegion = createRegion(
+               flushReceiver, flushFirst, flushSecond, 8, 9, 8, 9);
+            RegionHandleSet postGrantRegions = regionSet(flushReceiver, postGrantRegion);
+            ParameterHandle flushParameter = flushReceiver.getParameterHandle(
+               receiverInteractions[0], parameterName);
+            ParameterHandleValueMap postGrantValues =
+               flushReceiver.getParameterHandleValueMapFactory().create(1);
+            postGrantValues.put(flushParameter, value.clone());
+            MessageRetractionReturn postGrantRetraction = flushReceiver.sendInteractionWithRegions(
+               receiverInteractions[0], postGrantValues, postGrantRegions, tag.clone(), postGrantTime);
+            requireRetraction(postGrantRetraction,
+               "regional post-grant send at actual time plus lookahead");
+            check(flushGrant.equals(flushReceiver.queryLogicalTime()),
+               "regional post-grant send changed the Flush Queue receiver logical time");
+            flushReceiver.deleteRegion(postGrantRegion);
+         }
          taraReceiver.timeAdvanceRequestAvailable(messageTime);
          nmraReceiver.nextMessageRequestAvailable(requestBoundary);
          owner.timeAdvanceRequest(publisherTarget);
@@ -2315,18 +2359,30 @@ final class TimestampedRegionalInteractionTck {
          for (int i = 0; i < receivers.length; ++i) {
             receivers[i].disableTimeConstrained(); constrained[i] = false;
          }
+         if (flushRegulating) {
+            flushReceiver.disableTimeRegulation(); flushRegulating = false;
+         }
          owner.disableTimeRegulation(); regulating = false;
          for (int i = 0; i < receivers.length; ++i) {
             receivers[i].unsubscribeInteractionClassWithRegions(receiverInteractions[i], regionSets[i]);
             subscribed[i] = false;
          }
          owner.unpublishInteractionClass(ownerInteraction); published = false;
+         if (flushPublished) {
+            flushReceiver.unpublishInteractionClass(receiverInteractions[0]);
+            flushPublished = false;
+         }
          for (int i = 0; i < receivers.length; ++i) {
             receivers[i].deleteRegion(regions[i]); regions[i] = null;
          }
          deleteRegion(owner, sourceRegion, ownerJoined);
          sourceRegion = null;
       } finally {
+         if (flushRegulating && flushJoined) try { flushReceiver.disableTimeRegulation(); }
+            catch (Exception ignored) { }
+         if (flushPublished && flushJoined) try {
+            flushReceiver.unpublishInteractionClass(receiverInteractions[0]);
+         } catch (Exception ignored) { }
          for (int i = 0; i < receivers.length; ++i) {
             if (constrained[i]) try { receivers[i].disableTimeConstrained(); }
                catch (Exception ignored) { }

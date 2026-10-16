@@ -239,6 +239,338 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
       }
    }
 
+   static void runMixedOrder(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String timestampedAttributeName,
+         String receiveOrderAttributeName, CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador receiver = factory.getRtiAmbassador();
+      Recorder publisherRecorder = new Recorder();
+      Recorder receiverRecorder = new Recorder();
+      String federation = "java-tck-mixed-order-passel-" + UUID.randomUUID();
+      boolean publisherConnected = false;
+      boolean receiverConnected = false;
+      boolean publisherJoined = false;
+      boolean receiverJoined = false;
+      boolean created = false;
+      boolean regulating = false;
+      boolean constrained = false;
+      boolean published = false;
+      boolean subscribed = false;
+      ObjectClassHandle publisherClass = null;
+      ObjectClassHandle receiverClass = null;
+      AttributeHandleSet publisherAttributes = null;
+      AttributeHandleSet receiverAttributes = null;
+      try {
+         publisher.connect(publisherRecorder.proxy(), callbackModel);
+         publisherConnected = true;
+         receiver.connect(receiverRecorder.proxy(), callbackModel);
+         receiverConnected = true;
+         publisher.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         FederateHandle producer = publisher.joinFederationExecution(
+            "java-tck-mixed-order-publisher", federation);
+         publisherJoined = true;
+         receiver.joinFederationExecution("java-tck-mixed-order-receiver", federation);
+         receiverJoined = true;
+
+         publisherClass = publisher.getObjectClassHandle(objectClassName);
+         receiverClass = receiver.getObjectClassHandle(objectClassName);
+         AttributeHandle publisherTimestamped = publisher.getAttributeHandle(
+            publisherClass, timestampedAttributeName);
+         AttributeHandle publisherReceiveOrder = publisher.getAttributeHandle(
+            publisherClass, receiveOrderAttributeName);
+         AttributeHandle receiverTimestamped = receiver.getAttributeHandle(
+            receiverClass, timestampedAttributeName);
+         AttributeHandle receiverReceiveOrder = receiver.getAttributeHandle(
+            receiverClass, receiveOrderAttributeName);
+         JavaTckSupport.check(publisherTimestamped != null && publisherReceiveOrder != null
+               && receiverTimestamped != null && receiverReceiveOrder != null
+               && !publisherTimestamped.equals(publisherReceiveOrder),
+            "adapter multi-attribute FOM did not provide distinct mixed-order attributes");
+         publisherAttributes = JavaTckSupport.attributeSet(
+            publisher, publisherTimestamped, publisherReceiveOrder);
+         receiverAttributes = JavaTckSupport.attributeSet(
+            receiver, receiverTimestamped, receiverReceiveOrder);
+         publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
+         published = true;
+         receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
+         subscribed = true;
+         publisher.changeDefaultAttributeOrderType(
+            publisherClass,
+            JavaTckSupport.attributeSet(publisher, publisherTimestamped),
+            OrderType.TIMESTAMP);
+
+         ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
+         awaitBoth(publisher, receiver, callbackModel,
+            () -> object.equals(receiverRecorder.discoveredObject), "receiver discovery");
+         LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
+         JavaTckSupport.check(timeFactory.getName().equals(receiver.getTimeFactory().getName()),
+            "mixed-order members selected different logical-time factories");
+         LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
+         LogicalTime publisherInitial = publisher.queryLogicalTime();
+         LogicalTime receiverInitial = receiver.queryLogicalTime();
+         JavaTckSupport.check(publisherInitial.equals(receiverInitial),
+            "mixed-order members began at different logical times");
+         LogicalTime lookaheadTarget = offset(publisherInitial, epsilon, 5);
+         LogicalTimeInterval lookahead = (LogicalTimeInterval) lookaheadTarget.distance(
+            publisherInitial);
+
+         receiver.enableTimeConstrained();
+         constrained = true;
+         awaitBoth(publisher, receiver, callbackModel,
+            () -> receiverRecorder.timeConstrainedEnabled, "receiver time-constrained callback");
+         receiver.enableAsynchronousDelivery();
+         publisher.enableTimeRegulation(lookahead);
+         regulating = true;
+         awaitBoth(publisher, receiver, callbackModel,
+            () -> publisherRecorder.timeRegulationEnabled, "publisher time-regulation callback");
+
+         LogicalTime updateTime = offset(publisherInitial, epsilon, 6);
+         LogicalTime receiverTarget = offset(receiverInitial, epsilon, 6);
+         LogicalTime publisherTarget = offset(publisherInitial, epsilon, 2);
+         byte[] timestampedValue = new byte[] {0x51, 0x52};
+         byte[] receiveOrderValue = new byte[] {0x61, 0x62, 0x63};
+         byte[] tag = new byte[] {0x4d, 0x49, 0x58};
+         AttributeHandleValueMap passel = publisher.getAttributeHandleValueMapFactory().create(2);
+         passel.put(publisherTimestamped, timestampedValue);
+         passel.put(publisherReceiveOrder, receiveOrderValue);
+         MessageRetractionReturn retraction = publisher.updateAttributeValues(
+            object, passel, tag, updateTime);
+         checkRetraction(retraction, "mixed-order passel");
+         awaitBoth(publisher, receiver, callbackModel,
+            () -> receiverRecorder.reflections.size() == 1,
+            "receive-order part of mixed-order passel");
+         Reflection receiveOrder = receiverRecorder.reflections.get(0);
+         JavaTckSupport.check(object.equals(receiveOrder.object)
+               && receiveOrder.values != null && receiveOrder.values.size() == 1
+               && Arrays.equals(receiveOrderValue, receiveOrder.values.get(receiverReceiveOrder))
+               && receiveOrder.receivedOrder == OrderType.RECEIVE
+               && receiveOrder.retraction == null,
+            "mixed-order passel did not report only its receive-order attribute with receive-order metadata before retraction");
+
+         publisher.retract(retraction.handle);
+         receiver.timeAdvanceRequest(receiverTarget);
+         publisher.timeAdvanceRequest(publisherTarget);
+         awaitBoth(publisher, receiver, callbackModel,
+            () -> receiverRecorder.timeAdvanceGrantTimes.size() == 1
+                  && publisherRecorder.timeAdvanceGrantTimes.size() == 1,
+            "grants after retracting queued timestamped part");
+         JavaTckSupport.check(receiverRecorder.reflections.size() == 1
+               && receiverRecorder.timeAdvanceGrantTimes.size() == 1,
+            "mixed-order retraction changed the delivered receive-order result or released the queued timestamped attribute");
+      } finally {
+         if (constrained && receiverJoined) {
+            try { receiver.disableTimeConstrained(); } catch (Exception ignored) { }
+         }
+         if (regulating && publisherJoined) {
+            try { publisher.disableTimeRegulation(); } catch (Exception ignored) { }
+         }
+         if (subscribed && receiverJoined) {
+            try { receiver.unsubscribeObjectClassAttributes(receiverClass, receiverAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (published && publisherJoined) {
+            try { publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (receiverJoined) {
+            try { receiver.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined) {
+            try { publisher.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (created) {
+            try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (receiverConnected) {
+            try { receiver.disconnect(); } catch (Exception ignored) { }
+         }
+         if (publisherConnected) {
+            try { publisher.disconnect(); } catch (Exception ignored) { }
+         }
+      }
+   }
+
+   static void runSenderRegulationTransition(RtiFactory factory, String fom,
+         String timeImplementation, String objectClassName, String attributeName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador receiver = factory.getRtiAmbassador();
+      Recorder publisherRecorder = new Recorder();
+      Recorder receiverRecorder = new Recorder();
+      String federation = "java-tck-timestamped-sender-role-" + UUID.randomUUID();
+      boolean publisherConnected = false;
+      boolean receiverConnected = false;
+      boolean publisherJoined = false;
+      boolean receiverJoined = false;
+      boolean created = false;
+      boolean regulating = false;
+      boolean constrained = false;
+      boolean published = false;
+      boolean subscribed = false;
+      ObjectClassHandle publisherClass = null;
+      ObjectClassHandle receiverClass = null;
+      AttributeHandle publisherAttribute = null;
+      AttributeHandle receiverAttribute = null;
+      AttributeHandleSet publisherAttributes = null;
+      AttributeHandleSet receiverAttributes = null;
+      try {
+         publisher.connect(publisherRecorder.proxy(), callbackModel);
+         publisherConnected = true;
+         receiver.connect(receiverRecorder.proxy(), callbackModel);
+         receiverConnected = true;
+         publisher.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         FederateHandle producer = publisher.joinFederationExecution(
+            "java-tck-sender-role-publisher", federation);
+         publisherJoined = true;
+         receiver.joinFederationExecution("java-tck-sender-role-receiver", federation);
+         receiverJoined = true;
+
+         publisherClass = publisher.getObjectClassHandle(objectClassName);
+         receiverClass = receiver.getObjectClassHandle(objectClassName);
+         publisherAttribute = publisher.getAttributeHandle(publisherClass, attributeName);
+         receiverAttribute = receiver.getAttributeHandle(receiverClass, attributeName);
+         JavaTckSupport.check(publisherAttribute != null && receiverAttribute != null,
+            "adapter FOM did not provide the sender-transition attribute");
+         publisherAttributes = JavaTckSupport.attributeSet(publisher, publisherAttribute);
+         receiverAttributes = JavaTckSupport.attributeSet(receiver, receiverAttribute);
+         publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
+         published = true;
+         receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
+         subscribed = true;
+         publisher.changeDefaultAttributeOrderType(
+            publisherClass, publisherAttributes, OrderType.TIMESTAMP);
+
+         ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
+         awaitBoth(publisher, receiver, callbackModel,
+            () -> object.equals(receiverRecorder.discoveredObject), "receiver discovery");
+         LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
+         JavaTckSupport.check(timeFactory.getName().equals(receiver.getTimeFactory().getName()),
+            "sender-transition members selected different logical-time factories");
+         LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
+         LogicalTime publisherInitial = publisher.queryLogicalTime();
+         LogicalTime receiverInitial = receiver.queryLogicalTime();
+         JavaTckSupport.check(publisherInitial.equals(receiverInitial),
+            "sender-transition members began at different logical times");
+         LogicalTime updateTime = offset(publisherInitial, epsilon, 6);
+         LogicalTime receiverTarget = offset(receiverInitial, epsilon, 6);
+         LogicalTime publisherTarget = offset(publisherInitial, epsilon, 2);
+         LogicalTime lookaheadTarget = offset(publisherInitial, epsilon, 5);
+         LogicalTimeInterval lookahead = (LogicalTimeInterval) lookaheadTarget.distance(
+            publisherInitial);
+
+         receiver.enableTimeConstrained();
+         constrained = true;
+         awaitBoth(publisher, receiver, callbackModel,
+            () -> receiverRecorder.timeConstrainedEnabled, "receiver time-constrained callback");
+         receiver.enableAsynchronousDelivery();
+
+         byte[] firstValue = new byte[] {0x41, 0x42};
+         byte[] firstTag = new byte[] {0x31};
+         AttributeHandleValueMap firstValues =
+            publisher.getAttributeHandleValueMapFactory().create(1);
+         firstValues.put(publisherAttribute, firstValue);
+         MessageRetractionReturn firstRetraction = publisher.updateAttributeValues(
+            object, firstValues, firstTag, updateTime);
+         JavaTckSupport.check(firstRetraction != null && !firstRetraction.retractionHandleIsValid,
+            "timestamped send before Time Regulation returned a valid retraction handle");
+         awaitBoth(publisher, receiver, callbackModel,
+            () -> receiverRecorder.reflections.size() == 1,
+            "pre-regulation receive-order reflection");
+         Reflection first = receiverRecorder.reflections.get(0);
+         JavaTckSupport.check(object.equals(first.object) && first.values != null
+               && first.values.size() == 1
+               && Arrays.equals(firstValue, first.values.get(receiverAttribute))
+               && producer.equals(first.producer)
+               && Arrays.equals(firstTag, first.tag)
+               && updateTime.equals(first.time)
+               && first.sentOrder == OrderType.RECEIVE
+               && first.receivedOrder == OrderType.RECEIVE
+               && first.retraction == null
+               && receiverRecorder.timeAdvanceGrantTimes.isEmpty(),
+            "timestamped send before Time Regulation did not arrive as receive-order");
+
+         publisher.enableTimeRegulation(lookahead);
+         regulating = true;
+         awaitBoth(publisher, receiver, callbackModel,
+            () -> publisherRecorder.timeRegulationEnabled,
+            "publisher time-regulation callback");
+         byte[] secondValue = new byte[] {0x54, 0x53, 0x4f};
+         byte[] secondTag = new byte[] {0x32};
+         AttributeHandleValueMap secondValues =
+            publisher.getAttributeHandleValueMapFactory().create(1);
+         secondValues.put(publisherAttribute, secondValue);
+         MessageRetractionReturn secondRetraction = publisher.updateAttributeValues(
+            object, secondValues, secondTag, updateTime);
+         checkRetraction(secondRetraction, "post-regulation timestamped update");
+         JavaTckSupport.check(receiverRecorder.reflections.size() == 1
+               && receiverRecorder.timeAdvanceGrantTimes.isEmpty(),
+            "timestamped send after Time Regulation was delivered before receiver advancement");
+
+         receiver.timeAdvanceRequest(receiverTarget);
+         publisher.timeAdvanceRequest(publisherTarget);
+         awaitBoth(publisher, receiver, callbackModel,
+            () -> receiverRecorder.reflections.size() == 2
+                  && receiverRecorder.timeAdvanceGrantTimes.size() == 1
+                  && publisherRecorder.timeAdvanceGrantTimes.size() == 1,
+            "post-regulation timestamped reflection and grants");
+         Reflection second = receiverRecorder.reflections.get(1);
+         JavaTckSupport.check(object.equals(second.object) && second.values != null
+               && second.values.size() == 1
+               && Arrays.equals(secondValue, second.values.get(receiverAttribute))
+               && producer.equals(second.producer)
+               && Arrays.equals(secondTag, second.tag)
+               && updateTime.equals(second.time)
+               && second.sentOrder == OrderType.TIMESTAMP
+               && second.receivedOrder == OrderType.TIMESTAMP
+               && secondRetraction.handle.equals(second.retraction)
+               && receiverTarget.equals(receiverRecorder.timeAdvanceGrantTimes.get(0)),
+            "timestamped send after Time Regulation returned incorrect TSO metadata");
+         JavaTckSupport.check(receiverRecorder.callbackOrder.size() >= 3
+               && "reflectAttributeValues".equals(receiverRecorder.callbackOrder.get(0))
+               && "reflectAttributeValues".equals(receiverRecorder.callbackOrder.get(1))
+               && "timeAdvanceGrant".equals(receiverRecorder.callbackOrder.get(2)),
+            "sender-role transition returned the wrong reflection/grant callback order");
+      } finally {
+         if (constrained && receiverJoined) {
+            try { receiver.disableTimeConstrained(); } catch (Exception ignored) { }
+         }
+         if (regulating && publisherJoined) {
+            try { publisher.disableTimeRegulation(); } catch (Exception ignored) { }
+         }
+         if (subscribed && receiverJoined) {
+            try { receiver.unsubscribeObjectClassAttributes(receiverClass, receiverAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (published && publisherJoined) {
+            try { publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (receiverJoined) {
+            try { receiver.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined) {
+            try { publisher.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (created) {
+            try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (receiverConnected) {
+            try { receiver.disconnect(); } catch (Exception ignored) { }
+         }
+         if (publisherConnected) {
+            try { publisher.disconnect(); } catch (Exception ignored) { }
+         }
+      }
+   }
+
    private static void checkRetraction(MessageRetractionReturn result, String description) {
       JavaTckSupport.check(result != null && result.retractionHandleIsValid
             && result.handle != null, description + " returned no valid retraction handle");
