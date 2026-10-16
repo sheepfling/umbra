@@ -2830,6 +2830,56 @@
       "exclusion": "Requires the adapter-managed public-server-loss process fixture, its endpoint and callback configuration, an ordinary configured interaction class for its handshake, and configured object class/attribute names."
     },
     {
+      "id": "java-tck.connection-loss-automatic-delete-then-divest",
+      "category": "connection",
+      "title": "Delete the lost member's object and release its retained attribute after connection loss",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.setAutomaticResignDirective",
+        "RTIambassador.getAutomaticResignDirective",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "FederateAmbassador.connectionLost",
+        "FederateAmbassador.requestAttributeOwnershipAssumption",
+        "FederateAmbassador.removeObjectInstance"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-connection-loss-callback",
+        "cpp-1516.1-connection-loss-cleanup",
+        "cpp-1516.1-automatic-resign-directive",
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "connection-lost-api-contract.json",
+        "connection-lost-requirements-contract.json",
+        "support-switches-api-contract.json",
+        "support-switches-service-requirements-contract.json",
+        "standard-connection-loss-automatic-ownership-cleanup-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#connectionLossAutomaticDeleteThenDivest",
+      "parity": "cpp-tck.connection-loss-automatic-delete-then-divest",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-managed public-server-loss fixture, endpoint and callback configuration, an ordinary handshake interaction, and configured object class/attribute names."
+    },
+    {
       "id": "java-tck.connection-loss-automatic-cancel-pending-acquisition",
       "category": "connection",
       "title": "Cancel pending ownership acquisition after adapter-managed member loss",
@@ -8999,7 +9049,7 @@
     {
       "id": "java-tck.timestamped-directed-alternate-advances",
       "category": "time",
-      "title": "Deliver a timestamped directed interaction before Flush Queue, TARA, and NMRA grants",
+      "title": "Deliver a timestamped directed interaction before strict Flush Queue, TARA, and NMRA boundaries",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
@@ -9100,6 +9150,45 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedInteractionRetraction",
       "default_status": "unsupported",
       "exclusion": "Capability-gated time-managed sequence; provider, FOM, logical-time implementation, and callback model are adapter-supplied. Java provider runtime evidence is not yet available."
+    },
+    {
+      "id": "java-tck.timestamped-interaction-publication-send-transition",
+      "category": "time",
+      "title": "Require current publication for timestamped Send Interaction",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction(time)"
+      ],
+      "requirement_ids": [
+        "java-1516.1-interaction-declaration-and-delivery",
+        "java-1516.1-time-advance-and-grant"
+      ],
+      "contract_refs": [
+        "timestamped-interaction-api-contract.json",
+        "timestamped-interaction-requirements-contract.json",
+        "standard-timestamped-interaction-publication-send-transition-api-contract.json",
+        "standard-timestamped-interaction-publication-send-transition-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#timestampedInteractionPublicationSendTransition",
+      "parity": "cpp-tck.timestamped-interaction-publication-send-transition",
+      "default_status": "unsupported",
+      "exclusion": "Provider, FOM, logical-time implementation, endpoint, interaction/parameter names, and callback model are adapter-supplied. Java provider runtime verification remains pending."
     },
     {
       "id": "java-tck.timestamped-interaction-cross-producer-order",
@@ -20293,6 +20382,48 @@
       "exclusion": "Requires a live multi-federate provider, adapter-supplied FOM and logical-time implementation, and callback model; immediate-mode callback servicing uses the adapter-supplied object-class name. Exercises ordinary untimed save/restore and the timestamped-save membership boundary only, with standard APIs."
     },
     {
+      "id": "java-tck.federate-save-initiation-time-constrained-eligibility",
+      "category": "federation-save-restore",
+      "title": "Wait for every time-constrained member to become eligible before untimed save initiation",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.requestFederationSave",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.federateSaveBegun",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "LogicalTimeFactory.makeInitial",
+        "LogicalTimeFactory.makeEpsilon",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.initiateFederateSave",
+        "FederateAmbassador.timeAdvanceGrant",
+        "FederateAmbassador.federationSaved",
+        "FederateAmbassador.federationNotSaved"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-save-lifecycle",
+        "cpp-1516.1-time-advance-request",
+        "cpp-1516.1-time-advance-and-grant"
+      ],
+      "contract_refs": [
+        "federate-save-initiation-eligibility-api-contract.json",
+        "federate-save-initiation-eligibility-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#federateSaveInitiationTimeConstrainedEligibility",
+      "parity": "cpp-tck.federate-save-initiation-time-constrained-eligibility",
+      "default_status": "unsupported",
+      "exclusion": "Requires a Java IEEE 1516.1-2025 provider, adapter-supplied FOM, logical-time implementation, and callback model. Uses only the standard time-role, federation-save, and callback APIs; runtime verification against a Java provider remains pending."
+    },
+    {
       "id": "java-tck.federation-save-restore-interlocks",
       "category": "federation-save-restore-interlocks",
       "title": "Reject ordinary declaration, object, and interaction services during active save and restore",
@@ -23976,6 +24107,62 @@
       "parity": "cpp-tck.delay-subscription-evaluation-attribute-update",
       "default_status": "run",
       "exclusion": "Requires a live two-federate provider, adapter-supplied base FOM and switch-declaration FOM, configured object class and attribute, logical-time implementation, and callback model. Uses only standard IEEE 1516.1-2025 Java APIs."
+    },
+    {
+      "id": "java-tck.delay-subscription-evaluation-receive-order-regional-attribute-update",
+      "category": "delay-subscription-evaluation",
+      "title": "Re-evaluate receive-order regional attribute updates at callback admission using current subscriptions and committed ranges",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution(fomModules)",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getDimensionHandle",
+        "RTIambassador.getDimensionName",
+        "RTIambassador.getAvailableDimensionsForObjectClass",
+        "RTIambassador.getDimensionUpperBound",
+        "RTIambassador.getDelaySubscriptionEvaluationSwitch",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.getConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "RTIambassador.deleteRegion",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues(region designators)"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-187-l10-1",
+        "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
+        "requirement-candidate-content-clauses-08-time-management-page-187-l40-11",
+        "requirement-candidate-content-clauses-08-time-management-page-187-l46-13"
+      ],
+      "mapping_note": "Direct pairs from standard-delay-subscription-evaluation-contract.json: page-187-l10-1 -> §8.1.10 for regional DDM, and page-187-l25-6, page-187-l40-11, page-187-l46-13 -> §8.1.8 for Delay Subscription Evaluation. The test asserts only observable standard callback behavior; the provider, dimensional and switch FOMs, endpoint, callback model, and names are adapter inputs.",
+      "contract_refs": [
+        "standard-delay-subscription-evaluation-contract.json",
+        "receive-order-attribute-update-api-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "object-attribute-region-api-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#delaySubscriptionEvaluationRegionalAttributeUpdate",
+      "parity": "cpp-tck.delay-subscription-evaluation-receive-order-regional-attribute-update",
+      "default_status": "unsupported",
+      "exclusion": "Requires adapter-supplied dimensional and switch-declaration FOMs, configured object/attribute/dimension names, callback model, and an installed IEEE 1516.1-2025 Java provider; Java runtime verification remains pending."
     },
     {
       "id": "java-tck.delay-subscription-evaluation-timestamped-attribute-update",

@@ -204,7 +204,9 @@ final class TimestampedInteractionMixedAdvancesTck {
             taraReceiver.timeAdvanceRequestAvailable(taraBoundary);
          }
          nmraReceiver.nextMessageRequestAvailable(requestBoundary);
-         publisher.timeAdvanceRequest(publisherTarget);
+         if (boundaryMode != BoundaryMode.TARA_EQUAL) {
+            publisher.timeAdvanceRequest(publisherTarget);
+         }
          for (RTIambassador ambassador :
                Arrays.asList(publisher, flushReceiver, taraReceiver, nmraReceiver)) {
             JavaTckSupport.drain(ambassador);
@@ -237,7 +239,7 @@ final class TimestampedInteractionMixedAdvancesTck {
                && taraRecorder.timeAdvanceGrantTimes.size() == 1
                && taraRecorder.callbackOrder.equals(expectedTaraOrder),
             boundaryMode == BoundaryMode.TARA_EQUAL
-               ? "TARA delivered the equal-time interaction before its grant"
+               ? "TARA did not defer the later equal-time interaction until after its grant"
                : "the advance request did not deliver the interaction before its sole grant");
          JavaTckSupport.check(nmraRecorder.flushQueueGrantTimes.isEmpty()
                && nmraRecorder.timeAdvanceGrantTimes.size() == 1

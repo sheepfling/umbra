@@ -26,6 +26,7 @@ SCENARIOS = (
     "java-tck.federate-lost-mom-report",
     "java-tck.automatic-resign-directive-delete-objects",
     "java-tck.connection-loss-automatic-unconditional-divestiture",
+    "java-tck.connection-loss-automatic-delete-then-divest",
     "java-tck.connection-loss-automatic-cancel-pending-acquisition",
 )
 
@@ -94,6 +95,10 @@ def run_model(arguments: argparse.Namespace, model: str, root: Path) -> int:
     (markers / (model + ".mode")).write_text("enabled\n", encoding="utf-8")
     ready = markers / "connection-loss-ready.ok"
     complete = markers / "receiver-loss.ok"
+    if arguments.scenario == "java-tck.connection-loss-automatic-delete-then-divest":
+        (markers / "automatic-delete-then-divest.mode").write_text(
+            "enabled\n", encoding="utf-8"
+        )
     result_file = arguments.results_directory / (model + ".results.json")
     junit_file = arguments.results_directory / (model + ".junit.xml")
 

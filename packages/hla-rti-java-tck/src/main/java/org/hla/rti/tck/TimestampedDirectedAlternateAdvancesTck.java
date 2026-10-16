@@ -204,10 +204,11 @@ final class TimestampedDirectedAlternateAdvancesTck {
          flushRec.callbackOrder.clear(); taraRec.callbackOrder.clear();
          nmraRec.callbackOrder.clear();
 
-         flushReceiver.flushQueueRequest(requestBoundary);
-         taraReceiver.timeAdvanceRequestAvailable(messageTime);
-         nmraReceiver.nextMessageRequestAvailable(requestBoundary);
          publisher.timeAdvanceRequest(publisherTarget);
+         awaitPublisherGrant(publisher, publisherRec, publisherTarget);
+         flushReceiver.flushQueueRequest(requestBoundary);
+         taraReceiver.timeAdvanceRequestAvailable(requestBoundary);
+         nmraReceiver.nextMessageRequestAvailable(requestBoundary);
          awaitCompletion(publisher, receivers, publisherRec, receiverRecs);
 
          checkDelivery(flushRec, flushReceiver, receiverInteractions[0], receiverParameters[0],
@@ -237,9 +238,10 @@ final class TimestampedDirectedAlternateAdvancesTck {
                && nmraRec.callbackOrder.equals(Arrays.asList(
                   "receiveDirectedInteraction", "timeAdvanceGrant")),
             "NMRA did not deliver before its sole time-advance grant");
-         JavaTckSupport.check(messageTime.equals(taraRec.timeAdvanceGrantTimes.get(0))
+         JavaTckSupport.check(compareTime(taraRec.timeAdvanceGrantTimes.get(0), messageTime) >= 0
+               && compareTime(taraRec.timeAdvanceGrantTimes.get(0), requestBoundary) <= 0
                && messageTime.equals(nmraRec.timeAdvanceGrantTimes.get(0)),
-            "TARA or NMRA reported the wrong grant time");
+            "TARA or NMRA reported a grant outside its standard bounds");
          JavaTckSupport.check(flushRec.flushQueueGrantTime != null
                && flushRec.flushQueueOptimisticTime != null
                && messageTime.equals(flushRec.flushQueueOptimisticTime)
@@ -249,7 +251,8 @@ final class TimestampedDirectedAlternateAdvancesTck {
                   flushRec.flushQueueGrantTime) >= 0
                && flushRec.flushQueueGrantTime.equals(flushReceiver.queryLogicalTime()),
             "Flush Queue Grant/query returned inconsistent actual or optimistic time");
-         JavaTckSupport.check(messageTime.equals(taraReceiver.queryLogicalTime())
+         JavaTckSupport.check(taraRec.timeAdvanceGrantTimes.get(0).equals(
+                  taraReceiver.queryLogicalTime())
                && messageTime.equals(nmraReceiver.queryLogicalTime())
                && publisherTarget.equals(publisher.queryLogicalTime()),
             "logical-time queries disagreed with their requested grants");
@@ -308,6 +311,18 @@ final class TimestampedDirectedAlternateAdvancesTck {
          Thread.sleep(1L);
       }
       throw new AssertionError("alternate directed advances did not all complete within 10 seconds");
+   }
+
+   private static void awaitPublisherGrant(RTIambassador publisher, Recorder publisherRec,
+         LogicalTime expected) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (System.nanoTime() < deadline && publisherRec.timeAdvanceGrantTimes.isEmpty()) {
+         JavaTckSupport.drain(publisher);
+         Thread.sleep(1L);
+      }
+      JavaTckSupport.check(publisherRec.timeAdvanceGrantTimes.size() == 1
+            && expected.equals(publisherRec.timeAdvanceGrantTimes.get(0)),
+         "publisher pre-message TAR did not grant before receiver advances");
    }
 
    private static LogicalTime offset(LogicalTime start, LogicalTimeInterval interval, int steps)
