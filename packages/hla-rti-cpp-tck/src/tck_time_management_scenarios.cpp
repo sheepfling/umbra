@@ -520,10 +520,15 @@ void scenarioTimestampedDirectedAlternateAdvances(
   }
   publisher.recorder().clearCallbackOrder();
 
-  flushQueue.rtiAmbassador().flushQueueRequest(*requestBoundary);
-  timeAdvanceAvailable.rtiAmbassador().timeAdvanceRequestAvailable(*messageTime);
-  nextMessageAvailable.rtiAmbassador().nextMessageRequestAvailable(*requestBoundary);
   publisher.rtiAmbassador().timeAdvanceRequest(*publisherTargetTime);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() >= 1U; },
+      options,
+      "timestamped directed alternate-advance producer pre-message grant");
+  flushQueue.rtiAmbassador().flushQueueRequest(*requestBoundary);
+  timeAdvanceAvailable.rtiAmbassador().timeAdvanceRequestAvailable(*requestBoundary);
+  nextMessageAvailable.rtiAmbassador().nextMessageRequestAvailable(*requestBoundary);
 
   auto const deadline = Clock::now() +
       std::chrono::milliseconds(options.timeoutMilliseconds);
@@ -569,7 +574,7 @@ void scenarioTimestampedDirectedAlternateAdvances(
   require(
       timeAdvanceAvailable.recorder().callbackOrder() ==
           std::vector<std::string>{"directed", "grant"},
-      "Time Advance Request Available granted before its already-queued equal-time directed TSO");
+      "Time Advance Request Available granted before its strictly earlier directed TSO");
   require(
       nextMessageAvailable.recorder().callbackOrder() ==
           std::vector<std::string>{"directed", "grant"},
@@ -627,12 +632,16 @@ void scenarioTimestampedDirectedAlternateAdvances(
       flushQueue.recorder().flushQueueGrants().front().optimisticTime ==
           encodeTime(*messageTime),
       "Flush Queue Grant returned the wrong optimistic logical time for directed delivery");
+  auto actualAvailableGrant = decodeTime(
+      *timeAdvanceAvailableTime.factory,
+      timeAdvanceAvailable.recorder().timeAdvanceGrants().front().encoded);
   require(
-      timeAdvanceAvailable.recorder().timeAdvanceGrants().front().encoded ==
-          encodeTime(*messageTime) &&
+      actualAvailableGrant != nullptr &&
+          !(*actualAvailableGrant < *messageTime) &&
+          !(*requestBoundary < *actualAvailableGrant) &&
           nextMessageAvailable.recorder().timeAdvanceGrants().front().encoded ==
               encodeTime(*messageTime),
-      "alternate directed advances returned the wrong grant time");
+      "alternate directed advances returned grant times outside their standard bounds");
 
   for (std::size_t index = 0U; index != members.size(); ++index) {
     auto* member = members.at(index);
@@ -1247,6 +1256,113 @@ void scenarioTimeBoundsQueriesContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimeBoundsQueries(options, model);
+}
+
+void scenarioTimeConstrainedEnableAtGaltEquality(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Time-constrained GALT equality requires an adapter-supplied logical-time implementation");
+
+  Session regulator(options, model, "owner");
+  Session requester(options, model, "member");
+  auto const federation = federationName(options, "time-constrained-enable-galt-equality");
+  connectAndJoin(regulator, requester, options, federation, options.fom);
+  auto regulatorTime = makeTimeContext(regulator);
+  auto requesterTime = makeTimeContext(requester);
+  require(
+      regulatorTime.factory->getName() == requesterTime.factory->getName(),
+      "Time-constrained GALT equality members selected different logical-time factories");
+
+  auto lookahead = regulatorTime.factory->makeZero();
+  require(lookahead != nullptr, "Time-constrained GALT equality could not allocate lookahead");
+  auto const one = timeAfter(
+      *regulatorTime.factory,
+      *regulatorTime.initial,
+      *regulatorTime.epsilon,
+      1U);
+  lookahead->setToDifference(*one, *regulatorTime.initial);
+  regulator.rtiAmbassador().enableTimeRegulation(*lookahead);
+  waitFor(
+      regulator,
+      [&] { return regulator.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "Time-constrained GALT equality regulation callback");
+
+  auto const five = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      5U);
+  requester.rtiAmbassador().timeAdvanceRequest(*five);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "Time-constrained GALT equality unconstrained grant to five");
+  auto observedGalt = requesterTime.factory->makeInitial();
+  require(
+      observedGalt != nullptr && requester.rtiAmbassador().queryGALT(*observedGalt),
+      "Time-constrained GALT equality was undefined before constrained enablement");
+  requireTimeEquals(
+      *observedGalt,
+      *one,
+      "Time-constrained GALT equality pre-enable boundary");
+  requester.rtiAmbassador().enableTimeConstrained();
+  require(
+      requester.recorder().timeConstrainedEnabled().empty(),
+      "Time-constrained GALT equality enabled before GALT reached current time");
+
+  auto const regulatorTargetFour = timeAfter(
+      *regulatorTime.factory,
+      *regulatorTime.initial,
+      *regulatorTime.epsilon,
+      4U);
+  regulator.rtiAmbassador().timeAdvanceRequest(*regulatorTargetFour);
+  waitFor(
+      regulator,
+      [&] { return regulator.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "Time-constrained GALT equality regulator grant to four");
+  auto const regulatorTargetFive = timeAfter(
+      *regulatorTime.factory,
+      *regulatorTime.initial,
+      *regulatorTime.epsilon,
+      5U);
+  regulator.rtiAmbassador().timeAdvanceRequest(*regulatorTargetFive);
+  waitFor(
+      regulator,
+      [&] { return regulator.recorder().timeAdvanceGrants().size() == 2U; },
+      options,
+      "Time-constrained GALT equality subsequent regulator grant");
+  if (model == rti::CallbackModel::HLA_EVOKED) {
+    require(
+        requester.recorder().timeConstrainedEnabled().empty(),
+        "Time-constrained GALT equality callback escaped evoked servicing");
+  }
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "Time-constrained GALT equality callback at current time");
+  require(
+      requester.recorder().timeConstrainedEnabled().front().text == five->toString(),
+      "Time-constrained GALT equality callback returned the wrong logical time");
+
+  requester.rtiAmbassador().disableTimeConstrained();
+  regulator.rtiAmbassador().disableTimeRegulation();
+  requester.resign(rti::NO_ACTION);
+  regulator.resign(rti::NO_ACTION);
+  regulator.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  regulator.disconnect();
+}
+
+void scenarioTimeConstrainedEnableAtGaltEqualityContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedEnableAtGaltEquality(options, model);
 }
 
 void scenarioQueryLitsAfterSourceResignation(

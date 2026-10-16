@@ -2,6 +2,80 @@
 
 namespace hla_rti_cpp_tck::detail {
 
+void scenarioReservedObjectNameDoesNotDiscover(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "reserved-name-publisher");
+  Session subscriber(options, model, "reserved-name-subscriber");
+  auto const federation = federationName(options, "reserved-name-no-discovery");
+  connectAndJoin(publisher, subscriber, options, federation, options.fom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const subscriberClass = subscriber.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const subscriberAttribute = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && subscriberClass.isValid() &&
+          publisherAttribute.isValid() && subscriberAttribute.isValid(),
+      "reserved-name no-discovery lookup returned an invalid handle");
+
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      rti::AttributeHandleSet{publisherAttribute});
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberClass,
+      rti::AttributeHandleSet{subscriberAttribute},
+      true,
+      L"");
+
+  auto const objectName = federation + L"-reserved-without-discovery";
+  subscriber.recorder().clearDiscovery();
+  publisher.recorder().clearReservations();
+  publisher.rtiAmbassador().reserveObjectInstanceName(objectName);
+  waitForSessions(
+      {&publisher, &subscriber},
+      [&] { return publisher.recorder().reservationSucceeded(objectName); },
+      options,
+      "reserved object-name success before registration");
+  require(
+      subscriber.recorder().discoveryCount() == 0U,
+      "Reserve Object Instance Name caused an object-discovery callback");
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass,
+      objectName);
+  require(object.isValid(), "named registration after reservation returned an invalid handle");
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().hasDiscovery(object); },
+      options,
+      "registered object discovery after name reservation");
+  auto const discovery = subscriber.recorder().discovery();
+  require(
+      subscriber.recorder().discoveryCount() == 1U &&
+          discovery.present && discovery.object == object &&
+          discovery.objectClass == subscriberClass && discovery.name == objectName,
+      "registration did not produce exactly one matching discovery after reservation");
+
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberClass,
+      rti::AttributeHandleSet{subscriberAttribute});
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      rti::AttributeHandleSet{publisherAttribute});
+  subscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  subscriber.disconnect();
+  publisher.disconnect();
+}
+
 void scenarioObjectRegistrationDiscoveryLifecycle(
     Options const& options,
     rti::CallbackModel model) {

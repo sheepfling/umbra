@@ -194,6 +194,10 @@
                         <semantics>Derived-class attribute.</semantics>
                     </attribute>
                 </objectClass>
+                <objectClass>
+                    <name>TckClassNameProbe</name>
+                    <sharing>PublishSubscribe</sharing>
+                </objectClass>
             </objectClass>
             <objectClass>
                 <name>TckTransportRegionalObject</name>
@@ -214,6 +218,10 @@
                     <order>Receive</order>
                     <semantics>Portable timestamped regional custom-transport attribute.</semantics>
                 </attribute>
+                <objectClass>
+                    <name>TckClassNameProbe</name>
+                    <sharing>PublishSubscribe</sharing>
+                </objectClass>
             </objectClass>
             <objectClass>
                 <name>TckRateObject</name>

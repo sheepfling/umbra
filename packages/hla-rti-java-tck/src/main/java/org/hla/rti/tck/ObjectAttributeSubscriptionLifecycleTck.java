@@ -238,6 +238,127 @@ final class ObjectAttributeSubscriptionLifecycleTck {
       }
    }
 
+   static void runEmptyAttributeSubscriptionNoOp(RtiFactory factory, String fom, String mim,
+         String timeImplementation, String objectClassName, String attributeName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador subscriber = factory.getRtiAmbassador();
+      Recorder publisherCallbacks = new Recorder();
+      Recorder subscriberCallbacks = new Recorder();
+      String federation = "java-tck-empty-attribute-subscription-" + UUID.randomUUID();
+      boolean publisherConnected = false, subscriberConnected = false, created = false;
+      boolean publisherJoined = false, subscriberJoined = false, subscribed = false;
+      try {
+         publisher.connect(publisherCallbacks.proxy(), callbackModel);
+         publisherConnected = true;
+         subscriber.connect(subscriberCallbacks.proxy(), callbackModel);
+         subscriberConnected = true;
+         publisher.createFederationExecutionWithMIM(
+            federation, new String[] {fom}, mim, timeImplementation);
+         created = true;
+         FederateHandle producer = publisher.joinFederationExecution(
+            "java-tck-empty-subscription-publisher", federation);
+         publisherJoined = true;
+         subscriber.joinFederationExecution("java-tck-empty-subscription-subscriber", federation);
+         subscriberJoined = true;
+
+         ObjectClassHandle publisherClass = publisher.getObjectClassHandle(objectClassName);
+         ObjectClassHandle subscriberClass = subscriber.getObjectClassHandle(objectClassName);
+         AttributeHandle publisherAttribute = publisher.getAttributeHandle(
+            publisherClass, attributeName);
+         AttributeHandle subscriberAttribute = subscriber.getAttributeHandle(
+            subscriberClass, attributeName);
+         JavaTckSupport.check(publisherClass != null && subscriberClass != null
+               && publisherAttribute != null && subscriberAttribute != null,
+            "empty-subscription lookup returned a null class or attribute handle");
+
+         AttributeHandleSet publishedAttributes =
+            JavaTckSupport.attributeSet(publisher, publisherAttribute);
+         AttributeHandleSet subscribedAttributes =
+            JavaTckSupport.attributeSet(subscriber, subscriberAttribute);
+         publisher.publishObjectClassAttributes(publisherClass, publishedAttributes);
+         ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
+         JavaTckSupport.check(object != null && object.encodedLength() > 0,
+            "empty-subscription registration returned an invalid object handle");
+
+         byte[] initialValue = new byte[] {0x45, 0x4d, 0x50, 0x54};
+         byte[] initialTag = new byte[] {0x49, 0x4e, 0x49};
+         sendSingleUpdate(publisher, publisherAttribute, object, initialValue, initialTag);
+         subscriber.subscribeObjectClassAttributes(subscriberClass, subscribedAttributes);
+         subscribed = true;
+         await(subscriber, callbackModel,
+            () -> findDiscovery(subscriberCallbacks.discoveries, object) != null,
+            "empty-subscription initial discovery");
+         await(subscriber, callbackModel, () -> {
+            for (Reflection reflection : subscriberCallbacks.reflections) {
+               if (object.equals(reflection.object)
+                     && reflection.values.containsKey(subscriberAttribute)) return true;
+            }
+            return false;
+         }, "empty-subscription initial reflection");
+
+         subscriber.subscribeObjectClassAttributes(
+            subscriberClass, JavaTckSupport.attributeSet(subscriber));
+         byte[] nextValue = new byte[] {0x4e, 0x4f, 0x2d, 0x4f};
+         byte[] nextTag = new byte[] {0x4e, 0x45, 0x58};
+         sendSingleUpdate(publisher, publisherAttribute, object, nextValue, nextTag);
+         await(subscriber, callbackModel,
+            () -> subscriberCallbacks.reflections.size() >= 2,
+            "empty-subscription retained active update delivery");
+
+         List<Reflection> reflections = subscriberCallbacks.reflections;
+         Reflection last = reflections.get(reflections.size() - 1);
+         JavaTckSupport.check(reflections.size() == 2 && object.equals(last.object)
+               && last.values.size() == 1 && last.values.containsKey(subscriberAttribute)
+               && Arrays.equals(nextValue, last.values.get(subscriberAttribute))
+               && Arrays.equals(nextTag, last.tag),
+            "empty attribute set changed the existing active subscription");
+
+         subscriber.unsubscribeObjectClassAttributes(subscriberClass, subscribedAttributes);
+         subscribed = false;
+         subscriber.resignFederationExecution(ResignAction.NO_ACTION);
+         subscriberJoined = false;
+         publisher.resignFederationExecution(ResignAction.NO_ACTION);
+         publisherJoined = false;
+         publisher.destroyFederationExecution(federation);
+         created = false;
+      } finally {
+         if (subscribed && subscriberJoined) {
+            try {
+               ObjectClassHandle objectClass = subscriber.getObjectClassHandle(objectClassName);
+               AttributeHandle attribute = subscriber.getAttributeHandle(objectClass, attributeName);
+               subscriber.unsubscribeObjectClassAttributes(
+                  objectClass, JavaTckSupport.attributeSet(subscriber, attribute));
+            } catch (Exception ignored) { }
+         }
+         if (subscriberJoined) {
+            try { subscriber.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined) {
+            try { publisher.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (created) {
+            try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (subscriberConnected) {
+            try { subscriber.disconnect(); } catch (Exception ignored) { }
+         }
+         if (publisherConnected) {
+            try { publisher.disconnect(); } catch (Exception ignored) { }
+         }
+      }
+   }
+
+   private static void sendSingleUpdate(RTIambassador publisher, AttributeHandle attribute,
+         ObjectInstanceHandle object, byte[] value, byte[] tag) throws Exception {
+      AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(1);
+      values.put(attribute, value);
+      publisher.updateAttributeValues(object, values, tag);
+   }
+
    private static void sendUpdate(RTIambassador publisher, AttributeHandle attribute,
          AttributeHandle filteredAttribute, ObjectInstanceHandle object, byte[] value,
          byte[] filteredValue, byte[] tag) throws Exception {

@@ -877,6 +877,17 @@ public final class RtiTckMain {
                "cpp-1516.1-object-registration-discovery",
                "cpp-1516.1-federation-create-join-resign-destroy"
             }, false), RtiTckMain::objectAttributeSubscriptionLifecycle);
+      run(new Scenario("java-tck.empty-attribute-subscription-is-no-op",
+            "preserve an existing active attribute subscription after an empty subscription request",
+            "object-attribute-subscription-empty-set-no-op",
+            "RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            new String[] {
+               "requirement-candidate-content-clauses-05-declaration-management-page-096-l102-31",
+               "requirement-candidate-content-clauses-05-declaration-management-page-096-l123-38",
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-attribute-update-reflect",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::emptyAttributeSubscriptionNoOp);
       run(new Scenario("java-tck.object-publication-registration-fence",
             "fence object registration across whole-class unpublication and republication",
             "object-publication-registration-fence",
@@ -8739,6 +8750,8 @@ public final class RtiTckMain {
             method = "namedRegistrationMultiRecipient"; break;
          case "java-tck.object-attribute-subscription-lifecycle":
             method = "objectAttributeSubscriptionLifecycle"; break;
+         case "java-tck.empty-attribute-subscription-is-no-op":
+            method = "emptyAttributeSubscriptionNoOp"; break;
          case "java-tck.object-publication-registration-fence":
             method = "objectPublicationRegistrationFence"; break;
          case "java-tck.object-registration-service-boundaries":
@@ -10573,6 +10586,12 @@ public final class RtiTckMain {
           timeImplementation(),
           objectClassName(), attributeName(), requireAdapterValue(OBJECT_CLASS_SECOND_ATTRIBUTE_PROPERTY),
           callbackModel());
+    }
+
+    private static void emptyAttributeSubscriptionNoOp() throws Exception {
+       ObjectAttributeSubscriptionLifecycleTck.runEmptyAttributeSubscriptionNoOp(
+          factory(), requireFom(), requireMim(), timeImplementation(), objectClassName(),
+          attributeName(), callbackModel());
     }
 
     private static void objectPublicationRegistrationFence() throws Exception {

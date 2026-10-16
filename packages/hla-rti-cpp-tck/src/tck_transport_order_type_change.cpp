@@ -281,6 +281,29 @@ void scenarioTransportationTypeChange(
       "post-confirmation interaction did not use best-effort transport");
 
   owner.recorder().clearTransportationRecords();
+  owner.rtiAmbassador().requestInteractionTransportationTypeChange(
+      ownerInteraction,
+      bestEffort);
+  waitFor(
+      owner,
+      [&] {
+        return owner.recorder().interactionTransportationConfirmations().size() >=
+            1U;
+      },
+      options,
+      "unchanged interaction transportation-type confirmation");
+  auto const unchangedInteractionConfirmations =
+      owner.recorder().interactionTransportationConfirmations();
+  require(
+      unchangedInteractionConfirmations.size() == 1U &&
+          unchangedInteractionConfirmations.front().interaction == ownerInteraction &&
+          sameTransport(
+              owner.rtiAmbassador(),
+              unchangedInteractionConfirmations.front().transportation,
+              L"HLAbestEffort"),
+      "unchanged interaction transportation-type request did not confirm the achieved best-effort type");
+
+  owner.recorder().clearTransportationRecords();
   owner.rtiAmbassador().queryInteractionTransportationType(
       owner.federateHandle(),
       ownerInteraction);

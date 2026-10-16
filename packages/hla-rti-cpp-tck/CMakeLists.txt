@@ -98,9 +98,22 @@ add_executable(hla_rti_cpp_tck
   src/tck_lookup_lifecycle_scenarios.cpp
   src/tck_fom_module_scenarios.cpp
   src/tck_timestamped_attribute_scenarios.cpp
+  src/tck_mixed_order_attribute_passel_retraction.cpp
+  src/tck_timestamped_attribute_sender_regulation_transition.cpp
   src/tck_timestamped_interaction_scenarios.cpp
   src/tck_timestamped_interaction_boundary_scenarios.cpp
   src/tck_time_management_scenarios.cpp
+  src/tck_time_coordinated_interaction.cpp
+  src/tck_empty_attribute_subscription.cpp
+  src/tck_named_update_rate_subscription.cpp
+  src/tck_default_rate_no_reduction.cpp
+  src/tck_accumulating_attribute_subscriptions.cpp
+  src/tck_passive_subscription_no_start_registration.cpp
+  src/tck_selective_attribute_unsubscription.cpp
+  src/tck_whole_class_attribute_unsubscription.cpp
+  src/tck_empty_attribute_unsubscription.cpp
+  src/tck_send_message_time_state_preservation.cpp
+  src/tck_timestamped_interaction_preferred_receive_conversion.cpp
   src/tck_service_report_scenarios.cpp
   src/tck_service_report_lookup_failure_scenarios.cpp
   src/tck_service_report_lookup_scenarios.cpp

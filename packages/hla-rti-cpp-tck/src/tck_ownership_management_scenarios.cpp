@@ -2,6 +2,151 @@
 
 namespace hla_rti_cpp_tck::detail {
 
+void scenarioPrivilegeToDeleteTransfer(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session oldOwner(options, model, "owner");
+  Session newOwner(options, model, "member");
+  Session observer(options, model, "observer");
+  auto const federation = federationName(options, "privilege-to-delete-transfer");
+  connectAndJoin(oldOwner, newOwner, options, federation, options.fom);
+  observer.connect();
+  observer.join(
+      options.memberFederateName + L"-observer",
+      options.federateType,
+      federation);
+
+  auto const oldClass = oldOwner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const newClass = newOwner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const observerClass = observer.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const oldValue = oldOwner.rtiAmbassador().getAttributeHandle(
+      oldClass,
+      options.attributeName);
+  auto const newValue = newOwner.rtiAmbassador().getAttributeHandle(
+      newClass,
+      options.attributeName);
+  auto const observerValue = observer.rtiAmbassador().getAttributeHandle(
+      observerClass,
+      options.attributeName);
+  auto const oldPrivilege = oldOwner.rtiAmbassador().getAttributeHandle(
+      oldClass,
+      L"HLAprivilegeToDeleteObject");
+  auto const newPrivilege = newOwner.rtiAmbassador().getAttributeHandle(
+      newClass,
+      L"HLAprivilegeToDeleteObject");
+  require(
+      oldClass.isValid() && newClass.isValid() && observerClass.isValid() &&
+          oldValue.isValid() && newValue.isValid() && observerValue.isValid() &&
+          oldPrivilege.isValid() && newPrivilege.isValid(),
+      "Delete-privilege scenario could not resolve the configured class or standard attributes");
+
+  rti::AttributeHandleSet const oldValues{oldValue};
+  rti::AttributeHandleSet const newValues{newValue};
+  rti::AttributeHandleSet const observerValues{observerValue};
+  rti::AttributeHandleSet const oldPrivileges{oldPrivilege};
+  rti::AttributeHandleSet const newPrivileges{newPrivilege};
+  oldOwner.rtiAmbassador().publishObjectClassAttributes(oldClass, oldValues);
+  newOwner.rtiAmbassador().subscribeObjectClassAttributes(newClass, newValues);
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      observerClass,
+      observerValues);
+
+  auto const object = oldOwner.rtiAmbassador().registerObjectInstance(oldClass);
+  require(object.isValid(), "Delete-privilege registration returned an invalid handle");
+  waitFor(
+      newOwner,
+      [&] { return newOwner.recorder().hasDiscovery(object); },
+      options,
+      "new-owner object discovery");
+  waitFor(
+      observer,
+      [&] { return observer.recorder().hasDiscovery(object); },
+      options,
+      "observer object discovery");
+  require(
+      oldOwner.rtiAmbassador().isAttributeOwnedByFederate(object, oldPrivilege) &&
+          !newOwner.rtiAmbassador().isAttributeOwnedByFederate(object, newPrivilege),
+      "delete privilege did not initially belong only to the registrant");
+
+  newOwner.rtiAmbassador().publishObjectClassAttributes(newClass, newPrivileges);
+  std::vector<std::uint8_t> const acquisitionTagBytes{0xA5U, 0x25U};
+  std::vector<std::uint8_t> const divestitureTagBytes{0xD1U, 0x25U};
+  rti::VariableLengthData const acquisitionTag(
+      acquisitionTagBytes.data(), acquisitionTagBytes.size());
+  rti::VariableLengthData const divestitureTag(
+      divestitureTagBytes.data(), divestitureTagBytes.size());
+  newOwner.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      newPrivileges,
+      acquisitionTag);
+  rti::AttributeHandleSet divested;
+  oldOwner.rtiAmbassador().attributeOwnershipDivestitureIfWanted(
+      object,
+      oldPrivileges,
+      divestitureTag,
+      divested);
+  require(
+      divested == oldPrivileges,
+      "Divestiture If Wanted did not return the transferred delete privilege");
+  waitFor(
+      newOwner,
+      [&] { return newOwner.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "delete-privilege acquisition notification");
+  auto const acquisition = newOwner.recorder().ownershipAcquisition();
+  require(
+      acquisition->object == object &&
+          acquisition->attributes == newPrivileges &&
+          acquisition->tag == divestitureTagBytes,
+      "delete-privilege acquisition notification returned the wrong object, attributes, or tag");
+  require(
+      !oldOwner.rtiAmbassador().isAttributeOwnedByFederate(object, oldPrivilege) &&
+          newOwner.rtiAmbassador().isAttributeOwnedByFederate(object, newPrivilege),
+      "delete-privilege ownership did not transfer to the acquirer");
+
+  std::vector<std::uint8_t> const deletionTagBytes{0xD3U, 0x1EU, 0x25U};
+  rti::VariableLengthData const deletionTag(
+      deletionTagBytes.data(),
+      deletionTagBytes.size());
+  requireException(
+      [&] { oldOwner.rtiAmbassador().deleteObjectInstance(object, deletionTag); },
+      L"DeletePrivilegeNotHeld",
+      "former registrant deleting after transferring delete privilege");
+  require(
+      observer.recorder().removals().empty(),
+      "failed former-owner deletion produced an object-removal callback");
+
+  newOwner.rtiAmbassador().deleteObjectInstance(object, deletionTag);
+  waitFor(
+      observer,
+      [&] { return observer.recorder().removals().size() == 1U; },
+      options,
+      "object removal after delete-privilege transfer");
+  auto const removals = observer.recorder().removals();
+  require(
+      removals.front().object == object &&
+          removals.front().tag == deletionTagBytes &&
+          removals.front().producer == oldOwner.federateHandle(),
+      "object removal returned the wrong identity, tag, or registrant metadata");
+
+  observer.resign(rti::NO_ACTION);
+  newOwner.resign(rti::NO_ACTION);
+  oldOwner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  oldOwner.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  newOwner.disconnect();
+  oldOwner.disconnect();
+}
+
+void scenarioPrivilegeToDeleteTransferContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioPrivilegeToDeleteTransfer(options, model);
+}
+
 void scenarioOwnership(Options const& options, rti::CallbackModel model) {
   Session lifecycle(options, model, "ownership-lifecycle");
   rti::ObjectInstanceHandle const lifecycleInvalidObject;

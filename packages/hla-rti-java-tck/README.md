@@ -297,6 +297,12 @@ The ordinary subscription-lifecycle scenario also requires a distinct second
 attribute through `hla.rti.tck.objectClassSecondAttribute`; it publishes and
 updates both attributes while subscribing to only the primary one, checking
 that initial and subsequent reflection contain only the subscribed value.
+The opt-in `java-tck.empty-attribute-subscription-is-no-op` case creates an
+active non-empty attribute subscription, submits an empty active set, and
+verifies the original subscription still delivers the next update. The
+adapter supplies the FOM, standard MIM, object class/attribute names, provider,
+logical-time implementation, endpoint, and callback model; Java provider
+runtime remains unverified.
 The passive companion uses the standard passive attribute-set subscription
 operation and verifies that the same complete attribute list and rate are
 reported with the active flag false.

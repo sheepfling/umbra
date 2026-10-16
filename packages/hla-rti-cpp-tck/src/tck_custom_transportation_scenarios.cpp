@@ -1678,10 +1678,15 @@ void scenarioCustomTransportationTimestampedDirectedInteractionAlternateAdvances
   }
   publisher.recorder().clearCallbackOrder();
 
-  flushQueue.rtiAmbassador().flushQueueRequest(*requestBoundary);
-  timeAdvanceAvailable.rtiAmbassador().timeAdvanceRequestAvailable(*messageTime);
-  nextMessageAvailable.rtiAmbassador().nextMessageRequestAvailable(*requestBoundary);
   publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() >= 1U; },
+      alternate,
+      "custom transportation directed alternate-advance producer pre-message grant");
+  flushQueue.rtiAmbassador().flushQueueRequest(*requestBoundary);
+  timeAdvanceAvailable.rtiAmbassador().timeAdvanceRequestAvailable(*requestBoundary);
+  nextMessageAvailable.rtiAmbassador().nextMessageRequestAvailable(*requestBoundary);
   waitForSessions(
       {&publisher, &flushQueue, &timeAdvanceAvailable, &nextMessageAvailable},
       [&] {
@@ -1765,6 +1770,33 @@ void scenarioCustomTransportationTimestampedDirectedInteractionAlternateAdvances
       memberInteractions.at(2),
       memberParameters.at(2),
       nextMessageAvailable);
+  auto queriedPublisherTime = publisherTime.factory->makeInitial();
+  auto queriedFlushQueueTime = flushQueueTime.factory->makeInitial();
+  auto queriedTimeAdvanceAvailableTime =
+      timeAdvanceAvailableTime.factory->makeInitial();
+  auto queriedNextMessageAvailableTime =
+      nextMessageAvailableTime.factory->makeInitial();
+  require(
+      queriedPublisherTime != nullptr && queriedFlushQueueTime != nullptr &&
+          queriedTimeAdvanceAvailableTime != nullptr &&
+          queriedNextMessageAvailableTime != nullptr,
+      "custom transportation directed alternate advances could not allocate query times");
+  publisher.rtiAmbassador().queryLogicalTime(*queriedPublisherTime);
+  flushQueue.rtiAmbassador().queryLogicalTime(*queriedFlushQueueTime);
+  timeAdvanceAvailable.rtiAmbassador().queryLogicalTime(
+      *queriedTimeAdvanceAvailableTime);
+  nextMessageAvailable.rtiAmbassador().queryLogicalTime(
+      *queriedNextMessageAvailableTime);
+  require(
+      encodeTime(*queriedPublisherTime) == encodeTime(*publisherTarget) &&
+          publisher.recorder().timeAdvanceGrants().front().encoded ==
+              encodeTime(*publisherTarget) &&
+          encodeTime(*queriedFlushQueueTime) ==
+              flushQueue.recorder().flushQueueGrants().front().time &&
+          encodeTime(*queriedTimeAdvanceAvailableTime) ==
+              timeAdvanceAvailable.recorder().timeAdvanceGrants().front().encoded &&
+          encodeTime(*queriedNextMessageAvailableTime) == encodeTime(*messageTime),
+      "custom transportation directed alternate-advance logical-time queries disagreed with their grants");
   requireException(
       [&] { publisher.rtiAmbassador().retract(retraction); },
       L"MessageCanNoLongerBeRetracted",

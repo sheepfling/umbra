@@ -77,6 +77,7 @@ void scenarioFederationSaveRestoreInterlocks(
       interlockTime != nullptr,
       "save/restore interlock setup returned no working logical time");
 
+  std::wstring const saveLabel = L"tck-save-restore-interlocks";
   auto checkInterlocks = [&](std::wstring const& expected,
                              std::string const& phase) {
     auto check = [&](auto operation, std::string const& description) {
@@ -93,6 +94,11 @@ void scenarioFederationSaveRestoreInterlocks(
               ownerAttributes);
         },
         "publishing object-class attributes");
+    check(
+        [&] {
+          owner.rtiAmbassador().requestFederationRestore(saveLabel);
+        },
+        "requesting another federation restore");
     check(
         [&] {
           owner.rtiAmbassador().unpublishObjectClass(ownerHandles.objectClass);
@@ -518,7 +524,6 @@ void scenarioFederationSaveRestoreInterlocks(
         "achieving a synchronization point");
   };
 
-  std::wstring const saveLabel = L"tck-save-restore-interlocks";
   owner.rtiAmbassador().requestFederationSave(saveLabel);
   waitForSessions(
       {&owner, &peer},

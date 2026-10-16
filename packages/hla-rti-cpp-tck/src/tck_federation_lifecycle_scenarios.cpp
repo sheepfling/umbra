@@ -451,6 +451,72 @@ void scenarioFederationLifecycleContract(
   scenarioFederationLifecycle(options, model);
 }
 
+void scenarioConnectBeforeFederationAndDisconnectAfterResign(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session federationOwner(options, model, "connect-disconnect-owner");
+  Session federate(options, model, "connect-disconnect-federate");
+  auto const federation = federationName(options, "connect-disconnect-after-resign");
+
+  requireException(
+      [&] {
+        federate.rtiAmbassador().createFederationExecution(
+            federation, options.fom.wstring());
+      },
+      L"NotConnected",
+      "creating a federation execution before Connect");
+
+  federationOwner.connect();
+  federate.connect();
+  federationOwner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  federate.join(options.memberFederateName, options.federateType, federation);
+  federate.resign(rti::NO_ACTION);
+  federate.disconnect();
+
+  requireException(
+      [&] {
+        federate.rtiAmbassador().createFederationExecution(
+            federation, options.fom.wstring());
+      },
+      L"NotConnected",
+      "creating a federation execution after resigning and Disconnect");
+
+  federationOwner.rtiAmbassador().destroyFederationExecution(federation);
+  federationOwner.disconnect();
+}
+
+void scenarioFederationManagementRequiresConnection(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session disconnected(options, model, "federation-management-requires-connection");
+  auto const federation = federationName(options, "requires-connection");
+  requireException(
+      [&] {
+        disconnected.rtiAmbassador().createFederationExecution(
+            federation, options.fom);
+      },
+      L"NotConnected",
+      "creating a federation execution before Connect");
+  requireException(
+      [&] { disconnected.rtiAmbassador().destroyFederationExecution(federation); },
+      L"NotConnected",
+      "destroying a federation execution before Connect");
+  requireException(
+      [&] {
+        disconnected.rtiAmbassador().joinFederationExecution(
+            L"disconnected-member", federation);
+      },
+      L"NotConnected",
+      "joining a federation execution before Connect");
+  requireException(
+      [&] { disconnected.rtiAmbassador().resignFederationExecution(rti::NO_ACTION); },
+      L"NotConnected",
+      "resigning from a federation execution before Connect");
+}
+
 void scenarioStandardExceptionBoundaries(
     Options const& options,
     rti::CallbackModel model) {
@@ -1019,10 +1085,12 @@ void scenarioPostResignationServiceBoundariesContract(
 void scenarioUnnamedJoinOverload(Options const& options, rti::CallbackModel model) {
   Session owner(options, model, "unnamed-join-owner");
   Session member(options, model, "unnamed-join-member");
+  Session secondUnnamed(options, model, "unnamed-join-second-unnamed");
   Session observer(options, model, "unnamed-join-observer");
   auto const federation = federationName(options, "unnamed-join-overload");
   owner.connect();
   member.connect();
+  secondUnnamed.connect();
   observer.connect();
   owner.rtiAmbassador().createFederationExecution(
       federation,
@@ -1035,11 +1103,25 @@ void scenarioUnnamedJoinOverload(Options const& options, rti::CallbackModel mode
   require(
       unnamedHandle.isValid(),
       "unnamed join overload returned an invalid federate handle");
+  auto const generatedName = owner.rtiAmbassador().getFederateName(unnamedHandle);
   require(
-      owner.rtiAmbassador().getFederateName(unnamedHandle).size() > 0U &&
-          owner.rtiAmbassador().getFederateHandle(
-              owner.rtiAmbassador().getFederateName(unnamedHandle)) == unnamedHandle,
+      !generatedName.empty() && generatedName != options.memberFederateName &&
+          owner.rtiAmbassador().getFederateHandle(generatedName) == unnamedHandle,
       "unnamed join overload did not establish a reversible generated federate name");
+
+  auto const secondUnnamedHandle = secondUnnamed.rtiAmbassador().joinFederationExecution(
+      options.federateType,
+      federation);
+  require(
+      secondUnnamedHandle.isValid(),
+      "second unnamed join overload returned an invalid federate handle");
+  auto const secondGeneratedName =
+      secondUnnamed.rtiAmbassador().getFederateName(secondUnnamedHandle);
+  require(
+      !secondGeneratedName.empty() && secondGeneratedName != generatedName &&
+          secondUnnamed.rtiAmbassador().getFederateHandle(secondGeneratedName) ==
+              secondUnnamedHandle,
+      "unnamed joins did not receive distinct, reversible generated federate names");
 
   auto const memberHandle = member.rtiAmbassador().joinFederationExecution(
       options.memberFederateName,
@@ -1050,20 +1132,26 @@ void scenarioUnnamedJoinOverload(Options const& options, rti::CallbackModel mode
   observer.rtiAmbassador().listFederationExecutionMembers(federation);
   waitFor(
       observer,
-      [&] { return observer.recorder().listsMembers(federation, {}, 2U); },
+      [&] { return observer.recorder().listsMembers(federation, {}, 3U); },
       options,
       "unnamed join federation member report");
   require(
       observer.recorder().listsMember(
           federation,
           options.memberFederateName,
-          options.federateType),
-      "unnamed join member report omitted the named control federate");
+          options.federateType) &&
+          observer.recorder().listsMember(
+              federation, generatedName, options.federateType) &&
+          observer.recorder().listsMember(
+              federation, secondGeneratedName, options.federateType),
+      "unnamed join member report omitted a generated or named federate");
 
   member.rtiAmbassador().resignFederationExecution(rti::NO_ACTION);
+  secondUnnamed.rtiAmbassador().resignFederationExecution(rti::NO_ACTION);
   owner.rtiAmbassador().resignFederationExecution(rti::NO_ACTION);
   owner.rtiAmbassador().destroyFederationExecution(federation);
   observer.disconnect();
+  secondUnnamed.disconnect();
 }
 
 void scenarioUnnamedJoinOverloadContract(

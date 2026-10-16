@@ -1,11 +1,128 @@
 #include "tck_receive_order_callback_cancellation.hpp"
 #include "tck_main_scenarios.hpp"
 
+#include <algorithm>
 #include <cstdint>
 #include <string>
 #include <vector>
 
 namespace hla_rti_cpp_tck::detail {
+
+void scenarioAsynchronousAttributeDelivery(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "asynchronous-attribute-publisher");
+  Session receiver(options, model, "asynchronous-attribute-receiver");
+  auto const federation = federationName(options, "asynchronous-attribute-delivery");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass, options.attributeName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverClass, options.attributeName);
+  require(
+      publisherClass.isValid() && receiverClass.isValid() &&
+          publisherAttribute.isValid() && receiverAttribute.isValid(),
+      "asynchronous attribute delivery could not resolve adapter FOM handles");
+
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass, rti::AttributeHandleSet{publisherAttribute});
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverClass, rti::AttributeHandleSet{receiverAttribute});
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(object); },
+      options,
+      "asynchronous attribute delivery object discovery");
+
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return !receiver.recorder().timeConstrainedEnabled().empty(); },
+      options,
+      "asynchronous attribute delivery time-constrained callback");
+
+  auto sendValue = [&](std::uint8_t valueByte, std::vector<std::uint8_t> const& tagBytes) {
+    std::vector<std::uint8_t> valueBytes{valueByte};
+    rti::AttributeHandleValueMap values;
+    values.emplace(
+        publisherAttribute,
+        rti::VariableLengthData(valueBytes.data(), valueBytes.size()));
+    rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+    publisher.rtiAmbassador().updateAttributeValues(object, values, tag);
+  };
+  auto pumpReceiver = [&] {
+    for (int pass = 0; pass != 8; ++pass) receiver.pump();
+  };
+  auto requireLastReflection = [&](std::size_t expectedCount,
+                                   std::uint8_t expectedValue,
+                                   std::vector<std::uint8_t> const& expectedTag,
+                                   std::string const& description) {
+    auto const records = receiver.recorder().reflections();
+    require(records.size() == expectedCount, description + " returned the wrong callback count");
+    auto const& reflected = records.back();
+    require(reflected.object == object, description + " returned the wrong object handle");
+    require(
+        reflected.values.size() == 1U &&
+            reflected.values.count(receiverAttribute) == 1U,
+        description + " returned the wrong attribute set");
+    std::vector<std::uint8_t> const expectedValueBytes{expectedValue};
+    require(
+        copyBytes(reflected.values.at(receiverAttribute)) == expectedValueBytes,
+        description + " returned the wrong attribute value");
+    require(reflected.tag == expectedTag, description + " returned the wrong tag");
+    require(
+        reflected.producer == publisher.federateHandle(),
+        description + " returned the wrong producing federate");
+  };
+
+  std::vector<std::uint8_t> const firstTag{0x31U, 0x32U};
+  sendValue(0x41U, firstTag);
+  pumpReceiver();
+  require(
+      receiver.recorder().reflectionCount() == 0U,
+      "receive-order reflection passed while asynchronous delivery was disabled");
+  receiver.rtiAmbassador().enableAsynchronousDelivery();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().reflectionCount() == 1U; },
+      options,
+      "asynchronous attribute delivery first reflection");
+  requireLastReflection(
+      1U, 0x41U, firstTag, "released asynchronous attribute reflection");
+
+  receiver.rtiAmbassador().disableAsynchronousDelivery();
+  std::vector<std::uint8_t> const secondTag{0x51U, 0x52U};
+  sendValue(0x42U, secondTag);
+  pumpReceiver();
+  require(
+      receiver.recorder().reflectionCount() == 1U,
+      "disabling asynchronous delivery did not gate the next reflection");
+  receiver.rtiAmbassador().enableAsynchronousDelivery();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().reflectionCount() == 2U; },
+      options,
+      "asynchronous attribute delivery second reflection");
+  requireLastReflection(
+      2U, 0x42U, secondTag, "re-released asynchronous attribute reflection");
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      receiverClass, rti::AttributeHandleSet{receiverAttribute});
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass, rti::AttributeHandleSet{publisherAttribute});
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
 
 void scenarioReceiveOrderAttributeUpdateCallbackCancellation(
     Options const& options,
@@ -165,6 +282,159 @@ void scenarioReceiveOrderAttributeUpdateCallbackCancellationContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioReceiveOrderAttributeUpdateCallbackCancellation(options, model);
+}
+
+void scenarioReceiveOrderAttributeUpdateReceiverResignationFenceContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "receiver-resignation callback fencing requires an adapter-supplied FOM");
+
+  Session publisher(options, model, "owner");
+  Session receiver(options, model, "member");
+  Session control(options, model, "resignation-fence-control");
+  auto const federation = federationName(
+      options,
+      "receive-order-attribute-update-receiver-resignation-fence");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+  control.connect();
+  control.join(
+      options.memberFederateName + L"-resignation-fence-control",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass, options.attributeName);
+  auto const receiverClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverClass, options.attributeName);
+  auto const controlClass = control.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const controlAttribute = control.rtiAmbassador().getAttributeHandle(
+      controlClass, options.attributeName);
+  require(
+      publisherClass.isValid() && publisherAttribute.isValid() &&
+          receiverClass.isValid() && receiverAttribute.isValid() &&
+          controlClass.isValid() && controlAttribute.isValid(),
+      "receiver-resignation callback-fence lookup returned an invalid handle");
+
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass, rti::AttributeHandleSet{publisherAttribute});
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverClass, rti::AttributeHandleSet{receiverAttribute});
+  control.rtiAmbassador().subscribeObjectClassAttributes(
+      controlClass, rti::AttributeHandleSet{controlAttribute});
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(object.isValid(), "receiver-resignation callback-fence registration returned an invalid handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(object); },
+      options,
+      "receiver-resignation callback-fence receiver discovery");
+  waitFor(
+      control,
+      [&] { return control.recorder().hasDiscovery(object); },
+      options,
+      "receiver-resignation callback-fence control discovery");
+  receiver.recorder().clearReflection();
+  control.recorder().clearReflection();
+
+  std::vector<std::uint8_t> const value{0xD3U};
+  rti::AttributeHandleValueMap values;
+  values.emplace(
+      publisherAttribute, rti::VariableLengthData(value.data(), value.size()));
+  std::vector<std::uint8_t> const oldTag{0xE1U};
+  publisher.rtiAmbassador().updateAttributeValues(
+      object, values, rti::VariableLengthData(oldTag.data(), oldTag.size()));
+  waitFor(
+      control,
+      [&] { return control.recorder().reflectionCount() == 1U; },
+      options,
+      "receiver-resignation callback-fence control old reflection");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().reflectionCount() == 1U; },
+      options,
+      "receiver-resignation callback-fence receiver old reflection");
+  require(
+      control.recorder().reflection().tag == oldTag &&
+          receiver.recorder().reflection().tag == oldTag,
+      "receiver-resignation callback-fence pre-resignation update was not delivered");
+
+  // Complete the old membership's callback before resignation; do not infer
+  // callback-queue cancellation semantics across a later rejoin.
+  receiver.resign(rti::NO_ACTION);
+  receiver.recorder().clearDiscovery();
+  receiver.join(options.memberFederateName, options.federateType, federation);
+  auto const rejoinedClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const rejoinedAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      rejoinedClass, options.attributeName);
+  require(
+      rejoinedClass.isValid() && rejoinedAttribute.isValid(),
+      "receiver-resignation callback-fence rejoin returned invalid declaration handles");
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      rejoinedClass, rti::AttributeHandleSet{rejoinedAttribute});
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(object); },
+      options,
+      "receiver-resignation callback-fence post-rejoin discovery");
+  receiver.recorder().clearReflection();
+  auto const hasTag = [&](std::vector<std::uint8_t> const& tagBytes) {
+    auto const reflections = receiver.recorder().reflections();
+    return std::any_of(
+        reflections.begin(), reflections.end(),
+        [&](auto const& reflection) { return reflection.tag == tagBytes; });
+  };
+  std::vector<std::uint8_t> const newTag{0xE2U};
+  publisher.rtiAmbassador().updateAttributeValues(
+      object, values, rti::VariableLengthData(newTag.data(), newTag.size()));
+  waitFor(
+      receiver,
+      [&] { return hasTag(newTag); },
+      options,
+      "receiver-resignation callback-fence new membership reflection");
+  for (int pass = 0; pass != 8; ++pass) {
+    receiver.pump();
+  }
+  auto const reflections = receiver.recorder().reflections();
+  auto const newCount = std::count_if(
+      reflections.begin(), reflections.end(),
+      [&](auto const& reflection) { return reflection.tag == newTag; });
+  require(
+      newCount == 1,
+      "receiver-resignation callback-fence did not deliver exactly one post-rejoin update");
+  auto const newReflection = std::find_if(
+      reflections.begin(), reflections.end(),
+      [&](auto const& reflection) { return reflection.tag == newTag; });
+  require(
+      newReflection->transportation.isValid(),
+      "receiver-resignation callback-fence returned an invalid transportation handle");
+  auto const transportationName =
+      receiver.rtiAmbassador().getTransportationTypeName(newReflection->transportation);
+  require(
+      newReflection->object == object &&
+          newReflection->tag == newTag &&
+          !transportationName.empty() &&
+          !newReflection->regions.has_value() &&
+          newReflection->values.size() == 1U &&
+          newReflection->values.count(rejoinedAttribute) == 1U &&
+          copyBytes(newReflection->values.at(rejoinedAttribute)) == value &&
+          newReflection->producer == publisher.federateHandle(),
+      "receiver-resignation callback-fence changed the new update payload");
+
+  receiver.resign(rti::NO_ACTION);
+  control.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  control.disconnect();
+  receiver.disconnect();
+  publisher.disconnect();
 }
 
 void scenarioReceiveOrderMultiAttributeUpdateCallbackCancellation(

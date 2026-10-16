@@ -98,8 +98,11 @@ void scenarioInheritedObjectAttributeProjection(
   auto const objectName = publisher.rtiAmbassador().getObjectInstanceName(object);
   require(
       !objectName.empty() &&
-          publisher.rtiAmbassador().getObjectInstanceHandle(objectName) == object,
-      "inherited object attribute projection registration did not round-trip its identity");
+          publisher.rtiAmbassador().getObjectInstanceHandle(objectName) == object &&
+          publisher.rtiAmbassador().getKnownObjectClassHandle(object) ==
+              publisherDerivedClass,
+      "inherited object attribute projection registration did not preserve its identity "
+      "and actual class");
 
   waitFor(
       baseSubscriber,
@@ -115,6 +118,12 @@ void scenarioInheritedObjectAttributeProjection(
       baseSubscriber.recorder().discoveryCount() == 1U &&
           derivedSubscriber.recorder().discoveryCount() == 1U,
       "inherited object attribute projection delivered duplicate discovery callbacks");
+  auto const baseDiscovery = baseSubscriber.recorder().discovery();
+  auto const derivedDiscovery = derivedSubscriber.recorder().discovery();
+  require(
+      baseDiscovery.objectClass == baseClass &&
+          derivedDiscovery.objectClass == derivedClass,
+      "inherited object discovery did not report the closest subscribed class");
   for (auto* subscriber : {&baseSubscriber, &derivedSubscriber}) {
     auto const discovery = subscriber->recorder().discovery();
     require(

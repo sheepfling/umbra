@@ -1053,6 +1053,18 @@ void scenarioFomModel(Options const& options, rti::CallbackModel model) {
           options.typedDerivedInteractionClassName);
   require(typedObject.isValid() && typedDerivedObject.isValid(),
           "FOM model object class lookup returned an invalid handle");
+  auto const firstQualifiedProbe = owner.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.TckTypedObject.TckClassNameProbe");
+  auto const secondQualifiedProbe = owner.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.TckTransportRegionalObject.TckClassNameProbe");
+  require(firstQualifiedProbe.isValid() && secondQualifiedProbe.isValid() &&
+              firstQualifiedProbe != secondQualifiedProbe,
+          "duplicate local object-class names did not resolve to distinct valid handles");
+  require(owner.rtiAmbassador().getObjectClassName(firstQualifiedProbe) ==
+              L"HLAobjectRoot.TckTypedObject.TckClassNameProbe" &&
+              owner.rtiAmbassador().getObjectClassName(secondQualifiedProbe) ==
+                  L"HLAobjectRoot.TckTransportRegionalObject.TckClassNameProbe",
+          "qualified object-class paths did not round-trip through handles");
   require(typedInteraction.isValid() && typedDerivedInteraction.isValid(),
           "FOM model interaction class lookup returned an invalid handle");
   require(
@@ -1350,5 +1362,33 @@ void scenarioFomModel(Options const& options, rti::CallbackModel model) {
   owner.resign(rti::DELETE_OBJECTS);
   member.resign(rti::NO_ACTION);
 }
+
+void scenarioFomQualifiedClassNameIdentity(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(!options.modelFom.empty(), "FOM model input was not supplied by the adapter");
+  Session session(options, model, "fom-qualified-class-name");
+  auto const federation = federationName(options, "fom-qualified-class-name");
+  session.connect();
+  session.rtiAmbassador().createFederationExecution(
+      federation,
+      options.modelFom.wstring(),
+      options.logicalTimeImplementationName);
+  session.join(options.ownerFederateName, options.federateType, federation);
+  auto const first = session.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.TckTypedObject.TckClassNameProbe");
+  auto const second = session.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.TckTransportRegionalObject.TckClassNameProbe");
+  require(first.isValid() && second.isValid() && first != second,
+          "duplicate local object-class names did not resolve to distinct handles");
+  require(session.rtiAmbassador().getObjectClassName(first) ==
+              L"HLAobjectRoot.TckTypedObject.TckClassNameProbe" &&
+              session.rtiAmbassador().getObjectClassName(second) ==
+                  L"HLAobjectRoot.TckTransportRegionalObject.TckClassNameProbe",
+          "qualified object-class names did not round-trip through handles");
+  session.resign(rti::NO_ACTION);
+  session.disconnect();
+}
+
 
 }  // namespace hla_rti_cpp_tck::detail

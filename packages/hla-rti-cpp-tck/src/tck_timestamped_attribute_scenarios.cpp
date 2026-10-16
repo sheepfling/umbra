@@ -1507,6 +1507,7 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
   Session flushQueue(options, model, "member");
   Session timeAdvanceAvailable(options, model, "member");
   Session nextMessageAvailable(options, model, "member");
+  Session nextMessageRequest(options, model, "member");
   auto const federation = federationName(
       options,
       "timestamped-attribute-update-alternate-advances");
@@ -1515,6 +1516,7 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
   flushQueue.connect();
   timeAdvanceAvailable.connect();
   nextMessageAvailable.connect();
+  nextMessageRequest.connect();
   publisher.rtiAmbassador().createFederationExecution(
       federation,
       options.fom.wstring(),
@@ -1532,6 +1534,10 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
       options.memberFederateName + L"-attribute-next-message-available",
       options.federateType,
       federation);
+  nextMessageRequest.join(
+      options.memberFederateName + L"-attribute-next-message-request",
+      options.federateType,
+      federation);
 
   auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
       options.objectClassName);
@@ -1546,6 +1552,7 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
       &flushQueue,
       &timeAdvanceAvailable,
       &nextMessageAvailable,
+      &nextMessageRequest,
   };
   std::vector<rti::ObjectClassHandle> memberClasses;
   std::vector<rti::AttributeHandle> memberAttributes;
@@ -1581,6 +1588,17 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
         L"");
   }
 
+  auto const nmrIndex = members.size() - 1U;
+  rti::AttributeHandleSet nmrPublishedAttributes;
+  nmrPublishedAttributes.insert(memberAttributes.at(nmrIndex));
+  nextMessageRequest.rtiAmbassador().publishObjectClassAttributes(
+      memberClasses.at(nmrIndex),
+      nmrPublishedAttributes);
+  nextMessageRequest.rtiAmbassador().changeDefaultAttributeOrderType(
+      memberClasses.at(nmrIndex),
+      nmrPublishedAttributes,
+      rti::TIMESTAMP);
+
   auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
   require(
       object.isValid(),
@@ -1592,15 +1610,30 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
         options,
         "Timestamped attribute-update alternate-advance discovery");
   }
+  auto const nmrObject = nextMessageRequest.rtiAmbassador().registerObjectInstance(
+      memberClasses.at(nmrIndex));
+  require(
+      nmrObject.isValid(),
+      "Timestamped attribute-update NMR sender registration returned an invalid handle");
+  for (std::size_t index = 0U; index != nmrIndex; ++index) {
+    auto* member = members.at(index);
+    waitFor(
+        *member,
+        [&] { return member->recorder().hasDiscovery(nmrObject); },
+        options,
+        "Timestamped attribute-update NMR sender-object discovery");
+  }
 
   auto publisherTime = makeTimeContext(publisher);
   auto flushQueueTime = makeTimeContext(flushQueue);
   auto timeAdvanceAvailableTime = makeTimeContext(timeAdvanceAvailable);
   auto nextMessageAvailableTime = makeTimeContext(nextMessageAvailable);
+  auto nextMessageRequestTime = makeTimeContext(nextMessageRequest);
   require(
       publisherTime.factory->getName() == flushQueueTime.factory->getName() &&
           publisherTime.factory->getName() == timeAdvanceAvailableTime.factory->getName() &&
-          publisherTime.factory->getName() == nextMessageAvailableTime.factory->getName(),
+          publisherTime.factory->getName() == nextMessageAvailableTime.factory->getName() &&
+          publisherTime.factory->getName() == nextMessageRequestTime.factory->getName(),
       "Timestamped attribute-update alternate-advance members selected different logical-time factories");
 
   for (auto* member : members) {
@@ -1617,6 +1650,12 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
       [&] { return publisher.recorder().timeRegulationEnabled().size() >= 1U; },
       options,
       "Timestamped attribute-update alternate-advance time-regulation callback");
+  nextMessageRequest.rtiAmbassador().enableTimeRegulation(*nextMessageRequestTime.epsilon);
+  waitFor(
+      nextMessageRequest,
+      [&] { return nextMessageRequest.recorder().timeRegulationEnabled().size() >= 1U; },
+      options,
+      "Timestamped attribute-update NMR requester time-regulation callback");
 
   auto const messageTime = timeAfter(
       *publisherTime.factory,
@@ -1661,9 +1700,11 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
   flushQueue.rtiAmbassador().flushQueueRequest(*requestBoundary);
   timeAdvanceAvailable.rtiAmbassador().timeAdvanceRequestAvailable(*messageTime);
   nextMessageAvailable.rtiAmbassador().nextMessageRequestAvailable(*requestBoundary);
+  nextMessageRequest.rtiAmbassador().nextMessageRequest(*requestBoundary);
   publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
   waitForSessions(
-      {&publisher, &flushQueue, &timeAdvanceAvailable, &nextMessageAvailable},
+      {&publisher, &flushQueue, &timeAdvanceAvailable, &nextMessageAvailable,
+       &nextMessageRequest},
       [&] {
         return publisher.recorder().timeAdvanceGrants().size() >= 1U &&
             flushQueue.recorder().timedReflections().size() >= 1U &&
@@ -1671,7 +1712,9 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
             timeAdvanceAvailable.recorder().timedReflections().size() >= 1U &&
             timeAdvanceAvailable.recorder().timeAdvanceGrants().size() >= 1U &&
             nextMessageAvailable.recorder().timedReflections().size() >= 1U &&
-            nextMessageAvailable.recorder().timeAdvanceGrants().size() >= 1U;
+            nextMessageAvailable.recorder().timeAdvanceGrants().size() >= 1U &&
+            nextMessageRequest.recorder().timedReflections().size() >= 1U &&
+            nextMessageRequest.recorder().timeAdvanceGrants().size() >= 1U;
       },
       options,
       "Timestamped attribute-update alternate-advance deliveries and grants");
@@ -1695,6 +1738,11 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
           nextMessageAvailable.recorder().flushQueueGrants().empty(),
       "Timestamped attribute-update Next Message Request Available returned the wrong callback pair");
   require(
+      nextMessageRequest.recorder().timedReflections().size() == 1U &&
+          nextMessageRequest.recorder().timeAdvanceGrants().size() == 1U &&
+          nextMessageRequest.recorder().flushQueueGrants().empty(),
+      "Timestamped attribute-update Next Message Request returned the wrong callback pair");
+  require(
       flushQueue.recorder().callbackOrder() ==
           std::vector<std::string>{"reflect", "flush-grant"},
       "Timestamped attribute-update Flush Queue Request granted before reflection");
@@ -1706,6 +1754,10 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
       nextMessageAvailable.recorder().callbackOrder() ==
           std::vector<std::string>{"reflect", "grant"},
       "Timestamped attribute-update Next Message Request Available granted before reflection");
+  require(
+      nextMessageRequest.recorder().callbackOrder() ==
+          std::vector<std::string>{"reflect", "grant"},
+      "Timestamped attribute-update Next Message Request granted before reflection");
 
   auto assertReflection = [&](TimedReflectionRecord const& record,
                               rti::AttributeHandle const& expectedAttribute,
@@ -1750,6 +1802,10 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
       nextMessageAvailable.recorder().timedReflections().front(),
       memberAttributes.at(2),
       nextMessageAvailable);
+  assertReflection(
+      nextMessageRequest.recorder().timedReflections().front(),
+      memberAttributes.at(3),
+      nextMessageRequest);
 
   require(
       publisher.recorder().timeAdvanceGrants().front().encoded ==
@@ -1759,6 +1815,8 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
       timeAdvanceAvailable.recorder().timeAdvanceGrants().front().encoded ==
               encodeTime(*messageTime) &&
           nextMessageAvailable.recorder().timeAdvanceGrants().front().encoded ==
+              encodeTime(*messageTime) &&
+          nextMessageRequest.recorder().timeAdvanceGrants().front().encoded ==
               encodeTime(*messageTime),
       "Timestamped attribute-update alternate-advance returned the wrong grant time");
 
@@ -1795,6 +1853,45 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
       *queriedNextMessageAvailable,
       *messageTime,
       "Timestamped attribute-update alternate-advance NMRA query");
+  auto queriedNextMessageRequest = nextMessageRequestTime.factory->makeInitial();
+  nextMessageRequest.rtiAmbassador().queryLogicalTime(*queriedNextMessageRequest);
+  requireTimeEquals(
+      *queriedNextMessageRequest,
+      *messageTime,
+      "Timestamped attribute-update alternate-advance NMR query");
+
+  auto queriedNmrLookahead = nextMessageRequestTime.factory->makeZero();
+  nextMessageRequest.rtiAmbassador().queryLookahead(*queriedNmrLookahead);
+  require(
+      *queriedNmrLookahead == *nextMessageRequestTime.epsilon,
+      "Timestamped attribute-update NMR lookahead changed unexpectedly");
+  auto const outgoingTime = timeAfter(
+      *nextMessageRequestTime.factory,
+      *queriedNextMessageRequest,
+      *queriedNmrLookahead,
+      2U);
+  std::vector<std::uint8_t> const outgoingValueBytes{
+      0x41U, 0x54U, 0x54U, 0x52U, 0x2DU, 0x42U};
+  rti::AttributeHandleValueMap outgoingValues;
+  outgoingValues.emplace(
+      memberAttributes.at(nmrIndex),
+      rti::VariableLengthData(
+          outgoingValueBytes.data(),
+          outgoingValueBytes.size()));
+  auto const outgoingRetraction = nextMessageRequest.rtiAmbassador().updateAttributeValues(
+      nmrObject,
+      outgoingValues,
+      tag,
+      *outgoingTime);
+  require(
+      outgoingRetraction.isValid(),
+      "Timestamped attribute-update NMR post-grant update at time 7 returned an invalid retraction handle");
+  auto logicalTimeAfterNmrSend = nextMessageRequestTime.factory->makeInitial();
+  nextMessageRequest.rtiAmbassador().queryLogicalTime(*logicalTimeAfterNmrSend);
+  requireTimeEquals(
+      *logicalTimeAfterNmrSend,
+      *messageTime,
+      "Timestamped attribute-update NMR post-grant send logical-time query");
 
   requireException(
       [&] { publisher.rtiAmbassador().retract(retraction); },
@@ -1804,6 +1901,7 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
   for (auto* member : members) {
     member->rtiAmbassador().disableTimeConstrained();
   }
+  nextMessageRequest.rtiAmbassador().disableTimeRegulation();
   publisher.rtiAmbassador().disableTimeRegulation();
   for (std::size_t index = 0U; index != members.size(); ++index) {
     members.at(index)->rtiAmbassador().unsubscribeObjectClassAttributes(
@@ -1813,12 +1911,17 @@ void scenarioTimestampedAttributeUpdateAlternateAdvances(
   publisher.rtiAmbassador().unpublishObjectClassAttributes(
       publisherClass,
       publisherAttributes);
+  nextMessageRequest.rtiAmbassador().unpublishObjectClassAttributes(
+      memberClasses.at(nmrIndex),
+      nmrPublishedAttributes);
+  nextMessageRequest.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
   nextMessageAvailable.resign(rti::NO_ACTION);
   timeAdvanceAvailable.resign(rti::NO_ACTION);
   flushQueue.resign(rti::NO_ACTION);
   publisher.resign(rti::NO_ACTION);
   publisher.rtiAmbassador().destroyFederationExecution(federation);
   nextMessageAvailable.disconnect();
+  nextMessageRequest.disconnect();
   timeAdvanceAvailable.disconnect();
   flushQueue.disconnect();
   publisher.disconnect();
@@ -4459,6 +4562,318 @@ void scenarioTimestampedDefaultRegionAttributeMixedFanoutContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedDefaultRegionAttributeMixedFanout(options, model);
+}
+
+void scenarioTimestampedAttributeUpdateTarPostGrantCutoff(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "timestamped attribute post-grant cutoff requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "owner");
+  Session receiver(options, model, "member");
+  Session frontier(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "timestamped-attribute-update-tar-post-grant-cutoff");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+  frontier.connect();
+  frontier.join(
+      options.memberFederateName + L"-frontier",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && receiverClass.isValid() &&
+          publisherAttribute.isValid() && receiverAttribute.isValid(),
+      "timestamped attribute post-grant cutoff could not resolve the adapter class or attribute");
+
+  rti::AttributeHandleSet publisherAttributes;
+  publisherAttributes.insert(publisherAttribute);
+  rti::AttributeHandleSet receiverAttributes;
+  receiverAttributes.insert(receiverAttribute);
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  publisher.rtiAmbassador().changeDefaultAttributeOrderType(
+      publisherClass,
+      publisherAttributes,
+      rti::TIMESTAMP);
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes,
+      true,
+      L"");
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      object.isValid(),
+      "timestamped attribute post-grant cutoff registration returned an invalid handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(object); },
+      options,
+      "timestamped attribute post-grant cutoff discovery");
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  auto frontierTime = makeTimeContext(frontier);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName() &&
+          publisherTime.factory->getName() == frontierTime.factory->getName() &&
+          encodeTime(*publisherTime.initial) == encodeTime(*receiverTime.initial) &&
+          encodeTime(*publisherTime.initial) == encodeTime(*frontierTime.initial),
+      "timestamped attribute post-grant cutoff members selected incompatible logical times");
+
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() >= 1U; },
+      options,
+      "timestamped attribute post-grant cutoff receiver time-constrained callback");
+  frontier.rtiAmbassador().enableTimeRegulation(*frontierTime.epsilon);
+  waitFor(
+      frontier,
+      [&] { return frontier.recorder().timeRegulationEnabled().size() >= 1U; },
+      options,
+      "timestamped attribute post-grant cutoff frontier time-regulation callback");
+
+  auto const receiverAtFive = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      5U);
+  auto const frontierAtFive = timeAfter(
+      *frontierTime.factory,
+      *frontierTime.initial,
+      *frontierTime.epsilon,
+      5U);
+  frontier.rtiAmbassador().timeAdvanceRequest(*frontierAtFive);
+  waitFor(
+      frontier,
+      [&] { return frontier.recorder().timeAdvanceGrants().size() >= 1U; },
+      options,
+      "timestamped attribute post-grant cutoff frontier TAR(5)");
+  receiver.rtiAmbassador().timeAdvanceRequest(*receiverAtFive);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeAdvanceGrants().size() >= 1U; },
+      options,
+      "timestamped attribute post-grant cutoff completed receiver TAR(5)");
+  require(
+      receiver.recorder().timeAdvanceGrants().front().encoded ==
+              encodeTime(*receiverAtFive) &&
+          receiver.recorder().timedReflections().empty(),
+      "receiver did not complete TAR(5) without a timestamped attribute reflection");
+
+  // The publisher joins the time-regulating set only after the receiver has
+  // completed TAR(5), making these attribute updates late TSO arrivals.
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() >= 1U; },
+      options,
+      "timestamped attribute post-grant cutoff late-publisher regulation callback");
+
+  auto const belowTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      4U);
+  auto const equalTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  auto const publisherAtFour = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      4U);
+  auto const publisherAtSix = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
+  auto const frontierAtSix = timeAfter(
+      *frontierTime.factory,
+      *frontierTime.initial,
+      *frontierTime.epsilon,
+      6U);
+  auto const receiverAtSix = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      6U);
+
+  std::vector<std::uint8_t> belowValue{0x41U, 0x54U, 0x34U};
+  std::vector<std::uint8_t> belowTagBytes{'b', 'e', 'l', 'o', 'w'};
+  rti::AttributeHandleValueMap belowValues;
+  belowValues.emplace(
+      publisherAttribute,
+      rti::VariableLengthData(belowValue.data(), belowValue.size()));
+  rti::VariableLengthData belowTag(belowTagBytes.data(), belowTagBytes.size());
+  try {
+    auto const belowRetraction = publisher.rtiAmbassador().updateAttributeValues(
+        object,
+        belowValues,
+        belowTag,
+        *belowTime);
+    require(
+        belowRetraction.isValid(),
+        "accepted timestamp-4 attribute update returned an invalid retraction handle");
+  } catch (rti::InvalidLogicalTime const&) {
+    // The conformance assertion is the delivery cutoff, not sender acceptance.
+  }
+
+  std::vector<std::uint8_t> equalValue{0x41U, 0x54U, 0x35U};
+  std::vector<std::uint8_t> equalTagBytes{'e', 'q', 'u', 'a', 'l'};
+  rti::AttributeHandleValueMap equalValues;
+  equalValues.emplace(
+      publisherAttribute,
+      rti::VariableLengthData(equalValue.data(), equalValue.size()));
+  rti::VariableLengthData equalTag(equalTagBytes.data(), equalTagBytes.size());
+  auto const equalRetraction = publisher.rtiAmbassador().updateAttributeValues(
+      object,
+      equalValues,
+      equalTag,
+      *equalTime);
+  require(
+      equalRetraction.isValid(),
+      "timestamp-5 attribute update returned an invalid retraction handle");
+  require(
+      receiver.recorder().timedReflections().empty(),
+      "late timestamped attribute update crossed the completed TAR(5) boundary immediately");
+
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherAtFour);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() >= 1U; },
+      options,
+      "timestamped attribute post-grant cutoff publisher TAR(4)");
+  require(
+      receiver.recorder().timedReflections().empty(),
+      "timestamped attribute update at or below 5 arrived while publisher advanced to 4");
+
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherAtSix);
+  frontier.rtiAmbassador().timeAdvanceRequest(*frontierAtSix);
+  waitForSessions(
+      {&publisher, &frontier},
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() >= 2U &&
+            frontier.recorder().timeAdvanceGrants().size() >= 2U;
+      },
+      options,
+      "timestamped attribute post-grant cutoff producer frontiers at 6");
+  receiver.rtiAmbassador().timeAdvanceRequest(*receiverAtSix);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeAdvanceGrants().size() >= 2U; },
+      options,
+      "timestamped attribute post-grant cutoff receiver TAR(6)");
+  require(
+      receiver.recorder().timedReflections().empty(),
+      "an attribute update at or below the completed TAR(5) value was delivered later");
+
+  auto const publisherAtSeven = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      7U);
+  auto const publisherAtEight = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      8U);
+  auto const frontierAtEight = timeAfter(
+      *frontierTime.factory,
+      *frontierTime.initial,
+      *frontierTime.epsilon,
+      8U);
+  auto const receiverAtEight = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      8U);
+  std::vector<std::uint8_t> positiveValue{0x41U, 0x54U, 0x37U};
+  std::vector<std::uint8_t> positiveTagBytes{'a', 'f', 't', 'e', 'r'};
+  rti::AttributeHandleValueMap positiveValues;
+  positiveValues.emplace(
+      publisherAttribute,
+      rti::VariableLengthData(positiveValue.data(), positiveValue.size()));
+  rti::VariableLengthData positiveTag(
+      positiveTagBytes.data(),
+      positiveTagBytes.size());
+  auto const positiveRetraction = publisher.rtiAmbassador().updateAttributeValues(
+      object,
+      positiveValues,
+      positiveTag,
+      *publisherAtSeven);
+  require(
+      positiveRetraction.isValid(),
+      "timestamp-7 positive-control update returned an invalid retraction handle");
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherAtEight);
+  frontier.rtiAmbassador().timeAdvanceRequest(*frontierAtEight);
+  waitForSessions(
+      {&publisher, &frontier},
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() >= 3U &&
+            frontier.recorder().timeAdvanceGrants().size() >= 3U;
+      },
+      options,
+      "timestamped attribute post-grant cutoff positive-control frontiers at 8");
+  receiver.rtiAmbassador().timeAdvanceRequest(*receiverAtEight);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeAdvanceGrants().size() >= 3U; },
+      options,
+      "timestamped attribute post-grant cutoff positive-control receiver TAR(8)");
+  auto const reflections = receiver.recorder().timedReflections();
+  require(
+      reflections.size() == 1U && reflections.front().object == object &&
+          reflections.front().values.size() == 1U &&
+          reflections.front().values.count(receiverAttribute) == 1U &&
+          copyBytes(reflections.front().values.at(receiverAttribute)) == positiveValue &&
+          reflections.front().tag == positiveTagBytes &&
+          reflections.front().time == encodeTime(*publisherAtSeven) &&
+          !reflections.front().timeText.empty() &&
+          reflections.front().sentOrder == rti::TIMESTAMP &&
+          reflections.front().receivedOrder == rti::TIMESTAMP,
+      "post-cutoff timestamp-7 positive control did not reflect exactly once with its value and time");
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  frontier.rtiAmbassador().disableTimeRegulation();
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  frontier.resign(rti::NO_ACTION);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  frontier.disconnect();
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioTimestampedAttributeUpdateTarPostGrantCutoffContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdateTarPostGrantCutoff(options, model);
 }
 
 

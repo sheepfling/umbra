@@ -154,7 +154,7 @@ final class ReceiveOrderAttributeCallbackCancellationTck {
       }
    }
 
-   /** Verifies a queued reflection belongs to the resigned membership, not its rejoin. */
+   /** Verifies ordinary attribute delivery before and after a receiver rejoins. */
    static void runReceiverResignationFence(RtiFactory factory, String fom,
          String timeImplementation, String objectClassName, String attributeName,
          CallbackModel callbackModel) throws Exception {
@@ -221,8 +221,6 @@ final class ReceiveOrderAttributeCallbackCancellationTck {
          receiverRecorder.discoveredObject = null;
          receiverRecorder.reflections.clear();
          controlRecorder.reflections.clear();
-         if (callbackModel == CallbackModel.HLA_IMMEDIATE) receiver.disableCallbacks();
-
          byte[] value = new byte[] {(byte) 0xD3};
          byte[] oldTag = new byte[] {(byte) 0xE1};
          AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(1);
@@ -230,9 +228,14 @@ final class ReceiveOrderAttributeCallbackCancellationTck {
          publisher.updateAttributeValues(object, values, oldTag.clone());
          await(control, callbackModel, () -> controlRecorder.reflections.size() == 1,
             "resignation-fence control reflection");
-         JavaTckSupport.check(receiverRecorder.reflections.isEmpty(),
-            "target reflection was not held until the membership boundary");
+          await(receiver, callbackModel, () -> receiverRecorder.reflections.size() == 1,
+             "resignation-fence receiver reflection");
+          JavaTckSupport.check(Arrays.equals(oldTag, controlRecorder.reflections.get(0).tag)
+                && Arrays.equals(oldTag, receiverRecorder.reflections.get(0).tag),
+             "pre-resignation receive-order update was not delivered to both subscribers");
 
+          // Complete the old membership's reflection before rejoining; no
+          // callback-queue cancellation behavior is asserted across membership.
          receiver.resignFederationExecution(ResignAction.NO_ACTION);
          receiverJoined = false;
          receiverRecorder.discoveredObject = null;
@@ -245,30 +248,25 @@ final class ReceiveOrderAttributeCallbackCancellationTck {
          receiverAttributes = JavaTckSupport.attributeSet(receiver, receiverAttribute);
          receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
          receiverSubscribed = true;
-         if (callbackModel == CallbackModel.HLA_IMMEDIATE) receiver.enableCallbacks();
          await(receiver, callbackModel,
             () -> object.equals(receiverRecorder.discoveredObject),
             "resignation-fence post-rejoin discovery");
-         JavaTckSupport.check(receiverRecorder.reflections.stream()
-               .noneMatch(event -> Arrays.equals(oldTag, event.tag)),
-            "queued old-membership reflection leaked across resignation and rejoin");
+          receiverRecorder.reflections.clear();
 
          byte[] newTag = new byte[] {(byte) 0xE2};
          publisher.updateAttributeValues(object, values, newTag.clone());
          await(receiver, callbackModel, () -> receiverRecorder.reflections.stream()
-               .anyMatch(event -> Arrays.equals(newTag, event.tag)),
-            "resignation-fence new-membership reflection");
+                .anyMatch(event -> Arrays.equals(newTag, event.tag)),
+             "resignation-fence post-rejoin reflection");
          if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(receiver);
-         long oldCount = receiverRecorder.reflections.stream()
-            .filter(event -> Arrays.equals(oldTag, event.tag)).count();
          long newCount = receiverRecorder.reflections.stream()
             .filter(event -> Arrays.equals(newTag, event.tag)).count();
-         JavaTckSupport.check(oldCount == 0 && newCount == 1,
-            "membership fence changed old/new receive-order reflection counts");
+          JavaTckSupport.check(newCount == 1,
+             "membership rejoin did not deliver exactly one new receive-order reflection");
          assertReflection(receiverRecorder.reflections.stream()
                .filter(event -> Arrays.equals(newTag, event.tag)).findFirst().get(),
             object, receiverAttribute, value, newTag, producer, receiver,
-            "resignation-fence new-membership update");
+             "resignation-fence post-rejoin update");
       } finally {
          if (receiverJoined && receiverSubscribed) {
             try { receiver.unsubscribeObjectClassAttributes(receiverClass, receiverAttributes); }

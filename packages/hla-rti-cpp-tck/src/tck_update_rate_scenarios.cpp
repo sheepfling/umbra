@@ -68,6 +68,9 @@ void scenarioUpdateRateQueries(Options const& options, rti::CallbackModel model)
   auto const namedRate = subscriber.rtiAmbassador().getUpdateRateValue(L"High");
   require(namedRate > 0.0, "named update-rate lookup did not return a positive value");
   require(
+      publisher.rtiAmbassador().getUpdateRateValue(L"High") == namedRate,
+      "the same FDD update-rate designator resolved to different values for joined federates");
+  require(
       subscriber.rtiAmbassador().getUpdateRateValueForAttribute(
           object,
           subscriberAttribute) == namedRate,

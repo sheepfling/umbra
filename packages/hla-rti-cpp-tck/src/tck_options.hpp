@@ -65,6 +65,8 @@ struct Options {
       L"HLAobjectRoot.TckObject.TckSecondaryObject";
   std::wstring secondaryDirectedInteractionClassName =
       L"HLAinteractionRoot.TckSecondaryDirectedInteraction";
+  std::wstring secondaryDirectedInteractionParameterName =
+      L"SecondaryPayload";
   std::wstring parameterName = L"Payload";
   std::wstring typedObjectClassName = L"HLAobjectRoot.TckTypedObject";
   std::wstring typedDerivedObjectClassName =

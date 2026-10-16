@@ -449,6 +449,172 @@ void scenarioDelaySubscriptionEvaluationAttributeUpdate(
   runConfiguration(true);
 }
 
+void scenarioDelaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdate(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(!options.switchesFom.empty(),
+          "regional delay-subscription testing requires a switch-declaration FOM");
+  require(!options.ddmFom.empty(),
+          "regional delay-subscription testing requires a dimensional FOM");
+
+  auto runConfiguration = [&](bool const delayEnabled) {
+    Session publisher(options, model, "delay-subscription-ro-regional-publisher");
+    Session receiver(options, model, "delay-subscription-ro-regional-receiver");
+    auto const federation = federationName(
+        options,
+        delayEnabled ? "delay-subscription-ro-regional-enabled"
+                     : "delay-subscription-ro-regional-disabled");
+    publisher.connect();
+    receiver.connect();
+    std::vector<std::wstring> modules{options.ddmFom.wstring()};
+    if (delayEnabled) modules.push_back(options.switchesFom.wstring());
+    publisher.rtiAmbassador().createFederationExecution(
+        federation, modules, options.logicalTimeImplementationName);
+    publisher.join(options.ownerFederateName, options.federateType, federation);
+    receiver.join(options.memberFederateName, options.federateType, federation);
+
+    auto const sent = ddmHandles(publisher, options);
+    auto const received = ddmHandles(receiver, options);
+    verifyDdmClassDimensions(
+        publisher, options, sent, "receive-order regional delay-subscription evaluation");
+    require(
+        publisher.rtiAmbassador().getDelaySubscriptionEvaluationSwitch() == delayEnabled &&
+            receiver.rtiAmbassador().getDelaySubscriptionEvaluationSwitch() == delayEnabled,
+        "regional delay-subscription switch did not match the FOM composition");
+    rti::AttributeHandleSet const sentAttributes{sent.attribute};
+    rti::AttributeHandleSet const receivedAttributes{received.attribute};
+    publisher.rtiAmbassador().publishObjectClassAttributes(
+        sent.objectClass, sentAttributes);
+    receiver.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+    require(receiver.rtiAmbassador().getConveyRegionDesignatorSetsSwitch(),
+            "regional delay-subscription receiver did not enable source-region callbacks");
+
+    auto const sourceRegion = createDdmRegion(publisher, sent, 1UL, 5UL, 1UL, 5UL);
+    auto const receiverRegion = createDdmRegion(receiver, received, 2UL, 6UL, 2UL, 6UL);
+    rti::AttributeHandleSetRegionHandleSetPairVector const publisherPair{{
+        sentAttributes, rti::RegionHandleSet{sourceRegion},
+    }};
+    rti::AttributeHandleSetRegionHandleSetPairVector const receiverPair{{
+        receivedAttributes, rti::RegionHandleSet{receiverRegion},
+    }};
+    receiver.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+        received.objectClass, receiverPair);
+    auto const object = publisher.rtiAmbassador().registerObjectInstanceWithRegions(
+        sent.objectClass, publisherPair);
+    require(object.isValid(), "regional delay-subscription registration returned an invalid handle");
+    waitForSessions(
+        {&publisher, &receiver},
+        [&] { return receiver.recorder().hasDiscovery(object); },
+        options,
+        "regional delay-subscription object discovery");
+    require(receiver.rtiAmbassador().getKnownObjectClassHandle(object) ==
+                received.objectClass,
+            "regional delay-subscription discovery did not establish a known object");
+
+    auto setCommittedRange = [&](Session& session,
+                                 DdmHandles const& handles,
+                                 rti::RegionHandle const& region,
+                                 unsigned long lower,
+                                 unsigned long upper) {
+      session.rtiAmbassador().setRangeBounds(
+          region, handles.firstDimension, rti::RangeBounds(lower, upper));
+      session.rtiAmbassador().setRangeBounds(
+          region, handles.secondDimension, rti::RangeBounds(lower, upper));
+      session.rtiAmbassador().commitRegionModifications(rti::RegionHandleSet{region});
+    };
+    auto update = [&](unsigned char marker) {
+      rti::AttributeHandleValueMap values;
+      values.emplace(sent.attribute, rti::VariableLengthData(&marker, 1U));
+      publisher.rtiAmbassador().updateAttributeValues(
+          object, values, rti::VariableLengthData(&marker, 1U));
+    };
+    auto checkReflection = [&](ReflectionRecord const& reflection,
+                               unsigned char marker,
+                               std::string const& description) {
+      require(
+          reflection.object == object && reflection.values.size() == 1U &&
+              reflection.values.count(received.attribute) == 1U &&
+              copyBytes(reflection.values.at(received.attribute)) ==
+                  std::vector<std::uint8_t>{marker},
+          description + " returned the wrong object, attribute, or value");
+      require(
+          reflection.tag == std::vector<std::uint8_t>{marker} &&
+              reflection.producer == publisher.federateHandle() &&
+              reflection.transportation.isValid() && reflection.regions.has_value() &&
+              reflection.regions->size() == 1U &&
+              reflection.regions->count(sourceRegion) == 1U,
+          description + " did not preserve tag, producer, transport, or source region");
+    };
+    auto openCallbackGate = [&] {
+      if (model == rti::HLA_IMMEDIATE) receiver.rtiAmbassador().enableCallbacks();
+    };
+    auto closeCallbackGate = [&] {
+      if (model == rti::HLA_IMMEDIATE) receiver.rtiAmbassador().disableCallbacks();
+    };
+
+    // A known object is unsubscribed and region-disjoint when this ordinary
+    // update is generated. With DSE enabled, eligibility uses the restored
+    // subscription and the source region's committed bounds at send time.
+    closeCallbackGate();
+    receiver.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+        received.objectClass, receiverPair);
+    setCommittedRange(receiver, received, receiverRegion, 7UL, 9UL);
+    update(0xD1U);
+    setCommittedRange(publisher, sent, sourceRegion, 7UL, 9UL);
+    setCommittedRange(receiver, received, receiverRegion, 2UL, 6UL);
+    receiver.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+        received.objectClass, receiverPair);
+    openCallbackGate();
+    if (delayEnabled) {
+      waitForSessions(
+          {&publisher, &receiver},
+          [&] { return receiver.recorder().reflectionCount() >= 1U; },
+          options,
+          "enabled receive-order regional late subscription");
+    } else {
+      receiver.pump();
+    }
+    auto const first = receiver.recorder().reflections();
+    require(delayEnabled ? first.size() == 1U : first.size() <= 1U,
+            "regional late subscription produced an unexpected reflection count");
+    if (!first.empty()) checkReflection(first.front(), 0xD1U, "late regional reflection");
+    receiver.recorder().clearReflection();
+
+    // The first queued passel now loses its regional match. A subsequent
+    // matching passel is a positive delivery fence for both callback models.
+    closeCallbackGate();
+    setCommittedRange(publisher, sent, sourceRegion, 1UL, 5UL);
+    update(0xD2U);
+    setCommittedRange(receiver, received, receiverRegion, 7UL, 9UL);
+    setCommittedRange(publisher, sent, sourceRegion, 7UL, 9UL);
+    update(0xD3U);
+    openCallbackGate();
+    waitForSessions(
+        {&publisher, &receiver},
+        [&] { return receiver.recorder().reflectionCount() >= 1U; },
+        options,
+        "receive-order regional subscription suppression and successor delivery");
+    auto const afterRangeChange = receiver.recorder().reflections();
+    require(afterRangeChange.size() == 1U,
+            "disjoint regional passel escaped the callback-boundary recheck");
+    checkReflection(afterRangeChange.front(), 0xD3U, "matching successor reflection");
+
+    receiver.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+        received.objectClass, receiverPair);
+    publisher.rtiAmbassador().unassociateRegionsForUpdates(object, publisherPair);
+    receiver.rtiAmbassador().deleteRegion(receiverRegion);
+    publisher.rtiAmbassador().deleteRegion(sourceRegion);
+    receiver.resign(rti::NO_ACTION);
+    publisher.resign(rti::DELETE_OBJECTS);
+    publisher.rtiAmbassador().destroyFederationExecution(federation);
+    receiver.disconnect();
+    publisher.disconnect();
+  };
+
+  runConfiguration(false);
+  runConfiguration(true);
+}
+
 void scenarioDelaySubscriptionEvaluationTimestampedInteraction(
     Options const& options,
     rti::CallbackModel model) {

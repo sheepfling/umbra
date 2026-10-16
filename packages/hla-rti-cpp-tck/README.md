@@ -16,6 +16,454 @@ libraries, compile definitions, and link options at configure time. The
 reusable target has no provider include-directory input and no provider-specific
 setting embedded in its source.
 
+Three federation-MOM pairs passed against the installed package in both
+callback models (12 executions): conditional federate roster updates, FOM
+module designator updates after create/join, and federation content reports.
+They use the IEEE 1516.2-2025 standard MIM. Focused C++ evidence validation and
+Java catalog/source validation passed. Java parity IDs are
+`java-tck.federation-mom-federates-in-federation`,
+`java-tck.federation-mom-fom-module-designator-list`, and
+`java-tck.federation-mom-content-reports`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-mom-roster-designators-content-reports-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The standalone Next Message Request Available service-report boundary scenario
+passed against the installed package in both callback models (2 executions).
+It verifies the supplied logical time in the standard service-invocation
+report. Focused C++ evidence validation and Java catalog/source validation
+passed; Java parity is `java-tck.service-report-next-message-request-available-boundary`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/service-report-next-message-request-available-boundary-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Three timestamped custom-transport/MOM scenario/contract pairs passed against
+the installed package in both callback models (12 executions): regional
+attribute delivery using adapter-configured custom transportation, and joined-
+federate MOM updated/reflected timestamped object-instance counters. Adapter
+configuration supplies transportation, logical time, FOM, and MIM. Focused
+C++ evidence validation and Java catalog/source validation passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-custom-transport-mom-counters-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Five timestamped ordering/retraction scenario/contract pairs passed against
+the installed package in both callback models (20 executions): cross-producer
+interaction ordering, ordinary and directed interaction retraction fan-out,
+queued attribute passel retraction, and mixed-order attribute passel
+retraction. Focused C++ evidence validation and Java catalog/source validation
+passed. The known timestamped equal-boundary case remains excluded from green
+evidence. Results are
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-order-retraction-passel-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Four timestamped delay-subscription-evaluation scenario/contract pairs passed
+against the installed package in both callback models (16 executions):
+interaction, attribute update, regional attribute update, and regional
+interaction. The adapter supplies standard logical-time and DDM fixtures.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/delay-subscription-timestamped-four-surfaces-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Four timestamped-service scenario/contract pairs passed against the installed
+package in both callback models (16 executions): preferred-receive conversion,
+attribute update-rate reduction, regional timestamped auto-provide response,
+and inherited interaction-class delivery. Logical time, FOM, and DDM inputs
+remain adapter-supplied. Focused C++ evidence validation and Java
+catalog/source validation passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-conversion-rate-regional-inherited-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Two timed regional save/restore scenario/contract pairs passed against the
+installed package in both callback models (8 executions): regional interaction
+state and multi-recipient live TSO regional attribute ownership where the
+negotiated regular candidate continues after restore. Region and logical-time
+inputs remain adapter-supplied. Focused C++ evidence validation and Java
+catalog/source validation passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timed-regional-save-restore-candidate-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Three timed save/restore scenario/contract pairs passed against the installed
+package in both callback models (12 executions): timed federation save/restore
+and timed default-region interaction and attribute state. The adapter selects
+the logical-time implementation and supplies FOM/DDM inputs. Focused C++
+evidence validation and Java catalog/source validation passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timed-save-restore-core-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The standalone federate-save-initiation eligibility and
+time-constrained-save-initiation eligibility scenarios passed against the
+installed package in both callback models (4 executions total). These are
+cataloged standalone scenarios, not contract-twin pairs. Focused C++ evidence
+validation and Java catalog/source validation passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federate-save-initiation-eligibility-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Three federation save/restore scenario/contract pairs passed against the
+installed package in both callback models (12 executions): lifecycle save and
+restore, restore abort, and save/restore interlocks. Focused C++ evidence
+validation and Java catalog/source validation passed. Java parity is linked
+for all three cases. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-save-restore-lifecycle-interlocks-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Four FOM/MIM composition scenario/contract pairs passed against the installed
+package in both callback models (16 executions): explicit MIM creation,
+valid FOM module composition, invalid-composite join atomicity, and
+invalid-composite MIM-create atomicity. The adapter supplies the valid and
+invalid FOM inputs; assertions remain standard API observations. Focused C++
+evidence validation and Java catalog/source validation passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/fom-explicit-composition-atomicity-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Four FOM-composition scenario/contract pairs passed against the installed
+package in both callback models (16 executions): transportation-handle,
+dimension-handle, and update-rate-value stability, plus additional-module
+join atomicity. The adapter supplies the FOM modules; the portable assertions
+use only standard API observations. Focused C++ evidence validation and Java
+catalog/source validation passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/fom-composition-stability-atomicity-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Three ownership save/restore scenario/contract pairs passed against the
+installed package in both callback models (12 executions): ownership state,
+pending negotiated ownership, and acquisition-cancellation state. Focused C++
+evidence validation and Java catalog/source validation passed. Java parity is
+linked for each case. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/ownership-save-restore-states-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Four pending-acquisition resignation scenario/contract pairs passed against
+the installed package in both callback models (16 executions): reject pending
+acquisition, cancel ordinary acquisition, cancel-if-available, and cancel a
+pending negotiated-divestiture request. Focused C++ evidence validation and
+Java catalog/source validation passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/resign-pending-acquisition-actions-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Four negotiated-divestiture scenario/contract pairs passed against the
+installed package in both callback models (16 executions): cancellation,
+pre-delivery cancellation, partial acquisition cancellation, and
+willing-to-acquire continuation. Focused C++ evidence validation and Java
+catalog/source validation passed. Java parity is linked for these cases.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/negotiated-divestiture-cancellation-continuation-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Four ownership acquisition/query/divestiture scenario/contract pairs passed
+against the installed package in both callback models (16 executions):
+acquisition-if-available, owner query reporting, unconditional divestiture,
+and divestiture-if-wanted with mixed acquirers. Focused C++ evidence
+validation and Java catalog/source validation passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/ownership-acquisition-query-divestiture-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Three ownership scenario/contract pairs passed against the installed package
+in both callback models (12 executions): resign-time unconditional
+divestiture, partial attribute-ownership transfer, and the acquisition
+publication fence. Focused C++ evidence validation and Java catalog/source
+validation passed. Java parity IDs are linked for all three. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/ownership-transfer-resign-fence-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The standard-order/transport-lookups-after-resignation scenario and contract,
+and the transport-order scenario and contract, passed against the installed
+package in both callback models (8 executions). These cover standard order
+and transportation handle services, including their membership lifecycle
+boundary. Focused C++ evidence validation and Java catalog/source validation
+passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/standard-order-transport-service-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Three declaration-management scenario/contract pairs passed against the
+installed package in both callback models (12 executions): valid object-
+attribute, interaction, and directed-interaction declaration inputs after
+resignation. Focused C++ evidence validation and Java catalog/source
+validation passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/declaration-valid-lookups-after-resign-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Six object-management lookup/deletion boundary scenario/contract pairs passed
+against the installed package in both callback models (24 executions): foreign
+object name and handle lookup, local-delete name lookup, remote-delete known
+class and name boundaries, and lookup following resignation. Focused C++
+evidence validation and Java catalog/source validation passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/object-management-lookup-boundaries-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Five handle-lookup lifecycle scenario/contract pairs passed against the
+installed package in both callback models (20 executions): interaction class,
+object class, attribute, parameter, and dimension lookups. Focused C++ evidence
+validation and Java catalog/source validation passed. Java parity is linked
+for all five surfaces. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/standard-handle-lookup-lifecycle-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Five object-service scenario/contract pairs passed against the installed
+package in both callback models (20 executions): attribute and object-class
+attribute-value update request baselines, update response, object registration
+service boundaries, and object deletion service boundaries. Focused C++
+evidence validation and Java catalog/source validation passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/object-service-update-request-boundaries-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The federation service-listing, resign-delete-objects, and final-federate
+resignation-cleanup scenario/contract pairs passed against the installed
+package in both callback models (12 executions). The checks cover standard
+federation service enumeration and final membership cleanup/resign effects.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-list-resign-cleanup-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Four ordinary interaction/object lifecycle scenario/contract pairs passed
+against the installed package in both callback models (16 executions):
+interaction publication/send transition, active/passive interaction
+subscription modes, object registration/discovery, and named registration
+reservation. Focused C++ evidence validation and Java catalog/source
+validation passed; each pair has a Java parity link. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/interaction-object-lifecycle-core-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The connection-loss automatic unconditional-divestiture and delete-then-divest
+scenario/contract pairs passed against the installed package in both callback
+models (8 executions). Assertions cover standard resign-action effects after
+adapter-controlled transport loss. Focused C++ evidence validation and Java
+catalog/source validation passed. Java parity IDs are
+`java-tck.connection-loss-automatic-unconditional-divestiture` and
+`java-tck.connection-loss-automatic-delete-then-divest`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/connection-loss-divestiture-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The connection-loss cleanup scenario/contract and automatic pending-ownership
+acquisition cancellation scenario/contract passed against the installed
+package in both callback models (8 executions). Transport failure remains
+adapter-controlled; the assertions cover only the standard observable cleanup
+and cancellation behavior. Focused C++ evidence validation and Java
+catalog/source validation passed. Java parity IDs are
+`java-tck.connection-loss-cleanup` and
+`java-tck.connection-loss-automatic-cancel-pending-acquisition`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/connection-loss-cleanup-cancel-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Four lookup service-report scenario/contract pairs passed against the
+installed package in both callback models (16 executions): update-rate lookup
+success and failure, federate object-class lookup failure, and interaction
+parameter lookup failure. They use the standard MIM. Focused C++ evidence
+validation and Java catalog/source validation passed; Java parity is present
+for each case. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/service-report-lookup-failures-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Six regional-interaction and lookup service-report scenario/contract pairs
+passed against the installed package in both callback models (24 executions):
+regional interaction send, regional subscription, regional send failure,
+order/transportation lookup failures, federate object-class lookups, and
+interaction parameter lookups. Adapter-supplied DDM is used for regional
+coverage. Focused C++ evidence validation and Java catalog/source validation
+passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/service-report-regional-lookups-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Five region service-report scenario/contract pairs passed against the
+installed package in both callback models (20 executions): query and set
+range bounds, commit region modifications, create a region, and delete a
+region. DDM inputs remain adapter-supplied. Focused C++ evidence validation
+and Java catalog/source validation passed; the cases have Java parity.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/service-report-region-mutations-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Six dimension/DDM service-report scenario/contract pairs passed against the
+installed package in both callback models (24 executions): dimension name,
+dimension handle, dimension upper bound, dimension-handle set, and object- and
+interaction-class dimension queries. The adapter supplies the DDM FOM and
+dimension configuration. Focused C++ evidence validation and Java
+catalog/source validation passed; all six cases have Java parity. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/service-report-dimensions-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Three coordination/lookup service-report scenario/contract pairs passed
+against the installed package in both callback models (12 executions):
+synchronization, interlock, and order/transportation lookups. They use the
+standard MIM. Focused C++ evidence validation and Java catalog/source
+validation passed. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/service-report-synchronization-interlock-order-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Three ownership service-report scenario/contract pairs passed against the
+installed package in both callback models (12 executions): cancel ownership
+acquisition, query attribute ownership, and confirm divestiture. They use the
+standard MIM. Focused C++ evidence validation and Java catalog/source
+validation passed; Java parity is recorded for each service. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/service-report-ownership-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Four failure/timestamp service-report scenario/contract pairs passed against
+the installed package in both callback models (16 executions): interaction
+failure, timestamped attribute update, timestamped object deletion, and
+timestamped directed interaction. They use the standard MIM and configured
+logical-time implementation. Focused C++ evidence validation and Java
+catalog/source validation passed; each has its Java service-report parity ID.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/service-report-failure-timestamped-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Six lifecycle/name service-report scenario/contract pairs passed against the
+installed package in both callback models (24 executions): reserve and release
+object-instance names (including multiple-name release), resign federation
+execution, local object deletion, and remote object deletion. They use the
+standard MIM. Focused C++ evidence validation and Java catalog/source
+validation passed; each pair has Java service-report parity. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/service-report-names-lifecycle-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Five declaration/publication/subscription service-report scenario/contract
+pairs passed against the installed package in both callback models (20
+executions): object-attribute declaration, ordinary interaction publication
+and subscription, directed-interaction declaration, and directed-interaction
+publication. They use the standard MIM. Focused C++ evidence validation and
+Java catalog/source validation passed. Each pair has the corresponding
+`java-tck.service-report-*` parity ID. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/service-report-declarations-publications-subscriptions-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Four object-service reporting pairs passed against the installed package in
+both callback models (16 executions): ordinary attribute update, failed
+attribute update, attribute-value update request, and object registration.
+They use the IEEE 1516.2-2025 standard MIM. Focused C++ evidence validation
+and Java catalog/source validation passed. Java parity IDs are
+`java-tck.service-report-attribute-update`,
+`java-tck.service-report-attribute-update-failure`,
+`java-tck.service-report-request-attribute-value-update`, and
+`java-tck.service-report-register-object-instance`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/service-report-attribute-update-request-register-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Three interaction service-report scenario/contract pairs passed against the
+installed package in both callback models (12 executions): ordinary
+interaction, receive-order interaction, and timestamped interaction. They use
+the IEEE 1516.2-2025 standard MIM and configured standard logical time.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java parity IDs are `java-tck.service-report-interaction`,
+`java-tck.service-report-receive-order-interaction` (shared interaction parity),
+and `java-tck.service-report-timestamped-interaction`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/service-report-interaction-order-timestamped-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The federation-MOM missing-FOM-module-indicator scenario and contract twin
+passed against the installed package in both callback models (4 executions),
+checking standard `HLAreportMOMexception` delivery for the omitted
+`HLAFOMmoduleIndicator` condition using the IEEE 1516.2-2025 standard MIM.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java parity is
+`java-tck.federation-mom-exception-missing-fom-module-indicator`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-mom-exception-missing-fom-module-indicator-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Three federation-MOM save/synchronization scenario/contract pairs also passed
+against the installed package in both callback models (12 executions): save
+conditionals, save status, and synchronization-point queries. They use the
+IEEE 1516.2-2025 standard MIM. Focused C++ evidence validation and Java
+catalog/source validation passed. Java parity IDs are
+`java-tck.federation-mom-save-conditionals`,
+`java-tck.federation-mom-save-status`, and
+`java-tck.federation-mom-synchronization-queries`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-mom-save-sync-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Three federation-MOM scenario/contract pairs passed against the installed
+package in both callback models (12 executions): static federation identity,
+static switch values, and current-FDD refresh after FOM composition. They use
+the IEEE 1516.2-2025 standard MIM; the FOM extension is supplied through the
+adapter for the current-FDD composition case. Focused C++ evidence validation
+and Java catalog/source validation passed. Java parity IDs are
+`java-tck.federation-mom-static-identity`,
+`java-tck.federation-mom-static-switches`, and
+`java-tck.federation-mom-current-fdd`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-mom-identity-switches-current-fdd-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The federate-application-multiple-executions scenario and contract twin passed
+against the installed package in both callback models (4 executions), covering
+standard application identity and federation membership across multiple
+federation executions. Focused C++ evidence validation and Java catalog/source
+validation passed. Java parity is `java-tck.federation-membership`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federate-application-multiple-executions-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The unnamed-join-overload scenario and contract twin passed against the
+installed package in both callback models (4 executions), exercising the
+standard Join Federation Execution overload that omits a federate name and
+its resulting membership behavior. Focused C++ evidence validation and Java
+catalog/source validation passed. Java parity is `java-tck.unnamed-join-overload`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/unnamed-join-overload-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The federate-lookup-lifecycle scenario and contract twin passed against the
+installed package in both callback models (4 executions). This covers standard
+federation execution and federate lookup queries across membership lifecycle
+boundaries. Focused C++ evidence validation and Java catalog/source validation
+passed. Java parity is `java-tck.federate-lookup-lifecycle`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federate-lookup-lifecycle-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The callback-reentrancy scenario and contract twin passed against the installed
+package in both callback models (4 executions). They exercise standard
+FederateAmbassador query reporting and callback servicing, including rejection
+of service re-entry from a callback. Focused C++ evidence validation and Java
+catalog/source validation passed. Java parity is
+`java-tck.callback-reentrancy`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-reentrancy-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The federate time-manager-state MIM-attribute scenario and contract twin passed
+against the installed package in both callback models (4 executions). Coverage
+observes standard time-manager state through TAR, TAR-available, NMR,
+NMR-available, and flush-queue grants, using the IEEE 1516.2-2025 standard MIM.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java parity is `java-tck.federate-time-manager-state-mim-attribute`. Evidence
+is `out/mgw/tck-dse-ro-regional-20261016/federate-time-manager-state-mim-attribute-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The federate time-regulating MIM-attribute scenario and contract twin passed
+against the installed package in both callback models (4 executions). They
+exercise the standard time-regulating enable/disable callbacks and conditional
+MOM attribute using the IEEE 1516.2-2025 standard MIM. Focused C++ evidence
+validation and Java catalog/source validation passed. Java parity is
+`java-tck.federate-time-regulating-mim-attribute`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federate-time-regulating-mim-attribute-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The federate time-constrained MIM-attribute scenario and contract twin passed
+against the installed package in both callback models (4 executions). They
+exercise the standard time-constrained enable/disable callbacks and conditional
+MOM attribute using the IEEE 1516.2-2025 standard MIM. Focused C++ evidence
+validation and Java catalog/source validation passed. Java parity is
+`java-tck.federate-time-constrained-mim-attribute`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federate-time-constrained-mim-attribute-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The federate asynchronous-delivery MIM-attribute scenario and contract twin
+passed against the installed package in both callback models (4 executions).
+The checks exercise the standard enable/disable services and conditional MOM
+attribute through the IEEE 1516.2-2025 standard MIM. Focused C++ evidence
+validation and Java catalog/source validation passed. Java parity is
+`java-tck.federate-asynchronous-delivery-mim-attribute`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federate-asynchronous-delivery-mim-attribute-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The federate automatic-resign-action MIM-attribute scenario and contract twin
+and the MOM-switch scenario and contract twin passed against the installed
+package in both callback models (8 executions total). These check the standard
+MOM attribute and switch interfaces using the IEEE 1516.2-2025 standard MIM.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Evidence files are
+`out/mgw/tck-dse-ro-regional-20261016/federate-automatic-resign-action-mim-attribute-verified-20261016.json`
+and
+`out/mgw/tck-dse-ro-regional-20261016/federate-automatic-resign-action-mom-switch-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
 ## P0–P6 ordinary-service, time, FOM, DDM, synchronization, callback, and save/restore coverage
 
 The executable covers these ordinary public-API workflows, under both
@@ -46,9 +494,9 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.connection-service-boundaries` | Standard connect overloads, callback-model validation, pre-connect service boundaries, callback controls, disconnect, and reconnect |
 | `cpp-tck.connection-service-boundaries-contract` | Pure standard C++ contract for connection and callback-service boundaries |
 | `cpp-tck.federation-lifecycle-contract` | Standard adapter-backed federation lifecycle contract: create/join/resign/destroy, automatic-resign directives, federation/member reports, federate handle lookups, duplicate-membership failures, and missing-federation boundaries |
-| `cpp-tck.duplicate-federate-name-join-boundary` | Named join rejects a name already used by an active member, then allows that federate to retry with a distinct name; shares the `java-tck.federation-membership` parity anchor |
+| `cpp-tck.duplicate-federate-name-join-boundary` | Named join rejects a name already used by an active member, then allows that federate to retry with a distinct name; parity-linked to `java-tck.duplicate-federate-name-join-boundary` |
 | `cpp-tck.duplicate-federate-name-join-boundary-contract` | Standard contract twin for duplicate federate-name rejection and distinct-name retry |
-| `cpp-tck.repeated-join-by-member-boundary` | Repeating the named join through an already joined ambassador returns `FederateAlreadyExecutionMember`; the original member can still resign; shares the Java federation-membership parity anchor |
+| `cpp-tck.repeated-join-by-member-boundary` | Repeating the named join through an already joined ambassador returns `FederateAlreadyExecutionMember`; the original member can still resign; parity-linked to `java-tck.repeated-join-by-member-boundary` |
 | `cpp-tck.repeated-join-by-member-boundary-contract` | Standard contract twin for the repeated membership join boundary |
 | `cpp-tck.foreign-federate-name-lookup-boundary` | Each federate name resolves within its own execution; querying a name from a different execution returns `NameNotFound` (§10.2) |
 | `cpp-tck.foreign-federate-name-lookup-boundary-contract` | Standard contract twin for the foreign federate-name lookup boundary |
@@ -353,6 +801,9 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.standard-order-and-transportation-lookups-contract` | Standard adapter-backed mandatory order and transportation lookup contract across lifecycle admission, round trips, invalid inputs, and cleanup |
 | `java-tck.declaration-management` | Pre-connect and pre-join lifecycle boundaries for object and interaction declarations, ordinary object publication/subscription, active and passive declarations, interaction publication/subscription, withdrawal, and invalid-class/attribute failure boundaries |
 | `cpp-tck.declaration-management-contract` | Standard adapter-backed declaration-management contract for object and interaction publication, active/passive subscription, withdrawal, lifecycle boundaries, and invalid-handle failures |
+| `cpp-tck.base-subscription-rejects-derived-only-attribute` | Reject a derived-only attribute in a base-class subscription with `AttributeNotDefined` (§5.8); Java parity: `java-tck.base-subscription-rejects-derived-only-attribute`; installed-package MinGW/Ninja gate passed under both callback models |
+| `cpp-tck.base-subscription-rejects-derived-only-attribute-contract` | Positive controls for valid base/derived subscriptions, followed by the same §5.8 rejection; installed-package MinGW/Ninja gate passed under both callback models |
+| `cpp-tck.base-publication-rejects-derived-only-attribute` | Internal, intentionally unmapped API-boundary check: valid base/derived publication controls, then reject the derived-only attribute on the base class; Java parity: `java-tck.base-publication-rejects-derived-only-attribute`; installed-package direct run passed both callback models, but no Java-provider or conformance claim |
 | `java-tck.object-management` | Pre-connect and pre-join registration, deletion, and object-name reservation lifecycle boundaries, ordinary and named registration/discovery, invalid-class/unreserved-name boundaries, unknown-object deletion, single and multiple name reservation lifecycle, value requests/responses with invalid class/attribute boundaries, local deletion, remote removal, and resign-time cleanup |
 | `cpp-tck.object-management-contract` | Standard adapter-backed ordinary object-management contract for registration/discovery, single and multiple name reservation, named registration, identity lookups, value requests/responses, local/remote deletion, and negative boundaries |
 | `cpp-tck.resign-delete-objects` | Resign-time deletion of a delete-privileged object, `NO_ACTION` ownership rejection, ordinary removal delivery, producer/tag metadata, and post-removal name invalidation |
@@ -397,6 +848,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.order-type-change-contract` | Pure standard C++ contract for attribute and interaction order-type controls using only official API headers and the standard library |
   | `cpp-tck.receive-order-attribute-update-callback-cancellation` | In evoked mode, cancel a queued receive-order attribute reflection by unsubscribing before callback servicing; in immediate mode, verify delivery before the subscription is removed |
  | `cpp-tck.receive-order-attribute-update-callback-cancellation-contract` | Standard adapter-backed receive-order attribute-reflection cancellation contract across evoked and immediate callback boundaries |
+| `cpp-tck.receive-order-attribute-update-receiver-resignation-fence-contract` | Candidate internal lifecycle check under both callback models: allows the empty-tag initial-value reflection after rejoin, rejects an old-membership tagged reflection, and requires a fresh tagged update. Focused installed-package MinGW run passed 2/2 callbacks; the stale-tag assertion has no direct pinned normative mapping, so this remains non-conformance evidence and does not test an active callback wait, regional DDM, or other callback families. |
  | `cpp-tck.receive-order-attribute-update` | Deliver two consecutive ordinary receive-order attribute updates in producer order, preserving reflection metadata and excluding publisher loopback |
  | `cpp-tck.receive-order-attribute-update-contract` | Pure standard C++ contract for ordinary receive-order attribute publication, discovery, reflection ordering, metadata, and teardown |
  | `cpp-tck.receive-order-interaction` | Deliver two consecutive ordinary receive-order interactions in producer order, preserving parameter, tag, producer, and transportation metadata without sender loopback |
@@ -423,7 +875,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.interaction-publication-send-fence-contract` | Standard adapter-backed ordinary interaction publication, unpublication, send, republication, parameter delivery, and lifecycle contract |
 | `cpp-tck.interaction-multi-recipient-fifo` | Two active subscribers each receive ordinary interactions in producer send order, with sender exclusion and preserved parameter, tag, producer, and transportation metadata |
 | `cpp-tck.interaction-multi-recipient-fifo-contract` | Standard adapter-backed ordinary interaction fan-out and receive-order FIFO contract across two active subscribers |
-| `cpp-tck.object-attribute-subscription-lifecycle` | Passive ordinary object-attribute subscriptions suppress discovery/reflection, active replacement discovers existing objects and enables reflection, downgrade suppresses later updates, reactivation restores reflection, and unsubscribe removes delivery |
+| `cpp-tck.object-attribute-subscription-lifecycle` | Passive ordinary object-attribute subscriptions suppress discovery/reflection; active replacement discovers pre-existing and passively registered objects and filters initial and later multi-attribute reflections to the subscribed set; downgrade, reactivation, and unsubscribe preserve their delivery boundaries |
 | `cpp-tck.object-publication-registration-fence` | Whole-class unpublication fences object registration with `ObjectClassNotPublished`; republishing restores registration, discovery, and stable identity lookups |
 | `cpp-tck.object-publication-registration-fence-contract` | Standard adapter-backed ordinary object publication and registration fence contract using official publication, subscription, registration, lookup, discovery, and lifecycle APIs |
 | `cpp-tck.timestamped-interactions` | Timestamped Send/Receive, invalid interaction-class and retraction-handle boundaries, constrained grant delivery, timestamp/order metadata, retraction designators, and Request Retraction callbacks; Java focused parity for delivered/queued retraction: `java-tck.timestamped-interaction-retraction` |
@@ -434,8 +886,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-interaction-source-resignation-fanout` | Queued timestamped interactions remain deliverable to each constrained recipient after producer resignation, using independent TAR/NMR frontiers and preserving payload, producer, time/order, and retraction metadata |
 | `cpp-tck.timestamped-interaction-mixed-advances` | One queued timestamped interaction is delivered before Flush Queue, Time Advance Request Available, and Next Message Request Available grants, with callback ordering, logical-time queries, and retraction metadata; Java parity: `java-tck.timestamped-interaction-mixed-advances` |
 | `cpp-tck.timestamped-interaction-mixed-advances-contract` | Standard adapter-backed timestamped interaction contract for mixed Flush Queue, Time Advance Request Available, and Next Message Request Available delivery |
-| `cpp-tck.timestamped-interaction-flush-queue-future-input` | Future timestamped interactions accepted around a Flush Queue request are delivered before its grant, preserving callback order, payload, time/order, transport, and retraction metadata while reporting the optimistic frontier |
-| `cpp-tck.timestamped-interaction-flush-queue-future-input-contract` | Standard adapter-backed future-input timestamped interaction and Flush Queue contract with frontier, retraction, callback, and cleanup assertions |
+| `cpp-tck.timestamped-interaction-flush-queue-future-input` | Future timestamped interactions are delivered before their Flush Queue grant with frontier metadata; the constrained regulator then sends at grant time plus lookahead and confirms its logical time is unchanged |
+| `cpp-tck.timestamped-interaction-flush-queue-future-input-contract` | Standard adapter-backed Flush Queue future-input, frontier, post-grant send-bound, retraction, callback, and cleanup contract |
 | `cpp-tck.timestamped-interaction-tso-designator-terminalization` | All standard producer advance forms terminalize expired timestamped-interaction retraction handles without delivering to an idle constrained receiver |
 | `cpp-tck.timestamped-interaction-tso-designator-terminalization-contract` | Standard adapter-backed timestamped interaction retraction-terminalization contract across all alternate advance forms |
 | `cpp-tck.timestamped-interaction-cross-producer-order` | Timestamp order is preserved across multiple interaction producers for each constrained recipient, while equal-timestamp ordering remains unconstrained and producer/tag identity is preserved; Java focused parity: `java-tck.timestamped-interaction-cross-producer-order` |
@@ -471,9 +923,13 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-attribute-order-cohort-contract` | Standard adapter-backed timestamped attribute ordering and equal-timestamp cohort contract |
 | `cpp-tck.timestamped-attribute-update-queued-passel-retraction` | Timestamped multi-attribute updates retain their adapter-defined passel shape, suppress a retracted queued update, and preserve value, tag, time, producer, order, transportation, and retraction metadata before the grant |
 | `cpp-tck.timestamped-attribute-update-queued-passel-retraction-contract` | Standard adapter-backed timestamped multi-attribute passel retraction contract |
+| `cpp-tck.mixed-order-attribute-passel-retraction` | From one mixed-order timestamped update, preserve the already-delivered receive-order attribute and retract only the queued timestamp-order attribute |
+| `cpp-tck.mixed-order-attribute-passel-retraction-contract` | Focused standard contract twin for mixed-order attribute passel retraction |
+| `cpp-tck.timestamped-attribute-sender-regulation-transition` | With the timestamp and preferred order fixed, verify receive-order delivery before sender regulation and queued timestamp-order delivery after regulation |
+| `cpp-tck.timestamped-attribute-sender-regulation-transition-contract` | Focused standard contract twin for sender-role order classification |
 | `cpp-tck.timestamped-attribute-update-no-fanout-contract` | Standard adapter-backed timestamped attribute no-fan-out and terminal-retraction contract |
-| `cpp-tck.timestamped-attribute-update-alternate-advances` | Timestamped ordinary Update/Reflect through Flush Queue Request, Time Advance Request Available, and Next Message Request Available, with callback-before-grant ordering, grant/query checks, and terminal retraction; Java focused parity: `java-tck.timestamped-attribute-update-alternate-advances` |
-| `cpp-tck.timestamped-attribute-update-alternate-advances-contract` | Standard adapter-backed timestamped attribute contract across alternate advance services |
+| `cpp-tck.timestamped-attribute-update-alternate-advances` | Timestamped Update/Reflect through Flush Queue, TARA, NMRA, and NMR; the NMR requester also sends at grant time plus two lookaheads without advancing logical time; Java parity: `java-tck.timestamped-attribute-update-alternate-advances` |
+| `cpp-tck.timestamped-attribute-update-alternate-advances-contract` | Standard adapter-backed timestamped attribute contract across alternate advance services and the early-NMR post-grant update bound |
 | `cpp-tck.timestamped-attribute-update-flush-queue-future-input` | Future timestamped attribute updates accepted beyond a Flush Queue boundary are delivered before its grant, preserving value, tag, time/order, transport, and retraction metadata while reporting the optimistic frontier |
 | `cpp-tck.timestamped-attribute-update-flush-queue-future-input-contract` | Standard adapter-backed future timestamped attribute input and Flush Queue contract |
 | `cpp-tck.timestamped-attribute-update-reenable` | A queued timestamped attribute update remains deliverable across Time Constrained disable/re-enable, preserving reflection metadata and terminal retraction |
@@ -528,14 +984,16 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-object-deletion-mixed-advances` | A queued timestamped object deletion is delivered before Flush Queue, Time Advance Request Available, and Next Message Request Available grants, with callback ordering, grant/query checks, removal metadata, and terminal retraction |
 | `cpp-tck.alternate-time-advances` | Flush Queue Request, Time Advance Request Available, and Next Message Request Available with reflection-before-grant ordering and backward-time failure boundaries |
 | `cpp-tck.alternate-time-advances-contract` | Standard adapter-backed contract for Flush Queue, TAR available, and next-message available delivery paths plus backward-time boundaries |
-| `cpp-tck.timestamped-directed-alternate-advances` | Timestamped directed delivery through Flush Queue Request, Time Advance Request Available, and Next Message Request Available with target, order, transport, and retraction metadata |
-| `cpp-tck.timestamped-directed-alternate-advances-contract` | Standard adapter-backed timestamped directed-interaction alternate-advance contract for Flush Queue, TAR available, and next-message available delivery |
+| `cpp-tck.timestamped-directed-alternate-advances` | Timestamped directed delivery before strict Flush Queue, TARA, and NMRA boundaries with target, order, transport, and retraction metadata |
+| `cpp-tck.timestamped-directed-alternate-advances-contract` | Standard adapter-backed timestamped directed delivery before strict alternate-advance boundaries |
 | `cpp-tck.next-message-request` | Queued timestamped interaction delivery before the Next Message Request grant, callback ordering, time query, and post-delivery retraction boundary |
 | `cpp-tck.next-message-request-contract` | Standard adapter-backed Next Message Request contract for queued timestamped interaction delivery, callback ordering, time query, and retraction boundaries |
 | `cpp-tck.available-time-advances-inclusive-galt` | Timestamped interaction delivery at the inclusive GALT boundary through Time Advance Request Available and Next Message Request Available, including callback ordering and post-delivery retraction |
 | `cpp-tck.available-time-advances-inclusive-galt-contract` | Standard adapter-backed available time-advance contract for inclusive-GALT delivery, callback ordering, and retraction boundaries |
-| `cpp-tck.time-bounds-queries` | Undefined and minimum no-TSO Query GALT/Query LITS results, pending regulator advances, grant stability, and resignation/disable transitions |
-| `cpp-tck.time-bounds-queries-contract` | Standard adapter-backed Query GALT and Query LITS contract for undefined, active-regulator, pending-advance, resignation, and disconnect boundaries |
+| `cpp-tck.time-constrained-enable-galt-equality` | Verify delayed Enable Time Constrained remains pending while GALT is one below current time and becomes eligible at equality; primary and contract twin passed installed-package HLA_EVOKED and HLA_IMMEDIATE runs and are promoted |
+| `cpp-tck.time-constrained-enable-galt-equality-contract` | Standard API contract twin for delayed Time Constrained enablement at the GALT equality boundary; passed both callback models and promoted |
+| `cpp-tck.time-bounds-queries` | Query GALT (§8.18.1) and Query LITS (§8.19.3): undefined and minimum no-TSO bounds, pending advances, grants, and regulator resignation/disable transitions |
+| `cpp-tck.time-bounds-queries-contract` | Standard adapter-backed Query GALT (§8.18.1) and Query LITS (§8.19.3) contract for undefined, active-regulator, pending-advance, resignation, and disconnect boundaries |
 | `cpp-tck.query-lits-source-resignation` | Query GALT becomes undefined while Query LITS remains the queued timestamp after the sole source regulator resigns |
 | `cpp-tck.query-lits-source-resignation-contract` | Standard adapter-backed Query LITS source-resignation contract for queued timestamp retention, time-management callbacks, and cleanup boundaries |
 | `java-tck.directed-interactions` | Pre-connect and pre-join directed declaration and send boundaries, directed interaction publication, selective and universal subscription, target-object routing, callback delivery, unsubscription, unpublication, and invalid object/interaction-handle boundaries |
@@ -615,8 +1073,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-regional-interaction-contract` | Standard adapter-backed timestamped regional interaction delivery and retraction contract |
 | `cpp-tck.timestamped-regional-interaction-regulation-reenable` | Queued timestamped regional interaction survives Time Regulation disable/re-enable with changed lookahead, preserving the source-region snapshot, Query Lookahead, grant ordering, metadata, and terminal retraction |
 | `cpp-tck.timestamped-regional-interaction-regulation-reenable-contract` | Standard adapter-backed timestamped regional interaction Time Regulation re-enable contract with changed lookahead |
-| `cpp-tck.timestamped-regional-interaction-alternate-advances` | Timestamped regional interaction delivery through Flush Queue Request, Time Advance Request Available, and Next Message Request Available, with source-region metadata, grant/query bounds, callback ordering, and backward-time failures |
-| `cpp-tck.timestamped-regional-interaction-alternate-advances-contract` | Standard adapter-backed timestamped regional interaction alternate-advance contract |
+| `cpp-tck.timestamped-regional-interaction-alternate-advances` | Timestamped regional interaction delivery through Flush Queue Request, Time Advance Request Available, and Next Message Request Available, including distinct actual/optimistic FQR times, a post-grant send at actual time plus lookahead, source-region metadata, callback ordering, and backward-time failures |
+| `cpp-tck.timestamped-regional-interaction-alternate-advances-contract` | Standard adapter-backed timestamped regional interaction alternate-advance and actual/optimistic post-grant bound contract |
 | `cpp-tck.timestamped-regional-interaction-no-overlap` | Timestamped regional interaction retraction handles remain valid and terminalize correctly when the published source region has no overlapping subscriber |
 | `cpp-tck.timestamped-regional-interaction-no-overlap-contract` | Standard adapter-backed timestamped regional interaction no-overlap and retraction contract |
 | `cpp-tck.timestamped-regional-interaction-subscription-replacement` | Queued timestamped regional interaction is suppressed rather than retargeted when the receiver replaces region A with disjoint region B, then a later source-B interaction is delivered once with replacement region metadata |
@@ -700,8 +1158,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.callback-controls-available-time-advance-callbacks-contract` | Standard adapter-backed callback-control contract for available time-advance delivery, interaction-before-grant ordering, time metadata, suppression, release, and cleanup |
 | `cpp-tck.callback-controls-time-role-enablement` | Callback disable/enable gating around standard time-regulation and time-constrained enablement callbacks under both callback models |
 | `cpp-tck.callback-controls-time-role-enablement-contract` | Standard adapter-backed callback-control contract for time-role enablement, initial-time metadata, suppression, release, and cleanup |
-| `cpp-tck.asynchronous-delivery` | Asynchronous-delivery enable/disable boundaries, receive-order callback gating, `evokeCallback`, `evokeMultipleCallbacks`, and time-advance release |
-| `cpp-tck.asynchronous-delivery-contract` | Standard adapter-backed asynchronous-delivery and callback-servicing contract for enable/disable, callback gating, explicit servicing, and time-advance release |
+| `cpp-tck.asynchronous-delivery` | Asynchronous-delivery enable/disable boundaries, three-message receive-order backlog release, callback gating, `evokeCallback`, `evokeMultipleCallbacks`, and time-advance release |
+| `cpp-tck.asynchronous-delivery-contract` | Standard adapter-backed asynchronous-delivery and callback-servicing contract for complete three-message backlog release, enable/disable, callback gating, explicit servicing, and time-advance release |
 | `cpp-tck.federate-asynchronous-delivery-mim-attribute` | Standard-MIM `HLAboolean` state and conditional reflection across Enable/Disable Asynchronous Delivery |
 | `cpp-tck.federate-asynchronous-delivery-mim-attribute-contract` | Pure standard contract for asynchronous-delivery MOM values without assuming a default or public getter |
 | `cpp-tck.federate-time-constrained-mim-attribute` | Standard-MIM `HLAtimeConstrained` state, conditional reflection, direct request, and the asynchronous enable callback across Enable/Disable Time Constrained |
@@ -743,6 +1201,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.delay-subscription-evaluation-interaction` | Standard Delay Subscription Evaluation switch composition, ordinary interaction retention across a late subscription, callback-boundary subscription rechecking, and suppression after unsubscribe under both callback models |
 | `cpp-tck.delay-subscription-evaluation-directed-interaction` | Standard Delay Subscription Evaluation switch composition, directed interaction retention across a late target subscription, callback-boundary selector rechecking, and suppression after unsubscribe under both callback models |
 | `cpp-tck.delay-subscription-evaluation-attribute-update` | Standard Delay Subscription Evaluation switch composition, known-object attribute-update retention across a late declaration, callback-boundary subscription rechecking, and suppression after unsubscribe under both callback models |
+| `cpp-tck.delay-subscription-evaluation-receive-order-regional-attribute-update` | Ordinary regional attribute-update retention across late matching subscription, send-time committed source bounds, and suppression after a receiving-range change under both callback models |
+| `cpp-tck.delay-subscription-evaluation-receive-order-regional-attribute-update-contract` | Standard C++ contract twin for receive-order regional attribute subscription re-evaluation; no Java twin is claimed |
 | `cpp-tck.delay-subscription-evaluation-timestamped-interaction` | Standard Delay Subscription Evaluation switch composition, timestamped interaction retention until a time-constrained grant, timestamp/order/retraction metadata, and suppression after unsubscribe at the next grant |
 | `cpp-tck.delay-subscription-evaluation-interaction-contract` | Pure standard C++ contract twin for ordinary interaction subscription re-evaluation at the callback boundary |
 | `cpp-tck.delay-subscription-evaluation-timestamped-directed-interaction` | Standard Delay Subscription Evaluation switch composition, timestamped directed-interaction retention until a time-constrained grant, target/order metadata, and suppression after unsubscribe at the next grant |
@@ -786,6 +1246,10 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.attribute-ownership-release-denied-contract` | Pure standard C++ contract for ownership-release denial and unavailable notification |
 | `cpp-tck.attribute-ownership-divestiture-if-wanted` | Complete a one-attribute pending regular acquisition through Divestiture If Wanted and verify its returned set, callback tag, and ownership transfer |
 | `cpp-tck.attribute-ownership-divestiture-if-wanted-contract` | Pure standard C++ contract for Divestiture If Wanted and its acquisition handoff |
+| `cpp-tck.privilege-to-delete-transfer` | Transfer `HLAprivilegeToDeleteObject` through regular acquisition and Divestiture If Wanted; verify the former holder is rejected and the new holder can delete, with Java parity |
+| `cpp-tck.privilege-to-delete-transfer-contract` | Standard contract twin for transferable delete privilege and deletion eligibility |
+  | `cpp-tck.privilege-to-delete-publication-eligibility` | Verify the delete privilege must be published before acquisition; an unpublished attempt reports `AttributeNotPublished` without changing ownership |
+  | `cpp-tck.privilege-to-delete-publication-eligibility-contract` | Standard contract twin for delete-privilege publication eligibility |
 | `cpp-tck.attribute-ownership-query-owner-report` | Query one known owned attribute and verify the standard owner handle in Inform Attribute Ownership |
 | `cpp-tck.attribute-ownership-query-owner-report-contract` | Pure standard C++ contract for the owner-report path of Attribute Ownership Query |
 | `cpp-tck.attribute-ownership-query-unowned-result` | Query a mixed-ownership object and verify the owned and not-owned callback partitions |
@@ -965,7 +1429,11 @@ explicit DDM or provider calls; the adapter supplies the rich FOM, logical-time
 implementation, provider, endpoint, and callback configuration. Its focused
 installed-package lane passed 4/4 callback-model cases; the earlier verified
 installed-package checkpoint recorded all 632 promoted scenario IDs (1,264
-callback-model cases when both models were selected).
+callback-model cases when both models were selected). A fresh focused run of
+this slice and its contract twin passed 4/4 executions against the October 14
+installed package; evidence is
+`out/mgw/cpp-tck-integrated-20261015/custom-transport-interaction-advances-20261015.json`
+with matching JUnit output.
 The promoted `cpp-tck.custom-transportation-timestamped-interaction-alternate-advances`
 scenario and its pure standard contract twin reuse the verified alternate-time
 oracle for Flush Queue, Time Advance Request Available, and Next Message Request
@@ -2410,6 +2878,22 @@ runners expose the mixed-advance, future-input Flush Queue, and terminal
 retraction boundaries as independently selectable pure standard C++ contracts.
 They take provider, FOM, endpoint, callback, and logical-time configuration from
 the adapter.
+The Flush Queue future-input scenario also verifies the frontier-equal early
+grant boundary: after delivering a timestamp at the GALT frontier and reporting
+the actual and optimistic grant times, the now-regulating receiver sends at
+queried logical time plus its queried lookahead without changing logical time.
+The scenario and contract twin passed both callback models (4/4 executions) in
+`out/mgw/tck-dse-ro-regional-20261016/fqr-post-grant-bound-frontier-equal-20261016.json`
+and `out/mgw/tck-dse-ro-regional-20261016/fqr-post-grant-bound-contract-20261016.json`.
+The Java parity source compiles against the pinned 2025 API JAR; runtime
+verification remains adapter-dependent.
+
+The regional interaction alternate-advance scenario now also establishes a
+distinct FQR actual/optimistic pair (5/7), queries lookahead, and verifies a
+post-grant regional send at time 6 while actual logical time remains 5. The
+scenario and contract twin passed both callback models and the focused CTest
+gate (4/4) against the installed package; evidence:
+`out/mgw/tck-dse-ro-regional-20261016/regional-interaction-fqr-post-grant-gate-20261016.json`.
 The promoted `cpp-tck.timestamped-directed-interaction-retraction` scenario and
 its contract twin cover the directed-message retraction boundary: a queued
 timestamped directed interaction is retracted before delivery, the receiver
@@ -3211,9 +3695,12 @@ supplied by the adapter.
 The promoted `cpp-tck.object-attribute-subscription-lifecycle` scenario
 verifies the same passive/active/downgrade/unsubscribe lifecycle for ordinary
 object attributes: passive declarations suppress discovery and reflection,
-activation discovers the existing object, downgrade suppresses later updates,
-reactivation restores reflection, and unsubscribe removes delivery. It uses
-only the adapter-supplied ordinary FOM and standard object callbacks.
+activation discovers the existing object and reflects its pre-subscription
+values filtered to the active subscribed set, discovers a later object
+registered while passive, and keeps later multi-attribute updates filtered.
+Downgrade suppresses later updates, reactivation restores reflection, and
+unsubscribe removes delivery. It uses only the adapter-supplied ordinary FOM
+and standard object callbacks.
 
 The promoted `cpp-tck.object-publication-registration-fence` scenario verifies
 that whole-class `unpublishObjectClass` removes the standard registration
@@ -4780,6 +5267,20 @@ total). The IEEE 1516.1-2025 API and requirements contracts, catalog
 validation, official API-surface audit, Java parity audit, and source-boundary
 checks are green.
 
+The adjacent timestamped interaction gate also passes on the installed-package
+adapter: `cpp-tck.timestamped-interactions` and its standard contract twin,
+plus `cpp-tck.timestamped-interaction-retraction-fanout` and its contract twin,
+all passed under both `HLA_EVOKED` and `HLA_IMMEDIATE` (8/8 executions). The
+focused direct-run evidence is
+`out/mgw/cpp-tck-integrated-20261015/timestamped-interaction-core-fanout-current.json`
+with matching JUnit output. This reused the existing GCC/Ninja consumer build
+and did not rebuild the provider or portable TCK; results are local
+installed-package evidence, not interoperability or conformance evidence. The
+next slice is a separate timestamped Send Interaction publication-state case,
+checking `InteractionClassNotPublished` after unpublication and ensuring the
+failed send creates no delivered callback, then confirming delivery after
+republishing.
+
 The promoted pair `cpp-tck.interaction-active-and-passive-subscription-modes`
 and its contract twin declare active and passive subscription modes on distinct
 federates, then verify ordinary class and parameter delivery only at the active
@@ -5058,7 +5559,18 @@ compiles against the official API JAR and catalog validation passes at 26
 scenarios; provider runtime remains capability-gated and unverified.
 
 The promoted `cpp-tck.timestamped-attribute-update-alternate-advances` scenario
-now has a Java focused-parity case using the standard update/reflection callbacks.
+now covers Flush Queue, TARA, NMRA, and NMR. The NMR requester receives the
+timestamp-five update, grants at five, then sends its own timestamp-seven update
+with lookahead one while its logical time remains five. Its owned object and
+attribute are adapter-FOM objects and the test cleans up with the standard
+`CANCEL_THEN_DELETE_THEN_DIVEST` resignation action. The Java parity case mirrors
+the same NMR/post-grant service sequence using standard update/reflection
+callbacks.
+The C++ scenario passed evoked and immediate callback modes (2/2) against the
+installed package in
+`out/mgw/tck-dse-ro-regional-20261016/early-nmr-attribute-update-green-20261016.json`.
+The Java source compiles against the pinned 2025 API JAR; runtime remains
+adapter-dependent.
 Two fresh MinGW 15.2/Ninja installed-package consumers each passed 2/2 focused
 CTests and 2/2 direct scenario executions across both callback models (4/4 in
 each path overall); both evidence audits are clean. Evidence is in
@@ -5204,3 +5716,3971 @@ standard-contract companion in two independent installed-package consumers,
 preserving both callback models and any declared Java parity link.
 Keep the TCK provider-neutral and do not resync unchanged Requirements Lab
 inputs.
+
+The timestamped interaction no-fan-out pair also passed directly using the
+already-built MinGW consumer, with both callback models (4/4 scenario
+executions); focused result validation is green. No configure or build was
+performed for that reuse check. The timestamped interaction source-resignation
+pair and its fan-out companion then passed from the same consumer, with both
+callback models (8/8 scenario executions total) and valid focused evidence.
+Both scenario pairs retain exact Java parity links. Subsequent focused runs
+also passed the timestamped interaction Time Regulation and Time Constrained
+re-enable pairs, Flush Queue/future-input, TARA/TAR equal-time parity cases,
+TSO terminalization, and cross-producer ordering (28/28 executions total).
+The TARA equal-time catalog description and requirements contract now clearly
+distinguish a later equal-time arrival after grant from the separate
+already-queued equal-time-before-grant rule; the Java and C++ scenario IDs
+continue to represent the same later-arrival behavior.
+
+Timestamped directed-interaction verification also advanced: the general
+directed interaction pair passed (4/4), retraction and fan-out pairs passed
+(8/8), and source-resignation, immediate source-resignation, both time-role
+re-enable pairs, TAR/NMR, and derived-object-target pairs passed (28/28).
+The initial directed alternate-advances run failed both callback models because
+it placed the TARA target exactly at the directed TSO timestamp without a
+portable observation that the TSO was queued before the request. That equality
+case has been removed from this scenario: TARA now requests time 5 for a TSO at
+time 3, establishing the strict-before boundary. The Java twin uses the same
+timestamps and grant assertions; the separate equal-boundary interaction case
+retains its distinct semantics. The producer's TAR(2) grant is observed before
+the receiver requests TARA, ensuring the message is eligible at the source
+before alternate advances begin. The corrected pair passed under both callback
+models against the October 14 installed package; focused result validation and
+Java compilation against the pinned 2025 API also pass. Evidence is
+`out/mgw/cpp-tck-integrated-20261015/timestamped-directed-alternate-advances-strict-boundary-20261015.json`
+with matching JUnit output. The earlier failed result remains diagnostic only.
+These are local adapter witnesses, not interoperability or conformance
+evidence.
+
+The timestamped-interaction Time Regulation disable/re-enable scenario and its
+standard-contract twin passed both callback models (4/4 executions) against the
+October 14 installed package. Focused JSON/JUnit validation is green in
+`out/mgw/cpp-tck-integrated-20261015/timestamped-interaction-regulation-reenable-20261016.json`.
+The Java parity source compiled against the pinned 2025 API JAR, and the
+catalog links resolve. This verifies only the local adapter profile; Java
+provider runtime, external interoperability, and conformance are not claimed.
+
+The paired Time Constrained disable/re-enable case then passed with its standard
+contract twin under both callback models (4/4); the linked Java scenario source
+compiled against the pinned API. Its standard contract now carries the exact
+Requirements Lab API-surface mapping and passes the Lab contract check. The
+adjacent timestamped interaction Flush Queue future-input pair also passed in
+both callback models (4/4), with focused evidence at
+`out/mgw/cpp-tck-integrated-20261015/timestamped-interaction-fqr-future-input-20261016.json`;
+its standard contract and the two Time Regulation changed-lookahead contracts
+match the pinned bundle. These are local installed-package witnesses only.
+
+The promoted timestamped-interaction publication-precondition pair and its
+standard-contract twin verify that a published timestamped send returns a valid
+retraction handle, then that the same service throws
+`InteractionClassNotPublished` after unpublication without generating a
+callback for the rejected call. Both callback models passed (4/4 executions)
+against the October 14 installed package; focused JSON/JUnit and catalog
+validation pass. Evidence is
+`out/mgw/cpp-tck-integrated-20261015/timestamped-interaction-publication-transition-20261016.json`
+with matching JUnit output. Its Java parity scenario compiles against the
+pinned 2025 API, but Java provider runtime evidence remains pending. The
+requirements/API contracts match the pinned Requirements Lab bundle. Neither
+test claims post-republication delivery or timestamped ordering. These are
+local adapter witnesses, not external provider certification or conformance
+evidence.
+
+A fresh timestamped-interaction lifecycle regression passed the core interaction
+and retraction case, retraction fan-out, and source-resignation single- and
+multi-recipient cases, including all four standard-contract twins, under both
+callback models (16/16 executions). Focused evidence validation is green in
+`out/mgw/cpp-tck-integrated-20261015/timestamped-interaction-lifecycle-regression-20261015.json`
+with matching JUnit output. The Java TCK compiles against the pinned 2025 API
+JAR, and the shared scenario IDs retain Java parity links. Results are local
+installed-package witnesses only.
+
+The ordinary timestamped-interaction alternate-advance regression then passed
+its mixed FQR/TARA/NMRA case and separate equal-boundary TAR and later-arrival
+TARA cases, including all three standard-contract twins, under both callback
+models (12/12 executions). Focused evidence validation is green in
+`out/mgw/cpp-tck-integrated-20261015/timestamped-interaction-time-boundaries-full-20261015.json`
+with matching JUnit output. The Java TCK rebuilt against the pinned 2025 API
+JAR; its shared scenario IDs retain parity links to these C++ cases. These are
+local installed-package witnesses, not interoperability or conformance
+evidence.
+
+The custom-transport directed-interaction alternate-advance scenario and its
+standard-contract twin now pass both callback models (4/4 executions). The
+adapter-supplied rich FOM declares the custom transport, and the case verifies
+that transport identity alongside target, timestamp/order, retraction, and
+grant behavior. Its TARA target is strictly later than the TSO timestamp, and
+the producer's pre-message TAR grant is observed before recipient requests.
+Focused evidence validation is green in
+`out/mgw/cpp-tck-integrated-20261015/custom-transport-directed-advances-20261015.json`
+with matching JUnit output. The Java parity twin compiles against the pinned
+2025 API JAR; both remain adapter-local evidence, not interoperability or
+conformance results.
+
+An unpromoted FQR/timed-save callback candidate now exercises the internal
+actual=5/optimistic=7 case through the public TCK interface. Its first installed-
+package run confirms FQR delivery and both frontiers, but the package rejects
+the timestamped save request at 6 with `InvalidLogicalTime` before either save
+initiation callback. The internal mapped case admits that request; therefore
+the callback-order assertion is not yet verified and this scenario remains a
+candidate, not a green or promoted test. Diagnostic JSON/JUnit are
+`out/mgw/tck-dse-ro-regional-20261016/fqr-timed-save-callback-final-diagnostic-20261016.{json,xml}`.
+The Java parity source compiles against the official 2025 API and the catalog
+validator passes; no Java provider-runtime result is claimed.
+
+The timestamped Send Interaction / preferred RECEIVE-order conversion scenario
+and its standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The scenario verifies that the supplied
+logical time is retained, delivery uses timestamped callback metadata with
+RECEIVE sent/received order, and no retraction handle is returned. Focused
+evidence is `out/mgw/tck-dse-ro-regional-20261016/preferred-receive-conversion-verified-20261016.json`
+with matching JUnit output. The Java parity source compiles against the
+official IEEE 1516.1-2025 API JAR, and the Java catalog/source-purity validator
+passes. These results are local adapter witnesses only.
+
+The asynchronous-delivery/TSO-exclusion scenario and its standard-contract
+twin passed against the installed package under both callback models (4/4
+executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/asynchronous-delivery-tso-exclusion-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity validation are green. This verifies scenario execution
+only; no Java provider-runtime or cross-RTI interoperability result is claimed.
+
+The ordinary timestamped attribute-update scenario and its standard-contract
+twin also passed against the installed package under both callback models
+(4/4 executions). Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-attribute-update-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation passed; the Java TCK
+catalog/source-purity validator passed, and the Java TCK compiled against the
+pinned official API JAR. This is adapter-local execution evidence, not a Java
+runtime or cross-RTI interoperability result.
+
+The timestamped object-deletion/removal scenario and its standard-contract
+twin passed against the installed package under both callback models (4/4
+executions). Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-object-deletion-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation is green, and the
+scenario retains its Java parity entry; no Java provider-runtime result is
+claimed.
+
+The Time Granted `Send Message` state-preservation scenario and its standard
+contract twin passed against the installed package under both callback models
+(4/4 executions). The focused case verifies a receive-order interaction can
+be delivered while the sender remains at logical time 10 with one grant, then
+the sender can request and receive grant 20. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/send-message-time-state-preservation-granted-verified-20261016.json`
+with matching JUnit output. The claim is limited to the Time Granted state and
+ordinary Send Message; no Java provider-runtime or broader state/service-family
+result is claimed.
+
+Eighteen additional standard slices passed as scenario/contract pairs under
+both callback models (72/72 executions): ordinary interaction subscription;
+object/attribute/update-rate lookup success and failure; ordinary attribute
+update success and failure; Request Attribute Value Update; ownership query
+and acquisition cancellation; timestamped attribute-update failure; object
+deletion success and failure; federate/object-class lookup success and
+failure; interaction/parameter lookup success and failure; federation MOM
+save-status; the standard-invalid FOM input corpus; and post-resignation
+service boundaries. The result JSON files are, respectively,
+`service-report-interaction-subscription-verified-20261016.json`,
+`service-report-object-attribute-update-rate-lookups-verified-20261016.json`,
+`service-report-object-attribute-update-rate-lookup-failures-verified-20261016.json`,
+`service-report-attribute-update-verified-20261016.json`,
+`service-report-attribute-update-failure-verified-20261016.json`,
+`service-report-request-attribute-value-update-verified-20261016.json`,
+`service-report-query-attribute-ownership-verified-20261016.json`,
+`service-report-cancel-attribute-ownership-acquisition-verified-20261016.json`,
+`service-report-timestamped-attribute-update-failure-verified-20261016.json`,
+`service-report-delete-object-instance-verified-20261016.json`,
+`service-report-delete-object-instance-failure-verified-20261016.json`,
+`service-report-federate-object-class-lookups-verified-20261016.json`,
+`service-report-federate-object-class-lookup-failures-verified-20261016.json`,
+`service-report-interaction-parameter-lookup-failures-verified-20261016.json`,
+`service-report-interaction-parameter-lookups-verified-20261016.json`,
+`federation-mom-save-status-verified-20261016.json`,
+`fom-standard-invalid-input-corpus-verified-20261016.json`, and
+`post-resignation-service-boundaries-verified-20261016.json`, all in
+`out/mgw/tck-dse-ro-regional-20261016/`. Every focused C++ result
+validation passed; Java catalog validation passed, with no Java
+provider-runtime result claimed.
+
+Two process-adapter automatic-resignation pairs passed under both callback
+models (8/8 executions): automatic resignation with the delete-objects
+directive, and automatic unconditional divestiture. Each used the existing
+current-process fixture; the standard TCK executable receives only adapter-
+supplied endpoint, FOM, time, callback, and scenario configuration. Separate
+scenario and contract evidence is in
+`automatic-resign-directive-delete-objects-adapter-verified-20261016.json`,
+`automatic-resign-directive-delete-objects-contract-adapter-verified-20261016.json`,
+`connection-loss-automatic-unconditional-divestiture-adapter-verified-20261016.json`,
+and
+`connection-loss-automatic-unconditional-divestiture-contract-adapter-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`. All four focused C++ result
+validations and the Java catalog validation passed; no Java provider-runtime
+result is claimed.
+
+The asynchronous-delivery controls and callback-servicing scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/asynchronous-delivery-verified-20261016.json`
+with matching JUnit output. This is the ordinary asynchronous-delivery service
+contract; the separate async-versus-TSO boundary evidence is recorded above.
+Java parity is cataloged, but no Java provider-runtime result is claimed.
+
+The asynchronous-delivery backlog check now queues three distinct receive-order
+interactions before enabling asynchronous delivery and requires all three to
+arrive exactly once with their payload and tags intact. The scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/asynchronous-delivery-three-message-backlog-20261016.json`
+with matching JUnit output. C++ catalog/result and Java catalog/source-purity
+validation pass, and the Java parity source compiles against the pinned API;
+no Java provider-runtime result is claimed.
+
+The timestamped-interaction Flush Queue future-input scenario and its standard
+contract twin passed against the installed package under both callback models
+(4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-interaction-flush-queue-future-input-verified-20261016.json`
+with matching JUnit output. The case verifies future timestamped delivery
+before the Flush Queue grant, frontier metadata, and the post-grant send bound.
+C++ catalog/result validation and Java catalog/source-purity checks passed;
+Java parity is cataloged, but no Java provider-runtime result is claimed.
+
+The timestamped-interaction TSO retraction-designator terminalization scenario
+and its standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-interaction-tso-designator-terminalization-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The timestamped-interaction TAR equal-boundary scenario and its standard
+contract twin passed against the installed package under both callback models
+(4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-interaction-tar-equal-boundary-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but Java
+provider runtime was not tested.
+
+The TARA equal-boundary pair was also exercised, but did not pass: under both
+callback models the later equal-time interaction was delivered before the
+grant, while the test expects the TARA grant before that interaction. The
+failed direct-run evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-interaction-tara-equal-boundary-verified-20261016.json`;
+the `verified` filename is historical and does not indicate a passing status.
+This pair is not counted among green installed-package evidence. The portable
+assertion is retained for investigation rather than weakened.
+
+The timestamped-interaction retraction-fan-out scenario and its standard
+contract twin passed against the installed package under both callback models
+(4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-interaction-retraction-fanout-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but Java
+provider runtime was not tested.
+
+The timestamped-interaction no-fan-out scenario and its standard-contract twin
+passed against the installed package under both callback models (4/4
+executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-interaction-no-fanout-verified-20261016.json`
+with matching JUnit output. The test verifies valid send/retraction handles
+and terminal retraction behavior without eligible recipient fan-out. C++
+catalog/result validation and Java catalog/source-purity checks passed; Java
+parity is cataloged, but Java provider runtime was not tested.
+
+The timestamped-interaction publication/send-transition scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). It verifies timestamped send while published
+and `InteractionClassNotPublished` after unpublishing, with no recipient
+callback from the rejected send. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-interaction-publication-send-transition-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but Java
+provider runtime was not tested.
+
+The timestamped-interaction source-resignation scenario and its standard
+contract twin passed against the installed package under both callback models
+(4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-interaction-source-resignation-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but Java
+provider runtime was not tested.
+
+The timestamped directed-interaction immediate-source-resignation scenario
+and its standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-directed-interaction-immediate-source-resignation-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but Java
+provider runtime was not tested.
+
+The timestamped directed-interaction retraction scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-directed-interaction-retraction-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but Java
+provider runtime was not tested.
+
+The timestamped directed-interaction TAR/NMR scenario and its standard-contract
+twin passed against the installed package under both callback models (4/4
+executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-directed-interaction-tar-nmr-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but Java
+provider runtime was not tested.
+
+The timestamped directed-interaction retraction-fanout scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-directed-interaction-retraction-fanout-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but Java
+provider runtime was not tested.
+
+The timestamped directed-interaction source-resignation fan-out scenario and
+its standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-directed-interaction-source-resignation-fanout-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but Java
+provider runtime was not tested.
+
+The timestamped directed-interaction source-resignation scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-directed-interaction-source-resignation-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but Java
+provider runtime was not tested.
+
+The timestamped directed-interaction Time Constrained re-enable scenario and
+its standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-directed-interaction-reenable-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but Java
+provider runtime was not tested.
+
+The timestamped directed-interaction Time Regulation re-enable scenario and
+its standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-directed-interaction-regulation-reenable-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but Java
+provider runtime was not tested.
+
+The timestamped-interaction cross-producer order scenario and its standard
+contract twin passed against the installed package under both callback models
+(4/4 executions). The first attempt timed out because the C++ fixture set
+`timeSeven` to initial + one epsilon while the Java parity case and expected
+ordering use initial + seven; the fixture is corrected to seven. Final focused
+evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-interaction-cross-producer-order-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; no Java provider-runtime result is
+claimed.
+
+The mixed-order attribute passel retraction scenario and its standard-contract
+twin passed against the installed package under both callback models (4/4
+executions). This is adapter-local API behavior evidence for preserving the
+already-delivered receive-order attribute while retracting the queued
+timestamp-order effect; the referenced contract remains experimental and this
+run is not conformance evidence. Focused results are
+`out/mgw/tck-dse-ro-regional-20261016/mixed-order-attribute-passel-retraction-verified-20261016.json`
+with matching JUnit output. Java parity compiles against the pinned official
+API, but no Java provider-runtime result is claimed.
+
+The timestamped directed-interaction derived-object target scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). It exercises timestamped directed delivery
+to a target object in a derived class, including the target identity and
+callback metadata. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-directed-interaction-derived-object-target-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The foundational timestamped directed-interaction scenario and its standard
+contract twin passed against the installed package under both callback models
+(4/4 executions). The cases exercise directed publication/subscription,
+recipient selection, timestamped delivery, invalid target/handle boundaries,
+and retraction. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-directed-interactions-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The timestamped directed-interaction delay-subscription-evaluation scenario
+and its standard-contract twin passed against the installed package under
+both callback models (4/4 executions). The cases verify that a queued directed
+interaction is re-evaluated at the time-constrained grant boundary after
+subscription removal, using the standard switch. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/delay-subscription-evaluation-timestamped-directed-interaction-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The ordinary directed-interaction mixed-subscription fan-out scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify class-scoped delivery to
+the appropriate by-ownership and universal subscribers, including recipient
+independence. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/directed-interaction-mixed-subscription-fanout-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The ordinary directed-interaction multi-recipient FIFO scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify that two universal
+subscribers independently receive the producer's directed interactions in
+order. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/directed-interaction-multi-recipient-fifo-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The ordinary directed-interaction target-lifecycle scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases fence directed delivery across
+subscription removal, unpublication, and target-object deletion. Focused
+evidence is
+`out/mgw/tck-dse-ro-regional-20261016/directed-interaction-target-lifecycle-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The ordinary directed-interaction derived-object-target scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify delivery to a target
+registered in a derived object class, including discovery and parameter
+delivery. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/directed-interaction-derived-object-target-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The directed-interaction callback-control scenario and its standard-contract
+twin passed against the installed package under both callback models (4/4
+executions). The cases verify callback suppression while disabled and delivery
+after callbacks are re-enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-directed-interaction-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The ordinary attribute-update callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify reflection suppression
+while callbacks are disabled and delivery after callbacks are enabled and
+serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-attribute-update-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The ordinary object-removal callback-control scenario and its standard-
+contract twin passed against the installed package under both callback models
+(4/4 executions). The cases verify removal callback suppression while
+callbacks are disabled and release after callbacks are enabled and serviced.
+Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-object-removal-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The ordinary object-discovery callback-control scenario and its standard-
+contract twin passed against the installed package under both callback models
+(4/4 executions). The cases verify discovery callback suppression while
+callbacks are disabled and release after callbacks are enabled and serviced.
+Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-object-discovery-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The successful object-name-reservation callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify that reservation-success
+callbacks remain gated while disabled and are released when callbacks are
+enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-object-name-reservation-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The failed object-name-reservation callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify that failed-reservation
+callbacks remain gated while disabled and are released after callbacks are
+enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-object-name-reservation-failure-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The multiple object-name-reservation callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify that batched successful
+and failed reservation callbacks remain gated while disabled and are released
+when callbacks are enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-multiple-object-name-reservation-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The declaration-relevance advisory callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases cover object-registration and
+interaction relevancy callbacks while declarations are disabled and after
+they are enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-declaration-advisories-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The attribute-relevance advisory callback-control scenario and its standard-
+contract twin passed against the installed package under both callback models
+(4/4 executions). The cases cover per-object attribute relevance and update-
+rate advisories while callbacks are disabled and after they are enabled and
+serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-attribute-relevance-advisories-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The attribute-value-update-request callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify that the standard
+request-to-update callback is gated while callbacks are disabled and released
+after callbacks are enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-attribute-value-request-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The auto-provide callback-control scenario and its standard-contract twin
+passed against the installed package under both callback models (4/4
+executions). The cases verify attribute-value request behavior under the
+adapter-supplied standard auto-provide switch while callbacks are disabled and
+after they are enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-auto-provide-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The attribute-ownership assumption callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify that the assumption request
+and its callback remain gated while callbacks are disabled and are released
+after callbacks are enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-ownership-assumption-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The ownership-unavailable callback-control scenario and its standard-contract
+twin passed against the installed package under both callback models (4/4
+executions). The cases verify that the ownership-unavailable callback is
+gated while callbacks are disabled and released after callbacks are enabled
+and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-ownership-unavailable-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The ownership release-request callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify that a release-request
+callback is gated while callbacks are disabled and released after callbacks
+are enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-ownership-release-request-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The ownership acquisition-cancellation callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify the cancellation outcome
+and associated callback gating/release through the standard ownership API.
+Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-ownership-acquisition-cancellation-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The ownership release-denied callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify release-denied callback
+gating and delivery when callbacks are enabled and serviced. Focused evidence
+is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-ownership-release-denied-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The ownership-acquisition-notification callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify the ownership release
+request/acquisition flow and gate the acquisition-notification callback until
+callbacks are enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-ownership-acquisition-notification-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The ownership-divestiture-confirmation callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify the divestiture
+confirmation outcome and callback gating/release using the standard ownership
+API. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-ownership-divestiture-confirmation-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The ownership-query callback-control scenario and its standard-contract twin
+passed against the installed package under both callback models (4/4
+executions). The cases verify ownership-query callbacks remain gated while
+disabled and are released when callbacks are enabled and serviced. Focused
+evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-ownership-query-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The synchronization callback-control scenario and its standard-contract
+twin passed against the installed package under both callback models (4/4
+executions). The cases verify synchronization registration, announcement,
+achievement, and completion callbacks are gated while disabled and released
+after callbacks are enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-synchronization-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The time-advance callback-control scenario and its standard-contract twin
+passed against the installed package under both callback models (4/4
+executions). The cases verify time-advance grant delivery is gated while
+callbacks are disabled and released after callbacks are enabled and serviced.
+Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-time-advance-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The save/restore callback-control scenario and its standard-contract twin
+passed against the installed package under both callback models (4/4
+executions). The cases verify standard save/restore status callbacks remain
+gated while disabled and are delivered after callbacks are enabled and
+serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-save-restore-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The save/restore failure callback-control scenario and its standard-contract
+twin passed against the installed package under both callback models (4/4
+executions). The cases verify failed-save/restore status callbacks remain
+gated while callbacks are disabled and are delivered after callbacks are
+enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-save-restore-failures-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The restore-request-failure callback-control scenario and its standard-
+contract twin passed against the installed package under both callback models
+(4/4 executions). The cases verify a failed restore-request callback remains
+gated while callbacks are disabled and is delivered after callbacks are
+enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-restore-request-failure-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The timestamped attribute-update callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify timestamped reflections
+remain gated while callbacks are disabled and are delivered after callbacks
+are enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-timestamped-attribute-update-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The timestamped regional-interaction callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify a queued timestamped
+regional interaction and its callback metadata/retraction boundaries remain
+gated while callbacks are disabled and are serviced after callbacks are
+enabled. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-timestamped-regional-interaction-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The timestamped object-removal callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify timestamped deletion and
+removal notification callbacks remain gated while callbacks are disabled and
+are delivered after callbacks are enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-timestamped-object-removal-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The timestamped-retraction callback-control scenario and its standard-
+contract twin passed against the installed package under both callback models
+(4/4 executions). The cases verify request-retraction callbacks remain gated
+while disabled and are delivered after callbacks are enabled and serviced.
+Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-timestamped-retraction-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The transportation callback-control scenario and its standard-contract twin
+passed against the installed package under both callback models (4/4
+executions). The cases verify standard transportation reports and
+confirmations remain gated while callbacks are disabled and are delivered
+after callbacks are enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-transportation-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The federation-report callback-control scenario and its standard-contract
+twin passed against the installed package under both callback models (4/4
+executions). The cases verify federation execution/member report callbacks
+remain gated while disabled and are delivered after callbacks are enabled and
+serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-federation-reports-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The attribute-scope advisory callback-control scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The cases verify scope advisories and stale
+scope callback behavior are gated while disabled and delivered after callbacks
+are enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-attribute-scope-advisories-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The Flush Queue grant callback-control scenario and its standard-contract
+twin passed against the installed package under both callback models (4/4
+executions). The cases verify Flush Queue grants and queued timestamped
+interaction delivery remain gated while callbacks are disabled and are
+serviced after callbacks are enabled. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-flush-queue-grant-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The available-time-advance callback-control scenario and its standard-
+contract twin passed against the installed package under both callback models
+(4/4 executions). The cases verify Time Advance Request Available and Next
+Message Request Available callbacks remain gated while disabled and are
+delivered after callbacks are enabled and serviced. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/callback-controls-available-time-advance-callbacks-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The federation listing-services scenario and its standard-contract twin
+passed against the installed package under both callback models (4/4
+executions). The cases verify federation-execution and member listing reports,
+including absent-execution reporting across callback boundaries. Focused
+evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-list-services-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The multiple-federation-executions lifecycle scenario and its standard-
+contract twin passed against the installed package under both callback models
+(4/4 executions). The cases verify one application can create and join
+multiple federates across separate executions, resign, reuse the ambassador,
+and tear down the executions. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federate-application-multiple-executions-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The timestamped interaction source-resignation fan-out scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-interaction-source-resignation-fanout-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The broad synchronization-point scenario and its contract ID passed against
+the installed package under both callback models (4/4 executions). Focused
+evidence is
+`out/mgw/tck-dse-ro-regional-20261016/synchronization-point-contract-verified-20261016.json`
+with matching JUnit output. The contract ID intentionally invokes the same
+portable synchronization scenario, so this is evidence for both catalog IDs,
+not an independent duplicate implementation. C++ catalog/result validation
+and Java catalog/source-purity checks passed; Java parity is cataloged, but no
+Java provider-runtime result is claimed.
+
+The explicit synchronization-set late-join scenario and its standard-contract
+twin passed against the installed package under both callback models (4/4
+executions). The focused C++ source is in `src/portable_tck.cpp`; it verifies
+registration and announcement metadata, rejects achievement by a late joiner
+excluded from the set, and completes the barrier with the included member.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/synchronization-point-explicit-set-late-join-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity is cataloged, but no Java
+provider-runtime result is claimed.
+
+The timestamped-attribute sender-regulation transition scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-attribute-sender-regulation-transition-verified-20261016.json`
+with matching JUnit output. This remains adapter-local behavior evidence; the
+Java parity scenario compiles against the pinned official API, but no Java
+provider-runtime result is claimed.
+
+The queued timestamped attribute-update retraction scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-attribute-update-queued-passel-retraction-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation is green; the Java
+parity scenario compiles against the pinned API, with no Java provider-runtime
+result claimed.
+
+The timestamped object-deletion no-fanout scenario and its standard-contract
+twin passed against the installed package under both callback models (4/4
+executions). The case verifies retraction when no recipient is eligible and
+reconstitution of the object's active state. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-object-deletion-no-fanout-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation passed; the Java
+parity source compiles against the pinned API, with no Java provider-runtime
+result claimed.
+
+The timestamped object-deletion tombstone reuse scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-object-deletion-tombstone-verified-20261016.json`
+with matching JUnit output. The result is adapter-local behavior evidence;
+Java parity compiles against the pinned official API, but Java provider runtime
+remains unverified.
+
+The joined-owner timestamped object-deletion retraction scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). The case exercises ownership handoff,
+resignation with cancellation, and retraction/reconstitution for the remaining
+joined owner. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-object-deletion-retraction-joined-owners-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; the Java parity source compiles against
+the pinned API, with no Java provider-runtime result claimed.
+
+The timestamped object-deletion mixed-advances scenario and its standard
+contract twin passed against the installed package under both callback models
+(4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-object-deletion-mixed-advances-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation passed; the Java
+parity source compiles against the pinned official API, but no Java
+provider-runtime result is claimed.
+
+The timestamped object-deletion Time Regulation re-enable scenario and its
+standard-contract twin passed against the installed package under both
+callback models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-object-deletion-regulation-reenable-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity compiles against the pinned
+API, but no Java provider-runtime result is claimed.
+
+The timestamped object-deletion source-resignation fan-out scenario and its
+standard-contract twin passed against the installed package under both callback
+models (4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-object-deletion-source-resignation-fanout-verified-20261016.json`
+with matching JUnit output. C++ catalog/result validation and Java
+catalog/source-purity checks passed; Java parity compiles against the pinned
+API, but no Java provider-runtime result is claimed.
+
+The unnamed federation-join overload scenario and its standard-contract twin
+passed against the installed package under both callback models (4/4
+executions). They verify generated federate-name round-trip, federation member
+reporting, named-join control membership, handle/name lookups, resignation,
+and cleanup. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/unnamed-join-overload-verified-20261016.json`
+with matching JUnit output. The Java parity scenario is
+`java-tck.unnamed-join-overload`; C++ result validation and Java catalog
+validation passed, but no Java provider-runtime result is claimed.
+
+The federate lookup lifecycle scenario and its standard-contract twin passed
+against the installed package under both callback models (4/4 executions).
+They cover standard handle/name lookup boundaries across federate membership
+and resignation. Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federate-lookup-lifecycle-verified-20261016.json`
+with matching JUnit output. C++ result and Java catalog validation passed;
+Java provider-runtime execution is not claimed.
+
+The explicit-MIM federation-creation scenario and its standard-contract twin
+passed against the installed package under both callback models (4/4
+executions). They verify adapter-supplied standard MIM composition, shared
+declaration handles, and preservation of ordinary FOM declarations. Focused
+evidence is
+`out/mgw/tck-dse-ro-regional-20261016/explicit-mim-creation-verified-20261016.json`
+with matching JUnit output. The Java parity catalog entry is
+`java-tck.explicit-mim-creation`; no Java provider-runtime result is claimed.
+
+The federation MOM current-FDD scenario and its standard-contract twin passed
+against the installed package under both callback models (4/4 executions).
+Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-mom-current-fdd-verified-20261016.json`
+with matching JUnit output. C++ result and Java catalog validation passed;
+Java provider-runtime execution is not claimed.
+
+The static federation MOM identity scenario and its standard-contract twin
+passed against the installed package under both callback models (4/4
+executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-mom-static-identity-verified-20261016.json`
+with matching JUnit output. C++ result and Java catalog validation passed;
+Java provider-runtime execution is not claimed.
+
+The static federation MOM switches scenario and its standard-contract twin
+passed against the installed package under both callback models (4/4
+executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-mom-static-switches-verified-20261016.json`
+with matching JUnit output. C++ result and Java catalog validation passed;
+Java provider-runtime execution is not claimed.
+
+The federation MOM federate-roster scenario and its standard-contract twin
+passed against the installed package under both callback models (4/4
+executions). They check roster updates on federate join and resignation.
+Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-mom-federates-in-federation-verified-20261016.json`
+with matching JUnit output. C++ result and Java catalog validation passed;
+Java provider-runtime execution is not claimed.
+
+The federation MOM FOM-module designator-list scenario and its standard-
+contract twin passed against the installed package under both callback models
+(4/4 executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-mom-fom-module-designator-list-verified-20261016.json`
+with matching JUnit output. C++ result and Java catalog validation passed;
+Java provider-runtime execution is not claimed.
+
+The federation MOM content-report scenario and its standard-contract twin
+passed against the installed package under both callback models (4/4
+executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-mom-content-reports-verified-20261016.json`
+with matching JUnit output. C++ result validation and Java catalog validation
+passed; Java provider-runtime execution is not claimed.
+
+The ordinary interaction service-report scenario and its standard-contract
+twin passed against the installed package under both callback models (4/4
+executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/service-report-interaction-verified-20261016.json`
+with matching JUnit output. C++ result validation and Java catalog validation
+passed; Java provider-runtime execution is not claimed.
+
+The federation-resignation service-report scenario and its standard-contract
+twin passed against the installed package under both callback models (4/4
+executions). Focused evidence is
+`out/mgw/tck-dse-ro-regional-20261016/service-report-resign-federation-execution-verified-20261016.json`
+with matching JUnit output. C++ result validation and Java catalog validation
+passed; Java provider-runtime execution is not claimed.
+
+Two standalone Java-parity service-report scenarios passed under both callback
+models (2/2 each): Query GALT, evidenced by
+`out/mgw/tck-dse-ro-regional-20261016/service-report-query-galt-verified-20261016.json`,
+and Next Message Request Available boundary reporting, evidenced by
+`out/mgw/tck-dse-ro-regional-20261016/service-report-next-message-request-available-verified-20261016.json`.
+Focused C++ validation and Java catalog validation passed; these are standalone
+scenarios, not contract-twin pairs.
+
+The adapter-managed federate-lost MOM report scenario and contract twin passed
+under both callback models (4/4). The process-loss adapter and existing fixture
+were used; the portable TCK itself remains independent of fixture code.
+Evidence is split between
+`out/mgw/tck-dse-ro-regional-20261016/federate-lost-mom-report-adapter-verified-20261016.json`
+and
+`out/mgw/tck-dse-ro-regional-20261016/federate-lost-mom-report-contract-adapter-verified-20261016.json`.
+Both focused results and the Java catalog validated; Java provider-runtime
+execution is not claimed.
+
+The following five service-report scenario/contract pairs each passed under
+both callback models (4/4 per pair), with matching JUnit evidence:
+`service-report-receive-order-interaction-verified-20261016.json`,
+`service-report-timestamped-directed-interaction-verified-20261016.json`,
+`service-report-timestamped-attribute-update-verified-20261016.json`,
+`service-report-timestamped-object-deletion-verified-20261016.json`, and
+`service-report-interaction-failure-verified-20261016.json`, all under
+`out/mgw/tck-dse-ro-regional-20261016/`.
+
+Five more pairs passed under both callback models (4/4 each): successful
+regional interaction, regional interaction subscription, object-attribute
+declaration, and directed-interaction declaration/publication. Their result
+files are
+`service-report-regional-interaction-verified-20261016.json`,
+`service-report-regional-interaction-subscription-verified-20261016.json`,
+`service-report-object-attribute-declaration-verified-20261016.json`,
+`service-report-directed-interaction-declaration-verified-20261016.json`,
+and
+`service-report-directed-interaction-publication-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`. Each focused C++ evidence
+validation passed. Java catalog validation passed; no Java provider-runtime
+result is claimed.
+
+Twelve additional standard service-report scenario/contract pairs passed
+under both callback models (48/48 executions). They cover automatic
+delete-then-divest on connection loss (through the current-process adapter),
+object registration, object-name reservation/release and multiple release,
+local object deletion success/failure, timestamped deletion failure,
+interaction publication, timestamped interaction success/failure, and
+regional interaction failure. Evidence is in
+`connection-loss-automatic-delete-then-divest-adapter-verified-20261016.json`,
+`connection-loss-automatic-delete-then-divest-contract-adapter-verified-20261016.json`,
+`service-report-register-object-instance-verified-20261016.json`,
+`service-report-reserve-object-instance-name-verified-20261016.json`,
+`service-report-release-object-instance-name-verified-20261016.json`,
+`service-report-release-multiple-object-instance-names-verified-20261016.json`,
+`service-report-local-delete-object-instance-verified-20261016.json`,
+`service-report-local-delete-object-instance-failure-verified-20261016.json`,
+`service-report-timestamped-delete-object-instance-failure-verified-20261016.json`,
+`service-report-interaction-publication-verified-20261016.json`,
+`service-report-timestamped-interaction-verified-20261016.json`,
+`service-report-timestamped-interaction-failure-verified-20261016.json`,
+and
+`service-report-regional-interaction-failure-verified-20261016.json`, under
+`out/mgw/tck-dse-ro-regional-20261016/`. Focused C++ validations and the
+Java catalog validation passed.
+
+The synchronization service-report pair and service-reporting interlock pair
+also passed in both callback models (4/4 each), with focused C++ evidence
+validation. Their results are
+`service-report-synchronization-verified-20261016.json` and
+`service-report-interlock-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`. The synchronization case covers
+registration, confirmation, announcement, achievement, and completion reports;
+the interlock case covers the standard MOM switch and active/passive
+`HLAreportServiceInvocation` subscription behavior. No Java provider-runtime
+result is implied by Java catalog validation.
+
+The Service Reporting enablement-precondition pair was rerun against the
+installed package and passed both callback models (4/4 executions), with
+focused C++ evidence validation. The case confirms that enabling Service
+Reporting while subscribed to `HLAreportServiceInvocation` produces one
+reliable `HLAreportMOMexception` with `HLAparameterError` false, and that
+removing the subscription allows the request. Evidence is
+`federate-mom-exception-report-service-precondition-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`. The C++/Java scenario IDs are
+explicitly linked in both catalogs, and Java catalog/source validation passes;
+this does not claim Java provider-runtime execution.
+
+The adapter-managed Confirm Divestiture service-report scenario and contract
+twin passed against the installed package in both callback models (4/4 total
+executions). The process fixture provided the owner/member federates while the
+portable scenarios asserted standard service-report observations. Evidence is
+`service-report-confirm-divestiture-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`; focused C++ validation passed, and
+the Java catalog/source validation remains clean. The first unprivileged run
+was blocked by Windows localhost socket error 10013; the permission-enabled
+retry passed. No provider rebuild or Java provider-runtime execution is
+claimed.
+
+The standard service-exception-boundaries scenario and contract twin passed
+against the installed package in both callback models (4/4 executions).
+Focused C++ evidence validation and Java catalog/source validation passed.
+Their evidence is
+`standard-exception-boundaries-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`. The catalog maps only the asserted
+pre-connect and simultaneous `NotConnected`/invalid-resign-action precedence
+requirements to IEEE 1516.1-2025 clauses 4 and 1 respectively; other
+exception-boundary assertions retain their existing scoped contract. No
+provider rebuild or Java provider-runtime execution is claimed.
+
+The standard handle-normalization membership-boundaries scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). Focused C++ evidence validation passed, and the Java catalog/source
+check passed. The coverage is limited to public normalize-service-group and
+handle-normalization call-state boundaries before connect, before join, and
+after resignation; it does not assert provider-specific normalized values or
+encodings. Evidence is
+`handle-normalization-membership-boundaries-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The standard dimension-lookup-valid-handles-after-resignation scenario and
+contract twin also passed against the installed package in both callback
+models (4/4 executions). The adapter-supplied dimensional FOM establishes
+valid handles; after resignation while still connected, the scenario checks
+the standard member-state outcomes for dimension name, upper bound, and
+available object/interaction-class dimensions. Focused C++ evidence validation
+and Java catalog/source validation passed. Evidence is
+`dimension-lookup-valid-handles-after-resignation-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`; no provider rebuild or Java
+provider-runtime execution is claimed.
+
+The advisory-switch-value-round-trips scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). Each
+of the four standard object-class relevance, attribute relevance, attribute
+scope, and interaction relevance advisory switches is toggled from its
+observed value, verified, and restored. Focused C++ evidence validation and
+Java catalog/source validation passed. Evidence is
+`advisory-switch-value-round-trips-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`; no provider rebuild or Java
+provider-runtime execution is claimed.
+
+The automatic-resign-directive-enum-values scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). All
+six standard resign-action enumerators round-trip through the public getter and
+setter, and the next invalid enum value is rejected with `InvalidResignAction`.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Evidence is `automatic-resign-directive-enum-values-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`; the Java parity target is
+`java-tck.automatic-resign-directive-standard-enumerator-values`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The automatic-resign-directive-lifecycle-boundaries scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). The public getter and setter are exercised at the standard
+federation lifecycle boundaries, without assuming an implementation-specific
+directive default. Focused C++ evidence validation and Java catalog/source
+validation passed. Evidence is
+`automatic-resign-directive-lifecycle-boundaries-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`; no provider rebuild or Java
+provider-runtime execution is claimed.
+
+The support-switch-setter-lifecycle-boundaries scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+All eight writable setters are called with each switch's observed value while
+joined, then checked for the standard member-state failures after resignation
+and disconnect; no switch defaults are asserted or left modified. Focused C++
+evidence validation and Java catalog/source validation passed. Evidence is
+`support-switch-setter-lifecycle-boundaries-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`; no provider rebuild or Java
+provider-runtime execution is claimed.
+
+The support-switch-getter-lifecycle-boundaries scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+All 13 standard getters are checked while joined, after resignation while
+connected, and after disconnect, without assuming implementation-specific
+switch defaults. Focused C++ evidence validation and Java catalog/source
+validation passed. Evidence is
+`support-switch-getter-lifecycle-boundaries-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`; no provider rebuild or Java
+provider-runtime execution is claimed.
+
+The support-lookup-valid-inputs-after-resignation scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+Focused C++ evidence validation and Java catalog/source validation passed.
+Using adapter-supplied valid FOM names and handles, the scenarios test
+post-resignation membership boundaries for object and interaction classes,
+attributes, and parameters in both handle-to-name and name-to-handle
+directions. Evidence is
+`support-lookup-valid-inputs-after-resignation-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`; no provider rebuild or Java
+provider-runtime execution is claimed.
+
+The update-rate lookup membership-boundaries scenario and contract twin passed
+against the installed package in both callback models (4/4 executions).
+Focused C++ evidence validation and Java catalog/source validation passed.
+Using the adapter-supplied rate FOM and designator, the test checks the
+standard post-resignation member-state result for both update-rate lookup
+services with otherwise valid inputs. Evidence is
+`update-rate-lookup-valid-inputs-after-resignation-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`; no provider rebuild or Java
+provider-runtime execution is claimed.
+
+The callback-reentrancy scenario and contract twin passed against the installed
+package in both callback models (4/4 executions). The standard federation
+listing callback attempts callback-service re-entry, and the portable case
+checks the required rejection through the public API. Focused C++ evidence
+validation and Java catalog/source validation passed. Evidence is
+`callback-reentrancy-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`; the Java parity target is
+`java-tck.callback-reentrancy`. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The public handle-decoding scenario and contract twin passed against the
+installed package in both callback models (4/4 executions) using the
+adapter-supplied two-dimension DDM FOM and configured logical-time
+implementation. The test exercised all official federation-scoped decoders,
+valid encode/decode round trips, and malformed-input boundaries. Focused C++
+evidence validation and Java catalog/source validation passed. Java parity is
+`java-tck.public-handle-decoding`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/public-handle-decoding-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The joined-federate `HLAdirectedInteractionsSent` MOM-attribute scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions) using the adapter-supplied standard MIM. Direct and periodic
+counters matched ordinary and directed send contributions through the
+standard API, with delivery/target behavior asserted separately. Focused C++
+evidence validation and Java catalog/source validation passed. Java parity is
+`java-tck.federate-mom-directed-interactions-sent-mim-attribute`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/joined-federate-mom-directed-interactions-sent-mim-attribute-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The joined-federate `HLAdirectedInteractionsReceived` MOM-attribute scenario
+and contract twin passed against the installed package in both callback
+models (4/4 executions) using the adapter-supplied standard MIM. Direct and
+periodic counters reflected only directed-interaction callbacks actually
+delivered to the federate, including filtering of undelivered targets.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java parity is
+`java-tck.federate-mom-directed-interactions-received-mim-attribute`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/joined-federate-mom-directed-interactions-received-mim-attribute-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The joined-federate `HLAinteractionsSent` MOM-attribute scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions) using the adapter-supplied IEEE 1516.2-2025 standard MIM. Direct
+and periodic reports tracked ordinary Send Interaction contributions through
+the standard service and MOM reporting path. Focused C++ evidence validation
+and Java catalog/source validation passed. Java parity is
+`java-tck.federate-mom-interactions-sent-mim-attribute`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/joined-federate-mom-interactions-sent-mim-attribute-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The joined-federate `HLAinteractionsReceived` MOM-attribute scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions) using the adapter-supplied IEEE 1516.2-2025 standard MIM.
+Direct and periodic reports tracked delivered application interactions
+through the standard receive callback and MOM reporting path. Focused C++
+evidence validation and Java catalog/source validation passed. Java parity is
+`java-tck.federate-mom-interactions-received-mim-attribute`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/joined-federate-mom-interactions-received-mim-attribute-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The federation-restore-abort scenario and contract twin passed against the
+installed package in both callback models (4/4 executions). The standard
+restore lifecycle reached an active restore, `abortFederationRestore`
+produced terminal failure callbacks, and restore-status queries reported the
+expected terminal state. Focused C++ evidence validation and Java
+catalog/source validation passed. Java parity is
+`java-tck.federation-restore-abort`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-restore-abort-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The attribute/interaction order-type-change scenario and contract twin passed
+against the installed package in both callback models (4/4 executions) using
+the adapter-configured logical-time implementation. The case verified
+prospective default and per-object attribute order controls, receive-order
+interaction control, and timestamped delivery through the standard callbacks.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java parity is `java-tck.order-type-controls`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/order-type-change-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The Query Lookahead/Modify Lookahead scenario and contract twin passed against
+the installed package in both callback models (4/4 executions) using the
+adapter-configured logical-time implementation. The test covers the
+deferred-decrease boundary, lookahead query results, and grant progression
+through the standard time-management API. Focused C++ evidence validation and
+Java catalog/source validation passed. Java parity is
+`java-tck.modify-lookahead-contract`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/modify-lookahead-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The periodic `HLAlogicalTime` MOM-attribute scenario and contract twin passed
+against the installed package in both callback models (4/4 executions) using
+the adapter-supplied IEEE 1516.2-2025 standard MIM and configured
+logical-time implementation. Periodic reports tracked the standard time
+advance grants and the public logical-time state. Focused C++ evidence
+validation and Java catalog/source validation passed. Java parity is
+`java-tck.federate-logical-time-mim-periodic`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federate-logical-time-mim-periodic-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The periodic `HLAlookahead` MOM-attribute scenario and contract twin passed
+against the installed package in both callback models (4/4 executions) using
+the adapter-supplied IEEE 1516.2-2025 standard MIM and configured logical-time
+implementation. The periodic report reflected standard time-regulation and
+Modify Lookahead changes, alongside the public lookahead query. Focused C++
+evidence validation and Java catalog/source validation passed. Java parity is
+`java-tck.federate-lookahead-mim-periodic`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federate-lookahead-mim-periodic-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The conditional `HLAtimeManagerState` MOM-attribute scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions) using the adapter-supplied IEEE 1516.2-2025 standard MIM. The
+reported time-manager state followed the tested standard time-advance service
+transitions through public reflection. Focused C++ evidence validation and
+Java catalog/source validation passed. Java parity is
+`java-tck.federate-time-manager-state-mim-attribute`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federate-time-manager-state-mim-attribute-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The conditional `HLAtimeRegulating` MOM-attribute scenario and contract twin
+passed against the installed package in both callback models (4/4 executions)
+using the adapter-supplied IEEE 1516.2-2025 standard MIM. The reported value
+tracked the standard time-regulation enable/disable transitions through
+public attribute reflection. Focused C++ evidence validation and Java
+catalog/source validation passed. Java parity is
+`java-tck.federate-time-regulating-mim-attribute`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federate-time-regulating-mim-attribute-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The conditional `HLAtimeConstrained` MOM-attribute scenario and contract twin
+passed against the installed package in both callback models (4/4 executions)
+using the adapter-supplied IEEE 1516.2-2025 standard MIM. The reported value
+tracked the standard time-constrained enable/disable transitions through the
+public reflection path. Focused C++ evidence validation and Java
+catalog/source validation passed. Java parity is
+`java-tck.federate-time-constrained-mim-attribute`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federate-time-constrained-mim-attribute-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The federate asynchronous-delivery MIM-attribute scenario and contract twin
+passed against the installed package in both callback models (4/4 executions)
+using the adapter-supplied IEEE 1516.2-2025 standard MIM. The conditional
+`HLAasynchronousDelivery` value tracked the standard enable/disable service
+transitions through public attribute reflection. Focused C++ evidence
+validation and Java catalog/source validation passed. Java parity is
+`java-tck.federate-asynchronous-delivery-mim-attribute`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federate-asynchronous-delivery-mim-attribute-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The federation-wide Auto Provide MOM switch scenario and contract twin passed
+against the installed package in both callback models (4/4 executions) using
+the adapter-supplied Auto Provide FOM and IEEE 1516.2-2025 standard MIM. The
+standard federation interaction changed Auto Provide behavior as expected
+for subsequent object registration and value-update requests. Focused C++
+evidence validation and Java catalog/source validation passed. Java parity is
+`java-tck.federation-auto-provide-mom-switch`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-auto-provide-mom-switch-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The ordinary transportation-type change scenario and contract twin passed
+against the installed package in both callback models (4/4 executions) using
+adapter-declared `TckBestEffort` and `TckAdditionalTransport`. Attribute and
+interaction transportation changes were confirmed at the standard callback
+boundaries, and subsequent queries/delivery reflected the new types.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java parity is `java-tck.transport-order`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/transportation-type-change-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The Auto Provide disabled/explicit-request scenario and contract twin passed
+against the installed package in both callback models (4/4 executions) with
+the adapter-supplied Auto Provide FOM and names. Explicit Request Attribute
+Value Update remained serviceable while automatic response was disabled; the
+provider returned the requested value through the standard callback/update
+path. Focused C++ evidence validation and Java catalog/source validation
+passed. Java parity is `java-tck.auto-provide-disabled-explicit-request`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/auto-provide-disabled-explicit-request-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The Auto Provide disabled/discovery-only scenario and contract twin passed
+against the installed package in both callback models (4/4 executions) with
+the adapter-supplied Auto Provide FOM and object/attribute names. Object
+discovery remained observable while the provider-initiated
+`provideAttributeValueUpdate` callback was suppressed. Focused C++ evidence
+validation and Java catalog/source validation passed. Java parity is
+`java-tck.auto-provide-disabled-discovery-only`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/auto-provide-disabled-discovery-only-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The custom-transportation timestamped-directed-interaction alternate-advances
+scenario and contract twin passed against the installed package in both
+callback models (4/4 executions), with adapter-declared `TckBestEffort` and
+adapter-supplied directed FOM names. Timestamped directed delivery was
+verified through Flush Queue, Time Advance Request Available, and Next Message
+Request Available with target and transportation metadata intact. Focused C++
+evidence validation and Java catalog/source validation passed. Java parity is
+`java-tck.custom-transportation-timestamped-directed-interaction-alternate-advances`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/custom-transportation-timestamped-directed-interaction-alternate-advances-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The custom-transportation timestamped-attribute alternate-advances scenario
+and contract twin passed against the installed package in both callback
+models (4/4 executions) using adapter-declared `TckBestEffort`. The timestamped
+attribute update was verified through Flush Queue, Time Advance Request
+Available, and Next Message Request Available, including retraction and
+transportation metadata. Focused C++ evidence validation and Java
+catalog/source validation passed. Java parity is
+`java-tck.custom-transportation-timestamped-attribute-alternate-advances`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/custom-transportation-timestamped-attribute-alternate-advances-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The custom-transportation timestamped regional-interaction scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions), using adapter-declared `TckBestEffort` and the two
+adapter-supplied DDM dimensions. The test verified regional TSO delivery,
+retraction and conveyed region metadata through the standard callbacks.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java parity is
+`java-tck.custom-transportation-timestamped-regional-interaction-delivery`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/custom-transportation-timestamped-regional-interaction-delivery-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The custom-transportation timestamped directed-interaction scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions) with adapter-declared `TckBestEffort` and adapter-supplied
+directed FOM names. Timestamped directed delivery reached the intended target
+with the expected parameter and transportation metadata. Focused C++ evidence
+validation and Java catalog/source validation passed. Java parity is
+`java-tck.custom-transportation-timestamped-directed-delivery`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/custom-transportation-timestamped-directed-delivery-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The custom-transportation timestamped-interaction alternate-advances scenario
+and contract twin passed against the installed package in both callback
+models (4/4 executions) using adapter-declared `TckBestEffort`. The test
+verified timestamped interaction delivery through Flush Queue, Time Advance
+Request Available, and Next Message Request Available, including callback
+metadata and transportation identity. Focused C++ evidence validation and
+Java catalog/source validation passed. Java parity is
+`java-tck.custom-transportation-timestamped-interaction-alternate-advances`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/custom-transportation-timestamped-interaction-alternate-advances-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The custom-transportation timestamped attribute-delivery scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions) using adapter-declared `TckBestEffort`. The test verified
+timestamped Update/Reflect, time-managed delivery, retraction notification,
+and transportation identity. Focused C++ evidence validation and Java
+catalog/source validation passed. Java parity is
+`java-tck.custom-transportation-timestamped-attribute-delivery`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/custom-transportation-timestamped-attribute-delivery-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The custom-transportation timestamped-interaction scenario and contract twin
+passed against the installed package in both callback models (4/4 executions)
+using adapter-declared `TckBestEffort`. The timestamped interaction was
+delivered under time-managed service with the expected transportation
+identity and timestamp/order metadata. Focused C++ evidence validation and
+Java catalog/source validation passed. Java parity is
+`java-tck.custom-transportation-timestamped-interaction-delivery`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/custom-transportation-timestamped-delivery-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The custom-transportation directed-interaction scenario and contract twin
+passed against the installed package in both callback models (4/4 executions)
+using the adapter-declared `TckBestEffort` type and adapter-supplied directed
+object/interaction names. The test verified target routing, parameter/tag
+delivery, and received transportation identity through the standard API.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java parity is `java-tck.custom-transportation-directed-interaction-delivery`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/custom-transportation-directed-interaction-delivery-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The custom-transportation attribute-delivery scenario and contract twin
+passed against the installed package in both callback models (4/4 executions)
+using the adapter-declared `TckAdditionalTransport` type from the adapter FOM.
+The ordinary attribute update was reflected with the expected value and
+transportation identity. Focused C++ evidence validation and Java
+catalog/source validation passed. Java parity is
+`java-tck.custom-transportation-attribute-delivery`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/custom-transportation-attribute-delivery-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The custom-transportation interaction-delivery scenario and contract twin
+passed against the installed package in both callback models (4/4 executions)
+using the adapter-declared `TckBestEffort` transportation type from the
+adapter FOM. The test verified handle/name lookup, ordinary interaction
+delivery, received transportation identity, and the standard transportation
+query report. Focused C++ evidence validation and Java catalog/source
+validation passed. Java parity is
+`java-tck.custom-transportation-interaction-delivery`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/custom-transportation-interaction-delivery-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The interaction-publication send-transition scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+published send was delivered, the send while unpublished was rejected, and
+republishing restored successful delivery. Focused C++ evidence validation
+and Java catalog/source validation passed. Java parity is
+`java-tck.interaction-publication-send-transition`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/interaction-publication-send-transition-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The active/passive interaction-subscription scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+active subscriber received the ordinary interaction with the expected
+parameter payload, while passive subscription did not cause active delivery.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Scenario parity is `java-tck.attribute-interaction`; the contract catalog
+also links `java-tck.interaction-subscription-lifecycle`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/interaction-active-and-passive-subscription-modes-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The attribute-value request service-boundaries scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+Both object-instance and object-class Request Attribute Value Update paths
+were exercised, with the provider callback followed by the expected standard
+attribute update/reflect response. Focused C++ evidence validation and Java
+catalog/source validation passed. Java parity is
+`java-tck.attribute-value-request-service-boundaries`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/attribute-value-request-service-boundaries-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The ordinary interaction service-boundaries scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+The standard interaction was delivered with its parameter payload through
+active and passive subscription paths, with the expected callback behavior.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java parity is `java-tck.interaction-service-boundaries`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/interaction-service-boundaries-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The ordinary attribute Update/Reflect service-boundaries scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). The standard update was observed through active and passive
+subscription paths with the expected reflected values and callback behavior.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java parity is `java-tck.attribute-update-service-boundaries`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/attribute-update-service-boundaries-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The object-deletion service-boundaries scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+case checks standard delete and local-delete behavior, removal metadata,
+negative deletion boundaries, name-lookup cleanup, and resignation cleanup.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java parity is `java-tck.object-deletion-service-boundaries`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/object-deletion-service-boundaries-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The object-registration service-boundaries scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+portable case covers standard named reservation/release, registration and
+discovery identity, invalid registration boundaries, and lookup cleanup after
+local deletion. Focused C++ evidence validation and Java catalog/source
+validation passed. Java parity is
+`java-tck.object-registration-service-boundaries`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/object-registration-service-boundaries-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The federation-restore ownership-assumption scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+portable case verifies pending ownership-assumption work across the standard
+federation save and restore lifecycle, including the post-restore callback
+and ownership state. Focused C++ evidence validation and Java catalog/source
+validation passed. Java parity is
+`java-tck.federation-restore-work-item-ownership-assumption`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/federation-restore-work-item-ownership-assumption-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The portable ownership-service-boundaries scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). This
+slice exercises the standard ownership query, acquisition, divestiture,
+negotiation, denial, cancellation, and resignation boundaries through the
+public API and callbacks. Focused C++ evidence validation and Java
+catalog/source validation passed. Java parity is `java-tck.ownership`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/ownership-service-boundaries-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The unconditional attribute-ownership divestiture scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+The case covers a regular acquisition plus a post-divestiture
+`attributeOwnershipAcquisitionIfAvailable` retry, with the standard
+unconditional divestiture resolving the outstanding ownership requests and
+the expected notifications and ownership state. Focused C++ evidence
+validation and Java catalog/source validation passed. Java parity is
+`java-tck.unconditional-attribute-ownership-divestiture`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/unconditional-attribute-ownership-divestiture-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The ordinary negotiated-divestiture confirmation scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+The acquiring federate's request triggered the owner's confirmation callback;
+confirming divestiture delivered the expected ownership-acquisition
+notification and transferred ownership. Focused C++ evidence validation and
+Java catalog/source validation passed. Java parity is `java-tck.ownership`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/negotiated-divestiture-confirmation-flow-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The distinct RTI-owned ownership-query result scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+Using the standard MIM's joined-federate object, the query delivered the
+expected `attributeIsOwnedByRTI` callback and the queried attribute was not
+reported as owned by the querying federate. Focused C++ evidence validation
+and Java catalog/source validation passed. Java parity is
+`java-tck.callback-controls-ownership-query`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/attribute-ownership-query-rti-owned-result-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The mixed ownership-query result scenario and contract twin passed against
+the installed package in both callback models (4/4 executions). With the
+adapter-supplied two-attribute FOM, the query returned exact owned and
+not-owned partitions, did not misclassify the ordinary unowned attribute as
+RTI-owned, and left ownership unchanged. Focused C++ evidence validation and
+Java catalog/source validation passed. Java parity is
+`java-tck.ownership-query-partition-cleanup`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/attribute-ownership-query-unowned-result-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The attribute-ownership-query-owner-report scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+standard query for an owned attribute produced the expected Inform Attribute
+Ownership report through the public callback. Focused C++ evidence validation
+and Java catalog/source validation passed. Java parity is
+`java-tck.attribute-ownership-query-owner-report`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/attribute-ownership-query-owner-report-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The standard connection-service-boundaries scenario and contract twin passed
+against the installed package in both callback models (4/4 executions).
+Focused C++ evidence validation and Java catalog/source validation passed.
+The adapter owns provider, endpoint, FOM, logical-time, and callback settings;
+the portable assertions exercise standard connect overloads, lifecycle
+boundaries, callback controls, disconnect, and reconnect. Evidence is
+`connection-service-boundaries-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`. The Java parity link is to
+`java-tck.overloads-and-exceptions`; this is catalog parity, not a Java runtime
+claim. No provider rebuild was performed.
+
+The resign-cancel-pending-ownership-acquisitions-action scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). Resignation cancels the federate's pending ordinary ownership
+request; after the owner divests, another member acquires the attribute without
+a stale requester reservation. Focused C++ evidence validation and Java
+catalog/source validation passed. Evidence is
+`resign-cancel-pending-ownership-acquisitions-action-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.resign-cancel-pending-ownership-acquisitions-action`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The resign-delete-objects-then-divest-cross-object-effects scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). `DELETE_OBJECTS_THEN_DIVEST` removes the departing
+federate's registered object, releases its attribute on another member's
+object, and leaves that second object registered. Focused C++ evidence
+validation passed. Evidence is
+`resign-delete-objects-then-divest-cross-object-effects-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.resign-delete-objects-then-divest-cross-object-effects`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The resign-unconditionally-divest-attributes-preserves-objects scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). `UNCONDITIONALLY_DIVEST_ATTRIBUTES` leaves another member's
+registered object known, while releasing the departing member's attribute so
+the remaining federate can acquire it. Focused C++ evidence validation and
+Java catalog/source validation passed. Evidence is
+`resign-unconditionally-divest-attributes-preserves-objects-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.resign-unconditionally-divest-preserves-objects`. No provider rebuild
+or Java provider-runtime execution is claimed.
+
+The resign-delete-objects-then-divest-cross-object-effects scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). `DELETE_OBJECTS_THEN_DIVEST` removes the departing
+federate's registered object, releases its attribute on another member's
+object, and leaves that second object registered. Focused C++ evidence
+validation and Java catalog/source validation passed. Evidence is
+`resign-delete-objects-then-divest-cross-object-effects-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.resign-delete-objects-then-divest-cross-object-effects`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The standard-order-and-transportation-lookups scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+The slice covers standard order and transportation handle/name round trips,
+cross-federate stability, invalid-input boundaries, and execution lifecycle
+cleanup. Focused C++ evidence validation passed. Evidence is
+`standard-order-and-transportation-lookups-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.standard-order-transportation-lookups`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The final-federate-resignation-cleanup scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+last member resigns, which cleans up the old object name so it can be reserved
+and used for a subsequent named registration. Focused C++ and Java
+catalog/source validation passed. Evidence is
+`final-federate-resignation-cleanup-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.final-federate-resignation-cleanup`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The resign-delete-objects scenario and contract twin passed against the
+installed package in both callback models (4/4 executions). A federate owning
+the published privilege-to-delete attribute must resign with
+`DELETE_OBJECTS`; the surviving member receives ordinary removal notification
+and observes the object as deleted. Focused C++ evidence validation passed.
+Evidence is `resign-delete-objects-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.resign-delete-objects`. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The resign-unconditional-divestiture scenario and contract twin passed against
+the installed package in both callback models (4/4 executions). The departing
+owner resigns with `UNCONDITIONALLY_DIVEST_ATTRIBUTES`; a surviving federate
+assumes and acquires the released attribute, with ownership callbacks and
+cleanup verified. Focused C++ evidence validation passed. Evidence is
+`resign-unconditional-divestiture-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.resign-unconditional-divestiture`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The resign-cancel-then-delete-then-divest-cross-object-effects scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). The combined resignation route cancels pending acquisition,
+deletes one object, and releases ownership on another object, checking the
+resulting object and attribute state for the surviving member. Focused C++
+evidence validation passed. Evidence is
+`resign-cancel-then-delete-then-divest-cross-object-effects-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.resign-cancel-then-delete-then-divest-cross-object-effects`. No
+provider rebuild or Java provider-runtime execution is claimed.
+
+The standard-order-transport-lookups-after-resignation scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). The four standard order and transportation name/handle lookups
+reject post-resignation calls with the proper membership boundary, then the
+federation is destroyed and the ambassador disconnected. Focused C++ evidence
+validation passed. Evidence is
+`standard-order-transport-lookups-after-resignation-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.standard-order-transport-lookups-after-resignation`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The object-attribute-declarations-valid-inputs-after-resignation scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). With valid FOM handles and attributes, each object/attribute
+publication, withdrawal, subscription, and unsubscription service rejects
+post-resignation use at the federate-membership boundary. Focused C++ evidence
+validation passed. Evidence is
+`object-attribute-declarations-valid-inputs-after-resignation-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.object-attribute-declarations-valid-inputs-after-resignation`. No
+provider rebuild or Java provider-runtime execution is claimed.
+
+The interaction-declarations-valid-inputs-after-resignation scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). With a valid interaction-class handle, publication,
+unpublication, subscription, and unsubscription reject post-resignation calls
+with the federate-membership boundary. Focused C++ evidence validation passed.
+Evidence is
+`interaction-declarations-valid-inputs-after-resignation-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.interaction-declarations-valid-inputs-after-resignation`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The directed-interaction-declarations-valid-inputs-after-resignation scenario
+and contract twin passed against the installed package in both callback models
+(4/4 executions). With valid associated object and interaction classes, the
+class-scoped directed-interaction publication/subscription services reject
+post-resignation use with the federate-membership boundary. Focused C++ evidence
+validation passed. Evidence is
+`directed-interaction-declarations-valid-inputs-after-resignation-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.directed-interaction-declarations-valid-inputs-after-resignation`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The interaction-transportation-query-valid-inputs-after-resignation scenario
+and contract twin passed against the installed package in both callback models
+(4/4 executions). A valid active-peer/FOM query after resignation is rejected
+at the federate-membership boundary; the in-membership route covers the
+standard transportation-type report callback. Focused C++ evidence validation
+passed. Evidence is
+`interaction-transportation-query-valid-inputs-after-resignation-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.interaction-transportation-query-valid-inputs-after-resignation`. No
+provider rebuild or Java provider-runtime execution is claimed.
+
+The portable `transport-order` scenario and contract twin passed against the
+installed package in both callback models (4/4 executions). It exercises the
+standard ordinary order and transportation controls and invalid-handle
+boundaries; the adapter supplies FOM, package, endpoint, and callback setup.
+Focused C++ evidence validation passed. Evidence is
+`transport-order-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.transport-order`. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The attribute-value-update-request-baseline scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+requester solicits current owners of a registered object instance; the provider
+receives the standard attribute-value-update callback with the requested
+attributes/tag, while requester-owned and unowned attributes are suppressed.
+Focused C++ evidence validation passed. Evidence is
+`attribute-value-update-request-baseline-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.attribute-value-update-request-baseline`. No provider rebuild or
+Java provider-runtime execution is claimed.
+
+The object-class-attribute-value-update-request-baseline scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). The object-class overload solicits provider callbacks for
+registered concrete subclass instances and respects the requested attribute
+set. Focused C++ evidence validation passed. Evidence is
+`object-class-attribute-value-update-request-baseline-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.object-class-attribute-value-update-request-baseline`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The attribute-value-update-response scenario and contract twin passed against
+the installed package in both callback models (4/4 executions). The standard
+request/provider-response route returns the current attribute value and
+ordinary reflection metadata, including receive order, transportation, and
+tag; focused C++ evidence validation passed. Evidence is
+`attribute-value-update-response-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.attribute-value-update-response`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The attribute-value-update-request-multi-requester scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+Two active requesters independently solicit the same published object, and the
+owner's single response is reflected to both with correct requester identity
+and ordinary metadata. Focused C++ evidence validation passed. Evidence is
+`attribute-value-update-request-multi-requester-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.attribute-value-update-request-multi-requester`. No provider rebuild
+or Java provider-runtime execution is claimed.
+
+The object-name-reservation-lifecycle scenario and contract twin passed against
+the installed package in both callback models (4/4 executions). Single and
+multiple name reservation, release, contention outcomes, asynchronous
+reservation callbacks, and resignation cleanup are covered through standard
+ambassador/federate-ambassador interfaces. Focused C++ evidence validation
+passed. Evidence is `object-name-reservation-lifecycle-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.object-name-reservation-lifecycle`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The object-registration-discovery-lifecycle scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+slice checks hierarchy-aware known-object-class state and callback-time
+subscription eligibility across registration/discovery, including declaration
+withdrawal and cleanup through the standard API. Focused C++ evidence
+validation passed. Evidence is
+`object-registration-discovery-lifecycle-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.object-registration-discovery-lifecycle`. No provider rebuild or
+Java provider-runtime execution is claimed.
+
+The object-registration-discovery-multi-recipient scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+Two registered objects are discovered by two active subscribers with object
+identity preserved independently for each recipient. Focused C++ evidence
+validation passed. Evidence is
+`object-registration-discovery-multi-recipient-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.object-registration-discovery-multi-recipient`. No provider rebuild
+or Java provider-runtime execution is claimed.
+
+The named-registration scenario and contract twin passed against the installed
+package in both callback models (4/4 executions). The standard route covers
+reservation, named registration, identity round trips, contention/failure and
+reuse, including multiple-name callbacks and resign-time cleanup. Focused C++
+evidence validation passed. Evidence is
+`named-registration-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.named-registration`. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The named-registration-multi-recipient scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). Two
+named objects are delivered to two active subscribers, preserving per-object
+identity and name/handle round trips. Focused C++ evidence validation passed.
+Evidence is `named-registration-multi-recipient-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.named-registration-multi-recipient`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The object-attribute-subscription-lifecycle scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+standard lifecycle covers invalid attribute sets, passive versus active
+subscription discovery for pre-existing and later registrations, initial and
+subsequent value filtering for a two-value publisher update, active-to-passive
+downgrade, and withdrawal. Direct mappings cover declaration-management
+page-096-l57-16, l84-25, and l87-26 (active discovery); l63-18 and l66-19
+(subscribed-set filtering); and l72-21 and l75-22 (empty active set), all to
+§5.8. Focused C++ evidence validation passed. Evidence is
+`empty-attribute-subscription-matrix.json` under
+`out/mgw/ninja-tck-inherited-class-projection-20261016/`, parity-linked to
+`java-tck.object-attribute-subscription-lifecycle`. No provider rebuild or
+Java provider-runtime execution is claimed.
+
+The local-delete-object-instance scenario and contract twin passed against the
+installed package in both callback models (4/4 executions). The standard
+`localDeleteObjectInstance` route covers lifecycle boundaries, ownership
+protection, local removal/rediscovery, and continued ordinary attribute
+updates; focused C++ evidence validation passed. Evidence is
+`local-delete-object-instance-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.local-delete-object-instance`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The object-publication-registration-fence scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). Whole-
+class unpublication prevents a subsequent registration, and republication
+reopens the standard registration path. Focused C++ evidence validation
+passed. Evidence is
+`object-publication-registration-fence-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.object-publication-registration-fence`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The order-type-controls scenario and contract twin passed against the installed
+package in both callback models (4/4 executions). The slice covers prospective
+default attribute order, per-instance overrides, and receive-order interaction
+delivery alongside time-managed attribute updates. Focused C++ evidence
+validation passed. Evidence is `order-type-controls-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.order-type-controls`. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The receive-order-attribute-update-callback-cancellation scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). Removing the active subscription cancels a queued receive-order
+attribute reflection, and the callbacks/status remain consistent across the
+subscription transition. Focused C++ evidence validation passed. Evidence is
+`receive-order-attribute-update-callback-cancellation-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.receive-order-attribute-update-callback-cancellation`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The receive-order-attribute-update scenario and contract twin passed against
+the installed package in both callback models (4/4 executions). Consecutive
+ordinary attribute updates are reflected in producer order with the expected
+values and receive-order metadata. Focused C++ evidence validation passed.
+Evidence is `receive-order-attribute-update-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.receive-order-attribute-update`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The attribute-update-order-classification scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+same receiver distinguishes ordinary receive-order reflection from
+timestamp-order reflection and grant sequencing. Focused C++ evidence
+validation passed. Evidence is
+`attribute-update-order-classification-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.attribute-update-order-classification`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The receive-order-interaction scenario and contract twin passed against the
+installed package in both callback models (4/4 executions). Consecutive
+ordinary interactions are delivered in producer order with the expected
+parameter values and receive-order semantics. Focused C++ evidence validation
+passed. Evidence is `receive-order-interaction-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.receive-order-interaction`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The interaction-order-classification scenario and contract twin passed against
+the installed package in both callback models (4/4 executions). The same
+receiver distinguishes receive-order interaction delivery from timestamp-order
+delivery and its grant sequencing. Focused C++ evidence validation passed.
+Evidence is `interaction-order-classification-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.interaction-order-classification`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The receive-order-object-removal scenario and contract twin passed against the
+installed package in both callback models (4/4 executions). Ordinary removal
+is delivered through the standard callback with its tag and receive-order
+metadata, and the resulting object lifecycle is checked. Focused C++ evidence
+validation passed. Evidence is
+`receive-order-object-removal-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.receive-order-object-removal`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The object-removal-order-classification scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+same receiver distinguishes receive-order removal from timestamp-order removal
+and grant sequencing, with asynchronous-delivery controls exercised through
+the standard API. Focused C++ evidence validation passed. Evidence is
+`object-removal-order-classification-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.timestamped-object-removal`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The receive-order-interaction-callback-cancellation scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+Removing the active interaction subscription cancels its queued receive-order
+delivery, with callback servicing and subscription transition checked through
+the standard interfaces. Focused C++ evidence validation passed. Evidence is
+`receive-order-interaction-callback-cancellation-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.receive-order-interaction-callback-cancellation`. No provider rebuild
+or Java provider-runtime execution is claimed.
+
+The interaction-subscription-lifecycle scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+standard interaction subscription route covers passive/active receipt,
+active-to-passive downgrade, and unsubscribe suppression. Focused C++ evidence
+validation passed. Evidence is
+`interaction-subscription-lifecycle-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.interaction-subscription-lifecycle`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The interaction-publication-send-fence scenario and contract twin passed
+against the installed package in both callback models (4/4 executions).
+Unpublishing an interaction class prevents subsequent sends, while
+republishing restores the standard send route and delivery. Focused C++
+evidence validation passed. Evidence is
+`interaction-publication-send-fence-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.interaction-publication-send-fence`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The interaction-multi-recipient-fifo scenario and contract twin passed against
+the installed package in both callback models (4/4 executions). Two active
+subscribers receive consecutive ordinary interactions in producer order, with
+recipient identity and parameter values preserved. Focused C++ evidence
+validation passed. Evidence is
+`interaction-multi-recipient-fifo-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.interaction-multi-recipient-fifo`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The attribute-multi-recipient-fifo scenario and contract twin passed against
+the installed package in both callback models (4/4 executions). Two active
+subscribers receive consecutive ordinary attribute updates in producer order,
+with object identity and reflected values preserved per recipient. Focused C++
+evidence validation passed. Evidence is
+`attribute-multi-recipient-fifo-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.attribute-multi-recipient-fifo`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The ordinary-multi-attribute-subscription-projection scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). Each subscriber receives only the attributes in its own declared
+set from the same ordinary multi-attribute update. Focused C++ evidence
+validation passed. Evidence is
+`ordinary-multi-attribute-subscription-projection-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.ordinary-multi-attribute-subscription-projection`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The ordinary-multi-attribute-value-update-request-response scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). The owner responds to full and selective ordinary value
+requests; reflected attribute sets and values are checked independently.
+Focused C++ evidence validation passed. Evidence is
+`ordinary-multi-attribute-value-update-request-response-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.ordinary-multi-attribute-value-update-request-response`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The object-removal-multi-recipient-fifo scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). An
+owner's ordinary object removals reach two active subscribers with identity
+preserved and no owner loopback. Focused C++ evidence validation passed.
+Evidence is `object-removal-multi-recipient-fifo-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.object-removal-multi-recipient-fifo`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The resign-delete-objects-multi-recipient-fifo scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+`DELETE_OBJECTS` resignation delivers object removals to two active subscribers
+in producer order while excluding owner loopback. Focused C++ evidence
+validation passed. Evidence is
+`resign-delete-objects-multi-recipient-fifo-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.resign-delete-objects-multi-recipient-fifo`. No provider rebuild or
+Java provider-runtime execution is claimed.
+
+The timestamped-interactions scenario and contract twin passed against the
+installed package in both callback models (4/4 executions). The standard
+timestamped send/receive and retraction paths, invalid class/retraction-handle
+boundaries, and time-advance delivery are covered. Focused C++ evidence
+validation passed. Evidence is
+`timestamped-interactions-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.timestamped-interaction-retraction`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The timestamped-interaction-mixed-advances scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). A
+timestamped interaction is delivered before each applicable Flush Queue,
+Time Advance Request Available, and Next Message Request Available grant.
+Focused C++ evidence validation passed. Evidence is
+`timestamped-interaction-mixed-advances-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.timestamped-interaction-mixed-advances`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The timestamped-interaction-regulation-reenable scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+A queued timestamped interaction remains deliverable across Time Regulation
+disable/re-enable with changed lookahead, while query and grant behavior follow
+the standard API. Focused C++ evidence validation passed. Evidence is
+`timestamped-interaction-regulation-reenable-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.timestamped-interaction-regulation-reenable`. No provider rebuild or
+Java provider-runtime execution is claimed.
+
+The timestamped-interaction-reenable scenario and contract twin passed against
+the installed package in both callback models (4/4 executions). A queued TSO
+remains deliverable across Time Constrained disable/re-enable, with subsequent
+grant/delivery behavior checked through standard callbacks. Focused C++ evidence
+validation passed. Evidence is
+`timestamped-interaction-reenable-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.timestamped-interaction-reenable`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The timestamped-attribute-update-ownership-transfer scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+An accepted TSO is reflected after ownership transfers before the constrained
+grant, with ownership and grant callbacks checked through the standard API.
+Focused C++ evidence validation passed. Evidence is
+`timestamped-attribute-update-ownership-transfer-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.timestamped-attribute-ownership-transfer`. No provider rebuild or
+Java provider-runtime execution is claimed.
+
+The timestamped-attribute-source-resignation scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). A
+queued timestamped attribute update remains deliverable after the source
+federate resigns, with constrained grant and reflection callbacks verified.
+Focused C++ evidence validation passed. Evidence is
+`timestamped-attribute-source-resignation-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.timestamped-attribute-source-resignation`. No provider rebuild or
+Java provider-runtime execution is claimed.
+
+The timestamped-attribute-order-cohort scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). Each
+constrained recipient observes timestamp ordering and equal-timestamp cohorts
+for attribute reflection, with grant sequencing verified. Focused C++ evidence
+validation passed. Evidence is
+`timestamped-attribute-order-cohort-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.timestamped-attribute-order-cohort`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The timestamped-attribute-update-no-fanout scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). With
+no eligible recipient, the timestamped update still returns a retraction
+handle and terminalizes through the standard time-advance lifecycle. Focused
+C++ evidence validation passed. Evidence is
+`timestamped-attribute-update-no-fanout-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.timestamped-attribute-update-no-fanout`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The timestamped-attribute-update-flush-queue-future-input scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). Future timestamped attribute updates are delivered before the
+Flush Queue grant, and the optimistic frontier/logical-time query behavior is
+checked. Focused C++ evidence validation passed. Evidence is
+`timestamped-attribute-update-flush-queue-future-input-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.timestamped-attribute-update-flush-queue-future-input`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The timestamped-attribute-update-reenable scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). A
+queued timestamped attribute update remains eligible across Time Constrained
+disable/re-enable and is delivered under the standard grant/callback sequence.
+Focused C++ evidence validation passed. Evidence is
+`timestamped-attribute-update-reenable-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.timestamped-attribute-update-reenable`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The receive-order-object-removal-subscription-withdrawal scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). Withdrawing an active subscription does not suppress an already
+queued terminal object removal; the removal is delivered under the standard
+callback contract. Focused C++ evidence validation passed. Evidence is
+`receive-order-object-removal-subscription-withdrawal-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.receive-order-object-removal-subscription-withdrawal`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The receive-order-multi-attribute-update-callback-cancellation scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). Removing the active subscription cancels queued receive-order
+multi-attribute reflection while preserving the standard callback servicing
+boundary. Focused C++ evidence validation passed. Evidence is
+`receive-order-multi-attribute-update-callback-cancellation-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.receive-order-multi-attribute-update-callback-cancellation`. No
+provider rebuild or Java provider-runtime execution is claimed.
+
+The resign-no-action-owned-attributes-rejection-boundary scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). While the federate owns an object attribute,
+`resignFederationExecution(NO_ACTION)` returns `FederateOwnsAttributes`; the
+federate remains joined and can subsequently resign with `DELETE_OBJECTS`.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Evidence is
+`resign-no-action-owned-attributes-rejection-boundary-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.resign-no-action-owned-attributes-rejection-boundary`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The resign-delete-object-lookup-boundary scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). After
+resign-time `DELETE_OBJECTS` and the standard removal callback, the surviving
+federate receives `ObjectInstanceNotKnown` from name-to-handle,
+handle-to-name, and known-object-class lookups. Focused C++ evidence validation
+and Java catalog/source validation passed. Evidence is
+`resign-delete-object-lookup-boundary-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.resign-delete-object-lookup-boundary`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The remote-delete-object-instance-name-lookup-boundary scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). Following remote deletion, the deleting federate's name-to-handle
+lookup and the subscriber's handle-to-name lookup both return
+`ObjectInstanceNotKnown`. Focused C++ evidence validation and Java
+catalog/source validation passed. Evidence is
+`remote-delete-object-instance-name-lookup-boundary-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.remote-delete-object-instance-name-lookup-boundary`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The remote-delete-known-object-class-lookup-boundary scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). The deleting federate and, after the standard
+`removeObjectInstance` callback, the subscriber both receive
+`ObjectInstanceNotKnown` from known-object-class lookup. Focused C++ evidence
+validation and Java catalog/source validation passed. Evidence is
+`remote-delete-known-object-class-lookup-boundary-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.remote-delete-known-object-class-lookup-boundary`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The local-delete-object-instance-name-lookup-boundary scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). After a subscriber locally forgets a discovered object, its
+handle-to-name lookup returns `ObjectInstanceNotKnown`, while the publisher
+continues to resolve the object. Focused C++ evidence validation and Java
+catalog/source validation passed. Evidence is
+`local-delete-object-instance-name-lookup-boundary-verified-20261016.json`
+under `out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.local-delete-object-instance-name-lookup-boundary`. No provider
+rebuild or Java provider-runtime execution is claimed.
+
+The foreign-object-instance-handle-lookup-boundary scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+An object handle established in another execution is rejected by the public
+`getObjectInstanceName` service with `ObjectInstanceNotKnown`; the fixture uses
+unequal opaque handle values to avoid assuming cross-execution alias behavior.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Evidence is
+`foreign-object-instance-handle-lookup-boundary-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.foreign-object-instance-handle-lookup-boundary`. No provider rebuild
+or Java provider-runtime execution is claimed.
+
+The foreign-object-instance-name-lookup-boundary scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+Each named object resolves in its own federation execution; looking up the
+other execution's object name returns `ObjectInstanceNotKnown`. Focused C++
+evidence validation and Java catalog/source validation passed. Evidence is
+`foreign-object-instance-name-lookup-boundary-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`, parity-linked to
+`java-tck.foreign-object-instance-name-lookup-boundary`. No provider rebuild
+or Java provider-runtime execution is claimed.
+
+The foreign-federate-name-lookup-boundary scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). Each
+federate name resolves in its own federation execution; lookup of a name from a
+different execution returns `NameNotFound`. Focused C++ evidence validation
+and Java catalog/source validation passed. Evidence is
+`foreign-federate-name-lookup-boundary-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`; Java parity is explicitly linked to
+`java-tck.foreign-federate-name-lookup-boundary`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The repeated-join-by-member-boundary scenario and contract twin passed against
+the installed package in both callback models (4/4 executions). Repeating the
+named join through the already joined ambassador returns
+`FederateAlreadyExecutionMember`, while the original membership remains
+resignable. Focused C++ evidence validation and Java catalog/source validation
+passed. Evidence is
+`repeated-join-by-member-boundary-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`; the explicit Java parity link is
+`java-tck.repeated-join-by-member-boundary`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The duplicate-federate-name-join-boundary scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+active duplicate name is rejected, then a distinct-name retry succeeds. Focused
+C++ evidence validation and Java catalog/source validation passed. Evidence is
+`duplicate-federate-name-join-boundary-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`; the catalog parity link is
+`java-tck.duplicate-federate-name-join-boundary`. No provider rebuild or Java
+provider-runtime execution is claimed.
+
+The adapter-managed automatic pending-acquisition-cancellation scenario and
+its contract twin were also exercised, but failed in both callback models.
+The fixture reported stale owner-release work / lost post-loss ownership
+cleanup and separately lost the pending ownership setup. The failed results
+are preserved in
+`connection-loss-automatic-cancel-pending-acquisition-adapter-verified-20261016.json`
+and
+`connection-loss-automatic-cancel-pending-acquisition-contract-adapter-diagnostic-20261016.json`;
+focused validators correctly reject them. This pair is not counted as green.
+
+Thirteen additional adapter-backed standard service-report pairs passed under
+both callback models (52/52 executions): order/transportation lookup success
+and failure; dimension upper-bound and dimension-handle-set queries; range
+bounds query and update; region modification commit, creation, and deletion;
+dimension name and handle lookup; and object/interaction available-dimensions
+queries. Evidence is recorded in
+`service-report-order-transportation-lookups-verified-20261016.json`,
+`service-report-order-transportation-lookup-failures-verified-20261016.json`,
+`service-report-dimension-upper-bound-verified-20261016.json`,
+`service-report-dimension-handle-set-verified-20261016.json`,
+`service-report-range-bounds-verified-20261016.json`,
+`service-report-set-range-bounds-verified-20261016.json`,
+`service-report-commit-region-modifications-verified-20261016.json`,
+`service-report-create-region-verified-20261016.json`,
+`service-report-delete-region-verified-20261016.json`,
+`service-report-dimension-name-verified-20261016.json`,
+`service-report-dimension-handle-verified-20261016.json`,
+`service-report-interaction-dimensions-verified-20261016.json`, and
+`service-report-object-dimensions-verified-20261016.json` under
+`out/mgw/tck-dse-ro-regional-20261016/`. Every focused C++ result
+validation passed; the Java catalog validator remains green.
+
+The timestamped-attribute-update-alternate-advances scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). The slice checks the standard alternate time-advance paths for a
+queued timestamped attribute update. Focused C++ evidence validation passed;
+the Java scenario-ID parity is
+`java-tck.timestamped-attribute-update-alternate-advances`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-attribute-update-alternate-advances-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-attribute-update-regulation-reenable scenario and contract
+twin also passed against the installed package in both callback models (4/4
+executions). This covers queued timestamped attribute delivery across Time
+Regulation disable/re-enable with changed lookahead, grant ordering, Query
+Lookahead, reflection metadata, and terminal retraction. Focused C++ evidence
+validation and Java catalog/source validation passed. Java parity is
+`java-tck.timestamped-attribute-update-regulation-reenable`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-attribute-update-regulation-reenable-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-attribute-source-resignation-fanout scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). One queued timestamped attribute update was delivered to each
+constrained recipient after the source resigned, with per-recipient grant,
+reflection metadata, and retraction checks. Focused C++ evidence validation
+and Java catalog/source validation passed. Java parity is
+`java-tck.timestamped-attribute-source-resignation-fanout`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-attribute-source-resignation-fanout-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-regional-attribute-update scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+slice verifies queued regional timestamped attribute delivery, source-region
+preservation, retraction, and Time Constrained re-enable behavior. Focused C++
+evidence validation and Java catalog/source validation passed. Java parity is
+`java-tck.timestamped-regional-attribute-update`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-regional-attribute-update-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-regional-attribute-alternate-advances scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). The slice exercises Flush Queue Request, Time Advance Request
+Available, and Next Message Request Available with grant/query bounds and
+backward-time failure checks. Focused C++ evidence validation passed; the Java
+scenario-ID parity is
+`java-tck.timestamped-regional-attribute-alternate-advances`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-regional-attribute-alternate-advances-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-regional-attribute-association-replacement scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). The standard API slice verifies queued timestamped regional
+attribute associations remain correctly targeted across replacement. Focused
+C++ evidence validation and Java catalog/source validation passed. Java
+scenario-ID parity is
+`java-tck.timestamped-regional-attribute-association-replacement`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-regional-attribute-association-replacement-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-regional-attribute-regulation-reenable scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). The queued update remained deliverable across Time Regulation
+disable/re-enable with changed lookahead while preserving its source-region
+snapshot and grant/retraction behavior. Focused C++ evidence validation and
+Java catalog/source validation passed. Java scenario-ID parity is
+`java-tck.timestamped-regional-attribute-regulation-reenable`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-regional-attribute-regulation-reenable-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-regional-attribute-source-resignation scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). The queued regional timestamped attribute update was delivered
+after producer resignation with source-region, reflection, ordering, and
+retraction assertions. Focused C++ evidence validation and Java catalog/source
+validation passed. Java scenario-ID parity is
+`java-tck.timestamped-regional-attribute-source-resignation`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-regional-attribute-source-resignation-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-regional-interaction scenario and contract twin passed against
+the installed package in both callback models (4/4 executions). The slice
+checks timestamped regional interaction delivery, region metadata, and
+retraction through the standard API. Focused C++ evidence validation and Java
+catalog/source validation passed. Java scenario-ID parity is
+`java-tck.timestamped-regional-interaction`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-regional-interaction-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-regional-interaction-regulation-reenable scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). This covers queued timestamped regional interaction
+delivery across Time Regulation disable/re-enable with changed lookahead,
+including grant and delivery boundaries. Focused C++ evidence validation and
+Java catalog/source validation passed. Java scenario-ID parity is
+`java-tck.timestamped-regional-interaction-regulation-reenable`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-regional-interaction-regulation-reenable-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-regional-interaction-alternate-advances scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). This covers Flush Queue Request, Time Advance Request
+Available, and Next Message Request Available delivery with grant/query
+bounds and invalid backward-time checks. Focused C++ evidence validation and
+Java catalog/source validation passed. Java scenario-ID parity is
+`java-tck.timestamped-regional-interaction-alternate-advances`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-regional-interaction-alternate-advances-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-regional-interaction-no-overlap scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+With no overlapping subscribers, the standard API-visible timestamped send
+still returns and terminalizes its retraction handle as specified. Focused C++
+evidence validation and Java catalog/source validation passed. Java
+scenario-ID parity is
+`java-tck.timestamped-regional-interaction-no-overlap`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-regional-interaction-no-overlap-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-regional-interaction-subscription-replacement scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). The case verifies that replacing a regional interaction
+subscription suppresses delivery for the prior subscription and permits the
+replacement source according to the standard API. Focused C++ evidence
+validation and Java catalog/source validation passed. Java scenario-ID parity
+is `java-tck.timestamped-regional-interaction-subscription-replacement`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-regional-interaction-subscription-replacement-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-regional-interaction-source-resignation scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). A queued timestamped regional interaction was delivered after
+producer resignation with the standard delivery and retraction metadata
+assertions. Focused C++ evidence validation and Java catalog/source validation
+passed. Java scenario-ID parity is
+`java-tck.timestamped-regional-interaction-source-resignation`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-regional-interaction-source-resignation-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-regional-interaction-tar-nmr scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+Timestamped regional interactions were delivered before ordinary Time Advance
+Request and Next Message Request grants, with the standard grant/delivery
+ordering assertions. Focused C++ evidence validation and Java catalog/source
+validation passed. Java scenario-ID parity is
+`java-tck.timestamped-regional-interaction-tar-nmr`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-regional-interaction-tar-nmr-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-default-region-attribute-alternate-advances scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). The case exercises timestamped default-region attribute
+delivery through Flush Queue Request, Time Advance Request Available, and
+Next Message Request Available, including the supplied-empty source metadata
+boundary. Focused C++ evidence validation and Java catalog/source validation
+passed. Java scenario-ID parity is
+`java-tck.timestamped-default-region-attribute-alternate-advances`. Evidence
+is `out/mgw/tck-dse-ro-regional-20261016/timestamped-default-region-attribute-alternate-advances-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-default-region-attribute-reenable scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+The queued default-region timestamped attribute update remained deliverable
+across Time Constrained disable/re-enable with its delivery and grant boundary
+assertions. Focused C++ evidence validation and Java catalog/source validation
+passed. Java scenario-ID parity is
+`java-tck.timestamped-default-region-attribute-reenable`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-default-region-attribute-reenable-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-default-region-attribute-regulation-reenable scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). The queued default-region update survived Time Regulation
+disable/re-enable with changed lookahead and retained its delivery boundary.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java scenario-ID parity is
+`java-tck.timestamped-default-region-attribute-regulation-reenable`. Evidence
+is `out/mgw/tck-dse-ro-regional-20261016/timestamped-default-region-attribute-regulation-reenable-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-default-region-attribute-mixed-fanout scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). The case verifies fan-out of one timestamped default-region
+attribute update to immediate and time-constrained recipients, including their
+distinct delivery/grant observations. Focused C++ evidence validation and
+Java catalog/source validation passed. Java scenario-ID parity is
+`java-tck.timestamped-default-region-attribute-mixed-fanout`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-default-region-attribute-mixed-fanout-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-default-region-interaction scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+case verifies timestamped interaction delivery with the supplied-empty
+default-region metadata representation. Focused C++ evidence validation and
+Java catalog/source validation passed. Java scenario-ID parity is
+`java-tck.timestamped-default-region-interaction`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-default-region-interaction-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-default-region-interaction-alternate-advances scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). The case covers default-region timestamped interaction
+delivery through Flush Queue Request, Time Advance Request Available, and
+Next Message Request Available with the associated grant/query boundaries.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java scenario-ID parity is
+`java-tck.timestamped-default-region-interaction-alternate-advances`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-default-region-interaction-alternate-advances-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-default-region-interaction-mixed-fanout scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). The case verifies one timestamped default-region interaction
+reaches immediate and time-constrained recipients with their distinct
+delivery/grant observations. Focused C++ evidence validation and Java
+catalog/source validation passed. Java scenario-ID parity is
+`java-tck.timestamped-default-region-interaction-mixed-fanout`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-default-region-interaction-mixed-fanout-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-default-region-interaction-source-resignation scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). A queued timestamped default-region interaction remained
+deliverable after producer resignation, with the scenario's standard delivery
+and retraction checks. Focused C++ evidence validation and Java catalog/source
+validation passed. Java scenario-ID parity is
+`java-tck.timestamped-default-region-interaction-source-resignation`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-default-region-interaction-source-resignation-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-default-region-interaction-reenable scenario and contract
+twin passed against the installed package in both callback models (4/4
+executions). A queued timestamped default-region interaction remained
+deliverable across Time Constrained disable/re-enable with its standard grant
+and callback-boundary assertions. Focused C++ evidence validation and Java
+catalog/source validation passed. Java scenario-ID parity is
+`java-tck.timestamped-default-region-interaction-reenable`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-default-region-interaction-reenable-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-default-region-interaction-regulation-reenable scenario and
+contract twin passed against the installed package in both callback models
+(4/4 executions). A queued timestamped default-region interaction remained
+deliverable across Time Regulation disable/re-enable with changed lookahead
+and the standard delivery/grant assertions. Focused C++ evidence validation
+and Java catalog/source validation passed. Java scenario-ID parity is
+`java-tck.timestamped-default-region-interaction-regulation-reenable`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-default-region-interaction-regulation-reenable-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-local-delete-object scenario and contract twin passed against
+the installed package in both callback models (4/4 executions). The local
+recipient's deletion suppresses its queued timestamped object-removal callback
+without affecting the independent delivery path. Focused C++ evidence
+validation and Java catalog/source validation passed. Java scenario-ID parity
+is `java-tck.timestamped-local-delete-object`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-local-delete-object-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-local-delete-attribute scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+local recipient's deletion suppresses its queued timestamped attribute
+reflection while preserving the independent recipient path. Focused C++
+evidence validation and Java catalog/source validation passed. Java
+scenario-ID parity is `java-tck.timestamped-local-delete-attribute`. Evidence
+is `out/mgw/tck-dse-ro-regional-20261016/timestamped-local-delete-attribute-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The alternate-time-advances scenario and contract twin passed against the
+installed package in both callback models (4/4 executions). The scenario
+exercises alternate time-advance services and rejects backward-time requests.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java parity is `java-tck.timestamped-attribute-update-alternate-advances`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/alternate-time-advances-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The pending-alternate-time-advance-state scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). Each
+alternate advance request is rejected while another time advance is pending,
+as observed through the standard API. Focused C++ evidence validation and
+Java catalog/source validation passed. Java parity is
+`java-tck.pending-alternate-time-advance-state`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/pending-alternate-time-advance-state-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The timestamped-directed-alternate-advances scenario and contract twin passed
+against the installed package in both callback models (4/4 executions).
+Timestamped directed interactions were delivered before strict Flush Queue,
+Time Advance Request Available, and Next Message Request Available boundaries.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java parity is `java-tck.timestamped-directed-alternate-advances`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-directed-alternate-advances-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The next-message-request scenario and contract twin passed against the
+installed package in both callback models (4/4 executions). The next queued
+timestamped interaction was delivered before the standard grant callback.
+Focused C++ evidence validation and Java catalog/source validation passed.
+Java parity is `java-tck.next-message-request`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/next-message-request-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The time-bounds-queries scenario and contract twin passed against the
+installed package in both callback models (4/4 executions). The case checks
+undefined and minimum no-TSO GALT/LITS results through the standard time-query
+API. Focused C++ evidence validation and Java catalog/source validation
+passed. Java parity is `java-tck.time-bounds-queries`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/time-bounds-queries-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The available-time-advances-inclusive-galt scenario and contract twin passed
+against the installed package in both callback models (4/4 executions).
+Timestamped interactions at the inclusive GALT boundary were delivered via
+available time advances as asserted through the standard API. Focused C++
+evidence validation and Java catalog/source validation passed. Java parity is
+`java-tck.timestamped-interaction-mixed-advances`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/available-time-advances-inclusive-galt-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The query-lits-source-resignation scenario and contract twin passed against
+the installed package in both callback models (4/4 executions). Query LITS
+remained defined for a queued timestamped interaction after its source
+federate resigned, as observed through the standard query API. Focused C++
+evidence validation and Java catalog/source validation passed. Java parity is
+`java-tck.query-lits-source-resignation`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/query-lits-source-resignation-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The partial-attribute-ownership-transfer scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+case cancels one attribute from a multi-attribute acquisition while allowing
+the remaining attribute to transfer, using only standard ownership services
+and callbacks. Focused C++ evidence validation and Java catalog/source
+validation passed. Java parity is
+`java-tck.partial-attribute-ownership-transfer`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/partial-attribute-ownership-transfer-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The ownership-acquisition-if-available scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+case covers the standard If Available acquisition's unavailable and
+successful-transfer boundaries through public ownership callbacks and
+services. Focused C++ evidence validation and Java catalog/source validation
+passed. Java parity is `java-tck.ownership-acquisition-if-available`.
+Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/ownership-acquisition-if-available-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The attribute-ownership-acquisition-cancellation scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+The standard acquisition request was cancelled while pending, without an
+ownership transfer. Focused C++ evidence validation and Java catalog/source
+validation passed. Java parity is
+`java-tck.attribute-ownership-acquisition-cancellation`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/attribute-ownership-acquisition-cancellation-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The attribute-ownership-release-denied scenario and contract twin passed
+against the installed package in both callback models (4/4 executions). The
+ordinary acquisition request was denied and current attribute ownership was
+preserved, using only standard callbacks and ownership services. Focused C++
+evidence validation and Java catalog/source validation passed. Java parity is
+`java-tck.attribute-ownership-release-denied`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/attribute-ownership-release-denied-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+The attribute-ownership-divestiture-if-wanted scenario and contract twin
+passed against the installed package in both callback models (4/4 executions).
+A pending ordinary acquisition was transferred through the standard
+Divestiture If Wanted service and callback path. Focused C++ evidence
+validation and Java catalog/source validation passed. Java parity is
+`java-tck.ownership`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/attribute-ownership-divestiture-if-wanted-verified-20261016.json`
+with matching JUnit output. No provider rebuild or Java provider-runtime
+execution is claimed.
+
+Four additional scenario/contract pairs passed against the installed package
+in both callback models (16 executions): mixed-order attribute passel
+retraction, timestamped attribute sender-regulation transition, Send Message
+while Time Granted, and timestamped interaction preferred-RECEIVE conversion.
+Focused C++ catalog/result validation and Java catalog/source validation
+passed; all four Java parity IDs are linked. The mixed-order passel and sender-
+regulation contract records remain explicitly experimental public-API test
+shapes, while the other two retain candidate requirement traceability; this
+runtime evidence is not itself interoperability or conformance evidence. The
+result artifact is
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-state-boundaries-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The ownership-acquisition-cancellation-transfer-race scenario and contract
+twin also passed the installed-package gate in both callback models (4
+executions). CTest passed 4/4 after refreshing the focused scenario selection;
+the first attempt correctly reported no registered tests because the reused
+build tree still held the previous slice's filter. The contract explicitly
+classifies this public-API test shape as experimental and not conformance
+evidence. Focused C++ source/result validation and Java catalog/source
+validation passed, with parity ID
+`java-tck.ownership-acquisition-cancellation-transfer-race`. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/ownership-acquisition-cancellation-transfer-race-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The update-rate-queries scenario and contract twin passed against the installed
+package in both callback models (4 executions). The adapter supplied the rate
+FOM, object/attribute names, and `TckSlow` designator. The scenarios verified
+named-rate lookup, active/passive/default subscription results, unsubscribe
+reset, and invalid designator/object/attribute boundaries. Focused C++
+catalog/source/result validation and Java catalog/source validation passed;
+Java parity is `java-tck.update-rate-queries`. Its contract remains explicitly
+experimental public-API traceability, not conformance evidence. Evidence is
+`out/mgw/tck-dse-ro-regional-20261016/update-rate-queries-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+After the update-rate query and ordinary mixed-rate gates, the
+timestamped-attribute-update-rate-reduction scenario and contract twin passed
+both callback models (4 executions). With the adapter's rich FOM, rate
+designator, logical-time implementation, and standard MIM, the pair verified
+reliable timestamped delivery, best-effort passel suppression, grant
+progression, and the standard retraction terminal boundary. Focused C++
+catalog/source/result validation and Java catalog/source validation passed;
+parity is `java-tck.timestamped-attribute-update-rate-reduction`. The contract
+remains experimental public-API evidence, not conformance evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-attribute-update-rate-reduction-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The directed-interaction-subscription-kind scenario and contract twin passed
+against the installed package in both callback models (4 executions). The
+standard by-ownership mode delivered only for a target owned by the recipient;
+the universal mode delivered for the registered target independently of
+ownership. Target identity, parameters, tag, producer, and transportation were
+checked. Focused C++ source/result validation and Java catalog/source
+validation passed; parity is
+`java-tck.directed-interaction-subscription-kind`. Its contract is explicitly
+experimental public-API evidence, not a conformance claim. Result:
+`out/mgw/tck-dse-ro-regional-20261016/directed-interaction-subscription-kind-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The directed-interaction-publication-send-fence scenario and contract twin
+also passed against the installed package in both callback models (4
+executions). The case verified initial target delivery, the standard
+`InteractionClassNotPublished` boundary after whole-class unpublication, no
+callback for the rejected send, and delivery after republication with the
+parameter, tag, producer, and transportation metadata intact. Focused C++
+source/result validation and Java catalog/source validation passed; Java parity
+is `java-tck.directed-interaction-publication-send-fence`. The linked contract
+remains experimental public-API evidence, not conformance evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/directed-interaction-publication-send-fence-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The baseline `directed-interaction-contract` scenario passed under both
+callback models (2 executions). The standard-API case covers directed
+publication, by-ownership and universal subscriptions, target routing,
+delivery, invalid-handle errors, and pre-connect/pre-join service boundaries.
+Focused C++ source/result validation and Java catalog/source validation passed;
+parity is `java-tck.directed-interactions`. The contract remains experimental
+public-API evidence, not conformance evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/directed-interaction-contract-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The standalone `attribute-interaction-contract` scenario also passed against
+the installed package under both callback models (2 executions). It combines
+ordinary attribute Update/Reflect and interaction Send/Receive behavior,
+including values, parameters, tags, producer identity, transportation, and
+pre-connect/pre-join service boundaries. Focused C++ source/result validation
+and Java catalog/source validation passed; parity is
+`java-tck.attribute-interaction`. Its linked contract is experimental
+public-API evidence, not conformance evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/attribute-interaction-contract-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The pair `federate-mom-multiple-interaction-class-full-unpublication-query`
+and its contract twin passed against the installed package under both callback
+models (4 executions). After both adapter-selected ordinary interaction
+classes were unpublished, the standard MIM returned the exact NULL response
+for the publication report. The test and adapter use only official HLA APIs,
+the standard MIM/FOM inputs, and standard-library source; Java parity is
+`java-tck.federate-mom-multiple-interaction-class-full-unpublication-query`.
+Focused C++ source/result validation and Java catalog/source validation passed.
+The linked contract is experimental public-API evidence, not conformance
+evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-full-interaction-unpublication-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The pair `federate-mom-multiple-interaction-subscription-full-unsubscribe-query`
+and its contract twin passed against the installed package under both callback
+models (4 executions). It verifies that removing the last interaction
+subscription produces the standard MIM NULL response, after the intermediate
+state retains the remaining application subscription. The adapter supplies
+the IEEE 1516.2-2025 MIM, FOM, endpoint, and callback configuration; the
+portable source uses only official HLA APIs and the C++ standard library.
+Java parity is
+`java-tck.federate-mom-multiple-interaction-subscription-full-unsubscribe-query`.
+Focused C++ source/result validation and Java catalog/source validation passed.
+The contract remains experimental public-API evidence, not conformance
+evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-full-interaction-subscription-unsubscribe-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The partial-unsubscribe pair `federate-mom-multiple-interaction-subscription-unsubscribe-query`
+and its contract twin passed against the installed package under both callback
+models (4 executions). It verifies that a fresh HLArequestSubscriptions MIM
+report retains the active application interaction after the passive
+HLAreportServiceInvocation subscription is removed. Java parity is
+`java-tck.federate-mom-multiple-interaction-subscription-unsubscribe-query`.
+The adapter supplies the 2025 MIM/FOM, endpoint, and callback configuration;
+the portable source uses only official HLA APIs and the C++ standard library.
+Focused C++ source/result validation and Java catalog/source validation passed.
+The contract is experimental public-API evidence, not conformance evidence.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-partial-interaction-subscription-unsubscribe-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The mixed interaction-subscription query pair
+`federate-mom-multiple-interaction-subscription-query` and its contract twin
+passed against the installed package under both callback models (4
+executions). The MIM report contains exactly the active application and
+passive HLAreportServiceInvocation subscriptions with their distinct states,
+and the directed-interaction list has the expected shaped NULL response.
+Java parity is `java-tck.federate-mom-multiple-interaction-subscription-query`.
+Adapter inputs remain the standard MIM/FOM, endpoint, class names, and callback
+configuration; the portable source uses only official HLA APIs and the C++
+standard library. Focused C++ source/result and Java catalog/source validation
+passed. The contract is experimental public-API evidence, not conformance
+evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-mixed-interaction-subscriptions-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The passive-interaction subscription report pair
+`federate-mom-passive-interaction-subscription-query` and its contract twin
+passed against the installed package under both callback models (4
+executions). It verifies an active object-attribute subscription alongside a
+passive interaction subscription, including the adapter-selected update-rate
+name and the standard empty directed-interaction response. Java parity is
+`java-tck.federate-mom-passive-interaction-subscription-query`. Adapter inputs
+include application and rate FOMs, the IEEE 1516.2-2025 MIM, endpoint, names,
+and callback configuration; portable source is official HLA API plus standard
+library only. Focused C++ source/result and Java catalog/source validation
+passed. The contract is experimental public-API evidence, not conformance
+evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-passive-interaction-subscription-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The passive-to-active interaction-subscription transition pair
+`federate-mom-passive-interaction-subscription-activation-query` and its
+contract twin passed against the installed package under both callback models
+(4 executions). The standard MIM report reflects activation of the interaction
+subscription while preserving the adapter-selected object-subscription state
+and the empty directed-interaction response. Java parity is
+`java-tck.federate-mom-passive-interaction-subscription-activation-query`.
+Adapter inputs include the 2025 MIM/FOM, endpoint, class names, and callback
+configuration; portable source is official HLA API plus standard library
+only. Focused C++ source/result and Java catalog/source validation passed. The
+contract remains experimental public-API evidence, not conformance evidence.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-passive-interaction-subscription-activation-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The object-attribute partial-unsubscribe pair
+`federate-mom-object-attribute-partial-unsubscribe-query` and its contract
+twin passed against the installed package under both callback models (4
+executions). After removing one of two adapter-selected attributes, the
+standard MIM report retained the class and exactly the remaining attribute.
+Java parity is
+`java-tck.federate-mom-object-attribute-partial-unsubscribe-query`. The P0
+dimensionless FOM, standard MIM, endpoint, names, and callback configuration
+remain adapter supplied; portable source uses only official HLA APIs and the
+C++ standard library. Focused C++ source/result and Java catalog/source
+validation passed. The contract is experimental public-API evidence, not
+conformance evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-attribute-partial-unsubscribe-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The full object-attribute unsubscribe pair
+`federate-mom-object-attribute-full-unsubscribe-query` and its contract twin
+passed against the installed package under both callback models (4
+executions). Removing the complete two-attribute subscription yields the
+standard MIM zero-class NULL response, while the other subscription reports
+retain their specified empty shapes. Java parity is
+`java-tck.federate-mom-object-attribute-full-unsubscribe-query`. The P0 FOM,
+standard MIM, endpoint, names, and callback configuration remain adapter
+supplied; portable source uses only official HLA APIs and the C++ standard
+library. Focused C++ source/result and Java catalog/source validation passed.
+The contract is experimental public-API evidence, not conformance evidence.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-attribute-full-unsubscribe-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The whole-class object unsubscribe pair
+`federate-mom-object-class-full-unsubscribe-query` and its contract twin
+passed against the installed package under both callback models (4
+executions). The standard MIM query returns the NULL object-subscription
+response after the distinct whole-class unsubscribe service removes the
+class. Java parity is
+`java-tck.federate-mom-object-class-full-unsubscribe-query`. Adapter-supplied
+P0 FOM, MIM, endpoint, class/attribute names, and callback configuration keep
+the portable source on official HLA APIs and the C++ standard library.
+Focused C++ source/result and Java catalog/source validation passed. The
+contract is experimental public-API evidence, not conformance evidence.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-class-full-unsubscribe-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The complete object-class attribute subscription query pair
+`federate-mom-object-class-complete-attribute-subscription-query` and its
+contract twin passed against the installed package under both callback models
+(4 executions). The MIM report contains the exact adapter-configured complete
+application-attribute set and inherited `HLAprivilegeToDeleteObject`.
+Java parity is
+`java-tck.federate-mom-object-class-complete-attribute-subscription-query`.
+The adapter supplies the P0 FOM, standard MIM, names, endpoint, and callback
+configuration; the portable source uses official HLA APIs and standard
+library only. Focused C++ source/result and Java catalog/source validation
+passed. The contract is experimental public-API evidence, not conformance
+evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-complete-object-attribute-subscription-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The passive complete object-class attribute subscription pair
+`federate-mom-object-class-passive-complete-attribute-subscription-query` and
+its contract twin passed against the installed package under both callback
+models (4 executions). It verifies the complete adapter-configured attribute
+set is reported with passive state and preserves the expected MIM companion
+reports. Java parity is
+`java-tck.federate-mom-object-class-passive-complete-attribute-subscription-query`.
+Adapter-supplied P0 FOM, MIM, endpoint, names, and callback configuration keep
+the portable source to official HLA APIs and the C++ standard library.
+Focused C++ source/result and Java catalog/source validation passed. The
+contract is experimental public-API evidence, not conformance evidence.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-passive-complete-object-attribute-subscription-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The complete object-class attribute subscription activation pair
+`federate-mom-object-class-complete-attribute-subscription-activation-query`
+and its contract twin passed against the installed package under both callback
+models (4 executions). After transitioning the full adapter-configured set
+from passive to active, the standard MIM report reflected the active state and
+exact attribute set. Java parity is
+`java-tck.federate-mom-object-class-complete-attribute-subscription-activation-query`.
+The provider, FOM/MIM, endpoint, attribute names, and callback configuration
+are adapter supplied; portable source uses only official HLA APIs and the C++
+standard library. Focused C++ source/result and Java catalog/source validation
+passed. The contract is experimental public-API evidence, not conformance
+evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-complete-object-attribute-subscription-activation-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The full object-attribute unpublication pair
+`federate-mom-object-class-full-attribute-unpublication-query` and its
+contract twin passed against the installed package under both callback models
+(4 executions). Unpublishing the complete adapter-configured application
+attribute set yields the standard MIM zero-class NULL publication report with
+no class or attribute-list parameters. Java parity is
+`java-tck.federate-mom-object-class-full-attribute-unpublication-query`.
+Adapter inputs include the P0 FOM, standard MIM, endpoint, names, and callback
+configuration; portable source uses official HLA APIs and standard library
+only. Focused C++ source/result and Java catalog/source validation passed. The
+contract is experimental public-API evidence, not conformance evidence.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-class-full-attribute-unpublication-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The partial object-attribute unpublication pair
+`federate-mom-object-class-attribute-unpublication-query` and its contract
+twin passed against the installed package under both callback models (4
+executions). After one published application attribute was withdrawn, the
+standard MIM reported exactly the remaining application attribute. Java parity
+is `java-tck.federate-mom-object-class-attribute-unpublication-query`.
+Adapter-supplied P0 FOM, MIM, endpoint, names, and callback configuration keep
+portable source to official HLA APIs and the C++ standard library. Focused C++
+source/result and Java catalog/source validation passed. The contract is
+experimental public-API evidence, not conformance evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-class-partial-attribute-unpublication-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The baseline publication query pair `federate-mom-publication-query` and its
+contract twin passed against the installed package under both callback models
+(4 executions). The standard MIM reports the published object class/attribute
+and interaction class, and the required directed-interaction publication
+report is the expected NULL response. Java parity is
+`java-tck.federate-mom-publication-query`. Provider/FOM/MIM, endpoint, names,
+and callback configuration remain adapter supplied; portable source uses
+only official HLA APIs and the C++ standard library. Focused C++ source/result
+and Java catalog/source validation passed. The contract is experimental
+public-API evidence, not conformance evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-publication-query-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The complete object-class publication pair
+`federate-mom-complete-object-class-publication-query` and its contract twin
+passed against the installed package under both callback models (4
+executions). The standard MIM report contains exactly the adapter-configured
+application attribute set plus inherited `HLAprivilegeToDeleteObject`. Java
+parity is `java-tck.federate-mom-complete-object-class-publication-query`.
+The adapter supplies the P0 FOM, standard MIM, endpoint, names, and callback
+configuration; portable source uses official HLA APIs and the C++ standard
+library only. Focused C++ source/result and Java catalog/source validation
+passed. The contract is experimental public-API evidence, not conformance
+evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-complete-object-class-publication-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The partial interaction-class unpublication pair
+`federate-mom-interaction-class-partial-unpublication-query` and its contract
+twin passed against the installed package under both callback models (4
+executions). After one of two adapter-selected ordinary interaction classes
+was unpublished, the standard MIM publication report retained the remaining
+class. Java parity is
+`java-tck.federate-mom-interaction-class-partial-unpublication-query`.
+Adapter-supplied FOM/MIM, endpoint, class names, and callback configuration
+keep portable source on official HLA APIs and the C++ standard library.
+Focused C++ source/result and Java catalog/source validation passed. The
+contract is experimental public-API evidence, not conformance evidence.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-interaction-class-partial-unpublication-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The whole interaction-class unpublication pair
+`federate-mom-interaction-class-whole-unpublication-query` and its contract
+twin passed against the installed package under both callback models (4
+executions). The standard MIM returned the exact NULL interaction-publication
+report after whole-class unpublication; the companion directed-publication
+report was checked according to its defined shape without asserting unrelated
+cross-service effects. Java parity is
+`java-tck.federate-mom-interaction-class-whole-unpublication-query`.
+Adapter-supplied FOM/MIM, endpoint, names, and callback configuration keep
+portable source to official HLA APIs and the C++ standard library. Focused C++
+source/result and Java catalog/source validation passed. The contract is
+experimental public-API evidence, not conformance evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-interaction-class-whole-unpublication-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The multiple directed-publication query pair
+`federate-mom-multiple-directed-publication-query` and its contract twin
+passed against the installed package under both callback models (4
+executions). The standard MIM reported one directed-publication record for
+each of two adapter-selected object classes, matched each interaction class,
+and reported the aggregate class count. The test uses the standard directed
+publication service but no DDM regions. Java parity is
+`java-tck.federate-mom-multiple-directed-publication-query`. Adapter inputs
+include provider package, FOM/MIM, endpoint, class names, and callback
+configuration; portable source uses only official HLA APIs and standard
+library. Focused C++ source/result and Java catalog/source validation passed.
+The contract is experimental public-API evidence, not conformance evidence.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-multiple-directed-publication-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The partial directed-publication unpublish pair
+`federate-mom-multiple-directed-publication-partial-unpublish-query` and its
+contract twin passed against the installed package under both callback models
+(4 executions). After removing the inherited directed interaction from the
+derived object class, the MIM report retained that class's other directed
+interaction and the separate base-class publication. Java parity is
+`java-tck.federate-mom-multiple-directed-publication-partial-unpublish-query`.
+The adapter supplies provider, FOM/MIM, endpoint, names, and callback
+configuration; the portable scenario uses only standard HLA APIs and no DDM
+regions. Focused C++ source/result and Java catalog/source validation passed.
+The contract remains experimental public-API evidence, not conformance
+evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-multiple-directed-publication-partial-unpublish-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The full directed-publication unpublish pair
+`federate-mom-multiple-directed-publication-full-unpublish-query` and its
+contract twin passed against the installed package under both callback models
+(4 executions). After all adapter-selected directed publications were
+removed, the standard MIM returned the defined NULL directed-publication
+report while ordinary object-attribute and interaction publications remained.
+Java parity is
+`java-tck.federate-mom-multiple-directed-publication-full-unpublish-query`.
+Adapter-supplied provider/FOM/MIM, endpoint, class names, and callback
+configuration keep portable source to official HLA APIs and standard library.
+Focused C++ source/result and Java catalog/source validation passed. The
+contract is experimental public-API evidence, not conformance evidence.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-multiple-directed-publication-full-unpublish-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The multiple directed-subscription query pair
+`federate-mom-multiple-directed-subscription-query` and its contract twin
+passed against the installed package under both callback models (4
+executions). The standard MIM reports included directed subscriptions under
+both adapter-selected object classes; after set-based unsubscribe of the
+primary class group, the second query retained only the secondary group.
+Java parity is
+`java-tck.federate-mom-multiple-directed-subscription-query`. Adapter-supplied
+FOM/MIM, provider, endpoint, class names, and callback configuration keep
+portable source to official HLA APIs and standard library; no DDM regions are
+used. Focused C++ source/result and Java catalog/source validation passed.
+The contract is experimental public-API evidence, not conformance evidence.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-multiple-directed-subscription-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The full directed-subscription unsubscribe pair
+`federate-mom-multiple-directed-subscription-full-unsubscribe-query` and its
+contract twin passed against the installed package under both callback models
+(4 executions). After set-based removal of the primary class group and
+class-scoped removal of the remaining group, the standard MIM returned the
+defined NULL directed-subscription response. Java parity is
+`java-tck.federate-mom-multiple-directed-subscription-full-unsubscribe-query`.
+Provider/FOM/MIM, endpoint, class names, and callback configuration are
+adapter supplied; portable source uses only official HLA APIs and the C++
+standard library, with no DDM regions. Focused C++ source/result and Java
+catalog/source validation passed. The contract is experimental public-API
+evidence, not conformance evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-multiple-directed-subscription-full-unsubscribe-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+The object-instance information pair
+`federate-mom-object-instance-information` and its contract twin passed
+against the installed package under both callback models (4 executions). Its
+MIM requests cover an object owned by the subject, a known object without
+requester-owned attributes, and the NULL response after Local Delete Object
+Instance. Java parity is
+`java-tck.federate-mom-object-instance-information`. Provider/FOM/MIM,
+endpoint, object names, and callback configuration remain adapter supplied;
+the portable source uses official HLA APIs and standard library, including
+public handle decoding. Focused C++ source/result and Java catalog/source
+validation passed. The contract is experimental public-API evidence, not
+conformance evidence. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-instance-information-verified-20261016.json`.
+No provider rebuild or Java provider-runtime execution is claimed.
+
+Fresh installed-package verification of
+`joined-federate-mom-object-instances-updated-report` and its contract twin
+passed all four focused CTest cases and both direct callback-model runs. The
+scenario confirms that repeated ordinary updates to one instance do not
+inflate the MIM's class-based count of distinct updated instances. C++ source,
+catalog, and result validation and Java catalog/source validation passed.
+Java parity is `java-tck.federate-mom-updated-object-report`; the contract is
+experimental public-API evidence, not conformance evidence. Provider rebuild
+and Java provider-runtime execution were not performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/joined-federate-mom-object-instances-updated-report-verified-20261016.json`.
+
+Fresh installed-package verification of
+`joined-federate-mom-object-instances-updated-multi-class-report` and its
+contract twin passed all four focused CTest cases and both direct callback
+models. With adapter-supplied ordinary and multi-attribute FOM modules, the
+scenario confirms independent counts for two object classes despite repeated
+updates to individual instances, and checks standard reflection metadata.
+Focused C++ source/result and Java catalog/source validation passed. Java
+parity is `java-tck.federate-mom-updated-multi-class-object-report`; the
+contract is experimental public-API evidence, not conformance evidence. No
+provider rebuild or Java provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/joined-federate-mom-object-instances-updated-multi-class-report-verified-20261016.json`.
+
+Fresh installed-package verification of
+`joined-federate-mom-object-instances-updated-null-report` and its contract
+twin passed all four focused CTest cases and direct runs under both callback
+models. With no successful object updates, the requester received exactly one
+reliable standard report whose `HLAobjectInstanceCounts` value was undefined
+or an empty standard variable array. C++ source/result and Java catalog/source
+validation passed. Java parity is
+`java-tck.federate-mom-updated-null-object-report`; the contract remains
+experimental public-API evidence, not conformance evidence. No provider rebuild
+or Java provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/joined-federate-mom-object-instances-updated-null-report-verified-20261016.json`.
+
+Fresh installed-package verification of
+`joined-federate-mom-object-instances-reflected-null-report` and its contract
+twin passed all four focused CTest cases and direct runs under both callback
+models. With no Reflect Attribute Values invocations for the subject, the
+requester received exactly one reliable standard report with an undefined or
+empty `HLAobjectInstanceCounts` value. C++ source/result and Java catalog/source
+validation passed. Java parity is
+`java-tck.federate-mom-reflected-null-object-report`; the contract remains
+experimental public-API evidence, not conformance evidence. No provider rebuild
+or Java provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/joined-federate-mom-object-instances-reflected-null-report-verified-20261016.json`.
+
+Fresh installed-package verification of
+`joined-federate-mom-object-instances-reflected-report` and its contract twin
+passed all four focused CTest cases and direct runs under both callback
+models. A subject's two registered instances generated three receive-order
+reflections; the distinct requester queried the subscribed target and decoded
+one reliable class-count record for two distinct reflected instances. The
+adapter-selected attribute is standard `HLAbyte`, and no DDM region APIs are
+used. C++ source/result and Java catalog/source validation passed. Java parity
+is `java-tck.federate-mom-reflected-object-report`; the contract remains
+experimental public-API evidence, not conformance evidence. No provider rebuild
+or Java provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/joined-federate-mom-object-instances-reflected-report-verified-20261016.json`.
+
+Fresh installed-package verification of
+`joined-federate-mom-object-instances-reflected-timestamped-report` and its
+contract twin passed all four focused CTest cases and direct runs under both
+callback models. The constrained target received three timestamped Reflect
+Attribute Values callbacks before its grant, with logical time and retraction
+metadata verified; the standard MIM report counted two distinct instances
+despite a repeated update. C++ source/result and Java catalog/source validation
+passed. Java parity is
+`java-tck.federate-mom-reflected-timestamped-object-report`; the contract
+remains experimental public-API evidence, not conformance evidence. No provider
+rebuild or Java provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/joined-federate-mom-object-instances-reflected-timestamped-report-verified-20261016.json`.
+
+Fresh installed-package verification of
+`joined-federate-mom-object-instances-updated-timestamped-report` and its
+contract twin passed all four focused CTest cases and direct runs under both
+callback models. The time-constrained observer verified both timestamped
+reflections, including value, tag, logical time, producer, sent/received order,
+transport, and retraction handle; both distinct updated instances were
+reported through the standard MIM class-count records. C++ source/result and
+Java catalog/source validation passed. Java parity is
+`java-tck.federate-mom-updated-timestamped-object-report`; the contract remains
+experimental public-API evidence, not conformance evidence. No provider rebuild
+or Java provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/joined-federate-mom-object-instances-updated-timestamped-report-verified-20261016.json`.
+
+Fresh installed-package verification of
+`joined-federate-mom-object-instances-reflected-multi-class-report` and its
+contract twin passed all four focused CTest cases and direct runs under both
+callback models. The subscribed target received six receive-order reflection
+callbacks across two classes, including repeated updates to one instance per
+class; the distinct requester decoded separate standard MIM counts of two for
+each class. Adapter-supplied FOM modules and names select both classes and
+attributes. C++ source/result and Java catalog/source validation passed. Java
+parity is `java-tck.federate-mom-reflected-multi-class-object-report`; the
+contract remains experimental public-API evidence, not conformance evidence.
+No provider rebuild or Java provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/joined-federate-mom-object-instances-reflected-multi-class-report-verified-20261016.json`.
+
+Fresh installed-package verification of
+`joined-federate-mom-object-instances-that-can-be-deleted-report` and its
+contract twin passed all four focused CTest cases and direct runs under both
+callback models. The standard joined-federate MOM request reported deletable
+object counts of two, one, and zero as the owner registered two instances and
+deleted them in turn. The test also checks the reliable one-parameter report
+metadata and decodes class counts using public standard data elements. C++
+source/result and Java catalog/source validation passed. Java parity is
+`java-tck.federate-mom-deletable-object-report`; the contract remains
+experimental public-API evidence, not conformance evidence. No provider rebuild
+or Java provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/joined-federate-mom-object-instances-that-can-be-deleted-report-verified-20261016.json`.
+
+Fresh installed-package verification of
+`federate-mom-object-class-complete-attribute-subscription-query` and its
+contract twin passed all four focused CTest cases and direct runs under both
+callback models. The standard MOM report contained the exact adapter-selected
+complete application-attribute set plus inherited
+`HLAprivilegeToDeleteObject`. C++ source/result and Java catalog/source
+validation passed. Java parity is
+`java-tck.federate-mom-object-class-complete-attribute-subscription-query`;
+the contract remains experimental public-API evidence, not conformance
+evidence. No provider rebuild or Java provider-runtime execution was performed.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-class-complete-attribute-subscription-query-verified-20261016.json`.
+
+Fresh installed-package verification of
+`federate-mom-object-class-passive-complete-attribute-subscription-query` and
+its contract twin passed all four focused CTest cases and direct runs under
+both callback models. The report preserved the full adapter-configured
+attribute set while marking the subscription passive and retained the expected
+MIM companion reports. C++ source/result and Java catalog/source validation
+passed. Java parity is
+`java-tck.federate-mom-object-class-passive-complete-attribute-subscription-query`;
+the contract remains experimental public-API evidence, not conformance
+evidence. No provider rebuild or Java provider-runtime execution was performed.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-class-passive-complete-attribute-subscription-query-verified-20261016.json`.
+
+Fresh installed-package verification of
+`federate-mom-object-class-complete-attribute-subscription-activation-query`
+and its contract twin passed all four focused CTest cases and direct runs
+under both callback models. Activating the full adapter-configured object
+class subscription changed the standard MIM state to active while preserving
+the exact attribute set. C++ source/result and Java catalog/source validation
+passed. Java parity is
+`java-tck.federate-mom-object-class-complete-attribute-subscription-activation-query`;
+the contract remains experimental public-API evidence, not conformance
+evidence. No provider rebuild or Java provider-runtime execution was performed.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-class-complete-attribute-subscription-activation-query-verified-20261016.json`.
+
+Fresh installed-package verification of
+`federate-mom-object-class-full-attribute-unpublication-query` and its
+contract twin passed all four focused CTest cases and direct runs under both
+callback models. Removing the entire adapter-configured application attribute
+set produced the standard MIM NULL publication response with no class or
+attribute-list parameters. C++ source/result and Java catalog/source
+validation passed. Java parity is
+`java-tck.federate-mom-object-class-full-attribute-unpublication-query`; the
+contract remains experimental public-API evidence, not conformance evidence.
+No provider rebuild or Java provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-class-full-attribute-unpublication-query-verified-20261016.json`.
+
+Fresh installed-package verification of
+`federate-mom-object-class-whole-unpublication-query` and its contract twin
+passed all four focused CTest cases and direct runs under both callback
+models. Whole-class unpublication returned the standard MIM NULL publication
+response, distinct from unpublishing the complete attribute set. C++
+source/result and Java catalog/source validation passed. Java parity is
+`java-tck.federate-mom-object-class-whole-unpublication-query`; the contract
+remains experimental public-API evidence, not conformance evidence. No
+provider rebuild or Java provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-class-whole-unpublication-query-verified-20261016.json`.
+
+Fresh installed-package verification of
+`federate-mom-interaction-class-whole-unpublication-query` and its contract
+twin passed all four focused CTest cases and direct runs under both callback
+models. Whole-class interaction unpublication returned the standard MIM NULL
+interaction-publication response and checked the companion report's defined
+shape. C++ source/result and Java catalog/source validation passed. Java parity
+is `java-tck.federate-mom-interaction-class-whole-unpublication-query`; the
+contract remains experimental public-API evidence, not conformance evidence.
+No provider rebuild or Java provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-interaction-class-whole-unpublication-query-verified-20261016.json`.
+
+Fresh installed-package verification of
+`federate-mom-interaction-class-partial-unpublication-query` and its contract
+twin passed all four focused CTest cases and direct runs under both callback
+models. After one published interaction class was removed, the standard MIM
+publication report retained the remaining class and its expected parameter
+structure. C++ source/result and Java catalog/source validation passed. Java
+parity is `java-tck.federate-mom-interaction-class-partial-unpublication-query`;
+the contract remains experimental public-API evidence, not conformance
+evidence. No provider rebuild or Java provider-runtime execution was performed.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-interaction-class-partial-unpublication-query-verified-20261016.json`.
+
+Fresh installed-package verification of
+`federate-mom-multiple-interaction-class-full-unpublication-query` and its
+contract twin passed all four focused CTest cases and direct runs under both
+callback models. After both ordinary interaction classes were unpublished,
+the standard MIM returned the exact NULL interaction-publication response;
+the companion report retained its required shape. C++ source/result and Java
+catalog/source validation passed. Java parity is
+`java-tck.federate-mom-multiple-interaction-class-full-unpublication-query`;
+the contract remains experimental public-API evidence, not conformance
+evidence. No provider rebuild or Java provider-runtime execution was performed.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-multiple-interaction-class-full-unpublication-query-verified-20261016.json`.
+
+Fresh installed-package verification of
+`federate-mom-complete-object-class-publication-query` and its contract twin
+passed all four focused CTest cases and direct runs under both callback
+models. The standard MIM report matched the complete adapter-configured
+application attribute publication and included inherited
+`HLAprivilegeToDeleteObject`. C++ source/result and Java catalog/source
+validation passed. Java parity is
+`java-tck.federate-mom-complete-object-class-publication-query`; the contract
+remains experimental public-API evidence, not conformance evidence. No
+provider rebuild or Java provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-complete-object-class-publication-query-verified-20261016.json`.
+
+Fresh installed-package verification of
+`federate-mom-object-class-attribute-unpublication-query` and its contract
+twin passed all four focused CTest cases and direct runs under both callback
+models. Ordinary attribute unpublication left exactly the expected remaining
+application attributes in the standard MIM report, with inherited
+`HLAprivilegeToDeleteObject` handled separately. C++ source/result and Java
+catalog/source validation passed. Java parity is
+`java-tck.federate-mom-object-class-attribute-unpublication-query`; the
+contract remains experimental public-API evidence, not conformance evidence.
+No provider rebuild or Java provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-object-class-attribute-unpublication-query-verified-20261016.json`.
+
+Fresh installed-package verification of `federate-mom-publication-query` and
+its contract twin passed all four focused CTest cases and direct runs under
+both callback models. The standard MIM reported the adapter-configured object
+class/attribute and interaction class, while the directed-interaction
+publication response was the required NULL. C++ source/result and Java
+catalog/source validation passed. Java parity is
+`java-tck.federate-mom-publication-query`; the contract remains experimental
+public-API evidence, not conformance evidence. No provider rebuild or Java
+provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-publication-query-verified-20261016.json`.
+
+Fresh installed-package verification of
+`federate-mom-multiple-interaction-class-full-unpublication-query` and its
+contract twin passed all four focused CTest cases and direct runs under both
+callback models. The populated report contained the two adapter-selected
+ordinary interaction classes; after both were unpublished, the standard MIM
+reported the exact zero-class NULL response while the object-class report
+remained independent. C++ source/result and Java catalog/source validation
+passed. Java parity is
+`java-tck.federate-mom-multiple-interaction-class-full-unpublication-query`;
+the contract is experimental public-API evidence, not conformance evidence.
+No provider rebuild or Java provider-runtime execution was performed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-multiple-interaction-class-full-unpublication-verified-20261016.json`.
+
+Fresh installed-package verification of the baseline active object-and-
+interaction subscription query/contract pair passed all four focused CTest
+cases and direct runs under both callback models. The standard MIM reported
+the adapter-selected active application subscriptions and the expected empty
+directed-interaction subscription response. Java parity is
+`java-tck.federate-mom-subscription-query`. The portable source uses official
+HLA APIs and standard-library types only; provider/FOM/MIM/endpoint/callback
+configuration is adapter supplied. C++ source/result and Java catalog/source
+validation passed. Contract status is experimental public-API evidence, not
+conformance evidence. No provider rebuild or Java provider-runtime execution.
+Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-subscription-query-verified-20261016.json`.
+
+The empty-subscription and directed-subscription MOM query pairs were then
+verified against the installed package, each passing four focused CTest cases
+and direct runs across both callback models. The empty state returned the
+standard shaped NULL reports; the directed state reported the adapter-selected
+directed subscription while ordinary subscription reports remained in their
+defined empty shape. Java parities are
+`java-tck.federate-mom-empty-subscription-query` and
+`java-tck.federate-mom-directed-subscription-query`. C++ source/result and
+Java catalog/source validation passed. These contracts are experimental
+public-API evidence, not conformance claims; no provider rebuild or Java
+provider-runtime execution was performed. Results:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-empty-subscription-query-verified-20261016.json` and
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-directed-subscription-query-verified-20261016.json`.
+
+The passive-object/active-interaction subscription MOM query and contract
+passed fresh installed-package verification: four focused CTest cases and
+direct runs under HLA_EVOKED and HLA_IMMEDIATE. The standard MIM preserved the
+passive object subscription state, active interaction subscription, and
+defined empty directed-subscription report. Java parity is
+`java-tck.federate-mom-passive-subscription-query`. C++ source/result and Java
+catalog/source validation passed. Adapter configuration supplies provider,
+FOM/MIM, endpoint, names, and callback model; portable source remains official
+HLA API plus standard library. Experimental public-API evidence only; no
+provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-passive-subscription-query-verified-20261016.json`.
+
+The federate-scoped FOM-module content report and its contract passed the
+installed-package gate under both callback models: all four focused CTest
+cases and direct runs were green. A distinct joined federate requested the
+adapter-supplied module and the standard MIM report preserved the requested
+module indicator, XML content, and reliable delivery. Java parity is
+`java-tck.federate-mom-fom-module-content-report`. Provider/FOM/MIM/endpoint
+and callback settings remain adapter supplied; portable code is official HLA
+API plus the C++ standard library. C++ source/result and Java catalog/source
+validation passed. This is experimental public-API evidence, not conformance;
+no provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-fom-module-content-report-verified-20261016.json`.
+
+The standard federate MOM exception-report delivery pair and the missing-
+parameter pair both passed fresh installed-package verification: four focused
+CTest cases and direct runs under each callback model. Malformed parameter
+values and omission of `HLAsyncPointName` produced the expected reliable
+`HLAreportMOMexception` payload with `HLAparameterError` true. Java parity is
+linked for both scenarios. The provider and standard MIM remain adapter
+inputs; portable source uses official HLA APIs and standard-library types.
+C++ source/result and Java catalog/source validation passed. These contracts
+are experimental public-API evidence, not conformance claims; no provider
+rebuild or Java provider-runtime execution. Results:
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-exception-report-delivery-verified-20261016.json` and
+`out/mgw/tck-dse-ro-regional-20261016/federate-mom-exception-missing-parameter-verified-20261016.json`.
+
+The exact `ownership-query-partition-cleanup` scenario/contract pair was
+re-verified against the installed package, passing all four focused CTest
+cases and direct runs under both callback models. It checks mixed owned and
+unowned query results, invalid handles, and suppresses stale pending results
+after object removal. The adapter supplies the multi-attribute FOM, provider,
+endpoint, and callback model. Java parity is
+`java-tck.ownership-query-partition-cleanup`; C++ source/result and Java
+catalog/source validation passed. Experimental public-API evidence only; no
+provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/ownership-query-partition-cleanup-verified-20261016.json`.
+
+The `ownership-query-save-restore-results` pair also passed all four focused
+CTest cases and direct runs under both callback models against the installed
+package. After save, live ownership transfer, and restore, the standard query
+callbacks distinguished federate-owned, unowned, and RTI-owned attributes.
+The adapter supplied the multi-attribute FOM and standard MIM. Java parity is
+`java-tck.ownership-query-save-restore-results`; C++ source/result and Java
+catalog/source validation passed. This remains experimental public-API
+evidence, not conformance evidence; no provider rebuild or Java provider-
+runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/ownership-query-save-restore-results-verified-20261016.json`.
+
+The `federation-teardown-isolation` scenario and contract passed four focused
+CTest cases and direct runs across both callback models against the installed
+package. Two similarly named executions had independent active named-rate
+histories; after resigning and destroying only one, an in-interval update in
+the surviving execution remained suppressed. The rich FOM, rate designator,
+provider, endpoint, and callback model are adapter inputs. Portable code uses
+only the official HLA API and standard library. Java parity is
+`java-tck.federation-teardown-isolation`; C++ source/result and Java
+catalog/source validation passed. This is experimental public-API evidence,
+not conformance evidence; no provider rebuild or Java provider-runtime
+execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/federation-teardown-isolation-verified-20261016.json`.
+
+The `handle-wire-formats` scenario and contract passed all four focused CTest
+cases and direct runs under both callback models against the installed
+package. Dimension, region, and timestamped-message-retraction handles
+round-tripped through the standard decoders with consistent encoded lengths;
+malformed empty encodings were rejected through the specified public error
+path. The DDM FOM and dimension names, provider, endpoint, and callback model
+are adapter inputs. Portable source uses only the official HLA API and C++
+standard library. Java parity is `java-tck.handle-wire-formats`; C++
+source/result and Java catalog/source validation passed. Experimental
+public-API evidence only, not conformance; no provider rebuild or Java
+provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/handle-wire-formats-verified-20261016.json`.
+
+The `attribute-relevance-rate-reissue` scenario and contract passed all four
+focused CTest cases and direct runs under both callback models. With the
+adapter-supplied fast and slow rate designators, the standard advisory reports
+tracked maximum-rate changes, ignored a newly added slower peer, refreshed
+when the fast peer changed or left, and turned updates off after final
+unsubscribe. The rate FOM and designators remain adapter inputs; portable
+source uses only official HLA API and standard library. Java parity is
+`java-tck.attribute-relevance-rate-reissue`; C++ result and Java
+catalog/source validation passed. Experimental public-API evidence only; no
+provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/attribute-relevance-rate-reissue-verified-20261016.json`.
+
+The `privilege-to-delete-publication-eligibility` and
+`privilege-to-delete-transfer` scenario/contract pairs passed fresh installed-
+package verification, four focused CTest cases and direct runs across both
+callback models per pair. The first confirmed an unpublished delete-privilege
+acquisition reports `AttributeNotPublished` without changing ownership; the
+second transferred the privilege through regular acquisition and Divestiture
+If Wanted, then checked that only the new owner could delete. The adapter
+supplies the provider, FOM, endpoint, and callback model; portable source uses
+official HLA APIs and the standard library. Java parity is linked for both;
+C++ result/source and Java catalog/source validation passed. Experimental
+public-API evidence only; no provider rebuild or Java provider-runtime
+execution. Results:
+`out/mgw/tck-dse-ro-regional-20261016/privilege-to-delete-publication-eligibility-verified-20261016.json` and
+`out/mgw/tck-dse-ro-regional-20261016/privilege-to-delete-transfer-verified-20261016.json`.
+
+The If Available ownership restore/unavailable-callback pair passed the
+installed-package gate: four focused CTest cases and direct runs under both
+callback models. A pending If Available request crossed the standard
+save/restore boundary and delivered the unavailable callback without
+transferring ownership. Adapter-supplied FOM, provider, endpoint, and callback
+model remain outside portable source. Java parity is
+`java-tck.if-available-ownership-restore-unavailable-callback`; C++
+source/result and Java catalog/source validation passed. Experimental
+public-API evidence only; no provider rebuild or Java provider-runtime
+execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/if-available-ownership-restore-unavailable-callback-verified-20261016.json`.
+
+The `region-lifecycle` scenario and contract passed all four focused CTest
+cases and direct runs under both callback models. Adapter-configured
+two-dimensional regions exercised dimension metadata/ranges, commit/query,
+region-qualified timestamped services, and invalid/in-use/deleted region
+boundaries. The DDM FOM and dimension names remain adapter inputs; portable
+source uses only official HLA APIs and standard library. Java parity is
+`java-tck.region-lifecycle`; C++ source/result and Java catalog/source
+validation passed. Experimental public-API evidence only; no provider rebuild
+or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/region-lifecycle-verified-20261016.json`.
+
+The `default-region-object-routing` pair passed all four focused CTest cases
+and direct runs under both callback models against the installed package.
+It covered ordinary and explicit regional subscriptions, default-source
+discovery/reflection, association replacement and restoration, and the
+supplied-empty default-region metadata shape. Adapter FOM/dimensions, provider,
+endpoint, and callback configuration remain external to portable source,
+which uses official HLA APIs and standard library. Java parity is
+`java-tck.default-region-object-routing`; C++ result/source and Java
+catalog/source validation passed. Experimental public-API evidence only; no
+provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/default-region-object-routing-verified-20261016.json`.
+
+The `default-region-registration-names` pair passed all four focused CTest
+cases and direct runs under both callback models against the installed
+package. It verifies default-region registration and the standard name/handle
+lookup path using adapter-supplied DDM FOM and dimensions. Portable source
+remains official-API/standard-library only; provider, endpoint, FOM, and
+callback configuration are adapter inputs. Java parity is
+`java-tck.default-region-registration-names`. Experimental public-API evidence
+only; no provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/default-region-registration-names-verified-20261016.json`.
+
+The `passive-regional-subscription` pair passed all four focused CTest cases
+and direct runs under both callback models against the installed package. It
+checks passive regional subscription behavior and its standard callback
+effects with adapter-configured DDM inputs. Java parity is
+`java-tck.passive-regional-subscription`. Experimental public-API evidence
+only; no provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/passive-regional-subscription-verified-20261016.json`.
+
+The `passive-regional-interaction-transition` pair passed all four focused
+CTest cases and direct runs under both callback models against the installed
+package. It exercises the passive regional interaction subscription
+transition using adapter-supplied DDM fixtures. Java parity is
+`java-tck.passive-regional-interaction-transition`. Experimental public-API
+evidence only; no provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/passive-regional-interaction-transition-verified-20261016.json`.
+
+The `regional-unpublish-region-release` pair passed all four focused CTest
+cases and direct runs under both callback models against the installed
+package. It checks region release after regional publication is withdrawn,
+with DDM FOM and dimensions supplied by the adapter. Java parity is
+`java-tck.regional-unpublish-region-release`. Experimental public-API evidence
+only; no provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-unpublish-region-release-verified-20261016.json`.
+
+The `regional-object-update` pair passed all four focused CTest cases and
+direct runs under both callback models against the installed package. It
+covers named regional registration/discovery, regional value requests and
+updates, reassociation, and filtering with adapter-supplied DDM FOM and
+dimensions. Portable source uses only official HLA APIs and the standard
+library; Java parity is `java-tck.regional-object-update`. C++ evidence and
+Java catalog/source validation passed. Experimental public-API evidence only;
+no provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-object-update-verified-20261016.json`.
+
+The `regional-attribute-update-callback-ddm-recheck` pair passed all four
+focused CTest cases and direct runs under both callback models against the
+installed package. In evoked mode it confirms that a queued reflection is
+suppressed when the receiving region becomes disjoint before callback
+servicing, then delivered with the correct source-region designator after
+overlap is restored. Adapter-supplied DDM FOM/dimensions remain external to
+portable source; Java parity is
+`java-tck.regional-attribute-update-callback-ddm-recheck`. C++ evidence and
+Java catalog/source validation passed. Experimental public-API evidence only;
+no provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-attribute-update-callback-ddm-recheck-verified-20261016.json`.
+
+The `regional-attribute-value-request-filtering` pair passed all four focused
+CTest cases and direct runs under both callback models against the installed
+package. It checks invalid foreign, incompatible, and uncommitted request
+regions, empty requests, filtering between explicit and default-region
+objects, and callback-time re-evaluation in evoked mode. Adapter-supplied DDM
+FOM/dimensions remain outside portable source; Java parity is
+`java-tck.regional-attribute-value-request-filtering`. C++ evidence and Java
+catalog/source validation passed. Experimental public-API evidence only; no
+provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-attribute-value-request-filtering-verified-20261016.json`.
+
+The `regional-interaction-routing` pair passed all four focused CTest cases
+and direct runs under both callback models against the installed package. It
+checks ordinary regional publication, overlap delivery with parameter/tag/
+producer/transport/source-region metadata, disjoint filtering, unsubscribe
+suppression, and resubscription delivery. Adapter-supplied DDM FOM/dimensions
+remain outside portable source; Java parity is
+`java-tck.regional-interaction-routing`. C++ evidence and Java catalog/source
+validation passed. Experimental public-API evidence only; no provider rebuild
+or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-interaction-routing-verified-20261016.json`.
+
+The `regional-interaction-source-region-snapshot` pair passed all four
+focused CTest cases and direct runs under both callback models against the
+installed package. It verifies send-time source-region metadata survives a
+queued evoked callback after the source region mutates, suppresses a later
+disjoint send, and resumes delivery after overlap is restored. DDM fixtures
+are adapter inputs; Java parity is
+`java-tck.regional-interaction-source-region-snapshot`. C++ evidence and Java
+catalog/source validation passed. Experimental public-API evidence only; no
+provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-interaction-source-region-snapshot-verified-20261016.json`.
+
+The `regional-interaction-empty-subscription-sets` pair passed all four
+focused CTest cases and direct runs under both callback models against the
+installed package. It verifies empty regional subscribe/unsubscribe sets act
+as no-ops while normal regional delivery and source-region metadata remain
+intact. DDM fixtures are adapter inputs; Java parity is
+`java-tck.regional-interaction-empty-subscription-sets`. C++ evidence and Java
+catalog/source validation passed. Experimental public-API evidence only; no
+provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-interaction-empty-subscription-sets-verified-20261016.json`.
+
+The `regional-interaction-subscription-filtering` pair passed all four
+focused CTest cases and direct runs under both callback models against the
+installed package. It covers ordinary and regional subscriptions, empty,
+overlapping, and disjoint scopes, invalid region declarations, delivery
+filtering, and subscription changes. DDM fixtures are adapter inputs; Java
+parity is `java-tck.regional-interaction-subscription-filtering`. C++ evidence
+and Java catalog/source validation passed; portable source has no private
+implementation references. Experimental public-API evidence only; no
+provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-interaction-subscription-filtering-verified-20261016.json`.
+
+The `regional-interaction-region-validation` pair passed all four focused
+CTest cases and direct runs under both callback models against the installed
+package. It checks rejection of regional interaction declarations containing
+dimensions unavailable to the interaction class and verifies atomicity and
+subsequent delivery behavior. DDM fixtures are adapter inputs; Java parity is
+`java-tck.regional-interaction-region-validation`. C++ result validation and
+Java catalog/source validation passed; portable source has no private
+implementation references. Experimental public-API evidence only; no
+provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-interaction-region-validation-verified-20261016.json`.
+
+The `regional-attribute-value-update-response-recheck` pair passed all four
+focused CTest cases and direct runs under both callback models against the
+installed package. It checks regional value-request response reflection after
+the request/receiver region changes, including callback-time eligibility and
+restored overlap. Adapter-supplied DDM FOM/dimensions remain outside portable
+source; Java parity is
+`java-tck.regional-attribute-value-update-response-recheck`. C++ evidence and
+Java catalog/source validation passed; no private implementation references
+were found. Experimental public-API evidence only; no provider rebuild or
+Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-attribute-value-update-response-recheck-verified-20261016.json`.
+
+The `regional-auto-provide-response` and `regional-auto-provide-overlap`
+pairs passed all eight focused CTest cases and direct runs under both callback
+models against the installed package. Adapter-supplied Auto Provide FOM,
+object class/attribute names, and dimension remain outside portable source.
+The response case checks a scoped standard Auto Provide solicitation and
+regional response/reflection; the overlap case suppresses a stale solicitation
+when discovery moves the subscription out of scope. Java parity IDs are
+`java-tck.regional-auto-provide-response` and
+`java-tck.regional-auto-provide-overlap`. C++ evidence and Java catalog/source
+validation passed; no private implementation references were found.
+Experimental public-API evidence only; no provider rebuild or Java
+provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-auto-provide-response-overlap-verified-20261016.json`.
+
+The `regional-auto-provide-multi-source` pair passed all four focused CTest
+cases and direct runs under both callback models against the installed
+package. It verifies separately scoped source attributes solicit and reflect
+to their corresponding regional subscribers. Auto Provide FOM, class,
+attributes, and dimensions are adapter inputs; Java parity is
+`java-tck.regional-auto-provide-multi-source`. C++ evidence and Java
+catalog/source validation passed, and the portable scenario has no private
+implementation references. Experimental public-API evidence only; no
+provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-auto-provide-multi-source-verified-20261016.json`.
+
+The `regional-auto-provide-callback-control` pair passed all four focused
+CTest cases and direct runs under both callback models against the installed
+package. It verifies regional discovery and Auto Provide solicitation remain
+gated while callbacks are disabled and resume when callback servicing is
+enabled. Auto Provide FOM, class, attribute, and dimensions are adapter
+inputs; Java parity is
+`java-tck.regional-auto-provide-callback-control`. C++ evidence and Java
+catalog/source validation passed, and the portable scenario has no private
+implementation references. Experimental public-API evidence only; no
+provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-auto-provide-callback-control-verified-20261016.json`.
+
+The `regional-auto-provide-multi-provider` pair passed all four focused CTest
+cases and direct runs under both callback models against the installed
+package. It exercises standard attribute ownership transfer followed by
+regional Auto Provide fan-out and scoped responses from multiple providers.
+Auto Provide FOM, class, attributes, and dimensions are adapter inputs; Java
+parity is `java-tck.regional-auto-provide-multi-provider`. C++ evidence and
+Java catalog/source validation passed, and portable source has no private
+implementation references. Experimental public-API evidence only; no
+provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-auto-provide-multi-provider-verified-20261016.json`.
+
+The `default-region-interaction-routing` and `regional-boundaries` pairs
+passed all eight focused CTest cases and direct runs under both callback
+models against the installed package. Default-region interaction checks
+explicit and implicit default sources, delivery/filtering, and region metadata.
+Regional boundaries cover zero-dimensional regions, incomplete ranges,
+incompatible/foreign contexts, and in-use region deletion dependencies. DDM
+FOM/dimensions are adapter inputs; Java parity IDs are
+`java-tck.default-region-interaction-routing` and `java-tck.regional-boundaries`.
+C++ evidence and Java catalog/source validation passed, and both portable
+scenario bodies have no private implementation references. Experimental
+public-API evidence only; no provider rebuild or Java provider-runtime
+execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/default-region-interaction-and-regional-boundaries-verified-20261016.json`.
+
+The `timestamped-regional-attribute-association-replacement` pair has a
+current installed-package evidence artifact and passes the focused C++
+result validator for both callback models. It preserves queued timestamped
+updates against their original source association while later updates use the
+replacement association. Java parity is
+`java-tck.timestamped-regional-attribute-association-replacement`; adapter
+FOM, dimensions, and logical-time configuration remain external. Result:
+`out/mgw/tck-dse-ro-regional-20261016/timestamped-regional-attribute-association-replacement-verified-20261016.json`.
+
+The `custom-transportation-regional-attribute-delivery` pair passed all four
+focused CTest cases and direct runs under both callback models against the
+installed package. It reuses the regional object-update contract with adapter
+rich-FOM object/attribute/dimension names and verifies the custom declared
+transportation delivery. Java parity is
+`java-tck.custom-transportation-regional-attribute-delivery`. C++ result and
+Java catalog/source validators passed; portable source has no private
+implementation references. Experimental public-API evidence only; no
+provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/custom-transportation-regional-attribute-delivery-verified-20261016.json`.
+
+The `custom-transportation-regional-interaction-delivery` and
+`custom-transportation-timestamped-regional-interaction-delivery` pairs each
+passed all four focused CTest cases and direct runs under both callback
+models against the installed package. They verify adapter-declared custom
+transportation for ordinary and timestamped regional interaction delivery.
+The adapter supplies rich FOM, transportation name, interaction/parameter
+names, dimensions, and logical-time configuration. Java parity IDs are
+`java-tck.custom-transportation-regional-interaction-delivery` and
+`java-tck.custom-transportation-timestamped-regional-interaction-delivery`.
+C++ evidence and Java catalog/source validation passed; both portable source
+bodies have no private implementation references. Experimental public-API
+evidence only; no provider rebuild or Java provider-runtime execution.
+Results:
+`out/mgw/tck-dse-ro-regional-20261016/custom-transportation-regional-interaction-delivery-verified-20261016.json` and
+`out/mgw/tck-dse-ro-regional-20261016/custom-transportation-timestamped-regional-interaction-delivery-verified-20261016.json`.
+
+The `multi-region-interaction-routing` pair passed all four focused CTest
+cases and direct runs under both callback models against the installed
+package. It verifies each overlapping realization of a multi-region
+interaction is delivered exactly once. Adapter DDM FOM/dimensions remain
+external; Java parity is `java-tck.multi-region-interaction-routing`. C++
+result and Java catalog/source validators passed; portable source has no
+private implementation references. Experimental public-API evidence only;
+no provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/multi-region-interaction-routing-verified-20261016.json`.
+
+The `timed-default-region-interaction-save-restore` pair passed all four
+focused CTest cases and direct runs under both callback models against the
+installed package. It restores a queued timestamped default-region
+interaction together with its retraction state, then verifies subsequent
+delivery through the standard time-advance services. Adapter DDM FOM,
+dimensions, and logical-time implementation remain external; Java parity is
+`java-tck.timed-default-region-interaction-save-restore`. C++ result and Java
+catalog/source validation passed. Experimental public-API evidence only; no
+provider rebuild or Java provider-runtime execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/timed-default-region-interaction-save-restore-verified-20261016.json`.
+
+The `regional-multi-attribute-update` pair passed all four focused CTest
+cases and direct runs under both callback models against the installed
+package. It verifies independent source-region associations for two
+attributes, X-only/Y-only filtering, restored delivery, and conveyed source
+region metadata. The adapter supplies its FOM, object class, attribute names,
+and dimensions; Java parity is `java-tck.regional-multi-attribute-update`.
+C++ evidence and Java catalog/source validation passed, and the portable C++
+source boundary has no private implementation references. Experimental
+public-API evidence only; no provider rebuild or Java provider-runtime
+execution. Result:
+`out/mgw/tck-dse-ro-regional-20261016/regional-multi-attribute-update-verified-20261016.json`.
+
+The candidate `cpp-tck.receive-order-attribute-update-receiver-resignation-fence-contract`
+passed its focused CTest and direct gates under both callback models against
+the installed package (2/2 each). A receive-order update queued for an
+immediate-mode receiver is not delivered after that receiver resigns and
+rejoins; the new membership receives exactly one subsequent update. The
+adapter supplies the FOM, endpoint, and callback model. Java parity is
+`java-tck.receive-order-attribute-update-receiver-resignation-fence` and its
+source compiles against the pinned 1516.1-2025 API. The scenario remains a
+candidate and experimental public-API evidence, not a conformance claim; no
+provider rebuild or Java provider-runtime execution is claimed. Result:
+`out/mgw/tck-dse-ro-regional-20261016/receiver-resignation-fence-verified-20261016.json`.
+
+The `fqr-timed-federation-save-callback` scenario and contract twin passed
+their installed-package direct runs under both callback models (4 direct runs
+total). In the current focused CTest registration, the contract twin is
+registered under both callback models and passed (2/2); the primary scenario
+is represented in the direct-run evidence, not this CTest registration. The
+save request is submitted at logical time
+6 while the regulator is at 4, before FQR produces actual time 5 and optimistic
+time 7; advancing to 7 then yields the time-6 save-initiation callback before
+the later grant. Submitting the same request after the FQR grant was rejected
+at the lookahead boundary, so the test now preserves the intended boundary by
+ordering the standard request correctly. Java parity is
+`java-tck.fqr-timed-federation-save-callback`. Focused C++ promoted-evidence
+validation and Java catalog/source validation passed; no provider rebuild or
+Java provider-runtime execution is claimed. Artifacts:
+`out/mgw/tck-dse-ro-regional-20261016/fqr-timed-save-callback-pair-verified-20261016.json`
+and
+`out/mgw/tck-dse-ro-regional-20261016/fqr-timed-save-callback-contract-verified-20261016.json`.

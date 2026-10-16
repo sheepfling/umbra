@@ -12,6 +12,10 @@ void scenarioTimestampedInteractionTaraEqualBoundary(Options const&, rti::Callba
 void scenarioTimestampedInteractionTaraEqualBoundaryContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarEqualBoundary(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarEqualBoundaryContract(Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTarPostGrantCutoff(Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTarPostGrantCutoffContract(Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionPublicationSendTransition(Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionPublicationSendTransitionContract(Options const&, rti::CallbackModel);
 
 void scenarioTimestampedInteractionMixedAdvancesPortable(
     Options const&, rti::CallbackModel);
@@ -24,6 +28,14 @@ void scenarioTimestampedInteractionTaraEqualBoundaryContractPortable(
 void scenarioTimestampedInteractionTarEqualBoundaryPortable(
     Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarEqualBoundaryContractPortable(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTarPostGrantCutoffPortable(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTarPostGrantCutoffContractPortable(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionPublicationSendTransitionPortable(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionPublicationSendTransitionContractPortable(
     Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

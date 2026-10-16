@@ -502,6 +502,10 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
   publisher.rtiAmbassador().changeInteractionOrderType(
       publisherInteraction,
       rti::TIMESTAMP);
+  receiver.rtiAmbassador().publishInteractionClass(receiverInteraction);
+  receiver.rtiAmbassador().changeInteractionOrderType(
+      receiverInteraction,
+      rti::TIMESTAMP);
   receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction, true);
 
   auto publisherTime = makeTimeContext(publisher);
@@ -521,12 +525,18 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
       [&] { return publisher.recorder().timeRegulationEnabled().size() >= 1U; },
       options,
       "Timestamped interaction Flush Queue future-input time-regulation callback");
+  receiver.rtiAmbassador().enableTimeRegulation(*receiverTime.epsilon);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeRegulationEnabled().size() >= 1U; },
+      options,
+      "Timestamped interaction Flush Queue future-input receiver time-regulation callback");
 
   auto const firstTime = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,
       *publisherTime.epsilon,
-      9U);
+      1U);
   auto const secondTime = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,
@@ -564,9 +574,8 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
   rti::VariableLengthData firstTag(firstTagBytes.data(), firstTagBytes.size());
   rti::VariableLengthData secondTag(secondTagBytes.data(), secondTagBytes.size());
 
-  // Queue both messages beyond the requested frontier, then issue Flush Queue
-  // at an earlier boundary.  The future input must be delivered before the
-  // grant under either callback model.
+  // Queue future input on both sides of the FQR request boundary. Delivery
+  // must precede the grant under either callback model.
   auto const firstRetraction = publisher.rtiAmbassador().sendInteraction(
       publisherInteraction,
       firstParameters,
@@ -591,8 +600,8 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
         receiver.recorder().timedInteractions().empty(),
         "Timestamped interaction Flush Queue future-input delivered before callback servicing");
   }
-
   publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
+
   waitForSessions(
       {&publisher, &receiver},
       [&] {
@@ -692,9 +701,44 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
       encodeTime(*queriedReceiverTime) == flushGrants.front().time,
       "Timestamped interaction Flush Queue future-input query did not match its grant");
 
+  auto queriedReceiverLookahead = receiverTime.factory->makeZero();
+  receiver.rtiAmbassador().queryLookahead(*queriedReceiverLookahead);
+  require(
+      *queriedReceiverLookahead == *receiverTime.epsilon,
+      "Timestamped interaction Flush Queue future-input receiver lookahead changed unexpectedly");
+  auto const postGrantSendTime = timeAfter(
+      *receiverTime.factory,
+      *queriedReceiverTime,
+      *queriedReceiverLookahead,
+      1U);
+  rti::ParameterHandleValueMap postGrantParameters;
+  postGrantParameters.emplace(
+      receiverParameter,
+      rti::VariableLengthData(
+          firstParameterBytes.data(),
+          firstParameterBytes.size()));
+  rti::VariableLengthData postGrantTag(
+      firstTagBytes.data(),
+      firstTagBytes.size());
+  auto const postGrantRetraction = receiver.rtiAmbassador().sendInteraction(
+      receiverInteraction,
+      postGrantParameters,
+      postGrantTag,
+      *postGrantSendTime);
+  require(
+      postGrantRetraction.isValid(),
+      "Timestamped interaction Flush Queue future-input post-grant send at current time plus lookahead returned an invalid retraction handle");
+  auto logicalTimeAfterSend = receiverTime.factory->makeInitial();
+  receiver.rtiAmbassador().queryLogicalTime(*logicalTimeAfterSend);
+  require(
+      encodeTime(*logicalTimeAfterSend) == flushGrants.front().time,
+      "Timestamped interaction Flush Queue future-input post-grant send advanced logical time");
+
   receiver.rtiAmbassador().disableTimeConstrained();
+  receiver.rtiAmbassador().disableTimeRegulation();
   publisher.rtiAmbassador().disableTimeRegulation();
   receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  receiver.rtiAmbassador().unpublishInteractionClass(receiverInteraction);
   publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
   receiver.resign(rti::NO_ACTION);
   publisher.resign(rti::NO_ACTION);

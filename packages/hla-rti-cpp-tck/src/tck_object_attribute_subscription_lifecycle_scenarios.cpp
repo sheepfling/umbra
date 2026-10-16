@@ -51,6 +51,25 @@ void scenarioObjectAttributeSubscriptionLifecycle(
       preexistingObject.isValid(),
       "object attribute subscription lifecycle pre-subscription registration returned an invalid handle");
 
+  std::vector<std::uint8_t> const preSubscriptionValue{0x49U, 0x4EU, 0x49U};
+  std::vector<std::uint8_t> const preSubscriptionFilteredValue{
+      0x46U, 0x49U, 0x4CU};
+  std::vector<std::uint8_t> const preSubscriptionTag{0x49U, 0x30U};
+  rti::AttributeHandleValueMap const preSubscriptionValues{
+      {publisherAttribute,
+       rti::VariableLengthData(
+           preSubscriptionValue.data(), preSubscriptionValue.size())},
+      {publisherSecondaryAttribute,
+       rti::VariableLengthData(
+           preSubscriptionFilteredValue.data(),
+           preSubscriptionFilteredValue.size())}};
+  rti::VariableLengthData preSubscriptionUserTag(
+      preSubscriptionTag.data(), preSubscriptionTag.size());
+  publisher.rtiAmbassador().updateAttributeValues(
+      preexistingObject,
+      preSubscriptionValues,
+      preSubscriptionUserTag);
+
   auto const momFederateClass = subscriber.rtiAmbassador().getObjectClassHandle(
       L"HLAobjectRoot.HLAmanager.HLAfederate");
   auto const momFederateHandleAttribute =
@@ -135,6 +154,39 @@ void scenarioObjectAttributeSubscriptionLifecycle(
       [&] { return subscriber.recorder().hasDiscovery(object); },
       options,
       "active object-attribute subscription discovery of a later registration");
+  waitFor(
+      subscriber,
+      [&] {
+        auto const reflections = subscriber.recorder().reflections();
+        for (auto const& reflection : reflections) {
+          if (reflection.object == preexistingObject) {
+            return true;
+          }
+        }
+        return false;
+      },
+      options,
+      "active object-attribute subscription initial reflection of a pre-existing object");
+  std::optional<ReflectionRecord> initialReflection;
+  for (auto const& reflection : subscriber.recorder().reflections()) {
+    if (reflection.object != preexistingObject) {
+      continue;
+    }
+    initialReflection = reflection;
+    break;
+  }
+  require(
+      initialReflection.has_value(),
+      "active subscription did not produce initial reflection for the pre-existing object");
+  require(
+      initialReflection->values.size() == 1U &&
+          initialReflection->values.count(subscriberAttribute) == 1U &&
+          initialReflection->values.count(subscriberSecondaryAttribute) == 0U,
+      "active subscription initial reflection was not filtered to the subscribed attribute set");
+  require(
+      copyBytes(initialReflection->values.at(subscriberAttribute)) ==
+          preSubscriptionValue,
+      "active subscription initial reflection did not retain the pre-subscription value");
   auto const objectName = publisher.rtiAmbassador().getObjectInstanceName(object);
   auto const preexistingObjectName =
       publisher.rtiAmbassador().getObjectInstanceName(preexistingObject);

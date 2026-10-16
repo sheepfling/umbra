@@ -41,6 +41,15 @@
 #include "tck_receive_order_attribute_update.hpp"
 #include "tck_data_encoding.hpp"
 #include "tck_logical_time.hpp"
+#include "tck_time_coordinated_interaction.hpp"
+#include "tck_empty_attribute_subscription.hpp"
+#include "tck_named_update_rate_subscription.hpp"
+#include "tck_default_rate_no_reduction.hpp"
+#include "tck_accumulating_attribute_subscriptions.hpp"
+#include "tck_passive_subscription_no_start_registration.hpp"
+#include "tck_selective_attribute_unsubscription.hpp"
+#include "tck_whole_class_attribute_unsubscription.hpp"
+#include "tck_empty_attribute_unsubscription.hpp"
 #include "pending_negotiated_restore_tck.hpp"
 #include "service_report_creation_failure_tck.hpp"
 int hla_rti_cpp_tck_original_main(int argc, char** argv);
@@ -91,6 +100,8 @@ constexpr char malformedInputsContractScenario[] =
 constexpr char federationLifecycleScenario[] = "java-tck.federation-membership";
 constexpr char federationLifecycleContractScenario[] =
     "cpp-tck.federation-lifecycle-contract";
+constexpr char federationManagementRequiresConnectionScenario[] =
+    "cpp-tck.federation-management-requires-connection";
 constexpr char unnamedJoinOverloadScenario[] =
     "cpp-tck.unnamed-join-overload";
 constexpr char unnamedJoinOverloadContractScenario[] =
@@ -728,6 +739,10 @@ constexpr char delaySubscriptionEvaluationTimestampedAttributeUpdateContractId[]
     "cpp-tck.delay-subscription-evaluation-timestamped-attribute-update-contract";
 constexpr char delaySubscriptionEvaluationTimestampedRegionalAttributeUpdateScenario[] =
     "cpp-tck.delay-subscription-evaluation-timestamped-regional-attribute-update";
+constexpr char delaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdateScenario[] =
+    "cpp-tck.delay-subscription-evaluation-receive-order-regional-attribute-update";
+constexpr char delaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdateContractId[] =
+    "cpp-tck.delay-subscription-evaluation-receive-order-regional-attribute-update-contract";
 constexpr char delaySubscriptionEvaluationTimestampedRegionalAttributeUpdateContractId[] =
     "cpp-tck.delay-subscription-evaluation-timestamped-regional-attribute-update-contract";
 constexpr char delaySubscriptionEvaluationTimestampedRegionalInteractionScenario[] =
@@ -742,6 +757,10 @@ constexpr char timedFederationSaveRestoreScenario[] =
     "cpp-tck.timed-federation-save-restore";
 constexpr char timedFederationSaveRestoreContractId[] =
     "cpp-tck.timed-federation-save-restore-contract";
+constexpr char fqrTimedFederationSaveCallbackScenario[] =
+    "cpp-tck.fqr-timed-federation-save-callback";
+constexpr char fqrTimedFederationSaveCallbackContractId[] =
+    "cpp-tck.fqr-timed-federation-save-callback-contract";
 constexpr char timedRegionalInteractionSaveRestoreScenario[] =
     "cpp-tck.timed-regional-interaction-save-restore";
 constexpr char timedRegionalInteractionSaveRestoreContractId[] =
@@ -980,6 +999,10 @@ constexpr char timestampedInteractionsScenario[] =
     "cpp-tck.timestamped-interactions";
 constexpr char timestampedInteractionsContractId[] =
     "cpp-tck.timestamped-interactions-contract";
+constexpr char timestampedInteractionPreferredReceiveConversionScenario[] =
+    "cpp-tck.timestamped-interaction-preferred-receive-conversion";
+constexpr char timestampedInteractionPreferredReceiveConversionContractId[] =
+    "cpp-tck.timestamped-interaction-preferred-receive-conversion-contract";
 constexpr char timestampedInteractionSourceResignationScenario[] =
     "cpp-tck.timestamped-interaction-source-resignation";
 constexpr char timestampedInteractionSourceResignationContractId[] =
@@ -1050,6 +1073,14 @@ constexpr char timestampedAttributeUpdateQueuedPasselRetractionScenario[] =
     "cpp-tck.timestamped-attribute-update-queued-passel-retraction";
 constexpr char timestampedAttributeUpdateQueuedPasselRetractionContractId[] =
     "cpp-tck.timestamped-attribute-update-queued-passel-retraction-contract";
+constexpr char mixedOrderAttributePasselRetractionScenario[] =
+    "cpp-tck.mixed-order-attribute-passel-retraction";
+constexpr char mixedOrderAttributePasselRetractionContractId[] =
+    "cpp-tck.mixed-order-attribute-passel-retraction-contract";
+constexpr char timestampedAttributeSenderRegulationTransitionScenario[] =
+    "cpp-tck.timestamped-attribute-sender-regulation-transition";
+constexpr char timestampedAttributeSenderRegulationTransitionContractId[] =
+    "cpp-tck.timestamped-attribute-sender-regulation-transition-contract";
 constexpr char timestampedAttributeUpdateNoFanoutScenario[] =
     "cpp-tck.timestamped-attribute-update-no-fanout";
 constexpr char timestampedAttributeUpdateNoFanoutContractId[] =
@@ -1102,14 +1133,40 @@ constexpr char nextMessageRequestScenario[] =
     "cpp-tck.next-message-request";
 constexpr char nextMessageRequestContractId[] =
     "cpp-tck.next-message-request-contract";
+constexpr char sendMessageTimeStatePreservationGrantedScenario[] =
+    "cpp-tck.send-message-time-state-preservation-granted";
+constexpr char sendMessageTimeStatePreservationGrantedContractId[] =
+    "cpp-tck.send-message-time-state-preservation-granted-contract";
 constexpr char availableTimeAdvancesInclusiveGaltScenario[] =
     "cpp-tck.available-time-advances-inclusive-galt";
 constexpr char availableTimeAdvancesInclusiveGaltContractId[] =
     "cpp-tck.available-time-advances-inclusive-galt-contract";
+constexpr char timeConstrainedEnableAtGaltEqualityScenario[] =
+    "cpp-tck.time-constrained-enable-galt-equality";
+constexpr char timeConstrainedEnableAtGaltEqualityContractId[] =
+    "cpp-tck.time-constrained-enable-galt-equality-contract";
 constexpr char timestampedInteractionMixedAdvancesScenario[] =
     "cpp-tck.timestamped-interaction-mixed-advances";
 constexpr char timestampedInteractionMixedAdvancesContractId[] =
     "cpp-tck.timestamped-interaction-mixed-advances-contract";
+constexpr char timeCoordinatedInteractionScenario[] =
+    "cpp-tck.time-coordinated-interaction";
+constexpr char emptyAttributeSubscriptionScenario[] =
+    "cpp-tck.empty-attribute-subscription-is-no-op";
+constexpr char namedUpdateRateSubscriptionScenario[] =
+    "cpp-tck.named-update-rate-subscription";
+constexpr char defaultRateNoReductionScenario[] =
+    "cpp-tck.default-rate-subscription-no-reduction";
+constexpr char accumulatingAttributeSubscriptionsScenario[] =
+    "cpp-tck.attribute-subscription-invocations-accumulate";
+constexpr char passiveSubscriptionNoStartRegistrationScenario[] =
+    "cpp-tck.passive-subscription-no-start-registration";
+constexpr char selectiveAttributeUnsubscriptionScenario[] =
+    "cpp-tck.selective-attribute-unsubscription";
+constexpr char wholeClassAttributeUnsubscriptionScenario[] =
+    "cpp-tck.whole-class-attribute-unsubscription";
+constexpr char emptyAttributeUnsubscriptionScenario[] =
+    "cpp-tck.empty-attribute-unsubscription-is-no-op";
 constexpr char timestampedInteractionTaraEqualBoundaryScenario[] =
     "cpp-tck.timestamped-interaction-tara-equal-boundary";
 constexpr char timestampedInteractionTaraEqualBoundaryContractId[] =
@@ -1118,6 +1175,18 @@ constexpr char timestampedInteractionTarEqualBoundaryScenario[] =
     "cpp-tck.timestamped-interaction-tar-equal-boundary";
 constexpr char timestampedInteractionTarEqualBoundaryContractId[] =
     "cpp-tck.timestamped-interaction-tar-equal-boundary-contract";
+constexpr char timestampedInteractionTarPostGrantCutoffScenario[] =
+    "cpp-tck.timestamped-interaction-tar-post-grant-cutoff";
+constexpr char timestampedInteractionTarPostGrantCutoffContractId[] =
+    "cpp-tck.timestamped-interaction-tar-post-grant-cutoff-contract";
+constexpr char timestampedAttributeTarPostGrantCutoffScenario[] =
+    "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff";
+constexpr char timestampedAttributeTarPostGrantCutoffContractId[] =
+    "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff-contract";
+constexpr char timestampedInteractionPublicationSendTransitionScenario[] =
+    "cpp-tck.timestamped-interaction-publication-send-transition";
+constexpr char timestampedInteractionPublicationSendTransitionContractId[] =
+    "cpp-tck.timestamped-interaction-publication-send-transition-contract";
 constexpr char timestampedDirectedAlternateAdvancesScenario[] =
     "cpp-tck.timestamped-directed-alternate-advances";
 constexpr char timestampedDirectedAlternateAdvancesContractId[] =
@@ -1168,6 +1237,10 @@ constexpr char javaSynchronizationScenario[] = "java-tck.synchronization";
 constexpr char synchronizationPointsScenario[] = "cpp-tck.synchronization-points";
 constexpr char synchronizationPointContractScenario[] =
     "cpp-tck.synchronization-point-contract";
+constexpr char synchronizationExplicitSetLateJoinScenario[] =
+    "cpp-tck.synchronization-point-explicit-set-late-join";
+constexpr char synchronizationExplicitSetLateJoinContractScenario[] =
+    "cpp-tck.synchronization-point-explicit-set-late-join-contract";
 constexpr char unconditionalAttributeOwnershipDivestitureScenario[] =
     "cpp-tck.unconditional-attribute-ownership-divestiture";
 constexpr char unconditionalAttributeOwnershipDivestitureContractId[] =
@@ -1376,6 +1449,12 @@ void scenarioFederationLifecycleContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederationLifecycleContract(options, model);
+}
+
+void scenarioFederationManagementRequiresConnectionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationManagementRequiresConnection(options, model);
 }
 
 void scenarioUnnamedJoinOverloadPortable(
@@ -3082,6 +3161,16 @@ void scenarioTimestampedInteractionsContractPortable(
   scenarioTimestampedInteractionsContract(options, model);
 }
 
+void scenarioTimestampedInteractionPreferredReceiveConversionPortable(
+    Options const& options, rti::CallbackModel model) {
+  scenarioTimestampedInteractionPreferredReceiveConversion(options, model);
+}
+
+void scenarioTimestampedInteractionPreferredReceiveConversionContractPortable(
+    Options const& options, rti::CallbackModel model) {
+  scenarioTimestampedInteractionPreferredReceiveConversionContract(options, model);
+}
+
 void scenarioTimestampedAttributeUpdatePortable(
     Options const& options,
     rti::CallbackModel model) {
@@ -3092,6 +3181,18 @@ void scenarioTimestampedAttributeUpdateContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedAttributeUpdateContract(options, model);
+}
+
+void scenarioTimestampedAttributeUpdateTarPostGrantCutoffPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdateTarPostGrantCutoff(options, model);
+}
+
+void scenarioTimestampedAttributeUpdateTarPostGrantCutoffContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdateTarPostGrantCutoffContract(options, model);
 }
 
 void scenarioTimestampedAttributeUpdateReenablePortable(
@@ -3164,6 +3265,30 @@ void scenarioTimestampedAttributeUpdateQueuedPasselRetractionContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedAttributeUpdateQueuedPasselRetractionContract(options, model);
+}
+
+void scenarioMixedOrderAttributePasselRetractionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioMixedOrderAttributePasselRetraction(options, model);
+}
+
+void scenarioMixedOrderAttributePasselRetractionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioMixedOrderAttributePasselRetractionContract(options, model);
+}
+
+void scenarioTimestampedAttributeSenderRegulationTransitionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeSenderRegulationTransition(options, model);
+}
+
+void scenarioTimestampedAttributeSenderRegulationTransitionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeSenderRegulationTransitionContract(options, model);
 }
 
 void scenarioTimestampedAttributeUpdateNoFanoutPortable(
@@ -3406,6 +3531,16 @@ void scenarioNextMessageRequestContractPortable(
   scenarioNextMessageRequestContract(options, model);
 }
 
+void scenarioSendMessageTimeStatePreservationGrantedPortable(
+    Options const& options, rti::CallbackModel model) {
+  scenarioSendMessageTimeStatePreservationGranted(options, model);
+}
+
+void scenarioSendMessageTimeStatePreservationGrantedContractPortable(
+    Options const& options, rti::CallbackModel model) {
+  scenarioSendMessageTimeStatePreservationGrantedContract(options, model);
+}
+
 void scenarioAvailableTimeAdvancesInclusiveGaltPortable(
     Options const& options,
     rti::CallbackModel model) {
@@ -3418,10 +3553,76 @@ void scenarioAvailableTimeAdvancesInclusiveGaltContractPortable(
   scenarioAvailableTimeAdvancesInclusiveGaltContract(options, model);
 }
 
+void scenarioTimeConstrainedEnableAtGaltEqualityPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedEnableAtGaltEquality(options, model);
+}
+
+void scenarioTimeConstrainedEnableAtGaltEqualityContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedEnableAtGaltEqualityContract(options, model);
+}
+
 void scenarioTimestampedInteractionSourceResignationPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedInteractionSourceResignation(options, model);
+}
+
+void scenarioTimeCoordinatedInteractionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeCoordinatedInteraction(options, model);
+}
+
+void scenarioEmptyAttributeSubscriptionIsNoOpPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioEmptyAttributeSubscriptionIsNoOp(options, model);
+}
+
+void scenarioNamedUpdateRateSubscriptionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNamedUpdateRateSubscription(options, model);
+}
+
+void scenarioDefaultRateSubscriptionDoesNotReducePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDefaultRateSubscriptionDoesNotReduce(options, model);
+}
+
+void scenarioAttributeSubscriptionInvocationsAccumulatePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeSubscriptionInvocationsAccumulate(options, model);
+}
+
+void scenarioPassiveSubscriptionDoesNotStartRegistrationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioPassiveSubscriptionDoesNotStartRegistration(options, model);
+}
+
+void scenarioSelectiveAttributeUnsubscriptionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioSelectiveAttributeUnsubscription(options, model);
+}
+
+void scenarioWholeClassAttributeUnsubscriptionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioWholeClassAttributeUnsubscription(options, model);
+}
+
+void scenarioEmptyAttributeUnsubscriptionIsNoOpPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioEmptyAttributeUnsubscriptionIsNoOp(options, model);
 }
 
 void scenarioTimestampedInteractionSourceResignationContractPortable(
@@ -3844,6 +4045,78 @@ void scenarioSynchronizationPointPortableContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioSynchronizationPointsPortable(options, model);
+}
+
+void scenarioSynchronizationExplicitSetLateJoinPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session registrar(options, model, "synchronization-explicit-set-registrar");
+  Session late(options, model, "synchronization-explicit-set-late-member");
+  auto const federation = federationName(
+      options,
+      "synchronization-explicit-set-late-join");
+
+  registrar.connect();
+  late.connect();
+  registrar.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  registrar.join(options.ownerFederateName, options.federateType, federation);
+
+  std::wstring const label = L"tck-explicit-set-late-join";
+  std::vector<std::uint8_t> tagBytes{0x53U, 0x45U, 0x54U};
+  rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+  rti::FederateHandleSet const synchronizationSet{registrar.federateHandle()};
+  registrar.rtiAmbassador().registerFederationSynchronizationPoint(
+      label,
+      tag,
+      synchronizationSet);
+  waitFor(
+      registrar,
+      [&] {
+        return registrar.synchronizationPointRegistrations().size() == 1U &&
+            registrar.synchronizationPointAnnouncements().size() == 1U;
+      },
+      options,
+      "explicit synchronization-set registration before late join");
+  auto const registration = registrar.synchronizationPointRegistrations().front();
+  auto const announcement = registrar.synchronizationPointAnnouncements().front();
+  require(
+      registration.succeeded && registration.label == label,
+      "explicit synchronization-set registration returned the wrong result");
+  require(
+      announcement.label == label && announcement.tag == tagBytes,
+      "explicit synchronization-set announcement returned the wrong label or tag");
+
+  late.join(L"tck-explicit-set-late-member", options.federateType, federation);
+  requireException(
+      [&] { late.rtiAmbassador().synchronizationPointAchieved(label); },
+      L"SynchronizationPointLabelNotAnnounced",
+      "late joiner outside an explicit synchronization set achieved its label");
+
+  registrar.rtiAmbassador().synchronizationPointAchieved(label);
+  waitFor(
+      registrar,
+      [&] { return registrar.federationSynchronized().size() == 1U; },
+      options,
+      "single-member explicit synchronization-set completion");
+  auto const completion = registrar.federationSynchronized().front();
+  require(
+      completion.label == label && completion.failedToSyncSet.empty(),
+      "explicit synchronization-set completion returned the wrong label or failed set");
+
+  late.resign(rti::NO_ACTION);
+  registrar.resign(rti::NO_ACTION);
+  registrar.rtiAmbassador().destroyFederationExecution(federation);
+  late.disconnect();
+  registrar.disconnect();
+}
+
+void scenarioSynchronizationExplicitSetLateJoinContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioSynchronizationExplicitSetLateJoinPortable(options, model);
 }
 
 void scenarioAutoProvideDisabledDiscoveryOnly(
@@ -12696,10 +12969,10 @@ void scenarioModifyLookahead(
   *expectedIntermediateLookahead = *regulatorTime.epsilon;
   *expectedIntermediateLookahead += *regulatorTime.epsilon;
   require(
-      *partiallyDecreasedLookahead != *changedLookahead,
+      !(*partiallyDecreasedLookahead == *changedLookahead),
       "the first grant left the old three-epsilon lookahead unchanged");
   require(
-      *partiallyDecreasedLookahead != *regulatorTime.epsilon,
+      !(*partiallyDecreasedLookahead == *regulatorTime.epsilon),
       "the first grant applied the full decrease before reaching its requested value");
   require(
       *partiallyDecreasedLookahead == *expectedIntermediateLookahead,
@@ -13209,6 +13482,12 @@ void scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdateContra
       model);
 }
 
+void scenarioDelaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdateContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDelaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdate(options, model);
+}
+
 void scenarioDelaySubscriptionEvaluationTimestampedRegionalInteractionContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -13227,6 +13506,12 @@ void scenarioTimedFederationSaveRestoreContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimedFederationSaveRestore(options, model);
+}
+
+void scenarioFqrTimedFederationSaveCallbackContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFqrTimedFederationSaveCallback(options, model);
 }
 
 void scenarioTimedRegionalInteractionSaveRestoreContract(
@@ -13605,6 +13890,16 @@ int runFederationLifecycleScenarios(int argc, char** argv) {
       federationLifecycleContractScenario,
       scenarioFederationLifecyclePortable,
       scenarioFederationLifecycleContractPortable);
+}
+
+int runFederationManagementRequiresConnectionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationManagementRequiresConnectionScenario,
+      federationManagementRequiresConnectionScenario,
+      scenarioFederationManagementRequiresConnectionPortable,
+      scenarioFederationManagementRequiresConnectionPortable);
 }
 
 int runUnnamedJoinOverloadScenarios(int argc, char** argv) {
@@ -14618,13 +14913,21 @@ int runSynchronizationPointScenarios(int argc, char** argv) {
     for (auto const& selected : options.scenarios) {
       if (selected != javaSynchronizationScenario &&
           selected != synchronizationPointsScenario &&
-          selected != synchronizationPointContractScenario) {
+          selected != synchronizationPointContractScenario &&
+          selected != synchronizationExplicitSetLateJoinScenario &&
+          selected != synchronizationExplicitSetLateJoinContractScenario) {
         continue;
       }
       auto const started = Clock::now();
       ScenarioResult result{selected, callback.first, "passed", "", 0};
       try {
-        if (selected == synchronizationPointContractScenario) {
+        if (selected == synchronizationExplicitSetLateJoinScenario) {
+          scenarioSynchronizationExplicitSetLateJoinPortable(options, callback.second);
+        } else if (selected == synchronizationExplicitSetLateJoinContractScenario) {
+          scenarioSynchronizationExplicitSetLateJoinContractPortable(
+              options,
+              callback.second);
+        } else if (selected == synchronizationPointContractScenario) {
           scenarioSynchronizationPointPortableContract(options, callback.second);
         } else {
           scenarioSynchronizationPointsPortable(options, callback.second);
@@ -15261,6 +15564,17 @@ int runTimestampedInteractionsScenarios(int argc, char** argv) {
       scenarioTimestampedInteractionsContractPortable);
 }
 
+int runTimestampedInteractionPreferredReceiveConversionScenarios(
+    int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionPreferredReceiveConversionScenario,
+      timestampedInteractionPreferredReceiveConversionContractId,
+      scenarioTimestampedInteractionPreferredReceiveConversionPortable,
+      scenarioTimestampedInteractionPreferredReceiveConversionContractPortable);
+}
+
 int runTimestampedAttributeUpdateScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -15269,6 +15583,16 @@ int runTimestampedAttributeUpdateScenarios(int argc, char** argv) {
       timestampedAttributeUpdateContractId,
       scenarioTimestampedAttributeUpdatePortable,
       scenarioTimestampedAttributeUpdateContractPortable);
+}
+
+int runTimestampedAttributeTarPostGrantCutoffScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedAttributeTarPostGrantCutoffScenario,
+      timestampedAttributeTarPostGrantCutoffContractId,
+      scenarioTimestampedAttributeUpdateTarPostGrantCutoffPortable,
+      scenarioTimestampedAttributeUpdateTarPostGrantCutoffContractPortable);
 }
 
 int runJavaTimestampedObjectRemovalScenario(int argc, char** argv) {
@@ -15361,6 +15685,28 @@ int runTimestampedAttributeUpdateQueuedPasselRetractionScenarios(
       timestampedAttributeUpdateQueuedPasselRetractionContractId,
       scenarioTimestampedAttributeUpdateQueuedPasselRetractionPortable,
       scenarioTimestampedAttributeUpdateQueuedPasselRetractionContractPortable);
+}
+
+int runMixedOrderAttributePasselRetractionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      mixedOrderAttributePasselRetractionScenario,
+      mixedOrderAttributePasselRetractionContractId,
+      scenarioMixedOrderAttributePasselRetractionPortable,
+      scenarioMixedOrderAttributePasselRetractionContractPortable);
+}
+
+int runTimestampedAttributeSenderRegulationTransitionScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedAttributeSenderRegulationTransitionScenario,
+      timestampedAttributeSenderRegulationTransitionContractId,
+      scenarioTimestampedAttributeSenderRegulationTransitionPortable,
+      scenarioTimestampedAttributeSenderRegulationTransitionContractPortable);
 }
 
 int runTimestampedAttributeUpdateNoFanoutScenarios(int argc, char** argv) {
@@ -15503,6 +15849,16 @@ int runNextMessageRequestScenarios(int argc, char** argv) {
       scenarioNextMessageRequestContractPortable);
 }
 
+int runSendMessageTimeStatePreservationGrantedScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      sendMessageTimeStatePreservationGrantedScenario,
+      sendMessageTimeStatePreservationGrantedContractId,
+      scenarioSendMessageTimeStatePreservationGrantedPortable,
+      scenarioSendMessageTimeStatePreservationGrantedContractPortable);
+}
+
 int runAvailableTimeAdvancesInclusiveGaltScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -15513,6 +15869,16 @@ int runAvailableTimeAdvancesInclusiveGaltScenarios(int argc, char** argv) {
       scenarioAvailableTimeAdvancesInclusiveGaltContractPortable);
 }
 
+int runTimeConstrainedEnableAtGaltEqualityScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timeConstrainedEnableAtGaltEqualityScenario,
+      timeConstrainedEnableAtGaltEqualityContractId,
+      scenarioTimeConstrainedEnableAtGaltEqualityPortable,
+      scenarioTimeConstrainedEnableAtGaltEqualityContractPortable);
+}
+
 int runTimestampedInteractionMixedAdvancesScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -15521,6 +15887,96 @@ int runTimestampedInteractionMixedAdvancesScenarios(int argc, char** argv) {
       timestampedInteractionMixedAdvancesContractId,
       scenarioTimestampedInteractionMixedAdvancesPortable,
       scenarioTimestampedInteractionMixedAdvancesContractPortable);
+}
+
+int runTimeCoordinatedInteractionScenario(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timeCoordinatedInteractionScenario,
+      timeCoordinatedInteractionScenario,
+      scenarioTimeCoordinatedInteractionPortable,
+      scenarioTimeCoordinatedInteractionPortable);
+}
+
+int runEmptyAttributeSubscriptionScenario(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      emptyAttributeSubscriptionScenario,
+      emptyAttributeSubscriptionScenario,
+      scenarioEmptyAttributeSubscriptionIsNoOpPortable,
+      scenarioEmptyAttributeSubscriptionIsNoOpPortable);
+}
+
+int runNamedUpdateRateSubscriptionScenario(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      namedUpdateRateSubscriptionScenario,
+      namedUpdateRateSubscriptionScenario,
+      scenarioNamedUpdateRateSubscriptionPortable,
+      scenarioNamedUpdateRateSubscriptionPortable);
+}
+
+int runDefaultRateNoReductionScenario(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      defaultRateNoReductionScenario,
+      defaultRateNoReductionScenario,
+      scenarioDefaultRateSubscriptionDoesNotReducePortable,
+      scenarioDefaultRateSubscriptionDoesNotReducePortable);
+}
+
+int runAccumulatingAttributeSubscriptionsScenario(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      accumulatingAttributeSubscriptionsScenario,
+      accumulatingAttributeSubscriptionsScenario,
+      scenarioAttributeSubscriptionInvocationsAccumulatePortable,
+      scenarioAttributeSubscriptionInvocationsAccumulatePortable);
+}
+
+int runPassiveSubscriptionNoStartRegistrationScenario(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      passiveSubscriptionNoStartRegistrationScenario,
+      passiveSubscriptionNoStartRegistrationScenario,
+      scenarioPassiveSubscriptionDoesNotStartRegistrationPortable,
+      scenarioPassiveSubscriptionDoesNotStartRegistrationPortable);
+}
+
+int runSelectiveAttributeUnsubscriptionScenario(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      selectiveAttributeUnsubscriptionScenario,
+      selectiveAttributeUnsubscriptionScenario,
+      scenarioSelectiveAttributeUnsubscriptionPortable,
+      scenarioSelectiveAttributeUnsubscriptionPortable);
+}
+
+int runWholeClassAttributeUnsubscriptionScenario(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      wholeClassAttributeUnsubscriptionScenario,
+      wholeClassAttributeUnsubscriptionScenario,
+      scenarioWholeClassAttributeUnsubscriptionPortable,
+      scenarioWholeClassAttributeUnsubscriptionPortable);
+}
+
+int runEmptyAttributeUnsubscriptionScenario(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      emptyAttributeUnsubscriptionScenario,
+      emptyAttributeUnsubscriptionScenario,
+      scenarioEmptyAttributeUnsubscriptionIsNoOpPortable,
+      scenarioEmptyAttributeUnsubscriptionIsNoOpPortable);
 }
 
 int runTimestampedInteractionTaraEqualBoundaryScenarios(int argc, char** argv) {
@@ -15541,6 +15997,28 @@ int runTimestampedInteractionTarEqualBoundaryScenarios(int argc, char** argv) {
       timestampedInteractionTarEqualBoundaryContractId,
       scenarioTimestampedInteractionTarEqualBoundaryPortable,
       scenarioTimestampedInteractionTarEqualBoundaryContractPortable);
+}
+
+int runTimestampedInteractionTarPostGrantCutoffScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionTarPostGrantCutoffScenario,
+      timestampedInteractionTarPostGrantCutoffContractId,
+      scenarioTimestampedInteractionTarPostGrantCutoffPortable,
+      scenarioTimestampedInteractionTarPostGrantCutoffContractPortable);
+}
+
+int runTimestampedInteractionPublicationSendTransitionScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionPublicationSendTransitionScenario,
+      timestampedInteractionPublicationSendTransitionContractId,
+      scenarioTimestampedInteractionPublicationSendTransitionPortable,
+      scenarioTimestampedInteractionPublicationSendTransitionContractPortable);
 }
 
 int runTimestampedInteractionSourceResignationScenarios(
@@ -16547,6 +17025,12 @@ PortableScenario delaySubscriptionEvaluationScenario(std::string const& id) {
   if (id == delaySubscriptionEvaluationTimestampedRegionalAttributeUpdateScenario) {
     return scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdate;
   }
+  if (id == delaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdateScenario) {
+    return scenarioDelaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdate;
+  }
+  if (id == delaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdateContractId) {
+    return scenarioDelaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdateContract;
+  }
   if (id == delaySubscriptionEvaluationTimestampedRegionalAttributeUpdateContractId) {
     return scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdateContract;
   }
@@ -16588,6 +17072,8 @@ int runDelaySubscriptionEvaluationScenarios(int argc, char** argv) {
         result.message = "requires an adapter-supplied switch-declaration FOM";
       } else if ((selected == delaySubscriptionEvaluationTimestampedRegionalAttributeUpdateScenario ||
                   selected == delaySubscriptionEvaluationTimestampedRegionalAttributeUpdateContractId ||
+                  selected == delaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdateScenario ||
+                  selected == delaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdateContractId ||
                   selected == delaySubscriptionEvaluationTimestampedRegionalInteractionScenario ||
                   selected == delaySubscriptionEvaluationTimestampedRegionalInteractionContractId) &&
                  options.ddmFom.empty()) {
@@ -16709,6 +17195,12 @@ int runFederationSaveRestoreInterlocksScenarios(int argc, char** argv) {
 }
 
 PortableScenario timedSaveRestoreScenario(std::string const& id) {
+  if (id == fqrTimedFederationSaveCallbackScenario) {
+    return scenarioFqrTimedFederationSaveCallback;
+  }
+  if (id == fqrTimedFederationSaveCallbackContractId) {
+    return scenarioFqrTimedFederationSaveCallbackContract;
+  }
   if (id == timedFederationSaveRestoreScenario) {
     return scenarioTimedFederationSaveRestore;
   }
@@ -17959,6 +18451,21 @@ bool hasTimestampedInteractionsScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasTimestampedInteractionPreferredReceiveConversionScenario(
+    int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionPreferredReceiveConversionScenario ||
+        scenario == timestampedInteractionPreferredReceiveConversionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasTimestampedAttributeUpdateScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -18083,6 +18590,36 @@ bool hasTimestampedAttributeUpdateQueuedPasselRetractionScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedAttributeUpdateQueuedPasselRetractionScenario ||
         scenario == timestampedAttributeUpdateQueuedPasselRetractionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasMixedOrderAttributePasselRetractionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == mixedOrderAttributePasselRetractionScenario ||
+        scenario == mixedOrderAttributePasselRetractionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedAttributeSenderRegulationTransitionScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedAttributeSenderRegulationTransitionScenario ||
+        scenario == timestampedAttributeSenderRegulationTransitionContractId) {
       return true;
     }
   }
@@ -18281,6 +18818,20 @@ bool hasNextMessageRequestScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasSendMessageTimeStatePreservationGrantedScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == sendMessageTimeStatePreservationGrantedScenario ||
+        scenario == sendMessageTimeStatePreservationGrantedContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasAvailableTimeAdvancesInclusiveGaltScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -18289,6 +18840,20 @@ bool hasAvailableTimeAdvancesInclusiveGaltScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == availableTimeAdvancesInclusiveGaltScenario ||
         scenario == availableTimeAdvancesInclusiveGaltContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimeConstrainedEnableAtGaltEqualityScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const selected = std::string(argv[index + 1]);
+    if (selected == timeConstrainedEnableAtGaltEqualityScenario ||
+        selected == timeConstrainedEnableAtGaltEqualityContractId) {
       return true;
     }
   }
@@ -18311,6 +18876,98 @@ bool hasTimestampedInteractionMixedAdvancesScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasTimeCoordinatedInteractionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) == timeCoordinatedInteractionScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasEmptyAttributeSubscriptionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) == emptyAttributeSubscriptionScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasNamedUpdateRateSubscriptionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) == namedUpdateRateSubscriptionScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasDefaultRateNoReductionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) == defaultRateNoReductionScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasAccumulatingAttributeSubscriptionsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) ==
+            accumulatingAttributeSubscriptionsScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasPassiveSubscriptionNoStartRegistrationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) ==
+            passiveSubscriptionNoStartRegistrationScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasSelectiveAttributeUnsubscriptionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) == selectiveAttributeUnsubscriptionScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasWholeClassAttributeUnsubscriptionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) == wholeClassAttributeUnsubscriptionScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasEmptyAttributeUnsubscriptionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) == emptyAttributeUnsubscriptionScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasTimestampedInteractionTarEqualBoundaryScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -18319,6 +18976,52 @@ bool hasTimestampedInteractionTarEqualBoundaryScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedInteractionTarEqualBoundaryScenario ||
         scenario == timestampedInteractionTarEqualBoundaryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedInteractionTarPostGrantCutoffScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionTarPostGrantCutoffScenario ||
+        scenario == timestampedInteractionTarPostGrantCutoffContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedAttributeTarPostGrantCutoffScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedAttributeTarPostGrantCutoffScenario ||
+        scenario == timestampedAttributeTarPostGrantCutoffContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedInteractionPublicationSendTransitionScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionPublicationSendTransitionScenario ||
+        scenario == timestampedInteractionPublicationSendTransitionContractId) {
       return true;
     }
   }
@@ -18917,6 +19620,16 @@ bool hasFederationLifecycleScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == federationLifecycleScenario ||
         scenario == federationLifecycleContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederationManagementRequiresConnectionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) == federationManagementRequiresConnectionScenario) {
       return true;
     }
   }
@@ -20297,7 +21010,9 @@ bool hasSynchronizationPointScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == javaSynchronizationScenario ||
         scenario == synchronizationPointsScenario ||
-        scenario == synchronizationPointContractScenario) {
+        scenario == synchronizationPointContractScenario ||
+        scenario == synchronizationExplicitSetLateJoinScenario ||
+        scenario == synchronizationExplicitSetLateJoinContractScenario) {
       return true;
     }
   }
@@ -21774,6 +22489,10 @@ int main(int argc, char** argv) {
     if (hasTimestampedInteractionsScenario(argc, argv)) {
       return runTimestampedInteractionsScenarios(argc, argv);
     }
+    if (hasTimestampedInteractionPreferredReceiveConversionScenario(argc, argv)) {
+      return runTimestampedInteractionPreferredReceiveConversionScenarios(
+          argc, argv);
+    }
     if (hasJavaTimestampedAttributeUpdateScenario(argc, argv)) {
       return runJavaTimestampedAttributeUpdateScenario(argc, argv);
     }
@@ -21782,6 +22501,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedAttributeUpdateScenario(argc, argv)) {
       return runTimestampedAttributeUpdateScenarios(argc, argv);
+    }
+    if (hasTimestampedAttributeTarPostGrantCutoffScenario(argc, argv)) {
+      return runTimestampedAttributeTarPostGrantCutoffScenarios(argc, argv);
     }
     if (hasTimestampedAttributeUpdateReenableScenario(argc, argv)) {
       return runTimestampedAttributeUpdateReenableScenarios(argc, argv);
@@ -21801,6 +22523,12 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedAttributeUpdateQueuedPasselRetractionScenario(argc, argv)) {
       return runTimestampedAttributeUpdateQueuedPasselRetractionScenarios(argc, argv);
+    }
+    if (hasMixedOrderAttributePasselRetractionScenario(argc, argv)) {
+      return runMixedOrderAttributePasselRetractionScenarios(argc, argv);
+    }
+    if (hasTimestampedAttributeSenderRegulationTransitionScenario(argc, argv)) {
+      return runTimestampedAttributeSenderRegulationTransitionScenarios(argc, argv);
     }
     if (hasTimestampedAttributeUpdateNoFanoutScenario(argc, argv)) {
       return runTimestampedAttributeUpdateNoFanoutScenarios(argc, argv);
@@ -21842,11 +22570,51 @@ int main(int argc, char** argv) {
     if (hasNextMessageRequestScenario(argc, argv)) {
       return runNextMessageRequestScenarios(argc, argv);
     }
+    if (hasSendMessageTimeStatePreservationGrantedScenario(argc, argv)) {
+      return runSendMessageTimeStatePreservationGrantedScenarios(argc, argv);
+    }
     if (hasAvailableTimeAdvancesInclusiveGaltScenario(argc, argv)) {
       return runAvailableTimeAdvancesInclusiveGaltScenarios(argc, argv);
     }
+    if (hasTimeConstrainedEnableAtGaltEqualityScenario(argc, argv)) {
+      return runTimeConstrainedEnableAtGaltEqualityScenarios(argc, argv);
+    }
     if (hasTimestampedInteractionTarEqualBoundaryScenario(argc, argv)) {
       return runTimestampedInteractionTarEqualBoundaryScenarios(argc, argv);
+    }
+    if (hasTimestampedInteractionTarPostGrantCutoffScenario(argc, argv)) {
+      return runTimestampedInteractionTarPostGrantCutoffScenarios(argc, argv);
+    }
+    if (hasTimestampedInteractionPublicationSendTransitionScenario(argc, argv)) {
+      return runTimestampedInteractionPublicationSendTransitionScenarios(
+          argc, argv);
+    }
+    if (hasEmptyAttributeSubscriptionScenario(argc, argv)) {
+      return runEmptyAttributeSubscriptionScenario(argc, argv);
+    }
+    if (hasNamedUpdateRateSubscriptionScenario(argc, argv)) {
+      return runNamedUpdateRateSubscriptionScenario(argc, argv);
+    }
+    if (hasDefaultRateNoReductionScenario(argc, argv)) {
+      return runDefaultRateNoReductionScenario(argc, argv);
+    }
+    if (hasAccumulatingAttributeSubscriptionsScenario(argc, argv)) {
+      return runAccumulatingAttributeSubscriptionsScenario(argc, argv);
+    }
+    if (hasPassiveSubscriptionNoStartRegistrationScenario(argc, argv)) {
+      return runPassiveSubscriptionNoStartRegistrationScenario(argc, argv);
+    }
+    if (hasSelectiveAttributeUnsubscriptionScenario(argc, argv)) {
+      return runSelectiveAttributeUnsubscriptionScenario(argc, argv);
+    }
+    if (hasWholeClassAttributeUnsubscriptionScenario(argc, argv)) {
+      return runWholeClassAttributeUnsubscriptionScenario(argc, argv);
+    }
+    if (hasEmptyAttributeUnsubscriptionScenario(argc, argv)) {
+      return runEmptyAttributeUnsubscriptionScenario(argc, argv);
+    }
+    if (hasTimeCoordinatedInteractionScenario(argc, argv)) {
+      return runTimeCoordinatedInteractionScenario(argc, argv);
     }
     if (hasTimestampedInteractionMixedAdvancesScenario(argc, argv)) {
       if (std::find_if(
@@ -21988,6 +22756,9 @@ int main(int argc, char** argv) {
     }
     if (hasFederationLifecycleScenario(argc, argv)) {
       return runFederationLifecycleScenarios(argc, argv);
+    }
+    if (hasFederationManagementRequiresConnectionScenario(argc, argv)) {
+      return runFederationManagementRequiresConnectionScenarios(argc, argv);
     }
     if (hasUnnamedJoinOverloadScenario(argc, argv)) {
       return runUnnamedJoinOverloadScenarios(argc, argv);
