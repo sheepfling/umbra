@@ -185,8 +185,9 @@ final class CallbackControlsSaveRestoreTck {
          String expectedFederateName) {
       JavaTckSupport.check(label.equals(initiation.label)
             && expectedFederateName.equals(initiation.federateName)
-            && initiation.postRestoreHandle != null,
-         "restore initiation returned incorrect label, name, or federate handle");
+             && initiation.postRestoreHandle != null
+             && initiation.postRestoreHandle.encodedLength() > 0,
+          "restore initiation returned incorrect label, name, or valid federate handle");
    }
 
    private static <T> T last(List<T> values) {
