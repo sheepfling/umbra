@@ -2819,6 +2819,42 @@
       "exclusion": "Requires an adapter-supplied Java IEEE 1516.1-2025 provider, FOM, logical-time implementation, and callback configuration; provider runtime remains unverified."
     },
     {
+      "id": "java-tck.connect-before-federation-disconnect-after-resign",
+      "category": "federation-management",
+      "title": "Require Connect before federation creation and Disconnect after resignation",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.destroyFederationExecution"
+      ],
+      "requirement_ids": [
+        "java-1516.1-federation-create-join-resign-destroy"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4",
+          "standard_section": "hla-1516.1-2025:clause-4"
+        }
+      ],
+      "mapping_note": "Maps the direct Clause 4 NotConnected outcomes for Create before Connect and after the federate has resigned and disconnected. Successful Create/Join/Resign and federation cleanup are controls; no provider-conformance claim is made.",
+      "contract_refs": [
+        "standard-service-exception-boundaries-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#connectBeforeFederationDisconnectAfterResign",
+      "parity": "cpp-tck.connect-before-federation-disconnect-after-resign",
+      "default_status": "unsupported",
+      "exclusion": "Requires adapter-supplied provider, endpoint, FOM, logical-time implementation, and callback configuration; Java provider runtime evidence is not yet available."
+    },
+    {
       "id": "java-tck.connection-loss-cleanup",
       "category": "connection",
       "title": "Observe adapter-managed connection loss and verify survivor service",
@@ -3027,22 +3063,12 @@
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect"
       ],
-      "requirement_ids": [
-        "java-1516.1-object-class-attribute-declaration"
-      ],
-      "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27"
-      ],
-      "standard_sections": [
-        "hla-1516.1-2025:clause-5.8"
-      ],
-      "requirement_mappings": [
-        {
-          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27",
-          "standard_section": "hla-1516.1-2025:clause-5.8"
-        }
-      ],
-      "mapping_note": "Maps only the intended direct assertion: a base-class subscription naming an attribute defined only on a derived class is rejected with AttributeNotDefined, under Clause 5.8. FOM/setup/cleanup and exception-fixture details are supplemental. Java provider execution remains unsupported/unvalidated; this catalog row is not evidence of Java runtime or conformance coverage.",
+      "requirement_ids": [],
+      "selected_requirements_lab_requirement_ids": [],
+      "standard_sections": [],
+      "requirement_mappings": [],
+      "mapping_classification": "api-contract-only-not-normative-conformance",
+      "mapping_note": "No direct 2025 requirement mapping is claimed: this case checks an AttributeNotDefined subscription rejection, while candidate page-096-l90-27 covers closest-subscribed-superclass discovery. Setup, cleanup, and exception-fixture details are supplemental. Java provider execution remains unsupported/unvalidated; this catalog row is not evidence of Java runtime or conformance coverage.",
       "contract_refs": [
         "standard-declaration-management-contract.json",
         "subscribe-object-class-attributes-requirements-contract.json",
@@ -3052,6 +3078,80 @@
       "parity": "cpp-tck.base-subscription-rejects-derived-only-attribute",
       "default_status": "unsupported",
       "exclusion": "Requires an adapter-supplied known-class FOM with base and derived object classes, a derived-only attribute, provider, endpoint, and callback configuration; provider runtime evidence is not yet available."
+    },
+    {
+      "id": "java-tck.unsubscribe-last-attribute-stops-discovery",
+      "category": "declarations",
+      "title": "Suppress later object discovery after unsubscribing the class's final attribute",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "java-1516.1-object-registration-discovery"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-098-l146-43"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.9.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l146-43",
+          "standard_section": "hla-1516.1-2025:clause-5.9.4"
+        }
+      ],
+      "mapping_note": "Maps only the direct Clause 5.9.4 postcondition: after the federate unsubscribes the class's sole adapter-selected attribute, a subsequently registered instance does not produce Discover Object Instance for that federate. Initial discovery while subscribed is a positive control. Java provider runtime evidence is not yet available; this row is not evidence of conformance.",
+      "contract_refs": [
+        "standard-declaration-management-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#unsubscribeLastAttributeStopsDiscovery",
+      "parity": "cpp-tck.unsubscribe-last-attribute-stops-discovery",
+      "default_status": "unsupported",
+      "exclusion": "Requires adapter-supplied provider, endpoint, FOM, object class, attribute, and callback configuration; Java provider runtime evidence is not yet available."
+    },
+    {
+      "id": "java-tck.base-publication-rejects-derived-only-attribute",
+      "category": "declarations",
+      "title": "Reject a derived-only attribute when publishing the base object class",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [],
+      "selected_requirements_lab_requirement_ids": [],
+      "standard_sections": [],
+      "requirement_mappings": [],
+      "mapping_classification": "api-contract-only-not-normative-conformance",
+      "mapping_note": "Classification: internal API-boundary scenario, intentionally unmapped. The pinned Java API declares AttributeNotDefined for Publish Object Class Attributes, but the Requirements Lab export has no granular normative candidate for an attribute that is not defined on the specified class. Positive base/derived publication controls and the derived-only rejection are checked; no normative coverage or provider-conformance claim is made. Java provider execution remains unavailable and unvalidated.",
+      "contract_refs": [
+        "standard-declaration-management-contract.json",
+        "publish-object-class-attributes-api-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#basePublicationRejectsDerivedOnlyAttribute",
+      "parity": "cpp-tck.base-publication-rejects-derived-only-attribute",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied known-class FOM with base and derived object classes, base and derived attributes, provider, endpoint, and callback configuration; Java provider runtime evidence is not yet available."
     },
     {
       "id": "java-tck.object-management",
@@ -5026,9 +5126,10 @@
         { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l65-21", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l110-31", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l112-34", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l41-12", "standard_section": "hla-1516.1-2025:clause-6.12.4" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l53-16", "standard_section": "hla-1516.1-2025:clause-6.12.4" },
-        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l127-38", "standard_section": "hla-1516.1-2025:clause-6.13" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l127-38", "standard_section": "hla-1516.1-2025:clause-6.13" }
       ],
       "mapping_note": "Direct mappings cover the later object discovery caused by an active attribute subscription (§5.8), ordinary attribute value/tag update (§6.10), reflected value and producing-federate metadata (§6.11.1), active interaction declaration/class/parameter behavior (§5.1.3 and §5.1.4), send to a subscribed interaction recipient and tag (§6.12.4), and producer identity in Receive Interaction (§6.13). The passive observer's delivery after a separate active declaration establishes relevance is supplemental: the standard's explicit passive-delivery statement has no immutable Lab requirement candidate. Transportation assertions check only that callback handles are valid, not a specific transportation value. Fixture setup, lookup, callback servicing, pre-connect/pre-join errors, invalid-handle errors, and Java callback-control behavior are not separate claims. The linked contract remains experimental public-API evidence, not conformance evidence. Java provider runtime remains unvalidated.",
@@ -5082,19 +5183,25 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-05-declaration-management-page-096-l96-29",
         "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
-        "requirement-candidate-content-clauses-05-declaration-management-page-097-l20-4",
-        "requirement-candidate-content-clauses-05-declaration-management-page-097-l23-5",
-        "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4",
-        "requirement-candidate-content-clauses-05-declaration-management-page-098-l20-5",
         "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
-        "requirement-candidate-content-clauses-06-object-management-page-120-l110-31"
+        "requirement-candidate-content-clauses-06-object-management-page-120-l110-31",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l112-34"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-5.8",
-        "hla-1516.1-2025:clause-5.9.4",
-        "hla-1516.1-2025:clause-6.10"
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1"
       ],
-      "mapping_note": "Direct mappings shared with the C++ scenario: declaration-management page-096-l96-29, page-096-l117-36, page-097-l20-4, and page-097-l23-5 -> §5.8 for active/passive subscription relevance and callback eligibility; page-098-l17-4 and page-098-l20-5 -> §5.9.4 for passive declaration semantics; object-management page-120-l83-22 and page-120-l110-31 -> §6.10 for ordinary Update Attribute Values and reflected value/tag/producer metadata. Java additionally verifies FOM handle/name round-trips and empty ordinary reflection regions; setup/teardown is fixture behavior.",
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l96-29", "standard_section": "hla-1516.1-2025:clause-5.8" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36", "standard_section": "hla-1516.1-2025:clause-5.8" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l110-31", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l112-34", "standard_section": "hla-1516.1-2025:clause-6.11.1" }
+      ],
+      "mapping_note": "Direct mappings shared with the C++ scenario: active subscription creation and delivery relevance (page-096-l96-29 and page-096-l117-36) -> §5.8; ordinary Update payload/tag (page-120-l83-22 and page-120-l110-31) -> §6.10; Reflect callback values and producing-federate metadata (page-122-l61-17 and page-122-l112-34) -> §6.11.1. Passive observer delivery after active relevance is established is supplemental because there is no immutable direct requirement candidate for that assertion. Java additionally checks FOM handle/name round-trips and empty regions as supplemental behavior.",
       "contract_refs": [
         "receive-order-attribute-update-api-contract.json",
         "receive-order-attribute-update-requirements-contract.json",
@@ -13688,6 +13795,67 @@
       "parity": "cpp-tck.timestamped-attribute-update-reenable",
       "default_status": "unsupported",
       "exclusion": "Requires a provider capability profile and time-managed FOM with the selected object, attribute, and logical-time implementation; execute only through adapter-supplied configuration."
+    },
+    {
+      "id": "java-tck.timestamped-attribute-update-tar-post-grant-cutoff",
+      "category": "time",
+      "title": "Prevent late timestamped attribute reflections at or below a completed TAR grant",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType(TIMESTAMP)",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.makeEpsilon",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant",
+        "FederateAmbassador.reflectAttributeValues(time)"
+      ],
+      "requirement_ids": [
+        "java-1516.1-attribute-value-update-reflection",
+        "java-1516.1-time-advance-and-grant"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-203-l104-28"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.14"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l104-28",
+          "standard_section": "hla-1516.1-2025:clause-8.14"
+        }
+      ],
+      "mapping_note": "Direct coverage is limited to the Clause 8.14 prohibition on future delivery of TSO messages at or below a completed grant. The timestamp-7 positive-control reflection proves the timestamped attribute route remains active but is supplemental. The source uses only the official Java 1516.1-2025 API; provider-runtime execution has not been performed, so this is not Java conformance evidence.",
+      "contract_refs": [
+        "timestamped-attribute-update-api-contract.json",
+        "timestamped-attribute-update-requirements-contract.json",
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#timestampedAttributeUpdateTarPostGrantCutoff",
+      "parity": "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied provider, endpoint, time-managed FOM, object class, attribute, logical-time implementation, and callback model; Java provider-runtime evidence is not yet available."
     },
     {
       "id": "java-tck.timestamped-attribute-update-regulation-reenable",
@@ -28547,6 +28715,18 @@
       "scope": "C++ VariableLengthData ownership and pointer-storage contract",
       "status": "not applicable",
       "reason": "IEEE 1516.1-2025 Java exposes byte arrays and DataElement values rather than a VariableLengthData class or pointer-adoption API. Java Credentials also exposes its backing array, so C++ copy/assignment ownership semantics are not portable Java assertions."
+    },
+    {
+      "id": "cpp-tck.logical-time-factory-factory-contract",
+      "scope": "C++ standalone LogicalTimeFactoryFactory contract",
+      "status": "not applicable",
+      "reason": "IEEE 1516.1-2025 Java has no standalone LogicalTimeFactoryFactory equivalent. Java obtains the provider-selected LogicalTimeFactory through RTIambassador.getTimeFactory, which is covered by java-tck.logical-time-factory; provider-independent factory-factory construction and naming are C++ API-specific assertions."
+    },
+    {
+      "id": "cpp-tck.logical-time-data-elements-contract",
+      "scope": "C++ HLAlogicalTime and HLAlogicalTimeInterval DataElement wrappers",
+      "status": "not applicable",
+      "reason": "The Java 1516.1-2025 API exposes logical-time values and encoding operations but no HLAlogicalTime or HLAlogicalTimeInterval DataElement wrappers or clone contract. The Java base DataElement contract is covered separately by java-tck.data-element-base-contract."
     },
     {
       "id": "java-tck.provider-implementation-boundary",

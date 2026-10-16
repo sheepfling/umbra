@@ -41,13 +41,28 @@ def load_catalog(path: Path = CATALOG) -> dict[str, Any]:
                 raise ValueError(f"{scenario.get('id', '<unknown>')} missing {field}")
         if not scenario.get("api_methods"):
             raise ValueError(f"{scenario['id']} must link standard Java API methods")
-        if (
-            not scenario.get("requirement_ids")
-            and scenario.get("mapping_classification")
-            != "api-contract-only-not-normative-conformance"
-        ):
+        mapping_classification = scenario.get("mapping_classification")
+        if not scenario.get("requirement_ids"):
+            if mapping_classification != "api-contract-only-not-normative-conformance":
+                raise ValueError(
+                    f"{scenario['id']} must have stable requirement IDs or an explicit "
+                    "API-contract-only classification"
+                )
+            if any(
+                scenario.get(field)
+                for field in (
+                    "selected_requirements_lab_requirement_ids",
+                    "standard_sections",
+                    "requirement_mappings",
+                )
+            ):
+                raise ValueError(
+                    f"{scenario['id']} cannot claim normative mappings when classified "
+                    "API-contract-only"
+                )
+        elif mapping_classification == "api-contract-only-not-normative-conformance":
             raise ValueError(
-                f"{scenario['id']} must have stable requirement IDs or an explicit "
+                f"{scenario['id']} cannot combine normative requirement IDs with the "
                 "API-contract-only classification"
             )
         if not scenario.get("contract_refs"):
