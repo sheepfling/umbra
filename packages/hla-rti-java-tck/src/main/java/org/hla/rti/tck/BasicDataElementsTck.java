@@ -139,10 +139,143 @@ final class BasicDataElementsTck {
       check(decodedUnsigned64LE.getValue() == unsigned64Value,
          "unsigned 64-bit little-endian value changed");
 
+      fixedWidthIntegerBoundaries(encoder);
+
       expectFailure(() -> decodedSigned16BE.decode(new byte[] {0x01}),
          "DecoderException", "truncated 16-bit input was accepted");
       expectFailure(() -> decodedSigned64BE.decode(new byte[] {0x01, 0x02, 0x03}),
          "DecoderException", "truncated 64-bit input was accepted");
+   }
+
+   private static void fixedWidthIntegerBoundaries(EncoderFactory encoder) throws Exception {
+      checkSigned16Boundary(encoder, Short.MIN_VALUE,
+         new int[] {0x80, 0x00}, new int[] {0x00, 0x80}, "16-bit signed minimum");
+      checkSigned16Boundary(encoder, Short.MAX_VALUE,
+         new int[] {0x7f, 0xff}, new int[] {0xff, 0x7f}, "16-bit signed maximum");
+      checkUnsigned16Boundary(encoder, (short) 0,
+         new int[] {0x00, 0x00}, new int[] {0x00, 0x00}, "16-bit unsigned minimum");
+      checkUnsigned16Boundary(encoder, (short) -1,
+         new int[] {0xff, 0xff}, new int[] {0xff, 0xff}, "16-bit unsigned maximum");
+
+      checkSigned32Boundary(encoder, Integer.MIN_VALUE,
+         new int[] {0x80, 0x00, 0x00, 0x00}, new int[] {0x00, 0x00, 0x00, 0x80},
+         "32-bit signed minimum");
+      checkSigned32Boundary(encoder, Integer.MAX_VALUE,
+         new int[] {0x7f, 0xff, 0xff, 0xff}, new int[] {0xff, 0xff, 0xff, 0x7f},
+         "32-bit signed maximum");
+      checkUnsigned32Boundary(encoder, 0,
+         new int[] {0x00, 0x00, 0x00, 0x00}, new int[] {0x00, 0x00, 0x00, 0x00},
+         "32-bit unsigned minimum");
+      checkUnsigned32Boundary(encoder, -1,
+         new int[] {0xff, 0xff, 0xff, 0xff}, new int[] {0xff, 0xff, 0xff, 0xff},
+         "32-bit unsigned maximum");
+
+      checkSigned64Boundary(encoder, Long.MIN_VALUE,
+         new int[] {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+         new int[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80},
+         "64-bit signed minimum");
+      checkSigned64Boundary(encoder, Long.MAX_VALUE,
+         new int[] {0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
+         new int[] {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f},
+         "64-bit signed maximum");
+      checkUnsigned64Boundary(encoder, 0L,
+         new int[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+         new int[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+         "64-bit unsigned minimum");
+      checkUnsigned64Boundary(encoder, -1L,
+         new int[] {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
+         new int[] {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
+         "64-bit unsigned maximum");
+   }
+
+   private static void checkSigned16Boundary(
+         EncoderFactory encoder, short value, int[] bigEndian, int[] littleEndian, String label)
+         throws Exception {
+      HLAinteger16BE big = encoder.createHLAinteger16BE(value);
+      HLAinteger16LE little = encoder.createHLAinteger16LE(value);
+      checkBytes(big.toByteArray(), bigEndian);
+      checkBytes(little.toByteArray(), littleEndian);
+      HLAinteger16BE decodedBig = encoder.createHLAinteger16BE();
+      HLAinteger16LE decodedLittle = encoder.createHLAinteger16LE();
+      decodedBig.decode(big.toByteArray());
+      decodedLittle.decode(little.toByteArray());
+      check(decodedBig.getValue() == value && decodedLittle.getValue() == value,
+         label + " did not round-trip");
+   }
+
+   private static void checkUnsigned16Boundary(
+         EncoderFactory encoder, short value, int[] bigEndian, int[] littleEndian, String label)
+         throws Exception {
+      HLAunsignedInteger16BE big = encoder.createHLAunsignedInteger16BE(value);
+      HLAunsignedInteger16LE little = encoder.createHLAunsignedInteger16LE(value);
+      checkBytes(big.toByteArray(), bigEndian);
+      checkBytes(little.toByteArray(), littleEndian);
+      HLAunsignedInteger16BE decodedBig = encoder.createHLAunsignedInteger16BE();
+      HLAunsignedInteger16LE decodedLittle = encoder.createHLAunsignedInteger16LE();
+      decodedBig.decode(big.toByteArray());
+      decodedLittle.decode(little.toByteArray());
+      check(decodedBig.getValue() == value && decodedLittle.getValue() == value,
+         label + " did not round-trip");
+   }
+
+   private static void checkSigned32Boundary(
+         EncoderFactory encoder, int value, int[] bigEndian, int[] littleEndian, String label)
+         throws Exception {
+      HLAinteger32BE big = encoder.createHLAinteger32BE(value);
+      HLAinteger32LE little = encoder.createHLAinteger32LE(value);
+      checkBytes(big.toByteArray(), bigEndian);
+      checkBytes(little.toByteArray(), littleEndian);
+      HLAinteger32BE decodedBig = encoder.createHLAinteger32BE();
+      HLAinteger32LE decodedLittle = encoder.createHLAinteger32LE();
+      decodedBig.decode(big.toByteArray());
+      decodedLittle.decode(little.toByteArray());
+      check(decodedBig.getValue() == value && decodedLittle.getValue() == value,
+         label + " did not round-trip");
+   }
+
+   private static void checkUnsigned32Boundary(
+         EncoderFactory encoder, int value, int[] bigEndian, int[] littleEndian, String label)
+         throws Exception {
+      HLAunsignedInteger32BE big = encoder.createHLAunsignedInteger32BE(value);
+      HLAunsignedInteger32LE little = encoder.createHLAunsignedInteger32LE(value);
+      checkBytes(big.toByteArray(), bigEndian);
+      checkBytes(little.toByteArray(), littleEndian);
+      HLAunsignedInteger32BE decodedBig = encoder.createHLAunsignedInteger32BE();
+      HLAunsignedInteger32LE decodedLittle = encoder.createHLAunsignedInteger32LE();
+      decodedBig.decode(big.toByteArray());
+      decodedLittle.decode(little.toByteArray());
+      check(decodedBig.getValue() == value && decodedLittle.getValue() == value,
+         label + " did not round-trip");
+   }
+
+   private static void checkSigned64Boundary(
+         EncoderFactory encoder, long value, int[] bigEndian, int[] littleEndian, String label)
+         throws Exception {
+      HLAinteger64BE big = encoder.createHLAinteger64BE(value);
+      HLAinteger64LE little = encoder.createHLAinteger64LE(value);
+      checkBytes(big.toByteArray(), bigEndian);
+      checkBytes(little.toByteArray(), littleEndian);
+      HLAinteger64BE decodedBig = encoder.createHLAinteger64BE();
+      HLAinteger64LE decodedLittle = encoder.createHLAinteger64LE();
+      decodedBig.decode(big.toByteArray());
+      decodedLittle.decode(little.toByteArray());
+      check(decodedBig.getValue() == value && decodedLittle.getValue() == value,
+         label + " did not round-trip");
+   }
+
+   private static void checkUnsigned64Boundary(
+         EncoderFactory encoder, long value, int[] bigEndian, int[] littleEndian, String label)
+         throws Exception {
+      HLAunsignedInteger64BE big = encoder.createHLAunsignedInteger64BE(value);
+      HLAunsignedInteger64LE little = encoder.createHLAunsignedInteger64LE(value);
+      checkBytes(big.toByteArray(), bigEndian);
+      checkBytes(little.toByteArray(), littleEndian);
+      HLAunsignedInteger64BE decodedBig = encoder.createHLAunsignedInteger64BE();
+      HLAunsignedInteger64LE decodedLittle = encoder.createHLAunsignedInteger64LE();
+      decodedBig.decode(big.toByteArray());
+      decodedLittle.decode(little.toByteArray());
+      check(decodedBig.getValue() == value && decodedLittle.getValue() == value,
+         label + " did not round-trip");
    }
 
    private static void booleansAndOctets(EncoderFactory encoder) throws Exception {

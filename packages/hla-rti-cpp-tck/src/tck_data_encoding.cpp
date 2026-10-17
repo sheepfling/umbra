@@ -1,5 +1,7 @@
 #include "tck_data_encoding.hpp"
 
+#include <limits>
+
 namespace hla_rti_cpp_tck::detail {
 
 std::unique_ptr<rti::DataElement> Boundary16Element::clone() const {
@@ -193,7 +195,103 @@ void verifyStandardDataElementContract() {
       "standard DataElement decodeFrom did not consume the appended encoding");
 }
 
+template <typename Element, typename Value>
+void requireIntegerBoundaryVector(
+    Value value,
+    std::vector<std::uint8_t> expectedBytes,
+    std::string const& description) {
+  Element encoded{value};
+  requireEncodedBytes(encoded, expectedBytes, description);
+  Element decoded;
+  decoded.decode(encoded.encode());
+  require(
+      decoded.get() == value,
+      description + " did not round-trip");
+}
+
+void verifyFixedWidthIntegerBoundariesContract() {
+  auto const signed16Min = std::numeric_limits<std::int16_t>::min();
+  auto const signed16Max = std::numeric_limits<std::int16_t>::max();
+  auto const unsigned16Min = std::numeric_limits<std::uint16_t>::min();
+  auto const unsigned16Max = std::numeric_limits<std::uint16_t>::max();
+  requireIntegerBoundaryVector<rti::HLAinteger16BE>(
+      signed16Min, {0x80U, 0U}, "HLAinteger16BE minimum");
+  requireIntegerBoundaryVector<rti::HLAinteger16LE>(
+      signed16Min, {0U, 0x80U}, "HLAinteger16LE minimum");
+  requireIntegerBoundaryVector<rti::HLAinteger16BE>(
+      signed16Max, {0x7fU, 0xffU}, "HLAinteger16BE maximum");
+  requireIntegerBoundaryVector<rti::HLAinteger16LE>(
+      signed16Max, {0xffU, 0x7fU}, "HLAinteger16LE maximum");
+  requireIntegerBoundaryVector<rti::HLAunsignedInteger16BE>(
+      unsigned16Min, {0U, 0U}, "HLAunsignedInteger16BE minimum");
+  requireIntegerBoundaryVector<rti::HLAunsignedInteger16LE>(
+      unsigned16Min, {0U, 0U}, "HLAunsignedInteger16LE minimum");
+  requireIntegerBoundaryVector<rti::HLAunsignedInteger16BE>(
+      unsigned16Max, {0xffU, 0xffU}, "HLAunsignedInteger16BE maximum");
+  requireIntegerBoundaryVector<rti::HLAunsignedInteger16LE>(
+      unsigned16Max, {0xffU, 0xffU}, "HLAunsignedInteger16LE maximum");
+
+  auto const signed32Min = std::numeric_limits<std::int32_t>::min();
+  auto const signed32Max = std::numeric_limits<std::int32_t>::max();
+  auto const unsigned32Min = std::numeric_limits<std::uint32_t>::min();
+  auto const unsigned32Max = std::numeric_limits<std::uint32_t>::max();
+  requireIntegerBoundaryVector<rti::HLAinteger32BE>(
+      signed32Min, {0x80U, 0U, 0U, 0U}, "HLAinteger32BE minimum");
+  requireIntegerBoundaryVector<rti::HLAinteger32LE>(
+      signed32Min, {0U, 0U, 0U, 0x80U}, "HLAinteger32LE minimum");
+  requireIntegerBoundaryVector<rti::HLAinteger32BE>(
+      signed32Max, {0x7fU, 0xffU, 0xffU, 0xffU}, "HLAinteger32BE maximum");
+  requireIntegerBoundaryVector<rti::HLAinteger32LE>(
+      signed32Max, {0xffU, 0xffU, 0xffU, 0x7fU}, "HLAinteger32LE maximum");
+  requireIntegerBoundaryVector<rti::HLAunsignedInteger32BE>(
+      unsigned32Min, {0U, 0U, 0U, 0U}, "HLAunsignedInteger32BE minimum");
+  requireIntegerBoundaryVector<rti::HLAunsignedInteger32LE>(
+      unsigned32Min, {0U, 0U, 0U, 0U}, "HLAunsignedInteger32LE minimum");
+  requireIntegerBoundaryVector<rti::HLAunsignedInteger32BE>(
+      unsigned32Max, {0xffU, 0xffU, 0xffU, 0xffU}, "HLAunsignedInteger32BE maximum");
+  requireIntegerBoundaryVector<rti::HLAunsignedInteger32LE>(
+      unsigned32Max, {0xffU, 0xffU, 0xffU, 0xffU}, "HLAunsignedInteger32LE maximum");
+
+  auto const signed64Min = std::numeric_limits<std::int64_t>::min();
+  auto const signed64Max = std::numeric_limits<std::int64_t>::max();
+  auto const unsigned64Min = std::numeric_limits<std::uint64_t>::min();
+  auto const unsigned64Max = std::numeric_limits<std::uint64_t>::max();
+  requireIntegerBoundaryVector<rti::HLAinteger64BE>(
+      signed64Min,
+      {0x80U, 0U, 0U, 0U, 0U, 0U, 0U, 0U},
+      "HLAinteger64BE minimum");
+  requireIntegerBoundaryVector<rti::HLAinteger64LE>(
+      signed64Min,
+      {0U, 0U, 0U, 0U, 0U, 0U, 0U, 0x80U},
+      "HLAinteger64LE minimum");
+  requireIntegerBoundaryVector<rti::HLAinteger64BE>(
+      signed64Max,
+      {0x7fU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU},
+      "HLAinteger64BE maximum");
+  requireIntegerBoundaryVector<rti::HLAinteger64LE>(
+      signed64Max,
+      {0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0x7fU},
+      "HLAinteger64LE maximum");
+  requireIntegerBoundaryVector<rti::HLAunsignedInteger64BE>(
+      unsigned64Min,
+      {0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U},
+      "HLAunsignedInteger64BE minimum");
+  requireIntegerBoundaryVector<rti::HLAunsignedInteger64LE>(
+      unsigned64Min,
+      {0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U},
+      "HLAunsignedInteger64LE minimum");
+  requireIntegerBoundaryVector<rti::HLAunsignedInteger64BE>(
+      unsigned64Max,
+      {0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU},
+      "HLAunsignedInteger64BE maximum");
+  requireIntegerBoundaryVector<rti::HLAunsignedInteger64LE>(
+      unsigned64Max,
+      {0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU},
+      "HLAunsignedInteger64LE maximum");
+}
+
 void verifyBasicDataElementsContract() {
+  verifyFixedWidthIntegerBoundariesContract();
   rti::HLAinteger16BE signed16Be{-2};
   rti::HLAinteger16LE signed16Le{-2};
   rti::HLAinteger32BE signed32Be{-2};
