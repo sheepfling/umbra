@@ -8479,6 +8479,109 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.overlapping-object-class-subscriptions-single-discovery",
+      "category": "object-registration-discovery",
+      "title": "Deliver exactly one discovery for overlapping base and derived subscriptions",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeMultipleCallbacks",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l87-26"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l87-26"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l87-26",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "Directly asserts the §5.8 at-most-one discovery requirement for one federate subscribed to both a base and its derived object class, and the registered-class requirement because the derived class is also subscribed. It checks one callback and the derived class handle; this is adapter evidence, not a provider-conformance claim.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "object-class-attribute-declaration-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "standard-object-registration-discovery-lifecycle-contract.json"
+      ],
+      "cpp_test": "src/tck_object_registration_discovery_scenarios.cpp#scenarioOverlappingObjectClassSubscriptionsSingleDiscovery",
+      "runner_id": "cpp-tck.overlapping-object-class-subscriptions-single-discovery",
+      "parity": "java-tck.overlapping-object-class-subscriptions-single-discovery",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.overlapping-object-class-subscriptions-single-discovery-contract",
+      "category": "object-registration-discovery",
+      "title": "Portable standard contract for one discovery with overlapping class subscriptions",
+      "api_methods": [
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l87-26"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l87-26"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l87-26",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "The contract wrapper executes the primary's direct §5.8 assertions for at-most-one discovery and registered-class reporting under overlapping base/derived subscriptions. It makes no provider-conformance claim.",
+      "contract_refs": [
+        "standard-object-registration-discovery-lifecycle-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioOverlappingObjectClassSubscriptionsSingleDiscoveryContract",
+      "runner_id": "cpp-tck.overlapping-object-class-subscriptions-single-discovery-contract",
+      "parity": "cpp-tck.overlapping-object-class-subscriptions-single-discovery",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.object-registration-discovery-multi-recipient",
       "category": "ordinary-object-registration-discovery-multi-recipient",
       "title": "Deliver two registered ordinary objects to two active subscribers and preserve identity",

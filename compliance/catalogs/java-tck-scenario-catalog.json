@@ -5380,6 +5380,65 @@
       "exclusion": "Requires an adapter-supplied compatible typed object-class hierarchy and attribute names, provider, FOM, endpoint, and callback model. Keep opt-in until executed against a Java IEEE 1516.1-2025 provider."
     },
     {
+      "id": "java-tck.overlapping-object-class-subscriptions-single-discovery",
+      "category": "object-management",
+      "title": "Deliver one discovery when a federate subscribes to both a base and derived class",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l87-26"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l87-26"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l87-26",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "Directly asserts the §5.8 at-most-one discovery requirement for one federate subscribed to both a base and its derived object class, and the registered-class requirement because the derived class is also subscribed. Java source uses only official IEEE 1516.1-2025 APIs; provider runtime remains unverified, so no conformance claim is made.",
+      "contract_refs": [
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "object-class-attribute-declaration-requirements-contract.json",
+        "fom-root-hierarchy-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "federation-management-preparation-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#overlappingObjectClassSubscriptionsSingleDiscovery",
+      "parity": "cpp-tck.overlapping-object-class-subscriptions-single-discovery",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied typed object-class hierarchy and Java IEEE 1516.1-2025 provider; source and catalog are portable, but provider runtime evidence is not recorded."
+    },
+    {
       "id": "java-tck.attribute-interaction",
       "category": "interaction-management",
       "title": "Exercise ordinary attribute and interaction publication, subscription, delivery, and callback control",

@@ -239,6 +239,147 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
       }
    }
 
+   static void runOverlappingSubscriptionsSingleDiscovery(RtiFactory factory, String fom,
+         String timeImplementation, String baseClassName, String derivedClassName,
+         String identityAttributeName, String derivedAttributeName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador subscriber = factory.getRtiAmbassador();
+      Recorder publisherCallbacks = new Recorder();
+      Recorder subscriberCallbacks = new Recorder();
+      String federation = "java-tck-overlapping-subscriptions-" + UUID.randomUUID();
+      boolean publisherConnected = false, subscriberConnected = false, federationCreated = false;
+      boolean publisherJoined = false, subscriberJoined = false;
+      boolean published = false, baseSubscribed = false, derivedSubscribed = false;
+      ObjectClassHandle publisherClass = null, subscriberBaseClass = null;
+      ObjectClassHandle subscriberDerivedClass = null;
+      AttributeHandle publisherIdentity = null, publisherDerived = null;
+      AttributeHandle subscriberBaseIdentity = null, subscriberDerivedAttribute = null;
+      AttributeHandleSet publisherAttributes = null;
+      try {
+         publisher.connect(publisherCallbacks.proxy(), callbackModel);
+         publisherConnected = true;
+         subscriber.connect(subscriberCallbacks.proxy(), callbackModel);
+         subscriberConnected = true;
+         publisher.createFederationExecution(federation, fom, timeImplementation);
+         federationCreated = true;
+         publisher.joinFederationExecution("java-tck-overlap-publisher", federation);
+         publisherJoined = true;
+         subscriber.joinFederationExecution("java-tck-overlap-subscriber", federation);
+         subscriberJoined = true;
+
+         publisherClass = publisher.getObjectClassHandle(derivedClassName);
+         subscriberBaseClass = subscriber.getObjectClassHandle(baseClassName);
+         subscriberDerivedClass = subscriber.getObjectClassHandle(derivedClassName);
+         publisherIdentity = publisher.getAttributeHandle(publisherClass, identityAttributeName);
+         publisherDerived = publisher.getAttributeHandle(publisherClass, derivedAttributeName);
+         subscriberBaseIdentity = subscriber.getAttributeHandle(
+            subscriberBaseClass, identityAttributeName);
+         subscriberDerivedAttribute = subscriber.getAttributeHandle(
+            subscriberDerivedClass, derivedAttributeName);
+         JavaTckSupport.check(publisherClass != null && subscriberBaseClass != null
+               && subscriberDerivedClass != null && !subscriberBaseClass.equals(subscriberDerivedClass)
+               && publisherIdentity != null && publisherDerived != null
+               && subscriberBaseIdentity != null && subscriberDerivedAttribute != null,
+            "adapter hierarchy FOM did not resolve the overlapping subscription handles");
+
+         publisherAttributes = JavaTckSupport.attributeSet(
+            publisher, publisherIdentity, publisherDerived);
+         publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
+         published = true;
+         subscriber.subscribeObjectClassAttributes(subscriberBaseClass,
+            JavaTckSupport.attributeSet(subscriber, subscriberBaseIdentity));
+         baseSubscribed = true;
+         subscriber.subscribeObjectClassAttributes(subscriberDerivedClass,
+            JavaTckSupport.attributeSet(subscriber, subscriberDerivedAttribute));
+         derivedSubscribed = true;
+
+         ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
+         JavaTckSupport.check(object != null && object.encodedLength() > 0,
+            "overlapping-subscription registration returned an invalid object handle");
+         long callbackDeadline = System.nanoTime() + 5_000_000_000L;
+         while (subscriberCallbacks.discoveries.isEmpty()
+               && System.nanoTime() < callbackDeadline) {
+            if (callbackModel == CallbackModel.HLA_EVOKED) {
+               JavaTckSupport.drain(subscriber);
+            } else {
+               Thread.yield();
+            }
+         }
+         JavaTckSupport.check(!subscriberCallbacks.discoveries.isEmpty(),
+            "overlapping subscriptions did not discover the registered object");
+
+         long quietDeadline = System.nanoTime() + 150_000_000L;
+         while (System.nanoTime() < quietDeadline) {
+            if (callbackModel == CallbackModel.HLA_EVOKED) {
+               JavaTckSupport.drain(subscriber);
+            } else {
+               Thread.sleep(2L);
+            }
+         }
+         JavaTckSupport.check(subscriberCallbacks.discoveries.size() == 1,
+            "one registration produced duplicate discovery callbacks for overlapping subscriptions");
+         Discovery discovery = subscriberCallbacks.discoveries.get(0);
+         String objectName = publisher.getObjectInstanceName(object);
+         JavaTckSupport.check(object.equals(discovery.object)
+               && subscriberDerivedClass.equals(discovery.objectClass)
+               && objectName.equals(discovery.name)
+               && subscriberDerivedClass.equals(subscriber.getKnownObjectClassHandle(object))
+               && object.equals(subscriber.getObjectInstanceHandle(objectName)),
+            "overlapping subscriptions did not report the registered class and object identity");
+
+         subscriber.unsubscribeObjectClassAttributes(subscriberDerivedClass,
+            JavaTckSupport.attributeSet(subscriber, subscriberDerivedAttribute));
+         derivedSubscribed = false;
+         subscriber.unsubscribeObjectClassAttributes(subscriberBaseClass,
+            JavaTckSupport.attributeSet(subscriber, subscriberBaseIdentity));
+         baseSubscribed = false;
+         publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes);
+         published = false;
+         subscriber.resignFederationExecution(ResignAction.NO_ACTION);
+         subscriberJoined = false;
+         publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS);
+         publisherJoined = false;
+         publisher.destroyFederationExecution(federation);
+         federationCreated = false;
+      } finally {
+         if (subscriberJoined && derivedSubscribed && subscriberDerivedClass != null
+               && subscriberDerivedAttribute != null) {
+            try { subscriber.unsubscribeObjectClassAttributes(subscriberDerivedClass,
+               JavaTckSupport.attributeSet(subscriber, subscriberDerivedAttribute)); }
+            catch (Exception ignored) { }
+         }
+         if (subscriberJoined && baseSubscribed && subscriberBaseClass != null
+               && subscriberBaseIdentity != null) {
+            try { subscriber.unsubscribeObjectClassAttributes(subscriberBaseClass,
+               JavaTckSupport.attributeSet(subscriber, subscriberBaseIdentity)); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined && published && publisherClass != null && publisherAttributes != null) {
+            try { publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (subscriberJoined) {
+            try { subscriber.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined) {
+            try { publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
+            catch (Exception ignored) { }
+         }
+         if (federationCreated) {
+            try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (subscriberConnected) {
+            try { subscriber.disconnect(); } catch (Exception ignored) { }
+         }
+         if (publisherConnected) {
+            try { publisher.disconnect(); } catch (Exception ignored) { }
+         }
+      }
+   }
+
    private static void assertDiscovery(RTIambassador rti, Recorder recorder,
          ObjectInstanceHandle object, String objectName, ObjectClassHandle expectedClass,
          FederateHandle producer, String description) throws Exception {

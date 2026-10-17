@@ -8476,6 +8476,12 @@ void scenarioObjectRegistrationDiscoveryLifecycleContract(
   scenarioObjectRegistrationDiscoveryLifecycle(options, model);
 }
 
+void scenarioOverlappingObjectClassSubscriptionsSingleDiscoveryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioOverlappingObjectClassSubscriptionsSingleDiscovery(options, model);
+}
+
 void scenarioObjectRegistrationDiscoveryMultiRecipientContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -19376,6 +19382,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.final-federate-resignation-cleanup-contract",
       "cpp-tck.object-registration-discovery-lifecycle",
       "cpp-tck.object-registration-discovery-lifecycle-contract",
+      "cpp-tck.overlapping-object-class-subscriptions-single-discovery",
+      "cpp-tck.overlapping-object-class-subscriptions-single-discovery-contract",
       "cpp-tck.object-registration-discovery-multi-recipient",
       "cpp-tck.object-registration-discovery-multi-recipient-contract",
       "cpp-tck.named-registration",
@@ -20948,6 +20956,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.object-registration-discovery-lifecycle-contract") {
     return scenarioObjectRegistrationDiscoveryLifecycleContract;
+  }
+  if (id == "cpp-tck.overlapping-object-class-subscriptions-single-discovery") {
+    return scenarioOverlappingObjectClassSubscriptionsSingleDiscovery;
+  }
+  if (id == "cpp-tck.overlapping-object-class-subscriptions-single-discovery-contract") {
+    return scenarioOverlappingObjectClassSubscriptionsSingleDiscoveryContract;
   }
   if (id == "cpp-tck.object-registration-discovery-multi-recipient") {
     return scenarioObjectRegistrationDiscoveryMultiRecipient;
@@ -22545,6 +22559,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.regional-interaction-region-validation" ||
                   scenario == "cpp-tck.regional-interaction-region-validation-contract" ||
                   scenario == "cpp-tck.object-registration-discovery-lifecycle" ||
+                  scenario == "cpp-tck.overlapping-object-class-subscriptions-single-discovery" ||
+                  scenario == "cpp-tck.overlapping-object-class-subscriptions-single-discovery-contract" ||
                   scenario == "cpp-tck.federation-teardown-isolation" ||
                   scenario == "cpp-tck.federation-teardown-isolation-contract" ||
                   scenario == "cpp-tck.mixed-update-rate-subscriptions" ||

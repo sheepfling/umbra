@@ -1,5 +1,8 @@
 #include "tck_main_scenarios.hpp"
 
+#include <chrono>
+#include <thread>
+
 namespace hla_rti_cpp_tck::detail {
 
 void scenarioReservedObjectNameDoesNotDiscover(
@@ -321,6 +324,90 @@ void scenarioObjectRegistrationDiscoveryLifecycle(
   cancelled.disconnect();
   base.disconnect();
   exact.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioOverlappingObjectClassSubscriptionsSingleDiscovery(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "overlapping object-class subscriptions require an adapter-supplied hierarchy FOM");
+  Session publisher(options, model, "overlap-publisher");
+  Session subscriber(options, model, "overlap-subscriber");
+  auto const federation = federationName(
+      options, "overlapping-object-class-subscriptions-single-discovery");
+  connectAndJoin(publisher, subscriber, options, federation, options.modelFom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.typedDerivedObjectClassName);
+  auto const subscriberBaseClass = subscriber.rtiAmbassador().getObjectClassHandle(
+      options.typedObjectClassName);
+  auto const subscriberDerivedClass = subscriber.rtiAmbassador().getObjectClassHandle(
+      options.typedDerivedObjectClassName);
+  auto const publisherIdentity = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass, options.typedIdentityAttributeName);
+  auto const publisherDerivedAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass, options.typedDerivedAttributeName);
+  auto const subscriberBaseIdentity = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberBaseClass, options.typedIdentityAttributeName);
+  auto const subscriberDerivedAttribute = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberDerivedClass, options.typedDerivedAttributeName);
+  require(
+      publisherClass.isValid() && subscriberBaseClass.isValid() &&
+          subscriberDerivedClass.isValid() &&
+          subscriberBaseClass != subscriberDerivedClass &&
+          publisherIdentity.isValid() && publisherDerivedAttribute.isValid() &&
+          subscriberBaseIdentity.isValid() && subscriberDerivedAttribute.isValid(),
+      "overlapping subscription hierarchy FOM lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const publishedAttributes{
+      publisherIdentity, publisherDerivedAttribute};
+  rti::AttributeHandleSet const baseAttributes{subscriberBaseIdentity};
+  rti::AttributeHandleSet const derivedAttributes{subscriberDerivedAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass, publishedAttributes);
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberBaseClass, baseAttributes, true, L"");
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberDerivedClass, derivedAttributes, true, L"");
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(object.isValid(), "overlapping-subscription registration returned an invalid handle");
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().discoveryCount() != 0U; },
+      options,
+      "discovery through overlapping base and derived subscriptions");
+
+  auto const quietDeadline = std::chrono::steady_clock::now() +
+      std::chrono::milliseconds(150);
+  while (std::chrono::steady_clock::now() < quietDeadline) {
+    subscriber.pump();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+
+  auto const discovery = subscriber.recorder().discovery();
+  auto const objectName = publisher.rtiAmbassador().getObjectInstanceName(object);
+  require(
+      subscriber.recorder().discoveryCount() == 1U && discovery.present &&
+          discovery.object == object && discovery.objectClass == subscriberDerivedClass &&
+          !objectName.empty() &&
+          subscriber.rtiAmbassador().getKnownObjectClassHandle(object) ==
+              subscriberDerivedClass &&
+          subscriber.rtiAmbassador().getObjectInstanceHandle(objectName) == object,
+      "one derived registration did not produce exactly one discovery of its registered class");
+
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberDerivedClass, derivedAttributes);
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberBaseClass, baseAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass, publishedAttributes);
+  subscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  subscriber.disconnect();
   publisher.disconnect();
 }
 

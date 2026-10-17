@@ -452,6 +452,10 @@ void scenarioObjectPublicationRegistrationFence(Options const&, rti::CallbackMod
 void scenarioObjectPublicationRegistrationFenceContract(Options const&, rti::CallbackModel);
 void scenarioObjectRegistrationDiscoveryLifecycle(Options const&, rti::CallbackModel);
 void scenarioObjectRegistrationDiscoveryLifecycleContract(Options const&, rti::CallbackModel);
+void scenarioOverlappingObjectClassSubscriptionsSingleDiscovery(
+    Options const&, rti::CallbackModel);
+void scenarioOverlappingObjectClassSubscriptionsSingleDiscoveryContract(
+    Options const&, rti::CallbackModel);
 void scenarioObjectRegistrationDiscoveryMultiRecipient(Options const&, rti::CallbackModel);
 void scenarioObjectRegistrationDiscoveryMultiRecipientContract(Options const&, rti::CallbackModel);
 void scenarioOrderTypeControls(Options const&, rti::CallbackModel);
