@@ -1754,7 +1754,9 @@
         "RTIambassador.joinFederationExecution(federateName, federateType, federationName)",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassHandleSetFactory",
         "RTIambassador.getParameterHandle",
         "RTIambassador.getFederateHandle",
         "RTIambassador.getTransportationTypeHandle",
@@ -6635,6 +6637,119 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#directedInteractions",
       "default_status": "run"
+    },
+    {
+      "id": "java-tck.directed-interaction-subscription-accumulation",
+      "category": "directed-interaction",
+      "title": "Accumulate directed-interaction class selections across sequential subscriptions",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractions(set)",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.sendDirectedInteraction",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions(set)",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassDirectedInteractions(set)",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.receiveDirectedInteraction"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l134-39"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l134-39"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l134-39",
+          "standard_section": "hla-1516.1-2025:clause-5.12"
+        }
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-5.12"],
+      "mapping_note": "Parity mapping to the C++ subscription-accumulation case: after two sequential Subscribe Object Class Directed Interactions calls for the same object class, both sibling interaction classes are delivered to the targeted object with their own parameter values and tags. The test does not assert the optional change in by-ownership/universal subscription nature.",
+      "contract_refs": [
+        "directed-interaction-api-contract.json",
+        "directed-interaction-requirements-contract.json",
+        "publish-object-class-directed-interactions-api-contract.json",
+        "subscribe-object-class-directed-interactions-api-contract.json",
+        "subscribe-object-class-directed-interactions-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#directedInteractionSubscriptionAccumulation",
+      "parity": "cpp-tck.directed-interaction-subscription-accumulation",
+      "default_status": "unsupported",
+      "exclusion": "Java provider runtime evidence is not yet available; this scenario has API-only compile and parity validation. It requires an adapter-supplied FOM containing the two test interaction classes."
+    },
+    {
+      "id": "java-tck.directed-interaction-received-class-projection",
+      "category": "directed-interaction",
+      "title": "Project a sent derived directed interaction to the closest subscribed class",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassHandleSetFactory",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractions(set)",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "RTIambassador.sendDirectedInteraction",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions(set)",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassDirectedInteractions(set)",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.receiveDirectedInteraction"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l143-42"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l143-42"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l143-42",
+          "standard_section": "hla-1516.1-2025:clause-5.12"
+        }
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-5.12"],
+      "mapping_note": "Parity mapping to the C++ received-class projection case. One directed interaction sent at TckTypedDerivedInteraction is reported to the superclass subscriber as TckTypedInteraction with only its inherited parameter; the exact-class subscriber receives the sent class and both inherited and derived parameters. The test asserts only this §5.12 projection behavior.",
+      "contract_refs": [
+        "directed-interaction-api-contract.json",
+        "standard-directed-interaction-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#directedInteractionReceivedClassProjection",
+      "parity": "cpp-tck.directed-interaction-received-class-projection",
+      "default_status": "unsupported",
+      "exclusion": "Java provider runtime evidence is not yet available; this scenario has API-only compile and parity validation. It requires an adapter-supplied FOM with the typed base/derived object and interaction hierarchy."
     },
     {
       "id": "java-tck.support-lookups-valid-inputs-after-resignation",
@@ -12931,6 +13046,68 @@
       "parity": "cpp-tck.sent-tso-per-recipient-order-conversion",
       "default_status": "unsupported",
       "exclusion": "Requires an adapter-supplied provider, FOM, endpoint, logical-time implementation, and callback model; Java provider runtime evidence is not yet available."
+    },
+    {
+      "id": "java-tck.sent-tso-attribute-per-recipient-order-conversion",
+      "category": "time-management",
+      "title": "Report sent TSO and receiver-dependent received order for one timestamped attribute update",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType(TIMESTAMP)",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.updateAttributeValues(LogicalTime)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.evokeMultipleCallbacks",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.reflectAttributeValues(LogicalTime)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "cpp-1516.1-time-advance-and-grant",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l118-3",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l121-4",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l133-8",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l139-10"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-181-l118-3",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l121-4",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l133-8",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l139-10"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l118-3", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l121-4", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l133-8", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l139-10", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "mapping_note": "Parity mapping to the C++ attribute-update case: one timestamped update is reported as sent TIMESTAMP/received RECEIVE to the unconstrained recipient, and sent TIMESTAMP/received TIMESTAMP to the constrained recipient. Both time-bearing callbacks preserve the value, tag, timestamp, and retraction designator; the constrained reflection precedes its matching grant. This is the tested attribute-update branch only, not the complete order matrix.",
+      "contract_refs": [
+        "attribute-update-order-classification-api-contract.json",
+        "timestamped-attribute-update-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#sentTsoAttributePerRecipientOrderConversion",
+      "parity": "cpp-tck.sent-tso-attribute-per-recipient-order-conversion",
+      "default_status": "unsupported",
+      "exclusion": "Java provider runtime evidence is not yet available; this scenario has API-only compile and parity validation."
     },
     {
       "id": "java-tck.modify-lookahead-service-report",

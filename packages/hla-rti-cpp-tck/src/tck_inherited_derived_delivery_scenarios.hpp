@@ -16,5 +16,7 @@ void scenarioDirectedDerivedObjectTargetEligibility(Options const&, rti::Callbac
 void scenarioDirectedDerivedObjectTargetEligibilityContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedDirectedDerivedObjectTargetDelivery(Options const&, rti::CallbackModel);
 void scenarioTimestampedDirectedDerivedObjectTargetDeliveryContract(Options const&, rti::CallbackModel);
+void scenarioDirectedInteractionReceivedClassProjection(Options const&, rti::CallbackModel);
+void scenarioDirectedInteractionSubscriptionAccumulation(Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Directed interaction received-class projection TCK FOM</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-10-17</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Portable IEEE 1516.1-2025 directed interaction conformance test</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>Minimal typed class hierarchy for directed interaction received-class projection.</description>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>TckTypedObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <directedInteraction>
+                    <name>HLAinteractionRoot.TckTypedInteraction</name>
+                    <sharing>PublishSubscribe</sharing>
+                </directedInteraction>
+                <attribute>
+                    <name>Identity</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>At registration.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Target object marker used for discovery by this TCK fixture.</semantics>
+                </attribute>
+                <objectClass>
+                    <name>TckTypedDerivedObject</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <directedInteraction>
+                        <name>HLAinteractionRoot.TckTypedInteraction.TckTypedDerivedInteraction</name>
+                        <sharing>PublishSubscribe</sharing>
+                    </directedInteraction>
+                </objectClass>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <sharing>Neither</sharing>
+            <interactionClass>
+                <name>TckTypedInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>Receive</order>
+                <parameter>
+                    <name>IntegerParameter</name>
+                    <dataType>HLAbyte</dataType>
+                    <semantics>Base-class parameter for received-class projection.</semantics>
+                </parameter>
+                <interactionClass>
+                    <name>TckTypedDerivedInteraction</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <parameter>
+                        <name>DerivedParameter</name>
+                        <dataType>HLAbyte</dataType>
+                        <semantics>Derived-class parameter for received-class projection.</semantics>
+                    </parameter>
+                </interactionClass>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+</objectModel>

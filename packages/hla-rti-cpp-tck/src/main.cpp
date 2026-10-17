@@ -97,6 +97,10 @@
 #include "tck_custom_transportation_interaction_scenarios.hpp"
 
 namespace hla_rti_cpp_tck::detail {
+void scenarioSentTsoAttributePerRecipientOrderConversion(Options const&,
+                                                         rti::CallbackModel);
+void scenarioSentTsoAttributePerRecipientOrderConversionContract(
+    Options const&, rti::CallbackModel);
 void scenarioFqrPostgrantLowerTsoRetraction(Options const&, rti::CallbackModel);
 void scenarioFqrPostgrantLowerTsoRetractionContract(Options const&, rti::CallbackModel);
 void scenarioFqgPostgrantDeliveryCutoff(Options const&, rti::CallbackModel);
@@ -19409,6 +19413,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-inherited-interaction-class-delivery",
       "cpp-tck.timestamped-inherited-interaction-class-delivery-contract",
       "cpp-tck.directed-interaction-derived-object-target",
+      "cpp-tck.directed-interaction-received-class-projection",
+      "cpp-tck.directed-interaction-subscription-accumulation",
       "cpp-tck.directed-interaction-derived-object-target-contract",
       "cpp-tck.directed-derived-object-target-eligibility",
       "cpp-tck.directed-derived-object-target-eligibility-contract",
@@ -19650,6 +19656,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.interaction-fdd-preferred-order-default-contract",
       "cpp-tck.sent-tso-per-recipient-order-conversion",
       "cpp-tck.sent-tso-per-recipient-order-conversion-contract",
+      "cpp-tck.sent-tso-attribute-per-recipient-order-conversion",
+      "cpp-tck.sent-tso-attribute-per-recipient-order-conversion-contract",
       "cpp-tck.timestamped-interaction-source-resignation-contract",
       "cpp-tck.timestamped-interaction-source-resignation-fanout-contract",
       "cpp-tck.timestamped-directed-interactions-contract",
@@ -21429,6 +21437,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.sent-tso-per-recipient-order-conversion-contract") {
     return scenarioSentTsoPerRecipientOrderConversionContract;
   }
+  if (id == "cpp-tck.sent-tso-attribute-per-recipient-order-conversion") {
+    return scenarioSentTsoAttributePerRecipientOrderConversion;
+  }
+  if (id == "cpp-tck.sent-tso-attribute-per-recipient-order-conversion-contract") {
+    return scenarioSentTsoAttributePerRecipientOrderConversionContract;
+  }
   if (id == "cpp-tck.timestamped-interaction-source-resignation-contract") {
     return scenarioTimestampedInteractionSourceResignationContract;
   }
@@ -22609,6 +22623,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.directed-interaction-derived-object-target") {
     return scenarioDirectedDerivedObjectTargetDelivery;
   }
+  if (id == "cpp-tck.directed-interaction-received-class-projection") {
+    return scenarioDirectedInteractionReceivedClassProjection;
+  }
+  if (id == "cpp-tck.directed-interaction-subscription-accumulation") {
+    return scenarioDirectedInteractionSubscriptionAccumulation;
+  }
   if (id == "cpp-tck.directed-interaction-derived-object-target-contract") {
     return scenarioDirectedDerivedObjectTargetDeliveryContract;
   }
@@ -22923,6 +22943,8 @@ int run(Options const& options) {
                    scenario == "cpp-tck.timestamped-inherited-interaction-class-delivery" ||
                    scenario == "cpp-tck.timestamped-inherited-interaction-class-delivery-contract" ||
                     scenario == "cpp-tck.directed-interaction-derived-object-target" ||
+                    scenario == "cpp-tck.directed-interaction-received-class-projection" ||
+                    scenario == "cpp-tck.directed-interaction-subscription-accumulation" ||
                     scenario == "cpp-tck.directed-interaction-derived-object-target-contract" ||
                     scenario == "cpp-tck.directed-derived-object-target-eligibility" ||
                     scenario == "cpp-tck.directed-derived-object-target-eligibility-contract" ||
@@ -22964,7 +22986,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-attribute-update-rate-reduction" ||
                   scenario == "cpp-tck.timestamped-attribute-update-rate-reduction-contract" ||
                   scenario == "cpp-tck.object-class-attribute-value-update-request-baseline" ||
-                  scenario == "cpp-tck.object-class-attribute-value-update-request-baseline-contract") &&
+                  scenario == "cpp-tck.object-class-attribute-value-update-request-baseline-contract" ||
+                  scenario == "cpp-tck.directed-interaction-subscription-accumulation") &&
                  options.modelFom.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied rich FOM model";
@@ -23221,6 +23244,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.interaction-fdd-preferred-order-default-contract" ||
                   scenario == "cpp-tck.sent-tso-per-recipient-order-conversion" ||
                   scenario == "cpp-tck.sent-tso-per-recipient-order-conversion-contract" ||
+                  scenario == "cpp-tck.sent-tso-attribute-per-recipient-order-conversion" ||
+                  scenario == "cpp-tck.sent-tso-attribute-per-recipient-order-conversion-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-source-resignation" ||
                   scenario == "cpp-tck.timestamped-interaction-source-resignation-fanout" ||
                   scenario == "cpp-tck.timestamped-interaction-mixed-advances-contract" ||
@@ -23425,7 +23450,9 @@ int run(Options const& options) {
                   scenario == "cpp-tck.interaction-fdd-preferred-order-default" ||
                   scenario == "cpp-tck.interaction-fdd-preferred-order-default-contract" ||
                   scenario == "cpp-tck.sent-tso-per-recipient-order-conversion" ||
-                  scenario == "cpp-tck.sent-tso-per-recipient-order-conversion-contract") &&
+                  scenario == "cpp-tck.sent-tso-per-recipient-order-conversion-contract" ||
+                  scenario == "cpp-tck.sent-tso-attribute-per-recipient-order-conversion" ||
+                  scenario == "cpp-tck.sent-tso-attribute-per-recipient-order-conversion-contract") &&
                  options.logicalTimeImplementationName.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied logical-time implementation";
