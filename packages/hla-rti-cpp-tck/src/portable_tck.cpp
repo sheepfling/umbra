@@ -1008,6 +1008,18 @@ constexpr char timestampedInteractionPreferredReceiveConversionScenario[] =
     "cpp-tck.timestamped-interaction-preferred-receive-conversion";
 constexpr char timestampedInteractionPreferredReceiveConversionContractId[] =
     "cpp-tck.timestamped-interaction-preferred-receive-conversion-contract";
+constexpr char timestampedInteractionSenderRegulationTransitionScenario[] =
+    "cpp-tck.timestamped-interaction-sender-regulation-transition";
+constexpr char timestampedInteractionSenderRegulationTransitionContractId[] =
+    "cpp-tck.timestamped-interaction-sender-regulation-transition-contract";
+constexpr char interactionFddPreferredOrderDefaultScenario[] =
+    "cpp-tck.interaction-fdd-preferred-order-default";
+constexpr char interactionFddPreferredOrderDefaultContractId[] =
+    "cpp-tck.interaction-fdd-preferred-order-default-contract";
+constexpr char sentTsoPerRecipientOrderConversionScenario[] =
+    "cpp-tck.sent-tso-per-recipient-order-conversion";
+constexpr char sentTsoPerRecipientOrderConversionContractId[] =
+    "cpp-tck.sent-tso-per-recipient-order-conversion-contract";
 constexpr char timestampedInteractionSourceResignationScenario[] =
     "cpp-tck.timestamped-interaction-source-resignation";
 constexpr char timestampedInteractionSourceResignationContractId[] =
@@ -3190,6 +3202,26 @@ void scenarioTimestampedInteractionPreferredReceiveConversionPortable(
 void scenarioTimestampedInteractionPreferredReceiveConversionContractPortable(
     Options const& options, rti::CallbackModel model) {
   scenarioTimestampedInteractionPreferredReceiveConversionContract(options, model);
+}
+
+void scenarioTimestampedInteractionSenderRegulationTransitionPortable(
+    Options const& options, rti::CallbackModel model) {
+  scenarioTimestampedInteractionSenderRegulationTransition(options, model);
+}
+
+void scenarioTimestampedInteractionSenderRegulationTransitionContractPortable(
+    Options const& options, rti::CallbackModel model) {
+  scenarioTimestampedInteractionSenderRegulationTransitionContract(options, model);
+}
+
+void scenarioInteractionFddPreferredOrderDefaultPortable(
+    Options const& options, rti::CallbackModel model) {
+  scenarioInteractionFddPreferredOrderDefault(options, model);
+}
+
+void scenarioInteractionFddPreferredOrderDefaultContractPortable(
+    Options const& options, rti::CallbackModel model) {
+  scenarioInteractionFddPreferredOrderDefaultContract(options, model);
 }
 
 void scenarioTimestampedAttributeUpdatePortable(
@@ -15620,6 +15652,27 @@ int runTimestampedInteractionPreferredReceiveConversionScenarios(
       scenarioTimestampedInteractionPreferredReceiveConversionContractPortable);
 }
 
+int runTimestampedInteractionSenderRegulationTransitionScenarios(
+    int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionSenderRegulationTransitionScenario,
+      timestampedInteractionSenderRegulationTransitionContractId,
+      scenarioTimestampedInteractionSenderRegulationTransitionPortable,
+      scenarioTimestampedInteractionSenderRegulationTransitionContractPortable);
+}
+
+int runInteractionFddPreferredOrderDefaultScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      interactionFddPreferredOrderDefaultScenario,
+      interactionFddPreferredOrderDefaultContractId,
+      scenarioInteractionFddPreferredOrderDefaultPortable,
+      scenarioInteractionFddPreferredOrderDefaultContractPortable);
+}
+
 int runTimestampedAttributeUpdateScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -18531,6 +18584,35 @@ bool hasTimestampedInteractionPreferredReceiveConversionScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedInteractionPreferredReceiveConversionScenario ||
         scenario == timestampedInteractionPreferredReceiveConversionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedInteractionSenderRegulationTransitionScenario(
+    int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionSenderRegulationTransitionScenario ||
+        scenario == timestampedInteractionSenderRegulationTransitionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasInteractionFddPreferredOrderDefaultScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == interactionFddPreferredOrderDefaultScenario ||
+        scenario == interactionFddPreferredOrderDefaultContractId) {
       return true;
     }
   }
@@ -22580,6 +22662,13 @@ int main(int argc, char** argv) {
     if (hasTimestampedInteractionPreferredReceiveConversionScenario(argc, argv)) {
       return runTimestampedInteractionPreferredReceiveConversionScenarios(
           argc, argv);
+    }
+    if (hasTimestampedInteractionSenderRegulationTransitionScenario(argc, argv)) {
+      return runTimestampedInteractionSenderRegulationTransitionScenarios(
+          argc, argv);
+    }
+    if (hasInteractionFddPreferredOrderDefaultScenario(argc, argv)) {
+      return runInteractionFddPreferredOrderDefaultScenarios(argc, argv);
     }
     if (hasJavaTimestampedAttributeUpdateScenario(argc, argv)) {
       return runJavaTimestampedAttributeUpdateScenario(argc, argv);

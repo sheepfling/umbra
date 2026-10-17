@@ -18179,6 +18179,223 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-interaction-sender-regulation-transition",
+      "category": "time-management",
+      "title": "Classify timestamped Send Interaction by sender Time Regulation with preferred order and timestamp fixed",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableAsynchronousDelivery",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.getTransportationTypeName",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-interaction-management",
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l156-49"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+          "standard_section": "hla-1516.1-2025:clause-8.1.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l156-49",
+          "standard_section": "hla-1516.1-2025:clause-8.1.4"
+        }
+      ],
+      "mapping_note": "Focused §8.1.4 Table 2 case: with preferred TIMESTAMP order and time 6 fixed, the non-regulating sender's send is receive order with no retraction designator; after sender Time Regulation completes, the same send is timestamp order with a valid retraction designator and is held until receiver advancement. A separate regulator keeps GALT defined. Other classification factors and message families are not covered.",
+      "contract_refs": ["standard-timestamped-interaction-sender-regulation-transition-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionSenderRegulationTransitionPortable",
+      "runner_id": "cpp-tck.timestamped-interaction-sender-regulation-transition",
+      "parity": "java-tck.timestamped-interaction-sender-regulation-transition",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-interaction-sender-regulation-transition-contract",
+      "category": "time-management",
+      "title": "Portable standard contract for timestamped interaction sender-role order classification",
+      "api_methods": [
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.sendInteraction(time)",
+        "FederateAmbassador.receiveInteraction(time)"
+      ],
+      "requirement_ids": ["cpp-1516.1-timestamped-interaction-delivery"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l156-49"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+          "standard_section": "hla-1516.1-2025:clause-8.1.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l156-49",
+          "standard_section": "hla-1516.1-2025:clause-8.1.4"
+        }
+      ],
+      "mapping_note": "Contract twin for the same directly mapped §8.1.4 transition; it makes no additional classification or interoperability claim.",
+      "contract_refs": ["standard-timestamped-interaction-sender-regulation-transition-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionSenderRegulationTransitionContractPortable",
+      "runner_id": "cpp-tck.timestamped-interaction-sender-regulation-transition-contract",
+      "parity": "cpp-tck.timestamped-interaction-sender-regulation-transition",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.interaction-fdd-preferred-order-default",
+      "category": "time-management",
+      "title": "Timestamped interaction sends preserve each interaction class's FDD-preferred order by default",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.sendInteraction(LogicalTime)",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "FederateAmbassador.receiveInteraction(LogicalTime)"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-interaction-management",
+        "cpp-1516.1-timestamped-interaction-delivery"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l78-23",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l84-25"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l78-23",
+          "standard_section": "hla-1516.1-2025:clause-8.1.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l84-25",
+          "standard_section": "hla-1516.1-2025:clause-8.1.4"
+        }
+      ],
+      "mapping_note": "Direct §8.1.4 FDD-default case: without Change Interaction Order Type, the timestamped send uses TIMESTAMP for the Timestamp-preferred interaction class and RECEIVE for the Receive-preferred class. The test preserves sent-order and retraction behavior and callback metadata. The two interaction class declarations are adapter-FOM inputs; this is not the full order-classification matrix or conformance evidence.",
+      "contract_refs": ["standard-interaction-fdd-preferred-order-default-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioInteractionFddPreferredOrderDefaultPortable",
+      "runner_id": "cpp-tck.interaction-fdd-preferred-order-default",
+      "parity": "java-tck.interaction-fdd-preferred-order-default",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.interaction-fdd-preferred-order-default-contract",
+      "category": "time-management",
+      "title": "Standard adapter-backed contract for FDD-preferred interaction order defaults",
+      "api_methods": [
+        "RTIambassador.sendInteraction(LogicalTime)",
+        "FederateAmbassador.receiveInteraction(LogicalTime)"
+      ],
+      "requirement_ids": ["cpp-1516.1-timestamped-interaction-delivery"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l78-23",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l84-25"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l78-23",
+          "standard_section": "hla-1516.1-2025:clause-8.1.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l84-25",
+          "standard_section": "hla-1516.1-2025:clause-8.1.4"
+        }
+      ],
+      "mapping_note": "Contract twin for the same direct §8.1.4 FDD-default observations; it adds no broader order-classification or conformance claim.",
+      "contract_refs": ["standard-interaction-fdd-preferred-order-default-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioInteractionFddPreferredOrderDefaultContractPortable",
+      "runner_id": "cpp-tck.interaction-fdd-preferred-order-default-contract",
+      "parity": "cpp-tck.interaction-fdd-preferred-order-default",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.sent-tso-per-recipient-order-conversion",
+      "category": "time-management",
+      "title": "Report sent TSO and receiver-dependent received order for one timestamped interaction",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.sendInteraction(LogicalTime)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.getTransportationTypeName",
+        "FederateAmbassador.receiveInteraction(LogicalTime)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-interaction-management",
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l138-43",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l144-45"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "mapping_note": "Direct §8.1.4 Table 3 witness: one sender configures TIMESTAMP preferred order and sends one timestamped interaction to two subscribers. The unconstrained receiver reports sent TIMESTAMP/received RECEIVE before any grant; the constrained receiver reports sent TIMESTAMP/received TIMESTAMP only at its requested time and before its grant. Both time-bearing callbacks retain message data and the retraction designator. This is one table branch and receiver-status comparison, not the full §8.1.4 order matrix.",
+      "contract_refs": ["standard-sent-tso-per-recipient-order-conversion-contract.json"],
+      "cpp_test": "src/tck_sent_tso_per_recipient_order_conversion.cpp#scenarioSentTsoPerRecipientOrderConversion",
+      "runner_id": "cpp-tck.sent-tso-per-recipient-order-conversion",
+      "parity": "java-tck.sent-tso-per-recipient-order-conversion",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.sent-tso-per-recipient-order-conversion-contract",
+      "category": "time-management",
+      "title": "Standard adapter-backed contract for recipient-dependent order conversion of one sent TSO interaction",
+      "api_methods": [
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.sendInteraction(LogicalTime)",
+        "FederateAmbassador.receiveInteraction(LogicalTime)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": ["cpp-1516.1-timestamped-interaction-delivery"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l138-43",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l144-45"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "mapping_note": "Same direct §8.1.4 Table 3 mapping as the paired scenario. The assertion is restricted to one sent TSO interaction observed by one time-constrained and one unconstrained receiver.",
+      "contract_refs": ["standard-sent-tso-per-recipient-order-conversion-contract.json"],
+      "cpp_test": "src/tck_sent_tso_per_recipient_order_conversion.cpp#scenarioSentTsoPerRecipientOrderConversionContract",
+      "runner_id": "cpp-tck.sent-tso-per-recipient-order-conversion-contract",
+      "parity": "cpp-tck.sent-tso-per-recipient-order-conversion",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.time-bounds-queries",
       "category": "time-bounds-query",
       "title": "Query undefined and minimum no-TSO GALT/LITS boundaries",

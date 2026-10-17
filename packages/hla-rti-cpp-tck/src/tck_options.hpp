@@ -61,6 +61,10 @@ struct Options {
       L"HLAinteractionRoot.TckTransportRegionalInteraction";
   std::wstring customRegionalParameterName = L"RegionalPayload";
   std::wstring interactionClassName = L"HLAinteractionRoot.TckInteraction";
+  std::wstring preferredTimestampInteractionClassName =
+      L"HLAinteractionRoot.TckPreferredTimestampInteraction";
+  std::wstring preferredReceiveInteractionClassName =
+      L"HLAinteractionRoot.TckPreferredReceiveInteraction";
   std::wstring secondaryDirectedObjectClassName =
       L"HLAobjectRoot.TckObject.TckSecondaryObject";
   std::wstring secondaryDirectedInteractionClassName =

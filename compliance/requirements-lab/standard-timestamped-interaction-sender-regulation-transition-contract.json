@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records a focused portable IEEE 1516.1-2025 test of sender-role order classification for timestamped Send Interaction. Keep the interaction's preferred order TIMESTAMP and supplied logical timestamp fixed: before the sender completes Enable Time Regulation, delivery is receive order and the send returns no valid retraction designator; after the sender becomes time regulating, delivery is timestamp order, includes a valid retraction designator, and remains queued until receiver advancement. A separate regulating federate keeps GALT defined for the first send. The adapter supplies the provider, standard FOM, endpoint, callback model, and logical-time implementation. This focused API check is not conformance evidence and does not cover the full classification matrix.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-interaction-sender-regulation-transition",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped Send Interaction, Change Interaction Order Type and Enable Time Regulation with FederateAmbassador interaction/order callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped send, interaction-order and time-regulation declarations; FederateAmbassador receiveInteraction callback",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_timestamped_interaction_sender_regulation_transition.cpp::scenarioTimestampedInteractionSenderRegulationTransition"
+      ]
+    },
+    {
+      "id": "standard-java-timestamped-interaction-sender-regulation-transition",
+      "owner": "IEEE 1516.1 Java API",
+      "language": "java",
+      "signature": "RTIambassador timestamped Send Interaction, interaction-order and time-regulation methods with FederateAmbassador receiveInteraction callback",
+      "source": "third_party/ieee1516.1-2025/java/src",
+      "source_symbol": "IEEE 1516.1 Java RTIambassador timestamped send, interaction-order and time-regulation declarations; FederateAmbassador receiveInteraction callback",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/TimestampedInteractionSenderRegulationTransitionTck.java::run"
+      ]
+    }
+  ]
+}

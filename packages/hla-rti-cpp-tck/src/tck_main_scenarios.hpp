@@ -132,6 +132,12 @@ void scenarioSendMessageTimeStatePreservationGranted(Options const&, rti::Callba
 void scenarioSendMessageTimeStatePreservationGrantedContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionPreferredReceiveConversion(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionPreferredReceiveConversionContract(Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionSenderRegulationTransition(Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionSenderRegulationTransitionContract(Options const&, rti::CallbackModel);
+void scenarioInteractionFddPreferredOrderDefault(Options const&, rti::CallbackModel);
+void scenarioInteractionFddPreferredOrderDefaultContract(Options const&, rti::CallbackModel);
+void scenarioSentTsoPerRecipientOrderConversion(Options const&, rti::CallbackModel);
+void scenarioSentTsoPerRecipientOrderConversionContract(Options const&, rti::CallbackModel);
 void scenarioObjectDeletion(Options const&, rti::CallbackModel);
 void scenarioObjectRegistration(Options const&, rti::CallbackModel);
 void scenarioOwnership(Options const&, rti::CallbackModel);
@@ -294,6 +300,10 @@ void scenarioUnregulatedSenderTimestampedInteraction(Options const&, rti::Callba
 void scenarioUnregulatedSenderTimestampedInteractionContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionPreferredReceiveConversion(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionPreferredReceiveConversionContract(Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionSenderRegulationTransition(Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionSenderRegulationTransitionContract(Options const&, rti::CallbackModel);
+void scenarioSentTsoPerRecipientOrderConversion(Options const&, rti::CallbackModel);
+void scenarioSentTsoPerRecipientOrderConversionContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedObjectDeletion(Options const&, rti::CallbackModel);
 void scenarioTimestampedObjectDeletionContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedObjectDeletionJoinedOwnerRetraction(Options const&, rti::CallbackModel);

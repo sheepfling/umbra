@@ -19441,6 +19441,12 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-interactions-contract",
       "cpp-tck.timestamped-interaction-preferred-receive-conversion",
       "cpp-tck.timestamped-interaction-preferred-receive-conversion-contract",
+      "cpp-tck.timestamped-interaction-sender-regulation-transition",
+      "cpp-tck.timestamped-interaction-sender-regulation-transition-contract",
+      "cpp-tck.interaction-fdd-preferred-order-default",
+      "cpp-tck.interaction-fdd-preferred-order-default-contract",
+      "cpp-tck.sent-tso-per-recipient-order-conversion",
+      "cpp-tck.sent-tso-per-recipient-order-conversion-contract",
       "cpp-tck.timestamped-interaction-source-resignation-contract",
       "cpp-tck.timestamped-interaction-source-resignation-fanout-contract",
       "cpp-tck.timestamped-directed-interactions-contract",
@@ -19934,6 +19940,8 @@ void printHelp() {
       "  --custom-regional-parameter NAME\n"
       "                                Timestamped regional custom-transport parameter\n"
       "  --interaction-class NAME      Interaction class handle lookup name\n"
+      "  --preferred-timestamp-interaction-class NAME  FDD-default TSO interaction class\n"
+      "  --preferred-receive-interaction-class NAME    FDD-default receive-order class\n"
       "  --secondary-directed-object-class NAME\n"
       "                                Second adapter FOM object class for directed-subscription scenarios\n"
       "  --secondary-directed-interaction-class NAME\n"
@@ -20175,6 +20183,12 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--interaction-class") {
       requireValue(index, argc, argv, argument);
       options.interactionClassName = toWide(argv[++index]);
+    } else if (argument == "--preferred-timestamp-interaction-class") {
+      requireValue(index, argc, argv, argument);
+      options.preferredTimestampInteractionClassName = toWide(argv[++index]);
+    } else if (argument == "--preferred-receive-interaction-class") {
+      requireValue(index, argc, argv, argument);
+      options.preferredReceiveInteractionClassName = toWide(argv[++index]);
     } else if (argument == "--secondary-directed-object-class") {
       requireValue(index, argc, argv, argument);
       options.secondaryDirectedObjectClassName = toWide(argv[++index]);
@@ -21125,6 +21139,24 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.timestamped-interaction-preferred-receive-conversion-contract") {
     return scenarioTimestampedInteractionPreferredReceiveConversionContract;
+  }
+  if (id == "cpp-tck.timestamped-interaction-sender-regulation-transition") {
+    return scenarioTimestampedInteractionSenderRegulationTransition;
+  }
+  if (id == "cpp-tck.timestamped-interaction-sender-regulation-transition-contract") {
+    return scenarioTimestampedInteractionSenderRegulationTransitionContract;
+  }
+  if (id == "cpp-tck.interaction-fdd-preferred-order-default") {
+    return scenarioInteractionFddPreferredOrderDefault;
+  }
+  if (id == "cpp-tck.interaction-fdd-preferred-order-default-contract") {
+    return scenarioInteractionFddPreferredOrderDefaultContract;
+  }
+  if (id == "cpp-tck.sent-tso-per-recipient-order-conversion") {
+    return scenarioSentTsoPerRecipientOrderConversion;
+  }
+  if (id == "cpp-tck.sent-tso-per-recipient-order-conversion-contract") {
+    return scenarioSentTsoPerRecipientOrderConversionContract;
   }
   if (id == "cpp-tck.timestamped-interaction-source-resignation-contract") {
     return scenarioTimestampedInteractionSourceResignationContract;
@@ -22816,6 +22848,12 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-interactions-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-preferred-receive-conversion" ||
                   scenario == "cpp-tck.timestamped-interaction-preferred-receive-conversion-contract" ||
+                  scenario == "cpp-tck.timestamped-interaction-sender-regulation-transition" ||
+                  scenario == "cpp-tck.timestamped-interaction-sender-regulation-transition-contract" ||
+                  scenario == "cpp-tck.interaction-fdd-preferred-order-default" ||
+                  scenario == "cpp-tck.interaction-fdd-preferred-order-default-contract" ||
+                  scenario == "cpp-tck.sent-tso-per-recipient-order-conversion" ||
+                  scenario == "cpp-tck.sent-tso-per-recipient-order-conversion-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-source-resignation" ||
                   scenario == "cpp-tck.timestamped-interaction-source-resignation-fanout" ||
                   scenario == "cpp-tck.timestamped-interaction-mixed-advances-contract" ||
@@ -22986,7 +23024,13 @@ int run(Options const& options) {
                   scenario == "cpp-tck.send-message-time-state-preservation-granted" ||
                   scenario == "cpp-tck.send-message-time-state-preservation-granted-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-preferred-receive-conversion" ||
-                  scenario == "cpp-tck.timestamped-interaction-preferred-receive-conversion-contract") &&
+                  scenario == "cpp-tck.timestamped-interaction-preferred-receive-conversion-contract" ||
+                  scenario == "cpp-tck.timestamped-interaction-sender-regulation-transition" ||
+                  scenario == "cpp-tck.timestamped-interaction-sender-regulation-transition-contract" ||
+                  scenario == "cpp-tck.interaction-fdd-preferred-order-default" ||
+                  scenario == "cpp-tck.interaction-fdd-preferred-order-default-contract" ||
+                  scenario == "cpp-tck.sent-tso-per-recipient-order-conversion" ||
+                  scenario == "cpp-tck.sent-tso-per-recipient-order-conversion-contract") &&
                  options.logicalTimeImplementationName.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied logical-time implementation";

@@ -307,6 +307,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fom-additional-update-rate", default="TckAdditionalRate")
     parser.add_argument("--interaction-class", default="HLAinteractionRoot.TckInteraction")
     parser.add_argument(
+        "--preferred-timestamp-interaction-class",
+        default="HLAinteractionRoot.TckPreferredTimestampInteraction",
+    )
+    parser.add_argument(
+        "--preferred-receive-interaction-class",
+        default="HLAinteractionRoot.TckPreferredReceiveInteraction",
+    )
+    parser.add_argument(
         "--secondary-directed-object-class",
         default="HLAobjectRoot.TckObject.TckSecondaryObject",
     )
@@ -577,6 +585,12 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FIRST": arguments.multi_attribute_first,
         "HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_SECOND": arguments.multi_attribute_second,
         "HLA_RTI_TCK_ADAPTER_INTERACTION_CLASS": arguments.interaction_class,
+        "HLA_RTI_TCK_ADAPTER_PREFERRED_TIMESTAMP_INTERACTION_CLASS": (
+            arguments.preferred_timestamp_interaction_class
+        ),
+        "HLA_RTI_TCK_ADAPTER_PREFERRED_RECEIVE_INTERACTION_CLASS": (
+            arguments.preferred_receive_interaction_class
+        ),
         "HLA_RTI_TCK_ADAPTER_SECONDARY_DIRECTED_OBJECT_CLASS": (
             arguments.secondary_directed_object_class
         ),
@@ -866,6 +880,10 @@ def direct_arguments(
         arguments.custom_regional_parameter,
         "--interaction-class",
         arguments.interaction_class,
+        "--preferred-timestamp-interaction-class",
+        arguments.preferred_timestamp_interaction_class,
+        "--preferred-receive-interaction-class",
+        arguments.preferred_receive_interaction_class,
         "--secondary-directed-object-class",
         arguments.secondary_directed_object_class,
         "--secondary-directed-interaction-class",

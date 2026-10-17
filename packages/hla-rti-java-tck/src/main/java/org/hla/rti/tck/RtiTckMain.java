@@ -128,6 +128,10 @@ public final class RtiTckMain {
       "hla.rti.tck.secondaryInteractionClass";
    private static final String SECONDARY_INTERACTION_PARAMETER_PROPERTY =
       "hla.rti.tck.secondaryInteractionParameter";
+   private static final String PREFERRED_TIMESTAMP_INTERACTION_CLASS_PROPERTY =
+      "hla.rti.tck.preferredTimestampInteractionClass";
+   private static final String PREFERRED_RECEIVE_INTERACTION_CLASS_PROPERTY =
+      "hla.rti.tck.preferredReceiveInteractionClass";
    private static final String CUSTOM_TRANSPORTATION_PROPERTY =
       "hla.rti.tck.customTransportationType";
    private static final String CUSTOM_TRANSPORTATION_OBJECT_CLASS_PROPERTY =
@@ -2222,6 +2226,22 @@ public final class RtiTckMain {
                 "requirement-candidate-content-clauses-07-ownership-management-page-177-l53-16",
                 "requirement-candidate-content-clauses-08-time-management-page-182-l97-30"
              }, false), RtiTckMain::unregulatedSenderTimestampedInteraction);
+       run(new Scenario("java-tck.timestamped-interaction-sender-regulation-transition",
+            "classify a timestamped interaction by sender Time Regulation with preferred order and timestamp fixed",
+            "time",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;LogicalTimeFactory.makeZero;RTIambassador.queryLogicalTime;RTIambassador.enableTimeConstrained;RTIambassador.enableAsynchronousDelivery;RTIambassador.enableTimeRegulation;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction(time);RTIambassador.timeAdvanceRequest;RTIambassador.getTransportationTypeName;RTIambassador.disableAsynchronousDelivery;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeAdvanceGrant",
+            new String[] {
+               "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+               "requirement-candidate-content-clauses-08-time-management-page-180-l156-49"
+            }, false), RtiTckMain::timestampedInteractionSenderRegulationTransition);
+       run(new Scenario("java-tck.interaction-fdd-preferred-order-default",
+            "use each interaction class's FDD-preferred order for timestamped Send Interaction without changing the default",
+            "time",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.queryLogicalTime;RTIambassador.enableTimeRegulation;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction(LogicalTime);RTIambassador.getTransportationTypeName;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.receiveInteraction(LogicalTime)",
+            new String[] {
+               "requirement-candidate-content-clauses-08-time-management-page-180-l78-23",
+               "requirement-candidate-content-clauses-08-time-management-page-180-l84-25"
+            }, false), RtiTckMain::interactionFddPreferredOrderDefault);
        run(new Scenario("java-tck.timestamped-interaction-mixed-advances",
             "timestamped interaction strictly before the TARA boundary through Flush Queue, TARA, and NMRA", "time",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction(time);RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.flushQueueRequest;RTIambassador.timeAdvanceRequestAvailable;RTIambassador.nextMessageRequestAvailable;RTIambassador.timeAdvanceRequest;RTIambassador.queryLogicalTime;FederateAmbassador.receiveInteraction(time);FederateAmbassador.flushQueueGrant;FederateAmbassador.timeAdvanceGrant;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
@@ -2238,6 +2258,15 @@ public final class RtiTckMain {
                "cpp-1516.1-timestamped-interaction-delivery",
                "cpp-1516.1-time-advance-request"
             }, false), RtiTckMain::timestampedInteractionPreferredReceiveConversion);
+      run(new Scenario("java-tck.sent-tso-per-recipient-order-conversion",
+            "report sent TSO and receiver-dependent received order for one interaction",
+            "time",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.subscribeInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.getTimeFactory;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.sendInteraction(time);RTIambassador.timeAdvanceRequest;RTIambassador.getTransportationTypeName;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeAdvanceGrant",
+            new String[] {
+               "cpp-1516.1-interaction-management",
+               "cpp-1516.1-timestamped-interaction-delivery",
+               "cpp-1516.1-time-advance-and-grant"
+            }, false), RtiTckMain::sentTsoPerRecipientOrderConversion);
       run(new Scenario("java-tck.timestamped-interaction-tar-equal-boundary",
             "deliver an equal-time timestamped interaction before the TAR grant", "time",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction(time);RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.timeAdvanceRequest;RTIambassador.flushQueueRequest;RTIambassador.nextMessageRequestAvailable;RTIambassador.queryLogicalTime;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction(time);FederateAmbassador.flushQueueGrant;FederateAmbassador.timeAdvanceGrant",
@@ -7245,6 +7274,18 @@ public final class RtiTckMain {
           timeImplementation(), interactionClassName(), parameterName(), callbackModel());
     }
 
+    private static void timestampedInteractionSenderRegulationTransition() throws Exception {
+       TimestampedInteractionSenderRegulationTransitionTck.run(factory(), requireFom(),
+          timeImplementation(), interactionClassName(), parameterName(), callbackModel());
+    }
+
+   private static void interactionFddPreferredOrderDefault() throws Exception {
+      InteractionFddPreferredOrderDefaultTck.run(factory(), requireFom(),
+         timeImplementation(), requireAdapterValue(PREFERRED_TIMESTAMP_INTERACTION_CLASS_PROPERTY),
+         requireAdapterValue(PREFERRED_RECEIVE_INTERACTION_CLASS_PROPERTY), parameterName(),
+         callbackModel());
+   }
+
     private static void timestampedInteractionMixedAdvances() throws Exception {
       TimestampedInteractionMixedAdvancesTck.run(factory(), requireFom(),
          timeImplementation(), interactionClassName(), parameterName(), callbackModel());
@@ -7252,6 +7293,12 @@ public final class RtiTckMain {
 
    private static void timestampedInteractionPreferredReceiveConversion() throws Exception {
       TimestampedInteractionPreferredReceiveConversionTck.run(
+         factory(), requireFom(), timeImplementation(), interactionClassName(),
+         parameterName(), objectClassName(), callbackModel());
+   }
+
+   private static void sentTsoPerRecipientOrderConversion() throws Exception {
+      TimestampedPerRecipientOrderConversionTck.run(
          factory(), requireFom(), timeImplementation(), interactionClassName(),
          parameterName(), objectClassName(), callbackModel());
    }
@@ -9150,10 +9197,16 @@ public final class RtiTckMain {
              method = "timeCoordinatedInteraction"; break;
          case "java-tck.unregulated-sender-timestamped-interaction":
             method = "unregulatedSenderTimestampedInteraction"; break;
+         case "java-tck.timestamped-interaction-sender-regulation-transition":
+            method = "timestampedInteractionSenderRegulationTransition"; break;
+         case "java-tck.interaction-fdd-preferred-order-default":
+            method = "interactionFddPreferredOrderDefault"; break;
          case "java-tck.timestamped-interaction-mixed-advances":
             method = "timestampedInteractionMixedAdvances"; break;
           case "java-tck.timestamped-interaction-preferred-receive-conversion":
              method = "timestampedInteractionPreferredReceiveConversion"; break;
+          case "java-tck.sent-tso-per-recipient-order-conversion":
+             method = "sentTsoPerRecipientOrderConversion"; break;
          case "java-tck.timestamped-interaction-tar-equal-boundary":
             method = "timestampedInteractionTarEqualBoundary"; break;
          case "java-tck.timestamped-interaction-tar-post-grant-cutoff":

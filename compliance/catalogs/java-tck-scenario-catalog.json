@@ -11648,6 +11648,152 @@
       "exclusion": "Requires adapter-supplied provider, FOM, endpoint, logical-time implementation, and callback model; Java provider runtime evidence is not yet available."
     },
     {
+      "id": "java-tck.timestamped-interaction-sender-regulation-transition",
+      "category": "time-management",
+      "title": "Classify timestamped Send Interaction by sender Time Regulation with preferred order and timestamp fixed",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.makeEpsilon",
+        "LogicalTimeFactory.makeZero",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableAsynchronousDelivery",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "RTIambassador.sendInteraction(LogicalTime)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.evokeMultipleCallbacks",
+        "FederateAmbassador.receiveInteraction(LogicalTime)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "java-1516.1-interaction-declaration-and-delivery",
+        "java-1516.1-time-advance-and-grant"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l156-49"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+          "standard_section": "hla-1516.1-2025:clause-8.1.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l156-49",
+          "standard_section": "hla-1516.1-2025:clause-8.1.4"
+        }
+      ],
+      "mapping_note": "Direct §8.1.4 sender-role transition case. Provider, FOM, endpoint, callback model, and logical-time implementation are adapter-supplied; source uses only the official IEEE 1516.1-2025 Java API and JDK. The focused assertions do not represent the full order-classification matrix.",
+      "contract_refs": ["standard-timestamped-interaction-sender-regulation-transition-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#timestampedInteractionSenderRegulationTransition",
+      "parity": "cpp-tck.timestamped-interaction-sender-regulation-transition",
+      "default_status": "unsupported",
+      "exclusion": "Requires adapter-supplied provider, FOM, endpoint, logical-time implementation, and callback model; Java provider runtime evidence is not yet available."
+    },
+    {
+      "id": "java-tck.interaction-fdd-preferred-order-default",
+      "category": "time-management",
+      "title": "Timestamped interaction sends preserve each interaction class's FDD-preferred order by default",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.makeEpsilon",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "RTIambassador.sendInteraction(LogicalTime)",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.receiveInteraction(LogicalTime)"
+      ],
+      "requirement_ids": ["java-1516.1-interaction-declaration-and-delivery"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l78-23",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l84-25"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l78-23",
+          "standard_section": "hla-1516.1-2025:clause-8.1.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l84-25",
+          "standard_section": "hla-1516.1-2025:clause-8.1.4"
+        }
+      ],
+      "mapping_note": "Direct §8.1.4 FDD-default case using only the official IEEE 1516.1-2025 Java API and JDK. The adapter supplies the provider, FOM, endpoint, callback model, logical-time implementation, and the two FDD interaction-class names. No Change Interaction Order Type call is made; this is not the full order-classification matrix or conformance evidence.",
+      "contract_refs": ["standard-interaction-fdd-preferred-order-default-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#interactionFddPreferredOrderDefault",
+      "parity": "cpp-tck.interaction-fdd-preferred-order-default",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied provider, FOM, endpoint, logical-time implementation, callback model, and preferred-order interaction class names; Java provider runtime evidence is not yet available."
+    },
+    {
+      "id": "java-tck.sent-tso-per-recipient-order-conversion",
+      "category": "time-management",
+      "title": "Report sent TSO and receiver-dependent received order for one timestamped interaction",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.sendInteraction(LogicalTime)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.evokeMultipleCallbacks",
+        "FederateAmbassador.receiveInteraction(LogicalTime)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-interaction-management",
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "cpp-1516.1-time-advance-and-grant"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l138-43",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l144-45"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "mapping_note": "Direct §8.1.4 Table 3 witness. One timestamped interaction with preferred order TIMESTAMP is received with sent order TIMESTAMP and received order RECEIVE by an unconstrained member, and sent/received TIMESTAMP by a constrained member. Both time-bearing callbacks preserve the timestamp, message contents, and retraction designator; the constrained callback precedes its matching grant. The adapter supplies provider, FOM, endpoint, callback model, and logical-time implementation.",
+      "contract_refs": ["standard-sent-tso-per-recipient-order-conversion-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#sentTsoPerRecipientOrderConversion",
+      "parity": "cpp-tck.sent-tso-per-recipient-order-conversion",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied provider, FOM, endpoint, logical-time implementation, and callback model; Java provider runtime evidence is not yet available."
+    },
+    {
       "id": "java-tck.modify-lookahead-service-report",
       "category": "service-reporting",
       "title": "Verify the standard service-invocation report for accepted deferred Modify Lookahead",

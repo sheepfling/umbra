@@ -88,6 +88,28 @@
                 </parameter>
             </interactionClass>
             <interactionClass>
+                <name>TckPreferredTimestampInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>TimeStamp</order>
+                <parameter>
+                    <name>Payload</name>
+                    <dataType>HLAbyte</dataType>
+                    <semantics>Portable FDD-preferred timestamp-order parameter.</semantics>
+                </parameter>
+            </interactionClass>
+            <interactionClass>
+                <name>TckPreferredReceiveInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>Receive</order>
+                <parameter>
+                    <name>Payload</name>
+                    <dataType>HLAbyte</dataType>
+                    <semantics>Portable FDD-preferred receive-order parameter.</semantics>
+                </parameter>
+            </interactionClass>
+            <interactionClass>
                 <name>TckSecondaryDirectedInteraction</name>
                 <sharing>PublishSubscribe</sharing>
                 <transportation>HLAreliable</transportation>

@@ -116,6 +116,9 @@ add_executable(hla_rti_cpp_tck
   src/tck_empty_attribute_unsubscription.cpp
   src/tck_send_message_time_state_preservation.cpp
   src/tck_timestamped_interaction_preferred_receive_conversion.cpp
+  src/tck_timestamped_interaction_sender_regulation_transition.cpp
+  src/tck_interaction_fdd_preferred_order_default.cpp
+  src/tck_sent_tso_per_recipient_order_conversion.cpp
   src/tck_service_report_scenarios.cpp
   src/tck_service_report_lookup_failure_scenarios.cpp
   src/tck_service_report_lookup_scenarios.cpp

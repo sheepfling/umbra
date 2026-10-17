@@ -152,6 +152,12 @@ set(HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_SECOND "SecondValue"
   CACHE STRING "Second multi-attribute DDM attribute supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_INTERACTION_CLASS "HLAinteractionRoot.TckInteraction"
   CACHE STRING "Ordinary interaction class supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_PREFERRED_TIMESTAMP_INTERACTION_CLASS
+  "HLAinteractionRoot.TckPreferredTimestampInteraction"
+  CACHE STRING "Interaction class with FDD-preferred timestamp order")
+set(HLA_RTI_TCK_ADAPTER_PREFERRED_RECEIVE_INTERACTION_CLASS
+  "HLAinteractionRoot.TckPreferredReceiveInteraction"
+  CACHE STRING "Interaction class with FDD-preferred receive order")
 set(HLA_RTI_TCK_ADAPTER_SECONDARY_DIRECTED_OBJECT_CLASS
   "HLAobjectRoot.TckObject.TckSecondaryObject"
   CACHE STRING "Second directed-interaction object class supplied by this adapter")
@@ -410,6 +416,10 @@ set(_tck_common_arguments
   --multi-attribute-first "${HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FIRST}"
   --multi-attribute-second "${HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_SECOND}"
   --interaction-class "${HLA_RTI_TCK_ADAPTER_INTERACTION_CLASS}"
+  --preferred-timestamp-interaction-class
+    "${HLA_RTI_TCK_ADAPTER_PREFERRED_TIMESTAMP_INTERACTION_CLASS}"
+  --preferred-receive-interaction-class
+    "${HLA_RTI_TCK_ADAPTER_PREFERRED_RECEIVE_INTERACTION_CLASS}"
   --secondary-directed-object-class "${HLA_RTI_TCK_ADAPTER_SECONDARY_DIRECTED_OBJECT_CLASS}"
   --secondary-directed-interaction-class "${HLA_RTI_TCK_ADAPTER_SECONDARY_DIRECTED_INTERACTION_CLASS}"
   --parameter "${HLA_RTI_TCK_ADAPTER_PARAMETER}"
