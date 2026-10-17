@@ -7350,6 +7350,7 @@
     {
       "id": "java-tck.transport-order",
       "category": "transportation-and-order",
+      "focus_lane": "portable-tck-transport-order",
       "title": "Exercise ordinary transportation and order controls",
       "api_methods": [
         "RTIambassador.connect",
@@ -7384,7 +7385,8 @@
         "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
         "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
         "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
-        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6"
+        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l12-3"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
@@ -7400,7 +7402,8 @@
         "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
         "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
         "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
-        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6"
+        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l12-3"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.25.1",
@@ -7411,7 +7414,8 @@
         "hla-1516.1-2025:clause-6.30.3",
         "hla-1516.1-2025:clause-6.31.3",
         "hla-1516.1-2025:clause-6.32.5",
-        "hla-1516.1-2025:clause-6.33.6"
+        "hla-1516.1-2025:clause-6.33.6",
+        "hla-1516.1-2025:clause-6.1.13"
       ],
       "requirement_mappings": [
         {
@@ -7469,9 +7473,13 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
           "standard_section": "hla-1516.1-2025:clause-6.33.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-112-l12-3",
+          "standard_section": "hla-1516.1-2025:clause-6.1.13"
         }
       ],
-      "mapping_note": "Catalog mapping is limited to the directly asserted transportation-type controls, confirmation boundaries, query/report results, prospective class default, and resulting update/send transport (§§6.25.1–6.33.6). Order-control effects and invalid-input cases are supplemental/unmapped. Java row status remains run-ready in the catalog but does not constitute provider execution or conformance evidence; its OrderType enum has no equivalent to the C++ invalid enum cast.",
+      "mapping_note": "Catalog mapping is limited to the directly asserted transportation-type controls, confirmation boundaries, query/report results, prospective class default, and resulting update/send transport (§§6.25.1–6.33.6). The interaction path queries the current reliable type, requests reliable again, and asserts the confirmation reports reliable, covering the unchanged-achieved-type branch (§6.1.13). Order-control effects and invalid-input cases are supplemental/unmapped. Java row status remains run-ready in the catalog but does not constitute provider execution or conformance evidence; its OrderType enum has no equivalent to the C++ invalid enum cast.",
       "contract_refs": [
         "order-type-api-contract.json",
         "order-type-requirements-contract.json",
@@ -7480,6 +7488,7 @@
         "transportation-type-api-contract.json",
         "transportation-type-change-api-contract.json",
         "transportation-type-change-requirements-contract.json",
+        "standard-transport-order-contract.json",
         "receive-order-attribute-update-api-contract.json",
         "receive-order-attribute-update-requirements-contract.json",
         "receive-order-interaction-api-contract.json",

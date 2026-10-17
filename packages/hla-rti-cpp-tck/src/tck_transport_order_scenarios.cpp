@@ -327,6 +327,43 @@ void scenarioTransportOrderPortable(Options const& options, rti::CallbackModel m
 
   owner.recorder().clearTransportationRecords();
   observer.recorder().clearInteraction();
+  owner.rtiAmbassador().queryInteractionTransportationType(
+      owner.federateHandle(), ownerInteraction);
+  waitFor(owner,
+          [&] { return owner.recorder().interactionTransportationReports().size() >= 1U; },
+          options,
+          "initial interaction transportation query");
+  auto const initialInteractionReports =
+      owner.recorder().interactionTransportationReports();
+  require(initialInteractionReports.size() == 1U &&
+              initialInteractionReports.back().federate == owner.federateHandle() &&
+              initialInteractionReports.back().interaction == ownerInteraction &&
+              sameTransport(owner.rtiAmbassador(),
+                            initialInteractionReports.back().transportation,
+                            L"HLAreliable"),
+          "interaction did not begin with the reliable transportation type");
+  owner.recorder().clearTransportationRecords();
+
+  // The achieved type must be confirmed even when the request does not change it.
+  owner.rtiAmbassador().requestInteractionTransportationTypeChange(
+      ownerInteraction, reliable);
+  waitFor(owner,
+          [&] {
+            return owner.recorder().interactionTransportationConfirmations().size() >= 1U;
+          },
+          options,
+          "unchanged interaction transportation confirmation");
+  auto const unchangedInteractionConfirmations =
+      owner.recorder().interactionTransportationConfirmations();
+  require(unchangedInteractionConfirmations.size() == 1U &&
+              unchangedInteractionConfirmations.back().interaction == ownerInteraction &&
+              sameTransport(owner.rtiAmbassador(),
+                            unchangedInteractionConfirmations.back().transportation,
+                            L"HLAreliable"),
+          "unchanged interaction transportation request did not confirm reliable transport");
+
+  auto const interactionConfirmationsBeforeChange =
+      owner.recorder().interactionTransportationConfirmations().size();
   owner.rtiAmbassador().requestInteractionTransportationTypeChange(
       ownerInteraction, bestEffort);
   if (model == rti::HLA_EVOKED) {
@@ -340,7 +377,8 @@ void scenarioTransportOrderPortable(Options const& options, rti::CallbackModel m
   } else {
     waitFor(owner,
             [&] {
-              return owner.recorder().interactionTransportationConfirmations().size() >= 1U;
+              return owner.recorder().interactionTransportationConfirmations().size() >=
+                  interactionConfirmationsBeforeChange + 1U;
             },
             options,
             "immediate interaction transportation confirmation");
@@ -362,14 +400,16 @@ void scenarioTransportOrderPortable(Options const& options, rti::CallbackModel m
               : "immediate interaction transport change did not use best-effort transport");
   waitFor(owner,
           [&] {
-            return owner.recorder().interactionTransportationConfirmations().size() >= 1U;
+            return owner.recorder().interactionTransportationConfirmations().size() >=
+                interactionConfirmationsBeforeChange + 1U;
           },
           options,
           "interaction transportation confirmation");
   auto const interactionConfirmations =
       owner.recorder().interactionTransportationConfirmations();
   auto const& interactionConfirmation = interactionConfirmations.back();
-  require(interactionConfirmation.interaction == ownerInteraction &&
+  require(interactionConfirmations.size() == interactionConfirmationsBeforeChange + 1U &&
+              interactionConfirmation.interaction == ownerInteraction &&
               sameTransport(owner.rtiAmbassador(), interactionConfirmation.transportation,
                             L"HLAbestEffort"),
           "interaction transportation confirmation did not commit best effort");

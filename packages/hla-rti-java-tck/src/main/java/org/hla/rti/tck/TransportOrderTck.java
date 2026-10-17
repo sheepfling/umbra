@@ -250,6 +250,28 @@ final class TransportOrderTck {
 
          // Interaction transport has the same callback commit boundary, but
          // its query is addressed to the publishing federate.
+         owner.queryInteractionTransportationType(ownerFederate, ownerInteraction);
+         JavaTckSupport.drain(owner);
+         JavaTckSupport.check(ownerRecorder.interactionReports.size() == 1,
+            "initial interaction transportation query did not produce one report callback");
+         InteractionTransportReport initialInteractionReport =
+            ownerRecorder.interactionReports.get(0);
+         JavaTckSupport.check(ownerFederate.equals(initialInteractionReport.federate)
+               && ownerInteraction.equals(initialInteractionReport.interaction)
+               && sameTransport(owner, initialInteractionReport.transportation, reliable),
+            "interaction did not begin with the reliable transportation type");
+
+         // A request for the already-achieved type still confirms that type.
+         owner.requestInteractionTransportationTypeChange(ownerInteraction, reliable);
+         JavaTckSupport.drain(owner);
+         JavaTckSupport.check(ownerRecorder.interactionConfirmations.size() == 1,
+            "unchanged interaction transportation request did not produce one confirmation");
+         InteractionTransportConfirmation unchangedConfirmation =
+            ownerRecorder.interactionConfirmations.get(0);
+         JavaTckSupport.check(ownerInteraction.equals(unchangedConfirmation.interaction)
+               && sameTransport(owner, unchangedConfirmation.transportation, reliable),
+            "unchanged interaction transportation confirmation did not report reliable");
+
          owner.requestInteractionTransportationTypeChange(ownerInteraction, bestEffort);
          if (evoked) {
             JavaTckSupport.expectFailure(
@@ -271,11 +293,11 @@ final class TransportOrderTck {
                && ownerFederate.equals(interactionBefore.producer),
             "first interaction payload or transport differed for the configured callback model");
          JavaTckSupport.drain(owner);
-         JavaTckSupport.check(ownerRecorder.interactionConfirmations.size() == 1,
-            "interaction transport request did not produce one confirmation callback");
+         JavaTckSupport.check(ownerRecorder.interactionConfirmations.size() == 2,
+            "changed interaction transportation request did not produce its confirmation callback");
          JavaTckSupport.check(ownerInteraction.equals(
-               ownerRecorder.interactionConfirmations.get(0).interaction)
-               && sameTransport(owner, ownerRecorder.interactionConfirmations.get(0).transportation,
+               ownerRecorder.interactionConfirmations.get(1).interaction)
+               && sameTransport(owner, ownerRecorder.interactionConfirmations.get(1).transportation,
                   bestEffort),
             "interaction transport confirmation did not commit best effort");
          owner.sendInteraction(ownerInteraction, emptyParameters(owner), new byte[] {0x04});
@@ -291,11 +313,11 @@ final class TransportOrderTck {
             "post-confirmation interaction payload or transport was incorrect");
          owner.queryInteractionTransportationType(ownerFederate, ownerInteraction);
          JavaTckSupport.drain(owner);
-         JavaTckSupport.check(ownerRecorder.interactionReports.size() == 1,
-            "interaction transportation query did not produce one report callback");
-         JavaTckSupport.check(ownerInteraction.equals(ownerRecorder.interactionReports.get(0).interaction)
-               && ownerFederate.equals(ownerRecorder.interactionReports.get(0).federate)
-               && sameTransport(owner, ownerRecorder.interactionReports.get(0).transportation,
+         JavaTckSupport.check(ownerRecorder.interactionReports.size() == 2,
+            "final interaction transportation query did not produce its report callback");
+         JavaTckSupport.check(ownerInteraction.equals(ownerRecorder.interactionReports.get(1).interaction)
+               && ownerFederate.equals(ownerRecorder.interactionReports.get(1).federate)
+               && sameTransport(owner, ownerRecorder.interactionReports.get(1).transportation,
                   bestEffort),
             "interaction transportation query did not observe the committed change");
 

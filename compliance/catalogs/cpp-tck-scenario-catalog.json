@@ -7206,6 +7206,7 @@
     {
       "id": "cpp-tck.transport-order",
       "category": "transportation-and-order",
+      "focus_lane": "portable-tck-transport-order",
       "title": "Exercise the standard ordinary order and transportation control surface as an independently selectable portable slice",
       "api_methods": [
         "RTIambassador.getObjectClassHandle",
@@ -7254,7 +7255,8 @@
         "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
         "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
         "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
-        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6"
+        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l12-3"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
@@ -7270,7 +7272,8 @@
         "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
         "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
         "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
-        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6"
+        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l12-3"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.25.1",
@@ -7281,7 +7284,8 @@
         "hla-1516.1-2025:clause-6.30.3",
         "hla-1516.1-2025:clause-6.31.3",
         "hla-1516.1-2025:clause-6.32.5",
-        "hla-1516.1-2025:clause-6.33.6"
+        "hla-1516.1-2025:clause-6.33.6",
+        "hla-1516.1-2025:clause-6.1.13"
       ],
       "requirement_mappings": [
         {
@@ -7339,9 +7343,13 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
           "standard_section": "hla-1516.1-2025:clause-6.33.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-112-l12-3",
+          "standard_section": "hla-1516.1-2025:clause-6.1.13"
         }
       ],
-      "mapping_note": "Direct mappings cover the attribute request's future-update behavior and confirmation boundary (§§6.25.1, 6.26), the class default and its prospective effect on later instances (§6.27), and query response/current-type reporting (§§6.28, 6.29.1). Interaction mappings cover future-send behavior, confirmation, and query/report fields (§§6.30.3, 6.31.3, 6.32.5, 6.33.6). Assertions are limited to the observed pre-/post-confirmation transport, confirmation arguments, and queried reports; no callback count or broader delivery matrix is implied. Ordinary order-control calls and invalid-input boundaries are exercised but not mapped by this row; setup/cleanup and FOM fixture behavior are supplemental. The prior §6.1.13 mapping was unrelated to this behavior and is removed. No provider-conformance claim is made.",
+      "mapping_note": "Direct mappings cover the attribute request's future-update behavior and confirmation boundary (§§6.25.1, 6.26), the class default and its prospective effect on later instances (§6.27), and query response/current-type reporting (§§6.28, 6.29.1). Interaction mappings cover future-send behavior, confirmation, and query/report fields (§§6.30.3, 6.31.3, 6.32.5, 6.33.6). The interaction path also queries the existing reliable type, requests that same type, and asserts one confirmation reporting reliable, directly covering the unchanged-achieved-type branch (§6.1.13). Remaining assertions are limited to observed transport, confirmation arguments, and queried reports; no broader delivery matrix is implied. Ordinary order-control calls and invalid-input boundaries are exercised but not mapped by this row; setup/cleanup and FOM fixture behavior are supplemental. No provider-conformance claim is made.",
       "contract_refs": [
         "standard-transport-order-contract.json"
       ],
@@ -7357,6 +7365,7 @@
     {
       "id": "cpp-tck.transport-order-contract",
       "category": "transportation-and-order",
+      "focus_lane": "portable-tck-transport-order",
       "title": "Exercise the standard ordinary order and transportation control contract",
       "api_methods": [
         "RTIambassador.changeDefaultAttributeOrderType",
@@ -7390,7 +7399,8 @@
         "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
         "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
         "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
-        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6"
+        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l12-3"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
@@ -7406,7 +7416,8 @@
         "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
         "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
         "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
-        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6"
+        "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l12-3"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.25.1",
@@ -7417,7 +7428,8 @@
         "hla-1516.1-2025:clause-6.30.3",
         "hla-1516.1-2025:clause-6.31.3",
         "hla-1516.1-2025:clause-6.32.5",
-        "hla-1516.1-2025:clause-6.33.6"
+        "hla-1516.1-2025:clause-6.33.6",
+        "hla-1516.1-2025:clause-6.1.13"
       ],
       "requirement_mappings": [
         {
