@@ -16984,6 +16984,19 @@
         "cpp-1516.1-ddm-attribute-scope-switch",
         "cpp-1516.1-ddm-attribute-scope-stale-callback"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.9.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12",
+          "standard_section": "hla-1516.1-2025:clause-5.9.4"
+        }
+      ],
+      "mapping_note": "Directly asserts that the invoking member receives no Attributes Out Of Scope advisory when its final regional subscription is removed. The direct requirement mapping is requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12 -> §5.9.4; §10.1.3 identifies this implicit, self-caused out-of-scope transition as one that does not generate the advisory. The Java source uses only official IEEE 1516.1-2025 APIs; provider runtime remains unverified, so no Java conformance claim is made.",
       "contract_refs": [
         "object-attribute-scope-api-contract.json",
         "object-attribute-scope-requirements-contract.json",

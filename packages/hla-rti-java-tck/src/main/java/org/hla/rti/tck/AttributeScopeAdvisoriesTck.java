@@ -134,11 +134,10 @@ final class AttributeScopeAdvisoriesTck {
 
          member.unsubscribeObjectClassAttributesWithRegions(memberClass, memberPair);
          subscribed = false;
-         await(member, callbackModel,
-            () -> !memberCallbacks.attributesOutOfScope.isEmpty(),
-            "regional unsubscribe out-of-scope advisory");
-         requireSingle(memberCallbacks.attributesOutOfScope, object, memberAttributes,
-            "regional unsubscribe out-of-scope advisory");
+         settle(member, callbackModel);
+         JavaTckSupport.check(memberCallbacks.attributesOutOfScope.isEmpty()
+               && memberCallbacks.attributesInScope.isEmpty(),
+            "self-unsubscription generated an attribute scope advisory");
          memberCallbacks.clearScopeAdvisories();
          member.subscribeObjectClassAttributesWithRegions(memberClass, memberPair);
          subscribed = true;
@@ -152,11 +151,10 @@ final class AttributeScopeAdvisoriesTck {
          memberCallbacks.clearScopeAdvisories();
          member.unsubscribeObjectClassAttributesWithRegions(memberClass, memberPair);
          subscribed = false;
-         await(member, callbackModel,
-            () -> !memberCallbacks.attributesOutOfScope.isEmpty(),
-            "second regional unsubscribe out-of-scope advisory");
-         requireSingle(memberCallbacks.attributesOutOfScope, object, memberAttributes,
-            "second regional unsubscribe out-of-scope advisory");
+         settle(member, callbackModel);
+         JavaTckSupport.check(memberCallbacks.attributesOutOfScope.isEmpty()
+               && memberCallbacks.attributesInScope.isEmpty(),
+            "second self-unsubscription generated an attribute scope advisory");
          memberCallbacks.clearScopeAdvisories();
 
          member.setAttributeScopeAdvisorySwitch(false);

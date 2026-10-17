@@ -25298,7 +25298,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.9.4"
         }
       ],
-      "mapping_note": "Directly asserts that the invoking member receives no Attributes Out Of Scope advisory when its final regional subscription is removed (§5.9.4); §9.1.1 identifies this implicit, self-caused out-of-scope transition as one that does not generate the advisory. Positive callbacks for source-region overlap loss remain separately asserted. This is public C++ API adapter evidence, not a provider-conformance claim.",
+      "mapping_note": "Directly asserts that the invoking member receives no Attributes Out Of Scope advisory when its final regional subscription is removed. The direct requirement mapping is requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12 -> §5.9.4; §10.1.3 identifies this implicit, self-caused out-of-scope transition as one that does not generate the advisory. Positive callbacks for source-region overlap loss remain separately asserted. This is public C++ API adapter evidence, not a provider-conformance claim.",
       "contract_refs": [
         "object-attribute-scope-api-contract.json",
         "object-attribute-scope-requirements-contract.json",
@@ -25335,6 +25335,19 @@
         "cpp-1516.1-ddm-attribute-scope-switch",
         "cpp-1516.1-ddm-attribute-scope-stale-callback"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.9.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12",
+          "standard_section": "hla-1516.1-2025:clause-5.9.4"
+        }
+      ],
+      "mapping_note": "The contract wrapper runs the primary's public API assertions, including that the invoking federate receives no Attributes Out Of Scope advisory when it removes its final regional subscription. Direct mapping is requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12 -> §5.9.4; §10.1.3 provides the implicit-out-of-scope exception. No provider-conformance claim is made.",
       "contract_refs": [
         "standard-attribute-scope-advisories-contract.json"
       ],

@@ -10700,15 +10700,16 @@ void scenarioAttributeScopeAdvisories(
   member.recorder().clearScopeAdvisories();
 
   // Removing and restoring the regional subscription are independently
-  // observable scope transitions for an already-known object.
+  // scope transitions for an already-known object, but these transitions are
+  // implicit and self-caused: the invoking federate receives no out-of-scope
+  // advisory when its final subscription is removed (IEEE 1516.1-2025 §10.1.3).
   member.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
       memberHandles.objectClass, memberPair);
-  waitFor(member,
-          [&] { return !member.recorder().attributesOutOfScope().empty(); },
-          options,
-          "regional subscription out-of-scope advisory");
-  requireSingleScopeReport(member.recorder().attributesOutOfScope(),
-                           "regional subscription out-of-scope advisory");
+  drainMember();
+  require(member.recorder().attributesOutOfScope().empty(),
+          "self-unsubscription produced an out-of-scope advisory");
+  require(member.recorder().attributesInScope().empty(),
+          "self-unsubscription produced an in-scope advisory");
   member.recorder().clearScopeAdvisories();
   member.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
       memberHandles.objectClass, memberPair, true, L"");
@@ -10721,12 +10722,11 @@ void scenarioAttributeScopeAdvisories(
   member.recorder().clearScopeAdvisories();
   member.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
       memberHandles.objectClass, memberPair);
-  waitFor(member,
-          [&] { return !member.recorder().attributesOutOfScope().empty(); },
-          options,
-          "second regional subscription out-of-scope advisory");
-  requireSingleScopeReport(member.recorder().attributesOutOfScope(),
-                           "second regional subscription out-of-scope advisory");
+  drainMember();
+  require(member.recorder().attributesOutOfScope().empty(),
+          "second self-unsubscription produced an out-of-scope advisory");
+  require(member.recorder().attributesInScope().empty(),
+          "second self-unsubscription produced an in-scope advisory");
   member.recorder().clearScopeAdvisories();
 
   // The per-federate switch suppresses both directions. Re-enabling it makes
