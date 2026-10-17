@@ -11135,8 +11135,17 @@
         "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-timestamped-attribute-update",
-        "cpp-1516.1-timestamped-attribute-reflect"
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l145-12"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-181-l145-12"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l145-12", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "mapping_note": "Direct §8.1.4 Table 3 witness for the sent-RO rule: an ordinary Update Attribute Values call to the time-constrained receiver produces exactly the receive-order reflection callback and no timestamped reflection. The scenario separately checks that a timestamped update uses the timestamped callback with its retraction designator. This covers the tested time-constrained receiver branch only; it does not claim the full order matrix.",
       "contract_refs": [
         "attribute-update-order-classification-api-contract.json",
         "attribute-update-order-classification-requirements-contract.json",
@@ -11163,8 +11172,17 @@
         "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-timestamped-attribute-update",
-        "cpp-1516.1-timestamped-attribute-reflect"
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l145-12"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-181-l145-12"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l145-12", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "mapping_note": "Same direct §8.1.4 Table 3 sent-RO mapping as the paired scenario: the time-constrained receiver gets an ordinary receive-order reflection, not a timestamped callback. This does not claim the full order matrix.",
       "contract_refs": [
         "attribute-update-order-classification-requirements-contract.json"
       ],
@@ -13562,13 +13580,18 @@
         "cpp-1516.1-federation-create-join-resign-destroy",
         "cpp-1516.1-timestamped-interaction-delivery",
         "cpp-1516.1-interaction-retraction",
-        "cpp-1516.1-flush-queue-request"
+        "cpp-1516.1-flush-queue-request",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.12",
         "hla-1516.1-2025:clause-8.12.3",
         "hla-1516.1-2025:clause-8.13.3",
-        "hla-1516.1-2025:clause-8.14"
+        "hla-1516.1-2025:clause-8.14",
+        "hla-1516.1-2025:clause-8.1.4"
       ],
       "requirement_mappings": [
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l131-38", "standard_section": "hla-1516.1-2025:clause-8.12" },
@@ -13580,9 +13603,10 @@
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l58-18", "standard_section": "hla-1516.1-2025:clause-8.12.3" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l70-22", "standard_section": "hla-1516.1-2025:clause-8.12.3" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-202-l131-37", "standard_section": "hla-1516.1-2025:clause-8.13.3" },
-        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l113-31", "standard_section": "hla-1516.1-2025:clause-8.14" }
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l113-31", "standard_section": "hla-1516.1-2025:clause-8.14" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l148-13", "standard_section": "hla-1516.1-2025:clause-8.1.4" }
       ],
-      "mapping_note": "Direct mappings reproduce the source case's ten exact requirement-to-section links. The assertions cover initial FQR processing of a queued timestamp-12 interaction, the reported actual/optimistic frontier, rejection below current time plus lookahead, later delivery of timestamp 6 through a second FQR, and Request Retraction for the still-future timestamp-12 interaction. Other transport races and callback-start cutoff interpretations are not claimed.",
+      "mapping_note": "Direct mappings reproduce the source case's ten exact requirement-to-section links. The assertions cover initial FQR processing of a queued timestamp-12 interaction, the reported actual/optimistic frontier, rejection below current time plus lookahead, later delivery of timestamp 6 through a second FQR, and Request Retraction for the still-future timestamp-12 interaction. The added §8.1.4/page-181 line-148 mapping is limited to that observed same-receiver delivery sequence (TSO 12, then TSO 6) across two FQR services; it demonstrates the stated FQR exception only for this case, not arbitrary message permutations. Other transport races and callback-start cutoff interpretations are not claimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",
@@ -13621,13 +13645,18 @@
         "cpp-1516.1-federation-create-join-resign-destroy",
         "cpp-1516.1-timestamped-interaction-delivery",
         "cpp-1516.1-interaction-retraction",
-        "cpp-1516.1-flush-queue-request"
+        "cpp-1516.1-flush-queue-request",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.12",
         "hla-1516.1-2025:clause-8.12.3",
         "hla-1516.1-2025:clause-8.13.3",
-        "hla-1516.1-2025:clause-8.14"
+        "hla-1516.1-2025:clause-8.14",
+        "hla-1516.1-2025:clause-8.1.4"
       ],
       "requirement_mappings": [
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l131-38", "standard_section": "hla-1516.1-2025:clause-8.12" },
@@ -13639,9 +13668,10 @@
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l58-18", "standard_section": "hla-1516.1-2025:clause-8.12.3" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l70-22", "standard_section": "hla-1516.1-2025:clause-8.12.3" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-202-l131-37", "standard_section": "hla-1516.1-2025:clause-8.13.3" },
-        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l113-31", "standard_section": "hla-1516.1-2025:clause-8.14" }
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l113-31", "standard_section": "hla-1516.1-2025:clause-8.14" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l148-13", "standard_section": "hla-1516.1-2025:clause-8.1.4" }
       ],
-      "mapping_note": "The contract twin repeats the primary case's ten exact source mappings and the same bounded claims. It does not claim that already-delivered interactions are withdrawn; retraction is verified through the Request Retraction callback.",
+      "mapping_note": "The contract twin repeats the primary case's ten exact source mappings and the same bounded claims. For §8.1.4/page-181 line 148, it observes this receiver's TSO-12 then TSO-6 delivery across two FQR services; that is a narrow witness of the explicit FQR exception, not a general message-order matrix. It does not claim that already-delivered interactions are withdrawn; retraction is verified through the Request Retraction callback.",
       "contract_refs": [
         "standard-timestamped-interaction-flush-queue-future-input-contract.json",
         "flush-queue-request-requirements-contract.json",
@@ -13970,8 +14000,17 @@
       "requirement_ids": [
         "cpp-1516.1-federation-create-join-resign-destroy",
         "cpp-1516.1-timestamped-interaction-delivery",
-        "cpp-1516.1-time-advance-request"
+        "cpp-1516.1-time-advance-request",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l148-13", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "mapping_note": "Direct §8.1.4 witness for the non-FQR portion of the TSO delivery-order rule: two constrained receivers observe timestamped interactions from two producers at times 5 and 7 in timestamp order, even though sends are issued in the order 7, 5, 5. The two equal-time messages may arrive in either order. This does not test the Flush Queue Request exception or every sender/sequence permutation.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",
@@ -14005,8 +14044,17 @@
       "requirement_ids": [
         "cpp-1516.1-federation-create-join-resign-destroy",
         "cpp-1516.1-timestamped-interaction-delivery",
-        "cpp-1516.1-time-advance-request"
+        "cpp-1516.1-time-advance-request",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l148-13", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "mapping_note": "Same direct §8.1.4 rule mapping as the paired scenario. The contract case checks two constrained receivers against time-5 and time-7 messages from two producers despite send order 7, 5, 5; equal-time order is unrestricted. It does not test the Flush Queue Request exception or every sender/sequence permutation.",
       "contract_refs": [
         "standard-timestamped-interaction-cross-producer-order-contract.json"
       ],
@@ -16024,7 +16072,9 @@
         "cpp-1516.1-time-advance-request-available",
         "cpp-1516.1-next-message-request-available",
         "cpp-1516.1-next-message-request",
-        "cpp-1516.1-logical-time-query-boundaries"
+        "cpp-1516.1-logical-time-query-boundaries",
+        "requirement-candidate-content-clauses-08-time-management-page-178-l27-6",
+        "requirement-candidate-content-clauses-08-time-management-page-178-l108-33"
       ],
       "contract_refs": [
         "timestamped-attribute-update-api-contract.json",
@@ -16057,11 +16107,14 @@
         "requirement-candidate-content-clauses-08-time-management-page-199-l40-12",
         "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
         "requirement-candidate-content-clauses-08-time-management-page-197-l50-13",
-        "requirement-candidate-content-clauses-08-time-management-page-206-l149-37"
+        "requirement-candidate-content-clauses-08-time-management-page-206-l149-37",
+        "requirement-candidate-content-clauses-08-time-management-page-178-l27-6",
+        "requirement-candidate-content-clauses-08-time-management-page-178-l108-33"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.6",
         "hla-1516.1-2025:clause-8.12",
         "hla-1516.1-2025:clause-8.12.3",
@@ -16077,6 +16130,8 @@
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l27-6", "standard_section": "hla-1516.1-2025:clause-8"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l108-33", "standard_section": "hla-1516.1-2025:clause-8"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "standard_section": "hla-1516.1-2025:clause-8.1.6"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l131-38", "standard_section": "hla-1516.1-2025:clause-8.12"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l164-49", "standard_section": "hla-1516.1-2025:clause-8.12"},
@@ -16088,7 +16143,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l50-13", "standard_section": "hla-1516.1-2025:clause-8.10.2"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l149-37", "standard_section": "hla-1516.1-2025:clause-8.18.1"}
       ],
-      "mapping_note": "Direct mappings cover the timestamped attribute update request and returned retraction designator (§6.10), reflected values and their time/order/retraction metadata (§6.11.1), TSO delivery before the advance grant (§8.1.6), queued delivery and Flush Queue grant reporting (§8.12, §8.12.3), TARA delivery/grant (§8.9), NMRA target/delivery/grant (§8.11, §8.11.3), NMR target/delivery/grant (§8.10.2), and queried logical time (§8.18.1). Expired-time exception probes, post-NMR update timing, and retraction after delivery are supplemental; the test does not assert a general FQR request-argument rule. Setup and teardown are supplemental.",
+      "mapping_note": "Direct mappings cover the timestamped attribute update request and returned retraction designator (§6.10), reflected values and their time/order/retraction metadata (§6.11.1), selected time-management service request/coordination distinctions (page 178 line 27), and message-delivery behavior relative to request type (page 178 line 108), both under the Clause 8 overview. The scenario observes publisher TAR plus recipient FQR, TARA, NMRA, and NMR flows through their timestamped reflection and corresponding grant callbacks. Service-specific delivery and grant behavior remains mapped to narrower clauses (§8.1.6, §8.12, §8.12.3, §8.9, §8.11, §8.11.3, and §8.10.2), with queried logical time under §8.18.1. These overview mappings are limited to the tested combinations; they do not claim complete Clause 8 coverage or a general FQR request-argument boundary. Expired-time exception probes, post-NMR update timing, and retraction after delivery are supplemental. Setup and teardown are supplemental.",
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateAlternateAdvancesPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-alternate-advances",
       "parity": "java-tck.timestamped-attribute-update-alternate-advances",
@@ -20952,14 +21007,30 @@
       "requirement_ids": [
         "cpp-1516.1-interaction-management",
         "cpp-1516.1-timestamped-interaction-delivery",
-        "cpp-1516.1-time-advance-request"
+        "cpp-1516.1-time-advance-request",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l118-3",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l121-4",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l133-8",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l139-10"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-180-l138-43",
-        "requirement-candidate-content-clauses-08-time-management-page-180-l144-45"
+        "requirement-candidate-content-clauses-08-time-management-page-180-l144-45",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l118-3",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l121-4",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l133-8",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l139-10"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l138-43", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l144-45", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l118-3", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l121-4", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l133-8", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l139-10", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
       ],
       "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
-      "mapping_note": "Direct §8.1.4 Table 3 witness: one sender configures TIMESTAMP preferred order and sends one timestamped interaction to two subscribers. The unconstrained receiver reports sent TIMESTAMP/received RECEIVE before any grant; the constrained receiver reports sent TIMESTAMP/received TIMESTAMP only at its requested time and before its grant. Both time-bearing callbacks retain message data and the retraction designator. This is one table branch and receiver-status comparison, not the full §8.1.4 order matrix.",
+      "mapping_note": "Direct §8.1.4 Table 3 witness for page-181 lines 118, 121, 133, and 139: one sender configures TIMESTAMP preferred order and sends one timestamped interaction to two subscribers. The unconstrained receiver reports sent TIMESTAMP/received RECEIVE before any grant; the constrained receiver reports sent TIMESTAMP/received TIMESTAMP only at its requested time and before its grant. Both time-bearing callbacks preserve message data and the retraction designator. This directly tests TSO-to-RO conversion at an unconstrained receiver, recipient-dependent received order, and sender/receiver retraction-handle continuity for the sent TSO. It is one sent-order branch and receiver-status comparison, not the full §8.1.4 order matrix; in particular it does not test sent RO conversion.",
       "contract_refs": ["standard-sent-tso-per-recipient-order-conversion-contract.json"],
       "cpp_test": "src/tck_sent_tso_per_recipient_order_conversion.cpp#scenarioSentTsoPerRecipientOrderConversion",
       "runner_id": "cpp-tck.sent-tso-per-recipient-order-conversion",
@@ -20977,13 +21048,31 @@
         "FederateAmbassador.receiveInteraction(LogicalTime)",
         "FederateAmbassador.timeAdvanceGrant"
       ],
-      "requirement_ids": ["cpp-1516.1-timestamped-interaction-delivery"],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l118-3",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l121-4",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l133-8",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l139-10"
+      ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-180-l138-43",
-        "requirement-candidate-content-clauses-08-time-management-page-180-l144-45"
+        "requirement-candidate-content-clauses-08-time-management-page-180-l144-45",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l118-3",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l121-4",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l133-8",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l139-10"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l138-43", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l144-45", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l118-3", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l121-4", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l133-8", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l139-10", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
       ],
       "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
-      "mapping_note": "Same direct §8.1.4 Table 3 mapping as the paired scenario. The assertion is restricted to one sent TSO interaction observed by one time-constrained and one unconstrained receiver.",
+      "mapping_note": "Same direct §8.1.4 Table 3 mappings as the paired scenario: one sent TSO interaction is observed as RECEIVE by an unconstrained receiver and TIMESTAMP by a constrained receiver, with the sent retraction designator preserved at both. The assertion is restricted to this sent-TSO receiver-status branch; it does not test sent RO conversion or the complete order matrix.",
       "contract_refs": ["standard-sent-tso-per-recipient-order-conversion-contract.json"],
       "cpp_test": "src/tck_sent_tso_per_recipient_order_conversion.cpp#scenarioSentTsoPerRecipientOrderConversionContract",
       "runner_id": "cpp-tck.sent-tso-per-recipient-order-conversion-contract",

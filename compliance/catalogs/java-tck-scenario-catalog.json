@@ -8704,8 +8704,17 @@
         "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-timestamped-attribute-update",
-        "cpp-1516.1-timestamped-attribute-reflect"
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l145-12"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-181-l145-12"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l145-12", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "mapping_note": "Direct §8.1.4 Table 3 witness for the sent-RO rule: an ordinary Update Attribute Values call to the time-constrained receiver produces exactly the receive-order reflection callback and no timestamped reflection. The scenario separately checks that a timestamped update uses the timestamped callback with its retraction designator. This covers the tested time-constrained receiver branch only; it does not claim the full order matrix. Java provider runtime remains unverified.",
       "contract_refs": [
         "attribute-update-order-classification-api-contract.json",
         "attribute-update-order-classification-requirements-contract.json",
@@ -12889,14 +12898,30 @@
       "requirement_ids": [
         "cpp-1516.1-interaction-management",
         "cpp-1516.1-timestamped-interaction-delivery",
-        "cpp-1516.1-time-advance-and-grant"
+        "cpp-1516.1-time-advance-and-grant",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l118-3",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l121-4",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l133-8",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l139-10"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-180-l138-43",
-        "requirement-candidate-content-clauses-08-time-management-page-180-l144-45"
+        "requirement-candidate-content-clauses-08-time-management-page-180-l144-45",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l118-3",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l121-4",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l133-8",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l139-10"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l138-43", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l144-45", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l118-3", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l121-4", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l133-8", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l139-10", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
       ],
       "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
-      "mapping_note": "Direct §8.1.4 Table 3 witness. One timestamped interaction with preferred order TIMESTAMP is received with sent order TIMESTAMP and received order RECEIVE by an unconstrained member, and sent/received TIMESTAMP by a constrained member. Both time-bearing callbacks preserve the timestamp, message contents, and retraction designator; the constrained callback precedes its matching grant. The adapter supplies provider, FOM, endpoint, callback model, and logical-time implementation.",
+      "mapping_note": "Direct §8.1.4 Table 3 witness for page-181 lines 118, 121, 133, and 139. One timestamped interaction with preferred order TIMESTAMP is received with sent order TIMESTAMP and received order RECEIVE by an unconstrained member, and sent/received TIMESTAMP by a constrained member. Both time-bearing callbacks preserve the timestamp, message contents, and retraction designator; the constrained callback precedes its matching grant. This covers the tested sent-TSO receiver-status branch only, not the complete order matrix or sent RO conversion. The adapter supplies provider, FOM, endpoint, callback model, and logical-time implementation.",
       "contract_refs": ["standard-sent-tso-per-recipient-order-conversion-contract.json"],
       "java_test": "org.hla.rti.tck.RtiTckMain#sentTsoPerRecipientOrderConversion",
       "parity": "cpp-tck.sent-tso-per-recipient-order-conversion",
@@ -13616,7 +13641,11 @@
       ],
       "requirement_ids": [
         "java-1516.1-interaction-declaration-and-delivery",
-        "java-1516.1-time-advance-and-grant"
+        "java-1516.1-time-advance-and-grant",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
       ],
       "requirement_mappings": [
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l131-38", "standard_section": "hla-1516.1-2025:clause-8.12" },
@@ -13628,15 +13657,17 @@
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l58-18", "standard_section": "hla-1516.1-2025:clause-8.12.3" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l70-22", "standard_section": "hla-1516.1-2025:clause-8.12.3" },
         { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-202-l131-37", "standard_section": "hla-1516.1-2025:clause-8.13.3" },
-        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l113-31", "standard_section": "hla-1516.1-2025:clause-8.14" }
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l113-31", "standard_section": "hla-1516.1-2025:clause-8.14" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l148-13", "standard_section": "hla-1516.1-2025:clause-8.1.4" }
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.12",
         "hla-1516.1-2025:clause-8.12.3",
         "hla-1516.1-2025:clause-8.13.3",
-        "hla-1516.1-2025:clause-8.14"
+        "hla-1516.1-2025:clause-8.14",
+        "hla-1516.1-2025:clause-8.1.4"
       ],
-      "mapping_note": "Exact cross-language mapping to the C++ source case's ten requirement links. This scenario checks the Flush Queue frontier and queued timestamped interaction behavior, the legal post-grant timestamp floor, later lower TSO delivery on a second FQR, and the Request Retraction callback. Provider, FOM, logical-time implementation, endpoint, and callback model are adapter-supplied; no vendor APIs are used.",
+      "mapping_note": "Exact cross-language mapping to the C++ source case's ten requirement links. This scenario checks the Flush Queue frontier and queued timestamped interaction behavior, the legal post-grant timestamp floor, later lower TSO delivery on a second FQR, and the Request Retraction callback. The added §8.1.4/page-181 line-148 mapping is limited to the observed same-receiver TSO-12 then TSO-6 delivery sequence across two FQR services; it demonstrates the stated exception for this case, not arbitrary message permutations. Provider, FOM, logical-time implementation, endpoint, and callback model are adapter-supplied; Java provider runtime remains unverified, and no vendor APIs are used.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",
@@ -14034,8 +14065,17 @@
       ],
       "requirement_ids": [
         "java-1516.1-interaction-declaration-and-delivery",
-        "java-1516.1-time-advance-and-grant"
+        "java-1516.1-time-advance-and-grant",
+        "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l148-13", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "mapping_note": "Parity mapping to the verified C++ scenario: two constrained receivers observe timestamped interactions from two producers at times 5 and 7 in timestamp order, although sends are issued 7, 5, 5. Equal-time messages may arrive in either order. This covers the non-FQR branch only, not the Flush Queue Request exception or every sender/sequence permutation. Java provider runtime remains unverified.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",
@@ -15671,7 +15711,9 @@
         "requirement-candidate-content-clauses-08-time-management-page-199-l40-12",
         "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
         "requirement-candidate-content-clauses-08-time-management-page-197-l50-13",
-        "requirement-candidate-content-clauses-08-time-management-page-206-l149-37"
+        "requirement-candidate-content-clauses-08-time-management-page-206-l149-37",
+        "requirement-candidate-content-clauses-08-time-management-page-178-l27-6",
+        "requirement-candidate-content-clauses-08-time-management-page-178-l108-33"
       ],
       "contract_refs": [
         "timestamped-attribute-update-api-contract.json",
@@ -15692,6 +15734,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.6",
         "hla-1516.1-2025:clause-8.12",
         "hla-1516.1-2025:clause-8.12.3",
@@ -15707,6 +15750,8 @@
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l27-6", "standard_section": "hla-1516.1-2025:clause-8"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l108-33", "standard_section": "hla-1516.1-2025:clause-8"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "standard_section": "hla-1516.1-2025:clause-8.1.6"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l131-38", "standard_section": "hla-1516.1-2025:clause-8.12"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l164-49", "standard_section": "hla-1516.1-2025:clause-8.12"},
@@ -15718,7 +15763,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l50-13", "standard_section": "hla-1516.1-2025:clause-8.10.2"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l149-37", "standard_section": "hla-1516.1-2025:clause-8.18.1"}
       ],
-      "mapping_note": "Direct mappings cover the timestamped attribute update request and returned retraction designator (§6.10), reflected values and their time/order/retraction metadata (§6.11.1), TSO delivery before the advance grant (§8.1.6), queued delivery and Flush Queue grant reporting (§8.12, §8.12.3), TARA delivery/grant (§8.9), NMRA target/delivery/grant (§8.11, §8.11.3), NMR target/delivery/grant (§8.10.2), and queried logical time (§8.18.1). Expired-time exception probes, post-NMR update timing, and retraction after delivery are supplemental; the test does not assert a general FQR request-argument rule. Java provider runtime remains unverified, so this is not conformance evidence.",
+      "mapping_note": "Direct mappings cover the timestamped attribute update request and returned retraction designator (§6.10), reflected values and their time/order/retraction metadata (§6.11.1), selected time-management service request/coordination distinctions (page 178 line 27), and message-delivery behavior relative to request type (page 178 line 108), both under the Clause 8 overview. The scenario observes publisher TAR plus recipient FQR, TARA, NMRA, and NMR flows through their timestamped reflection and corresponding grant callbacks. Service-specific delivery and grant behavior remains mapped to narrower clauses (§8.1.6, §8.12, §8.12.3, §8.9, §8.11, §8.11.3, and §8.10.2), with queried logical time under §8.18.1. These overview mappings are limited to the tested combinations; they do not claim complete Clause 8 coverage or a general FQR request-argument boundary. Expired-time exception probes, post-NMR update timing, and retraction after delivery are supplemental. Java provider runtime remains unverified, so this is not conformance evidence.",
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedAttributeUpdateAlternateAdvances",
       "parity": "cpp-tck.timestamped-attribute-update-alternate-advances",
       "default_status": "unsupported",
