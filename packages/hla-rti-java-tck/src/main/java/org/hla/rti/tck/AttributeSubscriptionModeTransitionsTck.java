@@ -70,8 +70,11 @@ final class AttributeSubscriptionModeTransitionsTck {
 
          AttributeHandleSet firstOnly = JavaTckSupport.attributeSet(subscriber, subscriberFirst);
          AttributeHandleSet secondOnly = JavaTckSupport.attributeSet(subscriber, subscriberSecond);
+         AttributeHandleSet empty = subscriber.getAttributeHandleSetFactory().create();
          subscriber.subscribeObjectClassAttributes(subscriberClass, firstOnly);
          subscriber.subscribeObjectClassAttributesPassively(subscriberClass, secondOnly);
+         subscriber.subscribeObjectClassAttributes(subscriberClass, empty);
+         subscriber.subscribeObjectClassAttributesPassively(subscriberClass, empty);
          subscribed = true;
 
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);

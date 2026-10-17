@@ -10016,6 +10016,8 @@
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l123-38",
         "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40"
       ],
       "standard_sections": [
@@ -10074,11 +10076,19 @@
       ],
       "requirement_mappings": [
         {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l123-38",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40",
           "standard_section": "hla-1516.1-2025:clause-5.8"
         }
       ],
-      "mapping_note": "Direct mapping is limited to the page-096-l129-40 active/passive subscription-mode behavior: changing a selected attribute's mode preserves the mode and subscription of other attributes in the same class. The scenario verifies A-active/B-passive delivers A only, changing A to passive and B to active delivers B only, then reactivating A alone delivers both. The MinGW installed-package build, direct runs, and exact CTest selectors passed under HLA_EVOKED and HLA_IMMEDIATE; evidence is out/mgw/cpp-tck-unregulated-sender-interaction-20261016/subscription-modes.json. It does not claim broader subscription lifecycle coverage, provider validation, or conformance.",
+      "mapping_note": "Direct mappings: page-096-l117-36 asserts each selected attribute takes the active/passive mode of its subscription invocation; page-096-l123-38 asserts empty-set invocations leave existing modes unchanged; page-096-l129-40 asserts changing selected modes preserves unselected subscriptions. The scenario starts A-active/B-passive, invokes both empty active and empty passive subscriptions, and observes A only; it then switches A passive/B active and observes B only, before reactivating A alone and observing both. All four direct installed-package runs passed under evoked/immediate callbacks; evidence: out/mgw/attribute-empty-subscription-mode-20261017-r2.json/.xml. Adapter evidence only, not provider validation or conformance.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -10109,6 +10119,8 @@
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l123-38",
         "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40"
       ],
       "standard_sections": [
@@ -10116,17 +10128,25 @@
       ],
       "requirement_mappings": [
         {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l123-38",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40",
           "standard_section": "hla-1516.1-2025:clause-5.8"
         }
       ],
-      "mapping_note": "The contract twin invokes the same focused scenario and makes only the page-096-l129-40 active/passive mode-preservation claim. The MinGW installed-package build, direct runs, and exact CTest selectors passed under HLA_EVOKED and HLA_IMMEDIATE; evidence is out/mgw/cpp-tck-unregulated-sender-interaction-20261016/subscription-modes.json. Adapter evidence only, not provider validation or conformance.",
+      "mapping_note": "The contract twin invokes the same focused scenario and directly covers the page-096-l117-36 invocation-mode effect, page-096-l123-38 empty active and empty passive invocation preservation of existing modes, and page-096-l129-40 preservation of unselected subscriptions. All four direct installed-package runs passed under evoked/immediate callbacks; evidence: out/mgw/attribute-empty-subscription-mode-20261017-r2.json/.xml. Adapter evidence only, not provider validation or conformance.",
       "contract_refs": [
         "subscribe-object-class-attributes-api-contract.json"
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioAttributeSubscriptionPerAttributeModeTransitionsContractPortable",
       "runner_id": "cpp-tck.attribute-subscription-per-attribute-mode-transitions-contract",
-      "parity": "C++-only; Java parity deferred until this API behavior is ported.",
+      "parity": "java-tck.attribute-subscription-per-attribute-mode-transitions",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

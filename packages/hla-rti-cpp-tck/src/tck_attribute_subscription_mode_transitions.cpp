@@ -84,6 +84,11 @@ void scenarioAttributeSubscriptionPerAttributeModeTransitions(
       subscriberClass, rti::AttributeHandleSet{subscriberFirstAttribute}, true, L"");
   subscriber.rtiAmbassador().subscribeObjectClassAttributes(
       subscriberClass, rti::AttributeHandleSet{subscriberSecondAttribute}, false, L"");
+  rti::AttributeHandleSet const emptyAttributes;
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberClass, emptyAttributes, true, L"");
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberClass, emptyAttributes, false, L"");
 
   auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
   require(
