@@ -30,7 +30,8 @@ final class AsynchronousDeliveryTsoExclusionTck {
    static void run(RtiFactory factory, String fom, String timeImplementation,
          String timestampedClassName, String timestampedParameterName,
          String receiveOrderClassName, String receiveOrderParameterName,
-         String objectClassName, CallbackModel callbackModel) throws Exception {
+         String objectClassName, CallbackModel callbackModel,
+         boolean reenableAsynchronousDelivery) throws Exception {
       RTIambassador sender = factory.getRtiAmbassador();
       RTIambassador receiver = factory.getRtiAmbassador();
       Recorder senderCallbacks = new Recorder();
@@ -114,6 +115,7 @@ final class AsynchronousDeliveryTsoExclusionTck {
             "time-regulation role callback");
          receiver.enableAsynchronousDelivery();
          asynchronous = true;
+         if (reenableAsynchronousDelivery) receiver.disableAsynchronousDelivery();
 
          byte[] roValue = {0x52, 0x4f};
          byte[] roTag = {0x52, 0x4f, 0x31};
@@ -131,6 +133,22 @@ final class AsynchronousDeliveryTsoExclusionTck {
             (byte) 0x73, tsoTagSix, tsoTimeSix);
          sender.sendInteraction(senderReceiveOrderClass, receiveOrderParameters, roTag.clone());
          sender.timeAdvanceRequest(tsoTimeSix);
+
+         if (reenableAsynchronousDelivery) {
+            for (int pass = 0; pass < 8; ++pass) {
+               if (callbackModel == CallbackModel.HLA_EVOKED) {
+                  receiver.evokeMultipleCallbacks(0.0, 0.0);
+               } else {
+                  receiver.getObjectClassHandle(objectClassName);
+                  Thread.yield();
+               }
+            }
+            JavaTckSupport.check(receiverCallbacks.receiveOrder.isEmpty()
+                  && receiverCallbacks.timestamped.isEmpty()
+                  && receiverCallbacks.timeAdvanceGrants.isEmpty(),
+               "disabled asynchronous delivery dispatched a queued callback");
+            receiver.enableAsynchronousDelivery();
+         }
 
          await(receiver, callbackModel, objectClassName,
             () -> !receiverCallbacks.receiveOrder.isEmpty(),
@@ -246,6 +264,170 @@ final class AsynchronousDeliveryTsoExclusionTck {
    }
 
    /** Verifies that ordinary Send Message preserves a sender already Time Granted. */
+   static void runTimeAdvancingReceiveOrder(RtiFactory factory, String fom,
+         String timeImplementation, String interactionClassName, String parameterName,
+         String objectClassName, CallbackModel callbackModel,
+         boolean disableWhileTimeAdvancing) throws Exception {
+      RTIambassador sender = factory.getRtiAmbassador();
+      RTIambassador receiver = factory.getRtiAmbassador();
+      Recorder senderCallbacks = new Recorder();
+      Recorder receiverCallbacks = new Recorder();
+      String federation = "java-tck-async-time-advancing-ro-" + UUID.randomUUID();
+      boolean senderConnected = false, receiverConnected = false, created = false;
+      boolean senderJoined = false, receiverJoined = false, published = false, subscribed = false;
+      boolean timeConstrained = false, asynchronous = false;
+      boolean receiverAdvancePending = false, senderAdvanceRequested = false;
+      LogicalTime senderTarget = null;
+      LogicalTime receiverTarget = null;
+      InteractionClassHandle senderInteraction = null, receiverInteraction = null;
+      ParameterHandle senderParameter = null, receiverParameter = null;
+      try {
+         sender.connect(senderCallbacks.proxy(), callbackModel);
+         senderConnected = true;
+         receiver.connect(receiverCallbacks.proxy(), callbackModel);
+         receiverConnected = true;
+         sender.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         FederateHandle producer = sender.joinFederationExecution(
+            "java-tck-time-advancing-ro-publisher", federation);
+         senderJoined = true;
+         receiver.joinFederationExecution("java-tck-time-advancing-ro-receiver", federation);
+         receiverJoined = true;
+
+         senderInteraction = sender.getInteractionClassHandle(interactionClassName);
+         receiverInteraction = receiver.getInteractionClassHandle(interactionClassName);
+         senderParameter = sender.getParameterHandle(senderInteraction, parameterName);
+         receiverParameter = receiver.getParameterHandle(receiverInteraction, parameterName);
+         JavaTckSupport.check(senderInteraction.equals(receiverInteraction)
+               && senderParameter.equals(receiverParameter),
+            "adapter interaction handles differed between federates");
+         sender.publishInteractionClass(senderInteraction);
+         published = true;
+         receiver.subscribeInteractionClass(receiverInteraction);
+         subscribed = true;
+
+         LogicalTimeFactory<?, ?> senderTimeFactory = sender.getTimeFactory();
+         LogicalTimeFactory<?, ?> receiverTimeFactory = receiver.getTimeFactory();
+         JavaTckSupport.check(senderTimeFactory.getName().equals(receiverTimeFactory.getName()),
+            "adapter members selected different logical-time factories");
+         LogicalTimeInterval senderEpsilon =
+            (LogicalTimeInterval) senderTimeFactory.makeEpsilon();
+         LogicalTimeInterval receiverEpsilon =
+            (LogicalTimeInterval) receiverTimeFactory.makeEpsilon();
+
+         receiver.enableTimeConstrained();
+         timeConstrained = true;
+         await(receiver, callbackModel, objectClassName,
+            () -> receiverCallbacks.timeConstrainedEnabled,
+            "time-constrained role callback");
+         sender.enableTimeRegulation(senderEpsilon);
+         await(sender, callbackModel, objectClassName,
+            () -> senderCallbacks.timeRegulationEnabled,
+            "time-regulation role callback");
+
+         senderTarget = offset((LogicalTime) sender.queryLogicalTime(), senderEpsilon, 7);
+         receiverTarget = offset((LogicalTime) receiver.queryLogicalTime(), receiverEpsilon, 6);
+         if (disableWhileTimeAdvancing) {
+            receiver.enableAsynchronousDelivery();
+            asynchronous = true;
+         }
+         receiver.timeAdvanceRequest(receiverTarget);
+         receiverAdvancePending = true;
+         JavaTckSupport.check(receiverCallbacks.timeAdvanceGrants.isEmpty(),
+            "receiver was not held in Time Advancing by the sender's lower bound");
+
+         if (disableWhileTimeAdvancing) {
+            receiver.disableAsynchronousDelivery();
+            asynchronous = false;
+         } else {
+            receiver.enableAsynchronousDelivery();
+            asynchronous = true;
+         }
+         byte[] value = {0x41, 0x56};
+         byte[] tag = {0x54, 0x41};
+         ParameterHandleValueMap values =
+            sender.getParameterHandleValueMapFactory().create(1);
+         values.put(senderParameter, value.clone());
+         sender.sendInteraction(senderInteraction, values, tag.clone());
+         await(receiver, callbackModel, objectClassName,
+            () -> receiverCallbacks.receiveOrder.size() == 1,
+            "receive-order delivery while the receiver is Time Advancing");
+
+         Delivery received = receiverCallbacks.receiveOrder.get(0);
+         JavaTckSupport.check(receiverInteraction.equals(received.interaction)
+               && received.parameters.size() == 1
+               && Arrays.equals(value, received.parameters.get(receiverParameter))
+               && Arrays.equals(tag, received.tag)
+               && producer.equals(received.producer)
+               && receiverCallbacks.timestamped.isEmpty()
+               && receiverCallbacks.timeAdvanceGrants.isEmpty(),
+            "asynchronous receive-order callback arrived with wrong data or after the grant");
+
+         sender.timeAdvanceRequest(senderTarget);
+         senderAdvanceRequested = true;
+         await(sender, callbackModel, objectClassName,
+            () -> senderCallbacks.timeAdvanceGrants.size() == 1,
+            "sender Time Advance Grant to release the receiver's request");
+         JavaTckSupport.check(senderTarget.equals(senderCallbacks.timeAdvanceGrants.get(0)),
+            "sender received a grant at the wrong logical time");
+         await(receiver, callbackModel, objectClassName,
+            () -> receiverCallbacks.timeAdvanceGrants.size() == 1,
+            "receiver grant after the sender advances its lower bound");
+         JavaTckSupport.check(receiverTarget.equals(receiverCallbacks.timeAdvanceGrants.get(0))
+               && receiverCallbacks.receiveOrder.size() == 1
+               && receiverCallbacks.timestamped.isEmpty(),
+            "receiver grant or receive-order callback state changed unexpectedly");
+         receiverAdvancePending = false;
+      } finally {
+         if (receiverAdvancePending && senderJoined && receiverJoined && senderTarget != null) {
+            try {
+               if (!senderAdvanceRequested) {
+                  sender.timeAdvanceRequest(senderTarget);
+                  senderAdvanceRequested = true;
+               }
+               await(sender, callbackModel, objectClassName,
+                  () -> !senderCallbacks.timeAdvanceGrants.isEmpty(),
+                  "cleanup sender time advance");
+               await(receiver, callbackModel, objectClassName,
+                  () -> !receiverCallbacks.timeAdvanceGrants.isEmpty(),
+                  "cleanup receiver time advance");
+            } catch (Exception ignored) { }
+         }
+         if (asynchronous && receiverJoined) {
+            try { receiver.disableAsynchronousDelivery(); } catch (Exception ignored) { }
+         }
+         if (timeConstrained && receiverJoined) {
+            try { receiver.disableTimeConstrained(); } catch (Exception ignored) { }
+         }
+         if (subscribed && receiverJoined && receiverInteraction != null) {
+            try { receiver.unsubscribeInteractionClass(receiverInteraction); }
+            catch (Exception ignored) { }
+         }
+         if (published && senderJoined && senderInteraction != null) {
+            try { sender.unpublishInteractionClass(senderInteraction); }
+            catch (Exception ignored) { }
+         }
+         if (receiverJoined) {
+            try { receiver.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (senderJoined) {
+            try { sender.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (created) {
+            try { sender.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (receiverConnected) {
+            try { receiver.disconnect(); } catch (Exception ignored) { }
+         }
+         if (senderConnected) {
+            try { sender.disconnect(); } catch (Exception ignored) { }
+         }
+      }
+   }
+
    static void runSendWhileTimeGranted(RtiFactory factory, String fom,
          String timeImplementation, String interactionClassName,
          String parameterName, String objectClassName, CallbackModel callbackModel)

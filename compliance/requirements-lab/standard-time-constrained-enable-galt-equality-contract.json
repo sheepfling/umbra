@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-evidence-not-conformance-evidence",
+  "notes": "The portable scenario advances a not-yet-constrained federate to logical time 5 while a regulator's GALT is 1, requests Enable Time Constrained, and verifies that the callback is not delivered early. The regulator advances to 4 and then 5, making GALT equal the requester's current time; the requester then receives exactly one timeConstrainedEnabled callback reporting time 5. Installed-package execution passed HLA_EVOKED and failed HLA_IMMEDIATE because the callback was observed before the verified GALT-equality boundary; keep this scenario a candidate until the discrepancy is resolved. The adapter supplies the provider, FOM, logical-time implementation, endpoint, and callback model. Evidence is provider-specific experimental evidence, not a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-time-constrained-enable-galt-equality",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::enableTimeRegulation, timeAdvanceRequest, enableTimeConstrained, disableTimeConstrained, disableTimeRegulation; FederateAmbassador::timeRegulationEnabled, timeAdvanceGrant, timeConstrainedEnabled",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador; FederateAmbassador",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_time_management_scenarios.cpp::scenarioTimeConstrainedEnableAtGaltEquality",
+        "packages/hla-rti-cpp-tck/src/tck_time_management_scenarios.cpp::scenarioTimeConstrainedEnableAtGaltEqualityContract"
+      ]
+    }
+  ]
+}

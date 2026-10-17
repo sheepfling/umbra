@@ -3,6 +3,21 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
+  "selected_requirements_lab_requirement_ids": [
+    "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+    "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+    "requirement-candidate-content-clauses-08-time-management-page-203-l92-24"
+  ],
+  "standard_sections": [
+    "hla-1516.1-2025:clause-8.8.3",
+    "hla-1516.1-2025:clause-8.14.3"
+  ],
+  "requirement_mappings": [
+    { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3", "standard_section": "hla-1516.1-2025:clause-8.8.3" },
+    { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19", "standard_section": "hla-1516.1-2025:clause-8.8.3" },
+    { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l92-24", "standard_section": "hla-1516.1-2025:clause-8.14.3" }
+  ],
+  "mapping_note": "Direct mappings cover acceptance of Time Advance Request and request completion through Time Advance Grant (8.8.3), plus the grant's honored target time (8.14.3). Disable/enable callback suppression and release and callback-model-specific servicing are supplemental public-API checks; no time-advance-specific callback-control candidate is claimed. Time-role setup and cleanup are controls.",
   "notes": "This contract records the portable C++ TCK check for callback enable and disable around standard time-management callbacks. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, logical-time implementation, and callback configuration. It verifies time-regulation and time-constrained setup, suppression and release of timeAdvanceGrant, exact target-time metadata, callback-model servicing, and federation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
   "api_surfaces": [
     {

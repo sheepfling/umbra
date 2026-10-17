@@ -3,6 +3,22 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
+  "selected_requirements_lab_requirement_ids": [
+    "requirement-candidate-content-clauses-04-federation-management-page-061-l158-40",
+    "requirement-candidate-content-clauses-04-federation-management-page-062-l140-35",
+    "requirement-candidate-content-clauses-04-federation-management-page-064-l132-35"
+  ],
+  "standard_sections": [
+    "hla-1516.1-2025:clause-4.15",
+    "hla-1516.1-2025:clause-4.16",
+    "hla-1516.1-2025:clause-4.18.2"
+  ],
+  "requirement_mappings": [
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-061-l158-40", "standard_section": "hla-1516.1-2025:clause-4.15" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-062-l140-35", "standard_section": "hla-1516.1-2025:clause-4.16" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-064-l132-35", "standard_section": "hla-1516.1-2025:clause-4.18.2" }
+  ],
+  "mapping_note": "Direct mappings cover the registration-success result (4.15), announcement label/tag (4.16), and Federation Synchronized completion/failure-set callback (4.18.2). Disable/enable suppression and release and the callback servicing choice are tested as supplemental public-API behavior; no synchronization-specific direct candidate for those assertions is claimed.",
   "notes": "This contract records the portable C++ TCK check for callback enable and disable around standard synchronization-point registration, announcement, and completion callbacks. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, logical-time implementation, and callback configuration. It verifies callback suppression and release, standard label and tag metadata, successful FederationSynchronized completion, and federation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
   "api_surfaces": [
     {

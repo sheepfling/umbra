@@ -3,6 +3,18 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
+  "selected_requirements_lab_requirement_ids": [
+    "requirement-candidate-content-clauses-04-federation-management-page-073-l127-35",
+    "requirement-candidate-content-clauses-04-federation-management-page-073-l166-48"
+  ],
+  "standard_sections": [
+    "hla-1516.1-2025:clause-4.28.1"
+  ],
+  "requirement_mappings": [
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-073-l127-35", "standard_section": "hla-1516.1-2025:clause-4.28.1" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-073-l166-48", "standard_section": "hla-1516.1-2025:clause-4.28.1" }
+  ],
+  "mapping_note": "Direct mappings cover the requesting federate's result callback for an unsuccessful Restore Federation Execution Request and the absence of a restore operation after the missing-save-label failure, both under 4.28.1. Callback disable/enable suppression and release, non-requester silence, callback-model servicing, and cleanup are supplemental public-API checks; no callback-control-specific normative mapping is claimed.",
   "notes": "This contract records the portable C++ TCK check for callback enable and disable around a standard federation restore-request failure. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies suppression and release of the requesting federate's restore-request failure callback, exact save-label delivery, absence of restore-start callbacks, and federation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
   "api_surfaces": [
     {

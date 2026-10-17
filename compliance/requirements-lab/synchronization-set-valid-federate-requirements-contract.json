@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "The portable synchronization-point scenarios supply an explicit federate set containing an invalid FederateHandle and require InvalidFederateHandle. This tests the normative requirement that optional joined-federate designators be valid; it is traceability, not public validation or conformance evidence.",
+  "requirements": [
+    {
+      "id": "synchronization-set-designators-must-be-valid",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-061-l77-17",
+      "clause_id": "clause-4.15",
+      "standard_section": "hla-1516.1-2025:clause-4.15",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioSynchronizationPoints",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/SynchronizationTck.java::run"
+      ]
+    }
+  ]
+}

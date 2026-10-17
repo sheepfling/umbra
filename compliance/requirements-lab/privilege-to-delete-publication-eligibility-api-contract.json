@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The portable scenario uses only official IEEE 1516.1-2025 C++ RTIambassador and FederateAmbassador declarations plus the C++ standard library. Provider library, FOM, endpoint, and callback configuration are supplied by the adapter. HLAprivilegeToDeleteObject is resolved by its standard API name; no provider-specific header, registry, or runtime state is accessed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-publish-object-class-attributes",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.publishobjectclassattributes.f9f6fdeb6157",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "publishObjectClassAttributes",
+      "tests": ["packages/hla-rti-cpp-tck/src/main.cpp::scenarioPrivilegeToDeletePublicationEligibility"]
+    },
+    {
+      "id": "standard-cpp-unpublish-object-class-attributes",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unpublishobjectclassattributes.d1f7aabcadc7",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "unpublishObjectClassAttributes",
+      "tests": ["packages/hla-rti-cpp-tck/src/main.cpp::scenarioPrivilegeToDeletePublicationEligibility"]
+    },
+    {
+      "id": "standard-cpp-attribute-ownership-acquisition",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "attributeOwnershipAcquisition",
+      "tests": ["packages/hla-rti-cpp-tck/src/main.cpp::scenarioPrivilegeToDeletePublicationEligibility"]
+    },
+    {
+      "id": "standard-cpp-attribute-ownership-divestiture-if-wanted",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.attributeownershipdivestitureifwanted.3755f17bccdb",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "attributeOwnershipDivestitureIfWanted",
+      "tests": ["packages/hla-rti-cpp-tck/src/main.cpp::scenarioPrivilegeToDeletePublicationEligibility"]
+    },
+    {
+      "id": "standard-cpp-is-attribute-owned-by-federate",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.isattributeownedbyfederate.679939b7ba3f",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "isAttributeOwnedByFederate",
+      "tests": ["packages/hla-rti-cpp-tck/src/main.cpp::scenarioPrivilegeToDeletePublicationEligibility"]
+    },
+    {
+      "id": "standard-cpp-acquisition-notification",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "attributeOwnershipAcquisitionNotification",
+      "tests": ["packages/hla-rti-cpp-tck/src/main.cpp::scenarioPrivilegeToDeletePublicationEligibility"]
+    },
+    {
+      "id": "standard-cpp-delete-object-instance",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.deleteobjectinstance.48498ca52fcc",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "deleteObjectInstance",
+      "tests": ["packages/hla-rti-cpp-tck/src/main.cpp::scenarioPrivilegeToDeletePublicationEligibility"]
+    }
+  ]
+}

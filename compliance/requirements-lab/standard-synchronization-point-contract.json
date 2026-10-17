@@ -3,6 +3,34 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
+  "selected_requirements_lab_requirement_ids": [
+    "requirement-candidate-content-clauses-04-federation-management-page-060-l139-34",
+    "requirement-candidate-content-clauses-04-federation-management-page-061-l11-1",
+    "requirement-candidate-content-clauses-04-federation-management-page-061-l77-17",
+    "requirement-candidate-content-clauses-04-federation-management-page-061-l158-40",
+    "requirement-candidate-content-clauses-04-federation-management-page-062-l140-35",
+    "requirement-candidate-content-clauses-04-federation-management-page-063-l12-1",
+    "requirement-candidate-content-clauses-04-federation-management-page-063-l117-26",
+    "requirement-candidate-content-clauses-04-federation-management-page-064-l132-35"
+  ],
+  "standard_sections": [
+    "hla-1516.1-2025:clause-4.14",
+    "hla-1516.1-2025:clause-4.15",
+    "hla-1516.1-2025:clause-4.16",
+    "hla-1516.1-2025:clause-4.17.1",
+    "hla-1516.1-2025:clause-4.18.2"
+  ],
+  "requirement_mappings": [
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-060-l139-34", "standard_section": "hla-1516.1-2025:clause-4.14" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-061-l11-1", "standard_section": "hla-1516.1-2025:clause-4.15" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-061-l77-17", "standard_section": "hla-1516.1-2025:clause-4.15" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-061-l158-40", "standard_section": "hla-1516.1-2025:clause-4.15" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-062-l140-35", "standard_section": "hla-1516.1-2025:clause-4.16" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-063-l12-1", "standard_section": "hla-1516.1-2025:clause-4.17.1" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-063-l117-26", "standard_section": "hla-1516.1-2025:clause-4.17.1" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-064-l132-35", "standard_section": "hla-1516.1-2025:clause-4.18.2" }
+  ],
+  "mapping_note": "Direct mappings cover global and explicit-set registration, registration results, and explicit member-handle validity (clauses 4.14–4.15); announcement labels/tags (4.16); default-set late-join participation and achievement results (4.17.1); and completion/failure-set callbacks (4.18.2). Pre-connect/pre-join lifecycle failures, duplicate-label failure, and re-achievement after completion are supplemental assertions here and are not separate direct mappings.",
   "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 federation synchronization-point surface. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies global and explicit-set registration, registration-result callbacks, announcement tags, late-join announcement, achievement success/failure, completion, duplicate-label and invalid-member failures, and pre-connect/pre-join service boundaries without asserting provider-specific names, registries, headers, or implementation behavior.",
   "api_surfaces": [
     {

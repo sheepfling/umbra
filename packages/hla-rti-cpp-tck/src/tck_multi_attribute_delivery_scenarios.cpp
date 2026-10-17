@@ -285,6 +285,152 @@ void scenarioOrdinaryMultiAttributeSubscriptionProjectionContract(
   scenarioOrdinaryMultiAttributeSubscriptionProjection(options, model);
 }
 
+void scenarioSubscriptionInitialReflectionProjection(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.multiAttributeFom.empty(),
+      "subscription initial reflection requires an adapter-supplied multi-attribute FOM");
+  Session publisher(options, model, "subscription-initial-reflection-publisher");
+  Session subscriber(options, model, "subscription-initial-reflection-subscriber");
+  auto const federation = federationName(
+      options,
+      "subscription-initial-reflection-projection");
+  connectAndJoin(publisher, subscriber, options, federation, options.multiAttributeFom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const subscriberClass = subscriber.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const publisherFirst = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.multiAttributeFirstName);
+  auto const publisherSecond = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.multiAttributeSecondName);
+  auto const subscriberFirst = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberClass,
+      options.multiAttributeFirstName);
+  auto const subscriberSecond = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberClass,
+      options.multiAttributeSecondName);
+  require(
+      publisherClass.isValid() && subscriberClass.isValid() &&
+          publisherFirst.isValid() && publisherSecond.isValid() &&
+          subscriberFirst.isValid() && subscriberSecond.isValid(),
+      "subscription initial reflection lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherFirst, publisherSecond};
+  rti::AttributeHandleSet const subscribedAttributes{subscriberFirst};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(object.isValid(), "subscription initial reflection registration returned an invalid handle");
+
+  std::vector<std::uint8_t> const currentFirst{0x21U, 0x22U};
+  std::vector<std::uint8_t> const currentSecond{0x31U, 0x32U};
+  rti::AttributeHandleValueMap currentValues;
+  currentValues.emplace(
+      publisherFirst,
+      rti::VariableLengthData(currentFirst.data(), currentFirst.size()));
+  currentValues.emplace(
+      publisherSecond,
+      rti::VariableLengthData(currentSecond.data(), currentSecond.size()));
+  publisher.rtiAmbassador().updateAttributeValues(
+      object,
+      currentValues,
+      rti::VariableLengthData{});
+  for (int pass = 0; pass != 8; ++pass) {
+    subscriber.pump();
+  }
+  require(
+      !subscriber.recorder().hasDiscovery(object) &&
+          subscriber.recorder().reflections().empty(),
+      "unsubscribed member received discovery or reflection before subscribing");
+
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberClass,
+      subscribedAttributes,
+      true,
+      L"");
+  waitFor(
+      subscriber,
+      [&] {
+        return subscriber.recorder().hasDiscovery(object) &&
+            subscriber.recorder().reflections().size() >= 1U;
+      },
+      options,
+      "subscription initial reflection delivery");
+  auto const discovery = subscriber.recorder().discovery();
+  require(
+      subscriber.recorder().discoveryCount() == 1U && discovery.present &&
+          discovery.object == object && discovery.objectClass == subscriberClass,
+      "subscription of an existing object did not produce exactly one matching discovery");
+
+  auto assertSubscribedProjection = [&](ReflectionRecord const& reflection,
+                                        std::vector<std::uint8_t> const& expected,
+                                        std::string const& description) {
+    require(
+        reflection.object == object && reflection.values.size() == 1U &&
+            reflection.values.count(subscriberFirst) == 1U &&
+            reflection.values.count(subscriberSecond) == 0U &&
+            copyBytes(reflection.values.at(subscriberFirst)) == expected,
+        description + " returned values outside the active subscription or the wrong value");
+  };
+  require(
+      subscriber.recorder().reflections().size() == 1U,
+      "subscription initial reflection delivered a duplicate initial-value callback");
+  assertSubscribedProjection(
+      subscriber.recorder().reflections().front(),
+      currentFirst,
+      "subscription initial reflection");
+
+  std::vector<std::uint8_t> const laterFirst{0x41U, 0x42U};
+  std::vector<std::uint8_t> const laterSecond{0x51U, 0x52U};
+  rti::AttributeHandleValueMap laterValues;
+  laterValues.emplace(
+      publisherFirst,
+      rti::VariableLengthData(laterFirst.data(), laterFirst.size()));
+  laterValues.emplace(
+      publisherSecond,
+      rti::VariableLengthData(laterSecond.data(), laterSecond.size()));
+  publisher.rtiAmbassador().updateAttributeValues(
+      object,
+      laterValues,
+      rti::VariableLengthData{});
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().reflections().size() >= 2U; },
+      options,
+      "subscription initial reflection later update");
+  require(
+      subscriber.recorder().reflections().size() == 2U,
+      "multi-attribute update delivered a duplicate reflection to the selective subscriber");
+  assertSubscribedProjection(
+      subscriber.recorder().reflections().at(1),
+      laterFirst,
+      "subscription initial reflection later update");
+
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberClass,
+      subscribedAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  subscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  subscriber.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioSubscriptionInitialReflectionProjectionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioSubscriptionInitialReflectionProjection(options, model);
+}
+
 void scenarioOrdinaryMultiAttributeValueUpdateRequestResponse(
     Options const& options,
     rti::CallbackModel model) {

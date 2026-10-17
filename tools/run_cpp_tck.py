@@ -322,6 +322,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--secondary-directed-interaction-class",
         default="HLAinteractionRoot.TckSecondaryDirectedInteraction",
     )
+    parser.add_argument(
+        "--secondary-directed-interaction-parameter",
+        default="SecondaryPayload",
+    )
     parser.add_argument("--parameter", default="Payload")
     parser.add_argument(
         "--known-class-object-class",
@@ -596,6 +600,9 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         ),
         "HLA_RTI_TCK_ADAPTER_SECONDARY_DIRECTED_INTERACTION_CLASS": (
             arguments.secondary_directed_interaction_class
+        ),
+        "HLA_RTI_TCK_ADAPTER_SECONDARY_DIRECTED_INTERACTION_PARAMETER": (
+            arguments.secondary_directed_interaction_parameter
         ),
         "HLA_RTI_TCK_ADAPTER_PARAMETER": arguments.parameter,
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_OBJECT_CLASS": arguments.known_class_object_class,
@@ -888,6 +895,8 @@ def direct_arguments(
         arguments.secondary_directed_object_class,
         "--secondary-directed-interaction-class",
         arguments.secondary_directed_interaction_class,
+        "--secondary-directed-interaction-parameter",
+        arguments.secondary_directed_interaction_parameter,
         "--parameter",
         arguments.parameter,
         "--known-class-object-class",

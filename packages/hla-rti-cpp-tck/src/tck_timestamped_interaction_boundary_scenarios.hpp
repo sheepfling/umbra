@@ -10,6 +10,8 @@ void scenarioTimestampedInteractionMixedAdvances(Options const&, rti::CallbackMo
 void scenarioTimestampedInteractionMixedAdvancesContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTaraEqualBoundary(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTaraEqualBoundaryContract(Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTaraStrictTimestampCutoff(
+    Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarEqualBoundary(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarEqualBoundaryContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarPostGrantCutoff(Options const&, rti::CallbackModel);

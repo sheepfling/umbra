@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This paired portable TCK case covers only the timestamp-supplied Send Interaction branch when the interaction class preferred order is RECEIVE. The provider, FOM, endpoint, callback configuration, and logical-time implementation are adapter inputs. No other preferred-order/timestamp-presence combination, remote interoperability, or conformance claim is made.",
+  "requirements": [
+    {
+      "id": "timestamped-send-interaction-preferred-receive-conversion",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l49-12",
+      "clause_id": "clause-8.1.5",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "changeInteractionOrderType",
+      "statement": "When the interaction class preferred order is RECEIVE, the timestamp-supplied Send Interaction service reports the supplied timestamp while the sent and received order metadata are RECEIVE; the service result and callback carry no valid message-retraction designator. The focused observation also confirms the interaction callback precedes the receiver's matching grant.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_timestamped_interaction_preferred_receive_conversion.cpp::scenarioTimestampedInteractionPreferredReceiveConversion",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/TimestampedInteractionPreferredReceiveConversionTck.java::run"
+      ]
+    }
+  ]
+}

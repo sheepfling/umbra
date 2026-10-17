@@ -529,6 +529,113 @@ void scenarioObjectRegistrationDiscoveryMultiRecipient(
   publisher.disconnect();
 }
 
+void scenarioActiveSubscriptionObjectDiscovery(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session publisher(options, model, "active-subscription-discovery-publisher");
+  Session subscriber(options, model, "active-subscription-discovery-subscriber");
+  auto const federation = federationName(options, "active-subscription-object-discovery");
+  connectAndJoin(publisher, subscriber, options, federation, options.fom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const subscriberClass = subscriber.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const subscriberAttribute = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && subscriberClass.isValid() &&
+          publisherAttribute.isValid() && subscriberAttribute.isValid(),
+      "active-subscription discovery lookup returned an invalid class or attribute handle");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const subscriberAttributes{subscriberAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+
+  auto const existingObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  require(
+      existingObject.isValid(),
+      "pre-subscription object registration returned an invalid handle");
+  auto const existingName = publisher.rtiAmbassador().getObjectInstanceName(existingObject);
+  require(!existingName.empty(), "pre-subscription object registration returned an empty name");
+
+  for (int pass = 0; pass != 8; ++pass) {
+    subscriber.pump();
+  }
+  require(
+      subscriber.recorder().discoveryCount() == 0U,
+      "unsubscribed member received discovery for an existing object");
+
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberClass,
+      subscriberAttributes,
+      true,
+      L"");
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().hasDiscovery(existingObject); },
+      options,
+      "discovery of an object already registered when the active subscription is made");
+  auto const existingDiscovery = subscriber.recorder().discovery();
+  require(
+      subscriber.recorder().discoveryCount() == 1U && existingDiscovery.present &&
+          existingDiscovery.object == existingObject &&
+          existingDiscovery.objectClass == subscriberClass &&
+          existingDiscovery.name == existingName &&
+          existingDiscovery.producer == publisher.federateHandle(),
+      "active subscription did not produce exactly one matching discovery for the existing object");
+
+  auto const laterObject = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      laterObject.isValid() && laterObject != existingObject,
+      "post-subscription object registration returned an invalid or duplicate handle");
+  auto const laterName = publisher.rtiAmbassador().getObjectInstanceName(laterObject);
+  require(
+      !laterName.empty() && laterName != existingName,
+      "post-subscription object registration returned an invalid or duplicate name");
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().hasDiscovery(laterObject); },
+      options,
+      "discovery of an object registered after the active subscription");
+  for (int pass = 0; pass != 8; ++pass) {
+    subscriber.pump();
+  }
+
+  auto const laterDiscovery = subscriber.recorder().discovery();
+  require(
+      subscriber.recorder().discoveryCount() == 2U &&
+          subscriber.recorder().hasDiscovery(existingObject) &&
+          subscriber.recorder().hasDiscovery(laterObject) &&
+          laterDiscovery.present && laterDiscovery.object == laterObject &&
+          laterDiscovery.objectClass == subscriberClass && laterDiscovery.name == laterName &&
+          laterDiscovery.producer == publisher.federateHandle() &&
+          subscriber.rtiAmbassador().getObjectInstanceHandle(existingName) == existingObject &&
+          subscriber.rtiAmbassador().getObjectInstanceHandle(laterName) == laterObject &&
+          subscriber.rtiAmbassador().getKnownObjectClassHandle(existingObject) == subscriberClass &&
+          subscriber.rtiAmbassador().getKnownObjectClassHandle(laterObject) == subscriberClass,
+      "active subscription did not discover each existing and later object exactly once with matching identity");
+
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberClass,
+      subscriberAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  subscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  subscriber.disconnect();
+  publisher.disconnect();
+}
+
 
 
 void scenarioNamedRegistrationMultiRecipient(

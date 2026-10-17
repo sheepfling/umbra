@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The portable C++ TCK scenario uses only the official IEEE 1516.1-2025 RTIambassador and FederateAmbassador surface plus the C++ standard library. The adapter supplies the provider package, FOM, endpoint, and callback model. The standard attribute name HLAprivilegeToDeleteObject is resolved through the standard object-class attribute lookup; no provider-specific names or headers are required.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-attribute-ownership-acquisition",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "attributeOwnershipAcquisition(ObjectInstanceHandle const &, AttributeHandleSet const &, VariableLengthData const &)",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "attributeOwnershipAcquisition",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioPrivilegeToDeleteTransfer",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioPrivilegeToDeleteTransferContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-attribute-ownership-divestiture-if-wanted",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.attributeownershipdivestitureifwanted.3755f17bccdb",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "attributeOwnershipDivestitureIfWanted(ObjectInstanceHandle const &, AttributeHandleSet const &, VariableLengthData const &, AttributeHandleSet &)",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "attributeOwnershipDivestitureIfWanted",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioPrivilegeToDeleteTransfer",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioPrivilegeToDeleteTransferContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-is-attribute-owned-by-federate",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.isattributeownedbyfederate.679939b7ba3f",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "isAttributeOwnedByFederate(ObjectInstanceHandle const &, AttributeHandle const &) const",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "isAttributeOwnedByFederate",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioPrivilegeToDeleteTransfer",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioPrivilegeToDeleteTransferContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-delete-object-instance",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.deleteobjectinstance.48498ca52fcc",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "deleteObjectInstance(ObjectInstanceHandle const &, VariableLengthData const &)",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "deleteObjectInstance",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioPrivilegeToDeleteTransfer",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioPrivilegeToDeleteTransferContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-acquisition-notification",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.attributeownershipacquisitionnotification.cd29e81d5e0f",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "attributeOwnershipAcquisitionNotification(ObjectInstanceHandle const &, AttributeHandleSet const &, VariableLengthData const &)",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "attributeOwnershipAcquisitionNotification",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioPrivilegeToDeleteTransfer",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioPrivilegeToDeleteTransferContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-remove-object-instance",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.removeobjectinstance.719ea7cfb6a5",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "removeObjectInstance(ObjectInstanceHandle const &, VariableLengthData const &, FederateHandle const &)",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "removeObjectInstance",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioPrivilegeToDeleteTransfer",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioPrivilegeToDeleteTransferContract"
+      ]
+    }
+  ]
+}

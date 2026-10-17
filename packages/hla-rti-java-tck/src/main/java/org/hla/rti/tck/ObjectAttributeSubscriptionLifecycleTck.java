@@ -470,38 +470,54 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          String secondAttributeName, CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador subscriber = factory.getRtiAmbassador();
+      RTIambassador retainedSubscriber = factory.getRtiAmbassador();
       Recorder publisherCallbacks = new Recorder();
       Recorder subscriberCallbacks = new Recorder();
+      Recorder retainedCallbacks = new Recorder();
       String federation = "java-tck-selective-attribute-unsubscription-" + UUID.randomUUID();
-      boolean publisherConnected = false, subscriberConnected = false, created = false;
-      boolean publisherJoined = false, subscriberJoined = false;
+      boolean publisherConnected = false, subscriberConnected = false;
+      boolean retainedConnected = false, created = false;
+      boolean publisherJoined = false, subscriberJoined = false, retainedJoined = false;
       boolean published = false, subscribed = false, firstAttributeUnsubscribed = false;
-      ObjectClassHandle publisherClass = null, subscriberClass = null;
+      boolean retainedSubscribed = false;
+      ObjectClassHandle publisherClass = null, subscriberClass = null, retainedClass = null;
       AttributeHandle publisherFirst = null, publisherSecond = null;
       AttributeHandle subscriberFirst = null, subscriberSecond = null;
+      AttributeHandle retainedFirst = null, retainedSecond = null;
       try {
          publisher.connect(publisherCallbacks.proxy(), callbackModel);
          publisherConnected = true;
          subscriber.connect(subscriberCallbacks.proxy(), callbackModel);
          subscriberConnected = true;
+         retainedSubscriber.connect(retainedCallbacks.proxy(), callbackModel);
+         retainedConnected = true;
          publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          publisher.joinFederationExecution("java-tck-selective-unsubscription-publisher", federation);
          publisherJoined = true;
          subscriber.joinFederationExecution("java-tck-selective-unsubscription-subscriber", federation);
          subscriberJoined = true;
+         retainedSubscriber.joinFederationExecution(
+            "java-tck-selective-unsubscription-retained-subscriber", federation);
+         retainedJoined = true;
 
          publisherClass = publisher.getObjectClassHandle(objectClassName);
          subscriberClass = subscriber.getObjectClassHandle(objectClassName);
+         retainedClass = retainedSubscriber.getObjectClassHandle(objectClassName);
          publisherFirst = publisher.getAttributeHandle(publisherClass, firstAttributeName);
          publisherSecond = publisher.getAttributeHandle(publisherClass, secondAttributeName);
          subscriberFirst = subscriber.getAttributeHandle(subscriberClass, firstAttributeName);
          subscriberSecond = subscriber.getAttributeHandle(subscriberClass, secondAttributeName);
+         retainedFirst = retainedSubscriber.getAttributeHandle(retainedClass, firstAttributeName);
+         retainedSecond = retainedSubscriber.getAttributeHandle(retainedClass, secondAttributeName);
          JavaTckSupport.check(publisherClass != null && subscriberClass != null
+               && retainedClass != null
                && publisherFirst != null && publisherSecond != null
                && subscriberFirst != null && subscriberSecond != null
+               && retainedFirst != null && retainedSecond != null
                && !publisherFirst.equals(publisherSecond)
-               && !subscriberFirst.equals(subscriberSecond),
+               && !subscriberFirst.equals(subscriberSecond)
+               && !retainedFirst.equals(retainedSecond),
             "adapter FOM did not resolve distinct unsubscription attributes");
 
          AttributeHandleSet publisherAttributes = JavaTckSupport.attributeSet(
@@ -511,6 +527,9 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          subscriber.subscribeObjectClassAttributes(subscriberClass,
             JavaTckSupport.attributeSet(subscriber, subscriberFirst, subscriberSecond));
          subscribed = true;
+         retainedSubscriber.subscribeObjectClassAttributes(retainedClass,
+            JavaTckSupport.attributeSet(retainedSubscriber, retainedFirst, retainedSecond));
+         retainedSubscribed = true;
 
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
@@ -518,6 +537,9 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          await(subscriber, callbackModel,
             () -> findDiscovery(subscriberCallbacks.discoveries, object) != null,
             "selective-unsubscription object discovery");
+         await(retainedSubscriber, callbackModel,
+            () -> findDiscovery(retainedCallbacks.discoveries, object) != null,
+            "retained subscriber object discovery");
 
          byte[] initialFirstValue = new byte[] {0x53, 0x45, 0x4c, 0x31};
          byte[] initialSecondValue = new byte[] {0x52, 0x45, 0x4d, 0x31};
@@ -526,6 +548,9 @@ final class ObjectAttributeSubscriptionLifecycleTck {
             initialFirstValue, initialSecondValue, initialTag);
          await(subscriber, callbackModel, () -> !subscriberCallbacks.reflections.isEmpty(),
             "initial two-attribute subscription reflection");
+         await(retainedSubscriber, callbackModel,
+            () -> !retainedCallbacks.reflections.isEmpty(),
+            "initial retained-subscriber reflection");
          JavaTckSupport.check(subscriberCallbacks.reflections.size() == 1,
             "initial two-attribute subscription produced an unexpected reflection count");
          Reflection initialReflection = subscriberCallbacks.reflections.get(0);
@@ -535,8 +560,20 @@ final class ObjectAttributeSubscriptionLifecycleTck {
                && Arrays.equals(initialSecondValue, initialReflection.values.get(subscriberSecond))
                && Arrays.equals(initialTag, initialReflection.tag),
             "initial subscription did not reflect both subscribed attributes");
+         JavaTckSupport.check(retainedCallbacks.reflections.size() == 1,
+            "initial retained subscription produced an unexpected reflection count");
+         Reflection retainedInitialReflection = retainedCallbacks.reflections.get(0);
+         JavaTckSupport.check(object.equals(retainedInitialReflection.object)
+               && retainedInitialReflection.values.size() == 2
+               && Arrays.equals(initialFirstValue,
+                  retainedInitialReflection.values.get(retainedFirst))
+               && Arrays.equals(initialSecondValue,
+                  retainedInitialReflection.values.get(retainedSecond))
+               && Arrays.equals(initialTag, retainedInitialReflection.tag),
+            "second federate's independent subscription did not receive both attributes");
 
          subscriberCallbacks.reflections.clear();
+         retainedCallbacks.reflections.clear();
          subscriber.unsubscribeObjectClassAttributes(subscriberClass,
             JavaTckSupport.attributeSet(subscriber, subscriberFirst));
          firstAttributeUnsubscribed = true;
@@ -548,6 +585,9 @@ final class ObjectAttributeSubscriptionLifecycleTck {
             nextFirstValue, nextSecondValue, nextTag);
          await(subscriber, callbackModel, () -> !subscriberCallbacks.reflections.isEmpty(),
             "remaining-attribute reflection after selective unsubscription");
+         await(retainedSubscriber, callbackModel,
+            () -> !retainedCallbacks.reflections.isEmpty(),
+            "retained subscription reflection after another federate unsubscribes");
          JavaTckSupport.check(subscriberCallbacks.reflections.size() == 1,
             "selective unsubscription produced an unexpected reflection count");
          Reflection remainingReflection = subscriberCallbacks.reflections.get(0);
@@ -558,12 +598,26 @@ final class ObjectAttributeSubscriptionLifecycleTck {
                   remainingReflection.values.get(subscriberSecond))
                && Arrays.equals(nextTag, remainingReflection.tag),
             "unsubscribing one attribute removed another subscribed attribute or delivered the removed value");
+         JavaTckSupport.check(retainedCallbacks.reflections.size() == 1,
+            "retained subscription produced an unexpected reflection count");
+         Reflection retainedReflection = retainedCallbacks.reflections.get(0);
+         JavaTckSupport.check(object.equals(retainedReflection.object)
+               && retainedReflection.values.size() == 2
+               && Arrays.equals(nextFirstValue, retainedReflection.values.get(retainedFirst))
+               && Arrays.equals(nextSecondValue, retainedReflection.values.get(retainedSecond))
+               && Arrays.equals(nextTag, retainedReflection.tag),
+            "one federate's attribute unsubscription changed another federate's subscription");
 
          subscriber.unsubscribeObjectClassAttributes(subscriberClass,
             JavaTckSupport.attributeSet(subscriber, subscriberSecond));
          subscribed = false;
+         retainedSubscriber.unsubscribeObjectClassAttributes(retainedClass,
+            JavaTckSupport.attributeSet(retainedSubscriber, retainedFirst, retainedSecond));
+         retainedSubscribed = false;
          publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes);
          published = false;
+         retainedSubscriber.resignFederationExecution(ResignAction.NO_ACTION);
+         retainedJoined = false;
          subscriber.resignFederationExecution(ResignAction.NO_ACTION);
          subscriberJoined = false;
          publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS);
@@ -571,6 +625,12 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          publisher.destroyFederationExecution(federation);
          created = false;
       } finally {
+         if (retainedJoined && retainedSubscribed && retainedClass != null
+               && retainedFirst != null && retainedSecond != null) {
+            try { retainedSubscriber.unsubscribeObjectClassAttributes(retainedClass,
+               JavaTckSupport.attributeSet(retainedSubscriber, retainedFirst, retainedSecond)); }
+            catch (Exception ignored) { }
+         }
          if (subscriberJoined && subscribed && subscriberClass != null
                && subscriberFirst != null && subscriberSecond != null) {
             try {
@@ -590,6 +650,10 @@ final class ObjectAttributeSubscriptionLifecycleTck {
             try { subscriber.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
          }
+         if (retainedJoined) {
+            try { retainedSubscriber.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
          if (publisherJoined) {
             try { publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
             catch (Exception ignored) { }
@@ -600,6 +664,9 @@ final class ObjectAttributeSubscriptionLifecycleTck {
          }
          if (subscriberConnected) {
             try { subscriber.disconnect(); } catch (Exception ignored) { }
+         }
+         if (retainedConnected) {
+            try { retainedSubscriber.disconnect(); } catch (Exception ignored) { }
          }
          if (publisherConnected) {
             try { publisher.disconnect(); } catch (Exception ignored) { }

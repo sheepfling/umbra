@@ -13,7 +13,7 @@
       "source_symbol": "EmbeddedFederationRegistry::regionsOverlap",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tso_retraction_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request uses actual time for timestamped regional interaction send bound",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_alternate_advances_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_mixed_advances_catch2.cpp::Embedded mixed regional TSO advances respect FQR TARA and NMRA grant boundaries",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tar_nmr_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
@@ -32,7 +32,7 @@
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tso_retraction_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request uses actual time for timestamped regional interaction send bound",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_alternate_advances_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_mixed_advances_catch2.cpp::Embedded mixed regional TSO advances respect FQR TARA and NMRA grant boundaries",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tar_nmr_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
@@ -50,7 +50,7 @@
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tso_retraction_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request uses actual time for timestamped regional interaction send bound",
         "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_tso_regional_no_overlap_designator_catch2.cpp::Embedded timestamped Send Interaction With Regions returns a retraction designator without overlap-qualified recipients"
       ]
@@ -84,7 +84,7 @@
       "source_symbol": "validateTsoTimestamp",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tso_retraction_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request uses actual time for timestamped regional interaction send bound",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_alternate_advances_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_mixed_advances_catch2.cpp::Embedded mixed regional TSO advances respect FQR TARA and NMRA grant boundaries",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tar_nmr_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
@@ -101,7 +101,7 @@
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tso_retraction_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request uses actual time for timestamped regional interaction send bound",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_alternate_advances_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_mixed_advances_catch2.cpp::Embedded mixed regional TSO advances respect FQR TARA and NMRA grant boundaries",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tar_nmr_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",

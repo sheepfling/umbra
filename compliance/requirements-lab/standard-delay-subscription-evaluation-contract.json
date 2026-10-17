@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK checks for ordinary and directed subscription re-evaluation. The scenarios use only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM modules, endpoint, callback model, and logical-time implementation. The checks cover ordinary and directed receive-order delivery at the callback boundary and timestamped delivery at the time-constrained grant boundary, including regional attribute and interaction eligibility, the standard Delay Subscription Evaluation switch, and current-subscription filtering. The three DSE-specific pinned Requirements Lab candidate IDs below map to canonical IEEE 1516.1-2025 §8.1.8; the stale exported §8.1.10 metadata is corrected by the resolved RL-252 crosswalk record. The regional timestamped variants additionally use the directly mapped l10-1 candidate for §8.1.10. This remains experimental public-API evidence, not conformance evidence.",
+  "notes": "This contract records the portable C++ TCK checks for ordinary and directed subscription re-evaluation. The scenarios use only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM modules, endpoint, callback model, and logical-time implementation. The checks cover ordinary and directed receive-order delivery at the callback boundary and timestamped delivery at the time-constrained grant boundary, including regional attribute and interaction eligibility, the standard Delay Subscription Evaluation switch, and current-subscription filtering. The three DSE-specific pinned Requirements Lab candidate IDs below map to canonical IEEE 1516.1-2025 §8.1.8; the stale exported §8.1.10 metadata is corrected by the resolved RL-252 crosswalk record. The regional variants additionally use the directly mapped l10-1 candidate for §8.1.10. This remains experimental public-API evidence, not conformance evidence.",
   "canonical_standard_section_overrides": [
     {
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
@@ -65,6 +65,17 @@
       "source_symbol": "IEEE 1516.1 RTIambassador ordinary attribute subscription-evaluation declarations and FederateAmbassador callbacks",
       "tests": [
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDelaySubscriptionEvaluationAttributeUpdateContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-delay-subscription-evaluation-receive-order-regional-attribute-update",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador receive-order regional attribute updates, Delay Subscription Evaluation switch, committed DDM ranges, and FederateAmbassador reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador regional receive-order declarations and callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDelaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdateContract"
       ]
     },
     {

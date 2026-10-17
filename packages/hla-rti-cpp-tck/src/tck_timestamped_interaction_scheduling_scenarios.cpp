@@ -552,6 +552,9 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
       *receiverTime.initial,
       *receiverTime.epsilon,
       10U);
+  require(
+      *requestBoundary < *secondTime,
+      "Timestamped interaction Flush Queue future-input scenario must queue a TSO timestamp above the requested time");
 
   std::vector<std::uint8_t> const firstParameterBytes{
       0x46U, 0x55U, 0x54U, 0x55U, 0x52U, 0x45U};

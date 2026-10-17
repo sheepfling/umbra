@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "The portable FOM model TCK verifies that repeated local object-class names are uniquely identifiable through superclass-qualified dot notation. This traceability reference is not public validation or a conformance claim.",
+  "requirements": [
+    {
+      "id": "portable-fom-qualified-object-class-name-identity",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-040-l22-4",
+      "clause_id": "clause-4.2.2",
+      "standard_section": "hla-1516.2-2025:clause-4.2.2",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomQualifiedClassNameIdentity",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RichFomModelTck.java::runQualifiedClassNameIdentity"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This portable scenario pair tests only the §8.1.5 state-preservation rule for Send Message from Time Granted. The sender first receives grant 10, sends one ordinary receive-order interaction while the receiver's asynchronous delivery is enabled, remains at logical time 10 with exactly one grant, and then requests and receives grant 20. The callback configuration, provider library, FOM, endpoint, and logical-time implementation come from the adapter. The claim does not cover other time-manager states, other Send Message variants, interoperability, or conformance.",
+  "requirements": [
+    {
+      "id": "send-message-preserves-time-granted-state-l37-8",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l37-8",
+      "clause_id": "clause-8.1.5",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "sendInteraction",
+      "statement": "When an executing federate is Time Granted, performing Send Message returns it to the prior Time Granted state. Observable evidence is receipt of a receive-order interaction while the sender retains its granted logical time and grant history, followed by a successful subsequent Time Advance Request and matching Time Advance Grant.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_send_message_time_state_preservation.cpp::scenarioSendMessageTimeStatePreservationGranted",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/AsynchronousDeliveryTsoExclusionTck.java::runSendWhileTimeGranted"
+      ]
+    },
+    {
+      "id": "send-message-preserves-time-granted-state-l40-9",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l40-9",
+      "clause_id": "clause-8.1.5",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "sendInteraction",
+      "statement": "When an executing federate is Time Granted, performing Send Message returns it to the prior Time Granted state. Observable evidence is receipt of a receive-order interaction while the sender retains its granted logical time and grant history, followed by a successful subsequent Time Advance Request and matching Time Advance Grant.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_send_message_time_state_preservation.cpp::scenarioSendMessageTimeStatePreservationGranted",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/AsynchronousDeliveryTsoExclusionTck.java::runSendWhileTimeGranted"
+      ]
+    }
+  ]
+}

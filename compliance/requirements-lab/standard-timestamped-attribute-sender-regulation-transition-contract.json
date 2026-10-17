@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records a portable IEEE 1516.1 test of the sender time-regulating role in timestamped attribute-update order classification. Keep the attribute's timestamp-order preference and supplied logical timestamp fixed: before regulation, the update is received in receive order and supplies no valid retraction handle; after regulation, the update is timestamp order, remains queued until receiver advancement, and supplies a valid retraction handle. The adapter supplies the provider, standard FOM, endpoint, callback model, and logical-time implementation. This focused API check is not conformance evidence.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-attribute-sender-regulation-transition",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped UpdateAttributeValues, Change Default Attribute Order Type and Enable Time Regulation with FederateAmbassador reflection/order callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped update, attribute-order and time-regulation declarations; FederateAmbassador reflectAttributeValues callback",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_timestamped_attribute_sender_regulation_transition.cpp::scenarioTimestampedAttributeSenderRegulationTransition"
+      ]
+    },
+    {
+      "id": "standard-java-timestamped-attribute-sender-regulation-transition",
+      "owner": "IEEE 1516.1 Java API",
+      "language": "java",
+      "signature": "RTIambassador timestamped update, attribute-order and time-regulation methods with FederateAmbassador reflection/order callbacks",
+      "source": "third_party/ieee1516.1-2025/java/src",
+      "source_symbol": "IEEE 1516.1 Java RTIambassador timestamped update, attribute-order and time-regulation declarations; FederateAmbassador reflection callback",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/TimestampedAttributeQueuedPasselRetractionTck.java::runSenderRegulationTransition"
+      ]
+    }
+  ]
+}

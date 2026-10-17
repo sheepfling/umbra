@@ -35,6 +35,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_federation_synchronization_mom_queries.cpp
   src/tck_multi_attribute_delivery_scenarios.cpp
   src/tck_timestamped_interaction_scheduling_scenarios.cpp
+  src/tck_timestamped_directed_interaction_subscription_kind.cpp
   src/tck_federation_lifecycle_scenarios.cpp
   src/tck_inherited_derived_delivery_scenarios.cpp
   src/tck_callback_controls_object_ownership.cpp

@@ -4,6 +4,53 @@
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
   "notes": "This portable C++ TCK slice maps an ordinary Update Attribute Values call to the receive-order reflection callback and a timestamped update to the timestamped reflection callback at the same receiver. The applicable canonical requirement is IEEE 1516.1-2025 clause 8.1.4; this is adapter-backed test evidence, not a conformance claim.",
+  "canonical_standard_section_overrides": [
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l9-1",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.1.4",
+      "canonical_clause_id": "clause-8.1.3",
+      "source_heading": "8.1.3 Messages",
+      "source_path": "content/clauses/08-time-management-page-180.tex",
+      "known_issue_id": "RL-330"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l21-5",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.1.4",
+      "canonical_clause_id": "clause-8.1.3",
+      "source_heading": "8.1.3 Messages",
+      "source_path": "content/clauses/08-time-management-page-180.tex",
+      "known_issue_id": "RL-330"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l27-7",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.1.4",
+      "canonical_clause_id": "clause-8.1.3",
+      "source_heading": "8.1.3 Messages",
+      "source_path": "content/clauses/08-time-management-page-180.tex",
+      "known_issue_id": "RL-330"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l39-11",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.1.4",
+      "canonical_clause_id": "clause-8.1.3",
+      "source_heading": "8.1.3 Messages",
+      "source_path": "content/clauses/08-time-management-page-180.tex",
+      "known_issue_id": "RL-330"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l45-13",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.1.4",
+      "canonical_clause_id": "clause-8.1.3",
+      "source_heading": "8.1.3 Messages",
+      "source_path": "content/clauses/08-time-management-page-180.tex",
+      "known_issue_id": "RL-330"
+    }
+  ],
   "requirements": [
     {
       "id": "standard-attribute-update-message-order-classification",

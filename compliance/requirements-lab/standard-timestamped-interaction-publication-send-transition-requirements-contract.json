@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-traceability-not-conformance-evidence",
+  "notes": "The focused C++ and Java cases check the current publication precondition for timestamped Send Interaction. Each confirms a timestamped send while published returns a valid retraction handle, then requires InteractionClassNotPublished after unpublication and observes no callback attributable to the rejected call. They do not assert post-republication delivery or timestamped ordering; callback absence is only a test-oracle observation.",
+  "requirements": [
+    {
+      "id": "cpp-tck-timestamped-interaction-publication-send-precondition",
+      "requirements_lab_requirement_id": "requirement-source-refinement-send-interaction-published-class",
+      "clause_id": "clause-5.1.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "sendInteraction",
+      "statement": "The timestamped Send Interaction overload declares InteractionClassNotPublished; after withdrawing the selected interaction-class publication, the tests require that exact exception. A prior published send establishes a valid baseline, and callback absence is checked after the rejected call without claiming post-republication delivery.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_timestamped_interaction_boundary_scenarios.cpp::scenarioTimestampedInteractionPublicationSendTransitionPortable",
+        "packages/hla-rti-cpp-tck/src/tck_timestamped_interaction_boundary_scenarios.cpp::scenarioTimestampedInteractionPublicationSendTransitionContractPortable",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/TimestampedInteractionPublicationSendTransitionTck.java::run"
+      ]
+    }
+  ]
+}

@@ -29,6 +29,14 @@ EXPECTED_ADAPTER_MANAGED_SKIPS = {
         "cpp-tck.automatic-resign-directive-delete-objects-contract",
         "requires an adapter-managed connection-loss fixture",
     ),
+    (
+        "cpp-tck.base-subscription-rejects-derived-only-attribute",
+        "requires an adapter-supplied known-class advisory FOM",
+    ),
+    (
+        "cpp-tck.base-subscription-rejects-derived-only-attribute-contract",
+        "requires an adapter-supplied known-class advisory FOM",
+    ),
 }
 STANDARD_HEADERS = {
     "algorithm",
@@ -60,9 +68,12 @@ STANDARD_HEADERS = {
     "utility",
     "vector",
 }
+API_CONTRACT_ONLY_CLASSIFICATION = "api-contract-only-not-normative-conformance"
 PLATFORM_INCLUDES = {
     ("service_report_creation_failure_tck.cpp", "windows.h"),
 }
+
+
 LOCAL_TCK_HEADERS = {
     "pending_negotiated_restore_tck.hpp",
     "service_report_creation_failure_tck.hpp",
@@ -140,6 +151,18 @@ LOCAL_TCK_HEADERS = {
     "tck_region_lifecycle_scenarios.hpp",
     "tck_delay_subscription_scenarios.hpp",
     "tck_logical_time.hpp",
+    "tck_time_coordinated_interaction.hpp",
+    "tck_empty_attribute_subscription.hpp",
+    "tck_attribute_subscription_mode_transitions.hpp",
+    "tck_nmr_future_timestamped_object_deletion.hpp",
+    "tck_nmra_future_timestamped_object_deletion.hpp",
+    "tck_named_update_rate_subscription.hpp",
+    "tck_default_rate_no_reduction.hpp",
+    "tck_accumulating_attribute_subscriptions.hpp",
+    "tck_passive_subscription_no_start_registration.hpp",
+    "tck_selective_attribute_unsubscription.hpp",
+    "tck_whole_class_attribute_unsubscription.hpp",
+    "tck_empty_attribute_unsubscription.hpp",
     "tck_options.hpp",
 }
 OFFICIAL_API_HEADERS = {
@@ -232,8 +255,30 @@ def load_catalog(path: Path) -> dict[str, Any]:
                 raise ValueError(f"{scenario.get('id', '<unknown>')} missing {field}")
         if not scenario.get("api_methods"):
             raise ValueError(f"{scenario['id']} must link standard C++ API methods")
+        mapping_classification = scenario.get("mapping_classification")
         if not scenario.get("requirement_ids"):
-            raise ValueError(f"{scenario['id']} must have stable requirement IDs")
+            if mapping_classification != API_CONTRACT_ONLY_CLASSIFICATION:
+                raise ValueError(
+                    f"{scenario['id']} must have stable requirement IDs or the explicit "
+                    "API-contract-only classification"
+                )
+            if any(
+                scenario.get(field)
+                for field in (
+                    "selected_requirements_lab_requirement_ids",
+                    "standard_sections",
+                    "requirement_mappings",
+                )
+            ):
+                raise ValueError(
+                    f"{scenario['id']} cannot claim normative mappings when classified "
+                    "API-contract-only"
+                )
+        elif mapping_classification == API_CONTRACT_ONLY_CLASSIFICATION:
+            raise ValueError(
+                f"{scenario['id']} cannot combine normative requirement IDs with the "
+                "API-contract-only classification"
+            )
         if not scenario.get("contract_refs"):
             raise ValueError(f"{scenario['id']} must reference compliance contracts")
         native_equivalents = scenario.get("native_equivalent_runner_ids", [])

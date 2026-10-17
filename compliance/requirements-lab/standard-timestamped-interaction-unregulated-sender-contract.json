@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Exercise the Clause 8 example in which a joined federate that is not time-regulating sends an interaction with a timestamp. The receiver must observe the supplied logical timestamp unchanged. This contract is limited to the interaction example and does not claim TSO coordination, a valid retraction handle, or behavior for other message families.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-unregulated-sender-timestamped-interaction",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped Send Interaction from a joined sender without Time Regulation; FederateAmbassador timestamped interaction callback",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador sendInteraction with LogicalTime; FederateAmbassador receiveInteraction with LogicalTime",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_unregulated_sender_timestamped_interaction.cpp::scenarioUnregulatedSenderTimestampedInteraction"
+      ]
+    }
+  ]
+}

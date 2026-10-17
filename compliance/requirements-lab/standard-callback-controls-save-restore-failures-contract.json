@@ -3,6 +3,36 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
+  "selected_requirements_lab_requirement_ids": [
+    "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24",
+    "requirement-candidate-content-clauses-04-federation-management-page-069-l133-38",
+    "requirement-candidate-content-clauses-04-federation-management-page-069-l76-19",
+    "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+    "requirement-candidate-content-clauses-04-federation-management-page-073-l127-35",
+    "requirement-candidate-content-clauses-04-federation-management-page-074-l124-32",
+    "requirement-candidate-content-clauses-04-federation-management-page-075-l44-7",
+    "requirement-candidate-content-clauses-04-federation-management-page-077-l11-1"
+  ],
+  "standard_sections": [
+    "hla-1516.1-2025:clause-4.19",
+    "hla-1516.1-2025:clause-4.23",
+    "hla-1516.1-2025:clause-4.27",
+    "hla-1516.1-2025:clause-4.28.1",
+    "hla-1516.1-2025:clause-4.29",
+    "hla-1516.1-2025:clause-4.30",
+    "hla-1516.1-2025:clause-4.33"
+  ],
+  "requirement_mappings": [
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24", "standard_section": "hla-1516.1-2025:clause-4.19" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-069-l133-38", "standard_section": "hla-1516.1-2025:clause-4.23" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-069-l76-19", "standard_section": "hla-1516.1-2025:clause-4.23" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32", "standard_section": "hla-1516.1-2025:clause-4.27" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-073-l127-35", "standard_section": "hla-1516.1-2025:clause-4.28.1" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-074-l124-32", "standard_section": "hla-1516.1-2025:clause-4.29" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-075-l44-7", "standard_section": "hla-1516.1-2025:clause-4.30" },
+    { "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-077-l11-1", "standard_section": "hla-1516.1-2025:clause-4.33" }
+  ],
+  "mapping_note": "Direct mappings cover the save request and successful setup needed to test restore failure (4.19, 4.23), the restore request/result and initiation callbacks needed to reach the failure service (4.27-4.30), the Federate Reported Failure During Save reason returned through Federation Not Saved (4.23), and the Federate Reported Failure During Restore reason returned through Federation Not Restored (4.33). Callback disable/enable suppression and release, callback-model-specific servicing, and cleanup are supplemental public-API checks; no callback-control-specific normative mapping is claimed. This does not test persistence format or application-state serialization.",
   "notes": "This contract records the portable C++ TCK check for callback enable and disable around standard federation save and restore failure callbacks. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies suppression and release of federation save and restore failure callbacks, successful save setup needed for a restore failure, exact failure reasons, callback-model servicing, and federation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
   "api_surfaces": [
     {

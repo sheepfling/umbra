@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "The portable save/restore interlocks scenarios wait for federationRestored at each joined federate and assert no federationNotRestored failure indication after a successful restore. This maps the required completion notification and success/failure indication; it is traceability only, not public validation or conformance evidence.",
+  "requirements": [
+    {
+      "id": "federation-restored-notifies-completion",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l156-41",
+      "clause_id": "clause-4.32",
+      "standard_section": "hla-1516.1-2025:clause-4.32",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_save_restore_interlocks.cpp::scenarioFederationSaveRestoreInterlocks",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FederationSaveRestoreInterlocksTck.java::run",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationRestoreAbort",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FederationRestoreAbortTck.java::run"
+      ]
+    },
+    {
+      "id": "federation-restored-indicates-success",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l159-42",
+      "clause_id": "clause-4.32",
+      "standard_section": "hla-1516.1-2025:clause-4.32",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_save_restore_interlocks.cpp::scenarioFederationSaveRestoreInterlocks",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FederationSaveRestoreInterlocksTck.java::run",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationRestoreAbort",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FederationRestoreAbortTck.java::run"
+      ]
+    }
+  ]
+}

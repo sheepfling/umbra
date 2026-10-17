@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The portable C++ and Java scenarios use only their official IEEE 1516.1-2025 RTIambassador and FederateAmbassador APIs plus language-standard libraries. Provider library, FOM, endpoint, callback model, and logical-time implementation are adapter inputs. They combine ordinary receive-order Send/Receive Interaction with timestamped Send/Receive Interaction, asynchronous delivery, and Time Advance Request/Grant. No provider headers, registries, or runtime state are accessed by either scenario.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-enable-asynchronous-delivery",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.enableasynchronousdelivery.8c6d3ba344ea",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "enableAsynchronousDelivery",
+      "tests": ["packages/hla-rti-cpp-tck/src/main.cpp::scenarioAsynchronousDeliveryTsoExclusion"]
+    },
+    {
+      "id": "standard-cpp-send-interaction-receive-order",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.sendinteraction.18921ac41e4f",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "sendInteraction(InteractionClassHandle, ParameterHandleValueMap, VariableLengthData)",
+      "tests": ["packages/hla-rti-cpp-tck/src/main.cpp::scenarioAsynchronousDeliveryTsoExclusion"]
+    },
+    {
+      "id": "standard-cpp-send-interaction-timestamped",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.sendinteraction.dd73a76182aa",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "sendInteraction(InteractionClassHandle, ParameterHandleValueMap, VariableLengthData, LogicalTime)",
+      "tests": ["packages/hla-rti-cpp-tck/src/main.cpp::scenarioAsynchronousDeliveryTsoExclusion"]
+    },
+    {
+      "id": "standard-cpp-receive-interaction-receive-order",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "receiveInteraction(InteractionClassHandle, ParameterHandleValueMap, VariableLengthData, TransportationTypeHandle, FederateHandle, RegionHandleSet const*)",
+      "tests": ["packages/hla-rti-cpp-tck/src/main.cpp::scenarioAsynchronousDeliveryTsoExclusion"]
+    },
+    {
+      "id": "standard-cpp-receive-interaction-timestamped",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.receiveinteraction.06a1022b8731",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "receiveInteraction(..., LogicalTime, OrderType, OrderType, MessageRetractionHandle const*)",
+      "tests": ["packages/hla-rti-cpp-tck/src/main.cpp::scenarioAsynchronousDeliveryTsoExclusion"]
+    },
+    {
+      "id": "standard-cpp-time-advance-request",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "timeAdvanceRequest",
+      "tests": ["packages/hla-rti-cpp-tck/src/main.cpp::scenarioAsynchronousDeliveryTsoExclusion"]
+    },
+    {
+      "id": "standard-cpp-time-advance-grant",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "timeAdvanceGrant",
+      "tests": ["packages/hla-rti-cpp-tck/src/main.cpp::scenarioAsynchronousDeliveryTsoExclusion"]
+    }
+  ]
+}

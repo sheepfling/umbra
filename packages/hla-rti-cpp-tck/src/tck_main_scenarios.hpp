@@ -289,6 +289,8 @@ void scenarioTimestampedDirectedInteractionImmediateSourceResignation(Options co
 void scenarioTimestampedDirectedInteractionImmediateSourceResignationContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedDirectedInteractionReenable(Options const&, rti::CallbackModel);
 void scenarioTimestampedDirectedInteractionReenableContract(Options const&, rti::CallbackModel);
+void scenarioTimestampedDirectedInteractionSubscriptionKind(
+    Options const&, rti::CallbackModel);
 void scenarioTimestampedDirectedInteractionRegulationReenable(Options const&, rti::CallbackModel);
 void scenarioTimestampedDirectedInteractionRegulationReenableContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedDirectedInteractionSourceResignation(Options const&, rti::CallbackModel);

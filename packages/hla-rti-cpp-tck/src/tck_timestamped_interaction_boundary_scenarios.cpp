@@ -427,6 +427,225 @@ void scenarioTimestampedInteractionTaraEqualBoundary(
       options, model, TimestampedInteractionBoundaryMode::tara_equal);
 }
 
+void scenarioTimestampedInteractionTaraStrictTimestampCutoff(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "TARA strict timestamp cutoff requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "tara-strict-cutoff-publisher");
+  Session receiver(options, model, "tara-strict-cutoff-receiver");
+  auto const federation = federationName(
+      options, "timestamped-interaction-tara-strict-timestamp-cutoff");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverInteraction = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      publisherInteraction.isValid() && receiverInteraction.isValid() &&
+          publisherParameter.isValid() && receiverParameter.isValid(),
+      "TARA strict timestamp cutoff lookup returned an invalid standard handle");
+  require(
+      publisherInteraction == receiverInteraction &&
+          publisherParameter == receiverParameter,
+      "TARA strict timestamp cutoff handles differed between federates");
+
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction,
+      rti::TIMESTAMP);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction, true);
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "TARA strict timestamp cutoff federates selected different logical-time factories");
+  requireTimeEquals(
+      *publisherTime.initial,
+      *receiverTime.initial,
+      "TARA strict timestamp cutoff initial time");
+
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "TARA strict timestamp cutoff receiver constrained callback");
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "TARA strict timestamp cutoff publisher regulation callback");
+
+  auto const messageTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  auto const taraCutoff = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      6U);
+  auto const nextCutoff = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      7U);
+  require(
+      *messageTime < *taraCutoff,
+      "TARA strict timestamp cutoff message time was not earlier than the requested time");
+  require(
+      *taraCutoff < *nextCutoff,
+      "TARA strict timestamp cutoff follow-up time was not later than its first request");
+
+  std::vector<std::uint8_t> const earlierPayloadBytes{0x54U, 0x35U};
+  std::vector<std::uint8_t> const cutoffPayloadBytes{0x54U, 0x36U};
+  std::vector<std::uint8_t> const earlierTagBytes{'t', '5'};
+  std::vector<std::uint8_t> const cutoffTagBytes{'t', '6'};
+  rti::ParameterHandleValueMap earlierValues;
+  earlierValues.emplace(
+      publisherParameter,
+      rti::VariableLengthData(
+          earlierPayloadBytes.data(), earlierPayloadBytes.size()));
+  rti::ParameterHandleValueMap cutoffValues;
+  cutoffValues.emplace(
+      publisherParameter,
+      rti::VariableLengthData(
+          cutoffPayloadBytes.data(), cutoffPayloadBytes.size()));
+  rti::VariableLengthData earlierTag(
+      earlierTagBytes.data(), earlierTagBytes.size());
+  rti::VariableLengthData cutoffTag(
+      cutoffTagBytes.data(), cutoffTagBytes.size());
+  auto const earlierRetraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      earlierValues,
+      earlierTag,
+      *messageTime);
+  auto const cutoffRetraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      cutoffValues,
+      cutoffTag,
+      *taraCutoff);
+  require(
+      earlierRetraction.isValid() && cutoffRetraction.isValid(),
+      "TARA strict timestamp cutoff send returned an invalid retraction handle");
+
+  // Leave the sender's GALT at the strict cutoff: timestamp 5 is safe for
+  // TARA(6), while timestamp 6 is not safe until the sender advances again.
+  publisher.rtiAmbassador().timeAdvanceRequest(*messageTime);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "TARA strict timestamp cutoff publisher advance");
+  require(
+      publisher.recorder().timeAdvanceGrants().front().encoded ==
+          encodeTime(*messageTime),
+      "TARA strict timestamp cutoff publisher received the wrong advance grant");
+  require(
+      receiver.recorder().timedInteractions().empty() &&
+          receiver.recorder().timeAdvanceGrants().empty(),
+      "TARA strict timestamp cutoff receiver observed delivery before its request");
+
+  auto const callbackOrderBeforeTara = receiver.recorder().callbackOrder();
+  receiver.rtiAmbassador().timeAdvanceRequestAvailable(*taraCutoff);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "TARA strict timestamp cutoff receiver grant");
+
+  auto const deliveredAtFirstGrant = receiver.recorder().timedInteractions();
+  require(
+      deliveredAtFirstGrant.size() == 1U,
+      "TARA strict timestamp cutoff delivered the equal-time interaction by its first grant");
+  require(
+      deliveredAtFirstGrant.front().interaction == receiverInteraction &&
+          deliveredAtFirstGrant.front().time == encodeTime(*messageTime) &&
+          deliveredAtFirstGrant.front().sentOrder == rti::TIMESTAMP &&
+          deliveredAtFirstGrant.front().receivedOrder == rti::TIMESTAMP,
+      "TARA strict timestamp cutoff did not deliver the earlier interaction at its first grant");
+  require(
+      copyBytes(deliveredAtFirstGrant.front().parameters.at(receiverParameter)) ==
+              earlierPayloadBytes &&
+          deliveredAtFirstGrant.front().tag == earlierTagBytes,
+      "TARA strict timestamp cutoff changed the earlier interaction parameters or tag");
+  auto const callbackOrder = receiver.recorder().callbackOrder();
+  require(
+      callbackOrder.size() == callbackOrderBeforeTara.size() + 2U &&
+          std::equal(
+              callbackOrderBeforeTara.begin(),
+              callbackOrderBeforeTara.end(),
+              callbackOrder.begin()) &&
+          callbackOrder.at(callbackOrderBeforeTara.size()) == "interaction" &&
+          callbackOrder.at(callbackOrderBeforeTara.size() + 1U) == "grant",
+      "TARA strict timestamp cutoff did not deliver the earlier interaction before its grant");
+
+  auto const callbackOrderAfterFirstGrant = callbackOrder;
+  receiver.rtiAmbassador().timeAdvanceRequestAvailable(*nextCutoff);
+  publisher.rtiAmbassador().timeAdvanceRequest(*taraCutoff);
+  waitForSessions(
+      {&publisher, &receiver},
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() == 2U &&
+            receiver.recorder().timeAdvanceGrants().size() == 2U;
+      },
+      options,
+      "TARA strict timestamp cutoff follow-up advance");
+
+  auto const delivered = receiver.recorder().timedInteractions();
+  require(
+      delivered.size() == 2U &&
+          delivered.at(1U).interaction == receiverInteraction &&
+          delivered.at(1U).time == encodeTime(*taraCutoff) &&
+          delivered.at(1U).sentOrder == rti::TIMESTAMP &&
+          delivered.at(1U).receivedOrder == rti::TIMESTAMP,
+      "TARA strict timestamp cutoff did not release the equal-time interaction on the later advance");
+  require(
+      copyBytes(delivered.at(1U).parameters.at(receiverParameter)) ==
+              cutoffPayloadBytes &&
+          delivered.at(1U).tag == cutoffTagBytes,
+      "TARA strict timestamp cutoff changed the equal-time interaction parameters or tag");
+  require(
+      publisher.recorder().timeAdvanceGrants().at(1U).encoded ==
+          encodeTime(*taraCutoff),
+      "TARA strict timestamp cutoff sender received the wrong follow-up grant time");
+  auto const callbackOrderAfterSecondGrant = receiver.recorder().callbackOrder();
+  require(
+      callbackOrderAfterSecondGrant.size() == callbackOrderAfterFirstGrant.size() + 2U &&
+          std::equal(
+              callbackOrderAfterFirstGrant.begin(),
+              callbackOrderAfterFirstGrant.end(),
+              callbackOrderAfterSecondGrant.begin()) &&
+          callbackOrderAfterSecondGrant.at(callbackOrderAfterFirstGrant.size()) ==
+              "interaction" &&
+          callbackOrderAfterSecondGrant.at(callbackOrderAfterFirstGrant.size() + 1U) ==
+              "grant",
+      "TARA strict timestamp cutoff did not deliver the equal-time interaction before the later grant");
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
 void scenarioTimestampedInteractionTarEqualBoundary(
     Options const& options,
     rti::CallbackModel model) {

@@ -3,11 +3,11 @@
   "kind": "requirements-contract",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract maps already-queued equal-time timestamped interaction delivery under Time Advance Request Available to the pinned 2025 service semantics. Full clause 8.9 requires TSO at the request time that is already queued in the RTI to be delivered before the grant; later arrivals at that same time are not covered by this assertion. It does not generalize this result to TAR, NMR, NMRA, or Flush Queue Request, and it is not Requirements Lab validation or conformance evidence.",
+  "notes": "This contract maps a later-arriving equal-time timestamped interaction under Time Advance Request Available to the pinned 2025 service semantics. The producer first advances to 4 with lookahead 1 and no pending TSO; the recipient's TARA(5) grants at 5. Only then does the producer send TSO(5) and advance to 5. The recipient issues TARA(6), and the later equal-time receiveInteraction follows the first grant and precedes the second available grant at time 5. This is distinct from an equal-time TSO already queued at the RTI when the first TARA is requested, which §8.9 requires before that grant and is covered by a separate implementation-profile case. It does not generalize this result to TAR, NMR, NMRA, or Flush Queue Request, and it is not Requirements Lab validation or conformance evidence.",
   "requirements": [
     {
-      "id": "umbra-tso-tara-queued-equal-time-delivery-before-grant",
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l137-40",
+      "id": "cpp-tck-tso-tara-later-equal-time-delivery-after-grant",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l51-14",
       "clause_id": "clause-8.9",
       "source": "packages/hla-rti-cpp-tck/src/tck_timestamped_interaction_boundary_scenarios.cpp",
       "source_symbol": "runTimestampedInteractionMixedAdvancesScenario",
@@ -16,7 +16,7 @@
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioTimestampedInteractionTaraEqualBoundaryContractPortable",
         "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded TARA delivers a queued equal-time TSO before its grant"
       ],
-      "notes": "The TCK case queues a TSO at logical time 5 before requesting TARA(5), then verifies receiveInteraction precedes the grant callback. Its less-than companion uses timestamp 5 and request boundary 6. The Catch2 reference is one HLA_EVOKED embedded implementation case and is not conformance evidence. RL-316 records the Lab candidate's clipped enumerated list; full clause 8.9 controls this equality rule rather than the shorthand Table 1 row."
+      "notes": "The portable Java and C++ TCK parity cases first grant TARA(5) with no pending interaction, then send TSO(5), advance the producer to 5, and request TARA(6); they verify receiveInteraction at 5 follows the initial grant and precedes the second grant at 5. They do not claim the already-queued-equality before-grant rule. The Catch2 reference is a separate HLA_EVOKED implementation-profile case that explicitly queues an equal-time TSO before TARA and verifies it precedes the grant; it is not conformance evidence. RL-313/RL-316 record clipped Lab candidate exports; full clause 8.9 controls the before-grant set and permits later equal-time arrivals after grant."
     }
   ]
 }

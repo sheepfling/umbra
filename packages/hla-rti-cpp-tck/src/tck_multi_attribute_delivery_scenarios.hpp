@@ -8,6 +8,10 @@ void scenarioOrdinaryMultiAttributeSubscriptionProjection(
     Options const&, rti::CallbackModel);
 void scenarioOrdinaryMultiAttributeSubscriptionProjectionContract(
     Options const&, rti::CallbackModel);
+void scenarioSubscriptionInitialReflectionProjection(
+    Options const&, rti::CallbackModel);
+void scenarioSubscriptionInitialReflectionProjectionContract(
+    Options const&, rti::CallbackModel);
 void scenarioOrdinaryMultiAttributeValueUpdateRequestResponse(
     Options const&, rti::CallbackModel);
 void scenarioOrdinaryMultiAttributeValueUpdateRequestResponseContract(

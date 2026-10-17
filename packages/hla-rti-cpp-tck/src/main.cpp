@@ -115,6 +115,7 @@ void scenarioNmrLitsBelowGaltImmediateGrantContract(Options const&, rti::Callbac
 #include "tck_logical_time.hpp"
 
 namespace hla_rti_cpp_tck::detail {
+void scenarioActiveSubscriptionObjectDiscovery(Options const&, rti::CallbackModel);
 
 void scenarioBaseSubscriptionRejectsDerivedOnlyAttribute(Options const&, rti::CallbackModel);
 void scenarioBaseSubscriptionRejectsDerivedOnlyAttributeContract(Options const&, rti::CallbackModel);
@@ -16015,9 +16016,144 @@ void scenarioAsynchronousDelivery(Options const& options, rti::CallbackModel mod
   publisher.disconnect();
 }
 
-void scenarioAsynchronousDeliveryTsoExclusion(
+void runAsynchronousDeliveryTimeAdvancingRo(
+    Options const& options,
+    rti::CallbackModel model,
+    bool const disableWhileTimeAdvancing) {
+  Session sender(options, model, "owner");
+  Session receiver(options, model, "member");
+  auto const federation =
+      federationName(options, "asynchronous-delivery-time-advancing-ro");
+  connectAndJoin(sender, receiver, options, federation, options.fom);
+
+  auto const senderInteraction = sender.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverInteraction = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const senderParameter = sender.rtiAmbassador().getParameterHandle(
+      senderInteraction, options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction, options.parameterName);
+  require(senderInteraction.isValid() && receiverInteraction.isValid() &&
+              senderParameter.isValid() && receiverParameter.isValid() &&
+              senderInteraction == receiverInteraction &&
+              senderParameter == receiverParameter,
+          "time-advancing asynchronous delivery could not resolve adapter handles");
+
+  sender.rtiAmbassador().publishInteractionClass(senderInteraction);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction);
+  auto const senderTime = makeTimeContext(sender);
+  auto const receiverTime = makeTimeContext(receiver);
+  require(senderTime.factory->getName() == receiverTime.factory->getName(),
+          "time-advancing asynchronous-delivery members selected different time factories");
+
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return !receiver.recorder().timeConstrainedEnabled().empty(); },
+      options,
+      "time-advancing asynchronous-delivery time-constrained callback");
+  sender.rtiAmbassador().enableTimeRegulation(*senderTime.epsilon);
+  waitFor(
+      sender,
+      [&] { return !sender.recorder().timeRegulationEnabled().empty(); },
+      options,
+      "time-advancing asynchronous-delivery time-regulation callback");
+
+  auto const senderTarget = timeAfter(
+      *senderTime.factory, *senderTime.initial, *senderTime.epsilon, 7U);
+  auto const receiverTarget = timeAfter(
+      *receiverTime.factory, *receiverTime.initial, *receiverTime.epsilon, 6U);
+  bool asynchronousDeliveryEnabled = false;
+  if (disableWhileTimeAdvancing) {
+    receiver.rtiAmbassador().enableAsynchronousDelivery();
+    asynchronousDeliveryEnabled = true;
+  }
+  receiver.rtiAmbassador().timeAdvanceRequest(*receiverTarget);
+  require(receiver.recorder().timeAdvanceGrants().empty(),
+          "receiver was not held Time Advancing by the sender's lower bound");
+  if (disableWhileTimeAdvancing) {
+    receiver.rtiAmbassador().disableAsynchronousDelivery();
+    asynchronousDeliveryEnabled = false;
+  } else {
+    receiver.rtiAmbassador().enableAsynchronousDelivery();
+    asynchronousDeliveryEnabled = true;
+  }
+  std::vector<std::uint8_t> const valueBytes{0x41U, 0x56U};
+  std::vector<std::uint8_t> const tagBytes{0x54U, 0x41U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      senderParameter,
+      rti::VariableLengthData(valueBytes.data(), valueBytes.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  sender.rtiAmbassador().sendInteraction(senderInteraction, parameters, tag);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().interactions().size() == 1U; },
+      options,
+      "receive-order delivery while the receiver is Time Advancing");
+
+  auto const receivedInteractions = receiver.recorder().interactions();
+  auto const& received = receivedInteractions.front();
+  require(
+      received.interaction == receiverInteraction &&
+          received.parameters.size() == 1U &&
+          received.parameters.count(receiverParameter) == 1U &&
+          copyBytes(received.parameters.at(receiverParameter)) == valueBytes &&
+          received.tag == tagBytes && received.producer == sender.federateHandle() &&
+          receiver.recorder().timedInteractions().empty() &&
+          receiver.recorder().timeAdvanceGrants().empty(),
+      "receive-order callback data was incorrect or arrived after the pending grant");
+
+  sender.rtiAmbassador().timeAdvanceRequest(*senderTarget);
+  waitFor(
+      sender,
+      [&] { return !sender.recorder().timeAdvanceGrants().empty(); },
+      options,
+      "sender grant to advance the constrained receiver's lower bound");
+  require(sender.recorder().timeAdvanceGrants().front().encoded ==
+              encodeTime(*senderTarget),
+          "sender received a grant at the wrong logical time");
+  waitFor(
+      receiver,
+      [&] { return !receiver.recorder().timeAdvanceGrants().empty(); },
+      options,
+      "receiver grant after the sender advances its lower bound");
+  require(receiver.recorder().timeAdvanceGrants().front().encoded ==
+              encodeTime(*receiverTarget) &&
+              receiver.recorder().interactions().size() == 1U &&
+              receiver.recorder().timedInteractions().empty(),
+          "receiver grant changed the asynchronous receive-order result");
+
+  if (asynchronousDeliveryEnabled) {
+    receiver.rtiAmbassador().disableAsynchronousDelivery();
+  }
+  receiver.rtiAmbassador().disableTimeConstrained();
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  sender.rtiAmbassador().unpublishInteractionClass(senderInteraction);
+  receiver.resign(rti::NO_ACTION);
+  sender.resign(rti::NO_ACTION);
+  sender.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  sender.disconnect();
+}
+
+void scenarioAsynchronousDeliveryTimeAdvancingRo(
     Options const& options,
     rti::CallbackModel model) {
+  runAsynchronousDeliveryTimeAdvancingRo(options, model, false);
+}
+
+void scenarioAsynchronousDeliveryDisabledTimeAdvancingRo(
+    Options const& options,
+    rti::CallbackModel model) {
+  runAsynchronousDeliveryTimeAdvancingRo(options, model, true);
+}
+
+void runAsynchronousDeliveryTsoExclusion(
+    Options const& options,
+    rti::CallbackModel model,
+    bool const reenableAsynchronousDelivery) {
   Session sender(options, model, "owner");
   Session receiver(options, model, "member");
   auto const federation = federationName(options, "asynchronous-delivery-tso-exclusion");
@@ -16075,6 +16211,9 @@ void scenarioAsynchronousDeliveryTsoExclusion(
       options,
       "asynchronous-delivery TSO gate time-regulation callback");
   receiver.rtiAmbassador().enableAsynchronousDelivery();
+  if (reenableAsynchronousDelivery) {
+    receiver.rtiAmbassador().disableAsynchronousDelivery();
+  }
 
   std::vector<std::uint8_t> const roValue{0x52U, 0x4FU};
   std::vector<std::uint8_t> const roTag{0x52U, 0x4FU, 0x31U};
@@ -16128,6 +16267,15 @@ void scenarioAsynchronousDeliveryTsoExclusion(
       roParameters,
       roTagData);
   sender.rtiAmbassador().timeAdvanceRequest(*timestampSix);
+  if (reenableAsynchronousDelivery) {
+    for (int pass = 0; pass != 8; ++pass) receiver.pump();
+    require(
+        receiver.recorder().interactions().empty() &&
+            receiver.recorder().timedInteractions().empty() &&
+            receiver.recorder().timeAdvanceGrants().empty(),
+        "disabled asynchronous delivery dispatched a queued callback");
+    receiver.rtiAmbassador().enableAsynchronousDelivery();
+  }
   waitFor(
       receiver,
       [&] { return !receiver.recorder().interactions().empty(); },
@@ -18676,6 +18824,18 @@ void scenarioAsynchronousDeliveryContract(
   scenarioAsynchronousDelivery(options, model);
 }
 
+void scenarioAsynchronousDeliveryTsoExclusion(
+    Options const& options,
+    rti::CallbackModel model) {
+  runAsynchronousDeliveryTsoExclusion(options, model, false);
+}
+
+void scenarioAsynchronousDeliveryTsoReenableGate(
+    Options const& options,
+    rti::CallbackModel model) {
+  runAsynchronousDeliveryTsoExclusion(options, model, true);
+}
+
 void scenarioAsynchronousDeliveryTsoExclusionContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -19227,6 +19387,9 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.federation-save-restore-contract",
       "cpp-tck.asynchronous-delivery-contract",
       "cpp-tck.asynchronous-delivery-tso-exclusion",
+      "cpp-tck.asynchronous-delivery-time-advancing-ro",
+      "cpp-tck.asynchronous-delivery-disabled-time-advancing-ro",
+      "cpp-tck.asynchronous-delivery-reenable-tso-gate",
       "cpp-tck.asynchronous-delivery-tso-exclusion-contract",
       "cpp-tck.timestamped-attribute-update-contract",
       "cpp-tck.timestamped-object-deletion-contract",
@@ -19423,6 +19586,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.registered-object-class-immutability-contract",
       "cpp-tck.object-registration-discovery-multi-recipient",
       "cpp-tck.object-registration-discovery-multi-recipient-contract",
+      "cpp-tck.active-subscription-object-discovery",
       "cpp-tck.named-registration",
       "cpp-tck.named-registration-contract",
       "cpp-tck.named-registration-multi-recipient",
@@ -19453,6 +19617,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.attribute-multi-recipient-fifo-contract",
       "cpp-tck.ordinary-multi-attribute-subscription-projection",
       "cpp-tck.ordinary-multi-attribute-subscription-projection-contract",
+      "cpp-tck.subscription-initial-reflection-projection",
+      "cpp-tck.subscription-initial-reflection-projection-contract",
       "cpp-tck.ordinary-multi-attribute-value-update-request-response",
       "cpp-tck.ordinary-multi-attribute-value-update-request-response-contract",
       "cpp-tck.receive-order-multi-attribute-update-callback-cancellation",
@@ -19519,6 +19685,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-attribute-update-regulation-reenable-contract",
       "cpp-tck.timestamped-interaction-mixed-advances",
       "cpp-tck.timestamped-interaction-tara-equal-boundary",
+      "cpp-tck.timestamped-interaction-tara-strict-timestamp-cutoff",
       "cpp-tck.timestamped-interaction-tar-equal-boundary",
       "cpp-tck.timestamped-interaction-tar-post-grant-cutoff",
       "cpp-tck.timestamped-interaction-flush-queue-future-input",
@@ -19533,6 +19700,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-interaction-reenable",
       "cpp-tck.timestamped-directed-interaction-reenable",
       "cpp-tck.timestamped-directed-interaction-regulation-reenable",
+      "cpp-tck.timestamped-directed-interaction-subscription-kind",
       "cpp-tck.timestamped-directed-interaction-source-resignation",
       "cpp-tck.timestamped-directed-interaction-source-resignation-fanout",
       "cpp-tck.timestamped-directed-interaction-source-resignation-contract",
@@ -20481,6 +20649,15 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.asynchronous-delivery-tso-exclusion") {
     return scenarioAsynchronousDeliveryTsoExclusion;
   }
+  if (id == "cpp-tck.asynchronous-delivery-time-advancing-ro") {
+    return scenarioAsynchronousDeliveryTimeAdvancingRo;
+  }
+  if (id == "cpp-tck.asynchronous-delivery-disabled-time-advancing-ro") {
+    return scenarioAsynchronousDeliveryDisabledTimeAdvancingRo;
+  }
+  if (id == "cpp-tck.asynchronous-delivery-reenable-tso-gate") {
+    return scenarioAsynchronousDeliveryTsoReenableGate;
+  }
   if (id == "cpp-tck.asynchronous-delivery-tso-exclusion-contract") {
     return scenarioAsynchronousDeliveryTsoExclusionContract;
   }
@@ -21068,6 +21245,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.object-registration-discovery-multi-recipient-contract") {
     return scenarioObjectRegistrationDiscoveryMultiRecipientContract;
   }
+  if (id == "cpp-tck.active-subscription-object-discovery") {
+    return scenarioActiveSubscriptionObjectDiscovery;
+  }
   if (id == "cpp-tck.named-registration") {
     return scenarioNamedRegistration;
   }
@@ -21159,6 +21339,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.ordinary-multi-attribute-subscription-projection-contract") {
     return scenarioOrdinaryMultiAttributeSubscriptionProjectionContract;
+  }
+  if (id == "cpp-tck.subscription-initial-reflection-projection") {
+    return scenarioSubscriptionInitialReflectionProjection;
+  }
+  if (id == "cpp-tck.subscription-initial-reflection-projection-contract") {
+    return scenarioSubscriptionInitialReflectionProjectionContract;
   }
   if (id == "cpp-tck.ordinary-multi-attribute-value-update-request-response") {
     return scenarioOrdinaryMultiAttributeValueUpdateRequestResponse;
@@ -21345,6 +21531,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-interaction-tara-equal-boundary") {
     return scenarioTimestampedInteractionTaraEqualBoundary;
   }
+  if (id == "cpp-tck.timestamped-interaction-tara-strict-timestamp-cutoff") {
+    return scenarioTimestampedInteractionTaraStrictTimestampCutoff;
+  }
   if (id == "cpp-tck.timestamped-interaction-tar-equal-boundary") {
     return scenarioTimestampedInteractionTarEqualBoundary;
   }
@@ -21386,6 +21575,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.timestamped-directed-interaction-regulation-reenable") {
     return scenarioTimestampedDirectedInteractionRegulationReenable;
+  }
+  if (id == "cpp-tck.timestamped-directed-interaction-subscription-kind") {
+    return scenarioTimestampedDirectedInteractionSubscriptionKind;
   }
   if (id == "cpp-tck.timestamped-directed-interaction-source-resignation") {
     return scenarioTimestampedDirectedInteractionSourceResignation;
@@ -22092,6 +22284,15 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.asynchronous-delivery") return scenarioAsynchronousDelivery;
   if (id == "cpp-tck.asynchronous-delivery-tso-exclusion") {
     return scenarioAsynchronousDeliveryTsoExclusion;
+  }
+  if (id == "cpp-tck.asynchronous-delivery-time-advancing-ro") {
+    return scenarioAsynchronousDeliveryTimeAdvancingRo;
+  }
+  if (id == "cpp-tck.asynchronous-delivery-disabled-time-advancing-ro") {
+    return scenarioAsynchronousDeliveryDisabledTimeAdvancingRo;
+  }
+  if (id == "cpp-tck.asynchronous-delivery-reenable-tso-gate") {
+    return scenarioAsynchronousDeliveryTsoReenableGate;
   }
   if (id == "cpp-tck.federation-mom-save-status") return scenarioFederationMomSaveStatus;
   if (id == "cpp-tck.federation-mom-save-status-contract") {
@@ -23006,6 +23207,9 @@ int run(Options const& options) {
                   scenario == "cpp-tck.asynchronous-attribute-delivery" ||
                   scenario == "cpp-tck.asynchronous-delivery" ||
                   scenario == "cpp-tck.asynchronous-delivery-tso-exclusion" ||
+                  scenario == "cpp-tck.asynchronous-delivery-time-advancing-ro" ||
+                  scenario == "cpp-tck.asynchronous-delivery-disabled-time-advancing-ro" ||
+                  scenario == "cpp-tck.asynchronous-delivery-reenable-tso-gate" ||
                   scenario == "cpp-tck.asynchronous-delivery-tso-exclusion-contract" ||
                   scenario == "cpp-tck.timestamped-interactions" ||
                   scenario == "cpp-tck.timestamped-interactions-contract" ||
@@ -23057,6 +23261,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-interaction-reenable-contract" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-reenable" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-regulation-reenable" ||
+                  scenario == "cpp-tck.timestamped-directed-interaction-subscription-kind" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-reenable-contract" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-regulation-reenable-contract" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-source-resignation" ||
@@ -23198,6 +23403,9 @@ int run(Options const& options) {
                     scenario == "cpp-tck.callback-controls-timestamped-retraction-contract" ||
                     scenario == "cpp-tck.asynchronous-delivery-contract" ||
                     scenario == "cpp-tck.asynchronous-delivery-tso-exclusion" ||
+                    scenario == "cpp-tck.asynchronous-delivery-time-advancing-ro" ||
+                    scenario == "cpp-tck.asynchronous-delivery-disabled-time-advancing-ro" ||
+                    scenario == "cpp-tck.asynchronous-delivery-reenable-tso-gate" ||
                     scenario == "cpp-tck.asynchronous-delivery-tso-exclusion-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-contract" ||
                   scenario == "cpp-tck.timestamped-object-deletion-contract" ||
