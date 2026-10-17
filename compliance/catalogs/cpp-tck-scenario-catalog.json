@@ -12370,6 +12370,7 @@
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l132-37",
         "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
         "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
         "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
@@ -28448,7 +28449,21 @@
         "hla-1516.1-2025:clause-6.17.1",
         "hla-1516.1-2025:clause-6.18.1"
       ],
-      "mapping_note": "Direct mappings: federation-management page-058-l112-33 -> §4.12 for Delete Objects resignation cleanup; object-management page-119-l103-29 -> §6.9.3 for object-instance lookup before and after removal; page-129-l123-34, page-129-l138-39, and page-129-l144-41 -> §6.16 for ordinary non-timestamped deletion; page-130-l167-50 and page-130-l8-1 -> §6.16.4 for deletion tag handling; page-131-l101-29 and page-131-l110-32 -> §6.17.1 for removal callback delivery; page-132-l140-38 and page-132-l146-40 -> §6.18.1 for recipient-local deletion. Delete-privilege transfer/authorization is not tested. Unknown-handle and pre-connect/pre-join exception precedence remain internal boundary assertions; setup/teardown is fixture behavior.",
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33", "standard_section": "hla-1516.1-2025:clause-4.12"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-119-l103-29", "standard_section": "hla-1516.1-2025:clause-6.9.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l123-34", "standard_section": "hla-1516.1-2025:clause-6.16"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l132-37", "standard_section": "hla-1516.1-2025:clause-6.16"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39", "standard_section": "hla-1516.1-2025:clause-6.16"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l144-41", "standard_section": "hla-1516.1-2025:clause-6.16"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l167-50", "standard_section": "hla-1516.1-2025:clause-6.16.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1", "standard_section": "hla-1516.1-2025:clause-6.16.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29", "standard_section": "hla-1516.1-2025:clause-6.17.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32", "standard_section": "hla-1516.1-2025:clause-6.17.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-132-l140-38", "standard_section": "hla-1516.1-2025:clause-6.18.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-132-l146-40", "standard_section": "hla-1516.1-2025:clause-6.18.1"}
+      ],
+      "mapping_note": "Direct mappings: federation-management page-058-l112-33 -> §4.12 for Delete Objects resignation cleanup; object-management page-119-l103-29 -> §6.9.3 for object-instance lookup before and after removal; page-129-l123-34, page-129-l132-37, page-129-l138-39, and page-129-l144-41 -> §6.16 for ordinary non-timestamped deletion and non-reuse of an object-instance designator within one federation execution (the removed handle is compared with a later registration); page-130-l167-50 and page-130-l8-1 -> §6.16.4 for deletion tag handling; page-131-l101-29 and page-131-l110-32 -> §6.17.1 for removal callback delivery; page-132-l140-38 and page-132-l146-40 -> §6.18.1 for recipient-local deletion. Delete-privilege transfer/authorization is not tested. Unknown-handle and pre-connect/pre-join exception precedence remain internal boundary assertions; setup/teardown is fixture behavior. The updated scenario and contract passed all four focused installed-package CTests (evoked/immediate); evidence: out/mgw/cpp-tck-object-handle-nonreuse-20261017.xml. The Java parity source compiles against the official API-only JAR; Java provider runtime remains unverified.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",

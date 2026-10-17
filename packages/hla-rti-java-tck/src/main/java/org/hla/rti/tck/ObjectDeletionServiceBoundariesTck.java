@@ -80,15 +80,11 @@ final class ObjectDeletionServiceBoundariesTck {
 
          ObjectInstanceHandle locallyDeleted = owner.registerObjectInstance(ownerClass);
          ObjectInstanceHandle remotelyDeleted = owner.registerObjectInstance(ownerClass);
-         ObjectInstanceHandle deletedOnResign = owner.registerObjectInstance(ownerClass);
          JavaTckSupport.check(locallyDeleted != null && remotelyDeleted != null
-               && deletedOnResign != null
-               && !locallyDeleted.equals(remotelyDeleted)
-               && !remotelyDeleted.equals(deletedOnResign)
-               && !locallyDeleted.equals(deletedOnResign),
+               && !locallyDeleted.equals(remotelyDeleted),
             "registration returned null or reused an object-instance handle");
-         await(receiver, () -> receiverCallbacks.discoveries().size() == 3,
-            "receiver did not discover all registered instances");
+         await(receiver, () -> receiverCallbacks.discoveries().size() == 2,
+            "receiver did not discover both registered instances");
          JavaTckSupport.check(owner.getObjectInstanceHandle(
                owner.getObjectInstanceName(remotelyDeleted)).equals(remotelyDeleted),
             "registered object name and handle lookups did not round-trip");
@@ -128,6 +124,14 @@ final class ObjectDeletionServiceBoundariesTck {
             "ObjectInstanceNotKnown", "name lookup after remote deletion");
          expectFailure(() -> owner.getObjectInstanceHandle(remoteName),
             "ObjectInstanceNotKnown", "handle lookup after remote deletion");
+
+         ObjectInstanceHandle deletedOnResign = owner.registerObjectInstance(ownerClass);
+         JavaTckSupport.check(deletedOnResign != null
+               && !deletedOnResign.equals(locallyDeleted)
+               && !deletedOnResign.equals(remotelyDeleted),
+            "object-instance handle was reused after deletion in the same federation execution");
+         await(receiver, () -> receiverCallbacks.discoveries().size() == 3,
+            "receiver did not discover the registration after deletion");
 
          owner.unpublishObjectClassAttributes(ownerClass, ownerAttributes);
          published = false;

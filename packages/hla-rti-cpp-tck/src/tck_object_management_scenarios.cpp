@@ -227,6 +227,8 @@ void scenarioObjectDeletion(Options const& options, rti::CallbackModel model) {
       "Owner object lookup after remote deletion");
 
   auto const resigned = registerAndDiscover();
+  require(resigned.first != deleted.first,
+          "object instance handle was reused after deletion in the same federation execution");
   member.recorder().clearRemovals();
   owner.resign(rti::DELETE_OBJECTS);
   waitFor(member, [&] {
