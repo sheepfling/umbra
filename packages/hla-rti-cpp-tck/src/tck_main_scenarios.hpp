@@ -128,6 +128,20 @@ void scenarioMalformedInputsContract(Options const&, rti::CallbackModel);
 void scenarioMomTransportationTypeChangeRequest(Options const&, rti::CallbackModel);
 void scenarioNextMessageRequest(Options const&, rti::CallbackModel);
 void scenarioNextMessageRequestContract(Options const&, rti::CallbackModel);
+void scenarioNmrNoPregrantTsoFloor(Options const&, rti::CallbackModel);
+void scenarioNmrNoPregrantTsoFloorContract(Options const&, rti::CallbackModel);
+void scenarioNmrReceivedTsoFloor(Options const&, rti::CallbackModel);
+void scenarioNmrReceivedTsoFloorContract(Options const&, rti::CallbackModel);
+void scenarioNmrReceivedTsoAttributeUpdateFloor(Options const&, rti::CallbackModel);
+void scenarioNmrReceivedTsoAttributeUpdateFloorContract(Options const&, rti::CallbackModel);
+void scenarioNmrReceivedTsoDirectedInteractionFloor(Options const&, rti::CallbackModel);
+void scenarioNmrReceivedTsoDirectedInteractionFloorContract(Options const&, rti::CallbackModel);
+void scenarioNmrEmptyMessageSetGrantTime(Options const&, rti::CallbackModel);
+void scenarioNmrEmptyMessageSetGrantTimeContract(Options const&, rti::CallbackModel);
+void scenarioNmrRequestBelowGaltImmediateGrant(Options const&, rti::CallbackModel);
+void scenarioNmrRequestBelowGaltImmediateGrantContract(Options const&, rti::CallbackModel);
+void scenarioNmraNoPregrantTsoFloor(Options const&, rti::CallbackModel);
+void scenarioNmraNoPregrantTsoFloorContract(Options const&, rti::CallbackModel);
 void scenarioSendMessageTimeStatePreservationGranted(Options const&, rti::CallbackModel);
 void scenarioSendMessageTimeStatePreservationGrantedContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionPreferredReceiveConversion(Options const&, rti::CallbackModel);
@@ -470,6 +484,14 @@ void scenarioOverlappingObjectClassSubscriptionsSingleDiscovery(
     Options const&, rti::CallbackModel);
 void scenarioOverlappingObjectClassSubscriptionsSingleDiscoveryContract(
     Options const&, rti::CallbackModel);
+void scenarioPerFederateDiscoveredClass(Options const&, rti::CallbackModel);
+void scenarioPerFederateDiscoveredClassContract(Options const&, rti::CallbackModel);
+void scenarioDiscoveredClassStabilityAfterSpecificSubscription(
+    Options const&, rti::CallbackModel);
+void scenarioDiscoveredClassStabilityAfterSpecificSubscriptionContract(
+    Options const&, rti::CallbackModel);
+void scenarioRegisteredObjectClassImmutability(Options const&, rti::CallbackModel);
+void scenarioRegisteredObjectClassImmutabilityContract(Options const&, rti::CallbackModel);
 void scenarioObjectRegistrationDiscoveryMultiRecipient(Options const&, rti::CallbackModel);
 void scenarioObjectRegistrationDiscoveryMultiRecipientContract(Options const&, rti::CallbackModel);
 void scenarioOrderTypeControls(Options const&, rti::CallbackModel);

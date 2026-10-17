@@ -831,6 +831,1358 @@ void scenarioNextMessageRequestContract(
   scenarioNextMessageRequest(options, model);
 }
 
+void scenarioNmraNoPregrantTsoFloor(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "NMRA no-pregrant floor requires an adapter-supplied logical-time implementation");
+
+  Session requester(options, model, "owner");
+  Session peer(options, model, "member");
+  auto const federation = federationName(options, "nmra-no-pregrant-tso-floor");
+  connectAndJoin(requester, peer, options, federation, options.fom);
+
+  auto const interaction = requester.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const parameter = requester.rtiAmbassador().getParameterHandle(
+      interaction,
+      options.parameterName);
+  require(
+      interaction.isValid() && parameter.isValid(),
+      "NMRA no-pregrant floor could not resolve the adapter interaction and parameter");
+  requester.rtiAmbassador().publishInteractionClass(interaction);
+  requester.rtiAmbassador().changeInteractionOrderType(
+      interaction,
+      rti::TIMESTAMP);
+
+  auto requesterTime = makeTimeContext(requester);
+  auto peerTime = makeTimeContext(peer);
+  require(
+      requesterTime.factory->getName() == peerTime.factory->getName(),
+      "NMRA no-pregrant members selected different logical-time factories");
+  requireTimeEquals(
+      *requesterTime.initial,
+      *peerTime.initial,
+      "NMRA no-pregrant initial logical time");
+
+  requester.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "NMRA no-pregrant requester Time Constrained callback");
+  requester.rtiAmbassador().enableTimeRegulation(*requesterTime.epsilon);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMRA no-pregrant requester Time Regulation callback");
+  peer.rtiAmbassador().enableTimeRegulation(*peerTime.epsilon);
+  waitFor(
+      peer,
+      [&] { return peer.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMRA no-pregrant peer Time Regulation callback");
+
+  auto actualLookahead = requesterTime.factory->makeZero();
+  require(
+      actualLookahead != nullptr,
+      "NMRA no-pregrant floor could not allocate a lookahead query value");
+  requester.rtiAmbassador().queryLookahead(*actualLookahead);
+  require(
+      *actualLookahead == *requesterTime.epsilon,
+      "NMRA no-pregrant floor did not retain the enabled epsilon lookahead");
+
+  auto const peerTarget = timeAfter(
+      *peerTime.factory,
+      *peerTime.initial,
+      *peerTime.epsilon,
+      12U);
+  auto const requestTime = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      10U);
+  require(
+      requester.recorder().timeAdvanceGrants().empty(),
+      "NMRA no-pregrant requester had a grant before issuing the request");
+  require(
+      requester.recorder().timedInteractions().empty(),
+      "NMRA no-pregrant requester received an interaction before its request");
+
+  peer.rtiAmbassador().timeAdvanceRequest(*peerTarget);
+  waitFor(
+      peer,
+      [&] { return peer.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "NMRA no-pregrant peer Time Advance Grant");
+  require(
+      peer.recorder().timeAdvanceGrants().front().encoded == encodeTime(*peerTarget),
+      "NMRA no-pregrant peer did not advance beyond the request time");
+  require(
+      requester.recorder().timedInteractions().empty(),
+      "NMRA no-pregrant requester received TSO before its grant");
+
+  requester.rtiAmbassador().nextMessageRequestAvailable(*requestTime);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "NMRA no-pregrant requester Time Advance Grant");
+  auto const grants = requester.recorder().timeAdvanceGrants();
+  require(
+      grants.size() == 1U && grants.front().encoded == encodeTime(*requestTime),
+      "NMRA without pre-grant TSO did not grant at its request time");
+  require(
+      requester.recorder().timedInteractions().empty(),
+      "NMRA no-pregrant requester received an unexpected timestamped interaction");
+  auto queriedTime = requesterTime.factory->makeInitial();
+  require(queriedTime != nullptr, "NMRA no-pregrant floor could not allocate a query time");
+  requester.rtiAmbassador().queryLogicalTime(*queriedTime);
+  requireTimeEquals(*queriedTime, *requestTime, "NMRA no-pregrant logical-time query");
+
+  auto const legalTime = timeAfter(
+      *requesterTime.factory,
+      *requestTime,
+      *actualLookahead,
+      1U);
+  std::vector<std::uint8_t> payload{0x4EU, 0x4DU, 0x52U, 0x41U};
+  std::vector<std::uint8_t> tagBytes{0x4EU, 0x4FU, 0x50U, 0x52U, 0x45U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      parameter,
+      rti::VariableLengthData(payload.data(), payload.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  requireException(
+      [&] {
+        requester.rtiAmbassador().sendInteraction(
+            interaction,
+            parameters,
+            tag,
+            *requestTime);
+      },
+      L"InvalidLogicalTime",
+      "NMRA send at request time below actual lookahead floor");
+  auto const retraction = requester.rtiAmbassador().sendInteraction(
+      interaction,
+      parameters,
+      tag,
+      *legalTime);
+  require(
+      retraction.isValid(),
+      "NMRA send at request time plus actual lookahead returned an invalid retraction handle");
+
+  requester.resign(rti::NO_ACTION);
+  peer.resign(rti::NO_ACTION);
+  requester.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  peer.disconnect();
+}
+
+void scenarioNmraNoPregrantTsoFloorContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmraNoPregrantTsoFloor(options, model);
+}
+
+void scenarioNmrNoPregrantTsoFloor(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "NMR no-pregrant floor requires an adapter-supplied logical-time implementation");
+
+  Session requester(options, model, "owner");
+  Session peer(options, model, "member");
+  auto const federation = federationName(options, "nmr-no-pregrant-tso-floor");
+  connectAndJoin(requester, peer, options, federation, options.fom);
+
+  auto const interaction = requester.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const parameter = requester.rtiAmbassador().getParameterHandle(
+      interaction,
+      options.parameterName);
+  require(
+      interaction.isValid() && parameter.isValid(),
+      "NMR no-pregrant floor could not resolve the adapter interaction and parameter");
+  requester.rtiAmbassador().publishInteractionClass(interaction);
+  requester.rtiAmbassador().changeInteractionOrderType(
+      interaction,
+      rti::TIMESTAMP);
+
+  auto requesterTime = makeTimeContext(requester);
+  auto peerTime = makeTimeContext(peer);
+  require(
+      requesterTime.factory->getName() == peerTime.factory->getName(),
+      "NMR no-pregrant members selected different logical-time factories");
+  requireTimeEquals(
+      *requesterTime.initial,
+      *peerTime.initial,
+      "NMR no-pregrant initial logical time");
+
+  requester.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "NMR no-pregrant requester Time Constrained callback");
+  requester.rtiAmbassador().enableTimeRegulation(*requesterTime.epsilon);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMR no-pregrant requester Time Regulation callback");
+  peer.rtiAmbassador().enableTimeRegulation(*peerTime.epsilon);
+  waitFor(
+      peer,
+      [&] { return peer.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMR no-pregrant peer Time Regulation callback");
+
+  auto actualLookahead = requesterTime.factory->makeZero();
+  require(
+      actualLookahead != nullptr,
+      "NMR no-pregrant floor could not allocate a lookahead query value");
+  requester.rtiAmbassador().queryLookahead(*actualLookahead);
+  require(
+      *actualLookahead == *requesterTime.epsilon,
+      "NMR no-pregrant floor did not retain the enabled epsilon lookahead");
+
+  auto const requestTime = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      10U);
+  auto const peerTarget = timeAfter(
+      *peerTime.factory,
+      *peerTime.initial,
+      *peerTime.epsilon,
+      10U);
+  require(
+      requester.recorder().timeAdvanceGrants().empty(),
+      "NMR no-pregrant requester had a grant before issuing the request");
+  require(
+      requester.recorder().timedInteractions().empty(),
+      "NMR no-pregrant requester received an interaction before its request");
+
+  requester.rtiAmbassador().nextMessageRequest(*requestTime);
+  require(
+      requester.recorder().timeAdvanceGrants().empty(),
+      "NMR without pre-grant TSO input completed before the peer advanced");
+  peer.rtiAmbassador().timeAdvanceRequest(*peerTarget);
+  waitFor(
+      peer,
+      [&] { return peer.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "NMR no-pregrant peer Time Advance Grant");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "NMR no-pregrant requester Time Advance Grant");
+  require(
+      peer.recorder().timeAdvanceGrants().front().encoded == encodeTime(*peerTarget),
+      "NMR no-pregrant peer did not advance to the requested target");
+  auto const grants = requester.recorder().timeAdvanceGrants();
+  require(
+      grants.size() == 1U && grants.front().encoded == encodeTime(*requestTime),
+      "NMR without pre-grant TSO did not grant at its request time");
+  require(
+      requester.recorder().timedInteractions().empty(),
+      "NMR no-pregrant requester received an unexpected timestamped interaction");
+  auto queriedTime = requesterTime.factory->makeInitial();
+  require(queriedTime != nullptr, "NMR no-pregrant floor could not allocate a query time");
+  requester.rtiAmbassador().queryLogicalTime(*queriedTime);
+  requireTimeEquals(*queriedTime, *requestTime, "NMR no-pregrant logical-time query");
+
+  auto const legalTime = timeAfter(
+      *requesterTime.factory,
+      *requestTime,
+      *actualLookahead,
+      1U);
+  std::vector<std::uint8_t> payload{0x4EU, 0x4DU, 0x52U};
+  std::vector<std::uint8_t> tagBytes{0x46U, 0x4CU, 0x4FU, 0x4FU, 0x52U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      parameter,
+      rti::VariableLengthData(payload.data(), payload.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  requireException(
+      [&] {
+        requester.rtiAmbassador().sendInteraction(
+            interaction,
+            parameters,
+            tag,
+            *requestTime);
+      },
+      L"InvalidLogicalTime",
+      "NMR send at request time below actual lookahead floor");
+  auto const retraction = requester.rtiAmbassador().sendInteraction(
+      interaction,
+      parameters,
+      tag,
+      *legalTime);
+  require(
+      retraction.isValid(),
+      "NMR send at request time plus actual lookahead returned an invalid retraction handle");
+
+  requester.resign(rti::NO_ACTION);
+  peer.resign(rti::NO_ACTION);
+  requester.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  peer.disconnect();
+}
+
+void scenarioNmrNoPregrantTsoFloorContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrNoPregrantTsoFloor(options, model);
+}
+
+void scenarioNmrReceivedTsoFloor(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "NMR received-TSO floor requires an adapter-supplied logical-time implementation");
+
+  Session requester(options, model, "owner");
+  Session peer(options, model, "member");
+  auto const federation = federationName(options, "nmr-received-tso-floor");
+  connectAndJoin(requester, peer, options, federation, options.fom);
+
+  auto const requesterInteraction = requester.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const peerInteraction = peer.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const requesterParameter = requester.rtiAmbassador().getParameterHandle(
+      requesterInteraction,
+      options.parameterName);
+  auto const peerParameter = peer.rtiAmbassador().getParameterHandle(
+      peerInteraction,
+      options.parameterName);
+  require(
+      requesterInteraction.isValid() && peerInteraction.isValid() &&
+          requesterParameter.isValid() && peerParameter.isValid(),
+      "NMR received-TSO FOM lookup returned an invalid interaction handle");
+  require(
+      requesterInteraction == peerInteraction && requesterParameter == peerParameter,
+      "NMR received-TSO handles did not retain identity across members");
+  requester.rtiAmbassador().publishInteractionClass(requesterInteraction);
+  requester.rtiAmbassador().changeInteractionOrderType(
+      requesterInteraction,
+      rti::TIMESTAMP);
+  requester.rtiAmbassador().subscribeInteractionClass(requesterInteraction, true);
+  peer.rtiAmbassador().publishInteractionClass(peerInteraction);
+  peer.rtiAmbassador().changeInteractionOrderType(peerInteraction, rti::TIMESTAMP);
+
+  auto requesterTime = makeTimeContext(requester);
+  auto peerTime = makeTimeContext(peer);
+  require(
+      requesterTime.factory->getName() == peerTime.factory->getName(),
+      "NMR received-TSO members selected different logical-time factories");
+  requireTimeEquals(
+      *requesterTime.initial,
+      *peerTime.initial,
+      "NMR received-TSO initial logical time");
+
+  requester.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "NMR received-TSO requester Time Constrained callback");
+  requester.rtiAmbassador().enableTimeRegulation(*requesterTime.epsilon);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMR received-TSO requester Time Regulation callback");
+  peer.rtiAmbassador().enableTimeRegulation(*peerTime.epsilon);
+  waitFor(
+      peer,
+      [&] { return peer.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMR received-TSO peer Time Regulation callback");
+  requester.recorder().clearTimeCallbacks();
+  peer.recorder().clearTimeCallbacks();
+  requester.recorder().clearCallbackOrder();
+  peer.recorder().clearCallbackOrder();
+
+  auto actualLookahead = requesterTime.factory->makeZero();
+  require(
+      actualLookahead != nullptr,
+      "NMR received-TSO floor could not allocate a lookahead query value");
+  requester.rtiAmbassador().queryLookahead(*actualLookahead);
+  require(
+      *actualLookahead == *requesterTime.epsilon,
+      "NMR received-TSO floor did not retain the enabled epsilon lookahead");
+
+  auto const messageTime = timeAfter(
+      *peerTime.factory,
+      *peerTime.initial,
+      *peerTime.epsilon,
+      5U);
+  auto const requestTime = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      10U);
+  auto const peerTarget = timeAfter(
+      *peerTime.factory,
+      *peerTime.initial,
+      *peerTime.epsilon,
+      4U);
+  std::vector<std::uint8_t> incomingBytes{0x4EU, 0x4DU, 0x52U};
+  std::vector<std::uint8_t> incomingTagBytes{0x4EU, 0x4DU, 0x52U, 0x2DU, 0x46U};
+  rti::ParameterHandleValueMap incomingParameters;
+  incomingParameters.emplace(
+      peerParameter,
+      rti::VariableLengthData(incomingBytes.data(), incomingBytes.size()));
+  rti::VariableLengthData incomingTag(
+      incomingTagBytes.data(), incomingTagBytes.size());
+  auto const incomingRetraction = peer.rtiAmbassador().sendInteraction(
+      peerInteraction,
+      incomingParameters,
+      incomingTag,
+      *messageTime);
+  require(
+      incomingRetraction.isValid(),
+      "NMR received-TSO input returned an invalid retraction handle");
+  require(
+      requester.recorder().timedInteractions().empty(),
+      "NMR received-TSO input was delivered before the request");
+
+  requester.rtiAmbassador().nextMessageRequest(*requestTime);
+  require(
+      requester.recorder().timeAdvanceGrants().empty(),
+      "NMR received-TSO requester granted before the regulator advanced");
+  peer.rtiAmbassador().timeAdvanceRequest(*peerTarget);
+  waitFor(
+      peer,
+      requester,
+      [&] {
+        return peer.recorder().timeAdvanceGrants().size() >= 1U &&
+            requester.recorder().timeAdvanceGrants().size() >= 1U &&
+            requester.recorder().timedInteractions().size() >= 1U;
+      },
+      options,
+      "NMR received-TSO delivery and grant");
+  require(
+      peer.recorder().timeAdvanceGrants().size() == 1U &&
+          peer.recorder().timeAdvanceGrants().front().encoded == encodeTime(*peerTarget),
+      "NMR received-TSO peer did not advance to its requested bound");
+  require(
+      requester.recorder().timedInteractions().size() == 1U &&
+          requester.recorder().timeAdvanceGrants().size() == 1U,
+      "NMR received-TSO requester received the wrong callback counts");
+
+  auto const received = requester.recorder().timedInteractions().front();
+  require(
+      received.interaction == requesterInteraction &&
+          received.parameters.size() == 1U &&
+          received.parameters.count(requesterParameter) == 1U &&
+          copyBytes(received.parameters.at(requesterParameter)) == incomingBytes,
+      "NMR received-TSO callback contained the wrong interaction or parameter value");
+  require(
+      received.tag == incomingTagBytes && received.producer == peer.federateHandle(),
+      "NMR received-TSO callback did not preserve its tag or producer");
+  require(
+      received.time == encodeTime(*messageTime) &&
+          received.sentOrder == rti::TIMESTAMP &&
+          received.receivedOrder == rti::TIMESTAMP &&
+          received.retractionPresent &&
+          received.retraction == copyBytes(incomingRetraction.encode()),
+      "NMR received-TSO callback did not preserve its timestamp or metadata");
+  require(
+      requester.recorder().timeAdvanceGrants().front().encoded == encodeTime(*messageTime),
+      "NMR with pre-grant TSO did not grant at the delivered message time");
+  auto queriedTime = requesterTime.factory->makeInitial();
+  require(queriedTime != nullptr, "NMR received-TSO floor could not allocate a query time");
+  requester.rtiAmbassador().queryLogicalTime(*queriedTime);
+  requireTimeEquals(*queriedTime, *messageTime, "NMR received-TSO logical-time query");
+
+  auto const legalTime = timeAfter(
+      *requesterTime.factory,
+      *messageTime,
+      *actualLookahead,
+      1U);
+  std::vector<std::uint8_t> outgoingBytes{0x4EU, 0x4DU, 0x52U, 0x2DU, 0x4FU};
+  std::vector<std::uint8_t> outgoingTagBytes{0x4EU, 0x4DU, 0x52U, 0x2DU, 0x53U};
+  rti::ParameterHandleValueMap outgoingParameters;
+  outgoingParameters.emplace(
+      requesterParameter,
+      rti::VariableLengthData(outgoingBytes.data(), outgoingBytes.size()));
+  rti::VariableLengthData outgoingTag(
+      outgoingTagBytes.data(), outgoingTagBytes.size());
+  requireException(
+      [&] {
+        requester.rtiAmbassador().sendInteraction(
+            requesterInteraction,
+            outgoingParameters,
+            outgoingTag,
+            *messageTime);
+      },
+      L"InvalidLogicalTime",
+      "NMR Send Interaction at received-message grant time below actual-lookahead floor");
+  auto const outgoingRetraction = requester.rtiAmbassador().sendInteraction(
+      requesterInteraction,
+      outgoingParameters,
+      outgoingTag,
+      *legalTime);
+  require(
+      outgoingRetraction.isValid(),
+      "NMR Send Interaction at grant time plus actual lookahead returned an invalid retraction handle");
+
+  requester.resign(rti::NO_ACTION);
+  peer.resign(rti::NO_ACTION);
+  requester.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  peer.disconnect();
+}
+
+void scenarioNmrReceivedTsoFloorContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrReceivedTsoFloor(options, model);
+}
+
+void scenarioNmrReceivedTsoAttributeUpdateFloor(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "NMR received-TSO attribute floor requires an adapter-supplied logical-time implementation");
+
+  Session requester(options, model, "owner");
+  Session peer(options, model, "member");
+  auto const federation = federationName(options, "nmr-received-tso-attribute-floor");
+  connectAndJoin(requester, peer, options, federation, options.fom);
+
+  auto const requesterInteraction = requester.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const peerInteraction = peer.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const requesterParameter = requester.rtiAmbassador().getParameterHandle(
+      requesterInteraction,
+      options.parameterName);
+  auto const peerParameter = peer.rtiAmbassador().getParameterHandle(
+      peerInteraction,
+      options.parameterName);
+  require(
+      requesterInteraction.isValid() && peerInteraction.isValid() &&
+          requesterParameter.isValid() && peerParameter.isValid(),
+      "NMR received-TSO attribute FOM lookup returned an invalid interaction handle");
+  require(
+      requesterInteraction == peerInteraction && requesterParameter == peerParameter,
+      "NMR received-TSO attribute interaction handles differed across members");
+  requester.rtiAmbassador().subscribeInteractionClass(requesterInteraction);
+  peer.rtiAmbassador().publishInteractionClass(peerInteraction);
+  peer.rtiAmbassador().changeInteractionOrderType(peerInteraction, rti::TIMESTAMP);
+
+  auto const objectClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const attribute = requester.rtiAmbassador().getAttributeHandle(
+      objectClass,
+      options.attributeName);
+  require(
+      objectClass.isValid() && attribute.isValid(),
+      "NMR received-TSO attribute FOM lookup returned an invalid object or attribute handle");
+  requester.rtiAmbassador().publishObjectClassAttributes(objectClass, {attribute});
+  auto const object = requester.rtiAmbassador().registerObjectInstance(objectClass);
+  require(object.isValid(), "NMR received-TSO attribute object registration returned an invalid handle");
+  requester.rtiAmbassador().changeAttributeOrderType(
+      object,
+      {attribute},
+      rti::TIMESTAMP);
+
+  auto requesterTime = makeTimeContext(requester);
+  auto peerTime = makeTimeContext(peer);
+  require(
+      requesterTime.factory->getName() == peerTime.factory->getName(),
+      "NMR received-TSO attribute members selected different logical-time factories");
+  requireTimeEquals(
+      *requesterTime.initial,
+      *peerTime.initial,
+      "NMR received-TSO attribute initial logical time");
+
+  requester.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "NMR received-TSO attribute requester Time Constrained callback");
+  requester.rtiAmbassador().enableTimeRegulation(*requesterTime.epsilon);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMR received-TSO attribute requester Time Regulation callback");
+  peer.rtiAmbassador().enableTimeRegulation(*peerTime.epsilon);
+  waitFor(
+      peer,
+      [&] { return peer.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMR received-TSO attribute peer Time Regulation callback");
+  requester.recorder().clearTimeCallbacks();
+  peer.recorder().clearTimeCallbacks();
+
+  auto actualLookahead = requesterTime.factory->makeZero();
+  require(
+      actualLookahead != nullptr,
+      "NMR received-TSO attribute floor could not allocate a lookahead query value");
+  requester.rtiAmbassador().queryLookahead(*actualLookahead);
+  require(
+      *actualLookahead == *requesterTime.epsilon,
+      "NMR received-TSO attribute requester did not retain its enabled epsilon lookahead");
+
+  auto const messageTime = timeAfter(
+      *peerTime.factory,
+      *peerTime.initial,
+      *peerTime.epsilon,
+      5U);
+  auto const requestTime = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      10U);
+  auto const peerTarget = timeAfter(
+      *peerTime.factory,
+      *peerTime.initial,
+      *peerTime.epsilon,
+      4U);
+  std::vector<std::uint8_t> incomingBytes{0x4EU, 0x4DU, 0x52U};
+  std::vector<std::uint8_t> incomingTagBytes{0x4EU, 0x4DU, 0x52U, 0x2DU, 0x41U};
+  rti::ParameterHandleValueMap incomingParameters;
+  incomingParameters.emplace(
+      peerParameter,
+      rti::VariableLengthData(incomingBytes.data(), incomingBytes.size()));
+  rti::VariableLengthData incomingTag(incomingTagBytes.data(), incomingTagBytes.size());
+  auto const incomingRetraction = peer.rtiAmbassador().sendInteraction(
+      peerInteraction,
+      incomingParameters,
+      incomingTag,
+      *messageTime);
+  require(
+      incomingRetraction.isValid(),
+      "NMR received-TSO attribute input returned an invalid retraction handle");
+  require(
+      requester.recorder().timedInteractions().empty(),
+      "NMR received-TSO attribute input was delivered before the request");
+
+  requester.rtiAmbassador().nextMessageRequest(*requestTime);
+  require(
+      requester.recorder().timeAdvanceGrants().empty(),
+      "NMR received-TSO attribute requester granted before the peer advanced");
+  peer.rtiAmbassador().timeAdvanceRequest(*peerTarget);
+  waitFor(
+      peer,
+      requester,
+      [&] {
+        return peer.recorder().timeAdvanceGrants().size() == 1U &&
+            requester.recorder().timeAdvanceGrants().size() == 1U &&
+            requester.recorder().timedInteractions().size() == 1U;
+      },
+      options,
+      "NMR received-TSO attribute delivery and grant");
+  require(
+      peer.recorder().timeAdvanceGrants().front().encoded == encodeTime(*peerTarget),
+      "NMR received-TSO attribute peer did not advance to its requested bound");
+  require(
+      requester.recorder().timedInteractions().front().time == encodeTime(*messageTime) &&
+          requester.recorder().timeAdvanceGrants().front().encoded == encodeTime(*messageTime),
+      "NMR received-TSO attribute setup did not deliver and grant at the message time");
+
+  std::vector<std::uint8_t> attributeBytes{0x4EU, 0x4DU, 0x52U, 0x2DU, 0x41U};
+  rti::AttributeHandleValueMap attributeValues;
+  attributeValues.emplace(
+      attribute,
+      rti::VariableLengthData(attributeBytes.data(), attributeBytes.size()));
+  rti::VariableLengthData attributeTag(incomingTagBytes.data(), incomingTagBytes.size());
+  requireException(
+      [&] {
+        requester.rtiAmbassador().updateAttributeValues(
+            object,
+            attributeValues,
+            attributeTag,
+            *messageTime);
+      },
+      L"InvalidLogicalTime",
+      "NMR received-TSO timestamped attribute update at grant-time floor");
+
+  auto const legalTime = timeAfter(
+      *requesterTime.factory,
+      *messageTime,
+      *actualLookahead,
+      1U);
+  auto const updateRetraction = requester.rtiAmbassador().updateAttributeValues(
+      object,
+      attributeValues,
+      attributeTag,
+      *legalTime);
+  require(
+      updateRetraction.isValid(),
+      "NMR received-TSO timestamped attribute update above the actual-lookahead floor returned an invalid handle");
+
+  requester.resign(rti::DELETE_OBJECTS);
+  peer.resign(rti::NO_ACTION);
+  requester.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  peer.disconnect();
+}
+
+void scenarioNmrReceivedTsoAttributeUpdateFloorContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrReceivedTsoAttributeUpdateFloor(options, model);
+}
+
+void scenarioNmrReceivedTsoDirectedInteractionFloor(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "NMR received-TSO directed-interaction floor requires an adapter-supplied logical-time implementation");
+  require(
+      !options.secondaryDirectedObjectClassName.empty() &&
+          !options.secondaryDirectedInteractionClassName.empty(),
+      "NMR received-TSO directed-interaction floor requires adapter-supplied directed FOM names");
+
+  Session requester(options, model, "owner");
+  Session peer(options, model, "member");
+  auto const federation = federationName(options, "nmr-received-tso-directed-floor");
+  connectAndJoin(requester, peer, options, federation, options.fom);
+
+  auto const requesterIncomingInteraction =
+      requester.rtiAmbassador().getInteractionClassHandle(options.interactionClassName);
+  auto const peerIncomingInteraction =
+      peer.rtiAmbassador().getInteractionClassHandle(options.interactionClassName);
+  auto const requesterIncomingParameter = requester.rtiAmbassador().getParameterHandle(
+      requesterIncomingInteraction,
+      options.parameterName);
+  auto const peerIncomingParameter = peer.rtiAmbassador().getParameterHandle(
+      peerIncomingInteraction,
+      options.parameterName);
+  auto const requesterDirectedInteraction =
+      requester.rtiAmbassador().getInteractionClassHandle(
+          options.secondaryDirectedInteractionClassName);
+  auto const peerDirectedInteraction = peer.rtiAmbassador().getInteractionClassHandle(
+      options.secondaryDirectedInteractionClassName);
+  require(
+      requesterIncomingInteraction.isValid() && peerIncomingInteraction.isValid() &&
+          requesterIncomingParameter.isValid() && peerIncomingParameter.isValid() &&
+          requesterDirectedInteraction.isValid() && peerDirectedInteraction.isValid(),
+      "NMR received-TSO directed-interaction FOM lookup returned an invalid handle");
+  require(
+      requesterIncomingInteraction == peerIncomingInteraction &&
+          requesterIncomingParameter == peerIncomingParameter &&
+          requesterDirectedInteraction == peerDirectedInteraction,
+      "NMR received-TSO directed-interaction handles differed across members");
+
+  auto const requesterObjectClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.secondaryDirectedObjectClassName);
+  auto const peerObjectClass = peer.rtiAmbassador().getObjectClassHandle(
+      options.secondaryDirectedObjectClassName);
+  auto const requesterAttribute = requester.rtiAmbassador().getAttributeHandle(
+      requesterObjectClass,
+      options.attributeName);
+  auto const peerAttribute = peer.rtiAmbassador().getAttributeHandle(
+      peerObjectClass,
+      options.attributeName);
+  require(
+      requesterObjectClass.isValid() && peerObjectClass.isValid() &&
+          requesterAttribute.isValid() && peerAttribute.isValid(),
+      "NMR received-TSO directed-interaction target FOM lookup returned an invalid handle");
+  require(
+      requesterObjectClass == peerObjectClass && requesterAttribute == peerAttribute,
+      "NMR received-TSO directed-interaction target handles differed across members");
+
+  requester.rtiAmbassador().subscribeInteractionClass(requesterIncomingInteraction);
+  peer.rtiAmbassador().publishInteractionClass(peerIncomingInteraction);
+  peer.rtiAmbassador().changeInteractionOrderType(
+      peerIncomingInteraction,
+      rti::TIMESTAMP);
+  requester.rtiAmbassador().publishObjectClassAttributes(
+      requesterObjectClass,
+      {requesterAttribute});
+  peer.rtiAmbassador().subscribeObjectClassAttributes(
+      peerObjectClass,
+      {peerAttribute},
+      true,
+      L"");
+  rti::InteractionClassHandleSet requesterDirectedInteractions;
+  requesterDirectedInteractions.insert(requesterDirectedInteraction);
+  rti::InteractionClassHandleSet peerDirectedInteractions;
+  peerDirectedInteractions.insert(peerDirectedInteraction);
+  requester.rtiAmbassador().publishObjectClassDirectedInteractions(
+      requesterObjectClass,
+      requesterDirectedInteractions);
+  peer.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+      peerObjectClass,
+      peerDirectedInteractions,
+      true);
+  requester.rtiAmbassador().changeInteractionOrderType(
+      requesterDirectedInteraction,
+      rti::TIMESTAMP);
+  auto const target = requester.rtiAmbassador().registerObjectInstance(
+      requesterObjectClass);
+  require(target.isValid(), "NMR received-TSO directed target registration returned an invalid handle");
+
+  auto requesterTime = makeTimeContext(requester);
+  auto peerTime = makeTimeContext(peer);
+  require(
+      requesterTime.factory->getName() == peerTime.factory->getName(),
+      "NMR received-TSO directed members selected different logical-time factories");
+  requireTimeEquals(
+      *requesterTime.initial,
+      *peerTime.initial,
+      "NMR received-TSO directed initial logical time");
+
+  requester.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "NMR received-TSO directed requester Time Constrained callback");
+  requester.rtiAmbassador().enableTimeRegulation(*requesterTime.epsilon);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMR received-TSO directed requester Time Regulation callback");
+  peer.rtiAmbassador().enableTimeRegulation(*peerTime.epsilon);
+  waitFor(
+      peer,
+      [&] { return peer.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMR received-TSO directed peer Time Regulation callback");
+  requester.recorder().clearTimeCallbacks();
+  peer.recorder().clearTimeCallbacks();
+
+  auto actualLookahead = requesterTime.factory->makeZero();
+  require(
+      actualLookahead != nullptr,
+      "NMR received-TSO directed floor could not allocate a lookahead query value");
+  requester.rtiAmbassador().queryLookahead(*actualLookahead);
+  require(
+      *actualLookahead == *requesterTime.epsilon,
+      "NMR received-TSO directed requester did not retain its enabled epsilon lookahead");
+
+  auto const messageTime = timeAfter(
+      *peerTime.factory,
+      *peerTime.initial,
+      *peerTime.epsilon,
+      5U);
+  auto const requestTime = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      10U);
+  auto const peerTarget = timeAfter(
+      *peerTime.factory,
+      *peerTime.initial,
+      *peerTime.epsilon,
+      4U);
+  std::vector<std::uint8_t> incomingBytes{0x4EU, 0x4DU, 0x52U, 0x2DU, 0x44U};
+  std::vector<std::uint8_t> incomingTagBytes{0x4EU, 0x4DU, 0x52U, 0x2DU, 0x44U};
+  rti::ParameterHandleValueMap incomingParameters;
+  incomingParameters.emplace(
+      peerIncomingParameter,
+      rti::VariableLengthData(incomingBytes.data(), incomingBytes.size()));
+  rti::VariableLengthData incomingTag(
+      incomingTagBytes.data(),
+      incomingTagBytes.size());
+  auto const incomingRetraction = peer.rtiAmbassador().sendInteraction(
+      peerIncomingInteraction,
+      incomingParameters,
+      incomingTag,
+      *messageTime);
+  require(
+      incomingRetraction.isValid(),
+      "NMR received-TSO directed input returned an invalid retraction handle");
+  require(
+      requester.recorder().timedInteractions().empty(),
+      "NMR received-TSO directed input was delivered before the request");
+
+  requester.rtiAmbassador().nextMessageRequest(*requestTime);
+  require(
+      requester.recorder().timeAdvanceGrants().empty(),
+      "NMR received-TSO directed requester granted before the peer advanced");
+  peer.rtiAmbassador().timeAdvanceRequest(*peerTarget);
+  waitFor(
+      peer,
+      requester,
+      [&] {
+        return peer.recorder().timeAdvanceGrants().size() == 1U &&
+            requester.recorder().timeAdvanceGrants().size() == 1U &&
+            requester.recorder().timedInteractions().size() == 1U;
+      },
+      options,
+      "NMR received-TSO directed delivery and grant");
+  require(
+      requester.recorder().timedInteractions().front().time == encodeTime(*messageTime) &&
+          requester.recorder().timeAdvanceGrants().front().encoded == encodeTime(*messageTime),
+      "NMR received-TSO directed setup did not deliver and grant at the message time");
+
+  std::vector<std::uint8_t> directedTagBytes{0x4EU, 0x4DU, 0x52U, 0x2DU, 0x44U};
+  rti::VariableLengthData directedTag(
+      directedTagBytes.data(),
+      directedTagBytes.size());
+  rti::ParameterHandleValueMap directedParameters;
+  requireException(
+      [&] {
+        requester.rtiAmbassador().sendDirectedInteraction(
+            requesterDirectedInteraction,
+            target,
+            directedParameters,
+            directedTag,
+            *messageTime);
+      },
+      L"InvalidLogicalTime",
+      "NMR received-TSO timestamped directed interaction at grant-time floor");
+
+  auto const legalTime = timeAfter(
+      *requesterTime.factory,
+      *messageTime,
+      *actualLookahead,
+      1U);
+  static_cast<void>(requester.rtiAmbassador().sendDirectedInteraction(
+      requesterDirectedInteraction,
+      target,
+      directedParameters,
+      directedTag,
+      *legalTime));
+
+  requester.resign(rti::DELETE_OBJECTS);
+  peer.resign(rti::NO_ACTION);
+  requester.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  peer.disconnect();
+}
+
+void scenarioNmrReceivedTsoDirectedInteractionFloorContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrReceivedTsoDirectedInteractionFloor(options, model);
+}
+
+void scenarioNmrEmptyMessageSetGrantTime(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "NMR empty-message grant-time test requires an adapter-supplied logical-time implementation");
+
+  Session requester(options, model, "owner");
+  Session peer(options, model, "member");
+  auto const federation = federationName(options, "nmr-empty-message-set-grant-time");
+  connectAndJoin(requester, peer, options, federation, options.fom);
+
+  auto requesterTime = makeTimeContext(requester);
+  auto peerTime = makeTimeContext(peer);
+  require(
+      requesterTime.factory->getName() == peerTime.factory->getName(),
+      "NMR empty-message members selected different logical-time factories");
+  requireTimeEquals(
+      *requesterTime.initial,
+      *peerTime.initial,
+      "NMR empty-message initial logical time");
+
+  requester.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "NMR empty-message requester Time Constrained callback");
+  requester.rtiAmbassador().enableTimeRegulation(*requesterTime.epsilon);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMR empty-message requester Time Regulation callback");
+  peer.rtiAmbassador().enableTimeRegulation(*peerTime.epsilon);
+  waitFor(
+      peer,
+      [&] { return peer.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMR empty-message peer Time Regulation callback");
+  requester.recorder().clearTimeCallbacks();
+  peer.recorder().clearTimeCallbacks();
+
+  auto const requestTime = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      10U);
+  auto const peerTarget = timeAfter(
+      *peerTime.factory,
+      *peerTime.initial,
+      *peerTime.epsilon,
+      10U);
+  requireTimeEquals(
+      *requestTime,
+      *peerTarget,
+      "NMR empty-message request and peer advance target");
+
+  requester.rtiAmbassador().nextMessageRequest(*requestTime);
+  require(
+      requester.recorder().timeAdvanceGrants().empty(),
+      "NMR empty-message requester granted before the peer advanced");
+  peer.rtiAmbassador().timeAdvanceRequest(*peerTarget);
+  waitFor(
+      peer,
+      requester,
+      [&] {
+        return peer.recorder().timeAdvanceGrants().size() == 1U &&
+            requester.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "NMR empty-message peer and requester grants");
+
+  auto const requesterGrants = requester.recorder().timeAdvanceGrants();
+  auto const peerGrants = peer.recorder().timeAdvanceGrants();
+  require(
+      requesterGrants.size() == 1U &&
+          requesterGrants.front().encoded == encodeTime(*requestTime),
+      "NMR with no delivered TSO did not grant exactly once at the requested logical time");
+  require(
+      peerGrants.size() == 1U && peerGrants.front().encoded == encodeTime(*peerTarget),
+      "NMR empty-message peer did not reach its requested advance time");
+  require(
+      requester.recorder().timedInteractions().empty(),
+      "NMR empty-message grant unexpectedly delivered a timestamped interaction");
+  auto currentTime = requesterTime.factory->makeInitial();
+  require(
+      currentTime != nullptr,
+      "NMR empty-message grant could not allocate a logical-time query value");
+  requester.rtiAmbassador().queryLogicalTime(*currentTime);
+  requireTimeEquals(
+      *currentTime,
+      *requestTime,
+      "NMR empty-message queried logical time");
+
+  requester.resign(rti::NO_ACTION);
+  peer.resign(rti::NO_ACTION);
+  requester.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  peer.disconnect();
+}
+
+void scenarioNmrEmptyMessageSetGrantTimeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrEmptyMessageSetGrantTime(options, model);
+}
+
+void scenarioNmrRequestBelowGaltImmediateGrant(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "NMR below-GALT test requires an adapter-supplied logical-time implementation");
+
+  Session regulator(options, model, "owner");
+  Session requester(options, model, "member");
+  auto const federation = federationName(options, "nmr-request-below-galt-grant");
+  connectAndJoin(regulator, requester, options, federation, options.fom);
+
+  auto regulatorTime = makeTimeContext(regulator);
+  auto requesterTime = makeTimeContext(requester);
+  require(
+      regulatorTime.factory->getName() == requesterTime.factory->getName(),
+      "NMR below-GALT members selected different logical-time factories");
+  requireTimeEquals(
+      *regulatorTime.initial,
+      *requesterTime.initial,
+      "NMR below-GALT initial logical time");
+
+  requester.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "NMR below-GALT requester Time Constrained callback");
+
+  auto const lookaheadTarget = timeAfter(
+      *regulatorTime.factory,
+      *regulatorTime.initial,
+      *regulatorTime.epsilon,
+      5U);
+  auto regulatorLookahead = regulatorTime.factory->makeZero();
+  require(
+      regulatorLookahead != nullptr,
+      "NMR below-GALT regulator could not allocate a lookahead interval");
+  regulatorLookahead->setToDifference(*lookaheadTarget, *regulatorTime.initial);
+  regulator.rtiAmbassador().enableTimeRegulation(*regulatorLookahead);
+  waitFor(
+      regulator,
+      [&] { return regulator.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMR below-GALT regulator Time Regulation callback");
+
+  auto observedLookahead = regulatorTime.factory->makeZero();
+  require(
+      observedLookahead != nullptr,
+      "NMR below-GALT regulator could not allocate a lookahead query value");
+  regulator.rtiAmbassador().queryLookahead(*observedLookahead);
+  require(
+      *observedLookahead == *regulatorLookahead,
+      "NMR below-GALT regulator did not retain the configured lookahead");
+  auto expectedGalt = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      5U);
+  auto observedGalt = requesterTime.factory->makeInitial();
+  require(
+      observedGalt != nullptr && requester.rtiAmbassador().queryGALT(*observedGalt),
+      "NMR below-GALT requester could not observe a defined GALT");
+  requireTimeEquals(
+      *observedGalt,
+      *expectedGalt,
+      "NMR below-GALT regulator boundary");
+  auto const requestTime = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      3U);
+  require(
+      requester.recorder().timeAdvanceGrants().empty() &&
+          regulator.recorder().timeAdvanceGrants().empty(),
+      "NMR below-GALT test began with an unexpected grant callback");
+
+  requester.rtiAmbassador().nextMessageRequest(*requestTime);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "NMR request strictly below GALT grant");
+  auto const requesterGrants = requester.recorder().timeAdvanceGrants();
+  require(
+      requesterGrants.size() == 1U &&
+          requesterGrants.front().encoded == encodeTime(*requestTime),
+      "NMR request below GALT did not grant exactly once at its requested time");
+  require(
+      regulator.recorder().timeAdvanceGrants().empty(),
+      "NMR below-GALT request required or produced a regulator grant");
+  auto regulatorCurrentTime = regulatorTime.factory->makeInitial();
+  auto requesterCurrentTime = requesterTime.factory->makeInitial();
+  require(
+      regulatorCurrentTime != nullptr && requesterCurrentTime != nullptr,
+      "NMR below-GALT test could not allocate queried logical times");
+  regulator.rtiAmbassador().queryLogicalTime(*regulatorCurrentTime);
+  requester.rtiAmbassador().queryLogicalTime(*requesterCurrentTime);
+  requireTimeEquals(
+      *regulatorCurrentTime,
+      *regulatorTime.initial,
+      "NMR below-GALT regulator time without an advance");
+  requireTimeEquals(
+      *requesterCurrentTime,
+      *requestTime,
+      "NMR below-GALT requester logical time");
+  require(
+      requester.rtiAmbassador().queryGALT(*observedGalt),
+      "NMR below-GALT bound became undefined after the immediate grant");
+  requireTimeEquals(
+      *observedGalt,
+      *expectedGalt,
+      "NMR below-GALT boundary after immediate grant");
+
+  requester.resign(rti::NO_ACTION);
+  regulator.resign(rti::NO_ACTION);
+  regulator.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  regulator.disconnect();
+}
+
+void scenarioNmrRequestBelowGaltImmediateGrantContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrRequestBelowGaltImmediateGrant(options, model);
+}
+
+void scenarioNmrLitsBelowGaltImmediateGrant(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "NMR queued-LITS test requires an adapter-supplied logical-time implementation");
+
+  Session regulator(options, model, "owner");
+  Session requester(options, model, "member");
+  auto const federation = federationName(options, "nmr-lits-below-galt-grant");
+  connectAndJoin(regulator, requester, options, federation, options.fom);
+
+  auto const regulatorInteraction = regulator.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const regulatorParameter = regulator.rtiAmbassador().getParameterHandle(
+      regulatorInteraction,
+      options.parameterName);
+  auto const requesterInteraction = requester.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const requesterParameter = requester.rtiAmbassador().getParameterHandle(
+      requesterInteraction,
+      options.parameterName);
+  require(
+      regulatorInteraction.isValid() && regulatorParameter.isValid() &&
+          requesterInteraction.isValid() && requesterParameter.isValid(),
+      "NMR queued-LITS adapter FOM did not resolve interaction handles");
+  require(
+      regulatorInteraction == requesterInteraction &&
+          regulatorParameter == requesterParameter,
+      "NMR queued-LITS interaction handles changed across federates");
+
+  regulator.rtiAmbassador().publishInteractionClass(regulatorInteraction);
+  regulator.rtiAmbassador().changeInteractionOrderType(
+      regulatorInteraction,
+      rti::TIMESTAMP);
+  requester.rtiAmbassador().subscribeInteractionClass(requesterInteraction, true);
+
+  auto regulatorTime = makeTimeContext(regulator);
+  auto requesterTime = makeTimeContext(requester);
+  require(
+      regulatorTime.factory->getName() == requesterTime.factory->getName(),
+      "NMR queued-LITS members selected different logical-time factories");
+  requireTimeEquals(
+      *regulatorTime.initial,
+      *requesterTime.initial,
+      "NMR queued-LITS initial logical time");
+
+  requester.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "NMR queued-LITS requester Time Constrained callback");
+  auto const lookahead = regulatorTime.factory->makeZero();
+  require(lookahead != nullptr, "NMR queued-LITS could not allocate lookahead");
+  lookahead->setToDifference(
+      *timeAfter(*regulatorTime.factory, *regulatorTime.initial, *regulatorTime.epsilon, 1U),
+      *regulatorTime.initial);
+  regulator.rtiAmbassador().enableTimeRegulation(*lookahead);
+  waitFor(
+      regulator,
+      [&] { return regulator.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMR queued-LITS regulator Time Regulation callback");
+  auto observedLookahead = regulatorTime.factory->makeZero();
+  require(observedLookahead != nullptr, "NMR queued-LITS could not query lookahead");
+  regulator.rtiAmbassador().queryLookahead(*observedLookahead);
+  require(
+      *observedLookahead == *lookahead,
+      "NMR queued-LITS regulator did not retain the configured lookahead");
+
+  auto const messageTime = timeAfter(
+      *regulatorTime.factory,
+      *regulatorTime.initial,
+      *regulatorTime.epsilon,
+      3U);
+  auto const regulatorTarget = timeAfter(
+      *regulatorTime.factory,
+      *regulatorTime.initial,
+      *regulatorTime.epsilon,
+      4U);
+  auto const requestTime = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      10U);
+  auto const expectedGalt = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      5U);
+  require(
+      *messageTime < *expectedGalt,
+      "NMR queued-LITS message timestamp was not below the configured GALT boundary");
+  std::vector<std::uint8_t> payloadBytes{0x4CU, 0x49U, 0x54U, 0x53U};
+  std::vector<std::uint8_t> tagBytes{0x4EU, 0x4DU, 0x52U};
+  rti::ParameterHandleValueMap values;
+  values.emplace(
+      regulatorParameter,
+      rti::VariableLengthData(payloadBytes.data(), payloadBytes.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  auto const retraction = regulator.rtiAmbassador().sendInteraction(
+      regulatorInteraction,
+      values,
+      tag,
+      *messageTime);
+  require(retraction.isValid(), "NMR queued-LITS send returned an invalid retraction handle");
+
+  regulator.rtiAmbassador().timeAdvanceRequest(*regulatorTarget);
+  waitFor(
+      regulator,
+      [&] { return regulator.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "NMR queued-LITS regulator advance");
+  require(
+      regulator.recorder().timeAdvanceGrants().front().encoded == encodeTime(*regulatorTarget),
+      "NMR queued-LITS regulator did not reach its requested time");
+  require(
+      requester.recorder().timedInteractions().empty() &&
+          requester.recorder().timeAdvanceGrants().empty(),
+      "NMR queued-LITS input was delivered before the request");
+
+  requester.rtiAmbassador().nextMessageRequest(*requestTime);
+  waitFor(
+      requester,
+      [&] {
+        return requester.recorder().timedInteractions().size() == 1U &&
+            requester.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "NMR queued-LITS delivery and grant");
+  auto const received = requester.recorder().timedInteractions().front();
+  require(
+      received.interaction == requesterInteraction && received.parameters.size() == 1U &&
+          received.parameters.count(requesterParameter) == 1U &&
+          copyBytes(received.parameters.at(requesterParameter)) == payloadBytes,
+      "NMR queued-LITS delivered the wrong interaction or parameter value");
+  require(
+      received.time == encodeTime(*messageTime) &&
+          received.sentOrder == rti::TIMESTAMP &&
+          received.receivedOrder == rti::TIMESTAMP,
+      "NMR queued-LITS callback did not preserve the queued TSO timestamp/order");
+  require(
+      requester.recorder().callbackOrder() ==
+          std::vector<std::string>{"interaction", "grant"},
+      "NMR queued-LITS granted before delivering its queued interaction");
+  auto const grants = requester.recorder().timeAdvanceGrants();
+  require(
+      grants.size() == 1U && grants.front().encoded == encodeTime(*messageTime),
+      "NMR queued-LITS did not grant exactly at the queued interaction time");
+  require(
+      regulator.recorder().timeAdvanceGrants().size() == 1U,
+      "NMR queued-LITS required an additional regulator advance");
+
+  auto regulatorCurrentTime = regulatorTime.factory->makeInitial();
+  auto requesterCurrentTime = requesterTime.factory->makeInitial();
+  require(
+      regulatorCurrentTime != nullptr && requesterCurrentTime != nullptr,
+      "NMR queued-LITS could not allocate logical-time query values");
+  regulator.rtiAmbassador().queryLogicalTime(*regulatorCurrentTime);
+  requester.rtiAmbassador().queryLogicalTime(*requesterCurrentTime);
+  requireTimeEquals(
+      *regulatorCurrentTime,
+      *regulatorTarget,
+      "NMR queued-LITS regulator time after its single advance");
+  requireTimeEquals(
+      *requesterCurrentTime,
+      *messageTime,
+      "NMR queued-LITS requester time at LITS");
+
+  requester.resign(rti::NO_ACTION);
+  regulator.resign(rti::NO_ACTION);
+  regulator.rtiAmbassador().destroyFederationExecution(federation);
+}
+
+void scenarioNmrLitsBelowGaltImmediateGrantContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrLitsBelowGaltImmediateGrant(options, model);
+}
+
 void scenarioAvailableTimeAdvancesInclusiveGalt(
     Options const& options,
     rti::CallbackModel model) {

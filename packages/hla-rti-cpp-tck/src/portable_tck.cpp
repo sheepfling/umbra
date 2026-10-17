@@ -10,6 +10,17 @@
 #include "tck_main_scenarios.hpp"
 #include "tck_post_resignation_valid_input_scenarios.hpp"
 #include "tck_transport_order_type_change.hpp"
+
+namespace hla_rti_cpp_tck::detail {
+void scenarioFqrPostgrantLowerTsoRetraction(Options const&, rti::CallbackModel);
+void scenarioFqrPostgrantLowerTsoRetractionContract(Options const&, rti::CallbackModel);
+void scenarioFqgPostgrantDeliveryCutoff(Options const&, rti::CallbackModel);
+void scenarioFqgPostgrantDeliveryCutoffContract(Options const&, rti::CallbackModel);
+void scenarioTarQueuedTsoBeforeGrant(Options const&, rti::CallbackModel);
+void scenarioTarQueuedTsoBeforeGrantContract(Options const&, rti::CallbackModel);
+void scenarioNmrLitsBelowGaltImmediateGrant(Options const&, rti::CallbackModel);
+void scenarioNmrLitsBelowGaltImmediateGrantContract(Options const&, rti::CallbackModel);
+}
 #include "tck_portable_member_control_scenarios.hpp"
 #include "tck_transport_order_scenarios.hpp"
 #include "tck_regional_auto_provide_scenarios.hpp"
@@ -1116,6 +1127,18 @@ constexpr char timestampedInteractionFlushQueueFutureInputScenario[] =
     "cpp-tck.timestamped-interaction-flush-queue-future-input";
 constexpr char timestampedInteractionFlushQueueFutureInputContractId[] =
     "cpp-tck.timestamped-interaction-flush-queue-future-input-contract";
+constexpr char fqrPostgrantLowerTsoRetractionScenario[] =
+    "cpp-tck.fqr-postgrant-lower-tso-retraction";
+constexpr char fqrPostgrantLowerTsoRetractionContractId[] =
+    "cpp-tck.fqr-postgrant-lower-tso-retraction-contract";
+constexpr char fqgPostgrantDeliveryCutoffScenario[] =
+    "cpp-tck.fqg-postgrant-delivery-cutoff";
+constexpr char fqgPostgrantDeliveryCutoffContractId[] =
+    "cpp-tck.fqg-postgrant-delivery-cutoff-contract";
+constexpr char tarQueuedTsoBeforeGrantScenario[] =
+    "cpp-tck.tar-queued-tso-before-grant";
+constexpr char tarQueuedTsoBeforeGrantContractId[] =
+    "cpp-tck.tar-queued-tso-before-grant-contract";
 constexpr char timestampedAttributeOrderCohortScenario[] =
     "cpp-tck.timestamped-attribute-order-cohort";
 constexpr char timestampedAttributeOrderCohortContractId[] =
@@ -1156,6 +1179,38 @@ constexpr char nextMessageRequestScenario[] =
     "cpp-tck.next-message-request";
 constexpr char nextMessageRequestContractId[] =
     "cpp-tck.next-message-request-contract";
+constexpr char nmrNoPregrantTsoFloorScenario[] =
+    "cpp-tck.nmr-no-pregrant-tso-floor";
+constexpr char nmrNoPregrantTsoFloorContractId[] =
+    "cpp-tck.nmr-no-pregrant-tso-floor-contract";
+constexpr char nmrReceivedTsoFloorScenario[] =
+    "cpp-tck.nmr-received-tso-floor";
+constexpr char nmrReceivedTsoFloorContractId[] =
+    "cpp-tck.nmr-received-tso-floor-contract";
+constexpr char nmrReceivedTsoAttributeUpdateFloorScenario[] =
+    "cpp-tck.nmr-received-tso-attribute-update-floor";
+constexpr char nmrReceivedTsoAttributeUpdateFloorContractId[] =
+    "cpp-tck.nmr-received-tso-attribute-update-floor-contract";
+constexpr char nmrReceivedTsoDirectedInteractionFloorScenario[] =
+    "cpp-tck.nmr-received-tso-directed-interaction-floor";
+constexpr char nmrReceivedTsoDirectedInteractionFloorContractId[] =
+    "cpp-tck.nmr-received-tso-directed-interaction-floor-contract";
+constexpr char nmrEmptyMessageSetGrantTimeScenario[] =
+    "cpp-tck.nmr-empty-message-set-grant-time";
+constexpr char nmrEmptyMessageSetGrantTimeContractId[] =
+    "cpp-tck.nmr-empty-message-set-grant-time-contract";
+constexpr char nmrRequestBelowGaltImmediateGrantScenario[] =
+    "cpp-tck.nmr-request-below-galt-immediate-grant";
+constexpr char nmrRequestBelowGaltImmediateGrantContractId[] =
+    "cpp-tck.nmr-request-below-galt-immediate-grant-contract";
+constexpr char nmrLitsBelowGaltImmediateGrantScenario[] =
+    "cpp-tck.nmr-lits-below-galt-immediate-grant";
+constexpr char nmrLitsBelowGaltImmediateGrantContractId[] =
+    "cpp-tck.nmr-lits-below-galt-immediate-grant-contract";
+constexpr char nmraNoPregrantTsoFloorScenario[] =
+    "cpp-tck.nmra-no-pregrant-tso-floor";
+constexpr char nmraNoPregrantTsoFloorContractId[] =
+    "cpp-tck.nmra-no-pregrant-tso-floor-contract";
 constexpr char sendMessageTimeStatePreservationGrantedScenario[] =
     "cpp-tck.send-message-time-state-preservation-granted";
 constexpr char sendMessageTimeStatePreservationGrantedContractId[] =
@@ -3398,6 +3453,42 @@ void scenarioTimestampedInteractionFlushQueueFutureInputContractPortable(
   scenarioTimestampedInteractionFlushQueueFutureInputContract(options, model);
 }
 
+void scenarioFqrPostgrantLowerTsoRetractionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFqrPostgrantLowerTsoRetraction(options, model);
+}
+
+void scenarioFqrPostgrantLowerTsoRetractionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFqrPostgrantLowerTsoRetractionContract(options, model);
+}
+
+void scenarioFqgPostgrantDeliveryCutoffPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFqgPostgrantDeliveryCutoff(options, model);
+}
+
+void scenarioFqgPostgrantDeliveryCutoffContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFqgPostgrantDeliveryCutoffContract(options, model);
+}
+
+void scenarioTarQueuedTsoBeforeGrantPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTarQueuedTsoBeforeGrant(options, model);
+}
+
+void scenarioTarQueuedTsoBeforeGrantContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTarQueuedTsoBeforeGrantContract(options, model);
+}
+
 void scenarioTimestampedAttributeOrderCohortPortable(
     Options const& options,
     rti::CallbackModel model) {
@@ -3600,6 +3691,102 @@ void scenarioNextMessageRequestContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioNextMessageRequestContract(options, model);
+}
+
+void scenarioNmrNoPregrantTsoFloorPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrNoPregrantTsoFloor(options, model);
+}
+
+void scenarioNmrNoPregrantTsoFloorContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrNoPregrantTsoFloorContract(options, model);
+}
+
+void scenarioNmrReceivedTsoFloorPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrReceivedTsoFloor(options, model);
+}
+
+void scenarioNmrReceivedTsoFloorContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrReceivedTsoFloorContract(options, model);
+}
+
+void scenarioNmrReceivedTsoAttributeUpdateFloorPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrReceivedTsoAttributeUpdateFloor(options, model);
+}
+
+void scenarioNmrReceivedTsoAttributeUpdateFloorContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrReceivedTsoAttributeUpdateFloorContract(options, model);
+}
+
+void scenarioNmrReceivedTsoDirectedInteractionFloorPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrReceivedTsoDirectedInteractionFloor(options, model);
+}
+
+void scenarioNmrReceivedTsoDirectedInteractionFloorContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrReceivedTsoDirectedInteractionFloorContract(options, model);
+}
+
+void scenarioNmrEmptyMessageSetGrantTimePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrEmptyMessageSetGrantTime(options, model);
+}
+
+void scenarioNmrEmptyMessageSetGrantTimeContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrEmptyMessageSetGrantTimeContract(options, model);
+}
+
+void scenarioNmrRequestBelowGaltImmediateGrantPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrRequestBelowGaltImmediateGrant(options, model);
+}
+
+void scenarioNmrRequestBelowGaltImmediateGrantContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrRequestBelowGaltImmediateGrantContract(options, model);
+}
+
+void scenarioNmrLitsBelowGaltImmediateGrantPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrLitsBelowGaltImmediateGrant(options, model);
+}
+
+void scenarioNmrLitsBelowGaltImmediateGrantContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmrLitsBelowGaltImmediateGrantContract(options, model);
+}
+
+void scenarioNmraNoPregrantTsoFloorPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmraNoPregrantTsoFloor(options, model);
+}
+
+void scenarioNmraNoPregrantTsoFloorContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmraNoPregrantTsoFloorContract(options, model);
 }
 
 void scenarioSendMessageTimeStatePreservationGrantedPortable(
@@ -15905,6 +16092,36 @@ int runTimestampedInteractionFlushQueueFutureInputScenarios(
       scenarioTimestampedInteractionFlushQueueFutureInputContractPortable);
 }
 
+int runFqrPostgrantLowerTsoRetractionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      fqrPostgrantLowerTsoRetractionScenario,
+      fqrPostgrantLowerTsoRetractionContractId,
+      scenarioFqrPostgrantLowerTsoRetractionPortable,
+      scenarioFqrPostgrantLowerTsoRetractionContractPortable);
+}
+
+int runFqgPostgrantDeliveryCutoffScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      fqgPostgrantDeliveryCutoffScenario,
+      fqgPostgrantDeliveryCutoffContractId,
+      scenarioFqgPostgrantDeliveryCutoffPortable,
+      scenarioFqgPostgrantDeliveryCutoffContractPortable);
+}
+
+int runTarQueuedTsoBeforeGrantScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      tarQueuedTsoBeforeGrantScenario,
+      tarQueuedTsoBeforeGrantContractId,
+      scenarioTarQueuedTsoBeforeGrantPortable,
+      scenarioTarQueuedTsoBeforeGrantContractPortable);
+}
+
 int runTimestampedAttributeOrderCohortScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -16009,6 +16226,86 @@ int runNextMessageRequestScenarios(int argc, char** argv) {
       nextMessageRequestContractId,
       scenarioNextMessageRequestPortable,
       scenarioNextMessageRequestContractPortable);
+}
+
+int runNmraNoPregrantTsoFloorScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      nmraNoPregrantTsoFloorScenario,
+      nmraNoPregrantTsoFloorContractId,
+      scenarioNmraNoPregrantTsoFloorPortable,
+      scenarioNmraNoPregrantTsoFloorContractPortable);
+}
+
+int runNmrNoPregrantTsoFloorScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      nmrNoPregrantTsoFloorScenario,
+      nmrNoPregrantTsoFloorContractId,
+      scenarioNmrNoPregrantTsoFloorPortable,
+      scenarioNmrNoPregrantTsoFloorContractPortable);
+}
+
+int runNmrReceivedTsoFloorScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      nmrReceivedTsoFloorScenario,
+      nmrReceivedTsoFloorContractId,
+      scenarioNmrReceivedTsoFloorPortable,
+      scenarioNmrReceivedTsoFloorContractPortable);
+}
+
+int runNmrReceivedTsoAttributeUpdateFloorScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      nmrReceivedTsoAttributeUpdateFloorScenario,
+      nmrReceivedTsoAttributeUpdateFloorContractId,
+      scenarioNmrReceivedTsoAttributeUpdateFloorPortable,
+      scenarioNmrReceivedTsoAttributeUpdateFloorContractPortable);
+}
+
+int runNmrReceivedTsoDirectedInteractionFloorScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      nmrReceivedTsoDirectedInteractionFloorScenario,
+      nmrReceivedTsoDirectedInteractionFloorContractId,
+      scenarioNmrReceivedTsoDirectedInteractionFloorPortable,
+      scenarioNmrReceivedTsoDirectedInteractionFloorContractPortable);
+}
+
+int runNmrEmptyMessageSetGrantTimeScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      nmrEmptyMessageSetGrantTimeScenario,
+      nmrEmptyMessageSetGrantTimeContractId,
+      scenarioNmrEmptyMessageSetGrantTimePortable,
+      scenarioNmrEmptyMessageSetGrantTimeContractPortable);
+}
+
+int runNmrRequestBelowGaltImmediateGrantScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      nmrRequestBelowGaltImmediateGrantScenario,
+      nmrRequestBelowGaltImmediateGrantContractId,
+      scenarioNmrRequestBelowGaltImmediateGrantPortable,
+      scenarioNmrRequestBelowGaltImmediateGrantContractPortable);
+}
+
+int runNmrLitsBelowGaltImmediateGrantScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      nmrLitsBelowGaltImmediateGrantScenario,
+      nmrLitsBelowGaltImmediateGrantContractId,
+      scenarioNmrLitsBelowGaltImmediateGrantPortable,
+      scenarioNmrLitsBelowGaltImmediateGrantContractPortable);
 }
 
 int runSendMessageTimeStatePreservationGrantedScenarios(int argc, char** argv) {
@@ -18923,6 +19220,48 @@ bool hasTimestampedInteractionFlushQueueFutureInputScenario(
   return false;
 }
 
+bool hasFqrPostgrantLowerTsoRetractionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == fqrPostgrantLowerTsoRetractionScenario ||
+        scenario == fqrPostgrantLowerTsoRetractionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFqgPostgrantDeliveryCutoffScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == fqgPostgrantDeliveryCutoffScenario ||
+        scenario == fqgPostgrantDeliveryCutoffContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTarQueuedTsoBeforeGrantScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == tarQueuedTsoBeforeGrantScenario ||
+        scenario == tarQueuedTsoBeforeGrantContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasTimestampedAttributeOrderCohortScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -19063,6 +19402,118 @@ bool hasNextMessageRequestScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == nextMessageRequestScenario ||
         scenario == nextMessageRequestContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasNmraNoPregrantTsoFloorScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == nmraNoPregrantTsoFloorScenario ||
+        scenario == nmraNoPregrantTsoFloorContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasNmrNoPregrantTsoFloorScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == nmrNoPregrantTsoFloorScenario ||
+        scenario == nmrNoPregrantTsoFloorContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasNmrReceivedTsoFloorScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == nmrReceivedTsoFloorScenario ||
+        scenario == nmrReceivedTsoFloorContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasNmrReceivedTsoAttributeUpdateFloorScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == nmrReceivedTsoAttributeUpdateFloorScenario ||
+        scenario == nmrReceivedTsoAttributeUpdateFloorContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasNmrReceivedTsoDirectedInteractionFloorScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == nmrReceivedTsoDirectedInteractionFloorScenario ||
+        scenario == nmrReceivedTsoDirectedInteractionFloorContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasNmrEmptyMessageSetGrantTimeScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == nmrEmptyMessageSetGrantTimeScenario ||
+        scenario == nmrEmptyMessageSetGrantTimeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasNmrRequestBelowGaltImmediateGrantScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == nmrRequestBelowGaltImmediateGrantScenario ||
+        scenario == nmrRequestBelowGaltImmediateGrantContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasNmrLitsBelowGaltImmediateGrantScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == nmrLitsBelowGaltImmediateGrantScenario ||
+        scenario == nmrLitsBelowGaltImmediateGrantContractId) {
       return true;
     }
   }
@@ -22874,6 +23325,15 @@ int main(int argc, char** argv) {
     if (hasTimestampedInteractionFlushQueueFutureInputScenario(argc, argv)) {
       return runTimestampedInteractionFlushQueueFutureInputScenarios(argc, argv);
     }
+    if (hasFqrPostgrantLowerTsoRetractionScenario(argc, argv)) {
+      return runFqrPostgrantLowerTsoRetractionScenarios(argc, argv);
+    }
+    if (hasFqgPostgrantDeliveryCutoffScenario(argc, argv)) {
+      return runFqgPostgrantDeliveryCutoffScenarios(argc, argv);
+    }
+    if (hasTarQueuedTsoBeforeGrantScenario(argc, argv)) {
+      return runTarQueuedTsoBeforeGrantScenarios(argc, argv);
+    }
     if (hasTimestampedAttributeOrderCohortScenario(argc, argv)) {
       return runTimestampedAttributeOrderCohortScenarios(argc, argv);
     }
@@ -22904,6 +23364,30 @@ int main(int argc, char** argv) {
     }
     if (hasNextMessageRequestScenario(argc, argv)) {
       return runNextMessageRequestScenarios(argc, argv);
+    }
+    if (hasNmrNoPregrantTsoFloorScenario(argc, argv)) {
+      return runNmrNoPregrantTsoFloorScenarios(argc, argv);
+    }
+    if (hasNmrReceivedTsoFloorScenario(argc, argv)) {
+      return runNmrReceivedTsoFloorScenarios(argc, argv);
+    }
+    if (hasNmrReceivedTsoAttributeUpdateFloorScenario(argc, argv)) {
+      return runNmrReceivedTsoAttributeUpdateFloorScenarios(argc, argv);
+    }
+    if (hasNmrReceivedTsoDirectedInteractionFloorScenario(argc, argv)) {
+      return runNmrReceivedTsoDirectedInteractionFloorScenarios(argc, argv);
+    }
+    if (hasNmrEmptyMessageSetGrantTimeScenario(argc, argv)) {
+      return runNmrEmptyMessageSetGrantTimeScenarios(argc, argv);
+    }
+    if (hasNmrRequestBelowGaltImmediateGrantScenario(argc, argv)) {
+      return runNmrRequestBelowGaltImmediateGrantScenarios(argc, argv);
+    }
+    if (hasNmrLitsBelowGaltImmediateGrantScenario(argc, argv)) {
+      return runNmrLitsBelowGaltImmediateGrantScenarios(argc, argv);
+    }
+    if (hasNmraNoPregrantTsoFloorScenario(argc, argv)) {
+      return runNmraNoPregrantTsoFloorScenarios(argc, argv);
     }
     if (hasSendMessageTimeStatePreservationGrantedScenario(argc, argv)) {
       return runSendMessageTimeStatePreservationGrantedScenarios(argc, argv);

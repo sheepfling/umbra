@@ -112,7 +112,7 @@
         "get-time-factory-api-contract.json",
         "logical-time-encoding-requirements-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioLogicalTimePortable",
+      "cpp_test": "src/tck_logical_time.cpp#scenarioLogicalTimePortable",
       "runner_id": "cpp-tck.logical-time-contract",
       "parity": "java-tck.logical-time-factory",
       "default_status": "run",
@@ -7487,9 +7487,13 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
           "standard_section": "hla-1516.1-2025:clause-6.33.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-112-l12-3",
+          "standard_section": "hla-1516.1-2025:clause-6.1.13"
         }
       ],
-      "mapping_note": "The contract wrapper carries only the transportation-type request, confirmation, query/report, prospective default, and resulting update/send transport assertions from the primary slice (§§6.25.1–6.33.6). Order-control calls, invalid-input boundaries, setup, and cleanup remain supplemental and unmapped here. No provider-conformance claim is made.",
+      "mapping_note": "The contract wrapper carries only the transportation-type request, confirmation, query/report, prospective default, and resulting update/send transport assertions from the primary slice (§§6.25.1–6.33.6). It also verifies that requesting the already-achieved reliable interaction type produces a confirmation reporting reliable (§6.1.13). Order-control calls, invalid-input boundaries, setup, and cleanup remain supplemental and unmapped here. No provider-conformance claim is made.",
       "contract_refs": [
         "standard-transport-order-contract.json"
       ],
@@ -8484,7 +8488,7 @@
         "federation-execution-api-contract.json",
         "federation-management-preparation-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioObjectRegistrationDiscoveryLifecycle",
+      "cpp_test": "src/tck_object_registration_discovery_scenarios.cpp#scenarioObjectRegistrationDiscoveryLifecycle",
       "runner_id": "cpp-tck.object-registration-discovery-lifecycle",
       "parity": "java-tck.object-registration-discovery-lifecycle",
       "default_status": "adapter-required",
@@ -8590,6 +8594,267 @@
       "cpp_test": "src/main.cpp#scenarioOverlappingObjectClassSubscriptionsSingleDiscoveryContract",
       "runner_id": "cpp-tck.overlapping-object-class-subscriptions-single-discovery-contract",
       "parity": "cpp-tck.overlapping-object-class-subscriptions-single-discovery",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.per-federate-discovered-class",
+      "category": "object-registration-discovery",
+      "title": "Report one subscriber-specific discovered class per federate",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeMultipleCallbacks",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l29-9"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l29-9"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-5.1.3"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l29-9",
+          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+        }
+      ],
+      "mapping_note": "Directly asserts that the same registered derived-class object is discovered exactly once by each of two federates, with the base subscriber reporting the base class and the derived subscriber reporting the derived class; Get Known Object Class Handle agrees in each federate. Each ambassador resolves its local object handle to the common object name; opaque handles are not compared across ambassadors. This is the bounded per-federate class variation claim in §5.1.3. The adapter supplies the FOM hierarchy and names; setup and teardown are not separate normative claims.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "object-class-attribute-declaration-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "standard-object-registration-discovery-lifecycle-contract.json"
+      ],
+      "cpp_test": "src/tck_object_registration_discovery_scenarios.cpp#scenarioPerFederateDiscoveredClass",
+      "runner_id": "cpp-tck.per-federate-discovered-class",
+      "parity": "java-tck.per-federate-discovered-class",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.per-federate-discovered-class-contract",
+      "category": "object-registration-discovery",
+      "title": "Portable contract for subscriber-specific discovered classes across federates",
+      "api_methods": [
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getKnownObjectClassHandle",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l29-9"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l29-9"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-5.1.3"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l29-9",
+          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+        }
+      ],
+      "mapping_note": "The contract twin repeats the primary's direct §5.1.3 assertion: one base-view discovery and one derived-view discovery for the same object, with the known class retained independently in each federate.",
+      "contract_refs": [
+        "standard-object-registration-discovery-lifecycle-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioPerFederateDiscoveredClassContract",
+      "runner_id": "cpp-tck.per-federate-discovered-class-contract",
+      "parity": "cpp-tck.per-federate-discovered-class",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.registered-object-class-immutability",
+      "category": "object-registration-discovery",
+      "title": "Keep the registered object class stable across subscriber class views",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeMultipleCallbacks",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l8-2"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l8-2"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-5.1.3"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l8-2",
+          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+        }
+      ],
+      "mapping_note": "Directly checks the §5.1.3 registered-class claim: a derived-class instance remains registered as that class, while each subscriber's discovered and known class stays at the class first presented to that federate as its subscriptions change. Cross-ambassador opaque handles are resolved to the same object name instead of being compared. The adapter supplies the hierarchy FOM and names.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "object-class-attribute-declaration-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "standard-object-registration-discovery-lifecycle-contract.json"
+      ],
+      "cpp_test": "src/tck_object_registration_discovery_scenarios.cpp#scenarioRegisteredObjectClassImmutability",
+      "runner_id": "cpp-tck.registered-object-class-immutability",
+      "parity": "java-tck.registered-object-class-immutability",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.registered-object-class-immutability-contract",
+      "category": "object-registration-discovery",
+      "title": "Portable contract for registered object class immutability",
+      "api_methods": [
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getKnownObjectClassHandle",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l8-2"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l8-2"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-5.1.3"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l8-2",
+          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+        }
+      ],
+      "mapping_note": "Contract twin for the direct §5.1.3 registered-class assertion, including unchanged subscriber-known class after class-view subscription changes.",
+      "contract_refs": [
+        "standard-object-registration-discovery-lifecycle-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioRegisteredObjectClassImmutabilityContract",
+      "runner_id": "cpp-tck.registered-object-class-immutability-contract",
+      "parity": "cpp-tck.registered-object-class-immutability",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.discovered-class-stability-after-specific-subscription",
+      "category": "object-registration-discovery",
+      "title": "Keep a base-class discovery unchanged after adding a more-specific subscription",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeMultipleCallbacks",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l35-11"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l35-11"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-5.1.3"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l35-11",
+          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+        }
+      ],
+      "mapping_note": "Directly asserts the no-change part of §5.1.3: after an instance is discovered at a subscribed base class, adding a more-specific subscription does not produce another discovery or change the federate's Get Known Object Class Handle result. Ambassador-local object handles are resolved through the common object name rather than compared across participants. FOM and names come from the adapter.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "object-class-attribute-declaration-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "standard-object-registration-discovery-lifecycle-contract.json"
+      ],
+      "cpp_test": "src/tck_object_registration_discovery_scenarios.cpp#scenarioDiscoveredClassStabilityAfterSpecificSubscription",
+      "runner_id": "cpp-tck.discovered-class-stability-after-specific-subscription",
+      "parity": "java-tck.discovered-class-stability-after-specific-subscription",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.discovered-class-stability-after-specific-subscription-contract",
+      "category": "object-registration-discovery",
+      "title": "Portable contract for stable discovery after a more-specific subscription",
+      "api_methods": [
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getKnownObjectClassHandle",
+        "FederateAmbassador.discoverObjectInstance"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l35-11"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l35-11"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-5.1.3"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l35-11",
+          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+        }
+      ],
+      "mapping_note": "Contract twin for the direct §5.1.3 assertion that adding a more-specific subscription does not revise an existing discovery or its known-class result.",
+      "contract_refs": [
+        "standard-object-registration-discovery-lifecycle-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioDiscoveredClassStabilityAfterSpecificSubscriptionContract",
+      "runner_id": "cpp-tck.discovered-class-stability-after-specific-subscription-contract",
+      "parity": "cpp-tck.discovered-class-stability-after-specific-subscription",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -11807,6 +12072,7 @@
         "FederateAmbassador.timeAdvanceGrant"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-178-l93-28",
         "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
         "requirement-candidate-content-clauses-08-time-management-page-200-l131-38",
         "requirement-candidate-content-clauses-08-time-management-page-200-l164-49",
@@ -11828,7 +12094,8 @@
         "time-advance-request-available-api-contract.json",
         "time-advance-request-available-requirements-contract.json",
         "next-message-request-available-api-contract.json",
-        "next-message-request-available-requirements-contract.json"
+        "next-message-request-available-requirements-contract.json",
+        "standard-flush-queue-grant-selection-contract.json"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.1.6",
@@ -11837,7 +12104,8 @@
         "hla-1516.1-2025:clause-8.11",
         "hla-1516.1-2025:clause-8.11.3",
         "hla-1516.1-2025:clause-8.18.1",
-        "hla-1516.1-2025:clause-6.13"
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-8"
       ],
       "requirement_mappings": [
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "standard_section": "hla-1516.1-2025:clause-8.1.6"},
@@ -11848,7 +12116,8 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11.3"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l149-37", "standard_section": "hla-1516.1-2025:clause-8.18.1"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l97-28", "standard_section": "hla-1516.1-2025:clause-6.13"},
-        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l112-33", "standard_section": "hla-1516.1-2025:clause-6.13"}
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l112-33", "standard_section": "hla-1516.1-2025:clause-6.13"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l93-28", "standard_section": "hla-1516.1-2025:clause-8"}
       ],
       "mapping_note": "Direct mappings cover TSO delivery before the alternate-advance grant (§8.1.6); FQR delivery of an already queued message and its optimistic-time report (§8.12); TARA delivery before grant (§8.9); NMRA target selection and delivery before grant (§8.11, §8.11.3); queried logical time (§8.18.1); and callback time/order plus retraction-designator fields (§6.13). The FQR case sends the interaction before issuing FQR. Any broader normative relationship between the FQR request argument and TSO arrivals before an HLA_EVOKED grant callback begins remains supplemental/unresolved; the test does not claim it. Adapter setup, transport lookup, remaining callback metadata, and teardown are supplemental; this is experimental evidence, not provider conformance.",
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionMixedAdvancesPortable",
@@ -11880,6 +12149,7 @@
         "FederateAmbassador.timeAdvanceGrant"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-178-l93-28",
         "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
         "requirement-candidate-content-clauses-08-time-management-page-200-l131-38",
         "requirement-candidate-content-clauses-08-time-management-page-200-l164-49",
@@ -11891,7 +12161,8 @@
         "requirement-candidate-content-clauses-06-object-management-page-125-l112-33"
       ],
       "contract_refs": [
-        "standard-timestamped-interaction-mixed-advances-contract.json"
+        "standard-timestamped-interaction-mixed-advances-contract.json",
+        "standard-flush-queue-grant-selection-contract.json"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.1.6",
@@ -11900,7 +12171,8 @@
         "hla-1516.1-2025:clause-8.11",
         "hla-1516.1-2025:clause-8.11.3",
         "hla-1516.1-2025:clause-8.18.1",
-        "hla-1516.1-2025:clause-6.13"
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-8"
       ],
       "requirement_mappings": [
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "standard_section": "hla-1516.1-2025:clause-8.1.6"},
@@ -11911,7 +12183,8 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l40-12", "standard_section": "hla-1516.1-2025:clause-8.11.3"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l149-37", "standard_section": "hla-1516.1-2025:clause-8.18.1"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l97-28", "standard_section": "hla-1516.1-2025:clause-6.13"},
-        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l112-33", "standard_section": "hla-1516.1-2025:clause-6.13"}
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l112-33", "standard_section": "hla-1516.1-2025:clause-6.13"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l93-28", "standard_section": "hla-1516.1-2025:clause-8"}
       ],
       "mapping_note": "Direct mappings cover TSO delivery before the alternate-advance grant (§8.1.6); FQR delivery of an already queued message and its optimistic-time report (§8.12); TARA delivery before grant (§8.9); NMRA target selection and delivery before grant (§8.11, §8.11.3); queried logical time (§8.18.1); and callback time/order plus retraction-designator fields (§6.13). The FQR case sends the interaction before issuing FQR. Any broader normative relationship between the FQR request argument and TSO arrivals before an HLA_EVOKED grant callback begins remains supplemental/unresolved; the test does not claim it. Adapter setup, transport lookup, remaining callback metadata, and teardown are supplemental; this is experimental evidence, not provider conformance.",
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionMixedAdvancesContractPortable",
@@ -12329,6 +12602,293 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.fqr-postgrant-lower-tso-retraction",
+      "category": "fqr-postgrant-lower-tso-retraction",
+      "title": "Deliver a later lower TSO after Flush Queue Request and report retraction",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.flushQueueRequest",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.retract",
+        "RTIambassador.resignFederationExecution",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.flushQueueGrant",
+        "FederateAmbassador.requestRetraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "cpp-1516.1-interaction-retraction",
+        "cpp-1516.1-flush-queue-request"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.12",
+        "hla-1516.1-2025:clause-8.12.3",
+        "hla-1516.1-2025:clause-8.13.3",
+        "hla-1516.1-2025:clause-8.14"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l131-38", "standard_section": "hla-1516.1-2025:clause-8.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l134-39", "standard_section": "hla-1516.1-2025:clause-8.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l140-41", "standard_section": "hla-1516.1-2025:clause-8.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l164-49", "standard_section": "hla-1516.1-2025:clause-8.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l37-11", "standard_section": "hla-1516.1-2025:clause-8.12.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l40-12", "standard_section": "hla-1516.1-2025:clause-8.12.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l58-18", "standard_section": "hla-1516.1-2025:clause-8.12.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l70-22", "standard_section": "hla-1516.1-2025:clause-8.12.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-202-l131-37", "standard_section": "hla-1516.1-2025:clause-8.13.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l113-31", "standard_section": "hla-1516.1-2025:clause-8.14" }
+      ],
+      "mapping_note": "Direct mappings reproduce the source case's ten exact requirement-to-section links. The assertions cover initial FQR processing of a queued timestamp-12 interaction, the reported actual/optimistic frontier, rejection below current time plus lookahead, later delivery of timestamp 6 through a second FQR, and Request Retraction for the still-future timestamp-12 interaction. Other transport races and callback-start cutoff interpretations are not claimed.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "timestamped-interaction-api-contract.json",
+        "timestamped-interaction-requirements-contract.json",
+        "request-retraction-api-contract.json",
+        "request-retraction-requirements-contract.json",
+        "flush-queue-request-api-contract.json",
+        "flush-queue-request-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFqrPostgrantLowerTsoRetractionPortable",
+      "runner_id": "cpp-tck.fqr-postgrant-lower-tso-retraction",
+      "parity": "java-tck.fqr-postgrant-lower-tso-retraction",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fqr-postgrant-lower-tso-retraction-contract",
+      "category": "fqr-postgrant-lower-tso-retraction",
+      "title": "Portable standard contract for post-grant lower TSO delivery and retraction",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.flushQueueRequest",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.retract",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.flushQueueGrant",
+        "FederateAmbassador.requestRetraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "cpp-1516.1-interaction-retraction",
+        "cpp-1516.1-flush-queue-request"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.12",
+        "hla-1516.1-2025:clause-8.12.3",
+        "hla-1516.1-2025:clause-8.13.3",
+        "hla-1516.1-2025:clause-8.14"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l131-38", "standard_section": "hla-1516.1-2025:clause-8.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l134-39", "standard_section": "hla-1516.1-2025:clause-8.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l140-41", "standard_section": "hla-1516.1-2025:clause-8.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-200-l164-49", "standard_section": "hla-1516.1-2025:clause-8.12" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l37-11", "standard_section": "hla-1516.1-2025:clause-8.12.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l40-12", "standard_section": "hla-1516.1-2025:clause-8.12.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l58-18", "standard_section": "hla-1516.1-2025:clause-8.12.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l70-22", "standard_section": "hla-1516.1-2025:clause-8.12.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-202-l131-37", "standard_section": "hla-1516.1-2025:clause-8.13.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l113-31", "standard_section": "hla-1516.1-2025:clause-8.14" }
+      ],
+      "mapping_note": "The contract twin repeats the primary case's ten exact source mappings and the same bounded claims. It does not claim that already-delivered interactions are withdrawn; retraction is verified through the Request Retraction callback.",
+      "contract_refs": [
+        "standard-timestamped-interaction-flush-queue-future-input-contract.json",
+        "flush-queue-request-requirements-contract.json",
+        "request-retraction-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFqrPostgrantLowerTsoRetractionContractPortable",
+      "runner_id": "cpp-tck.fqr-postgrant-lower-tso-retraction-contract",
+      "parity": "cpp-tck.fqr-postgrant-lower-tso-retraction",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fqg-postgrant-delivery-cutoff",
+      "category": "fqg-postgrant-delivery-cutoff",
+      "title": "Suppress a later TSO below Flush Queue grant time but deliver the next legal TSO",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.flushQueueRequest",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.timeAdvanceRequestAvailable",
+        "RTIambassador.queryLogicalTime",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.flushQueueGrant",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "cpp-1516.1-flush-queue-request",
+        "cpp-1516.1-time-advance-request",
+        "cpp-1516.1-time-advance-request-available"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.12.3"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l43-13",
+          "standard_section": "hla-1516.1-2025:clause-8.12.3"
+        }
+      ],
+      "mapping_note": "The direct claim is the strict post-FQG cutoff: after a grant at timestamp 7, a late-arriving timestamp-6 interaction is not delivered, while timestamp 8 remains deliverable on a later available advance. The staggered regulator advances establish the later bound; no cross-recipient isolation or post-invocation callback race is claimed.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "timestamped-interaction-api-contract.json",
+        "flush-queue-request-api-contract.json",
+        "flush-queue-request-requirements-contract.json",
+        "time-advance-request-available-api-contract.json",
+        "time-advance-request-available-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFqgPostgrantDeliveryCutoffPortable",
+      "runner_id": "cpp-tck.fqg-postgrant-delivery-cutoff",
+      "parity": "java-tck.fqg-postgrant-delivery-cutoff",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fqg-postgrant-delivery-cutoff-contract",
+      "category": "fqg-postgrant-delivery-cutoff",
+      "title": "Portable standard contract for strict post-FQG timestamp cutoff",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.flushQueueRequest",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.timeAdvanceRequestAvailable",
+        "RTIambassador.queryLogicalTime",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.flushQueueGrant",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "cpp-1516.1-flush-queue-request",
+        "cpp-1516.1-time-advance-request",
+        "cpp-1516.1-time-advance-request-available"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.12.3"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l43-13",
+          "standard_section": "hla-1516.1-2025:clause-8.12.3"
+        }
+      ],
+      "mapping_note": "The contract twin repeats the strict-below-grant suppression and later timestamp-8 positive control. Regulator step scheduling is setup; only the post-FQG delivery cutoff maps directly to the cited requirement.",
+      "contract_refs": [
+        "flush-queue-request-requirements-contract.json",
+        "time-advance-request-available-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFqgPostgrantDeliveryCutoffContractPortable",
+      "runner_id": "cpp-tck.fqg-postgrant-delivery-cutoff-contract",
+      "parity": "cpp-tck.fqg-postgrant-delivery-cutoff",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.tar-queued-tso-before-grant",
+      "category": "tar-queued-tso-before-grant",
+      "title": "Deliver a queued timestamped interaction before a TAR grant",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.queryLogicalTime",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.14.3"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l68-19",
+          "standard_section": "hla-1516.1-2025:clause-8.14.3"
+        }
+      ],
+      "mapping_note": "The direct assertion is that a queued timestamp-5 interaction is delivered before the receiver's TAR(6) timeAdvanceGrant. A publisher TAR(2) establishes that the message remains queued before the receiver requests advancement. Only the source case's direct §8.14.3 claim is mapped; setup, metadata checks, and cleanup are fixture assertions.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "timestamped-interaction-api-contract.json",
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioTarQueuedTsoBeforeGrantPortable",
+      "runner_id": "cpp-tck.tar-queued-tso-before-grant",
+      "parity": "java-tck.tar-queued-tso-before-grant",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.tar-queued-tso-before-grant-contract",
+      "category": "tar-queued-tso-before-grant",
+      "title": "Portable standard contract for queued TSO delivery before a TAR grant",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.queryLogicalTime",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-timestamped-interaction-delivery",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.14.3"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l68-19",
+          "standard_section": "hla-1516.1-2025:clause-8.14.3"
+        }
+      ],
+      "mapping_note": "The contract twin repeats the bounded source claim: the queued timestamp-5 interaction is delivered before the receiver's TAR(6) grant. Setup, metadata checks, and cleanup are not mapped as separate normative claims.",
+      "contract_refs": [
+        "time-advance-requirements-contract.json",
+        "time-advance-api-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioTarQueuedTsoBeforeGrantContractPortable",
+      "runner_id": "cpp-tck.tar-queued-tso-before-grant-contract",
+      "parity": "cpp-tck.tar-queued-tso-before-grant",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-interaction-tso-designator-terminalization",
       "category": "timestamped-interaction-tso-designator-terminalization",
       "title": "Terminalize expired timestamped interaction retractions across all standard advance forms",
@@ -12362,6 +12922,18 @@
         "cpp-1516.1-next-message-request-available",
         "cpp-1516.1-flush-queue-request"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-178-l81-24",
+        "requirement-candidate-content-clauses-08-time-management-page-178-l84-25"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l81-24", "standard_section": "hla-1516.1-2025:clause-8" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l84-25", "standard_section": "hla-1516.1-2025:clause-8" }
+      ],
+      "mapping_note": "Direct mappings are limited to the callback service used to complete advance requests: TAR, TARA, NMR, and NMRA each produce timeAdvanceGrant, while FQR produces flushQueueGrant, as required in Clause 8. The assertions cover callback channel and requested/query time; interaction retraction terminalization and the remaining lifecycle checks are supplemental to these two requirements. Experimental public-API evidence, not provider conformance evidence.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json",
@@ -12420,6 +12992,18 @@
         "cpp-1516.1-next-message-request-available",
         "cpp-1516.1-flush-queue-request"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-178-l81-24",
+        "requirement-candidate-content-clauses-08-time-management-page-178-l84-25"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l81-24", "standard_section": "hla-1516.1-2025:clause-8" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l84-25", "standard_section": "hla-1516.1-2025:clause-8" }
+      ],
+      "mapping_note": "The contract twin runs the same portable assertions for the Clause 8 grant-callback requirements: TAR, TARA, NMR, and NMRA produce timeAdvanceGrant, while FQR produces flushQueueGrant. Only callback channel and requested/query time are mapped; retraction terminalization and other scenario behavior remain supplemental. Experimental public-API evidence, not provider conformance evidence.",
       "contract_refs": [
         "standard-timestamped-interaction-tso-designator-terminalization-contract.json"
       ],
@@ -14157,6 +14741,16 @@
         "cpp-1516.1-attribute-update-retraction",
         "cpp-1516.1-time-advance-request"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-188-l60-19"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.2"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l60-19", "standard_section": "hla-1516.1-2025:clause-8.2" }
+      ],
+      "mapping_note": "Direct mapping is limited to the Clause 8.2 Retract promise for already-sent receive-order messages: the timestamped update returns a designator, its receive-order attribute is observed exactly once before Retract, and that delivered result remains exactly once afterward while the queued timestamped attribute is suppressed through the receiver's grant. Multi-attribute setup, time-management enablement, and teardown are supplemental. Experimental public-API evidence, not provider conformance evidence.",
       "contract_refs": [
         "standard-mixed-order-attribute-passel-retraction-contract.json"
       ],
@@ -14184,6 +14778,16 @@
         "cpp-1516.1-attribute-update-retraction",
         "cpp-1516.1-time-advance-request"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-188-l60-19"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.2"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l60-19", "standard_section": "hla-1516.1-2025:clause-8.2" }
+      ],
+      "mapping_note": "The contract twin applies the same narrow Clause 8.2 assertion: Retract with the returned designator does not remove the already-sent receive-order reflection. It separately confirms suppression of the still-queued timestamped attribute; this does not broaden the normative mapping. Experimental public-API evidence, not provider conformance evidence.",
       "contract_refs": [
         "standard-mixed-order-attribute-passel-retraction-contract.json"
       ],
@@ -14223,6 +14827,25 @@
         "cpp-1516.1-time-regulation",
         "cpp-1516.1-time-advance-request"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-175-l110-34",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l90-27"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8",
+        "hla-1516.1-2025:clause-8.2"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-175-l110-34",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l90-27",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        }
+      ],
+      "mapping_note": "Direct mappings are deliberately split by phase: page 175 l110 -> Clause 8 covers the unchanged timestamp on the attribute update sent before regulation; page 188 l90 -> Clause 8.2 covers the transition after Time Regulation Enabled, where the same timestamped update yields a valid retraction designator and TIMESTAMP/TIMESTAMP callback ordering instead of RECEIVE/RECEIVE. Other message families and all remaining time-role combinations are supplemental.",
       "contract_refs": [
         "standard-timestamped-attribute-sender-regulation-transition-contract.json"
       ],
@@ -14250,6 +14873,25 @@
         "cpp-1516.1-time-regulation",
         "cpp-1516.1-time-advance-request"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-175-l110-34",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l90-27"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8",
+        "hla-1516.1-2025:clause-8.2"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-175-l110-34",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l90-27",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        }
+      ],
+      "mapping_note": "The contract twin maps the pre-regulation unchanged timestamp to Clause 8 and the post-enable transition to Clause 8.2: after Time Regulation Enabled, the same timestamped attribute update returns a valid retraction designator and is delivered with TIMESTAMP/TIMESTAMP order. Other message families and time-role combinations are supplemental.",
       "contract_refs": [
         "standard-timestamped-attribute-sender-regulation-transition-contract.json"
       ],
@@ -18307,6 +18949,687 @@
       "cpp_test": "src/portable_tck.cpp#scenarioNextMessageRequestContractPortable",
       "runner_id": "cpp-tck.next-message-request-contract",
       "parity": "cpp-tck.next-message-request",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmra-no-pregrant-tso-floor",
+      "category": "next-message-request",
+      "title": "Grant empty-input NMRA at request time and enforce the actual-lookahead send floor",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.nextMessageRequestAvailable",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-next-message-request",
+        "cpp-1516.1-timestamped-interaction-delivery"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-199-l64-20"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.11.3"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l64-20",
+          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to Clause 8.11.3's no-pregrant-input branch: with no TSO received before NMRA, the request grants at its request time; Send Interaction at that time is rejected below the actual-lookahead floor, while request time plus the queried lookahead is accepted. The received-TSO branch, other timestamped services, and provider conformance remain separate.",
+      "contract_refs": [
+        "next-message-request-api-contract.json",
+        "next-message-request-requirements-contract.json",
+        "standard-next-message-request-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmraNoPregrantTsoFloorPortable",
+      "runner_id": "cpp-tck.nmra-no-pregrant-tso-floor",
+      "parity": "java-tck.nmra-no-pregrant-tso-floor",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmra-no-pregrant-tso-floor-contract",
+      "category": "next-message-request",
+      "title": "Standard contract twin for the NMRA no-pregrant actual-lookahead floor",
+      "api_methods": [
+        "RTIambassador.nextMessageRequestAvailable",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.sendInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-next-message-request",
+        "cpp-1516.1-timestamped-interaction-delivery"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-199-l64-20"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.11.3"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-199-l64-20",
+          "standard_section": "hla-1516.1-2025:clause-8.11.3"
+        }
+      ],
+      "mapping_note": "The contract twin applies the same narrow Clause 8.11.3 assertion: empty-input NMRA grants at request time and the subsequent Send Interaction timestamp must satisfy the request-time-plus-actual-lookahead floor. No received-TSO branch, other timestamped service, or provider conformance is inferred.",
+      "contract_refs": ["standard-next-message-request-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmraNoPregrantTsoFloorContractPortable",
+      "runner_id": "cpp-tck.nmra-no-pregrant-tso-floor-contract",
+      "parity": "cpp-tck.nmra-no-pregrant-tso-floor",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmr-no-pregrant-tso-floor",
+      "category": "next-message-request",
+      "title": "Grant empty-input NMR at request time and enforce the actual-lookahead send floor",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-next-message-request",
+        "cpp-1516.1-timestamped-interaction-delivery"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l77-22"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l77-22",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to Clause 8.10.2's no-pregrant-input branch: with no TSO received before NMR, the request grants at its requested time; Send Interaction at that time is rejected below the actual-lookahead floor, while request time plus the queried lookahead is accepted. The received-TSO branch, other timestamped services, and provider conformance remain separate.",
+      "contract_refs": [
+        "next-message-request-api-contract.json",
+        "next-message-request-requirements-contract.json",
+        "standard-next-message-request-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmrNoPregrantTsoFloorPortable",
+      "runner_id": "cpp-tck.nmr-no-pregrant-tso-floor",
+      "parity": "java-tck.nmr-no-pregrant-tso-floor",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmr-no-pregrant-tso-floor-contract",
+      "category": "next-message-request",
+      "title": "Standard contract twin for the NMR no-pregrant actual-lookahead floor",
+      "api_methods": [
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.sendInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-next-message-request",
+        "cpp-1516.1-timestamped-interaction-delivery"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l77-22"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l77-22",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "The contract twin applies the same narrow Clause 8.10.2 assertion: empty-input NMR grants at request time and the subsequent Send Interaction timestamp must satisfy the request-time-plus-actual-lookahead floor. No received-TSO branch, other timestamped service, or provider conformance is inferred.",
+      "contract_refs": ["standard-next-message-request-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmrNoPregrantTsoFloorContractPortable",
+      "runner_id": "cpp-tck.nmr-no-pregrant-tso-floor-contract",
+      "parity": "cpp-tck.nmr-no-pregrant-tso-floor",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmr-received-tso-floor",
+      "category": "next-message-request",
+      "title": "Enforce the grant-time lookahead floor after NMR delivers a pre-grant TSO",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-next-message-request",
+        "cpp-1516.1-timestamped-interaction-delivery"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l89-26",
+        "requirement-candidate-content-clauses-08-time-management-page-197-l98-29"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l89-26",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l98-29",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "Direct mappings are limited to the received-TSO branch: NMR(10) delivers the queued interaction at time 5 and grants at that delivered-message time (page 197 l98); afterward Send Interaction at grant time 5 is rejected below the actual-lookahead floor, while grant time plus the queried lookahead is accepted (page 197 l89). The no-pregrant branch, other timestamped producers, and provider conformance remain separate.",
+      "contract_refs": [
+        "next-message-request-api-contract.json",
+        "next-message-request-requirements-contract.json",
+        "standard-next-message-request-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmrReceivedTsoFloorPortable",
+      "runner_id": "cpp-tck.nmr-received-tso-floor",
+      "parity": "java-tck.nmr-received-tso-floor",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmr-received-tso-floor-contract",
+      "category": "next-message-request",
+      "title": "Standard contract twin for the NMR received-TSO grant-time floor",
+      "api_methods": [
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.sendInteraction(time)",
+        "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-next-message-request",
+        "cpp-1516.1-timestamped-interaction-delivery"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l89-26",
+        "requirement-candidate-content-clauses-08-time-management-page-197-l98-29"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l89-26",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l98-29",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "The contract twin applies the same narrow NMR received-TSO assertions: the delivered timestamp 5 selects the grant time, then the Send Interaction floor is based on grant time plus actual lookahead. The no-pregrant branch, other timestamped producers, and provider conformance are not inferred.",
+      "contract_refs": ["standard-next-message-request-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmrReceivedTsoFloorContractPortable",
+      "runner_id": "cpp-tck.nmr-received-tso-floor-contract",
+      "parity": "cpp-tck.nmr-received-tso-floor",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmr-received-tso-attribute-update-floor",
+      "category": "next-message-request",
+      "title": "Enforce the NMR received-TSO floor for timestamped attribute updates",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.changeAttributeOrderType(TIMESTAMP)",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-next-message-request",
+        "cpp-1516.1-timestamped-attribute-update"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l89-26"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l89-26",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to the received-TSO future-message floor for timestamped Update Attribute Values: after NMR receives TSO(5) and grants at 5, an update at 5 is rejected below the actual-lookahead floor and an update at 6 is accepted (page 197 l89 / §8.10.2). The interaction delivery and grant establish the test state and are supplemental here; other timestamped producer families and provider conformance remain separate.",
+      "contract_refs": [
+        "next-message-request-api-contract.json",
+        "next-message-request-requirements-contract.json",
+        "standard-next-message-request-contract.json",
+        "standard-timestamped-attribute-update-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmrReceivedTsoAttributeUpdateFloorPortable",
+      "runner_id": "cpp-tck.nmr-received-tso-attribute-update-floor",
+      "parity": "java-tck.nmr-received-tso-attribute-update-floor",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmr-received-tso-attribute-update-floor-contract",
+      "category": "next-message-request",
+      "title": "Standard contract twin for the NMR received-TSO attribute-update floor",
+      "api_methods": [
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.updateAttributeValues(time)",
+        "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-next-message-request",
+        "cpp-1516.1-timestamped-attribute-update"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l89-26"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l89-26",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "The contract twin applies only the received-TSO floor to timestamped Update Attribute Values: it rejects the update at grant time 5 and accepts the update at time 6, grant time plus the queried actual lookahead. Interaction delivery/grant mechanics and remaining setup/cleanup assertions are supplemental; no other producer family or provider conformance is inferred.",
+      "contract_refs": ["standard-timestamped-attribute-update-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmrReceivedTsoAttributeUpdateFloorContractPortable",
+      "runner_id": "cpp-tck.nmr-received-tso-attribute-update-floor-contract",
+      "parity": "cpp-tck.nmr-received-tso-attribute-update-floor",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmr-received-tso-directed-interaction-floor",
+      "category": "next-message-request",
+      "title": "Enforce the NMR received-TSO floor for timestamped directed interactions",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.sendDirectedInteraction(time)",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-next-message-request",
+        "cpp-1516.1-timestamped-directed-interaction-delivery"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l89-26"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l89-26",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to the received-TSO future-message floor for timestamped Send Directed Interaction: after NMR receives TSO(5) and grants at 5, a directed send at 5 is rejected and the call at 6 does not throw (page 197 l89 / §8.10.2). Incoming interaction delivery/grant and directed-target declarations establish test state and are supplemental. No valid retraction-handle, directed-recipient eligibility, other producer-family, or provider-conformance claim is made.",
+      "contract_refs": [
+        "standard-next-message-request-contract.json",
+        "standard-timestamped-directed-interactions-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmrReceivedTsoDirectedInteractionFloorPortable",
+      "runner_id": "cpp-tck.nmr-received-tso-directed-interaction-floor",
+      "parity": "java-tck.nmr-received-tso-directed-interaction-floor",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmr-received-tso-directed-interaction-floor-contract",
+      "category": "next-message-request",
+      "title": "Standard contract twin for the NMR received-TSO directed-interaction floor",
+      "api_methods": [
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.sendDirectedInteraction(time)",
+        "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-next-message-request",
+        "cpp-1516.1-timestamped-directed-interaction-delivery"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l89-26"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l89-26",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "The contract twin applies only the received-TSO floor to timestamped Send Directed Interaction: it rejects the call at grant time 5 and accepts the service call at time 6, grant time plus the queried actual lookahead. Message delivery/grant setup, recipient eligibility, retraction-handle validity, other producers, and provider conformance are not inferred.",
+      "contract_refs": ["standard-timestamped-directed-interactions-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmrReceivedTsoDirectedInteractionFloorContractPortable",
+      "runner_id": "cpp-tck.nmr-received-tso-directed-interaction-floor-contract",
+      "parity": "cpp-tck.nmr-received-tso-directed-interaction-floor",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmr-empty-message-set-grant-time",
+      "category": "next-message-request",
+      "title": "Grant NMR at the requested logical time when no TSO message is delivered",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": ["cpp-1516.1-next-message-request"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l98-29"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l98-29",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to the no-delivered-TSO branch of the NMR grant-time result: with NMR(10) and no message eligible for delivery, the federate receives exactly one grant at 10 and queryLogicalTime reports 10 (page 197 l98 / §8.10.2). It does not cover the received-TSO branch, the separate no-future-TSO/GALT condition at l104, or provider conformance.",
+      "contract_refs": ["standard-next-message-request-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmrEmptyMessageSetGrantTimePortable",
+      "runner_id": "cpp-tck.nmr-empty-message-set-grant-time",
+      "parity": "java-tck.nmr-empty-message-set-grant-time",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmr-empty-message-set-grant-time-contract",
+      "category": "next-message-request",
+      "title": "Standard contract twin for the no-delivered-TSO NMR grant time",
+      "api_methods": [
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.queryLogicalTime",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": ["cpp-1516.1-next-message-request"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l98-29"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l98-29",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "The contract twin asserts only that an NMR with no delivered TSO grants at the requested time 10 and that queryLogicalTime reports 10. The separate delivered-message branch, l104/GALT condition, and provider conformance are not inferred.",
+      "contract_refs": ["standard-next-message-request-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmrEmptyMessageSetGrantTimeContractPortable",
+      "runner_id": "cpp-tck.nmr-empty-message-set-grant-time-contract",
+      "parity": "cpp-tck.nmr-empty-message-set-grant-time",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmr-request-below-galt-immediate-grant",
+      "category": "next-message-request",
+      "title": "Grant a strict-below-GALT NMR request without another federate advancing",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.queryGALT",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": ["cpp-1516.1-next-message-request"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l104-31"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l104-31",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to the strict-below-GALT NMR grant condition: with the regulator at its initial time and GALT at 5, NMR(3) grants exactly at 3 without a regulator advance (page 197 l104 / §8.10.2). This no-message case does not exercise concurrent future-message arrivals or equality-at-GALT behavior; those remain separate. No NMRA or provider-conformance claim is made.",
+      "contract_refs": ["standard-next-message-request-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmrRequestBelowGaltImmediateGrantPortable",
+      "runner_id": "cpp-tck.nmr-request-below-galt-immediate-grant",
+      "parity": "java-tck.nmr-request-below-galt-immediate-grant",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmr-request-below-galt-immediate-grant-contract",
+      "category": "next-message-request",
+      "title": "Standard contract twin for strict-below-GALT NMR immediate grant",
+      "api_methods": [
+        "RTIambassador.queryGALT",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.queryLogicalTime",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": ["cpp-1516.1-next-message-request"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l104-31"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l104-31",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "The contract twin asserts only the strict-below-GALT branch: defined GALT 5, NMR request 3, one grant at 3, and no regulator advance. Equality, concurrent future-message arrivals, NMRA, and provider conformance are not inferred.",
+      "contract_refs": ["standard-next-message-request-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmrRequestBelowGaltImmediateGrantContractPortable",
+      "runner_id": "cpp-tck.nmr-request-below-galt-immediate-grant-contract",
+      "parity": "cpp-tck.nmr-request-below-galt-immediate-grant",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmr-lits-below-galt-immediate-grant",
+      "category": "next-message-request",
+      "title": "Deliver a queued TSO interaction at LITS below GALT before granting",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.subscribeInteractionClass(active=true)",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.queryGALT",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.sendInteraction(LogicalTime)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction(TSO)",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": ["cpp-1516.1-next-message-request"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l104-31"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l104-31",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to the queued-message LITS-below-GALT branch: a TSO interaction at 3 is queued, the regulator advances to 4 with lookahead 1 (GALT 5), and NMR(10) delivers the message then grants at 3 without another regulator advance (page 197 l104 / §8.10.2). This does not claim the no-message request-time branch, equality behavior, other message producers, complete clause coverage, or provider conformance.",
+      "contract_refs": ["standard-next-message-request-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmrLitsBelowGaltImmediateGrantPortable",
+      "runner_id": "cpp-tck.nmr-lits-below-galt-immediate-grant",
+      "parity": "java-tck.nmr-lits-below-galt-immediate-grant",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.nmr-lits-below-galt-immediate-grant-contract",
+      "category": "next-message-request",
+      "title": "Standard contract twin for queued LITS-below-GALT NMR grant",
+      "api_methods": [
+        "RTIambassador.sendInteraction(LogicalTime)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.queryLogicalTime",
+        "FederateAmbassador.receiveInteraction(TSO)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": ["cpp-1516.1-next-message-request"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l104-31"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l104-31",
+          "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        }
+      ],
+      "mapping_note": "The contract twin asserts only the queued TSO at LITS 3 being delivered before an NMR(10) grant at 3 while defined GALT is 5 and the regulator remains at 4. It does not infer equality, alternate producers, complete clause coverage, or provider conformance.",
+      "contract_refs": ["standard-next-message-request-contract.json"],
+      "cpp_test": "src/portable_tck.cpp#scenarioNmrLitsBelowGaltImmediateGrantContractPortable",
+      "runner_id": "cpp-tck.nmr-lits-below-galt-immediate-grant-contract",
+      "parity": "cpp-tck.nmr-lits-below-galt-immediate-grant",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -38414,6 +39737,20 @@
       "id": "cpp-tck.delay-subscription-evaluation-receive-order-regional-attribute-update",
       "category": "delay-subscription-evaluation",
       "title": "Re-evaluate receive-order regional attribute updates using the Delay Subscription Evaluation switch and committed ranges at the callback boundary",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-187-l10-1",
+        "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
+        "requirement-candidate-content-clauses-08-time-management-page-187-l40-11",
+        "requirement-candidate-content-clauses-08-time-management-page-187-l46-13"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.8"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l10-1", "standard_section": "hla-1516.1-2025:clause-8.1.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l25-6", "standard_section": "hla-1516.1-2025:clause-8.1.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l40-11", "standard_section": "hla-1516.1-2025:clause-8.1.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l46-13", "standard_section": "hla-1516.1-2025:clause-8.1.8"}
+      ],
+      "mapping_note": "The four page-187 requirement candidates use their existing canonical override to IEEE 1516.1-2025 Clause 8.1.8 (the stale exported clause label is tracked by RL-018). The test requires a DSE-disabled update generated while unsubscribed/disjoint to remain excluded after a later subscription, and a DSE-enabled update to be admitted after that subscription; regional setup and callback-gate mechanics are test scaffolding, not additional normative claims. This is installed-package evidence, not a conformance claim.",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecution(fomModules)",
@@ -45644,6 +46981,20 @@
       "id": "cpp-tck.delay-subscription-evaluation-receive-order-regional-attribute-update-contract",
       "category": "delay-subscription-evaluation",
       "title": "Standard adapter-backed C++ contract for receive-order regional attribute subscription re-evaluation",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-187-l10-1",
+        "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
+        "requirement-candidate-content-clauses-08-time-management-page-187-l40-11",
+        "requirement-candidate-content-clauses-08-time-management-page-187-l46-13"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.8"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l10-1", "standard_section": "hla-1516.1-2025:clause-8.1.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l25-6", "standard_section": "hla-1516.1-2025:clause-8.1.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l40-11", "standard_section": "hla-1516.1-2025:clause-8.1.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l46-13", "standard_section": "hla-1516.1-2025:clause-8.1.8"}
+      ],
+      "mapping_note": "The four page-187 requirement candidates use their existing canonical override to IEEE 1516.1-2025 Clause 8.1.8 (the stale exported clause label is tracked by RL-018). The contract twin runs the same DSE-enabled and DSE-disabled admission checks through the official C++ API; regional setup and callback-gate mechanics are test scaffolding, not additional normative claims. This is installed-package evidence, not a conformance claim.",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecution(fomModules)",

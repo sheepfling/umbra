@@ -95,6 +95,17 @@
 #include "tck_main_scenarios.hpp"
 #include "tck_object_removal_fanout_scenarios.hpp"
 #include "tck_custom_transportation_interaction_scenarios.hpp"
+
+namespace hla_rti_cpp_tck::detail {
+void scenarioFqrPostgrantLowerTsoRetraction(Options const&, rti::CallbackModel);
+void scenarioFqrPostgrantLowerTsoRetractionContract(Options const&, rti::CallbackModel);
+void scenarioFqgPostgrantDeliveryCutoff(Options const&, rti::CallbackModel);
+void scenarioFqgPostgrantDeliveryCutoffContract(Options const&, rti::CallbackModel);
+void scenarioTarQueuedTsoBeforeGrant(Options const&, rti::CallbackModel);
+void scenarioTarQueuedTsoBeforeGrantContract(Options const&, rti::CallbackModel);
+void scenarioNmrLitsBelowGaltImmediateGrant(Options const&, rti::CallbackModel);
+void scenarioNmrLitsBelowGaltImmediateGrantContract(Options const&, rti::CallbackModel);
+}
 #include "tck_lookup_lifecycle_scenarios.hpp"
 #include "tck_fom_module_scenarios.hpp"
 #include "tck_inherited_derived_delivery_scenarios.hpp"
@@ -8480,6 +8491,24 @@ void scenarioOverlappingObjectClassSubscriptionsSingleDiscoveryContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioOverlappingObjectClassSubscriptionsSingleDiscovery(options, model);
+}
+
+void scenarioPerFederateDiscoveredClassContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioPerFederateDiscoveredClass(options, model);
+}
+
+void scenarioRegisteredObjectClassImmutabilityContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegisteredObjectClassImmutability(options, model);
+}
+
+void scenarioDiscoveredClassStabilityAfterSpecificSubscriptionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDiscoveredClassStabilityAfterSpecificSubscription(options, model);
 }
 
 void scenarioObjectRegistrationDiscoveryMultiRecipientContract(
@@ -19386,6 +19415,12 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.object-registration-discovery-lifecycle-contract",
       "cpp-tck.overlapping-object-class-subscriptions-single-discovery",
       "cpp-tck.overlapping-object-class-subscriptions-single-discovery-contract",
+      "cpp-tck.per-federate-discovered-class",
+      "cpp-tck.per-federate-discovered-class-contract",
+      "cpp-tck.discovered-class-stability-after-specific-subscription",
+      "cpp-tck.discovered-class-stability-after-specific-subscription-contract",
+      "cpp-tck.registered-object-class-immutability",
+      "cpp-tck.registered-object-class-immutability-contract",
       "cpp-tck.object-registration-discovery-multi-recipient",
       "cpp-tck.object-registration-discovery-multi-recipient-contract",
       "cpp-tck.named-registration",
@@ -19459,6 +19494,9 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-interaction-tar-equal-boundary-contract",
       "cpp-tck.timestamped-interaction-tar-post-grant-cutoff-contract",
       "cpp-tck.timestamped-interaction-flush-queue-future-input-contract",
+      "cpp-tck.fqr-postgrant-lower-tso-retraction-contract",
+      "cpp-tck.fqg-postgrant-delivery-cutoff-contract",
+      "cpp-tck.tar-queued-tso-before-grant-contract",
       "cpp-tck.timestamped-interaction-tso-designator-terminalization-contract",
       "cpp-tck.timestamped-interaction-cross-producer-order-contract",
       "cpp-tck.timestamped-interaction-no-fanout-contract",
@@ -19484,6 +19522,9 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-interaction-tar-equal-boundary",
       "cpp-tck.timestamped-interaction-tar-post-grant-cutoff",
       "cpp-tck.timestamped-interaction-flush-queue-future-input",
+      "cpp-tck.fqr-postgrant-lower-tso-retraction",
+      "cpp-tck.fqg-postgrant-delivery-cutoff",
+      "cpp-tck.tar-queued-tso-before-grant",
       "cpp-tck.timestamped-interaction-tso-designator-terminalization",
       "cpp-tck.timestamped-interaction-cross-producer-order",
       "cpp-tck.timestamped-interaction-no-fanout",
@@ -19567,6 +19608,22 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-directed-alternate-advances-contract",
       "cpp-tck.next-message-request",
       "cpp-tck.next-message-request-contract",
+      "cpp-tck.nmr-no-pregrant-tso-floor",
+      "cpp-tck.nmr-no-pregrant-tso-floor-contract",
+      "cpp-tck.nmr-received-tso-floor",
+      "cpp-tck.nmr-received-tso-floor-contract",
+      "cpp-tck.nmr-received-tso-attribute-update-floor",
+      "cpp-tck.nmr-received-tso-attribute-update-floor-contract",
+      "cpp-tck.nmr-received-tso-directed-interaction-floor",
+      "cpp-tck.nmr-received-tso-directed-interaction-floor-contract",
+      "cpp-tck.nmr-empty-message-set-grant-time",
+      "cpp-tck.nmr-empty-message-set-grant-time-contract",
+      "cpp-tck.nmr-request-below-galt-immediate-grant",
+      "cpp-tck.nmr-request-below-galt-immediate-grant-contract",
+      "cpp-tck.nmr-lits-below-galt-immediate-grant",
+      "cpp-tck.nmr-lits-below-galt-immediate-grant-contract",
+      "cpp-tck.nmra-no-pregrant-tso-floor",
+      "cpp-tck.nmra-no-pregrant-tso-floor-contract",
       "cpp-tck.send-message-time-state-preservation-granted",
       "cpp-tck.send-message-time-state-preservation-granted-contract",
       "cpp-tck.available-time-advances-inclusive-galt",
@@ -20987,6 +21044,24 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.overlapping-object-class-subscriptions-single-discovery-contract") {
     return scenarioOverlappingObjectClassSubscriptionsSingleDiscoveryContract;
   }
+  if (id == "cpp-tck.per-federate-discovered-class") {
+    return scenarioPerFederateDiscoveredClass;
+  }
+  if (id == "cpp-tck.per-federate-discovered-class-contract") {
+    return scenarioPerFederateDiscoveredClassContract;
+  }
+  if (id == "cpp-tck.registered-object-class-immutability") {
+    return scenarioRegisteredObjectClassImmutability;
+  }
+  if (id == "cpp-tck.registered-object-class-immutability-contract") {
+    return scenarioRegisteredObjectClassImmutabilityContract;
+  }
+  if (id == "cpp-tck.discovered-class-stability-after-specific-subscription") {
+    return scenarioDiscoveredClassStabilityAfterSpecificSubscription;
+  }
+  if (id == "cpp-tck.discovered-class-stability-after-specific-subscription-contract") {
+    return scenarioDiscoveredClassStabilityAfterSpecificSubscriptionContract;
+  }
   if (id == "cpp-tck.object-registration-discovery-multi-recipient") {
     return scenarioObjectRegistrationDiscoveryMultiRecipient;
   }
@@ -21195,6 +21270,15 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-interaction-flush-queue-future-input-contract") {
     return scenarioTimestampedInteractionFlushQueueFutureInputContract;
   }
+  if (id == "cpp-tck.fqr-postgrant-lower-tso-retraction-contract") {
+    return scenarioFqrPostgrantLowerTsoRetractionContract;
+  }
+  if (id == "cpp-tck.fqg-postgrant-delivery-cutoff-contract") {
+    return scenarioFqgPostgrantDeliveryCutoffContract;
+  }
+  if (id == "cpp-tck.tar-queued-tso-before-grant-contract") {
+    return scenarioTarQueuedTsoBeforeGrantContract;
+  }
   if (id == "cpp-tck.timestamped-interaction-tso-designator-terminalization-contract") {
     return scenarioTimestampedInteractionTsoDesignatorTerminalizationContract;
   }
@@ -21269,6 +21353,15 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.timestamped-interaction-flush-queue-future-input") {
     return scenarioTimestampedInteractionFlushQueueFutureInput;
+  }
+  if (id == "cpp-tck.fqr-postgrant-lower-tso-retraction") {
+    return scenarioFqrPostgrantLowerTsoRetraction;
+  }
+  if (id == "cpp-tck.fqg-postgrant-delivery-cutoff") {
+    return scenarioFqgPostgrantDeliveryCutoff;
+  }
+  if (id == "cpp-tck.tar-queued-tso-before-grant") {
+    return scenarioTarQueuedTsoBeforeGrant;
   }
   if (id == "cpp-tck.timestamped-interaction-tso-designator-terminalization") {
     return scenarioTimestampedInteractionTsoDesignatorTerminalization;
@@ -21518,6 +21611,54 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.next-message-request-contract") {
     return scenarioNextMessageRequestContract;
+  }
+  if (id == "cpp-tck.nmr-no-pregrant-tso-floor") {
+    return scenarioNmrNoPregrantTsoFloor;
+  }
+  if (id == "cpp-tck.nmr-no-pregrant-tso-floor-contract") {
+    return scenarioNmrNoPregrantTsoFloorContract;
+  }
+  if (id == "cpp-tck.nmr-received-tso-floor") {
+    return scenarioNmrReceivedTsoFloor;
+  }
+  if (id == "cpp-tck.nmr-received-tso-floor-contract") {
+    return scenarioNmrReceivedTsoFloorContract;
+  }
+  if (id == "cpp-tck.nmr-received-tso-attribute-update-floor") {
+    return scenarioNmrReceivedTsoAttributeUpdateFloor;
+  }
+  if (id == "cpp-tck.nmr-received-tso-attribute-update-floor-contract") {
+    return scenarioNmrReceivedTsoAttributeUpdateFloorContract;
+  }
+  if (id == "cpp-tck.nmr-received-tso-directed-interaction-floor") {
+    return scenarioNmrReceivedTsoDirectedInteractionFloor;
+  }
+  if (id == "cpp-tck.nmr-received-tso-directed-interaction-floor-contract") {
+    return scenarioNmrReceivedTsoDirectedInteractionFloorContract;
+  }
+  if (id == "cpp-tck.nmr-empty-message-set-grant-time") {
+    return scenarioNmrEmptyMessageSetGrantTime;
+  }
+  if (id == "cpp-tck.nmr-empty-message-set-grant-time-contract") {
+    return scenarioNmrEmptyMessageSetGrantTimeContract;
+  }
+  if (id == "cpp-tck.nmr-request-below-galt-immediate-grant") {
+    return scenarioNmrRequestBelowGaltImmediateGrant;
+  }
+  if (id == "cpp-tck.nmr-request-below-galt-immediate-grant-contract") {
+    return scenarioNmrRequestBelowGaltImmediateGrantContract;
+  }
+  if (id == "cpp-tck.nmr-lits-below-galt-immediate-grant") {
+    return scenarioNmrLitsBelowGaltImmediateGrant;
+  }
+  if (id == "cpp-tck.nmr-lits-below-galt-immediate-grant-contract") {
+    return scenarioNmrLitsBelowGaltImmediateGrantContract;
+  }
+  if (id == "cpp-tck.nmra-no-pregrant-tso-floor") {
+    return scenarioNmraNoPregrantTsoFloor;
+  }
+  if (id == "cpp-tck.nmra-no-pregrant-tso-floor-contract") {
+    return scenarioNmraNoPregrantTsoFloorContract;
   }
   if (id == "cpp-tck.send-message-time-state-preservation-granted") {
     return scenarioSendMessageTimeStatePreservationGranted;
@@ -22609,6 +22750,12 @@ int run(Options const& options) {
                   scenario == "cpp-tck.object-registration-discovery-lifecycle" ||
                   scenario == "cpp-tck.overlapping-object-class-subscriptions-single-discovery" ||
                   scenario == "cpp-tck.overlapping-object-class-subscriptions-single-discovery-contract" ||
+                  scenario == "cpp-tck.per-federate-discovered-class" ||
+                  scenario == "cpp-tck.per-federate-discovered-class-contract" ||
+                  scenario == "cpp-tck.discovered-class-stability-after-specific-subscription" ||
+                  scenario == "cpp-tck.discovered-class-stability-after-specific-subscription-contract" ||
+                  scenario == "cpp-tck.registered-object-class-immutability" ||
+                  scenario == "cpp-tck.registered-object-class-immutability-contract" ||
                   scenario == "cpp-tck.federation-teardown-isolation" ||
                   scenario == "cpp-tck.federation-teardown-isolation-contract" ||
                   scenario == "cpp-tck.mixed-update-rate-subscriptions" ||
@@ -22876,6 +23023,9 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-interaction-tara-equal-boundary-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-tar-equal-boundary-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-flush-queue-future-input-contract" ||
+                  scenario == "cpp-tck.fqr-postgrant-lower-tso-retraction-contract" ||
+                  scenario == "cpp-tck.fqg-postgrant-delivery-cutoff-contract" ||
+                  scenario == "cpp-tck.tar-queued-tso-before-grant-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-tso-designator-terminalization-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-cross-producer-order-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-no-fanout-contract" ||
@@ -22894,6 +23044,9 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-interaction-tara-equal-boundary" ||
                   scenario == "cpp-tck.timestamped-interaction-tar-equal-boundary" ||
                   scenario == "cpp-tck.timestamped-interaction-flush-queue-future-input" ||
+                  scenario == "cpp-tck.fqr-postgrant-lower-tso-retraction" ||
+                  scenario == "cpp-tck.fqg-postgrant-delivery-cutoff" ||
+                  scenario == "cpp-tck.tar-queued-tso-before-grant" ||
                   scenario == "cpp-tck.timestamped-interaction-tso-designator-terminalization" ||
                   scenario == "cpp-tck.timestamped-interaction-cross-producer-order" ||
                   scenario == "cpp-tck.timestamped-interaction-no-fanout" ||
@@ -22967,6 +23120,22 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-directed-alternate-advances-contract" ||
                   scenario == "cpp-tck.next-message-request" ||
                   scenario == "cpp-tck.next-message-request-contract" ||
+                  scenario == "cpp-tck.nmr-no-pregrant-tso-floor" ||
+                  scenario == "cpp-tck.nmr-no-pregrant-tso-floor-contract" ||
+                  scenario == "cpp-tck.nmr-received-tso-floor" ||
+                  scenario == "cpp-tck.nmr-received-tso-floor-contract" ||
+                  scenario == "cpp-tck.nmr-received-tso-attribute-update-floor" ||
+                  scenario == "cpp-tck.nmr-received-tso-attribute-update-floor-contract" ||
+                  scenario == "cpp-tck.nmr-received-tso-directed-interaction-floor" ||
+                  scenario == "cpp-tck.nmr-received-tso-directed-interaction-floor-contract" ||
+                  scenario == "cpp-tck.nmr-empty-message-set-grant-time" ||
+                  scenario == "cpp-tck.nmr-empty-message-set-grant-time-contract" ||
+                  scenario == "cpp-tck.nmr-request-below-galt-immediate-grant" ||
+                  scenario == "cpp-tck.nmr-request-below-galt-immediate-grant-contract" ||
+                  scenario == "cpp-tck.nmr-lits-below-galt-immediate-grant" ||
+                  scenario == "cpp-tck.nmr-lits-below-galt-immediate-grant-contract" ||
+                  scenario == "cpp-tck.nmra-no-pregrant-tso-floor" ||
+                  scenario == "cpp-tck.nmra-no-pregrant-tso-floor-contract" ||
                   scenario == "cpp-tck.send-message-time-state-preservation-granted" ||
                   scenario == "cpp-tck.send-message-time-state-preservation-granted-contract" ||
                   scenario == "cpp-tck.time-constrained-enable-galt-equality" ||

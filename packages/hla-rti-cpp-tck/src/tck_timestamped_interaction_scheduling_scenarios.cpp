@@ -1213,6 +1213,704 @@ void scenarioTimestampedAttributeUpdateFlushQueueFutureInput(
   publisher.disconnect();
 }
 
+void scenarioFqrPostgrantLowerTsoRetraction(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "FQR post-grant lower-TSO test requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "owner");
+  Session receiver(options, model, "member");
+  auto const federation = federationName(options, "fqr-postgrant-lower-tso-retraction");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const receiverInteraction = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      publisherInteraction.isValid() && publisherParameter.isValid() &&
+          receiverInteraction.isValid() && receiverParameter.isValid(),
+      "FQR post-grant adapter FOM did not resolve interaction handles");
+  require(
+      publisherInteraction == receiverInteraction &&
+          publisherParameter == receiverParameter,
+      "FQR post-grant interaction handles changed across federates");
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction,
+      rti::TIMESTAMP);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction, true);
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "FQR post-grant members selected different logical-time factories");
+  requireTimeEquals(
+      *publisherTime.initial,
+      *receiverTime.initial,
+      "FQR post-grant initial logical time");
+
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "FQR post-grant receiver Time Constrained callback");
+  auto const lookaheadTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  auto lookahead = publisherTime.factory->makeZero();
+  require(lookahead != nullptr, "FQR post-grant could not allocate lookahead");
+  lookahead->setToDifference(*lookaheadTime, *publisherTime.initial);
+  publisher.rtiAmbassador().enableTimeRegulation(*lookahead);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "FQR post-grant publisher Time Regulation callback");
+  auto observedLookahead = publisherTime.factory->makeZero();
+  require(observedLookahead != nullptr, "FQR post-grant could not query lookahead");
+  publisher.rtiAmbassador().queryLookahead(*observedLookahead);
+  require(
+      *observedLookahead == *lookahead,
+      "FQR post-grant publisher did not retain its configured lookahead");
+
+  auto const firstTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      12U);
+  auto const rejectedTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      4U);
+  auto const laterLowerTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
+  auto const requestBoundary = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      10U);
+  auto const expectedActualGrant = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      5U);
+  std::vector<std::uint8_t> firstPayload{0x46U, 0x51U, 0x52U, 0x2DU, 0x31U};
+  std::vector<std::uint8_t> laterPayload{0x46U, 0x51U, 0x52U, 0x2DU, 0x32U};
+  std::vector<std::uint8_t> firstTag{0x46U, 0x51U, 0x52U, 0x2DU, 0x31U};
+  std::vector<std::uint8_t> laterTag{0x46U, 0x51U, 0x52U, 0x2DU, 0x32U};
+  rti::ParameterHandleValueMap firstParameters;
+  firstParameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(firstPayload.data(), firstPayload.size()));
+  rti::ParameterHandleValueMap laterParameters;
+  laterParameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(laterPayload.data(), laterPayload.size()));
+  rti::VariableLengthData firstUserTag(firstTag.data(), firstTag.size());
+  rti::VariableLengthData laterUserTag(laterTag.data(), laterTag.size());
+
+  auto const firstRetraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      firstParameters,
+      firstUserTag,
+      *firstTime);
+  require(
+      firstRetraction.isValid(),
+      "FQR post-grant future interaction returned an invalid retraction handle");
+  require(
+      receiver.recorder().timedInteractions().empty(),
+      "FQR post-grant future interaction was delivered before Flush Queue Request");
+  receiver.recorder().clearCallbackOrder();
+  receiver.rtiAmbassador().flushQueueRequest(*requestBoundary);
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().timedInteractions().size() == 1U &&
+            receiver.recorder().flushQueueGrants().size() == 1U;
+      },
+      options,
+      "FQR post-grant first future interaction and grant");
+
+  auto const firstDeliveries = receiver.recorder().timedInteractions();
+  auto const firstFlushGrants = receiver.recorder().flushQueueGrants();
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"interaction", "flush-grant"},
+      "FQR post-grant delivered the first queued interaction after its grant");
+  require(
+      firstDeliveries.front().interaction == receiverInteraction &&
+          firstDeliveries.front().parameters.size() == 1U &&
+          firstDeliveries.front().parameters.count(receiverParameter) == 1U &&
+          copyBytes(firstDeliveries.front().parameters.at(receiverParameter)) == firstPayload,
+      "FQR post-grant first callback returned the wrong interaction or parameter value");
+  require(
+      firstDeliveries.front().time == encodeTime(*firstTime) &&
+          firstDeliveries.front().tag == firstTag &&
+          firstDeliveries.front().producer == publisher.federateHandle() &&
+          firstDeliveries.front().sentOrder == rti::TIMESTAMP &&
+          firstDeliveries.front().receivedOrder == rti::TIMESTAMP &&
+          firstDeliveries.front().retractionPresent &&
+          firstDeliveries.front().retraction == copyBytes(firstRetraction.encode()),
+      "FQR post-grant first callback did not preserve timestamped interaction metadata");
+  require(
+      firstFlushGrants.front().time == encodeTime(*expectedActualGrant) &&
+          firstFlushGrants.front().optimisticTime == encodeTime(*requestBoundary),
+      "FQR post-grant first callback returned the wrong actual or optimistic time");
+  auto receiverTimeAfterFirstFlush = receiverTime.factory->makeInitial();
+  require(
+      receiverTimeAfterFirstFlush != nullptr,
+      "FQR post-grant could not allocate its first logical-time query");
+  receiver.rtiAmbassador().queryLogicalTime(*receiverTimeAfterFirstFlush);
+  requireTimeEquals(
+      *receiverTimeAfterFirstFlush,
+      *expectedActualGrant,
+      "FQR post-grant first actual logical time");
+
+  bool rejectedBelowLookahead = false;
+  try {
+    (void)publisher.rtiAmbassador().sendInteraction(
+        publisherInteraction,
+        firstParameters,
+        firstUserTag,
+        *rejectedTime);
+  } catch (rti::InvalidLogicalTime const&) {
+    rejectedBelowLookahead = true;
+  }
+  require(
+      rejectedBelowLookahead,
+      "FQR post-grant publisher accepted a timestamp below its current-time-plus-lookahead floor");
+  require(
+      receiver.recorder().timedInteractions().size() == 1U,
+      "rejected FQR post-grant input produced a receiver callback");
+
+  auto const laterLowerRetraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      laterParameters,
+      laterUserTag,
+      *laterLowerTime);
+  require(
+      laterLowerRetraction.isValid(),
+      "FQR post-grant later lower TSO returned an invalid retraction handle");
+  receiver.recorder().clearCallbackOrder();
+  receiver.rtiAmbassador().flushQueueRequest(*requestBoundary);
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().timedInteractions().size() == 2U &&
+            receiver.recorder().flushQueueGrants().size() == 2U;
+      },
+      options,
+      "FQR post-grant later lower TSO and second grant");
+  auto const allDeliveries = receiver.recorder().timedInteractions();
+  auto const allFlushGrants = receiver.recorder().flushQueueGrants();
+  require(
+      allDeliveries[0].time == encodeTime(*firstTime) &&
+          allDeliveries[1].time == encodeTime(*laterLowerTime) &&
+          allDeliveries[1].parameters.size() == 1U &&
+          allDeliveries[1].parameters.count(receiverParameter) == 1U &&
+          copyBytes(allDeliveries[1].parameters.at(receiverParameter)) == laterPayload &&
+          allDeliveries[1].tag == laterTag &&
+          allDeliveries[1].retractionPresent &&
+          allDeliveries[1].retraction == copyBytes(laterLowerRetraction.encode()),
+      "FQR post-grant did not deliver the later lower TSO with its own metadata");
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"interaction", "flush-grant"},
+      "FQR post-grant second delivery did not precede its grant");
+  require(
+      allFlushGrants.size() == 2U,
+      "FQR post-grant returned the wrong number of flush grants");
+
+  receiver.recorder().clearRetractions();
+  receiver.recorder().clearCallbackOrder();
+  publisher.rtiAmbassador().retract(firstRetraction);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().retractions().size() == 1U; },
+      options,
+      "FQR post-grant Request Retraction callback");
+  auto const retractions = receiver.recorder().retractions();
+  require(
+      retractions.size() == 1U && retractions.front().valid &&
+          retractions.front().encoded == copyBytes(firstRetraction.encode()),
+      "FQR post-grant Request Retraction callback did not identify the delivered TSO");
+
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioFqrPostgrantLowerTsoRetractionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFqrPostgrantLowerTsoRetraction(options, model);
+}
+
+void scenarioFqgPostgrantDeliveryCutoff(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "FQG post-grant delivery cutoff requires an adapter-supplied logical-time implementation");
+
+  Session firstPublisher(options, model, "owner");
+  Session receiver(options, model, "member");
+  Session latePublisher(options, model, "member");
+  auto const federation = federationName(options, "fqg-postgrant-delivery-cutoff");
+  firstPublisher.connect();
+  receiver.connect();
+  latePublisher.connect();
+  firstPublisher.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  firstPublisher.join(
+      options.ownerFederateName + L"-first-publisher",
+      options.federateType,
+      federation);
+  receiver.join(
+      options.memberFederateName + L"-receiver",
+      options.federateType,
+      federation);
+
+  auto const firstClass = firstPublisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const firstParameter = firstPublisher.rtiAmbassador().getParameterHandle(
+      firstClass,
+      options.parameterName);
+  auto const receiverClass = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverClass,
+      options.parameterName);
+  require(
+      firstClass.isValid() && firstParameter.isValid() &&
+          receiverClass.isValid() && receiverParameter.isValid() &&
+          firstClass == receiverClass && firstParameter == receiverParameter,
+      "FQG adapter FOM did not resolve stable interaction handles");
+  firstPublisher.rtiAmbassador().publishInteractionClass(firstClass);
+  firstPublisher.rtiAmbassador().changeInteractionOrderType(firstClass, rti::TIMESTAMP);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverClass, true);
+
+  auto firstTime = makeTimeContext(firstPublisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      firstTime.factory->getName() == receiverTime.factory->getName(),
+      "FQG initial members selected different logical-time factories");
+  requireTimeEquals(
+      *firstTime.initial,
+      *receiverTime.initial,
+      "FQG initial receiver logical time");
+
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "FQG receiver Time Constrained callback");
+  auto const firstLookaheadTime = timeAfter(
+      *firstTime.factory,
+      *firstTime.initial,
+      *firstTime.epsilon,
+      5U);
+  auto firstLookahead = firstTime.factory->makeZero();
+  require(firstLookahead != nullptr, "FQG could not allocate the first lookahead");
+  firstLookahead->setToDifference(*firstLookaheadTime, *firstTime.initial);
+  firstPublisher.rtiAmbassador().enableTimeRegulation(*firstLookahead);
+  waitFor(
+      firstPublisher,
+      [&] { return firstPublisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "FQG first publisher Time Regulation callback");
+
+  auto const timestampSeven = timeAfter(
+      *firstTime.factory, *firstTime.initial, *firstTime.epsilon, 7U);
+  auto const firstTargetTwo = timeAfter(
+      *firstTime.factory, *firstTime.initial, *firstTime.epsilon, 2U);
+  auto const requestBoundary = timeAfter(
+      *receiverTime.factory, *receiverTime.initial, *receiverTime.epsilon, 10U);
+  std::vector<std::uint8_t> firstPayload{0x46U, 0x51U, 0x47U, 0x2DU, 0x37U};
+  std::vector<std::uint8_t> belowGrantPayload{0x46U, 0x51U, 0x47U, 0x2DU, 0x36U};
+  std::vector<std::uint8_t> laterPayload{0x46U, 0x51U, 0x47U, 0x2DU, 0x38U};
+  std::vector<std::uint8_t> firstTag{0x46U, 0x51U, 0x47U, 0x2DU, 0x37U};
+  std::vector<std::uint8_t> belowGrantTag{0x46U, 0x51U, 0x47U, 0x2DU, 0x36U};
+  std::vector<std::uint8_t> laterTag{0x46U, 0x51U, 0x47U, 0x2DU, 0x38U};
+  rti::ParameterHandleValueMap firstValues;
+  firstValues.emplace(
+      firstParameter,
+      rti::VariableLengthData(firstPayload.data(), firstPayload.size()));
+  auto const firstRetraction = firstPublisher.rtiAmbassador().sendInteraction(
+      firstClass,
+      firstValues,
+      rti::VariableLengthData(firstTag.data(), firstTag.size()),
+      *timestampSeven);
+  require(firstRetraction.isValid(), "FQG first timestamped interaction had no retraction handle");
+  require(
+      receiver.recorder().timedInteractions().empty(),
+      "FQG first timestamped interaction was delivered before a request");
+  receiver.recorder().clearCallbackOrder();
+  firstPublisher.rtiAmbassador().timeAdvanceRequest(*firstTargetTwo);
+  waitForSessions(
+      {&firstPublisher},
+      [&] { return firstPublisher.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "FQG first publisher TAR(2)");
+  receiver.rtiAmbassador().flushQueueRequest(*requestBoundary);
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().timedInteractions().size() == 1U &&
+            receiver.recorder().flushQueueGrants().size() == 1U;
+      },
+      options,
+      "FQG first timestamped delivery and grant");
+  auto const firstDelivery = receiver.recorder().timedInteractions().front();
+  auto const firstGrant = receiver.recorder().flushQueueGrants().front();
+  require(
+      firstDelivery.time == encodeTime(*timestampSeven) &&
+          firstDelivery.parameters.size() == 1U &&
+          firstDelivery.parameters.count(receiverParameter) == 1U &&
+          copyBytes(firstDelivery.parameters.at(receiverParameter)) == firstPayload &&
+          firstDelivery.tag == firstTag &&
+          firstDelivery.producer == firstPublisher.federateHandle() &&
+          firstDelivery.sentOrder == rti::TIMESTAMP &&
+          firstDelivery.receivedOrder == rti::TIMESTAMP &&
+          firstDelivery.retractionPresent &&
+          firstDelivery.retraction == copyBytes(firstRetraction.encode()),
+      "FQG first callback changed the queued timestamped interaction metadata");
+  require(
+      firstGrant.time == encodeTime(*timestampSeven),
+      "FQG first actual grant time did not equal timestamp 7");
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"interaction", "flush-grant"},
+      "FQG first interaction callback did not precede Flush Queue Grant");
+
+  latePublisher.join(
+      options.ownerFederateName + L"-late-publisher",
+      options.federateType,
+      federation);
+  auto const lateClass = latePublisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const lateParameter = latePublisher.rtiAmbassador().getParameterHandle(
+      lateClass,
+      options.parameterName);
+  require(
+      lateClass.isValid() && lateParameter.isValid() &&
+          lateClass == receiverClass && lateParameter == receiverParameter,
+      "FQG late publisher did not resolve the adapter interaction handles");
+  latePublisher.rtiAmbassador().publishInteractionClass(lateClass);
+  latePublisher.rtiAmbassador().changeInteractionOrderType(lateClass, rti::TIMESTAMP);
+  auto lateTime = makeTimeContext(latePublisher);
+  require(
+      firstTime.factory->getName() == lateTime.factory->getName(),
+      "FQG late publisher selected a different logical-time factory");
+  requireTimeEquals(
+      *firstTime.initial,
+      *lateTime.initial,
+      "FQG late publisher initial logical time");
+  latePublisher.rtiAmbassador().enableTimeRegulation(*lateTime.epsilon);
+  waitFor(
+      latePublisher,
+      [&] { return latePublisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "FQG late publisher Time Regulation callback");
+
+  auto const timestampSix = timeAfter(
+      *lateTime.factory, *lateTime.initial, *lateTime.epsilon, 6U);
+  auto const timestampEight = timeAfter(
+      *lateTime.factory, *lateTime.initial, *lateTime.epsilon, 8U);
+  rti::ParameterHandleValueMap belowGrantValues;
+  belowGrantValues.emplace(
+      lateParameter,
+      rti::VariableLengthData(belowGrantPayload.data(), belowGrantPayload.size()));
+  rti::ParameterHandleValueMap laterValues;
+  laterValues.emplace(
+      lateParameter,
+      rti::VariableLengthData(laterPayload.data(), laterPayload.size()));
+  auto const belowGrantRetraction = latePublisher.rtiAmbassador().sendInteraction(
+      lateClass,
+      belowGrantValues,
+      rti::VariableLengthData(belowGrantTag.data(), belowGrantTag.size()),
+      *timestampSix);
+  auto const laterRetraction = latePublisher.rtiAmbassador().sendInteraction(
+      lateClass,
+      laterValues,
+      rti::VariableLengthData(laterTag.data(), laterTag.size()),
+      *timestampEight);
+  require(
+      belowGrantRetraction.isValid() && laterRetraction.isValid(),
+      "FQG late timestamped interactions returned invalid retraction handles");
+
+  auto advanceAndWait = [&](Session& session,
+                            rti::LogicalTime const& target,
+                            std::size_t expectedCount,
+                            std::string const& description) {
+    session.rtiAmbassador().timeAdvanceRequest(target);
+    waitFor(
+        session,
+        [&] { return session.recorder().timeAdvanceGrants().size() == expectedCount; },
+        options,
+        description);
+  };
+  auto const lateTargetTwo = timeAfter(
+      *lateTime.factory, *lateTime.initial, *lateTime.epsilon, 2U);
+  auto const lateTargetFour = timeAfter(
+      *lateTime.factory, *lateTime.initial, *lateTime.epsilon, 4U);
+  auto const lateTargetSix = timeAfter(
+      *lateTime.factory, *lateTime.initial, *lateTime.epsilon, 6U);
+  auto const lateTargetEight = timeAfter(
+      *lateTime.factory, *lateTime.initial, *lateTime.epsilon, 8U);
+  auto const lateTargetTen = timeAfter(
+      *lateTime.factory, *lateTime.initial, *lateTime.epsilon, 10U);
+  auto const firstTargetThree = timeAfter(
+      *firstTime.factory, *firstTime.initial, *firstTime.epsilon, 3U);
+  auto const firstTargetFive = timeAfter(
+      *firstTime.factory, *firstTime.initial, *firstTime.epsilon, 5U);
+  auto const firstTargetSeven = timeAfter(
+      *firstTime.factory, *firstTime.initial, *firstTime.epsilon, 7U);
+  auto const firstTargetEight = timeAfter(
+      *firstTime.factory, *firstTime.initial, *firstTime.epsilon, 8U);
+  advanceAndWait(latePublisher, *lateTargetTwo, 1U, "FQG late publisher TAR(2)");
+  advanceAndWait(firstPublisher, *firstTargetThree, 2U, "FQG first publisher TAR(3)");
+  advanceAndWait(latePublisher, *lateTargetFour, 2U, "FQG late publisher TAR(4)");
+  advanceAndWait(firstPublisher, *firstTargetFive, 3U, "FQG first publisher TAR(5)");
+  advanceAndWait(latePublisher, *lateTargetSix, 3U, "FQG late publisher TAR(6)");
+  advanceAndWait(firstPublisher, *firstTargetSeven, 4U, "FQG first publisher TAR(7)");
+  advanceAndWait(latePublisher, *lateTargetEight, 4U, "FQG late publisher TAR(8)");
+  advanceAndWait(firstPublisher, *firstTargetEight, 5U, "FQG first publisher TAR(8)");
+  advanceAndWait(latePublisher, *lateTargetTen, 5U, "FQG late publisher TAR(10)");
+
+  auto const receiverTargetNine = timeAfter(
+      *receiverTime.factory, *receiverTime.initial, *receiverTime.epsilon, 9U);
+  receiver.rtiAmbassador().timeAdvanceRequestAvailable(*receiverTargetNine);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "FQG receiver TARA grant");
+  auto const deliveries = receiver.recorder().timedInteractions();
+  auto const grants = receiver.recorder().timeAdvanceGrants();
+  auto const actualReceiverTime = receiverTime.factory->makeInitial();
+  require(actualReceiverTime != nullptr, "FQG could not allocate receiver time query");
+  receiver.rtiAmbassador().queryLogicalTime(*actualReceiverTime);
+  auto const expectedSecondGrant = timeAfter(
+      *receiverTime.factory, *receiverTime.initial, *receiverTime.epsilon, 8U);
+  require(
+      firstPublisher.recorder().timeAdvanceGrants().back().encoded == encodeTime(*firstTargetEight) &&
+          latePublisher.recorder().timeAdvanceGrants().back().encoded == encodeTime(*lateTargetTen),
+      "FQG time-regulating producers reached different final frontiers than requested");
+  require(
+      deliveries.size() == 2U &&
+          deliveries[0].time == encodeTime(*timestampSeven) &&
+          deliveries[0].producer == firstPublisher.federateHandle() &&
+          copyBytes(deliveries[0].parameters.at(receiverParameter)) == firstPayload &&
+          deliveries[1].time == encodeTime(*timestampEight) &&
+          deliveries[1].producer == latePublisher.federateHandle() &&
+          copyBytes(deliveries[1].parameters.at(receiverParameter)) == laterPayload,
+      "FQG delivered a post-grant timestamp below 7 or lost the legal timestamp-8 control");
+  require(
+      grants.size() == 1U && grants.front().encoded == encodeTime(*expectedSecondGrant),
+      "FQG TARA did not grant at the next deliverable timestamp");
+  requireTimeEquals(
+      *actualReceiverTime,
+      *expectedSecondGrant,
+      "FQG receiver logical time after TARA");
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"interaction", "flush-grant", "interaction", "grant"},
+      "FQG delivered the legal later interaction after its TARA grant");
+
+  latePublisher.resign(rti::NO_ACTION);
+  receiver.resign(rti::NO_ACTION);
+  firstPublisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  firstPublisher.rtiAmbassador().destroyFederationExecution(federation);
+  latePublisher.disconnect();
+  receiver.disconnect();
+  firstPublisher.disconnect();
+}
+
+void scenarioFqgPostgrantDeliveryCutoffContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFqgPostgrantDeliveryCutoff(options, model);
+}
+
+void scenarioTarQueuedTsoBeforeGrant(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "TAR queued-TSO test requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "owner");
+  Session receiver(options, model, "member");
+  auto const federation = federationName(options, "tar-queued-tso-before-grant");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherClass,
+      options.parameterName);
+  auto const receiverClass = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverClass,
+      options.parameterName);
+  require(
+      publisherClass.isValid() && publisherParameter.isValid() &&
+          receiverClass.isValid() && receiverParameter.isValid() &&
+          publisherClass == receiverClass && publisherParameter == receiverParameter,
+      "TAR adapter FOM did not resolve stable interaction handles");
+  publisher.rtiAmbassador().publishInteractionClass(publisherClass);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherClass,
+      rti::TIMESTAMP);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverClass, true);
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "TAR members selected different logical-time factories");
+  requireTimeEquals(
+      *publisherTime.initial,
+      *receiverTime.initial,
+      "TAR initial logical time");
+
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "TAR receiver Time Constrained callback");
+  auto const lookaheadTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  auto lookahead = publisherTime.factory->makeZero();
+  require(lookahead != nullptr, "TAR could not allocate publisher lookahead");
+  lookahead->setToDifference(*lookaheadTime, *publisherTime.initial);
+  publisher.rtiAmbassador().enableTimeRegulation(*lookahead);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "TAR publisher Time Regulation callback");
+
+  auto const messageTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  auto const publisherTarget = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      2U);
+  auto const receiverTarget = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      6U);
+  std::vector<std::uint8_t> payload{0x54U, 0x41U, 0x52U, 0x2DU, 0x35U};
+  std::vector<std::uint8_t> tag{0x54U, 0x41U, 0x52U, 0x2DU, 0x35U};
+  rti::ParameterHandleValueMap values;
+  values.emplace(
+      publisherParameter,
+      rti::VariableLengthData(payload.data(), payload.size()));
+  auto const retraction = publisher.rtiAmbassador().sendInteraction(
+      publisherClass,
+      values,
+      rti::VariableLengthData(tag.data(), tag.size()),
+      *messageTime);
+  require(retraction.isValid(), "TAR queued timestamped interaction returned no retraction handle");
+  require(
+      receiver.recorder().timedInteractions().empty(),
+      "TAR queued TSO was delivered before the receiver advance request");
+
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "TAR regulator TAR(2) grant");
+  require(
+      receiver.recorder().timedInteractions().empty(),
+      "TAR queued TSO was delivered before the receiver TAR was submitted");
+
+  receiver.recorder().clearCallbackOrder();
+  receiver.rtiAmbassador().timeAdvanceRequest(*receiverTarget);
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().timedInteractions().size() == 1U &&
+            receiver.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "TAR queued TSO and grant callbacks");
+
+  auto const delivery = receiver.recorder().timedInteractions().front();
+  auto const grant = receiver.recorder().timeAdvanceGrants().front();
+  auto actualTime = receiverTime.factory->makeInitial();
+  require(actualTime != nullptr, "TAR could not allocate receiver logical-time query");
+  receiver.rtiAmbassador().queryLogicalTime(*actualTime);
+  require(
+      delivery.interaction == receiverClass &&
+          delivery.parameters.size() == 1U &&
+          delivery.parameters.count(receiverParameter) == 1U &&
+          copyBytes(delivery.parameters.at(receiverParameter)) == payload &&
+          delivery.tag == tag &&
+          delivery.producer == publisher.federateHandle() &&
+          delivery.time == encodeTime(*messageTime) &&
+          delivery.sentOrder == rti::TIMESTAMP &&
+          delivery.receivedOrder == rti::TIMESTAMP &&
+          delivery.retractionPresent &&
+          delivery.retraction == copyBytes(retraction.encode()),
+      "TAR delivered the wrong queued timestamped interaction or metadata");
+  require(
+      grant.encoded == encodeTime(*receiverTarget),
+      "TAR granted at a time other than its requested value");
+  requireTimeEquals(*actualTime, *receiverTarget, "TAR queried receiver logical time");
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"interaction", "grant"},
+      "TAR delivered the queued TSO after its time-advance grant");
+
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioTarQueuedTsoBeforeGrantContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTarQueuedTsoBeforeGrant(options, model);
+}
+
 void scenarioTimestampedInteractionCrossProducerOrder(
     Options const& options,
     rti::CallbackModel model) {

@@ -575,7 +575,7 @@ void scenarioDelaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdate(
       receiver.pump();
     }
     auto const first = receiver.recorder().reflections();
-    require(delayEnabled ? first.size() == 1U : first.size() <= 1U,
+    require(first.size() == (delayEnabled ? 1U : 0U),
             "regional late subscription produced an unexpected reflection count");
     if (!first.empty()) checkReflection(first.front(), 0xD1U, "late regional reflection");
     receiver.recorder().clearReflection();

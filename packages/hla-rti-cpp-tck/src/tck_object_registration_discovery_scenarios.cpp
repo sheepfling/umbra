@@ -661,4 +661,395 @@ void scenarioNamedRegistrationMultiRecipient(
   publisher.disconnect();
 }
 
+void scenarioPerFederateDiscoveredClass(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.knownClassFom.empty(),
+      "per-federate discovered-class testing requires an adapter-supplied hierarchy FOM");
+  Session publisher(options, model, "per-federate-class-publisher");
+  Session baseSubscriber(options, model, "per-federate-class-base-subscriber");
+  Session derivedSubscriber(options, model, "per-federate-class-derived-subscriber");
+  auto const federation = federationName(options, "per-federate-discovered-class");
+  connectAndJoin(
+      publisher,
+      baseSubscriber,
+      options,
+      federation,
+      options.knownClassFom);
+  derivedSubscriber.connect();
+  derivedSubscriber.join(
+      options.memberFederateName + L"-derived-view",
+      options.federateType,
+      federation);
+
+  auto const publisherBaseClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const publisherDerivedClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.knownClassDerivedObjectClassName);
+  auto const baseSubscriberClass = baseSubscriber.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const derivedSubscriberClass = derivedSubscriber.rtiAmbassador().getObjectClassHandle(
+      options.knownClassDerivedObjectClassName);
+  auto const publisherBaseAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherDerivedClass,
+      options.knownClassKnownAttributeName);
+  auto const publisherDerivedAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherDerivedClass,
+      options.knownClassDerivedAttributeName);
+  auto const baseSubscriberAttribute = baseSubscriber.rtiAmbassador().getAttributeHandle(
+      baseSubscriberClass,
+      options.knownClassKnownAttributeName);
+  auto const derivedSubscriberAttribute = derivedSubscriber.rtiAmbassador().getAttributeHandle(
+      derivedSubscriberClass,
+      options.knownClassDerivedAttributeName);
+  require(
+      publisherBaseClass.isValid() && publisherDerivedClass.isValid() &&
+          publisherBaseClass != publisherDerivedClass &&
+          baseSubscriberClass.isValid() && derivedSubscriberClass.isValid() &&
+          baseSubscriberClass != derivedSubscriberClass &&
+          publisherBaseAttribute.isValid() && publisherDerivedAttribute.isValid() &&
+          baseSubscriberAttribute.isValid() && derivedSubscriberAttribute.isValid(),
+      "adapter hierarchy FOM did not resolve the configured classes and attributes");
+
+  rti::AttributeHandleSet const publishedAttributes{
+      publisherBaseAttribute,
+      publisherDerivedAttribute};
+  rti::AttributeHandleSet const baseAttributes{baseSubscriberAttribute};
+  rti::AttributeHandleSet const derivedAttributes{derivedSubscriberAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherDerivedClass,
+      publishedAttributes);
+  baseSubscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      baseSubscriberClass,
+      baseAttributes);
+  derivedSubscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      derivedSubscriberClass,
+      derivedAttributes);
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(
+      publisherDerivedClass);
+  require(object.isValid(), "per-federate class registration returned an invalid handle");
+  auto const objectName = publisher.rtiAmbassador().getObjectInstanceName(object);
+  waitForSessions(
+      {&baseSubscriber, &derivedSubscriber},
+      [&] {
+        return baseSubscriber.recorder().discoveryCount() == 1U &&
+            derivedSubscriber.recorder().discoveryCount() == 1U;
+      },
+      options,
+      "per-federate base and derived object discoveries");
+
+  auto const quietDeadline = std::chrono::steady_clock::now() +
+      std::chrono::milliseconds(150);
+  while (std::chrono::steady_clock::now() < quietDeadline) {
+    baseSubscriber.pump();
+    derivedSubscriber.pump();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+
+  auto const baseDiscovery = baseSubscriber.recorder().discovery();
+  auto const derivedDiscovery = derivedSubscriber.recorder().discovery();
+  require(
+      baseSubscriber.recorder().discoveryCount() == 1U &&
+          derivedSubscriber.recorder().discoveryCount() == 1U &&
+          baseDiscovery.present && derivedDiscovery.present &&
+          baseDiscovery.objectClass == baseSubscriberClass &&
+          derivedDiscovery.objectClass == derivedSubscriberClass &&
+          baseSubscriber.rtiAmbassador().getObjectInstanceName(baseDiscovery.object) ==
+              objectName &&
+          derivedSubscriber.rtiAmbassador().getObjectInstanceName(derivedDiscovery.object) ==
+              objectName &&
+          baseSubscriber.rtiAmbassador().getKnownObjectClassHandle(baseDiscovery.object) ==
+              baseSubscriberClass &&
+          derivedSubscriber.rtiAmbassador().getKnownObjectClassHandle(derivedDiscovery.object) ==
+              derivedSubscriberClass &&
+          publisher.rtiAmbassador().getKnownObjectClassHandle(object) ==
+              publisherDerivedClass &&
+          publisher.recorder().discoveryCount() == 0U,
+      "the same object did not have one subscriber-specific discovered class per federate");
+
+  baseSubscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      baseSubscriberClass,
+      baseAttributes);
+  derivedSubscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      derivedSubscriberClass,
+      derivedAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherDerivedClass,
+      publishedAttributes);
+  derivedSubscriber.resign(rti::NO_ACTION);
+  baseSubscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  derivedSubscriber.disconnect();
+  baseSubscriber.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioDiscoveredClassStabilityAfterSpecificSubscription(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.knownClassFom.empty(),
+      "discovered-class stability requires an adapter-supplied hierarchy FOM");
+  Session publisher(options, model, "specific-subscription-publisher");
+  Session subscriber(options, model, "specific-subscription-subscriber");
+  auto const federation = federationName(options, "discovered-class-stability");
+  connectAndJoin(publisher, subscriber, options, federation, options.knownClassFom);
+
+  auto const publisherBaseClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const publisherDerivedClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.knownClassDerivedObjectClassName);
+  auto const subscriberBaseClass = subscriber.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const subscriberDerivedClass = subscriber.rtiAmbassador().getObjectClassHandle(
+      options.knownClassDerivedObjectClassName);
+  auto const publisherBaseAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherDerivedClass,
+      options.knownClassKnownAttributeName);
+  auto const publisherDerivedAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherDerivedClass,
+      options.knownClassDerivedAttributeName);
+  auto const subscriberBaseAttribute = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberBaseClass,
+      options.knownClassKnownAttributeName);
+  auto const subscriberDerivedAttribute = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberDerivedClass,
+      options.knownClassDerivedAttributeName);
+  require(
+      publisherBaseClass.isValid() && publisherDerivedClass.isValid() &&
+          publisherBaseClass != publisherDerivedClass &&
+          subscriberBaseClass.isValid() && subscriberDerivedClass.isValid() &&
+          subscriberBaseClass != subscriberDerivedClass &&
+          publisherBaseAttribute.isValid() && publisherDerivedAttribute.isValid() &&
+          subscriberBaseAttribute.isValid() && subscriberDerivedAttribute.isValid(),
+      "adapter hierarchy FOM did not resolve the configured base/derived classes and attributes");
+
+  rti::AttributeHandleSet const publishedAttributes{
+      publisherBaseAttribute,
+      publisherDerivedAttribute};
+  rti::AttributeHandleSet const baseAttributes{subscriberBaseAttribute};
+  rti::AttributeHandleSet const derivedAttributes{subscriberDerivedAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherDerivedClass,
+      publishedAttributes);
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberBaseClass,
+      baseAttributes);
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(
+      publisherDerivedClass);
+  require(object.isValid(), "specific-subscription registration returned an invalid handle");
+  auto const objectName = publisher.rtiAmbassador().getObjectInstanceName(object);
+  waitForSessions(
+      {&subscriber},
+      [&] { return subscriber.recorder().discoveryCount() == 1U; },
+      options,
+      "base-class object discovery before adding a specific subscription");
+
+  auto pumpQuietWindow = [&] {
+    auto const quietDeadline = std::chrono::steady_clock::now() +
+        std::chrono::milliseconds(150);
+    while (std::chrono::steady_clock::now() < quietDeadline) {
+      subscriber.pump();
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+  };
+  auto assertBaseViewStable = [&] {
+    auto const discovery = subscriber.recorder().discovery();
+    require(
+        subscriber.recorder().discoveryCount() == 1U && discovery.present &&
+            discovery.objectClass == subscriberBaseClass &&
+            subscriber.rtiAmbassador().getObjectInstanceName(discovery.object) == objectName &&
+            subscriber.rtiAmbassador().getKnownObjectClassHandle(discovery.object) ==
+                subscriberBaseClass &&
+            publisher.rtiAmbassador().getKnownObjectClassHandle(object) ==
+                publisherDerivedClass &&
+            publisher.recorder().discoveryCount() == 0U,
+        "adding a more-specific subscription changed the existing discovered class");
+  };
+  pumpQuietWindow();
+  assertBaseViewStable();
+
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberDerivedClass,
+      derivedAttributes);
+  pumpQuietWindow();
+  assertBaseViewStable();
+
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberDerivedClass,
+      derivedAttributes);
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberBaseClass,
+      baseAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherDerivedClass,
+      publishedAttributes);
+  subscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  subscriber.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioRegisteredObjectClassImmutability(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.knownClassFom.empty(),
+      "registered-class immutability testing requires an adapter-supplied hierarchy FOM");
+  Session publisher(options, model, "registered-class-publisher");
+  Session baseSubscriber(options, model, "registered-class-base-subscriber");
+  Session derivedSubscriber(options, model, "registered-class-derived-subscriber");
+  auto const federation = federationName(options, "registered-object-class-immutability");
+  connectAndJoin(
+      publisher,
+      baseSubscriber,
+      options,
+      federation,
+      options.knownClassFom);
+  derivedSubscriber.connect();
+  derivedSubscriber.join(
+      options.memberFederateName + L"-registered-class-view",
+      options.federateType,
+      federation);
+
+  auto const baseClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const derivedClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.knownClassDerivedObjectClassName);
+  auto const publisherBaseAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      derivedClass,
+      options.knownClassKnownAttributeName);
+  auto const publisherDerivedAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      derivedClass,
+      options.knownClassDerivedAttributeName);
+  auto const subscriberBaseClass = baseSubscriber.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const baseSubscriberDerivedClass = baseSubscriber.rtiAmbassador().getObjectClassHandle(
+      options.knownClassDerivedObjectClassName);
+  auto const derivedSubscriberBaseClass = derivedSubscriber.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const subscriberDerivedClass = derivedSubscriber.rtiAmbassador().getObjectClassHandle(
+      options.knownClassDerivedObjectClassName);
+  auto const baseAttribute = baseSubscriber.rtiAmbassador().getAttributeHandle(
+      subscriberBaseClass,
+      options.knownClassKnownAttributeName);
+  auto const derivedAttribute = derivedSubscriber.rtiAmbassador().getAttributeHandle(
+      subscriberDerivedClass,
+      options.knownClassDerivedAttributeName);
+  auto const baseViewDerivedAttribute = baseSubscriber.rtiAmbassador().getAttributeHandle(
+      baseSubscriberDerivedClass,
+      options.knownClassDerivedAttributeName);
+  auto const derivedViewBaseAttribute = derivedSubscriber.rtiAmbassador().getAttributeHandle(
+      derivedSubscriberBaseClass,
+      options.knownClassKnownAttributeName);
+  require(
+      baseClass.isValid() && derivedClass.isValid() && baseClass != derivedClass &&
+          subscriberBaseClass.isValid() && baseSubscriberDerivedClass.isValid() &&
+          subscriberBaseClass != baseSubscriberDerivedClass &&
+          derivedSubscriberBaseClass.isValid() && subscriberDerivedClass.isValid() &&
+          derivedSubscriberBaseClass != subscriberDerivedClass &&
+          publisherBaseAttribute.isValid() && publisherDerivedAttribute.isValid() &&
+          baseAttribute.isValid() && derivedAttribute.isValid() &&
+          baseViewDerivedAttribute.isValid() && derivedViewBaseAttribute.isValid(),
+      "adapter hierarchy FOM did not resolve the configured base/derived classes and attributes");
+
+  rti::AttributeHandleSet const publishedAttributes{
+      publisherBaseAttribute,
+      publisherDerivedAttribute};
+  rti::AttributeHandleSet const baseAttributes{baseAttribute};
+  rti::AttributeHandleSet const derivedAttributes{derivedAttribute};
+  rti::AttributeHandleSet const baseViewDerivedAttributes{baseViewDerivedAttribute};
+  rti::AttributeHandleSet const derivedViewBaseAttributes{derivedViewBaseAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(derivedClass, publishedAttributes);
+  baseSubscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberBaseClass,
+      baseAttributes);
+  derivedSubscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberDerivedClass,
+      derivedAttributes);
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(derivedClass);
+  require(object.isValid(), "registered-class identity test returned an invalid object handle");
+  auto const objectName = publisher.rtiAmbassador().getObjectInstanceName(object);
+  waitForSessions(
+      {&baseSubscriber, &derivedSubscriber},
+      [&] {
+        return baseSubscriber.recorder().discoveryCount() == 1U &&
+            derivedSubscriber.recorder().discoveryCount() == 1U;
+      },
+      options,
+      "initial base and derived class-view discoveries");
+
+  auto pumpQuietWindow = [&] {
+    auto const quietDeadline = std::chrono::steady_clock::now() +
+        std::chrono::milliseconds(150);
+    while (std::chrono::steady_clock::now() < quietDeadline) {
+      baseSubscriber.pump();
+      derivedSubscriber.pump();
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+  };
+  auto assertStableViews = [&] {
+    auto const baseDiscovery = baseSubscriber.recorder().discovery();
+    auto const derivedDiscovery = derivedSubscriber.recorder().discovery();
+    require(
+        baseSubscriber.recorder().discoveryCount() == 1U &&
+            derivedSubscriber.recorder().discoveryCount() == 1U &&
+            baseDiscovery.present && derivedDiscovery.present &&
+            baseSubscriber.rtiAmbassador().getObjectInstanceName(baseDiscovery.object) ==
+                objectName &&
+            derivedSubscriber.rtiAmbassador().getObjectInstanceName(derivedDiscovery.object) ==
+                objectName &&
+            baseDiscovery.objectClass == subscriberBaseClass &&
+            derivedDiscovery.objectClass == subscriberDerivedClass &&
+            baseSubscriber.rtiAmbassador().getKnownObjectClassHandle(baseDiscovery.object) ==
+                subscriberBaseClass &&
+            derivedSubscriber.rtiAmbassador().getKnownObjectClassHandle(derivedDiscovery.object) ==
+                subscriberDerivedClass &&
+            publisher.rtiAmbassador().getKnownObjectClassHandle(object) == derivedClass &&
+            publisher.recorder().discoveryCount() == 0U,
+        "registered or subscriber-known object class changed with a federate's class view");
+  };
+  pumpQuietWindow();
+  assertStableViews();
+
+  baseSubscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      baseSubscriberDerivedClass,
+      baseViewDerivedAttributes);
+  pumpQuietWindow();
+  assertStableViews();
+
+  derivedSubscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberDerivedClass,
+      derivedAttributes);
+  derivedSubscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      derivedSubscriberBaseClass,
+      derivedViewBaseAttributes);
+  pumpQuietWindow();
+  assertStableViews();
+
+  baseSubscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      baseSubscriberDerivedClass,
+      baseViewDerivedAttributes);
+  baseSubscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberBaseClass,
+      baseAttributes);
+  derivedSubscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      derivedSubscriberBaseClass,
+      derivedViewBaseAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(derivedClass, publishedAttributes);
+  derivedSubscriber.resign(rti::NO_ACTION);
+  baseSubscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  derivedSubscriber.disconnect();
+  baseSubscriber.disconnect();
+  publisher.disconnect();
+}
+
 } // namespace hla_rti_cpp_tck::detail
