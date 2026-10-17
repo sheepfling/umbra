@@ -9490,6 +9490,16 @@ void scenarioAttributeUpdateOrderClassification(
       [&] { return receiver.recorder().hasDiscovery(receiveOrderObject); },
       options,
       "receive-order object discovery in attribute-update order classification");
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  enableTimestampedRoles(
+      publisher,
+      receiver,
+      publisherTime,
+      receiverTime,
+      options,
+      "Attribute-update order classification");
+  receiver.rtiAmbassador().enableAsynchronousDelivery();
   receiver.recorder().clearReflection();
   publisher.recorder().clearReflection();
 
@@ -9546,15 +9556,6 @@ void scenarioAttributeUpdateOrderClassification(
       options,
       "timestamped object discovery in attribute-update order classification");
 
-  auto publisherTime = makeTimeContext(publisher);
-  auto receiverTime = makeTimeContext(receiver);
-  enableTimestampedRoles(
-      publisher,
-      receiver,
-      publisherTime,
-      receiverTime,
-      options,
-      "Attribute-update order classification");
   auto const timestamp = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,

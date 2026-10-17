@@ -83,6 +83,17 @@ final class AttributeUpdateOrderClassificationTck {
          await(receiver, callbackModel,
             () -> receiverCallbacks.discoveries.contains(receiveObject),
             "receive-order object discovery");
+         LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
+         JavaTckSupport.check(timeFactory.getName().equals(receiver.getTimeFactory().getName()),
+            "publisher and receiver selected different logical-time factories");
+         LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
+         publisher.enableTimeRegulation(epsilon);
+         await(publisher, callbackModel, () -> publisherCallbacks.timeRegulationEnabled,
+            "publisher time regulation enablement");
+         receiver.enableTimeConstrained();
+         await(receiver, callbackModel, () -> receiverCallbacks.timeConstrainedEnabled,
+            "receiver time constrained enablement");
+         receiver.enableAsynchronousDelivery();
          receiverCallbacks.receiveOrder.clear();
          publisherCallbacks.receiveOrder.clear();
 
@@ -105,17 +116,6 @@ final class AttributeUpdateOrderClassificationTck {
          await(receiver, callbackModel,
             () -> receiverCallbacks.discoveries.contains(timestampedObject),
             "timestamp-order object discovery");
-
-         LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
-         JavaTckSupport.check(timeFactory.getName().equals(receiver.getTimeFactory().getName()),
-            "publisher and receiver selected different logical-time factories");
-         LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
-         publisher.enableTimeRegulation(epsilon);
-         await(publisher, callbackModel, () -> publisherCallbacks.timeRegulationEnabled,
-            "publisher time regulation enablement");
-         receiver.enableTimeConstrained();
-         await(receiver, callbackModel, () -> receiverCallbacks.timeConstrainedEnabled,
-            "receiver time constrained enablement");
 
          LogicalTime timestamp = offset(publisher.queryLogicalTime(), epsilon, 3);
          LogicalTime receiverTarget = offset(receiver.queryLogicalTime(), epsilon, 3);

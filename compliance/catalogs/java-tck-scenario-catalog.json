@@ -8687,6 +8687,7 @@
         "RTIambassador.getTimeFactory",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableAsynchronousDelivery",
         "RTIambassador.queryLogicalTime",
         "RTIambassador.timeAdvanceRequest",
         "RTIambassador.getTransportationTypeName",
@@ -8705,16 +8706,19 @@
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-timestamped-attribute-update",
         "cpp-1516.1-timestamped-attribute-reflect",
-        "requirement-candidate-content-clauses-08-time-management-page-181-l145-12"
+        "requirement-candidate-content-clauses-08-time-management-page-181-l145-12",
+        "requirement-candidate-content-clauses-08-time-management-page-204-l113-31"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-08-time-management-page-181-l145-12"
+        "requirement-candidate-content-clauses-08-time-management-page-181-l145-12",
+        "requirement-candidate-content-clauses-08-time-management-page-204-l113-31"
       ],
       "requirement_mappings": [
-        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l145-12", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l145-12", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l113-31", "standard_section": "hla-1516.1-2025:clause-8.15.3"}
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
-      "mapping_note": "Direct §8.1.4 Table 3 witness for the sent-RO rule: an ordinary Update Attribute Values call to the time-constrained receiver produces exactly the receive-order reflection callback and no timestamped reflection. The scenario separately checks that a timestamped update uses the timestamped callback with its retraction designator. This covers the tested time-constrained receiver branch only; it does not claim the full order matrix. Java provider runtime remains unverified.",
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4", "hla-1516.1-2025:clause-8.15.3"],
+      "mapping_note": "Parity mapping to the verified C++ case: while the publisher is regulating and the receiver is time constrained, a no-timestamp Update Attribute Values call produces only the receive-order reflection callback. The receiver enables asynchronous delivery so the RO callback can be observed while idle; this also directly exercises page-204-l113-31 -> §8.15.3. A separate timestamped update checks the timestamped callback with its retraction designator. These are limited branch witnesses, not the full order matrix. Java provider runtime remains unverified.",
       "contract_refs": [
         "attribute-update-order-classification-api-contract.json",
         "attribute-update-order-classification-requirements-contract.json",
