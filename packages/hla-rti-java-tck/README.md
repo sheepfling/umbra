@@ -1165,6 +1165,21 @@ grant. It checks the original producer and complete timestamped reflection
 metadata. Callback mode remains adapter-selected, and the scenario stays
 unsupported by default pending Java-provider execution.
 
+The `java-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction`
+scenario sends one timestamped attribute update from a regulating publisher to
+an unconstrained subscriber. Its adapter FOM declares two attributes using
+`HLAreliable` and `HLAbestEffort`; the subscriber must receive exactly one
+reflection per transportation passel with the shared timestamp and retraction
+handle. Retract must then produce exactly one recipient-local
+`requestRetraction`, and a second Retract must fail with
+`MessageCanNoLongerBeRetracted`. The adapter supplies the FOM through
+`--fom-path` and may override `hla.rti.tck.timestampedAttributePasselObjectClass`,
+`hla.rti.tck.timestampedAttributePasselReliableAttribute`, and
+`hla.rti.tck.timestampedAttributePasselBestEffortAttribute` with
+`--jvm-argument`. The Java source compiles against the official API-only JAR;
+the scenario remains unsupported by default until run against an adapter's
+Java provider.
+
 The `java-tck.timestamped-attribute-update-alternate-advances` scenario sends
 one timestamped attribute update to constrained receivers using Flush Queue,
 Time Advance Request Available, Next Message Request Available, and Next Message

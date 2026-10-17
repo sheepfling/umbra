@@ -4782,6 +4782,30 @@
         "cpp-1516.1-object-instance-deletion",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l110-32"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.16.4",
+        "hla-1516.1-2025:clause-6.17.1"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l123-34", "standard_section": "hla-1516.1-2025:clause-6.16" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39", "standard_section": "hla-1516.1-2025:clause-6.16" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l144-41", "standard_section": "hla-1516.1-2025:clause-6.16" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l167-50", "standard_section": "hla-1516.1-2025:clause-6.16.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1", "standard_section": "hla-1516.1-2025:clause-6.16.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29", "standard_section": "hla-1516.1-2025:clause-6.17.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32", "standard_section": "hla-1516.1-2025:clause-6.17.1" }
+      ],
+      "mapping_note": "Direct pairs follow the precise ordinary-deletion trace: page-129-l123-34, page-129-l138-39, and page-129-l144-41 -> §6.16; page-130-l167-50 and page-130-l8-1 -> §6.16.4 tag handling; page-131-l101-29 and page-131-l110-32 -> §6.17.1 removal callback delivery. The scenario verifies two ordinary deletions and matching object handle, tag, and producer at each active subscriber. The per-recipient FIFO comparison and absence of owner loopback are supplemental observations, not separate normative claims. Java source uses only the official IEEE API; Java provider runtime evidence has not been collected, and the C++ adapter run is not Java provider evidence.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -6750,6 +6774,60 @@
       "parity": "cpp-tck.directed-interaction-received-class-projection",
       "default_status": "unsupported",
       "exclusion": "Java provider runtime evidence is not yet available; this scenario has API-only compile and parity validation. It requires an adapter-supplied FOM with the typed base/derived object and interaction hierarchy."
+    },
+    {
+      "id": "java-tck.directed-interaction-no-applicable-subscription",
+      "category": "directed-interaction",
+      "title": "Do not deliver a directed interaction when the known target has no matching class subscription",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassHandleSetFactory",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "RTIambassador.sendDirectedInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.receiveDirectedInteraction",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l14-2"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l14-2"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l14-2",
+          "standard_section": "hla-1516.1-2025:clause-5.12"
+        }
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-5.12"],
+      "mapping_note": "Parity mapping to the C++ no-applicable-subscription case. The receiver discovers the known target via an ordinary attribute subscription, has no directed-interaction class subscription, and receives neither directed nor ordinary interaction callback after the send and bounded callback servicing. This asserts only the no-applicable-class-subscription behavior in §5.12.",
+      "contract_refs": [
+        "directed-interaction-api-contract.json",
+        "standard-directed-interaction-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#directedInteractionNoApplicableSubscription",
+      "parity": "cpp-tck.directed-interaction-no-applicable-subscription",
+      "default_status": "unsupported",
+      "exclusion": "Java provider runtime evidence is not yet available; this scenario has API-only compile and parity validation. It requires an adapter-supplied FOM with a directed interaction associated with the target object class."
     },
     {
       "id": "java-tck.support-lookups-valid-inputs-after-resignation",
@@ -12991,6 +13069,56 @@
       "exclusion": "Requires an adapter-supplied provider, FOM, endpoint, logical-time implementation, callback model, and preferred-order interaction class names; Java provider runtime evidence is not yet available."
     },
     {
+      "id": "java-tck.attribute-fdd-preferred-order-default",
+      "category": "time-management",
+      "title": "Timestamped attribute updates preserve each attribute's FDD-preferred order by default",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.makeEpsilon",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "RTIambassador.updateAttributeValues(LogicalTime)",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues(LogicalTime)"
+      ],
+      "requirement_ids": ["java-1516.1-timestamped-attribute-update", "java-1516.1-timestamped-attribute-reflect"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l78-23",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l84-25"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l78-23", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l84-25", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "mapping_note": "Uses only the official IEEE 1516.1-2025 Java API and JDK. Provider, FOM, endpoint, callback model, logical-time implementation, class name, and attribute names are adapter supplied. No order-change service is called; only these two FDD defaults are asserted, not the full order matrix or conformance.",
+      "contract_refs": [
+        "attribute-update-order-classification-api-contract.json",
+        "timestamped-attribute-update-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#attributeFddPreferredOrderDefault",
+      "parity": "cpp-tck.attribute-fdd-preferred-order-default",
+      "default_status": "unsupported",
+      "exclusion": "Java provider runtime evidence is not yet available; the test is API-only and provider-neutral."
+    },
+    {
       "id": "java-tck.sent-tso-per-recipient-order-conversion",
       "category": "time-management",
       "title": "Report sent TSO and receiver-dependent received order for one timestamped interaction",
@@ -15517,6 +15645,43 @@
         "java-1516.1-ownership-management",
         "java-1516.1-time-advance-and-grant"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l98-27",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l16-3",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l58-17",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l82-25",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l42-13",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l57-17"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-7",
+        "hla-1516.1-2025:clause-7.2",
+        "hla-1516.1-2025:clause-8.1.4"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l98-27", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17", "standard_section": "hla-1516.1-2025:clause-6.11" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l16-3", "standard_section": "hla-1516.1-2025:clause-7" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l58-17", "standard_section": "hla-1516.1-2025:clause-7" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l82-25", "standard_section": "hla-1516.1-2025:clause-7" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l42-13", "standard_section": "hla-1516.1-2025:clause-7.2" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49", "standard_section": "hla-1516.1-2025:clause-7.2" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17", "standard_section": "hla-1516.1-2025:clause-8.1.4" }
+      ],
+      "mapping_note": "Direct mappings reproduce the equivalent native case's 12 exact Requirements Lab-to-IEEE 1516.1-2025 pairs. Assertions cover accepted TSO Update Attribute Values and retraction-handle creation (§6.10); receiver reflection, timestamp and retraction metadata, and passelization (§6.11/§6.11.1); ownership transfer and callbacks (§7/§7.2); and reflection before grant (§8.1.4). The post-divestiture reflection is tested as an observed cross-service sequence, not asserted as an ownership-specific normative rule beyond these mapped statements. Java source uses the official IEEE API; Java provider runtime evidence has not been collected, and the C++ adapter run is not Java provider evidence.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json",
@@ -16092,6 +16257,92 @@
       "exclusion": "Requires an adapter-supplied multi-attribute FOM, logical-time implementation, and IEEE 1516.1-2025 Java provider; run only through adapter-supplied configuration."
     },
     {
+      "id": "java-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction",
+      "category": "time",
+      "title": "Deliver and retract timestamped attribute passels split across reliable and best-effort transportation",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.retract",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.requestRetraction"
+      ],
+      "requirement_ids": [
+        "java-1516.1-federation-create-join-resign-destroy",
+        "java-1516.1-object-registration-discovery",
+        "java-1516.1-timestamped-attribute-update",
+        "java-1516.1-timestamped-attribute-reflect",
+        "java-1516.1-attribute-update-retraction"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l98-27",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
+        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+        "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.4",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l98-27", "standard_section": "hla-1516.1-2025:clause-6.10"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17", "standard_section": "hla-1516.1-2025:clause-6.11"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37", "standard_section": "hla-1516.1-2025:clause-6.11.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26", "standard_section": "hla-1516.1-2025:clause-8.1.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6", "standard_section": "hla-1516.1-2025:clause-8.22.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22", "standard_section": "hla-1516.1-2025:clause-8.23.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27", "standard_section": "hla-1516.1-2025:clause-8.23.3"}
+      ],
+      "mapping_note": "Uses the same direct standard mappings as the C++ parity scenario: timestamped attribute update and reflection metadata, sent TIMESTAMP/received RECEIVE order, Retract of the delivered message, and the recipient-local Request Retraction callback with the same designator. The two ordinary attributes are declared with distinct standard transportation types by the adapter FOM. Java provider runtime is not verified by API-only compilation.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-instance-registration-api-contract.json",
+        "timestamped-attribute-update-api-contract.json",
+        "time-role-api-contract.json",
+        "request-retraction-api-contract.json",
+        "standard-timestamped-attribute-immediate-recipient-multi-transport-retraction-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#timestampedAttributeImmediateRecipientMultiTransportRetraction",
+      "parity": "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied FOM, logical-time implementation, and IEEE 1516.1-2025 Java provider; supply the object class and reliable/best-effort attribute names through adapter JVM properties."
+    },
+    {
       "id": "java-tck.mixed-order-attribute-passel-retraction",
       "category": "time",
       "title": "Retract only the queued timestamped attribute after receive-order delivery from one update passel",
@@ -16379,6 +16630,68 @@
       "exclusion": "Requires an adapter-supplied provider, endpoint, time-managed FOM, object class, attribute, logical-time implementation, and callback model; Java provider-runtime evidence is not yet available."
     },
     {
+      "id": "java-tck.timestamped-attribute-update-time-advancing-cutoff",
+      "category": "time",
+      "title": "Reject attribute-update timestamps below requested TAR time plus lookahead while advancing",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType(TIMESTAMP)",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.makeEpsilon",
+        "LogicalTimeInterval.add",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "java-1516.1-attribute-value-update-reflection",
+        "java-1516.1-time-advance-and-grant"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-121-l132-39",
+        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-8.1.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-121-l132-39",
+          "standard_section": "hla-1516.1-2025:clause-6.10.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+          "standard_section": "hla-1516.1-2025:clause-8.1.5"
+        }
+      ],
+      "mapping_note": "At initial time 0, the sender has lookahead 5 and remains in TAR(10) while the peer regulator holds its time. Timestamp 14 must raise InvalidLogicalTime; equality 15 and later 16 are accepted. Direct coverage is limited to the timestamped attribute update overload and §8.1.5's requested-time-plus-lookahead bound while Time Advancing.",
+      "contract_refs": [
+        "timestamped-attribute-update-api-contract.json",
+        "timestamped-attribute-update-requirements-contract.json",
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#timestampedAttributeUpdateTimeAdvancingCutoff",
+      "parity": "cpp-tck.timestamped-attribute-update-time-advancing-cutoff",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied provider, endpoint, time-managed FOM, object class, attribute, logical-time implementation, and callback model; Java provider-runtime evidence is not yet available. The source compiles against the official 1516.1-2025 API only."
+    },
+    {
       "id": "java-tck.timestamped-attribute-update-regulation-reenable",
       "category": "time",
       "title": "Preserve a queued timestamped attribute update across Time Regulation re-enable with changed lookahead",
@@ -16514,6 +16827,102 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedObjectRemoval",
       "default_status": "unsupported",
       "exclusion": "Requires a provider capability profile and time-management FOM; retain as unsupported until exercised against an installed IEEE 1516.1-2025 provider."
+    },
+    {
+      "id": "java-tck.timestamped-delete-privilege-preferred-order",
+      "category": "time",
+      "title": "Timestamped object deletion uses the live preferred order of HLAprivilegeToDeleteObject",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.makeEpsilon",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.changeAttributeOrderType",
+        "RTIambassador.deleteObjectInstance(time)",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.removeObjectInstance(time)"
+      ],
+      "requirement_ids": [
+        "java-1516.1-timestamped-object-deletion",
+        "java-1516.1-timestamped-object-removal"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l93-28"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l93-28", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "mapping_note": "Direct §8.1.4 witness for page-180 line 93: change the registered object's standard HLAprivilegeToDeleteObject attribute order to RECEIVE, issue timestamped Delete Object Instance, and require one Remove Object Instance callback with sent/received RECEIVE while preserving the supplied timestamp, tag, and producer and carrying no retraction handle. This tests only the RECEIVE-preferred deletion branch, not the full order matrix or conformance.",
+      "contract_refs": [
+        "timestamped-object-deletion-api-contract.json",
+        "timestamped-object-deletion-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#timestampedDeletePrivilegePreferredOrder",
+      "parity": "cpp-tck.timestamped-delete-privilege-preferred-order",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied provider, endpoint, FOM, logical-time implementation, and callback model. Source compiles only against the official IEEE 1516.1-2025 API; Java provider runtime is not yet verified."
+    },
+    {
+      "id": "java-tck.timestamped-delete-privilege-timestamp-order",
+      "category": "time",
+      "title": "Timestamped object deletion uses the live TIMESTAMP order of HLAprivilegeToDeleteObject",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.makeEpsilon",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.changeAttributeOrderType",
+        "RTIambassador.deleteObjectInstance(time)",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.removeObjectInstance(time)"
+      ],
+      "requirement_ids": [
+        "java-1516.1-timestamped-object-deletion",
+        "java-1516.1-timestamped-object-removal"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l93-28"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l93-28", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "mapping_note": "Direct §8.1.4 witness for page-180 line 93: change the sender's registered object's standard HLAprivilegeToDeleteObject attribute order to TIMESTAMP, issue timestamped Delete Object Instance, and require one timestamped Remove Object Instance callback preserving the supplied timestamp, tag, and producer with sentOrder=TIMESTAMP and receivedOrder=RECEIVE. Valid retraction-handle return/callback checks are supplemental API-contract assertions. This tests only the TIMESTAMP-sent/RECEIVE-received branch, not the full order matrix or conformance.",
+      "contract_refs": [
+        "timestamped-object-deletion-api-contract.json",
+        "timestamped-object-deletion-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#timestampedDeletePrivilegeTimestampOrder",
+      "parity": "cpp-tck.timestamped-delete-privilege-timestamp-order",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied provider, endpoint, FOM, logical-time implementation, and callback model. Source compiles only against the official IEEE 1516.1-2025 API; Java provider runtime is not yet verified."
     },
     {
       "id": "java-tck.timestamped-object-deletion-mixed-advances",

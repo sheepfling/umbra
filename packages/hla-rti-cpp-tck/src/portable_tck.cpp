@@ -1033,6 +1033,18 @@ constexpr char interactionFddPreferredOrderDefaultScenario[] =
     "cpp-tck.interaction-fdd-preferred-order-default";
 constexpr char interactionFddPreferredOrderDefaultContractId[] =
     "cpp-tck.interaction-fdd-preferred-order-default-contract";
+constexpr char attributeFddPreferredOrderDefaultScenario[] =
+    "cpp-tck.attribute-fdd-preferred-order-default";
+constexpr char attributeFddPreferredOrderDefaultContractId[] =
+    "cpp-tck.attribute-fdd-preferred-order-default-contract";
+constexpr char timestampedDeletePrivilegePreferredOrderScenario[] =
+    "cpp-tck.timestamped-delete-privilege-preferred-order";
+constexpr char timestampedDeletePrivilegePreferredOrderContractId[] =
+    "cpp-tck.timestamped-delete-privilege-preferred-order-contract";
+constexpr char timestampedDeletePrivilegeTimestampOrderScenario[] =
+    "cpp-tck.timestamped-delete-privilege-timestamp-order";
+constexpr char timestampedDeletePrivilegeTimestampOrderContractId[] =
+    "cpp-tck.timestamped-delete-privilege-timestamp-order-contract";
 constexpr char sentTsoPerRecipientOrderConversionScenario[] =
     "cpp-tck.sent-tso-per-recipient-order-conversion";
 constexpr char sentTsoPerRecipientOrderConversionContractId[] =
@@ -1111,6 +1123,10 @@ constexpr char mixedOrderAttributePasselRetractionScenario[] =
     "cpp-tck.mixed-order-attribute-passel-retraction";
 constexpr char mixedOrderAttributePasselRetractionContractId[] =
     "cpp-tck.mixed-order-attribute-passel-retraction-contract";
+constexpr char timestampedAttributeImmediateRecipientMultiTransportRetractionScenario[] =
+    "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction";
+constexpr char timestampedAttributeImmediateRecipientMultiTransportRetractionContractId[] =
+    "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction-contract";
 constexpr char timestampedAttributeSenderRegulationTransitionScenario[] =
     "cpp-tck.timestamped-attribute-sender-regulation-transition";
 constexpr char timestampedAttributeSenderRegulationTransitionContractId[] =
@@ -1269,6 +1285,14 @@ constexpr char timestampedAttributeTarPostGrantCutoffScenario[] =
     "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff";
 constexpr char timestampedAttributeTarPostGrantCutoffContractId[] =
     "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff-contract";
+constexpr char timestampedAttributeTimeAdvancingCutoffScenario[] =
+    "cpp-tck.timestamped-attribute-update-time-advancing-cutoff";
+constexpr char timestampedAttributeTimeAdvancingCutoffContractId[] =
+    "cpp-tck.timestamped-attribute-update-time-advancing-cutoff-contract";
+constexpr char timestampedAttributeReflectRegionSnapshotScenario[] =
+    "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot";
+constexpr char timestampedAttributeReflectRegionSnapshotContractId[] =
+    "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot-contract";
 constexpr char timestampedInteractionPublicationSendTransitionScenario[] =
     "cpp-tck.timestamped-interaction-publication-send-transition";
 constexpr char timestampedInteractionPublicationSendTransitionContractId[] =
@@ -3297,6 +3321,16 @@ void scenarioInteractionFddPreferredOrderDefaultContractPortable(
   scenarioInteractionFddPreferredOrderDefaultContract(options, model);
 }
 
+void scenarioAttributeFddPreferredOrderDefaultPortable(
+    Options const& options, rti::CallbackModel model) {
+  scenarioAttributeFddPreferredOrderDefault(options, model);
+}
+
+void scenarioAttributeFddPreferredOrderDefaultContractPortable(
+    Options const& options, rti::CallbackModel model) {
+  scenarioAttributeFddPreferredOrderDefaultContract(options, model);
+}
+
 void scenarioTimestampedAttributeUpdatePortable(
     Options const& options,
     rti::CallbackModel model) {
@@ -3319,6 +3353,18 @@ void scenarioTimestampedAttributeUpdateTarPostGrantCutoffContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedAttributeUpdateTarPostGrantCutoffContract(options, model);
+}
+
+void scenarioTimestampedAttributeUpdateTimeAdvancingCutoffPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdateTimeAdvancingCutoff(options, model);
+}
+
+void scenarioTimestampedAttributeUpdateTimeAdvancingCutoffContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdateTimeAdvancingCutoffContract(options, model);
 }
 
 void scenarioTimestampedAttributeUpdateReenablePortable(
@@ -3403,6 +3449,22 @@ void scenarioMixedOrderAttributePasselRetractionContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioMixedOrderAttributePasselRetractionContract(options, model);
+}
+
+void scenarioTimestampedAttributeImmediateRecipientMultiTransportRetractionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeImmediateRecipientMultiTransportRetraction(
+      options,
+      model);
+}
+
+void scenarioTimestampedAttributeImmediateRecipientMultiTransportRetractionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeImmediateRecipientMultiTransportRetractionContract(
+      options,
+      model);
 }
 
 void scenarioTimestampedAttributeSenderRegulationTransitionPortable(
@@ -15925,6 +15987,36 @@ int runInteractionFddPreferredOrderDefaultScenarios(int argc, char** argv) {
       scenarioInteractionFddPreferredOrderDefaultContractPortable);
 }
 
+int runAttributeFddPreferredOrderDefaultScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      attributeFddPreferredOrderDefaultScenario,
+      attributeFddPreferredOrderDefaultContractId,
+      scenarioAttributeFddPreferredOrderDefaultPortable,
+      scenarioAttributeFddPreferredOrderDefaultContractPortable);
+}
+
+int runTimestampedDeletePrivilegePreferredOrderScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedDeletePrivilegePreferredOrderScenario,
+      timestampedDeletePrivilegePreferredOrderContractId,
+      scenarioTimestampedDeletePrivilegePreferredOrder,
+      scenarioTimestampedDeletePrivilegePreferredOrderContract);
+}
+
+int runTimestampedDeletePrivilegeTimestampOrderScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedDeletePrivilegeTimestampOrderScenario,
+      timestampedDeletePrivilegeTimestampOrderContractId,
+      scenarioTimestampedDeletePrivilegeTimestampOrder,
+      scenarioTimestampedDeletePrivilegeTimestampOrderContract);
+}
+
 int runTimestampedAttributeUpdateScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -15943,6 +16035,16 @@ int runTimestampedAttributeTarPostGrantCutoffScenarios(int argc, char** argv) {
       timestampedAttributeTarPostGrantCutoffContractId,
       scenarioTimestampedAttributeUpdateTarPostGrantCutoffPortable,
       scenarioTimestampedAttributeUpdateTarPostGrantCutoffContractPortable);
+}
+
+int runTimestampedAttributeTimeAdvancingCutoffScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedAttributeTimeAdvancingCutoffScenario,
+      timestampedAttributeTimeAdvancingCutoffContractId,
+      scenarioTimestampedAttributeUpdateTimeAdvancingCutoffPortable,
+      scenarioTimestampedAttributeUpdateTimeAdvancingCutoffContractPortable);
 }
 
 int runJavaTimestampedObjectRemovalScenario(int argc, char** argv) {
@@ -16045,6 +16147,18 @@ int runMixedOrderAttributePasselRetractionScenarios(int argc, char** argv) {
       mixedOrderAttributePasselRetractionContractId,
       scenarioMixedOrderAttributePasselRetractionPortable,
       scenarioMixedOrderAttributePasselRetractionContractPortable);
+}
+
+int runTimestampedAttributeImmediateRecipientMultiTransportRetractionScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedAttributeImmediateRecipientMultiTransportRetractionScenario,
+      timestampedAttributeImmediateRecipientMultiTransportRetractionContractId,
+      scenarioTimestampedAttributeImmediateRecipientMultiTransportRetractionPortable,
+      scenarioTimestampedAttributeImmediateRecipientMultiTransportRetractionContractPortable);
 }
 
 int runTimestampedAttributeSenderRegulationTransitionScenarios(
@@ -17803,6 +17917,12 @@ int runTimedSaveRestoreScenarios(int argc, char** argv) {
 }
 
 PortableScenario regionalDdmScenario(std::string const& id) {
+  if (id == timestampedAttributeReflectRegionSnapshotScenario) {
+    return scenarioTimestampedAttributeReflectRegionDesignatorCallbackSnapshot;
+  }
+  if (id == timestampedAttributeReflectRegionSnapshotContractId) {
+    return scenarioTimestampedAttributeReflectRegionDesignatorCallbackSnapshotContract;
+  }
   if (id == regionalMultiAttributeUpdateScenario) {
     return scenarioRegionalMultiAttributeUpdate;
   }
@@ -17865,7 +17985,25 @@ int runRegionalDdmScenarios(int argc, char** argv) {
       }
       auto const started = Clock::now();
       ScenarioResult result{selected, callback.first, "passed", "", 0};
-      if ((selected == allowRelaxedDdmScenario ||
+      if ((selected == timestampedAttributeReflectRegionSnapshotScenario ||
+           selected == timestampedAttributeReflectRegionSnapshotContractId) &&
+          callback.second != rti::HLA_EVOKED) {
+        result.status = "skipped";
+        result.message =
+            "requires HLA_EVOKED for callback-time region-designator queries";
+      } else if ((selected == timestampedAttributeReflectRegionSnapshotScenario ||
+                  selected == timestampedAttributeReflectRegionSnapshotContractId) &&
+                 options.multiAttributeFom.empty()) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-supplied multi-attribute dimensional FOM";
+      } else if ((selected == timestampedAttributeReflectRegionSnapshotScenario ||
+                  selected == timestampedAttributeReflectRegionSnapshotContractId) &&
+                 options.logicalTimeImplementationName.empty()) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-supplied logical-time implementation";
+      } else if ((selected == allowRelaxedDdmScenario ||
            selected == allowRelaxedDdmContractId) &&
           (options.ddmFom.empty() || options.switchesFom.empty())) {
         result.status = "skipped";
@@ -19015,6 +19153,48 @@ bool hasInteractionFddPreferredOrderDefaultScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasAttributeFddPreferredOrderDefaultScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == attributeFddPreferredOrderDefaultScenario ||
+        scenario == attributeFddPreferredOrderDefaultContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedDeletePrivilegePreferredOrderScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedDeletePrivilegePreferredOrderScenario ||
+        scenario == timestampedDeletePrivilegePreferredOrderContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedDeletePrivilegeTimestampOrderScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedDeletePrivilegeTimestampOrderScenario ||
+        scenario == timestampedDeletePrivilegeTimestampOrderContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasTimestampedAttributeUpdateScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -19153,6 +19333,22 @@ bool hasMixedOrderAttributePasselRetractionScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == mixedOrderAttributePasselRetractionScenario ||
         scenario == mixedOrderAttributePasselRetractionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedAttributeImmediateRecipientMultiTransportRetractionScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedAttributeImmediateRecipientMultiTransportRetractionScenario ||
+        scenario == timestampedAttributeImmediateRecipientMultiTransportRetractionContractId) {
       return true;
     }
   }
@@ -19737,6 +19933,22 @@ bool hasTimestampedAttributeTarPostGrantCutoffScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedAttributeTarPostGrantCutoffScenario ||
         scenario == timestampedAttributeTarPostGrantCutoffContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedAttributeTimeAdvancingCutoffScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedAttributeTimeAdvancingCutoffScenario ||
+        scenario == timestampedAttributeTimeAdvancingCutoffContractId) {
       return true;
     }
   }
@@ -23280,6 +23492,15 @@ int main(int argc, char** argv) {
     if (hasInteractionFddPreferredOrderDefaultScenario(argc, argv)) {
       return runInteractionFddPreferredOrderDefaultScenarios(argc, argv);
     }
+    if (hasAttributeFddPreferredOrderDefaultScenario(argc, argv)) {
+      return runAttributeFddPreferredOrderDefaultScenarios(argc, argv);
+    }
+    if (hasTimestampedDeletePrivilegePreferredOrderScenario(argc, argv)) {
+      return runTimestampedDeletePrivilegePreferredOrderScenarios(argc, argv);
+    }
+    if (hasTimestampedDeletePrivilegeTimestampOrderScenario(argc, argv)) {
+      return runTimestampedDeletePrivilegeTimestampOrderScenarios(argc, argv);
+    }
     if (hasJavaTimestampedAttributeUpdateScenario(argc, argv)) {
       return runJavaTimestampedAttributeUpdateScenario(argc, argv);
     }
@@ -23291,6 +23512,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedAttributeTarPostGrantCutoffScenario(argc, argv)) {
       return runTimestampedAttributeTarPostGrantCutoffScenarios(argc, argv);
+    }
+    if (hasTimestampedAttributeTimeAdvancingCutoffScenario(argc, argv)) {
+      return runTimestampedAttributeTimeAdvancingCutoffScenarios(argc, argv);
     }
     if (hasTimestampedAttributeUpdateReenableScenario(argc, argv)) {
       return runTimestampedAttributeUpdateReenableScenarios(argc, argv);
@@ -23313,6 +23537,13 @@ int main(int argc, char** argv) {
     }
     if (hasMixedOrderAttributePasselRetractionScenario(argc, argv)) {
       return runMixedOrderAttributePasselRetractionScenarios(argc, argv);
+    }
+    if (hasTimestampedAttributeImmediateRecipientMultiTransportRetractionScenario(
+            argc,
+            argv)) {
+      return runTimestampedAttributeImmediateRecipientMultiTransportRetractionScenarios(
+          argc,
+          argv);
     }
     if (hasTimestampedAttributeSenderRegulationTransitionScenario(argc, argv)) {
       return runTimestampedAttributeSenderRegulationTransitionScenarios(argc, argv);

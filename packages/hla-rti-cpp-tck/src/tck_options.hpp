@@ -51,6 +51,12 @@ struct Options {
       L"HLAobjectRoot.TckMultiAttributeObject";
   std::wstring multiAttributeFirstName = L"FirstValue";
   std::wstring multiAttributeSecondName = L"SecondValue";
+  std::wstring timestampedAttributePasselObjectClassName =
+      L"HLAobjectRoot.TckTimestampedAttributePasselObject";
+  std::wstring timestampedAttributePasselReliableAttributeName =
+      L"ReliableValue";
+  std::wstring timestampedAttributePasselBestEffortAttributeName =
+      L"BestEffortValue";
   std::wstring threeDimensionalObjectClassName =
       L"HLAobjectRoot.TckThreeDimensionalObject";
   std::wstring threeDimensionalAttributeName = L"Value";

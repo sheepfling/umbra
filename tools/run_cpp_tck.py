@@ -297,6 +297,18 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--multi-attribute-first", default="FirstValue")
     parser.add_argument("--multi-attribute-second", default="SecondValue")
     parser.add_argument(
+        "--timestamped-attribute-passel-object-class",
+        default="HLAobjectRoot.TckTimestampedAttributePasselObject",
+    )
+    parser.add_argument(
+        "--timestamped-attribute-passel-reliable-attribute",
+        default="ReliableValue",
+    )
+    parser.add_argument(
+        "--timestamped-attribute-passel-best-effort-attribute",
+        default="BestEffortValue",
+    )
+    parser.add_argument(
         "--rate-object-class",
         default="HLAobjectRoot.TckRateObject",
     )
@@ -588,6 +600,15 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_OBJECT_CLASS": arguments.multi_attribute_object_class,
         "HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FIRST": arguments.multi_attribute_first,
         "HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_SECOND": arguments.multi_attribute_second,
+        "HLA_RTI_TCK_ADAPTER_TIMESTAMPED_ATTRIBUTE_PASSEL_OBJECT_CLASS": (
+            arguments.timestamped_attribute_passel_object_class
+        ),
+        "HLA_RTI_TCK_ADAPTER_TIMESTAMPED_ATTRIBUTE_PASSEL_RELIABLE_ATTRIBUTE": (
+            arguments.timestamped_attribute_passel_reliable_attribute
+        ),
+        "HLA_RTI_TCK_ADAPTER_TIMESTAMPED_ATTRIBUTE_PASSEL_BEST_EFFORT_ATTRIBUTE": (
+            arguments.timestamped_attribute_passel_best_effort_attribute
+        ),
         "HLA_RTI_TCK_ADAPTER_INTERACTION_CLASS": arguments.interaction_class,
         "HLA_RTI_TCK_ADAPTER_PREFERRED_TIMESTAMP_INTERACTION_CLASS": (
             arguments.preferred_timestamp_interaction_class
@@ -861,6 +882,12 @@ def direct_arguments(
         arguments.multi_attribute_first,
         "--multi-attribute-second",
         arguments.multi_attribute_second,
+        "--timestamped-attribute-passel-object-class",
+        arguments.timestamped_attribute_passel_object_class,
+        "--timestamped-attribute-passel-reliable-attribute",
+        arguments.timestamped_attribute_passel_reliable_attribute,
+        "--timestamped-attribute-passel-best-effort-attribute",
+        arguments.timestamped_attribute_passel_best_effort_attribute,
         "--rate-object-class",
         arguments.rate_object_class,
         "--rate-reliable-attribute",

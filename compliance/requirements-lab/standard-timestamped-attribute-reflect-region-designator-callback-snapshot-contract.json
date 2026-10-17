@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK candidate for callback-time stability of a conveyed region designator during timestamped attribute reflection. The scenario uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It asserts only that the receiver can query the callback-visible designator and observes the sent-time range after the publisher changes its source region. It does not claim provider conformance, timestamp ordering, retraction semantics, or broader DDM behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-attribute-reflect-region-designator-callback-snapshot",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped regional attribute update and region query services with FederateAmbassador timestamped reflection callback",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador timestamped regional attribute reflection declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedAttributeReflectRegionDesignatorCallbackSnapshot",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedAttributeReflectRegionDesignatorCallbackSnapshotContract"
+      ]
+    }
+  ]
+}

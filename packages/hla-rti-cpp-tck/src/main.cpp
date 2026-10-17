@@ -19414,6 +19414,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-inherited-interaction-class-delivery-contract",
       "cpp-tck.directed-interaction-derived-object-target",
       "cpp-tck.directed-interaction-received-class-projection",
+      "cpp-tck.directed-interaction-no-applicable-subscription",
       "cpp-tck.directed-interaction-subscription-accumulation",
       "cpp-tck.directed-interaction-derived-object-target-contract",
       "cpp-tck.directed-derived-object-target-eligibility",
@@ -19654,6 +19655,10 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-interaction-sender-regulation-transition-contract",
       "cpp-tck.interaction-fdd-preferred-order-default",
       "cpp-tck.interaction-fdd-preferred-order-default-contract",
+      "cpp-tck.attribute-fdd-preferred-order-default",
+      "cpp-tck.attribute-fdd-preferred-order-default-contract",
+      "cpp-tck.timestamped-delete-privilege-preferred-order",
+      "cpp-tck.timestamped-delete-privilege-preferred-order-contract",
       "cpp-tck.sent-tso-per-recipient-order-conversion",
       "cpp-tck.sent-tso-per-recipient-order-conversion-contract",
       "cpp-tck.sent-tso-attribute-per-recipient-order-conversion",
@@ -19682,12 +19687,15 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-attribute-order-cohort-contract",
       "cpp-tck.timestamped-attribute-update-queued-passel-retraction-contract",
       "cpp-tck.mixed-order-attribute-passel-retraction-contract",
+      "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction-contract",
       "cpp-tck.timestamped-attribute-sender-regulation-transition-contract",
       "cpp-tck.timestamped-attribute-update-no-fanout-contract",
       "cpp-tck.timestamped-attribute-update-alternate-advances-contract",
       "cpp-tck.timestamped-attribute-update-flush-queue-future-input-contract",
       "cpp-tck.timestamped-attribute-update-reenable-contract",
       "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff-contract",
+      "cpp-tck.timestamped-attribute-update-time-advancing-cutoff-contract",
+      "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot-contract",
       "cpp-tck.timestamped-attribute-source-resignation-contract",
       "cpp-tck.timestamped-attribute-source-resignation-fanout-contract",
       "cpp-tck.timestamped-attribute-update-regulation-reenable-contract",
@@ -19719,10 +19727,12 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-directed-interaction-immediate-source-resignation-contract",
       "cpp-tck.timestamped-attribute-update",
       "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff",
+      "cpp-tck.timestamped-attribute-update-time-advancing-cutoff",
       "cpp-tck.timestamped-attribute-update-ownership-transfer",
       "cpp-tck.timestamped-attribute-update-ownership-transfer-contract",
       "cpp-tck.timestamped-attribute-update-queued-passel-retraction",
       "cpp-tck.mixed-order-attribute-passel-retraction",
+      "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction",
       "cpp-tck.timestamped-attribute-sender-regulation-transition",
       "cpp-tck.timestamped-attribute-source-resignation",
       "cpp-tck.timestamped-attribute-order-cohort",
@@ -19734,6 +19744,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-attribute-source-resignation-fanout",
       "cpp-tck.timestamped-regional-attribute-update",
       "cpp-tck.timestamped-regional-attribute-update-contract",
+      "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot",
       "cpp-tck.timestamped-regional-attribute-alternate-advances",
       "cpp-tck.timestamped-regional-attribute-alternate-advances-contract",
       "cpp-tck.timestamped-regional-attribute-association-replacement",
@@ -20381,6 +20392,17 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--multi-attribute-second") {
       requireValue(index, argc, argv, argument);
       options.multiAttributeSecondName = toWide(argv[++index]);
+    } else if (argument == "--timestamped-attribute-passel-object-class") {
+      requireValue(index, argc, argv, argument);
+      options.timestampedAttributePasselObjectClassName = toWide(argv[++index]);
+    } else if (argument == "--timestamped-attribute-passel-reliable-attribute") {
+      requireValue(index, argc, argv, argument);
+      options.timestampedAttributePasselReliableAttributeName =
+          toWide(argv[++index]);
+    } else if (argument == "--timestamped-attribute-passel-best-effort-attribute") {
+      requireValue(index, argc, argv, argument);
+      options.timestampedAttributePasselBestEffortAttributeName =
+          toWide(argv[++index]);
     } else if (argument == "--rate-object-class") {
       requireValue(index, argc, argv, argument);
       options.rateObjectClassName = toWide(argv[++index]);
@@ -21431,6 +21453,24 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.interaction-fdd-preferred-order-default-contract") {
     return scenarioInteractionFddPreferredOrderDefaultContract;
   }
+  if (id == "cpp-tck.attribute-fdd-preferred-order-default") {
+    return scenarioAttributeFddPreferredOrderDefault;
+  }
+  if (id == "cpp-tck.attribute-fdd-preferred-order-default-contract") {
+    return scenarioAttributeFddPreferredOrderDefaultContract;
+  }
+  if (id == "cpp-tck.timestamped-delete-privilege-preferred-order") {
+    return scenarioTimestampedDeletePrivilegePreferredOrder;
+  }
+  if (id == "cpp-tck.timestamped-delete-privilege-preferred-order-contract") {
+    return scenarioTimestampedDeletePrivilegePreferredOrderContract;
+  }
+  if (id == "cpp-tck.timestamped-delete-privilege-timestamp-order") {
+    return scenarioTimestampedDeletePrivilegeTimestampOrder;
+  }
+  if (id == "cpp-tck.timestamped-delete-privilege-timestamp-order-contract") {
+    return scenarioTimestampedDeletePrivilegeTimestampOrderContract;
+  }
   if (id == "cpp-tck.sent-tso-per-recipient-order-conversion") {
     return scenarioSentTsoPerRecipientOrderConversion;
   }
@@ -21512,6 +21552,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.mixed-order-attribute-passel-retraction-contract") {
     return scenarioMixedOrderAttributePasselRetractionContract;
   }
+  if (id == "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction-contract") {
+    return scenarioTimestampedAttributeImmediateRecipientMultiTransportRetractionContract;
+  }
   if (id == "cpp-tck.timestamped-attribute-sender-regulation-transition-contract") {
     return scenarioTimestampedAttributeSenderRegulationTransitionContract;
   }
@@ -21529,6 +21572,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff-contract") {
     return scenarioTimestampedAttributeUpdateTarPostGrantCutoffContract;
+  }
+  if (id == "cpp-tck.timestamped-attribute-update-time-advancing-cutoff-contract") {
+    return scenarioTimestampedAttributeUpdateTimeAdvancingCutoffContract;
+  }
+  if (id == "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot-contract") {
+    return scenarioTimestampedAttributeReflectRegionDesignatorCallbackSnapshotContract;
   }
   if (id == "cpp-tck.timestamped-attribute-source-resignation-contract") {
     return scenarioTimestampedAttributeSourceResignationContract;
@@ -21623,6 +21672,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff") {
     return scenarioTimestampedAttributeUpdateTarPostGrantCutoff;
   }
+  if (id == "cpp-tck.timestamped-attribute-update-time-advancing-cutoff") {
+    return scenarioTimestampedAttributeUpdateTimeAdvancingCutoff;
+  }
   if (id == "cpp-tck.timestamped-attribute-update-ownership-transfer") {
     return scenarioTimestampedAttributeUpdateOwnershipTransfer;
   }
@@ -21634,6 +21686,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.mixed-order-attribute-passel-retraction") {
     return scenarioMixedOrderAttributePasselRetraction;
+  }
+  if (id == "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction") {
+    return scenarioTimestampedAttributeImmediateRecipientMultiTransportRetraction;
   }
   if (id == "cpp-tck.timestamped-attribute-sender-regulation-transition") {
     return scenarioTimestampedAttributeSenderRegulationTransition;
@@ -21667,6 +21722,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.timestamped-regional-attribute-update-contract") {
     return scenarioTimestampedRegionalAttributeUpdateContract;
+  }
+  if (id == "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot") {
+    return scenarioTimestampedAttributeReflectRegionDesignatorCallbackSnapshot;
+  }
+  if (id == "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot-contract") {
+    return scenarioTimestampedAttributeReflectRegionDesignatorCallbackSnapshotContract;
   }
   if (id == "cpp-tck.timestamped-regional-attribute-alternate-advances") {
     return scenarioTimestampedRegionalAttributeAlternateAdvances;
@@ -22626,6 +22687,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.directed-interaction-received-class-projection") {
     return scenarioDirectedInteractionReceivedClassProjection;
   }
+  if (id == "cpp-tck.directed-interaction-no-applicable-subscription") {
+    return scenarioDirectedInteractionNoApplicableSubscription;
+  }
   if (id == "cpp-tck.directed-interaction-subscription-accumulation") {
     return scenarioDirectedInteractionSubscriptionAccumulation;
   }
@@ -22944,6 +23008,7 @@ int run(Options const& options) {
                    scenario == "cpp-tck.timestamped-inherited-interaction-class-delivery-contract" ||
                     scenario == "cpp-tck.directed-interaction-derived-object-target" ||
                     scenario == "cpp-tck.directed-interaction-received-class-projection" ||
+                    scenario == "cpp-tck.directed-interaction-no-applicable-subscription" ||
                     scenario == "cpp-tck.directed-interaction-subscription-accumulation" ||
                     scenario == "cpp-tck.directed-interaction-derived-object-target-contract" ||
                     scenario == "cpp-tck.directed-derived-object-target-eligibility" ||
@@ -23073,13 +23138,23 @@ int run(Options const& options) {
                  options.autoProvideFom.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied Auto Provide FOM";
-      } else if (scenario == "cpp-tck.regional-multi-attribute-update" &&
+      } else if ((scenario == "cpp-tck.regional-multi-attribute-update" ||
+                  scenario == "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot" ||
+                  scenario == "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot-contract") &&
                  options.multiAttributeFom.empty()) {
         result.status = "skipped";
         result.message =
             "requires an adapter-supplied multi-attribute dimensional FOM";
-      } else if ((scenario == "cpp-tck.mixed-order-attribute-passel-retraction" ||
+      } else if ((scenario == "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot" ||
+                  scenario == "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot-contract") &&
+                 options.logicalTimeImplementationName.empty()) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-supplied logical-time implementation";
+       } else if ((scenario == "cpp-tck.mixed-order-attribute-passel-retraction" ||
                   scenario == "cpp-tck.mixed-order-attribute-passel-retraction-contract" ||
+                   scenario == "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction" ||
+                   scenario == "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-queued-passel-retraction" ||
                   scenario == "cpp-tck.timestamped-attribute-update-queued-passel-retraction-contract" ||
                   scenario == "cpp-tck.partial-attribute-ownership-transfer" ||
@@ -23242,6 +23317,12 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-interaction-sender-regulation-transition-contract" ||
                   scenario == "cpp-tck.interaction-fdd-preferred-order-default" ||
                   scenario == "cpp-tck.interaction-fdd-preferred-order-default-contract" ||
+                  scenario == "cpp-tck.attribute-fdd-preferred-order-default" ||
+                  scenario == "cpp-tck.attribute-fdd-preferred-order-default-contract" ||
+                  scenario == "cpp-tck.timestamped-delete-privilege-preferred-order" ||
+                  scenario == "cpp-tck.timestamped-delete-privilege-preferred-order-contract" ||
+                  scenario == "cpp-tck.timestamped-delete-privilege-timestamp-order" ||
+                  scenario == "cpp-tck.timestamped-delete-privilege-timestamp-order-contract" ||
                   scenario == "cpp-tck.sent-tso-per-recipient-order-conversion" ||
                   scenario == "cpp-tck.sent-tso-per-recipient-order-conversion-contract" ||
                   scenario == "cpp-tck.sent-tso-attribute-per-recipient-order-conversion" ||
@@ -23266,6 +23347,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-attribute-update-flush-queue-future-input-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-reenable-contract" ||
                    scenario == "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff-contract" ||
+                  scenario == "cpp-tck.timestamped-attribute-update-time-advancing-cutoff-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-source-resignation-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-source-resignation-fanout-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-regulation-reenable-contract" ||
@@ -23305,8 +23387,10 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-attribute-update-ownership-transfer" ||
                   scenario == "cpp-tck.timestamped-attribute-update-ownership-transfer-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-queued-passel-retraction" ||
-                   scenario == "cpp-tck.mixed-order-attribute-passel-retraction" ||
-                   scenario == "cpp-tck.mixed-order-attribute-passel-retraction-contract" ||
+                    scenario == "cpp-tck.mixed-order-attribute-passel-retraction" ||
+                    scenario == "cpp-tck.mixed-order-attribute-passel-retraction-contract" ||
+                    scenario == "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction" ||
+                    scenario == "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction-contract" ||
                    scenario == "cpp-tck.timestamped-attribute-sender-regulation-transition" ||
                    scenario == "cpp-tck.timestamped-attribute-sender-regulation-transition-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-source-resignation" ||
@@ -23317,6 +23401,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-attribute-update-flush-queue-future-input" ||
                   scenario == "cpp-tck.timestamped-attribute-update-reenable" ||
                    scenario == "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff" ||
+                  scenario == "cpp-tck.timestamped-attribute-update-time-advancing-cutoff" ||
                   scenario == "cpp-tck.timestamped-attribute-update-regulation-reenable" ||
                   scenario == "cpp-tck.timestamped-attribute-source-resignation-fanout" ||
                   scenario == "cpp-tck.timestamped-regional-attribute-update" ||
@@ -23449,6 +23534,12 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-interaction-sender-regulation-transition-contract" ||
                   scenario == "cpp-tck.interaction-fdd-preferred-order-default" ||
                   scenario == "cpp-tck.interaction-fdd-preferred-order-default-contract" ||
+                  scenario == "cpp-tck.attribute-fdd-preferred-order-default" ||
+                  scenario == "cpp-tck.attribute-fdd-preferred-order-default-contract" ||
+                  scenario == "cpp-tck.timestamped-delete-privilege-preferred-order" ||
+                  scenario == "cpp-tck.timestamped-delete-privilege-preferred-order-contract" ||
+                  scenario == "cpp-tck.timestamped-delete-privilege-timestamp-order" ||
+                  scenario == "cpp-tck.timestamped-delete-privilege-timestamp-order-contract" ||
                   scenario == "cpp-tck.sent-tso-per-recipient-order-conversion" ||
                   scenario == "cpp-tck.sent-tso-per-recipient-order-conversion-contract" ||
                   scenario == "cpp-tck.sent-tso-attribute-per-recipient-order-conversion" ||

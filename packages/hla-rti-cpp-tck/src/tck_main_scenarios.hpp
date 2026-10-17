@@ -150,6 +150,12 @@ void scenarioTimestampedInteractionSenderRegulationTransition(Options const&, rt
 void scenarioTimestampedInteractionSenderRegulationTransitionContract(Options const&, rti::CallbackModel);
 void scenarioInteractionFddPreferredOrderDefault(Options const&, rti::CallbackModel);
 void scenarioInteractionFddPreferredOrderDefaultContract(Options const&, rti::CallbackModel);
+void scenarioAttributeFddPreferredOrderDefault(Options const&, rti::CallbackModel);
+void scenarioAttributeFddPreferredOrderDefaultContract(Options const&, rti::CallbackModel);
+void scenarioTimestampedDeletePrivilegePreferredOrder(Options const&, rti::CallbackModel);
+void scenarioTimestampedDeletePrivilegePreferredOrderContract(Options const&, rti::CallbackModel);
+void scenarioTimestampedDeletePrivilegeTimestampOrder(Options const&, rti::CallbackModel);
+void scenarioTimestampedDeletePrivilegeTimestampOrderContract(Options const&, rti::CallbackModel);
 void scenarioSentTsoPerRecipientOrderConversion(Options const&, rti::CallbackModel);
 void scenarioSentTsoPerRecipientOrderConversionContract(Options const&, rti::CallbackModel);
 void scenarioObjectDeletion(Options const&, rti::CallbackModel);
@@ -264,6 +270,10 @@ void scenarioTimestampedAttributeUpdateTarPostGrantCutoff(
     Options const&, rti::CallbackModel);
 void scenarioTimestampedAttributeUpdateTarPostGrantCutoffContract(
     Options const&, rti::CallbackModel);
+void scenarioTimestampedAttributeUpdateTimeAdvancingCutoff(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedAttributeUpdateTimeAdvancingCutoffContract(
+    Options const&, rti::CallbackModel);
 void scenarioTimestampedAttributeUpdateAlternateAdvances(Options const&, rti::CallbackModel);
 void scenarioTimestampedAttributeUpdateAlternateAdvancesContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedAttributeUpdateContract(Options const&, rti::CallbackModel);
@@ -276,6 +286,10 @@ void scenarioTimestampedAttributeUpdateOwnershipTransferContract(Options const&,
 void scenarioTimestampedAttributeUpdateQueuedPasselRetraction(Options const&, rti::CallbackModel);
 void scenarioMixedOrderAttributePasselRetraction(Options const&, rti::CallbackModel);
 void scenarioMixedOrderAttributePasselRetractionContract(Options const&, rti::CallbackModel);
+void scenarioTimestampedAttributeImmediateRecipientMultiTransportRetraction(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedAttributeImmediateRecipientMultiTransportRetractionContract(
+    Options const&, rti::CallbackModel);
 void scenarioTimestampedAttributeSenderRegulationTransition(Options const&, rti::CallbackModel);
 void scenarioTimestampedAttributeSenderRegulationTransitionContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedAttributeUpdateQueuedPasselRetractionContract(Options const&, rti::CallbackModel);
@@ -639,6 +653,10 @@ void scenarioTimestampedRegionalAttributeSourceResignation(Options const&, rti::
 void scenarioTimestampedRegionalAttributeSourceResignationContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedRegionalAttributeUpdate(Options const&, rti::CallbackModel);
 void scenarioTimestampedRegionalAttributeUpdateContract(Options const&, rti::CallbackModel);
+void scenarioTimestampedAttributeReflectRegionDesignatorCallbackSnapshot(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedAttributeReflectRegionDesignatorCallbackSnapshotContract(
+    Options const&, rti::CallbackModel);
 void scenarioTimestampedRegionalInteractionAlternateAdvances(Options const&, rti::CallbackModel);
 void scenarioTimestampedRegionalInteractionAlternateAdvancesContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedRegionalInteractionContract(Options const&, rti::CallbackModel);

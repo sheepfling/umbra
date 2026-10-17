@@ -533,25 +533,32 @@ class Recorder final : public rti::FederateAmbassador {
       rti::OrderType sentOrder,
       rti::OrderType receivedOrder,
       rti::MessageRetractionHandle const* optionalRetraction) override {
-    std::lock_guard<std::mutex> lock(mutex_);
-    timedReflections_.push_back(TimedReflectionRecord{
-        object,
-        values,
-        copyBytes(tag),
-        transportation,
-        producer,
-        copyBytes(time.encode()),
-        time.toString(),
-        sentOrder,
-        receivedOrder,
-        optionalRetraction != nullptr,
-        optionalRetraction == nullptr ? std::vector<std::uint8_t>{}
-                                      : copyBytes(optionalRetraction->encode()),
-        regions == nullptr
-            ? std::nullopt
-            : std::optional<rti::RegionHandleSet>(*regions),
-    });
-    callbackOrder_.push_back("reflect");
+    std::function<void(rti::RegionHandleSet const*)> hook;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      timedReflections_.push_back(TimedReflectionRecord{
+          object,
+          values,
+          copyBytes(tag),
+          transportation,
+          producer,
+          copyBytes(time.encode()),
+          time.toString(),
+          sentOrder,
+          receivedOrder,
+          optionalRetraction != nullptr,
+          optionalRetraction == nullptr ? std::vector<std::uint8_t>{}
+                                        : copyBytes(optionalRetraction->encode()),
+          regions == nullptr
+              ? std::nullopt
+              : std::optional<rti::RegionHandleSet>(*regions),
+      });
+      callbackOrder_.push_back("reflect");
+      hook = timedReflectionHook_;
+    }
+    if (hook) {
+      hook(regions);
+    }
   }
 
   void receiveInteraction(
@@ -1321,6 +1328,12 @@ class Recorder final : public rti::FederateAmbassador {
     ownershipReleaseHook_ = std::move(hook);
   }
 
+  void setTimedReflectionHook(
+      std::function<void(rti::RegionHandleSet const*)> hook) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    timedReflectionHook_ = std::move(hook);
+  }
+
   std::optional<OwnershipEventRecord> ownershipAcquisitionCancellation() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return ownershipAcquisitionCancellation_;
@@ -1554,6 +1567,7 @@ class Recorder final : public rti::FederateAmbassador {
       rti::ObjectInstanceHandle const&,
       rti::AttributeHandleSet const&,
       rti::VariableLengthData const&)> ownershipReleaseHook_;
+  std::function<void(rti::RegionHandleSet const*)> timedReflectionHook_;
   std::optional<OwnershipEventRecord> ownershipAcquisitionCancellation_;
   std::optional<OwnershipEventRecord> ownershipNotOwned_;
   std::vector<OwnershipEventRecord> ownershipNotOwnedEvents_;

@@ -12368,6 +12368,30 @@
         "cpp-1516.1-object-instance-deletion",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l110-32"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.16.4",
+        "hla-1516.1-2025:clause-6.17.1"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l123-34", "standard_section": "hla-1516.1-2025:clause-6.16" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39", "standard_section": "hla-1516.1-2025:clause-6.16" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l144-41", "standard_section": "hla-1516.1-2025:clause-6.16" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l167-50", "standard_section": "hla-1516.1-2025:clause-6.16.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1", "standard_section": "hla-1516.1-2025:clause-6.16.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29", "standard_section": "hla-1516.1-2025:clause-6.17.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32", "standard_section": "hla-1516.1-2025:clause-6.17.1" }
+      ],
+      "mapping_note": "Direct pairs follow the precise ordinary-deletion trace: page-129-l123-34, page-129-l138-39, and page-129-l144-41 -> §6.16; page-130-l167-50 and page-130-l8-1 -> §6.16.4 tag handling; page-131-l101-29 and page-131-l110-32 -> §6.17.1 removal callback delivery. The scenario verifies two ordinary deletions and matching object handle, tag, and producer at each active subscriber. The per-recipient FIFO comparison and absence of owner loopback are supplemental observations, not separate normative claims. Installed-package CTests passed 4/4 and direct runs passed 4/4 across evoked/immediate models (evidence: out/mgw/object-removal-multi-recipient-adapter-ctest-20261017.json/.xml); this is execution evidence, not a provider-independent conformance claim.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -12381,7 +12405,7 @@
         "resign-action-requirements-contract.json",
         "standard-object-removal-multi-recipient-fifo-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioObjectRemovalMultiRecipientFifo",
+      "cpp_test": "src/tck_object_removal_fanout_scenarios.cpp#scenarioObjectRemovalMultiRecipientFifo",
       "runner_id": "cpp-tck.object-removal-multi-recipient-fifo",
       "parity": "java-tck.object-removal-multi-recipient-fifo",
       "default_status": "adapter-required",
@@ -12412,10 +12436,34 @@
         "cpp-1516.1-object-instance-deletion",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l110-32"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.16.4",
+        "hla-1516.1-2025:clause-6.17.1"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l123-34", "standard_section": "hla-1516.1-2025:clause-6.16" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39", "standard_section": "hla-1516.1-2025:clause-6.16" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l144-41", "standard_section": "hla-1516.1-2025:clause-6.16" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l167-50", "standard_section": "hla-1516.1-2025:clause-6.16.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1", "standard_section": "hla-1516.1-2025:clause-6.16.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29", "standard_section": "hla-1516.1-2025:clause-6.17.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32", "standard_section": "hla-1516.1-2025:clause-6.17.1" }
+      ],
+      "mapping_note": "Direct pairs follow the precise ordinary-deletion trace: page-129-l123-34, page-129-l138-39, and page-129-l144-41 -> §6.16; page-130-l167-50 and page-130-l8-1 -> §6.16.4 tag handling; page-131-l101-29 and page-131-l110-32 -> §6.17.1 removal callback delivery. The scenario verifies two ordinary deletions and matching object handle, tag, and producer at each active subscriber. The per-recipient FIFO comparison and absence of owner loopback are supplemental observations, not separate normative claims. Installed-package CTests passed 4/4 and direct runs passed 4/4 across evoked/immediate models (evidence: out/mgw/object-removal-multi-recipient-adapter-ctest-20261017.json/.xml); this is execution evidence, not a provider-independent conformance claim.",
       "contract_refs": [
         "standard-object-removal-multi-recipient-fifo-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioObjectRemovalMultiRecipientFifoContract",
+      "cpp_test": "src/tck_object_removal_fanout_scenarios.cpp#scenarioObjectRemovalMultiRecipientFifoContract",
       "runner_id": "cpp-tck.object-removal-multi-recipient-fifo-contract",
       "parity": "cpp-tck.object-removal-multi-recipient-fifo",
       "default_status": "adapter-required",
@@ -15425,6 +15473,43 @@
         "cpp-1516.1-ownership-management",
         "cpp-1516.1-time-advance-request"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l98-27",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l16-3",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l58-17",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l82-25",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l42-13",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l57-17"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-7",
+        "hla-1516.1-2025:clause-7.2",
+        "hla-1516.1-2025:clause-8.1.4"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l98-27", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17", "standard_section": "hla-1516.1-2025:clause-6.11" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l16-3", "standard_section": "hla-1516.1-2025:clause-7" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l58-17", "standard_section": "hla-1516.1-2025:clause-7" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l82-25", "standard_section": "hla-1516.1-2025:clause-7" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l42-13", "standard_section": "hla-1516.1-2025:clause-7.2" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49", "standard_section": "hla-1516.1-2025:clause-7.2" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17", "standard_section": "hla-1516.1-2025:clause-8.1.4" }
+      ],
+      "mapping_note": "Direct mappings reproduce the equivalent native case's 12 exact Requirements Lab-to-IEEE 1516.1-2025 pairs. Assertions cover accepted TSO Update Attribute Values and retraction-handle creation (§6.10); receiver reflection, timestamp and retraction metadata, and passelization (§6.11/§6.11.1); ownership transfer and callbacks (§7/§7.2); and reflection before grant (§8.1.4). The post-divestiture reflection is tested as an observed cross-service sequence, not asserted as an ownership-specific normative rule beyond these mapped statements. Installed-package adapter CTests passed under both callback models (evidence: out/mgw/timestamped-attribute-ownership-transfer-adapter-ctest-20261017.json); this is execution evidence, not a provider-independent conformance claim.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json",
@@ -15484,6 +15569,43 @@
         "cpp-1516.1-ownership-management",
         "cpp-1516.1-time-advance-request"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l98-27",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l16-3",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l58-17",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l82-25",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l42-13",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l57-17"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-7",
+        "hla-1516.1-2025:clause-7.2",
+        "hla-1516.1-2025:clause-8.1.4"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l98-27", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17", "standard_section": "hla-1516.1-2025:clause-6.11" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l16-3", "standard_section": "hla-1516.1-2025:clause-7" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l58-17", "standard_section": "hla-1516.1-2025:clause-7" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l82-25", "standard_section": "hla-1516.1-2025:clause-7" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l42-13", "standard_section": "hla-1516.1-2025:clause-7.2" },
+        { "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49", "standard_section": "hla-1516.1-2025:clause-7.2" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17", "standard_section": "hla-1516.1-2025:clause-8.1.4" }
+      ],
+      "mapping_note": "Direct mappings reproduce the equivalent native case's 12 exact Requirements Lab-to-IEEE 1516.1-2025 pairs. Assertions cover accepted TSO Update Attribute Values and retraction-handle creation (§6.10); receiver reflection, timestamp and retraction metadata, and passelization (§6.11/§6.11.1); ownership transfer and callbacks (§7/§7.2); and reflection before grant (§8.1.4). The post-divestiture reflection is tested as an observed cross-service sequence, not asserted as an ownership-specific normative rule beyond these mapped statements. Installed-package adapter CTests passed under both callback models (evidence: out/mgw/timestamped-attribute-ownership-transfer-adapter-ctest-20261017.json); this is execution evidence, not a provider-independent conformance claim.",
       "contract_refs": [
         "standard-timestamped-attribute-update-ownership-transfer-contract.json"
       ],
@@ -15871,6 +15993,138 @@
       "cpp_test": "src/portable_tck.cpp#scenarioMixedOrderAttributePasselRetractionContractPortable",
       "runner_id": "cpp-tck.mixed-order-attribute-passel-retraction-contract",
       "parity": "java-tck.mixed-order-attribute-passel-retraction",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction",
+      "category": "timestamped-attribute-immediate-recipient-multi-transport-retraction",
+      "title": "Deliver and retract a timestamped attribute update split across reliable and best-effort passels",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.retract",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.requestRetraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "cpp-1516.1-attribute-update-retraction"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l98-27",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
+        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+        "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.4",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l98-27", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17", "standard_section": "hla-1516.1-2025:clause-6.11" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17", "standard_section": "hla-1516.1-2025:clause-8.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26", "standard_section": "hla-1516.1-2025:clause-8.1.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6", "standard_section": "hla-1516.1-2025:clause-8.22.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22", "standard_section": "hla-1516.1-2025:clause-8.23.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27", "standard_section": "hla-1516.1-2025:clause-8.23.3" }
+      ],
+      "mapping_note": "Direct mapping is limited to the timestamped attribute-update service, per-attribute declaration and reflected metadata, sent TIMESTAMP/received RECEIVE order, Retract of the delivered message, and the recipient-local Request Retraction callback with the same designator. The test requires two distinct standard transportation passels and exactly one retraction callback; adapter setup and cleanup are supplemental. The Java parity source compiles against the official API-only JAR; Java provider runtime remains unverified. This is portable API evidence, not a conformance claim.",
+      "contract_refs": [
+        "standard-timestamped-attribute-immediate-recipient-multi-transport-retraction-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeImmediateRecipientMultiTransportRetractionPortable",
+      "runner_id": "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction",
+      "parity": "java-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction-contract",
+      "category": "timestamped-attribute-immediate-recipient-multi-transport-retraction",
+      "title": "Portable contract twin for multi-transport timestamped attribute retraction after immediate delivery",
+      "api_methods": [
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.retract",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.requestRetraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "cpp-1516.1-attribute-update-retraction"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l98-27",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
+        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+        "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-8.1.4",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.22.3",
+        "hla-1516.1-2025:clause-8.23.3"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l98-27", "standard_section": "hla-1516.1-2025:clause-6.10" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17", "standard_section": "hla-1516.1-2025:clause-6.11" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37", "standard_section": "hla-1516.1-2025:clause-6.11.1" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17", "standard_section": "hla-1516.1-2025:clause-8.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26", "standard_section": "hla-1516.1-2025:clause-8.1.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6", "standard_section": "hla-1516.1-2025:clause-8.22.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22", "standard_section": "hla-1516.1-2025:clause-8.23.3" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27", "standard_section": "hla-1516.1-2025:clause-8.23.3" }
+      ],
+      "mapping_note": "The contract twin delegates to the same focused standard-API scenario and retains its narrow result: two transport-specific timestamped reflection passels share the sent retraction designator, and Retract produces one matching recipient-local callback after delivery. It does not add normative claims beyond the listed clauses.",
+      "contract_refs": [
+        "standard-timestamped-attribute-immediate-recipient-multi-transport-retraction-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeImmediateRecipientMultiTransportRetractionContractPortable",
+      "runner_id": "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction-contract",
+      "parity": "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -16902,6 +17156,109 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-attribute-update-time-advancing-cutoff",
+      "category": "timestamped-attribute-update-time-advancing-cutoff",
+      "title": "Reject attribute-update timestamps below requested TAR time plus lookahead while advancing",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType(TIMESTAMP)",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-time-advance-and-grant"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-121-l132-39",
+        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-8.1.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-121-l132-39",
+          "standard_section": "hla-1516.1-2025:clause-6.10.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+          "standard_section": "hla-1516.1-2025:clause-8.1.5"
+        }
+      ],
+      "mapping_note": "At initial time 0, the sender has lookahead 5 and is held in TAR(10) by a peer regulator. Timestamp 14 raises InvalidLogicalTime, while equality 15 and later time 16 are accepted. Direct coverage is limited to the timestamped Update Attribute Values overload and the requested-time-plus-lookahead rule while Time Advancing; no reflection, other TSO services, or conformance is claimed.",
+      "contract_refs": [
+        "timestamped-attribute-update-api-contract.json",
+        "timestamped-attribute-update-requirements-contract.json",
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json"
+      ],
+      "cpp_test": "src/tck_timestamped_attribute_update_time_advancing_cutoff.cpp#scenarioTimestampedAttributeUpdateTimeAdvancingCutoff",
+      "runner_id": "cpp-tck.timestamped-attribute-update-time-advancing-cutoff",
+      "parity": "java-tck.timestamped-attribute-update-time-advancing-cutoff",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-attribute-update-time-advancing-cutoff-contract",
+      "category": "timestamped-attribute-update-time-advancing-cutoff",
+      "title": "Portable standard contract for the timestamped attribute TAR lookahead bound",
+      "api_methods": [
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-time-advance-and-grant"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-121-l132-39",
+        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-8.1.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-121-l132-39",
+          "standard_section": "hla-1516.1-2025:clause-6.10.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+          "standard_section": "hla-1516.1-2025:clause-8.1.5"
+        }
+      ],
+      "mapping_note": "The contract twin repeats the pending TAR(10) setup with lookahead 5, requires timestamp 14 to fail as InvalidLogicalTime, and accepts timestamps 15 and 16. It maps only the §6.10.5 timestamped update overload and §8.1.5 advancing-state bound.",
+      "contract_refs": [
+        "timestamped-attribute-update-requirements-contract.json",
+        "time-advance-requirements-contract.json"
+      ],
+      "cpp_test": "src/tck_timestamped_attribute_update_time_advancing_cutoff.cpp#scenarioTimestampedAttributeUpdateTimeAdvancingCutoffContract",
+      "runner_id": "cpp-tck.timestamped-attribute-update-time-advancing-cutoff-contract",
+      "parity": "cpp-tck.timestamped-attribute-update-time-advancing-cutoff",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-attribute-source-resignation-fanout",
       "category": "timestamped-attribute-source-resignation-fanout",
       "title": "Preserve a queued timestamped attribute update for each recipient after source resignation",
@@ -17071,6 +17428,87 @@
       "parity": "cpp-tck.timestamped-regional-attribute-update",
       "default_status": "adapter-required",
       "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot",
+      "category": "timestamped-attribute-reflect-region-designator-callback-snapshot",
+      "title": "Preserve sent-time conveyed DDM region designators through callback-time source mutation",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType(TIMESTAMP)",
+        "RTIambassador.createRegion",
+        "RTIambassador.setRangeBounds",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.getDimensionHandleSet",
+        "RTIambassador.getRangeBounds",
+        "FederateAmbassador.reflectAttributeValues(time)"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30",
+          "standard_section": "hla-1516.1-2025:clause-9.1.8"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to the §9.1.8 callback-copy stability requirement: during timestamped reflection the receiver queries its conveyed region designator, the publisher changes and commits its source range from [1,3] to [0,2], and the receiver verifies the callback-visible designator remains queryable at [1,3]. The class, attribute, dimension, FOM, and runtime settings come from the adapter. Timestamp/order/retraction metadata are contextual or supplemental. The native witness is verified; both current-package evoked CTests fail because the installed package returns InvalidRegion from getDimensionHandleSet on the callback-conveyed designator. The scenarios remain candidates and make no provider-conformance claim. Java parity is deferred until the portable C++ adapter gate is green.",
+      "contract_refs": [
+        "standard-timestamped-attribute-reflect-region-designator-callback-snapshot-contract.json"
+      ],
+      "cpp_test": "src/tck_timestamped_attribute_reflect_region_snapshot.cpp#scenarioTimestampedAttributeReflectRegionDesignatorCallbackSnapshot",
+      "runner_id": "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot",
+      "parity": "C++-only; Java parity deferred until this API behavior is ported.",
+      "default_status": "adapter-required",
+      "promotion": "candidate"
+    },
+    {
+      "id": "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot-contract",
+      "category": "timestamped-attribute-reflect-region-designator-callback-snapshot",
+      "title": "Portable standard contract for timestamped callback-scoped region-designator snapshot stability",
+      "api_methods": [
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.getDimensionHandleSet",
+        "RTIambassador.getRangeBounds",
+        "FederateAmbassador.reflectAttributeValues(time)"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30",
+          "standard_section": "hla-1516.1-2025:clause-9.1.8"
+        }
+      ],
+      "mapping_note": "The contract wrapper exercises the same narrow §9.1.8 callback-copy stability assertions as cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot. Both current-package evoked CTests fail because the installed package returns InvalidRegion from getDimensionHandleSet on the callback-conveyed designator; this scenario remains a candidate and makes no provider-conformance claim.",
+      "contract_refs": [
+        "standard-timestamped-attribute-reflect-region-designator-callback-snapshot-contract.json"
+      ],
+      "cpp_test": "src/tck_timestamped_attribute_reflect_region_snapshot.cpp#scenarioTimestampedAttributeReflectRegionDesignatorCallbackSnapshotContract",
+      "runner_id": "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot-contract",
+      "parity": "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot",
+      "default_status": "adapter-required",
+      "promotion": "candidate"
     },
     {
       "id": "cpp-tck.timestamped-regional-attribute-alternate-advances",
@@ -19556,6 +19994,146 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-delete-privilege-preferred-order",
+      "category": "time-management",
+      "title": "Timestamped object deletion uses the live preferred order of HLAprivilegeToDeleteObject",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.changeAttributeOrderType",
+        "RTIambassador.deleteObjectInstance(LogicalTime)",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.removeObjectInstance(LogicalTime)"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-object-deletion",
+        "cpp-1516.1-timestamped-object-removal"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l93-28"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l93-28", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "mapping_note": "Direct §8.1.4 witness for page-180 line 93: change the registered object's standard HLAprivilegeToDeleteObject attribute order to RECEIVE, issue timestamped Delete Object Instance, and require one Remove Object Instance callback with sent/received RECEIVE while preserving the supplied timestamp, tag, and producer and carrying no retraction handle. This tests only the RECEIVE-preferred deletion branch, not the full order matrix or conformance.",
+      "contract_refs": [
+        "timestamped-object-deletion-api-contract.json",
+        "timestamped-object-deletion-requirements-contract.json"
+      ],
+      "cpp_test": "src/tck_timestamped_delete_privilege_preferred_order.cpp#scenarioTimestampedDeletePrivilegePreferredOrder",
+      "runner_id": "cpp-tck.timestamped-delete-privilege-preferred-order",
+      "parity": "java-tck.timestamped-delete-privilege-preferred-order",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-delete-privilege-preferred-order-contract",
+      "category": "time-management",
+      "title": "Standard adapter-backed contract for timestamped delete privilege order",
+      "api_methods": [
+        "RTIambassador.changeAttributeOrderType",
+        "RTIambassador.deleteObjectInstance(LogicalTime)",
+        "FederateAmbassador.removeObjectInstance(LogicalTime)"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-object-deletion",
+        "cpp-1516.1-timestamped-object-removal"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l93-28"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l93-28", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "mapping_note": "The contract twin directly checks the §8.1.4 RECEIVE-preferred Delete Object Instance branch and the timestamped Remove Object Instance callback metadata; no broader order matrix or conformance claim is made.",
+      "contract_refs": ["timestamped-object-deletion-requirements-contract.json"],
+      "cpp_test": "src/tck_timestamped_delete_privilege_preferred_order.cpp#scenarioTimestampedDeletePrivilegePreferredOrderContract",
+      "runner_id": "cpp-tck.timestamped-delete-privilege-preferred-order-contract",
+      "parity": "cpp-tck.timestamped-delete-privilege-preferred-order",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-delete-privilege-timestamp-order",
+      "category": "time-management",
+      "title": "Timestamped object deletion uses the live TIMESTAMP order of HLAprivilegeToDeleteObject",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.changeAttributeOrderType",
+        "RTIambassador.deleteObjectInstance(LogicalTime)",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.removeObjectInstance(LogicalTime)"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-object-deletion",
+        "cpp-1516.1-timestamped-object-removal"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l93-28"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l93-28", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "mapping_note": "Direct §8.1.4 witness for page-180 line 93: change the sender's registered object's standard HLAprivilegeToDeleteObject attribute order to TIMESTAMP, issue timestamped Delete Object Instance, and require one timestamped Remove Object Instance callback preserving the supplied timestamp, tag, and producer with sentOrder=TIMESTAMP and receivedOrder=RECEIVE. Valid retraction-handle return/callback checks are supplemental API-contract assertions. This tests only the TIMESTAMP-sent/RECEIVE-received branch, not the full order matrix or conformance.",
+      "contract_refs": [
+        "timestamped-object-deletion-api-contract.json",
+        "timestamped-object-deletion-requirements-contract.json"
+      ],
+      "cpp_test": "src/tck_timestamped_delete_privilege_preferred_order.cpp#scenarioTimestampedDeletePrivilegeTimestampOrder",
+      "runner_id": "cpp-tck.timestamped-delete-privilege-timestamp-order",
+      "parity": "java-tck.timestamped-delete-privilege-timestamp-order",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-delete-privilege-timestamp-order-contract",
+      "category": "time-management",
+      "title": "Standard adapter-backed contract for timestamped delete privilege TIMESTAMP order",
+      "api_methods": [
+        "RTIambassador.changeAttributeOrderType",
+        "RTIambassador.deleteObjectInstance(LogicalTime)",
+        "FederateAmbassador.removeObjectInstance(LogicalTime)"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-object-deletion",
+        "cpp-1516.1-timestamped-object-removal"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l93-28"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l93-28", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "mapping_note": "The contract twin directly checks the §8.1.4 TIMESTAMP-sent/RECEIVE-received Delete Object Instance branch and timestamped Remove Object Instance callback metadata; retraction-handle checks are supplemental API-contract assertions, and no broader order matrix or conformance claim is made.",
+      "contract_refs": ["timestamped-object-deletion-requirements-contract.json"],
+      "cpp_test": "src/tck_timestamped_delete_privilege_preferred_order.cpp#scenarioTimestampedDeletePrivilegeTimestampOrderContract",
+      "runner_id": "cpp-tck.timestamped-delete-privilege-timestamp-order-contract",
+      "parity": "cpp-tck.timestamped-delete-privilege-timestamp-order",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-object-deletion-mixed-advances",
       "category": "timestamped-object-deletion-mixed-advances",
       "title": "Deliver a queued timestamped object deletion before Flush Queue, TARA, and NMRA grants",
@@ -21001,6 +21579,79 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.attribute-fdd-preferred-order-default",
+      "category": "time-management",
+      "title": "Timestamped attribute updates preserve each attribute's FDD-preferred order by default",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.updateAttributeValues(LogicalTime)",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.reflectAttributeValues(LogicalTime)"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l78-23",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l84-25"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l78-23", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l84-25", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "mapping_note": "Direct §8.1.4 FDD-default witness for instance attribute values: one timestamped Update Attribute Values passel for each adapter-FOM attribute is reported sent TIMESTAMP for the TimeStamp-preferred attribute and RECEIVE for the Receive-preferred attribute, without Change Attribute Order Type or Change Default Attribute Order Type. The test preserves the attribute, payload, tag, timestamp, producer, received order, and applicable retraction designator. It covers these two FDD defaults only, not the complete order matrix or conformance.",
+      "contract_refs": [
+        "attribute-update-order-classification-api-contract.json",
+        "timestamped-attribute-update-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioAttributeFddPreferredOrderDefaultPortable",
+      "runner_id": "cpp-tck.attribute-fdd-preferred-order-default",
+      "parity": "java-tck.attribute-fdd-preferred-order-default",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.attribute-fdd-preferred-order-default-contract",
+      "category": "time-management",
+      "title": "Standard adapter-backed contract for FDD-preferred attribute order defaults",
+      "api_methods": [
+        "RTIambassador.updateAttributeValues(LogicalTime)",
+        "FederateAmbassador.reflectAttributeValues(LogicalTime)"
+      ],
+      "requirement_ids": ["cpp-1516.1-timestamped-attribute-update", "cpp-1516.1-timestamped-attribute-reflect"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l78-23",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l84-25"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l78-23", "standard_section": "hla-1516.1-2025:clause-8.1.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l84-25", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
+      ],
+      "mapping_note": "Contract twin for the same directly observed TimeStamp and Receive FDD attribute defaults; it makes no broader order-classification or conformance claim.",
+      "contract_refs": [
+        "attribute-update-order-classification-api-contract.json",
+        "timestamped-attribute-update-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioAttributeFddPreferredOrderDefaultContractPortable",
+      "runner_id": "cpp-tck.attribute-fdd-preferred-order-default-contract",
+      "parity": "cpp-tck.attribute-fdd-preferred-order-default",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.sent-tso-per-recipient-order-conversion",
       "category": "time-management",
       "title": "Report sent TSO and receiver-dependent received order for one timestamped interaction",
@@ -21145,7 +21796,7 @@
       "runner_id": "cpp-tck.sent-tso-attribute-per-recipient-order-conversion",
       "parity": "java-tck.sent-tso-attribute-per-recipient-order-conversion",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.sent-tso-attribute-per-recipient-order-conversion-contract",
@@ -21187,7 +21838,7 @@
       "runner_id": "cpp-tck.sent-tso-attribute-per-recipient-order-conversion-contract",
       "parity": "cpp-tck.sent-tso-attribute-per-recipient-order-conversion",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.time-bounds-queries",
@@ -52852,7 +53503,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.12"
         }
       ],
-      "mapping_note": "Direct assertions are limited to one directed interaction sent at TckTypedDerivedInteraction: a subscriber of TckTypedInteraction receives that closest subscribed superclass and only its inherited parameter, while a subscriber of TckTypedDerivedInteraction receives the sent class and both inherited and derived parameters. The scenario was built and run in isolation against the existing installed RTI package under HLA_EVOKED and HLA_IMMEDIATE; it is a portable TCK candidate, not evidence for Umbra's current embedded provider or a conformance claim.",
+      "mapping_note": "Direct assertions are limited to one directed interaction sent at TckTypedDerivedInteraction: a subscriber of TckTypedInteraction receives that closest subscribed superclass and only its inherited parameter, while a subscriber of TckTypedDerivedInteraction receives the sent class and both inherited and derived parameters. Fresh installed-package adapter runs passed under both evoked and immediate callback models (evidence: out/mgw/directed-interaction-received-class-projection-current-20261017.json). This supports only the mapped class-projection behavior; it is not evidence for the current embedded provider or a conformance claim.",
       "contract_refs": [
         "directed-interaction-api-contract.json",
         "standard-directed-interaction-contract.json"
@@ -52861,7 +53512,61 @@
       "runner_id": "cpp-tck.directed-interaction-received-class-projection",
       "parity": "java-tck.directed-interaction-received-class-projection",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.directed-interaction-no-applicable-subscription",
+      "category": "interaction-management",
+      "title": "Do not deliver a directed interaction to a known target without an applicable class subscription",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.sendDirectedInteraction",
+        "RTIambassador.evokeCallback",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.receiveDirectedInteraction",
+        "FederateAmbassador.receiveInteraction",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l14-2"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-101-l14-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.12"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l14-2",
+          "standard_section": "hla-1516.1-2025:clause-5.12"
+        }
+      ],
+      "mapping_note": "The sender publishes the directed-interaction class and registers an object; the receiver discovers that known target through an ordinary attribute subscription but makes no directed-interaction subscription. After the sender sends to the target and the receiver services callbacks for a bounded interval, neither directed nor ordinary interaction callback is observed. This maps only the no-applicable-class-subscription behavior in §5.12; it does not infer by-ownership, universal-selector, timestamped, or regional behavior. Installed-package adapter verification passed in both standard callback models; see the roadmap evidence record.",
+      "contract_refs": [
+        "directed-interaction-api-contract.json",
+        "standard-directed-interaction-contract.json"
+      ],
+      "cpp_test": "src/tck_directed_interaction_no_applicable_subscription.cpp#scenarioDirectedInteractionNoApplicableSubscription",
+      "runner_id": "cpp-tck.directed-interaction-no-applicable-subscription",
+      "parity": "java-tck.directed-interaction-no-applicable-subscription",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.directed-interaction-subscription-accumulation",
@@ -52915,7 +53620,7 @@
       "runner_id": "cpp-tck.directed-interaction-subscription-accumulation",
       "parity": "java-tck.directed-interaction-subscription-accumulation",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     }
   ]
 }

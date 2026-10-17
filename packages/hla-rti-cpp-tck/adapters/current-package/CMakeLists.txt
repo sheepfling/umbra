@@ -150,6 +150,15 @@ set(HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FIRST "FirstValue"
   CACHE STRING "First multi-attribute DDM attribute supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_SECOND "SecondValue"
   CACHE STRING "Second multi-attribute DDM attribute supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_TIMESTAMPED_ATTRIBUTE_PASSEL_OBJECT_CLASS
+  "HLAobjectRoot.TckTimestampedAttributePasselObject"
+  CACHE STRING "Timestamped multi-transport attribute object class supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_TIMESTAMPED_ATTRIBUTE_PASSEL_RELIABLE_ATTRIBUTE
+  "ReliableValue"
+  CACHE STRING "Reliable timestamped passel attribute supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_TIMESTAMPED_ATTRIBUTE_PASSEL_BEST_EFFORT_ATTRIBUTE
+  "BestEffortValue"
+  CACHE STRING "Best-effort timestamped passel attribute supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_INTERACTION_CLASS "HLAinteractionRoot.TckInteraction"
   CACHE STRING "Ordinary interaction class supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_PREFERRED_TIMESTAMP_INTERACTION_CLASS
@@ -415,6 +424,12 @@ set(_tck_common_arguments
     "${HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_OBJECT_CLASS}"
   --multi-attribute-first "${HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FIRST}"
   --multi-attribute-second "${HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_SECOND}"
+  --timestamped-attribute-passel-object-class
+    "${HLA_RTI_TCK_ADAPTER_TIMESTAMPED_ATTRIBUTE_PASSEL_OBJECT_CLASS}"
+  --timestamped-attribute-passel-reliable-attribute
+    "${HLA_RTI_TCK_ADAPTER_TIMESTAMPED_ATTRIBUTE_PASSEL_RELIABLE_ATTRIBUTE}"
+  --timestamped-attribute-passel-best-effort-attribute
+    "${HLA_RTI_TCK_ADAPTER_TIMESTAMPED_ATTRIBUTE_PASSEL_BEST_EFFORT_ATTRIBUTE}"
   --interaction-class "${HLA_RTI_TCK_ADAPTER_INTERACTION_CLASS}"
   --preferred-timestamp-interaction-class
     "${HLA_RTI_TCK_ADAPTER_PREFERRED_TIMESTAMP_INTERACTION_CLASS}"

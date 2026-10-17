@@ -37,6 +37,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_timestamped_interaction_scheduling_scenarios.cpp
   src/tck_timestamped_directed_interaction_subscription_kind.cpp
   src/tck_directed_interaction_received_class_projection.cpp
+  src/tck_directed_interaction_no_applicable_subscription.cpp
   src/tck_directed_interaction_subscription_accumulation.cpp
   src/tck_federation_lifecycle_scenarios.cpp
   src/tck_inherited_derived_delivery_scenarios.cpp
@@ -101,7 +102,10 @@ add_executable(hla_rti_cpp_tck
   src/tck_lookup_lifecycle_scenarios.cpp
   src/tck_fom_module_scenarios.cpp
   src/tck_timestamped_attribute_scenarios.cpp
+  src/tck_timestamped_attribute_reflect_region_snapshot.cpp
+  src/tck_timestamped_attribute_update_time_advancing_cutoff.cpp
   src/tck_mixed_order_attribute_passel_retraction.cpp
+  src/tck_timestamped_attribute_immediate_recipient_retraction.cpp
   src/tck_timestamped_attribute_sender_regulation_transition.cpp
   src/tck_unregulated_sender_timestamped_interaction.cpp
   src/tck_timestamped_interaction_scenarios.cpp
@@ -123,6 +127,8 @@ add_executable(hla_rti_cpp_tck
   src/tck_timestamped_interaction_preferred_receive_conversion.cpp
   src/tck_timestamped_interaction_sender_regulation_transition.cpp
   src/tck_interaction_fdd_preferred_order_default.cpp
+  src/tck_attribute_fdd_preferred_order_default.cpp
+  src/tck_timestamped_delete_privilege_preferred_order.cpp
   src/tck_sent_tso_per_recipient_order_conversion.cpp
   src/tck_service_report_scenarios.cpp
   src/tck_service_report_lookup_failure_scenarios.cpp
@@ -199,7 +205,15 @@ if(BUILD_TESTING)
       else()
         set(_tck_promotion_label promoted)
       endif()
-      foreach(_tck_callback_model IN LISTS HLA_RTI_TCK_TEST_CALLBACK_MODELS)
+      if(_tck_scenario STREQUAL
+           "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot" OR
+         _tck_scenario STREQUAL
+           "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot-contract")
+        set(_tck_callback_models evoked)
+      else()
+        set(_tck_callback_models ${HLA_RTI_TCK_TEST_CALLBACK_MODELS})
+      endif()
+      foreach(_tck_callback_model IN LISTS _tck_callback_models)
         set(_tck_test_name
           "hla_rti_cpp_tck.${_tck_scenario_slug}.${_tck_callback_model}")
         add_test(

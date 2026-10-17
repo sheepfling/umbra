@@ -239,6 +239,187 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
       }
    }
 
+   static void runImmediateRecipientMultiTransportRetraction(RtiFactory factory, String fom,
+         String timeImplementation, String objectClassName, String reliableAttributeName,
+         String bestEffortAttributeName, CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador receiver = factory.getRtiAmbassador();
+      Recorder publisherRecorder = new Recorder();
+      Recorder receiverRecorder = new Recorder();
+      String federation = "java-tck-immediate-recipient-multi-transport-" + UUID.randomUUID();
+      boolean publisherConnected = false;
+      boolean receiverConnected = false;
+      boolean publisherJoined = false;
+      boolean receiverJoined = false;
+      boolean created = false;
+      boolean regulating = false;
+      boolean published = false;
+      boolean subscribed = false;
+      ObjectClassHandle publisherClass = null;
+      ObjectClassHandle receiverClass = null;
+      AttributeHandleSet publisherAttributes = null;
+      AttributeHandleSet receiverAttributes = null;
+      try {
+         publisher.connect(publisherRecorder.proxy(), callbackModel);
+         publisherConnected = true;
+         receiver.connect(receiverRecorder.proxy(), callbackModel);
+         receiverConnected = true;
+         publisher.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         FederateHandle producer = publisher.joinFederationExecution(
+            "java-tck-immediate-retraction-publisher", federation);
+         publisherJoined = true;
+         receiver.joinFederationExecution("java-tck-immediate-retraction-receiver", federation);
+         receiverJoined = true;
+
+         publisherClass = publisher.getObjectClassHandle(objectClassName);
+         receiverClass = receiver.getObjectClassHandle(objectClassName);
+         AttributeHandle publisherReliable = publisher.getAttributeHandle(
+            publisherClass, reliableAttributeName);
+         AttributeHandle publisherBestEffort = publisher.getAttributeHandle(
+            publisherClass, bestEffortAttributeName);
+         AttributeHandle receiverReliable = receiver.getAttributeHandle(
+            receiverClass, reliableAttributeName);
+         AttributeHandle receiverBestEffort = receiver.getAttributeHandle(
+            receiverClass, bestEffortAttributeName);
+         TransportationTypeHandle reliable = receiver.getTransportationTypeHandle("HLAreliable");
+         TransportationTypeHandle bestEffort = receiver.getTransportationTypeHandle("HLAbestEffort");
+         JavaTckSupport.check(publisherClass != null && receiverClass != null
+               && publisherReliable != null && publisherBestEffort != null
+               && receiverReliable != null && receiverBestEffort != null
+               && !publisherReliable.equals(publisherBestEffort)
+               && reliable != null && bestEffort != null && !reliable.equals(bestEffort),
+            "adapter FOM did not provide two distinct attributes and standard transportation handles");
+         publisherAttributes = JavaTckSupport.attributeSet(
+            publisher, publisherReliable, publisherBestEffort);
+         receiverAttributes = JavaTckSupport.attributeSet(receiver,
+            receiverReliable, receiverBestEffort);
+         publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
+         published = true;
+         receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
+         subscribed = true;
+         publisher.changeDefaultAttributeOrderType(
+            publisherClass, publisherAttributes, OrderType.TIMESTAMP);
+
+         ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
+         awaitBoth(publisher, receiver, callbackModel,
+            () -> object.equals(receiverRecorder.discoveredObject), "receiver object discovery");
+         LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
+         LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
+         LogicalTime initial = publisher.queryLogicalTime();
+         LogicalTime lookaheadTarget = offset(initial, epsilon, 5);
+         LogicalTimeInterval lookahead =
+            (LogicalTimeInterval) lookaheadTarget.distance(initial);
+         publisher.enableTimeRegulation(lookahead);
+         regulating = true;
+         awaitBoth(publisher, receiver, callbackModel,
+            () -> publisherRecorder.timeRegulationEnabled,
+            "publisher time-regulation callback");
+
+         LogicalTime updateTime = offset(initial, epsilon, 6);
+         byte[] reliableValue = new byte[] {0x52, 0x45, 0x4c};
+         byte[] bestEffortValue = new byte[] {0x42, 0x45};
+         byte[] tag = new byte[] {0x4d, 0x54, 0x53, 0x4f};
+         AttributeHandleValueMap values =
+            publisher.getAttributeHandleValueMapFactory().create(2);
+         values.put(publisherReliable, reliableValue);
+         values.put(publisherBestEffort, bestEffortValue);
+         MessageRetractionReturn retraction = publisher.updateAttributeValues(
+            object, values, tag, updateTime);
+         JavaTckSupport.check(retraction != null && retraction.retractionHandleIsValid
+               && retraction.handle != null,
+            "timestamped multi-transport update returned no valid retraction handle");
+         awaitBoth(publisher, receiver, callbackModel,
+            () -> receiverRecorder.reflections.size() >= 2,
+            "immediate recipient's reliable and best-effort reflections");
+
+         List<Reflection> reflections = receiverRecorder.reflections;
+         JavaTckSupport.check(reflections.size() == 2
+               && receiverRecorder.retractionCallbacks.isEmpty(),
+            "timestamped mixed-transport update did not produce exactly two pre-retraction reflections");
+         boolean reliablePasselSeen = false;
+         boolean bestEffortPasselSeen = false;
+         for (Reflection reflection : reflections) {
+            JavaTckSupport.check(object.equals(reflection.object)
+                  && reflection.values != null && reflection.values.size() == 1
+                  && Arrays.equals(tag, reflection.tag)
+                  && producer.equals(reflection.producer)
+                  && updateTime.equals(reflection.time)
+                  && reflection.sentOrder == OrderType.TIMESTAMP
+                  && reflection.receivedOrder == OrderType.RECEIVE
+                  && retraction.handle.equals(reflection.retraction)
+                  && (reflection.regions == null || reflection.regions.isEmpty()),
+               "immediate timestamped reflection returned incorrect standard metadata");
+            if (reflection.values.containsKey(receiverReliable)) {
+               JavaTckSupport.check(!reliablePasselSeen
+                     && Arrays.equals(reliableValue, reflection.values.get(receiverReliable))
+                     && "HLAreliable".equals(
+                        receiver.getTransportationTypeName(reflection.transportation)),
+                  "reliable passel returned the wrong value or transportation type");
+               reliablePasselSeen = true;
+            } else if (reflection.values.containsKey(receiverBestEffort)) {
+               JavaTckSupport.check(!bestEffortPasselSeen
+                     && Arrays.equals(bestEffortValue,
+                        reflection.values.get(receiverBestEffort))
+                     && "HLAbestEffort".equals(
+                        receiver.getTransportationTypeName(reflection.transportation)),
+                  "best-effort passel returned the wrong value or transportation type");
+               bestEffortPasselSeen = true;
+            } else {
+               JavaTckSupport.check(false,
+                  "timestamped mixed-transport reflection contained an unknown attribute");
+            }
+         }
+         JavaTckSupport.check(reliablePasselSeen && bestEffortPasselSeen
+               && receiverRecorder.callbackOrder.equals(Arrays.asList(
+                  "reflectAttributeValues", "reflectAttributeValues")),
+            "timestamped update omitted a transport passel or delivered an unexpected callback");
+
+         publisher.retract(retraction.handle);
+         awaitBoth(publisher, receiver, callbackModel,
+            () -> receiverRecorder.retractionCallbacks.size() >= 1,
+            "recipient-local Request Retraction callback");
+         JavaTckSupport.check(receiverRecorder.retractionCallbacks.size() == 1
+               && retraction.handle.equals(receiverRecorder.retractionCallbacks.get(0))
+               && receiverRecorder.reflections.size() == 2
+               && receiverRecorder.callbackOrder.equals(Arrays.asList(
+                  "reflectAttributeValues", "reflectAttributeValues", "requestRetraction")),
+            "post-delivery retraction changed reflections or returned the wrong callback");
+         JavaTckSupport.expectFailure(() -> publisher.retract(retraction.handle),
+            "MessageCanNoLongerBeRetracted", "retracting an already-delivered update twice");
+      } finally {
+         if (regulating && publisherJoined) {
+            try { publisher.disableTimeRegulation(); } catch (Exception ignored) { }
+         }
+         if (subscribed && receiverJoined) {
+            try { receiver.unsubscribeObjectClassAttributes(receiverClass, receiverAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (published && publisherJoined) {
+            try { publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (receiverJoined) {
+            try { receiver.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined) {
+            try { publisher.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (created) {
+            try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (receiverConnected) {
+            try { receiver.disconnect(); } catch (Exception ignored) { }
+         }
+         if (publisherConnected) {
+            try { publisher.disconnect(); } catch (Exception ignored) { }
+         }
+      }
+   }
+
    static void runMixedOrder(RtiFactory factory, String fom, String timeImplementation,
          String objectClassName, String timestampedAttributeName,
          String receiveOrderAttributeName, CallbackModel callbackModel) throws Exception {
@@ -650,6 +831,7 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
                } else if ("requestRetraction".equals(name)
                      && arguments != null && arguments.length == 1) {
                   retractionCallbacks.add((MessageRetractionHandle) arguments[0]);
+                  callbackOrder.add(name);
                } else if ("timeAdvanceGrant".equals(name)
                      && arguments != null && arguments.length == 1) {
                   timeAdvanceGrantTimes.add((LogicalTime<?, ?>) arguments[0]);
