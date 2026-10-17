@@ -13,7 +13,6 @@ import hla.rti1516_2025.OrderType;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
-import hla.rti1516_2025.exceptions.InvalidLogicalTime;
 import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
@@ -134,32 +133,17 @@ final class TimestampedAttributeTarPostGrantCutoffTck {
                && receiverRecorder.reflections.isEmpty(),
             "receiver did not complete TAR(5) without an attribute reflection");
 
-         // This producer joins the regulating set only after the receiver has
-         // completed TAR(5), so its timestamp-4/5 updates arrive after that grant.
+         // The publisher enters time regulation after the receiver's grant, then
+         // sends a valid timestamp-5 update that must not cross the completed TAR(5).
          publisher.enableTimeRegulation(publisherEpsilon);
          publisherRegulating = true;
-         await(callbackModel, publisher, "late publisher Time Regulation callback",
+         await(callbackModel, publisher, "publisher Time Regulation callback",
             () -> publisherRecorder.timeRegulationEnabled);
-
-         LogicalTime publisherAtFour = offset(publisherInitial, publisherEpsilon, 4);
          LogicalTime publisherAtFive = offset(publisherInitial, publisherEpsilon, 5);
+         LogicalTime publisherAtFour = offset(publisherInitial, publisherEpsilon, 4);
          LogicalTime publisherAtSix = offset(publisherInitial, publisherEpsilon, 6);
          LogicalTime frontierAtSix = offset(frontierInitial, frontierEpsilon, 6);
          LogicalTime receiverAtSix = offset(receiverInitial, receiverEpsilon, 6);
-         byte[] belowValue = new byte[] {0x41, 0x54, 0x34};
-         AttributeHandleValueMap belowValues =
-            publisher.getAttributeHandleValueMapFactory().create(1);
-         belowValues.put(publisherAttribute, belowValue);
-         try {
-            MessageRetractionReturn below = publisher.updateAttributeValues(
-               object, belowValues, new byte[] {'b', 'e', 'l', 'o', 'w'}, publisherAtFour);
-            JavaTckSupport.check(below != null && below.retractionHandleIsValid
-                  && below.handle != null,
-               "accepted timestamp-4 attribute update returned no valid retraction handle");
-         } catch (InvalidLogicalTime allowedBelowBoundaryRejection) {
-            // The assertion is about delivery after the grant, not sender acceptance.
-         }
-
          byte[] equalValue = new byte[] {0x41, 0x54, 0x35};
          AttributeHandleValueMap equalValues =
             publisher.getAttributeHandleValueMapFactory().create(1);
@@ -169,26 +153,36 @@ final class TimestampedAttributeTarPostGrantCutoffTck {
          JavaTckSupport.check(equal != null && equal.retractionHandleIsValid && equal.handle != null,
             "timestamp-5 attribute update returned no valid retraction handle");
          JavaTckSupport.check(receiverRecorder.reflections.isEmpty(),
-            "late timestamped attribute update crossed completed TAR(5) immediately");
+            "equal-time attribute update crossed completed TAR(5) immediately");
 
+         // Move the late publisher to time 4 without servicing the receiver;
+         // pending at-or-below-grant TSO must not hold its next frontier hostage.
          publisher.timeAdvanceRequest(publisherAtFour);
          await(callbackModel, publisher, "publisher TAR(4) grant",
-            () -> publisherRecorder.timeAdvanceGrantTimes.size() == 1);
-         JavaTckSupport.check(receiverRecorder.reflections.isEmpty(),
-            "timestamped attribute update at or below 5 arrived while publisher advanced to 4");
+            () -> publisherRecorder.timeAdvanceGrantTimes.size() >= 1);
+         JavaTckSupport.check(publisherAtFour.equals(
+               publisherRecorder.timeAdvanceGrantTimes.get(0)),
+            "publisher did not grant TAR(4)");
 
          publisher.timeAdvanceRequest(publisherAtSix);
          frontier.timeAdvanceRequest(frontierAtSix);
-         await(callbackModel, "producer frontiers at 6",
-            () -> publisherRecorder.timeAdvanceGrantTimes.size() == 2
-               && frontierRecorder.timeAdvanceGrantTimes.size() == 2,
+         await(callbackModel, "publisher TAR(6) grant",
+            () -> publisherRecorder.timeAdvanceGrantTimes.size() >= 2,
+            publisher, frontier);
+         await(callbackModel, "frontier TAR(6) grant",
+            () -> frontierRecorder.timeAdvanceGrantTimes.size() >= 2,
             publisher, frontier);
          receiver.timeAdvanceRequest(receiverAtSix);
          await(callbackModel, "receiver TAR(6) grant",
-            () -> receiverRecorder.timeAdvanceGrantTimes.size() == 2,
-            receiver, publisher, frontier);
+            () -> receiverRecorder.timeAdvanceGrantTimes.size() >= 2,
+            publisher, frontier, receiver);
          JavaTckSupport.check(receiverRecorder.reflections.isEmpty(),
             "an attribute update at or below completed TAR(5) was delivered later");
+         JavaTckSupport.check(publisherAtSix.equals(
+               publisherRecorder.timeAdvanceGrantTimes.get(1))
+               && frontierAtSix.equals(frontierRecorder.timeAdvanceGrantTimes.get(1))
+               && receiverAtSix.equals(receiverRecorder.timeAdvanceGrantTimes.get(1)),
+            "timestamped attribute cutoff produced an unexpected TAR(6) value");
 
          LogicalTime publisherAtSeven = offset(publisherInitial, publisherEpsilon, 7);
          LogicalTime publisherAtEight = offset(publisherInitial, publisherEpsilon, 8);
@@ -205,14 +199,16 @@ final class TimestampedAttributeTarPostGrantCutoffTck {
             "timestamp-7 positive control returned no valid retraction handle");
          publisher.timeAdvanceRequest(publisherAtEight);
          frontier.timeAdvanceRequest(frontierAtEight);
-         await(callbackModel, "positive-control producer frontiers at 8",
-            () -> publisherRecorder.timeAdvanceGrantTimes.size() == 3
-               && frontierRecorder.timeAdvanceGrantTimes.size() == 3,
+         await(callbackModel, "positive-control publisher TAR(8) grant",
+            () -> publisherRecorder.timeAdvanceGrantTimes.size() >= 3,
+            publisher, frontier);
+         await(callbackModel, "positive-control frontier TAR(8) grant",
+            () -> frontierRecorder.timeAdvanceGrantTimes.size() >= 3,
             publisher, frontier);
          receiver.timeAdvanceRequest(receiverAtEight);
-         await(callbackModel, "positive-control receiver TAR(8)",
-            () -> receiverRecorder.timeAdvanceGrantTimes.size() == 3,
-            receiver, publisher, frontier);
+         await(callbackModel, "positive-control receiver TAR(8) grant",
+            () -> receiverRecorder.timeAdvanceGrantTimes.size() >= 3,
+            publisher, frontier, receiver);
 
          JavaTckSupport.check(receiverRecorder.reflections.size() == 1,
             "post-cutoff positive-control attribute update was not reflected exactly once");

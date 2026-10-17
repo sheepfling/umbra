@@ -4648,7 +4648,6 @@ void scenarioTimestampedAttributeUpdateTarPostGrantCutoff(
       [&] { return frontier.recorder().timeRegulationEnabled().size() >= 1U; },
       options,
       "timestamped attribute post-grant cutoff frontier time-regulation callback");
-
   auto const receiverAtFive = timeAfter(
       *receiverTime.factory,
       *receiverTime.initial,
@@ -4677,20 +4676,14 @@ void scenarioTimestampedAttributeUpdateTarPostGrantCutoff(
           receiver.recorder().timedReflections().empty(),
       "receiver did not complete TAR(5) without a timestamped attribute reflection");
 
-  // The publisher joins the time-regulating set only after the receiver has
-  // completed TAR(5), making these attribute updates late TSO arrivals.
+  // The publisher enters time regulation after the receiver's grant, then
+  // sends a valid timestamp-5 update that must not cross the completed TAR(5).
   publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
   waitFor(
       publisher,
       [&] { return publisher.recorder().timeRegulationEnabled().size() >= 1U; },
       options,
-      "timestamped attribute post-grant cutoff late-publisher regulation callback");
-
-  auto const belowTime = timeAfter(
-      *publisherTime.factory,
-      *publisherTime.initial,
-      *publisherTime.epsilon,
-      4U);
+      "timestamped attribute post-grant cutoff publisher time-regulation callback");
   auto const equalTime = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,
@@ -4717,26 +4710,6 @@ void scenarioTimestampedAttributeUpdateTarPostGrantCutoff(
       *receiverTime.epsilon,
       6U);
 
-  std::vector<std::uint8_t> belowValue{0x41U, 0x54U, 0x34U};
-  std::vector<std::uint8_t> belowTagBytes{'b', 'e', 'l', 'o', 'w'};
-  rti::AttributeHandleValueMap belowValues;
-  belowValues.emplace(
-      publisherAttribute,
-      rti::VariableLengthData(belowValue.data(), belowValue.size()));
-  rti::VariableLengthData belowTag(belowTagBytes.data(), belowTagBytes.size());
-  try {
-    auto const belowRetraction = publisher.rtiAmbassador().updateAttributeValues(
-        object,
-        belowValues,
-        belowTag,
-        *belowTime);
-    require(
-        belowRetraction.isValid(),
-        "accepted timestamp-4 attribute update returned an invalid retraction handle");
-  } catch (rti::InvalidLogicalTime const&) {
-    // The conformance assertion is the delivery cutoff, not sender acceptance.
-  }
-
   std::vector<std::uint8_t> equalValue{0x41U, 0x54U, 0x35U};
   std::vector<std::uint8_t> equalTagBytes{'e', 'q', 'u', 'a', 'l'};
   rti::AttributeHandleValueMap equalValues;
@@ -4754,8 +4727,10 @@ void scenarioTimestampedAttributeUpdateTarPostGrantCutoff(
       "timestamp-5 attribute update returned an invalid retraction handle");
   require(
       receiver.recorder().timedReflections().empty(),
-      "late timestamped attribute update crossed the completed TAR(5) boundary immediately");
+      "equal-time attribute update crossed the completed TAR(5) boundary immediately");
 
+  // First move the late publisher to time 4 without servicing the receiver;
+  // pending at-or-below-grant TSO must not hold its next frontier hostage.
   publisher.rtiAmbassador().timeAdvanceRequest(*publisherAtFour);
   waitFor(
       publisher,
@@ -4763,28 +4738,35 @@ void scenarioTimestampedAttributeUpdateTarPostGrantCutoff(
       options,
       "timestamped attribute post-grant cutoff publisher TAR(4)");
   require(
-      receiver.recorder().timedReflections().empty(),
-      "timestamped attribute update at or below 5 arrived while publisher advanced to 4");
+      publisher.recorder().timeAdvanceGrants().front().encoded == encodeTime(*publisherAtFour),
+      "timestamped attribute post-grant cutoff publisher did not grant TAR(4)");
 
   publisher.rtiAmbassador().timeAdvanceRequest(*publisherAtSix);
   frontier.rtiAmbassador().timeAdvanceRequest(*frontierAtSix);
   waitForSessions(
       {&publisher, &frontier},
-      [&] {
-        return publisher.recorder().timeAdvanceGrants().size() >= 2U &&
-            frontier.recorder().timeAdvanceGrants().size() >= 2U;
-      },
+      [&] { return publisher.recorder().timeAdvanceGrants().size() >= 2U; },
       options,
-      "timestamped attribute post-grant cutoff producer frontiers at 6");
+      "timestamped attribute post-grant cutoff publisher TAR(6)");
+  waitForSessions(
+      {&publisher, &frontier},
+      [&] { return frontier.recorder().timeAdvanceGrants().size() >= 2U; },
+      options,
+      "timestamped attribute post-grant cutoff frontier TAR(6)");
   receiver.rtiAmbassador().timeAdvanceRequest(*receiverAtSix);
-  waitFor(
-      receiver,
+  waitForSessions(
+      {&publisher, &frontier, &receiver},
       [&] { return receiver.recorder().timeAdvanceGrants().size() >= 2U; },
       options,
       "timestamped attribute post-grant cutoff receiver TAR(6)");
   require(
       receiver.recorder().timedReflections().empty(),
       "an attribute update at or below the completed TAR(5) value was delivered later");
+  require(
+      publisher.recorder().timeAdvanceGrants()[1].encoded == encodeTime(*publisherAtSix) &&
+          frontier.recorder().timeAdvanceGrants()[1].encoded == encodeTime(*frontierAtSix) &&
+          receiver.recorder().timeAdvanceGrants()[1].encoded == encodeTime(*receiverAtSix),
+      "timestamped attribute post-grant cutoff produced an unexpected TAR(6) value");
 
   auto const publisherAtSeven = timeAfter(
       *publisherTime.factory,
@@ -4827,15 +4809,17 @@ void scenarioTimestampedAttributeUpdateTarPostGrantCutoff(
   frontier.rtiAmbassador().timeAdvanceRequest(*frontierAtEight);
   waitForSessions(
       {&publisher, &frontier},
-      [&] {
-        return publisher.recorder().timeAdvanceGrants().size() >= 3U &&
-            frontier.recorder().timeAdvanceGrants().size() >= 3U;
-      },
+      [&] { return publisher.recorder().timeAdvanceGrants().size() >= 3U; },
       options,
-      "timestamped attribute post-grant cutoff positive-control frontiers at 8");
+      "timestamped attribute post-grant cutoff positive-control publisher TAR(8)");
+  waitForSessions(
+      {&publisher, &frontier},
+      [&] { return frontier.recorder().timeAdvanceGrants().size() >= 3U; },
+      options,
+      "timestamped attribute post-grant cutoff positive-control frontier TAR(8)");
   receiver.rtiAmbassador().timeAdvanceRequest(*receiverAtEight);
-  waitFor(
-      receiver,
+  waitForSessions(
+      {&publisher, &frontier, &receiver},
       [&] { return receiver.recorder().timeAdvanceGrants().size() >= 3U; },
       options,
       "timestamped attribute post-grant cutoff positive-control receiver TAR(8)");

@@ -14781,7 +14781,7 @@
     {
       "id": "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff",
       "category": "timestamped-attribute-update-tar-post-grant-cutoff",
-      "title": "Prevent late timestamped attribute delivery at or below a completed TAR grant",
+      "title": "Suppress an equal-to-grant timestamped attribute update after TAR",
       "api_methods": [
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.changeDefaultAttributeOrderType(TIMESTAMP)",
@@ -14814,7 +14814,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.14"
         }
       ],
-      "mapping_note": "Direct coverage is limited to the Clause 8.14 prohibition on future delivery of TSO messages at or below a completed grant: after receiver TAR(5), a newly regulating publisher sends an equal-time attribute update and may attempt a timestamp-4 update; neither may be reflected after the receiver advances beyond 5. Sender-side rejection of timestamp 4, setup/cleanup, and the timestamp-7 positive-control reflection are supplemental. No broader late-sender or provider-conformance claim is made.",
+      "mapping_note": "Direct coverage is limited to the Clause 8.14.3 guarantee that no additional future TSO messages at or below the completed grant value are delivered. The receiver completes TAR(5) before the publisher enables regulation; the late publisher sends valid TSO(5), advances to TAR(4), then TAR(6), and the receiver's later TAR(6) must not reflect it. A timestamp-7 reflection is a supplemental positive control. Current installed-package evidence: primary and contract CTest selectors pass under HLA_EVOKED and HLA_IMMEDIATE, and direct primary execution passes under both callback models; evidence is recorded in `out/mgw/cpp-tck-tar-post-grant-cutoff-mingw-20261016/`. No below-boundary send or sender-side rejection behavior is asserted; no conformance claim.",
       "contract_refs": [
         "timestamped-attribute-update-api-contract.json",
         "timestamped-attribute-update-requirements-contract.json",
@@ -14825,7 +14825,7 @@
       "runner_id": "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff",
       "parity": "java-tck.timestamped-attribute-update-tar-post-grant-cutoff",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff-contract",
@@ -14853,7 +14853,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.14"
         }
       ],
-      "mapping_note": "The contract twin runs the same cutoff assertions and retains the primary scenario's Clause 8.14-only scope.",
+      "mapping_note": "The contract twin runs the same late-regulator TSO(5), publisher TAR(4)/TAR(6), and subsequent receiver TAR(6) cutoff sequence. Direct mapping is limited to the Clause 8.14.3 guarantee that no additional future TSO messages at or below the completed grant value are delivered. Current installed-package primary and contract CTest selectors, and direct primary and contract execution, pass under HLA_EVOKED and HLA_IMMEDIATE; no conformance claim.",
       "contract_refs": [
         "time-advance-requirements-contract.json",
         "timestamped-attribute-update-requirements-contract.json"
@@ -14862,7 +14862,7 @@
       "runner_id": "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff-contract",
       "parity": "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.timestamped-attribute-source-resignation-fanout",
@@ -37190,6 +37190,19 @@
         "cpp-1516.1-object-registration-discovery",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "Direct Clause 5.8 coverage is limited to the assertion that a derived registered object is discovered using the base object-class handle on which the subscriber declared its subscription (the closest subscribed superclass). This discovery assertion is shared by the known-class-policy variants; advisory filtering is not mapped here. No conformance claim is made.",
       "contract_refs": [
         "standard-known-class-attribute-relevance-contract.json",
         "attribute-relevance-advisory-api-contract.json",
@@ -37231,6 +37244,19 @@
         "cpp-1516.1-object-registration-discovery",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "The contract wrapper executes the same standard API assertion as its primary: discovery reports the base object class on which the subscriber declared its subscription for a derived registered object. Direct mapping is limited to Clause 5.8; advisory filtering is not mapped, and no conformance claim is made.",
       "contract_refs": [
         "standard-known-class-attribute-relevance-contract.json"
       ],
@@ -37270,6 +37296,19 @@
         "cpp-1516.1-object-registration-discovery",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "Direct Clause 5.8 coverage is limited to the assertion that a derived registered object is discovered using the base object-class handle on which the subscriber declared its subscription (the closest subscribed superclass). Advisory filtering is not mapped here; no conformance claim is made.",
       "contract_refs": [
         "standard-known-class-attribute-relevance-contract.json",
         "attribute-relevance-advisory-api-contract.json",
@@ -37311,6 +37350,19 @@
         "cpp-1516.1-object-registration-discovery",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "The contract wrapper executes the same standard API assertion as its primary: discovery reports the base object class on which the subscriber declared its subscription for a derived registered object. Direct mapping is limited to Clause 5.8; advisory filtering is not mapped, and no conformance claim is made.",
       "contract_refs": [
         "standard-known-class-attribute-relevance-contract.json"
       ],

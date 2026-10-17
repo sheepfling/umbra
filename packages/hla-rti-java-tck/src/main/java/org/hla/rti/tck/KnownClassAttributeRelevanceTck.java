@@ -82,9 +82,12 @@ final class KnownClassAttributeRelevanceTck {
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherDerived);
          driveUntil(publisher, subscriber,
             () -> !subscriberRecorder.discoveries.isEmpty(), callbackModel, 3000);
-         JavaTckSupport.check(subscriberRecorder.discoveries.size() == 1
-               && object.equals(subscriberRecorder.discoveries.get(0)),
-            "base-class subscriber did not discover the derived object instance");
+         JavaTckSupport.check(subscriberRecorder.discoveries.size() == 1,
+            "base-class subscriber did not receive exactly one discovery");
+         Discovery discovery = subscriberRecorder.discoveries.get(0);
+         JavaTckSupport.check(object.equals(discovery.object)
+               && subscriberBase.equals(discovery.objectClass),
+            "base-class subscription did not discover the derived object as its subscribed class");
 
          driveFor(publisher, subscriber, callbackModel, 150);
          assertAdvisory(publisherRecorder.updatesOn, 0, object, publisherKnown,
@@ -217,10 +220,20 @@ final class KnownClassAttributeRelevanceTck {
       }
    }
 
+   private static final class Discovery {
+      private final ObjectInstanceHandle object;
+      private final ObjectClassHandle objectClass;
+
+      private Discovery(ObjectInstanceHandle object, ObjectClassHandle objectClass) {
+         this.object = object;
+         this.objectClass = objectClass;
+      }
+   }
+
    private static final class Recorder {
       private final List<Advisory> updatesOn = new CopyOnWriteArrayList<>();
       private final List<Advisory> updatesOff = new CopyOnWriteArrayList<>();
-      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -236,7 +249,8 @@ final class KnownClassAttributeRelevanceTck {
                   updatesOff.add(new Advisory((ObjectInstanceHandle) arguments[0],
                      (AttributeHandleSet) arguments[1], null));
                } else if ("discoverObjectInstance".equals(name)) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (ObjectClassHandle) arguments[1]));
                } else if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK known-class callbacks";
                   if ("hashCode".equals(name)) return System.identityHashCode(proxy);
