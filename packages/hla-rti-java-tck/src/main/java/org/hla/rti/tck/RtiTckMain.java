@@ -7706,7 +7706,8 @@ public final class RtiTckMain {
 
     private static void timestampedInteractionCrossProducerOrder() throws Exception {
        TimestampedInteractionCrossProducerOrderTck.run(factory(), requireFom(),
-          timeImplementation(), interactionClassName(), parameterName(), callbackModel());
+          timeImplementation(), interactionClassName(), parameterName(), objectClassName(),
+          attributeName(), callbackModel());
     }
 
      private static void timestampedInteractionNoFanout() throws Exception {

@@ -50,6 +50,34 @@
                     <semantics>Second independently region-associated value.</semantics>
                 </attribute>
             </objectClass>
+            <objectClass>
+                <name>TckTimestampedAttributePasselObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <attribute>
+                    <name>ReliableValue</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>On change.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Reliable member of a timestamped multi-transport update.</semantics>
+                </attribute>
+                <attribute>
+                    <name>BestEffortValue</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>On change.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAbestEffort</transportation>
+                    <order>Receive</order>
+                    <semantics>Best-effort member of a timestamped multi-transport update.</semantics>
+                </attribute>
+            </objectClass>
         </objectClass>
     </objects>
     <dimensions>

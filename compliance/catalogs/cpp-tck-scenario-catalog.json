@@ -1253,6 +1253,19 @@
       "requirement_ids": [
         "cpp-1516.1-explicit-mim-composition"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-054-l38-10"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.6.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-054-l38-10",
+          "standard_section": "hla-1516.1-2025:clause-4.6.5"
+        }
+      ],
+      "mapping_note": "Direct mapping only for the rejected createFederationExecutionWithMIM call using the reserved HLAstandardMIM designator and expecting DesignatorIsHLAstandardMIM, per page-054-l38-10 -> §4.6.5. Subsequent adapter-supplied MIM composition checks remain covered by the existing API contract and are not attributed to this requirement.",
       "contract_refs": [
         "explicit-mim-api-contract.json",
         "explicit-mim-requirements-contract.json",
@@ -1282,6 +1295,19 @@
       "requirement_ids": [
         "cpp-1516.1-explicit-mim-composition"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-054-l38-10"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.6.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-054-l38-10",
+          "standard_section": "hla-1516.1-2025:clause-4.6.5"
+        }
+      ],
+      "mapping_note": "Direct mapping only for the rejected createFederationExecutionWithMIM call using the reserved HLAstandardMIM designator and expecting DesignatorIsHLAstandardMIM, per page-054-l38-10 -> §4.6.5. Subsequent adapter-supplied MIM composition checks remain covered by the existing API contract and are not attributed to this requirement.",
       "contract_refs": [
         "standard-explicit-mim-creation-contract.json"
       ],
@@ -14072,17 +14098,30 @@
     {
       "id": "cpp-tck.timestamped-interaction-cross-producer-order",
       "category": "timestamped-interaction-cross-producer-order",
-      "title": "Preserve timestamp order across multiple interaction producers for each constrained recipient",
+      "title": "Preserve timestamp order and cross-service retraction uniqueness across producers",
       "api_methods": [
         "RTIambassador.publishInteractionClass",
         "RTIambassador.changeInteractionOrderType",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.sendInteraction(time)",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.deleteObjectInstance(time)",
+      "RTIambassador.unsubscribeObjectClassAttributes",
+      "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.timeAdvanceRequest",
         "RTIambassador.disableTimeRegulation",
         "RTIambassador.disableTimeConstrained",
+      "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.removeObjectInstance(time)",
         "FederateAmbassador.receiveInteraction(time)",
         "FederateAmbassador.timeAdvanceGrant"
       ],
@@ -14093,13 +14132,19 @@
         "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-123-l157-44",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
         "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
       ],
       "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-123-l157-44", "standard_section": "hla-1516.1-2025:clause-6.12"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29", "standard_section": "hla-1516.1-2025:clause-6.17.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32", "standard_section": "hla-1516.1-2025:clause-6.17.1"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l148-13", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
-      "mapping_note": "Direct §8.1.4 witness for the non-FQR portion of the TSO delivery-order rule: two constrained receivers observe timestamped interactions from two producers at times 5 and 7 in timestamp order, even though sends are issued in the order 7, 5, 5. The two equal-time messages may arrive in either order. This does not test the Flush Queue Request exception or every sender/sequence permutation.",
+      "standard_sections": ["hla-1516.1-2025:clause-6.12", "hla-1516.1-2025:clause-6.17.1", "hla-1516.1-2025:clause-8.1.4"],
+      "mapping_note": "Direct §6.12 witness: three timestamped sendInteraction calls, one timestamped updateAttributeValues call, and one timestamped deleteObjectInstance call return valid, pairwise-distinct MessageRetractionHandles across all three service types. Direct §6.17.1 witnesses: the subscribed constrained receiver receives the timestamped Remove Object Instance callback with the correct producing federate, while the deleting sender receives no loopback callback. The time-8 attribute reflection is a positive control, not an additional attribute-order mapping. Direct §8.1.4 witness for the non-FQR interaction-order rule: two constrained receivers observe interaction timestamps 5 and 7 in order although sends are issued 7, 5, 5; equal-time order is unrestricted. This does not test the Flush Queue Request exception or every sender/sequence permutation.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",
@@ -14116,17 +14161,30 @@
     {
       "id": "cpp-tck.timestamped-interaction-cross-producer-order-contract",
       "category": "timestamped-interaction-cross-producer-order",
-      "title": "Portable standard contract for timestamp order across multiple interaction producers",
+      "title": "Portable contract for cross-service retraction uniqueness and timestamp order",
       "api_methods": [
         "RTIambassador.publishInteractionClass",
         "RTIambassador.changeInteractionOrderType",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.sendInteraction(time)",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.deleteObjectInstance(time)",
+      "RTIambassador.unsubscribeObjectClassAttributes",
+      "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.timeAdvanceRequest",
         "RTIambassador.disableTimeRegulation",
         "RTIambassador.disableTimeConstrained",
+      "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.removeObjectInstance(time)",
         "FederateAmbassador.receiveInteraction(time)",
         "FederateAmbassador.timeAdvanceGrant"
       ],
@@ -14137,13 +14195,19 @@
         "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-123-l157-44",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
         "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
       ],
       "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-123-l157-44", "standard_section": "hla-1516.1-2025:clause-6.12"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29", "standard_section": "hla-1516.1-2025:clause-6.17.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32", "standard_section": "hla-1516.1-2025:clause-6.17.1"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l148-13", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
-      "mapping_note": "Same direct §8.1.4 rule mapping as the paired scenario. The contract case checks two constrained receivers against time-5 and time-7 messages from two producers despite send order 7, 5, 5; equal-time order is unrestricted. It does not test the Flush Queue Request exception or every sender/sequence permutation.",
+      "standard_sections": ["hla-1516.1-2025:clause-6.12", "hla-1516.1-2025:clause-6.17.1", "hla-1516.1-2025:clause-8.1.4"],
+      "mapping_note": "Same direct mappings as the paired scenario: three timestamped sendInteraction calls, one timestamped updateAttributeValues call, and one timestamped deleteObjectInstance call return valid, pairwise-distinct federation-unique handles across all three service types (§6.12). The subscribed receiver's Remove Object Instance callback preserves the producer identity, and the deleting sender receives no loopback callback (§6.17.1). The time-8 attribute reflection is a positive control, not an additional attribute-order mapping. Two constrained receivers also observe interaction timestamp order 5 and 7 despite send order 7, 5, 5 (§8.1.4). Equal-time order is unrestricted; it does not test the Flush Queue Request exception or every sender/sequence permutation.",
       "contract_refs": [
         "standard-timestamped-interaction-cross-producer-order-contract.json"
       ],

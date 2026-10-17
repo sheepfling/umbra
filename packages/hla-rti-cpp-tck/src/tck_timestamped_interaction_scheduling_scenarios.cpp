@@ -2060,10 +2060,84 @@ void scenarioTimestampedInteractionCrossProducerOrder(
       *receiverPeerTime.initial,
       *receiverPeerTime.epsilon,
       7U);
+  auto const timeEight = timeAfter(
+      *earlyTime.factory,
+      *earlyTime.initial,
+      *earlyTime.epsilon,
+      8U);
+  auto const lateEight = timeAfter(
+      *lateTime.factory,
+      *lateTime.initial,
+      *lateTime.epsilon,
+      8U);
+  auto const receiverEight = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      8U);
+  auto const timeNine = timeAfter(
+      *earlyTime.factory,
+      *earlyTime.initial,
+      *earlyTime.epsilon,
+      9U);
+  auto const receiverNine = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      9U);
+
+  auto const earlyObjectClass = early.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const earlyAttribute = early.rtiAmbassador().getAttributeHandle(
+      earlyObjectClass,
+      options.attributeName);
+  auto const receiverObjectClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverObjectClass,
+      options.attributeName);
+  require(
+      earlyObjectClass.isValid() && earlyAttribute.isValid() &&
+          receiverObjectClass.isValid() && receiverAttribute.isValid(),
+      "Timestamped cross-producer attribute-handle lookup returned an invalid handle");
+  rti::AttributeHandleSet const earlyAttributes{earlyAttribute};
+  rti::AttributeHandleSet const receiverAttributes{receiverAttribute};
+  early.rtiAmbassador().publishObjectClassAttributes(
+      earlyObjectClass,
+      earlyAttributes);
+  early.rtiAmbassador().changeDefaultAttributeOrderType(
+      earlyObjectClass,
+      earlyAttributes,
+      rti::TIMESTAMP);
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverObjectClass,
+      receiverAttributes);
+  auto const object = early.rtiAmbassador().registerObjectInstance(earlyObjectClass);
+  require(
+      object.isValid(),
+      "Timestamped cross-producer attribute-handle check registered an invalid object");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(object); },
+      options,
+      "Timestamped cross-producer attribute receiver discovery");
+  auto const deletionObject = early.rtiAmbassador().registerObjectInstance(earlyObjectClass);
+  require(
+      deletionObject.isValid(),
+      "Timestamped cross-producer deletion registration returned an invalid object handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(deletionObject); },
+      options,
+      "Timestamped cross-producer deletion receiver discovery");
+
   std::vector<std::uint8_t> const valueBytes{0x53U, 0x54U, 0x4FU};
   std::vector<std::uint8_t> const earlyTag{0x45U, 0x41U};
   std::vector<std::uint8_t> const lateTag{0x4CU, 0x41U};
   std::vector<std::uint8_t> const lateEqualTag{0x4CU, 0x45U};
+  std::vector<std::uint8_t> const attributeValueBytes{0x41U};
+  std::vector<std::uint8_t> const attributeTagBytes{0x41U, 0x54U};
+  std::vector<std::uint8_t> const deletionTagBytes{0x44U, 0x45U};
   rti::ParameterHandleValueMap earlyParameters;
   earlyParameters.emplace(
       earlyParameter,
@@ -2093,12 +2167,49 @@ void scenarioTimestampedInteractionCrossProducerOrder(
       lateParameters,
       lateEqualTagData,
       *timeFive);
+  rti::AttributeHandleValueMap attributeValues;
+  attributeValues.emplace(
+      earlyAttribute,
+      rti::VariableLengthData(
+          attributeValueBytes.data(),
+          attributeValueBytes.size()));
+  rti::VariableLengthData attributeTagData(
+      attributeTagBytes.data(),
+      attributeTagBytes.size());
+  auto const attributeMessage = early.rtiAmbassador().updateAttributeValues(
+      object,
+      attributeValues,
+      attributeTagData,
+      *timeEight);
+  rti::VariableLengthData deletionTagData(
+      deletionTagBytes.data(),
+      deletionTagBytes.size());
+  auto const deletionMessage = early.rtiAmbassador().deleteObjectInstance(
+      deletionObject,
+      deletionTagData,
+      *timeNine);
   require(
-      lateMessage.isValid() && earlyMessage.isValid() && lateEqualMessage.isValid(),
-      "Timestamped interaction cross-producer send returned an invalid retraction handle");
+      lateMessage.isValid() && earlyMessage.isValid() && lateEqualMessage.isValid() &&
+          attributeMessage.isValid() && deletionMessage.isValid(),
+      "Timestamped cross-service send returned an invalid retraction handle");
+  require(
+      !(lateMessage == earlyMessage) &&
+          !(lateMessage == lateEqualMessage) &&
+          !(earlyMessage == lateEqualMessage) &&
+          !(lateMessage == attributeMessage) &&
+          !(earlyMessage == attributeMessage) &&
+          !(lateEqualMessage == attributeMessage) &&
+          !(lateMessage == deletionMessage) &&
+          !(earlyMessage == deletionMessage) &&
+          !(lateEqualMessage == deletionMessage) &&
+          !(attributeMessage == deletionMessage),
+      "Timestamped interaction, attribute-update, and object-deletion services returned non-unique federation retraction handles");
   require(
       receiver.recorder().timedInteractions().empty() &&
-          receiverPeer.recorder().timedInteractions().empty(),
+          receiverPeer.recorder().timedInteractions().empty() &&
+          receiver.recorder().timedReflections().empty() &&
+          receiver.recorder().timedRemovals().empty() &&
+          early.recorder().timedRemovals().empty(),
       "Timestamped interaction cross-producer delivered before a recipient request");
 
   early.rtiAmbassador().timeAdvanceRequest(*timeSeven);
@@ -2140,6 +2251,22 @@ void scenarioTimestampedInteractionCrossProducerOrder(
       },
       options,
       "Timestamped interaction cross-producer second boundary");
+  waitFor(
+      early,
+      [&] { return early.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "Timestamped interaction cross-producer early sender grant at time seven");
+  require(
+      early.recorder().timeAdvanceGrants().front().encoded == encodeTime(*timeSeven),
+      "Timestamped interaction cross-producer early sender received the wrong time-seven grant");
+  waitFor(
+      late,
+      [&] { return late.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "Timestamped interaction cross-producer late sender grant at time seven");
+  require(
+      late.recorder().timeAdvanceGrants().front().encoded == encodeTime(*timeSeven),
+      "Timestamped interaction cross-producer late sender received the wrong time-seven grant");
   require(
       receiver.recorder().timedInteractions().size() == 3U &&
           receiver.recorder().timeAdvanceGrants().size() == 2U &&
@@ -2212,13 +2339,101 @@ void scenarioTimestampedInteractionCrossProducerOrder(
               encodeTime(*receiverPeerSeven),
       "Timestamped interaction cross-producer returned the wrong final grants");
 
+  receiver.rtiAmbassador().timeAdvanceRequest(*receiverEight);
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().timedReflections().size() == 1U &&
+            receiver.recorder().timeAdvanceGrants().size() == 3U;
+      },
+      options,
+      "Timestamped cross-service attribute delivery at time eight");
+  auto const attributeReflections = receiver.recorder().timedReflections();
+  auto const& attributeReflection = attributeReflections.front();
+  require(
+      attributeReflection.object == object &&
+          attributeReflection.values.size() == 1U &&
+          attributeReflection.values.count(receiverAttribute) == 1U &&
+          copyBytes(attributeReflection.values.at(receiverAttribute)) == attributeValueBytes &&
+          attributeReflection.tag == attributeTagBytes &&
+          attributeReflection.producer == earlyHandle &&
+          attributeReflection.time == encodeTime(*timeEight) &&
+          attributeReflection.sentOrder == rti::TIMESTAMP &&
+          attributeReflection.receivedOrder == rti::TIMESTAMP &&
+          attributeReflection.retractionPresent &&
+          attributeReflection.retraction == copyBytes(attributeMessage.encode()),
+      "Timestamped cross-service attribute reflection returned incorrect metadata");
+  auto const callbackOrder = receiver.recorder().callbackOrder();
+  require(
+      callbackOrder.size() == 7U && callbackOrder.at(5U) == "reflect" &&
+          callbackOrder.at(6U) == "grant" &&
+          receiver.recorder().timeAdvanceGrants().back().encoded == encodeTime(*receiverEight),
+      "Timestamped cross-service attribute reflection was not delivered before its grant");
+
+  early.rtiAmbassador().timeAdvanceRequest(*timeEight);
+  late.rtiAmbassador().timeAdvanceRequest(*lateEight);
+  waitFor(
+      early,
+      [&] { return early.recorder().timeAdvanceGrants().size() == 2U; },
+      options,
+      "Timestamped cross-service sender frontier at time eight");
+  require(
+      early.recorder().timeAdvanceGrants().back().encoded == encodeTime(*timeEight),
+      "Timestamped cross-service sender advanced to the wrong frontier");
+  waitFor(
+      late,
+      [&] { return late.recorder().timeAdvanceGrants().size() == 2U; },
+      options,
+      "Timestamped cross-service second sender frontier at time eight");
+  require(
+      late.recorder().timeAdvanceGrants().back().encoded == encodeTime(*lateEight),
+      "Timestamped cross-service second sender advanced to the wrong frontier");
+
+  receiver.rtiAmbassador().timeAdvanceRequest(*receiverNine);
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().timedRemovals().size() == 1U &&
+            receiver.recorder().timeAdvanceGrants().size() == 4U;
+      },
+      options,
+      "Timestamped cross-service object deletion at time nine");
+  auto const deletionRecords = receiver.recorder().timedRemovals();
+  auto const& deletionRecord = deletionRecords.front();
+  require(
+      deletionRecord.object == deletionObject && deletionRecord.tag == deletionTagBytes &&
+          deletionRecord.producer == earlyHandle &&
+          deletionRecord.time == encodeTime(*timeNine) &&
+          deletionRecord.sentOrder == rti::TIMESTAMP &&
+          deletionRecord.receivedOrder == rti::TIMESTAMP &&
+          deletionRecord.retractionPresent &&
+          deletionRecord.retraction == copyBytes(deletionMessage.encode()),
+      "Timestamped cross-service object-removal callback returned incorrect metadata");
+  require(
+      early.recorder().timedRemovals().empty() &&
+          receiverPeer.recorder().timedRemovals().empty(),
+      "Timestamped object deletion looped back to its sender or reached an unsubscribed peer");
+  auto const deletionCallbackOrder = receiver.recorder().callbackOrder();
+  require(
+      deletionCallbackOrder.size() == 9U &&
+          deletionCallbackOrder.at(7U) == "remove" &&
+          deletionCallbackOrder.at(8U) == "grant" &&
+          receiver.recorder().timeAdvanceGrants().back().encoded == encodeTime(*receiverNine),
+      "Timestamped object removal was not delivered before its matching grant");
+
   receiver.rtiAmbassador().disableTimeConstrained();
   receiverPeer.rtiAmbassador().disableTimeConstrained();
   early.rtiAmbassador().disableTimeRegulation();
   late.rtiAmbassador().disableTimeRegulation();
   receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      receiverObjectClass,
+      receiverAttributes);
   receiverPeer.rtiAmbassador().unsubscribeInteractionClass(receiverPeerInteraction);
   early.rtiAmbassador().unpublishInteractionClass(earlyInteraction);
+  early.rtiAmbassador().unpublishObjectClassAttributes(
+      earlyObjectClass,
+      earlyAttributes);
   late.rtiAmbassador().unpublishInteractionClass(lateInteraction);
   receiverPeer.resign(rti::NO_ACTION);
   receiver.resign(rti::NO_ACTION);

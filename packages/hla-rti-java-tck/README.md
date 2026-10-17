@@ -696,7 +696,8 @@ is observable through the standard 1516.1-2025 API only.
 The opt-in `java-tck.object-deletion-service-boundaries` scenario checks
 pre-connection and pre-membership lookup failures, object name/handle round
 trips, local deletion without remote callback, ordinary removal tag/producer
-metadata, post-deletion lookup failures, and DeleteObjects resignation cleanup.
+metadata, post-deletion lookup and former-owner ownership-status failures, and
+DeleteObjects resignation cleanup.
 Its C++ base/contract pair passed two independent fresh GNU 15.2/Ninja
 installed-package builds with all four evoked/immediate CTest cases passing in
 each build. Java provider execution remains unsupported by default pending

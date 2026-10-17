@@ -857,8 +857,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.receive-order-object-removal-contract` | Pure standard C++ contract for ordinary object registration/discovery, deletion, removal metadata, and teardown |
 | `cpp-tck.object-removal-order-classification` | At one time-constrained receiver, prove receive-order removal is released by either enabling asynchronous delivery or advancing time while it is disabled, then classify timestamped removal with time/order/retraction metadata and removal-before-grant |
 | `cpp-tck.object-removal-order-classification-contract` | Standard adapter-backed contract for asynchronous-delivery and time-advance release of receive-order removal, plus timestamp-order object removal |
-| `cpp-tck.object-deletion-service-boundaries` | Object-deletion pre-connect and pre-join failures, unknown-object rejection, local deletion, remote removal metadata, resign-time deletion, and lookup cleanup |
-| `cpp-tck.object-deletion-service-boundaries-contract` | Pure standard C++ contract for object-deletion service boundaries, removal metadata, and resignation cleanup |
+| `cpp-tck.object-deletion-service-boundaries` | Object-deletion pre-connect and pre-join failures, unknown-object rejection, local deletion, remote removal metadata, post-delete ownership-status rejection, resign-time deletion, and lookup cleanup |
+| `cpp-tck.object-deletion-service-boundaries-contract` | Pure standard C++ contract for object-deletion service boundaries, removal metadata, former-owner status after deletion, and resignation cleanup |
 | `cpp-tck.object-registration-service-boundaries` | Object-registration pre-connect and pre-join failures, publication/subscription boundaries, discovery, stable handle lookups, and standard cleanup |
 | `cpp-tck.object-registration-service-boundaries-contract` | Pure standard C++ contract for object-registration service boundaries, discovery, handle lookups, and lifecycle cleanup |
 | `cpp-tck.attribute-update-service-boundaries` | Ordinary active/passive attribute Update/Reflect, payload/tag/producer/transport metadata, and standard cleanup |

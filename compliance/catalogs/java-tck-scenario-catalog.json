@@ -857,6 +857,19 @@
       "requirement_ids": [
         "cpp-1516.1-explicit-mim-composition"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-054-l38-10"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.6.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-054-l38-10",
+          "standard_section": "hla-1516.1-2025:clause-4.6.5"
+        }
+      ],
+      "mapping_note": "Direct mapping only for the rejected createFederationExecutionWithMIM call using the reserved HLAstandardMIM designator and expecting DesignatorIsHLAstandardMIM, per page-054-l38-10 -> §4.6.5. Subsequent adapter-supplied MIM composition checks remain covered by the existing API contract and are not attributed to this requirement.",
       "contract_refs": [
         "explicit-mim-api-contract.json",
         "explicit-mim-requirements-contract.json",
@@ -14378,18 +14391,31 @@
     {
       "id": "java-tck.timestamped-interaction-cross-producer-order",
       "category": "time",
-      "title": "Preserve timestamp order across multiple producers for constrained receivers",
+      "title": "Preserve timestamp order and cross-service retraction uniqueness across producers",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.publishInteractionClass",
         "RTIambassador.changeInteractionOrderType",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.sendInteraction(time)",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.deleteObjectInstance(time)",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.timeAdvanceRequest",
         "RTIambassador.disableTimeRegulation",
         "RTIambassador.disableTimeConstrained",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.removeObjectInstance(time)",
         "FederateAmbassador.receiveInteraction(time)",
         "FederateAmbassador.timeAdvanceGrant"
       ],
@@ -14399,13 +14425,19 @@
         "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-123-l157-44",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
         "requirement-candidate-content-clauses-08-time-management-page-181-l148-13"
       ],
       "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-123-l157-44", "standard_section": "hla-1516.1-2025:clause-6.12"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29", "standard_section": "hla-1516.1-2025:clause-6.17.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32", "standard_section": "hla-1516.1-2025:clause-6.17.1"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l148-13", "standard_section": "hla-1516.1-2025:clause-8.1.4"}
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.1.4"],
-      "mapping_note": "Parity mapping to the verified C++ scenario: two constrained receivers observe timestamped interactions from two producers at times 5 and 7 in timestamp order, although sends are issued 7, 5, 5. Equal-time messages may arrive in either order. This covers the non-FQR branch only, not the Flush Queue Request exception or every sender/sequence permutation. Java provider runtime remains unverified.",
+      "standard_sections": ["hla-1516.1-2025:clause-6.12", "hla-1516.1-2025:clause-6.17.1", "hla-1516.1-2025:clause-8.1.4"],
+      "mapping_note": "Parity mapping to the C++ scenario: three timestamped sendInteraction calls, one timestamped updateAttributeValues call, and one timestamped deleteObjectInstance call return valid, pairwise-distinct MessageRetractionHandles across all three service types (§6.12). The subscribed receiver's Remove Object Instance callback preserves the producer identity, and the deleting sender receives no loopback callback (§6.17.1). The time-8 attribute reflection is a positive control, not an additional attribute-order mapping. Two constrained receivers also observe non-FQR interaction timestamp order 5 and 7 despite send order 7, 5, 5 (§8.1.4). Equal-time order is unrestricted; this does not cover the Flush Queue Request exception or every sender/sequence permutation. Java provider runtime remains unverified.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",
