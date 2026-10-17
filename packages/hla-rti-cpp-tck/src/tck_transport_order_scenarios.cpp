@@ -245,6 +245,28 @@ void scenarioTransportOrderPortable(Options const& options, rti::CallbackModel m
   owner.recorder().clearTransportationRecords();
   observer.recorder().clearReflection();
   owner.rtiAmbassador().requestAttributeTransportationTypeChange(
+      first, ownerAttributes, reliable);
+  waitFor(owner,
+          [&] {
+            return owner.recorder().attributeTransportationConfirmations().size() >= 1U;
+          },
+          options,
+          "unchanged attribute transportation confirmation");
+  auto const unchangedAttributeConfirmations =
+      owner.recorder().attributeTransportationConfirmations();
+  require(unchangedAttributeConfirmations.size() == 1U,
+          "unchanged attribute transportation request did not produce one confirmation");
+  auto const& unchangedAttributeConfirmation = unchangedAttributeConfirmations.front();
+  require(unchangedAttributeConfirmation.object == first &&
+              unchangedAttributeConfirmation.attributes.count(ownerAttribute) == 1U &&
+              sameTransport(owner.rtiAmbassador(),
+                            unchangedAttributeConfirmation.transportation,
+                            L"HLAreliable"),
+          "unchanged attribute transportation confirmation did not report the achieved reliable type");
+
+  owner.recorder().clearTransportationRecords();
+  observer.recorder().clearReflection();
+  owner.rtiAmbassador().requestAttributeTransportationTypeChange(
       first, ownerAttributes, bestEffort);
   if (model == rti::HLA_EVOKED) {
     requireException(

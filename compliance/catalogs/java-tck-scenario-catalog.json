@@ -6313,6 +6313,7 @@
         "RTIambassador.disconnect"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-111-l25-6",
         "requirement-candidate-content-clauses-08-time-management-page-188-l69-21",
         "requirement-candidate-content-clauses-08-time-management-page-188-l75-23",
         "requirement-candidate-content-clauses-08-time-management-page-188-l81-25",
@@ -6322,6 +6323,7 @@
         "requirement-candidate-content-clauses-10-support-services-page-257-l108-25"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-111-l25-6",
         "requirement-candidate-content-clauses-08-time-management-page-188-l69-21",
         "requirement-candidate-content-clauses-08-time-management-page-188-l75-23",
         "requirement-candidate-content-clauses-08-time-management-page-188-l81-25",
@@ -6331,12 +6333,17 @@
         "requirement-candidate-content-clauses-10-support-services-page-257-l108-25"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-6.1.11",
         "hla-1516.1-2025:clause-8.2",
         "hla-1516.1-2025:clause-10.17.4",
         "hla-1516.1-2025:clause-10.19",
         "hla-1516.1-2025:clause-10.20.4"
       ],
       "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-111-l25-6",
+          "standard_section": "hla-1516.1-2025:clause-6.1.11"
+        },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l69-21",
           "standard_section": "hla-1516.1-2025:clause-8.2"
@@ -6366,11 +6373,12 @@
           "standard_section": "hla-1516.1-2025:clause-10.20.4"
         }
       ],
-      "mapping_note": "Maps the directly asserted mandatory order names/values and API mappings (§8.2, §§10.17.4, 10.19), plus HLAreliable/HLAbestEffort transportation handles and name round-trips (§§10.19, 10.20.4). Java-only transportation-handle-factory default identity checks, lifecycle checks, and invalid-input checks are supplemental. Java remains unsupported pending provider execution; Java's OrderType enum has no direct equivalent to C++'s deliberately invalid cast, so no Java equivalent is claimed.",
+      "mapping_note": "The joined-federate HLAreliable/HLAbestEffort handle/name checks directly verify that both mandatory transportation types are supported (§6.1.11); they do not test delivery behavior implied by the reliable/best-effort classifications. The standard Receive/TimeStamp order names and values map to §8.2, and Get Order Type/Get Order Name mappings to §§10.17.4 and 10.19; transportation lookup/name mappings also map to §§10.19 and 10.20.4. Java-only transportation-handle-factory default identity checks, lifecycle checks, and invalid-input checks are supplemental. Java remains unsupported pending provider execution; Java's OrderType enum has no direct equivalent to C++'s deliberately invalid cast, so no Java equivalent is claimed.",
       "contract_refs": [
         "standard-order-and-transportation-lookups-contract.json",
         "order-type-api-contract.json",
-        "transportation-type-api-contract.json"
+        "transportation-type-api-contract.json",
+        "transportation-type-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#standardOrderTransportationLookups",
       "parity": "cpp-tck.standard-order-and-transportation-lookups-contract",
@@ -7974,7 +7982,8 @@
         "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
         "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
         "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
-        "requirement-candidate-content-clauses-06-object-management-page-112-l12-3"
+        "requirement-candidate-content-clauses-06-object-management-page-112-l12-3",
+        "requirement-candidate-content-clauses-06-object-management-page-111-l58-17"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
@@ -7991,7 +8000,8 @@
         "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
         "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
         "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
-        "requirement-candidate-content-clauses-06-object-management-page-112-l12-3"
+        "requirement-candidate-content-clauses-06-object-management-page-112-l12-3",
+        "requirement-candidate-content-clauses-06-object-management-page-111-l58-17"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.25.1",
@@ -8003,7 +8013,8 @@
         "hla-1516.1-2025:clause-6.31.3",
         "hla-1516.1-2025:clause-6.32.5",
         "hla-1516.1-2025:clause-6.33.6",
-        "hla-1516.1-2025:clause-6.1.13"
+        "hla-1516.1-2025:clause-6.1.13",
+        "hla-1516.1-2025:clause-6.1.11"
       ],
       "requirement_mappings": [
         {
@@ -8065,9 +8076,13 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-112-l12-3",
           "standard_section": "hla-1516.1-2025:clause-6.1.13"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-111-l58-17",
+          "standard_section": "hla-1516.1-2025:clause-6.1.11"
         }
       ],
-      "mapping_note": "Catalog mapping is limited to the directly asserted transportation-type controls, confirmation boundaries, query/report results, prospective class default, and resulting update/send transport (§§6.25.1–6.33.6). The interaction path queries the current reliable type, requests reliable again, and asserts the confirmation reports reliable, covering the unchanged-achieved-type branch (§6.1.13). Order-control effects and invalid-input cases are supplemental/unmapped. Java row status remains run-ready in the catalog but does not constitute provider execution or conformance evidence; its OrderType enum has no equivalent to the C++ invalid enum cast.",
+      "mapping_note": "Catalog mapping is limited to the directly asserted transportation-type controls, confirmation boundaries, query/report results, prospective class default, and resulting update/send transport (§§6.25.1–6.33.6). Both the attribute and interaction paths request their already-achieved reliable type and verify a confirmation reports reliable; these distinct unchanged-type checks map to §§6.1.11 and 6.1.13, respectively. Order-control effects and invalid-input cases are supplemental/unmapped. Java row status remains run-ready in the catalog but does not constitute provider execution or conformance evidence; its OrderType enum has no equivalent to the C++ invalid enum cast.",
       "contract_refs": [
         "order-type-api-contract.json",
         "order-type-requirements-contract.json",

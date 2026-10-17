@@ -190,6 +190,18 @@ final class TransportOrderTck {
 
          // Evoked callbacks leave the request pending until serviced; immediate
          // callbacks commit it before the request service returns.
+         owner.requestAttributeTransportationTypeChange(first, ownerAttributes, reliable);
+         JavaTckSupport.drain(owner);
+         JavaTckSupport.check(ownerRecorder.attributeConfirmations.size() == 1,
+            "unchanged attribute transportation request did not produce one confirmation");
+         AttributeTransportConfirmation unchangedAttributeConfirmation =
+            ownerRecorder.attributeConfirmations.get(0);
+         JavaTckSupport.check(first.equals(unchangedAttributeConfirmation.object)
+               && unchangedAttributeConfirmation.attributes.size() == 1
+               && unchangedAttributeConfirmation.attributes.contains(ownerAttribute)
+               && sameTransport(owner, unchangedAttributeConfirmation.transportation, reliable),
+            "unchanged attribute transportation confirmation did not report the achieved reliable type");
+
          owner.requestAttributeTransportationTypeChange(first, ownerAttributes, bestEffort);
          boolean evoked = callbackModel == CallbackModel.HLA_EVOKED;
          if (evoked) {
@@ -216,9 +228,9 @@ final class TransportOrderTck {
                   evoked ? "HLAreliable" : "HLAbestEffort")),
             "attribute reflection payload or transport differed for the configured callback model");
          JavaTckSupport.drain(owner);
-         JavaTckSupport.check(ownerRecorder.attributeConfirmations.size() == 1,
-            "attribute transport request did not produce one confirmation callback");
-         AttributeTransportConfirmation confirmation = ownerRecorder.attributeConfirmations.get(0);
+         JavaTckSupport.check(ownerRecorder.attributeConfirmations.size() == 2,
+            "attribute transport requests did not each produce one confirmation callback");
+         AttributeTransportConfirmation confirmation = ownerRecorder.attributeConfirmations.get(1);
          JavaTckSupport.check(first.equals(confirmation.object)
                && confirmation.attributes.size() == 1
                && confirmation.attributes.contains(ownerAttribute)
