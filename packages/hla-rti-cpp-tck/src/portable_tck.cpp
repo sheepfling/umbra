@@ -43,6 +43,7 @@
 #include "tck_logical_time.hpp"
 #include "tck_time_coordinated_interaction.hpp"
 #include "tck_empty_attribute_subscription.hpp"
+#include "tck_attribute_subscription_mode_transitions.hpp"
 #include "tck_named_update_rate_subscription.hpp"
 #include "tck_default_rate_no_reduction.hpp"
 #include "tck_accumulating_attribute_subscriptions.hpp"
@@ -999,6 +1000,10 @@ constexpr char timestampedInteractionsScenario[] =
     "cpp-tck.timestamped-interactions";
 constexpr char timestampedInteractionsContractId[] =
     "cpp-tck.timestamped-interactions-contract";
+constexpr char unregulatedSenderTimestampedInteractionScenario[] =
+    "cpp-tck.unregulated-sender-timestamped-interaction";
+constexpr char unregulatedSenderTimestampedInteractionContractId[] =
+    "cpp-tck.unregulated-sender-timestamped-interaction-contract";
 constexpr char timestampedInteractionPreferredReceiveConversionScenario[] =
     "cpp-tck.timestamped-interaction-preferred-receive-conversion";
 constexpr char timestampedInteractionPreferredReceiveConversionContractId[] =
@@ -1159,6 +1164,10 @@ constexpr char defaultRateNoReductionScenario[] =
     "cpp-tck.default-rate-subscription-no-reduction";
 constexpr char accumulatingAttributeSubscriptionsScenario[] =
     "cpp-tck.attribute-subscription-invocations-accumulate";
+constexpr char attributeSubscriptionModeTransitionsScenario[] =
+    "cpp-tck.attribute-subscription-per-attribute-mode-transitions";
+constexpr char attributeSubscriptionModeTransitionsContractId[] =
+    "cpp-tck.attribute-subscription-per-attribute-mode-transitions-contract";
 constexpr char passiveSubscriptionNoStartRegistrationScenario[] =
     "cpp-tck.passive-subscription-no-start-registration";
 constexpr char selectiveAttributeUnsubscriptionScenario[] =
@@ -3155,6 +3164,18 @@ void scenarioTimestampedInteractionsPortable(
   scenarioTimestampedInteractions(options, model);
 }
 
+void scenarioUnregulatedSenderTimestampedInteractionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioUnregulatedSenderTimestampedInteraction(options, model);
+}
+
+void scenarioUnregulatedSenderTimestampedInteractionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioUnregulatedSenderTimestampedInteractionContract(options, model);
+}
+
 void scenarioTimestampedInteractionsContractPortable(
     Options const& options,
     rti::CallbackModel model) {
@@ -3599,6 +3620,18 @@ void scenarioAttributeSubscriptionInvocationsAccumulatePortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioAttributeSubscriptionInvocationsAccumulate(options, model);
+}
+
+void scenarioAttributeSubscriptionPerAttributeModeTransitionsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeSubscriptionPerAttributeModeTransitions(options, model);
+}
+
+void scenarioAttributeSubscriptionPerAttributeModeTransitionsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeSubscriptionPerAttributeModeTransitionsContract(options, model);
 }
 
 void scenarioPassiveSubscriptionDoesNotStartRegistrationPortable(
@@ -15564,6 +15597,18 @@ int runTimestampedInteractionsScenarios(int argc, char** argv) {
       scenarioTimestampedInteractionsContractPortable);
 }
 
+int runUnregulatedSenderTimestampedInteractionScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      unregulatedSenderTimestampedInteractionScenario,
+      unregulatedSenderTimestampedInteractionContractId,
+      scenarioUnregulatedSenderTimestampedInteractionPortable,
+      scenarioUnregulatedSenderTimestampedInteractionContractPortable);
+}
+
 int runTimestampedInteractionPreferredReceiveConversionScenarios(
     int argc, char** argv) {
   return runPortableScenarioPair(
@@ -15937,6 +15982,16 @@ int runAccumulatingAttributeSubscriptionsScenario(int argc, char** argv) {
       accumulatingAttributeSubscriptionsScenario,
       scenarioAttributeSubscriptionInvocationsAccumulatePortable,
       scenarioAttributeSubscriptionInvocationsAccumulatePortable);
+}
+
+int runAttributeSubscriptionModeTransitionsScenario(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      attributeSubscriptionModeTransitionsScenario,
+      attributeSubscriptionModeTransitionsContractId,
+      scenarioAttributeSubscriptionPerAttributeModeTransitionsPortable,
+      scenarioAttributeSubscriptionPerAttributeModeTransitionsContractPortable);
 }
 
 int runPassiveSubscriptionNoStartRegistrationScenario(int argc, char** argv) {
@@ -18451,6 +18506,22 @@ bool hasTimestampedInteractionsScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasUnregulatedSenderTimestampedInteractionScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == unregulatedSenderTimestampedInteractionScenario ||
+        scenario == unregulatedSenderTimestampedInteractionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasTimestampedInteractionPreferredReceiveConversionScenario(
     int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
@@ -18921,6 +18992,20 @@ bool hasAccumulatingAttributeSubscriptionsScenario(int argc, char** argv) {
     if (std::string(argv[index]) == "--scenario" &&
         std::string(argv[index + 1]) ==
             accumulatingAttributeSubscriptionsScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasAttributeSubscriptionModeTransitionsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == attributeSubscriptionModeTransitionsScenario ||
+        scenario == attributeSubscriptionModeTransitionsContractId) {
       return true;
     }
   }
@@ -22489,6 +22574,9 @@ int main(int argc, char** argv) {
     if (hasTimestampedInteractionsScenario(argc, argv)) {
       return runTimestampedInteractionsScenarios(argc, argv);
     }
+    if (hasUnregulatedSenderTimestampedInteractionScenario(argc, argv)) {
+      return runUnregulatedSenderTimestampedInteractionScenarios(argc, argv);
+    }
     if (hasTimestampedInteractionPreferredReceiveConversionScenario(argc, argv)) {
       return runTimestampedInteractionPreferredReceiveConversionScenarios(
           argc, argv);
@@ -22600,6 +22688,9 @@ int main(int argc, char** argv) {
     }
     if (hasAccumulatingAttributeSubscriptionsScenario(argc, argv)) {
       return runAccumulatingAttributeSubscriptionsScenario(argc, argv);
+    }
+    if (hasAttributeSubscriptionModeTransitionsScenario(argc, argv)) {
+      return runAttributeSubscriptionModeTransitionsScenario(argc, argv);
     }
     if (hasPassiveSubscriptionNoStartRegistrationScenario(argc, argv)) {
       return runPassiveSubscriptionNoStartRegistrationScenario(argc, argv);

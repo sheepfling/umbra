@@ -100,11 +100,13 @@ add_executable(hla_rti_cpp_tck
   src/tck_timestamped_attribute_scenarios.cpp
   src/tck_mixed_order_attribute_passel_retraction.cpp
   src/tck_timestamped_attribute_sender_regulation_transition.cpp
+  src/tck_unregulated_sender_timestamped_interaction.cpp
   src/tck_timestamped_interaction_scenarios.cpp
   src/tck_timestamped_interaction_boundary_scenarios.cpp
   src/tck_time_management_scenarios.cpp
   src/tck_time_coordinated_interaction.cpp
   src/tck_empty_attribute_subscription.cpp
+  src/tck_attribute_subscription_mode_transitions.cpp
   src/tck_named_update_rate_subscription.cpp
   src/tck_default_rate_no_reduction.cpp
   src/tck_accumulating_attribute_subscriptions.cpp

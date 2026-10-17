@@ -3741,6 +3741,70 @@
       "exclusion": "Requires an adapter-supplied compatible FOM, object class, distinct primary/secondary attributes, logical-time implementation, endpoint, callback model, and Java IEEE 1516.1-2025 provider; Java provider runtime verification remains pending."
     },
     {
+      "id": "java-tck.attribute-subscription-per-attribute-mode-transitions",
+      "category": "object-attribute-subscription-lifecycle",
+      "title": "Change active/passive mode for selected attributes without replacing other subscriptions",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributesPassively",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeMultipleCallbacks",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to page-096-l129-40 -> Clause 5.8 active/passive subscription-mode preservation. The scenario verifies A-active/B-passive reflects A only, switching those modes reflects B only, and reactivating A alone leaves B active so the next update reflects both. The assertions use only the standard Java API; Java provider runtime remains unverified.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-class-lookup-api-contract.json",
+        "attribute-lookup-api-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "attribute-value-update-request-api-contract.json",
+        "object-instance-registration-api-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#attributeSubscriptionPerAttributeModeTransitions",
+      "parity": "cpp-tck.attribute-subscription-per-attribute-mode-transitions",
+      "default_status": "unsupported",
+      "adapter_inputs": [
+        "provider Java API JAR and service-loaded RtiFactory",
+        "adapter-supplied FOM with the selected object class and two distinct attributes",
+        "callback model selected by the adapter"
+      ],
+      "exclusion": "The scenario uses only the official IEEE 1516.1-2025 Java API; Java provider-runtime verification remains pending, so no Java conformance claim is made."
+    },
+    {
       "id": "java-tck.selective-attribute-unsubscription",
       "category": "object-attribute-unsubscription",
       "title": "Remove only the requested attribute from a multi-attribute subscription",
@@ -11728,6 +11792,86 @@
       "mapping_note": "Direct mapping is limited to the Clause 8.1.3 statement that time-axis coordination is through messages: the test holds one timestamped interaction behind receiver time 2, then verifies delivery at time 5 before the matching grant. No alternate-advance or unrelated time-management behavior is claimed.",
       "java_test": "org.hla.rti.tck.RtiTckMain#timeCoordinatedInteraction",
       "parity": "cpp-tck.time-coordinated-interaction",
+      "default_status": "unsupported",
+      "adapter_inputs": [
+        "provider Java API JAR and service-loaded RtiFactory",
+        "adapter-supplied FOM containing the selected interaction class and parameter",
+        "provider-supported logical-time implementation",
+        "callback model selected by the adapter"
+      ],
+      "exclusion": "The scenario uses only the official IEEE 1516.1-2025 Java API; provider-runtime verification remains pending, so no Java conformance claim is made."
+    },
+    {
+      "id": "java-tck.unregulated-sender-timestamped-interaction",
+      "category": "time",
+      "title": "Deliver a timestamp unchanged from a non-regulating sender after the constrained receiver advances",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.makeEpsilon",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.queryGALT",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.receiveInteraction(time)"
+      ],
+      "requirement_ids": [
+        "java-1516.1-interaction-declaration-and-delivery",
+        "java-1516.1-time-advance-and-grant"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25",
+        "requirement-candidate-content-clauses-07-ownership-management-page-177-l53-16",
+        "requirement-candidate-content-clauses-08-time-management-page-182-l97-30"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25",
+          "standard_section": "hla-1516.1-2025:clause-4.19"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-177-l53-16",
+          "standard_section": "hla-1516.1-2025:clause-8.1.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l97-30",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        }
+      ],
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "timestamped-interaction-api-contract.json",
+        "timestamped-interaction-requirements-contract.json",
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json",
+        "standard-timestamped-interaction-unregulated-sender-contract.json"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-8.1.2",
+        "hla-1516.1-2025:clause-8"
+      ],
+      "mapping_note": "Directly checks a defined GALT for the non-regulating sender, the receiver's initial logical-time position, and unchanged timestamp delivery for the Clause 8 Send Interaction example. A time-constrained receiver requests an advance while a separate regulator establishes GALT. It makes no regulator-advance, retraction-validity, or callback-versus-grant ordering claim. Source uses only the IEEE 1516.1-2025 Java API; provider runtime remains unverified.",
+      "java_test": "org.hla.rti.tck.RtiTckMain#unregulatedSenderTimestampedInteraction",
+      "parity": "cpp-tck.unregulated-sender-timestamped-interaction",
       "default_status": "unsupported",
       "adapter_inputs": [
         "provider Java API JAR and service-loaded RtiFactory",

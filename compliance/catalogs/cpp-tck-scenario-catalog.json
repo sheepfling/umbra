@@ -9069,6 +9069,93 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.attribute-subscription-per-attribute-mode-transitions",
+      "category": "object-attribute-subscription-lifecycle",
+      "title": "Change active/passive mode for selected attributes without replacing other subscriptions",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to the page-096-l129-40 active/passive subscription-mode behavior: changing a selected attribute's mode preserves the mode and subscription of other attributes in the same class. The scenario verifies A-active/B-passive delivers A only, changing A to passive and B to active delivers B only, then reactivating A alone delivers both. The MinGW installed-package build, direct runs, and exact CTest selectors passed under HLA_EVOKED and HLA_IMMEDIATE; evidence is out/mgw/cpp-tck-unregulated-sender-interaction-20261016/subscription-modes.json. It does not claim broader subscription lifecycle coverage, provider validation, or conformance.",
+      "contract_refs": [
+        "federation-execution-api-contract.json",
+        "object-class-lookup-api-contract.json",
+        "attribute-lookup-api-contract.json",
+        "object-class-attribute-declaration-api-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "attribute-value-update-request-api-contract.json",
+        "object-instance-registration-api-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioAttributeSubscriptionPerAttributeModeTransitionsPortable",
+      "runner_id": "cpp-tck.attribute-subscription-per-attribute-mode-transitions",
+      "parity": "java-tck.attribute-subscription-per-attribute-mode-transitions",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.attribute-subscription-per-attribute-mode-transitions-contract",
+      "category": "object-attribute-subscription-lifecycle",
+      "title": "Exercise the adapter-backed per-attribute active/passive subscription-mode contract",
+      "api_methods": [
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.updateAttributeValues",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_note": "The contract twin invokes the same focused scenario and makes only the page-096-l129-40 active/passive mode-preservation claim. The MinGW installed-package build, direct runs, and exact CTest selectors passed under HLA_EVOKED and HLA_IMMEDIATE; evidence is out/mgw/cpp-tck-unregulated-sender-interaction-20261016/subscription-modes.json. Adapter evidence only, not provider validation or conformance.",
+      "contract_refs": [
+        "subscribe-object-class-attributes-api-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioAttributeSubscriptionPerAttributeModeTransitionsContractPortable",
+      "runner_id": "cpp-tck.attribute-subscription-per-attribute-mode-transitions-contract",
+      "parity": "C++-only; Java parity deferred until this API behavior is ported.",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.passive-subscription-no-start-registration",
       "category": "object-attribute-subscription-lifecycle",
       "title": "Ensure a passive subscription does not trigger Start Registration at a publisher",
@@ -11300,6 +11387,115 @@
       "cpp_test": "src/main.cpp#scenarioResignDeleteObjectsMultiRecipientFifoContract",
       "runner_id": "cpp-tck.resign-delete-objects-multi-recipient-fifo-contract",
       "parity": "cpp-tck.resign-delete-objects-multi-recipient-fifo",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.unregulated-sender-timestamped-interaction",
+      "category": "unregulated-sender-timestamped-interaction",
+      "title": "Pass through a timestamped Send Interaction from a joined sender without Time Regulation",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.queryGALT",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-interaction-delivery"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25",
+        "requirement-candidate-content-clauses-07-ownership-management-page-177-l53-16",
+        "requirement-candidate-content-clauses-08-time-management-page-182-l97-30"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-8.1.2",
+        "hla-1516.1-2025:clause-8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25",
+          "standard_section": "hla-1516.1-2025:clause-4.19"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-177-l53-16",
+          "standard_section": "hla-1516.1-2025:clause-8.1.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l97-30",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        }
+      ],
+      "mapping_note": "Directly checks the non-regulating sender's timestamp against a defined GALT (Clause 4.19), the receiver's initial logical time (Clause 8.1.2), and timestamp preservation in the Clause 8 Send Interaction example. A time-constrained receiver requests an advance while a separate regulator establishes GALT; no regulator advance, retraction validity, or callback-versus-grant order is asserted.",
+      "contract_refs": [
+        "standard-timestamped-interaction-unregulated-sender-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioUnregulatedSenderTimestampedInteractionPortable",
+      "runner_id": "cpp-tck.unregulated-sender-timestamped-interaction",
+      "parity": "java-tck.unregulated-sender-timestamped-interaction",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.unregulated-sender-timestamped-interaction-contract",
+      "category": "unregulated-sender-timestamped-interaction",
+      "title": "Exercise the adapter-backed unregulated timestamped Send Interaction contract",
+      "api_methods": [
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.queryGALT",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.timeAdvanceRequest",
+        "FederateAmbassador.receiveInteraction(time)"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-interaction-delivery"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25",
+        "requirement-candidate-content-clauses-07-ownership-management-page-177-l53-16",
+        "requirement-candidate-content-clauses-08-time-management-page-182-l97-30"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-8.1.2",
+        "hla-1516.1-2025:clause-8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25",
+          "standard_section": "hla-1516.1-2025:clause-4.19"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-177-l53-16",
+          "standard_section": "hla-1516.1-2025:clause-8.1.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l97-30",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        }
+      ],
+      "mapping_note": "The contract twin executes the same focused body: defined GALT, receiver initial position, and unchanged timestamp delivery from a sender that does not enable Time Regulation. The receiver requests an advance while the regulator stays at its initial time; no grant-order or retraction-validity claim is asserted.",
+      "contract_refs": [
+        "standard-timestamped-interaction-unregulated-sender-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioUnregulatedSenderTimestampedInteractionContractPortable",
+      "runner_id": "cpp-tck.unregulated-sender-timestamped-interaction-contract",
+      "parity": "cpp-tck.unregulated-sender-timestamped-interaction",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

@@ -290,6 +290,8 @@ void scenarioTimestampedInteractionSourceResignationFanoutContract(Options const
 void scenarioTimestampedInteractionTsoDesignatorTerminalizationContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractions(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionsContract(Options const&, rti::CallbackModel);
+void scenarioUnregulatedSenderTimestampedInteraction(Options const&, rti::CallbackModel);
+void scenarioUnregulatedSenderTimestampedInteractionContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionPreferredReceiveConversion(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionPreferredReceiveConversionContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedObjectDeletion(Options const&, rti::CallbackModel);

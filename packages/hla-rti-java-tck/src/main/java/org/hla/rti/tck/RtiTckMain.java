@@ -895,6 +895,16 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-federation-create-join-resign-destroy"
             }, false), RtiTckMain::attributeSubscriptionInvocationsAccumulate);
+      run(new Scenario("java-tck.attribute-subscription-per-attribute-mode-transitions",
+            "change active/passive mode for selected attributes without replacing other subscriptions",
+            "object-attribute-subscription-lifecycle",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.subscribeObjectClassAttributesPassively;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            new String[] {
+               "requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40",
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-attribute-update-reflect",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::attributeSubscriptionPerAttributeModeTransitions);
       run(new Scenario("java-tck.selective-attribute-unsubscription",
             "remove only the requested attribute from a multi-attribute subscription",
             "object-attribute-unsubscription",
@@ -2203,7 +2213,16 @@ public final class RtiTckMain {
                 "java-1516.1-interaction-declaration-and-delivery",
                 "java-1516.1-time-advance-and-grant"
              }, false), RtiTckMain::timeCoordinatedInteraction);
-      run(new Scenario("java-tck.timestamped-interaction-mixed-advances",
+       run(new Scenario("java-tck.unregulated-sender-timestamped-interaction",
+             "deliver an unchanged timestamp from a non-regulating sender after the constrained receiver advances",
+             "time",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.queryLogicalTime;RTIambassador.queryGALT;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.sendInteraction(time);RTIambassador.timeAdvanceRequest;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeAdvanceGrant",
+             new String[] {
+                "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25",
+                "requirement-candidate-content-clauses-07-ownership-management-page-177-l53-16",
+                "requirement-candidate-content-clauses-08-time-management-page-182-l97-30"
+             }, false), RtiTckMain::unregulatedSenderTimestampedInteraction);
+       run(new Scenario("java-tck.timestamped-interaction-mixed-advances",
             "timestamped interaction strictly before the TARA boundary through Flush Queue, TARA, and NMRA", "time",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction(time);RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.flushQueueRequest;RTIambassador.timeAdvanceRequestAvailable;RTIambassador.nextMessageRequestAvailable;RTIambassador.timeAdvanceRequest;RTIambassador.queryLogicalTime;FederateAmbassador.receiveInteraction(time);FederateAmbassador.flushQueueGrant;FederateAmbassador.timeAdvanceGrant;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
@@ -7221,6 +7240,11 @@ public final class RtiTckMain {
           interactionClassName(), parameterName(), callbackModel());
     }
 
+    private static void unregulatedSenderTimestampedInteraction() throws Exception {
+       UnregulatedSenderTimestampedInteractionTck.run(factory(), requireFom(),
+          timeImplementation(), interactionClassName(), parameterName(), callbackModel());
+    }
+
     private static void timestampedInteractionMixedAdvances() throws Exception {
       TimestampedInteractionMixedAdvancesTck.run(factory(), requireFom(),
          timeImplementation(), interactionClassName(), parameterName(), callbackModel());
@@ -8833,6 +8857,8 @@ public final class RtiTckMain {
             method = "objectAttributeSubscriptionLifecycle"; break;
          case "java-tck.attribute-subscription-invocations-accumulate":
             method = "attributeSubscriptionInvocationsAccumulate"; break;
+         case "java-tck.attribute-subscription-per-attribute-mode-transitions":
+            method = "attributeSubscriptionPerAttributeModeTransitions"; break;
          case "java-tck.selective-attribute-unsubscription":
             method = "selectiveAttributeUnsubscription"; break;
          case "java-tck.whole-class-attribute-unsubscription":
@@ -9122,6 +9148,8 @@ public final class RtiTckMain {
             method = "modifyLookaheadServiceReport"; break;
           case "java-tck.time-coordinated-interaction":
              method = "timeCoordinatedInteraction"; break;
+         case "java-tck.unregulated-sender-timestamped-interaction":
+            method = "unregulatedSenderTimestampedInteraction"; break;
          case "java-tck.timestamped-interaction-mixed-advances":
             method = "timestampedInteractionMixedAdvances"; break;
           case "java-tck.timestamped-interaction-preferred-receive-conversion":
@@ -10700,6 +10728,12 @@ public final class RtiTckMain {
        ObjectAttributeSubscriptionLifecycleTck.runAccumulatingAttributeSubscriptionInvocations(
           factory(), requireFom(), timeImplementation(), objectClassName(), attributeName(),
           requireAdapterValue(OBJECT_CLASS_SECOND_ATTRIBUTE_PROPERTY), callbackModel());
+    }
+
+    private static void attributeSubscriptionPerAttributeModeTransitions() throws Exception {
+       AttributeSubscriptionModeTransitionsTck.run(factory(), requireFom(), objectClassName(),
+          attributeName(), requireAdapterValue(OBJECT_CLASS_SECOND_ATTRIBUTE_PROPERTY),
+          callbackModel());
     }
 
     private static void selectiveAttributeUnsubscription() throws Exception {
