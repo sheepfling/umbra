@@ -2176,6 +2176,15 @@ public final class RtiTckMain {
                "cpp-1516.1-time-advance-request"
             },
             false), RtiTckMain::timeConstrainedEnableGaltEquality);
+      run(new Scenario("java-tck.time-regulation-implicit-advance",
+            "advance a constrained federate to the smallest feasible time when enabling Time Regulation, delivering queued TSO first",
+            "time-management",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.sendInteraction(time);RTIambassador.timeAdvanceRequest;RTIambassador.queryLogicalTime;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant;FederateAmbassador.receiveInteraction(time)",
+            new String[] {
+               "requirement-candidate-content-clauses-08-time-management-page-188-l99-30",
+               "requirement-candidate-content-clauses-08-time-management-page-188-l138-43",
+               "requirement-candidate-content-clauses-08-time-management-page-188-l144-45"
+            }, false), RtiTckMain::timeRegulationImplicitAdvance);
       run(new Scenario("java-tck.query-lits-source-resignation",
             "Keep Query LITS defined for a queued timestamped interaction after source resignation",
             "time-bounds-query",
@@ -7040,6 +7049,11 @@ public final class RtiTckMain {
          factory(), requireFom(), timeImplementation(), callbackModel());
    }
 
+   private static void timeRegulationImplicitAdvance() throws Exception {
+      TimeRegulationImplicitAdvanceTck.run(factory(), requireFom(),
+         timeImplementation(), interactionClassName(), parameterName(), callbackModel());
+   }
+
    private static void queryLitsSourceResignation() throws Exception {
       QueryLitsSourceResignationTck.run(factory(), requireFom(), timeImplementation(),
          interactionClassName(), parameterName(), callbackModel());
@@ -9226,6 +9240,8 @@ public final class RtiTckMain {
          case "java-tck.time-bounds-queries": method = "timeBoundsQueries"; break;
          case "java-tck.time-constrained-enable-galt-equality":
             method = "timeConstrainedEnableGaltEquality"; break;
+         case "java-tck.time-regulation-implicit-advance":
+            method = "timeRegulationImplicitAdvance"; break;
          case "java-tck.query-lits-source-resignation":
             method = "queryLitsSourceResignation"; break;
          case "java-tck.next-message-request": method = "nextMessageRequest"; break;

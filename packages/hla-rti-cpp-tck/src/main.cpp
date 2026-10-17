@@ -19573,6 +19573,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.available-time-advances-inclusive-galt-contract",
       "cpp-tck.time-constrained-enable-galt-equality",
       "cpp-tck.time-constrained-enable-galt-equality-contract",
+      "cpp-tck.time-regulation-implicit-advance",
+      "cpp-tck.time-regulation-implicit-advance-contract",
       "cpp-tck.time-bounds-queries",
       "cpp-tck.time-bounds-queries-contract",
       "cpp-tck.query-lits-source-resignation",
@@ -21535,6 +21537,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.time-constrained-enable-galt-equality-contract") {
     return scenarioTimeConstrainedEnableAtGaltEqualityContract;
   }
+  if (id == "cpp-tck.time-regulation-implicit-advance") {
+    return scenarioTimeRegulationImplicitAdvance;
+  }
+  if (id == "cpp-tck.time-regulation-implicit-advance-contract") {
+    return scenarioTimeRegulationImplicitAdvanceContract;
+  }
   if (id == "cpp-tck.time-bounds-queries") {
     return scenarioTimeBoundsQueries;
   }
@@ -22963,6 +22971,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.send-message-time-state-preservation-granted-contract" ||
                   scenario == "cpp-tck.time-constrained-enable-galt-equality" ||
                   scenario == "cpp-tck.time-constrained-enable-galt-equality-contract" ||
+                  scenario == "cpp-tck.time-regulation-implicit-advance" ||
+                  scenario == "cpp-tck.time-regulation-implicit-advance-contract" ||
                   scenario == "cpp-tck.available-time-advances-inclusive-galt" ||
                   scenario == "cpp-tck.available-time-advances-inclusive-galt-contract" ||
                   scenario == "cpp-tck.time-bounds-queries" ||

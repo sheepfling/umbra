@@ -1365,6 +1365,195 @@ void scenarioTimeConstrainedEnableAtGaltEqualityContract(
   scenarioTimeConstrainedEnableAtGaltEquality(options, model);
 }
 
+void scenarioTimeRegulationImplicitAdvance(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Implicit Time Regulation advance requires an adapter-supplied logical-time implementation");
+
+  Session producer(options, model, "owner");
+  Session enabling(options, model, "member");
+  Session advancedPeer(options, model, "member");
+  auto const federation = federationName(options, "time-regulation-implicit-advance");
+  connectAndJoin(producer, enabling, options, federation, options.fom);
+  advancedPeer.connect();
+  advancedPeer.join(
+      options.memberFederateName + L"-implicit-peer",
+      options.federateType,
+      federation);
+
+  auto const producerInteraction = producer.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const enablingInteraction = enabling.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const producerParameter = producer.rtiAmbassador().getParameterHandle(
+      producerInteraction,
+      options.parameterName);
+  auto const enablingParameter = enabling.rtiAmbassador().getParameterHandle(
+      enablingInteraction,
+      options.parameterName);
+  require(
+      producerInteraction.isValid() && enablingInteraction.isValid() &&
+          producerParameter.isValid() && enablingParameter.isValid(),
+      "Implicit Time Regulation advance could not resolve the adapter interaction and parameter");
+  producer.rtiAmbassador().publishInteractionClass(producerInteraction);
+  producer.rtiAmbassador().changeInteractionOrderType(
+      producerInteraction,
+      rti::TIMESTAMP);
+  enabling.rtiAmbassador().subscribeInteractionClass(enablingInteraction, true);
+
+  auto producerTime = makeTimeContext(producer);
+  auto enablingTime = makeTimeContext(enabling);
+  auto peerTime = makeTimeContext(advancedPeer);
+  require(
+      producerTime.factory->getName() == enablingTime.factory->getName() &&
+          producerTime.factory->getName() == peerTime.factory->getName(),
+      "Implicit Time Regulation advance members selected different logical-time factories");
+
+  enabling.rtiAmbassador().enableTimeConstrained();
+  advancedPeer.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      enabling,
+      [&] { return enabling.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "implicit-advance member Time Constrained callback");
+  waitFor(
+      advancedPeer,
+      [&] { return advancedPeer.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "implicit-advance peer Time Constrained callback");
+
+  auto producerLookahead = producerTime.factory->makeEpsilon();
+  require(producerLookahead != nullptr, "Implicit Time Regulation advance could not allocate producer lookahead");
+  producer.rtiAmbassador().enableTimeRegulation(*producerLookahead);
+  waitFor(
+      producer,
+      [&] { return producer.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "implicit-advance producer Time Regulation callback");
+
+  auto const messageTime = timeAfter(
+      *producerTime.factory,
+      *producerTime.initial,
+      *producerTime.epsilon,
+      5U);
+  auto const producerTarget = timeAfter(
+      *producerTime.factory,
+      *producerTime.initial,
+      *producerTime.epsilon,
+      10U);
+  auto const peerTarget = timeAfter(
+      *peerTime.factory,
+      *peerTime.initial,
+      *peerTime.epsilon,
+      10U);
+  auto const minimumFeasibleEnableTime = timeAfter(
+      *enablingTime.factory,
+      *enablingTime.initial,
+      *enablingTime.epsilon,
+      8U);
+  auto const enablingLookaheadTime = timeAfter(
+      *enablingTime.factory,
+      *enablingTime.initial,
+      *enablingTime.epsilon,
+      2U);
+  auto enablingLookahead = enablingTime.factory->makeZero();
+  require(enablingLookahead != nullptr, "Implicit Time Regulation advance could not allocate enabling lookahead");
+  enablingLookahead->setToDifference(*enablingLookaheadTime, *enablingTime.initial);
+
+  std::vector<std::uint8_t> payload{0x49U, 0x41U, 0x41U};
+  std::vector<std::uint8_t> tagBytes{0x49U, 0x41U, 0x54U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      producerParameter,
+      rti::VariableLengthData(payload.data(), payload.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  auto const retraction = producer.rtiAmbassador().sendInteraction(
+      producerInteraction,
+      parameters,
+      tag,
+      *messageTime);
+  require(
+      retraction.isValid(),
+      "Implicit Time Regulation advance timestamped interaction returned an invalid retraction handle");
+  require(
+      enabling.recorder().timedInteractions().empty(),
+      "Implicit Time Regulation advance delivered the queued TSO before the member advanced");
+
+  producer.rtiAmbassador().timeAdvanceRequest(*producerTarget);
+  waitFor(
+      producer,
+      [&] { return producer.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "implicit-advance producer Time Advance Grant");
+  advancedPeer.rtiAmbassador().timeAdvanceRequest(*peerTarget);
+  waitFor(
+      advancedPeer,
+      [&] { return advancedPeer.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "implicit-advance peer Time Advance Grant");
+  require(
+      enabling.recorder().timedInteractions().empty(),
+      "Implicit Time Regulation advance delivered the queued TSO before regulation was enabled");
+
+  enabling.rtiAmbassador().enableTimeRegulation(*enablingLookahead);
+  waitFor(
+      enabling,
+      [&] { return enabling.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "implicit-advance member Time Regulation callback");
+
+  auto const enabled = enabling.recorder().timeRegulationEnabled();
+  require(enabled.size() == 1U, "Implicit Time Regulation advance produced an unexpected callback count");
+  require(
+      enabled.front().encoded == copyBytes(minimumFeasibleEnableTime->encode()),
+      "Enable Time Regulation did not assign the smallest feasible logical time");
+  auto const callbackOrder = enabling.recorder().timeRegulationEnablementOrder();
+  require(
+      callbackOrder == std::vector<std::string>{"interaction", "regulation-enabled"},
+      "queued TSO was not delivered before the Time Regulation Enabled callback");
+  require(
+      enabling.recorder().timeAdvanceGrants().empty(),
+      "Implicit Time Regulation advance incorrectly produced a separate Time Advance Grant");
+  auto const delivered = enabling.recorder().timedInteractions();
+  require(
+      delivered.size() == 1U,
+      "Implicit Time Regulation advance did not deliver the queued TSO exactly once");
+  auto const& delivery = delivered.front();
+  require(
+      delivery.interaction == enablingInteraction &&
+          delivery.producer == producer.federateHandle() &&
+          delivery.time == copyBytes(messageTime->encode()) &&
+          delivery.sentOrder == rti::TIMESTAMP &&
+          delivery.receivedOrder == rti::TIMESTAMP &&
+          delivery.retractionPresent && delivery.tag == tagBytes &&
+          delivery.parameters.size() == 1U &&
+          copyBytes(delivery.parameters.at(enablingParameter)) == payload,
+      "Implicit Time Regulation advance did not preserve the queued TSO callback data");
+  auto currentTime = enablingTime.factory->makeInitial();
+  require(currentTime != nullptr, "Implicit Time Regulation advance could not allocate a query time");
+  enabling.rtiAmbassador().queryLogicalTime(*currentTime);
+  requireTimeEquals(
+      *currentTime,
+      *minimumFeasibleEnableTime,
+      "implicit-advance queried logical time");
+
+  advancedPeer.resign(rti::NO_ACTION);
+  enabling.resign(rti::NO_ACTION);
+  producer.resign(rti::NO_ACTION);
+  producer.rtiAmbassador().destroyFederationExecution(federation);
+  advancedPeer.disconnect();
+  enabling.disconnect();
+  producer.disconnect();
+}
+
+void scenarioTimeRegulationImplicitAdvanceContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeRegulationImplicitAdvance(options, model);
+}
+
 void scenarioQueryLitsAfterSourceResignation(
     Options const& options,
     rti::CallbackModel model) {

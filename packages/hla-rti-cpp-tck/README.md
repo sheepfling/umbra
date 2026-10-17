@@ -996,6 +996,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.available-time-advances-inclusive-galt-contract` | Standard adapter-backed available time-advance contract for inclusive-GALT delivery, callback ordering, and retraction boundaries |
 | `cpp-tck.time-constrained-enable-galt-equality` | Verify delayed Enable Time Constrained remains pending while GALT is one below current time and becomes eligible at equality; primary and contract twin passed installed-package HLA_EVOKED and HLA_IMMEDIATE runs and are promoted |
 | `cpp-tck.time-constrained-enable-galt-equality-contract` | Standard API contract twin for delayed Time Constrained enablement at the GALT equality boundary; passed both callback models and promoted |
+| `cpp-tck.time-regulation-implicit-advance` | Promoted after installed-package CTest and direct execution passed under HLA_EVOKED and HLA_IMMEDIATE; checks smallest-feasible assignment, queued TSO before enablement callback, and no separate grant |
+| `cpp-tck.time-regulation-implicit-advance-contract` | Promoted standard contract twin; passed both callback models in installed-package CTest and direct execution |
 | `cpp-tck.time-bounds-queries` | Query GALT (§8.18.1) and Query LITS (§8.19.3): undefined and minimum no-TSO bounds, pending advances, grants, and regulator resignation/disable transitions |
 | `cpp-tck.time-bounds-queries-contract` | Standard adapter-backed Query GALT (§8.18.1) and Query LITS (§8.19.3) contract for undefined, active-regulator, pending-advance, resignation, and disconnect boundaries |
 | `cpp-tck.query-lits-source-resignation` | Query GALT becomes undefined while Query LITS remains the queued timestamp after the sole source regulator resigns |

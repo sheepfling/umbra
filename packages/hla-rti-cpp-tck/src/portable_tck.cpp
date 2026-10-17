@@ -1168,6 +1168,10 @@ constexpr char timeConstrainedEnableAtGaltEqualityScenario[] =
     "cpp-tck.time-constrained-enable-galt-equality";
 constexpr char timeConstrainedEnableAtGaltEqualityContractId[] =
     "cpp-tck.time-constrained-enable-galt-equality-contract";
+constexpr char timeRegulationImplicitAdvanceScenario[] =
+    "cpp-tck.time-regulation-implicit-advance";
+constexpr char timeRegulationImplicitAdvanceContractId[] =
+    "cpp-tck.time-regulation-implicit-advance-contract";
 constexpr char timestampedInteractionMixedAdvancesScenario[] =
     "cpp-tck.timestamped-interaction-mixed-advances";
 constexpr char timestampedInteractionMixedAdvancesContractId[] =
@@ -3630,6 +3634,18 @@ void scenarioTimeConstrainedEnableAtGaltEqualityContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimeConstrainedEnableAtGaltEqualityContract(options, model);
+}
+
+void scenarioTimeRegulationImplicitAdvancePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeRegulationImplicitAdvance(options, model);
+}
+
+void scenarioTimeRegulationImplicitAdvanceContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeRegulationImplicitAdvanceContract(options, model);
 }
 
 void scenarioTimestampedInteractionSourceResignationPortable(
@@ -16025,6 +16041,16 @@ int runTimeConstrainedEnableAtGaltEqualityScenarios(int argc, char** argv) {
       scenarioTimeConstrainedEnableAtGaltEqualityContractPortable);
 }
 
+int runTimeRegulationImplicitAdvanceScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timeRegulationImplicitAdvanceScenario,
+      timeRegulationImplicitAdvanceContractId,
+      scenarioTimeRegulationImplicitAdvancePortable,
+      scenarioTimeRegulationImplicitAdvanceContractPortable);
+}
+
 int runTimestampedInteractionMixedAdvancesScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -19079,6 +19105,20 @@ bool hasTimeConstrainedEnableAtGaltEqualityScenario(int argc, char** argv) {
     auto const selected = std::string(argv[index + 1]);
     if (selected == timeConstrainedEnableAtGaltEqualityScenario ||
         selected == timeConstrainedEnableAtGaltEqualityContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimeRegulationImplicitAdvanceScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const selected = std::string(argv[index + 1]);
+    if (selected == timeRegulationImplicitAdvanceScenario ||
+        selected == timeRegulationImplicitAdvanceContractId) {
       return true;
     }
   }
@@ -22873,6 +22913,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimeConstrainedEnableAtGaltEqualityScenario(argc, argv)) {
       return runTimeConstrainedEnableAtGaltEqualityScenarios(argc, argv);
+    }
+    if (hasTimeRegulationImplicitAdvanceScenario(argc, argv)) {
+      return runTimeRegulationImplicitAdvanceScenarios(argc, argv);
     }
     if (hasTimestampedInteractionTarEqualBoundaryScenario(argc, argv)) {
       return runTimestampedInteractionTarEqualBoundaryScenarios(argc, argv);

@@ -605,6 +605,7 @@ class Recorder final : public rti::FederateAmbassador {
     };
     timedInteractions_.push_back(std::move(record));
     callbackOrder_.push_back("interaction");
+    timeRegulationEnablementOrder_.push_back("interaction");
   }
 
   void multipleObjectInstanceNameReservationSucceeded(
@@ -871,6 +872,7 @@ class Recorder final : public rti::FederateAmbassador {
     std::lock_guard<std::mutex> lock(mutex_);
     timeRegulationEnabled_.push_back(
         LogicalTimeRecord{copyBytes(time.encode()), time.toString()});
+    timeRegulationEnablementOrder_.push_back("regulation-enabled");
   }
 
   void timeConstrainedEnabled(rti::LogicalTime const& time) override {
@@ -1240,6 +1242,11 @@ class Recorder final : public rti::FederateAmbassador {
     return timeRegulationEnabled_;
   }
 
+  std::vector<std::string> timeRegulationEnablementOrder() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return timeRegulationEnablementOrder_;
+  }
+
   std::vector<LogicalTimeRecord> timeConstrainedEnabled() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return timeConstrainedEnabled_;
@@ -1425,6 +1432,7 @@ class Recorder final : public rti::FederateAmbassador {
     timeRegulationEnabled_.clear();
     timeConstrainedEnabled_.clear();
     timeAdvanceGrants_.clear();
+    timeRegulationEnablementOrder_.clear();
   }
 
   void clearCallbackOrder() {
@@ -1509,6 +1517,7 @@ class Recorder final : public rti::FederateAmbassador {
   std::vector<DirectedInteractionRecord> directedInteractions_;
   std::vector<TimedDirectedInteractionRecord> timedDirectedInteractions_;
   std::vector<LogicalTimeRecord> timeRegulationEnabled_;
+  std::vector<std::string> timeRegulationEnablementOrder_;
   std::vector<LogicalTimeRecord> timeConstrainedEnabled_;
   std::vector<LogicalTimeRecord> timeAdvanceGrants_;
   std::vector<RetractionRecord> retractions_;

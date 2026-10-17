@@ -18880,6 +18880,116 @@
   "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.time-regulation-implicit-advance",
+      "category": "time-management",
+      "title": "Assign the smallest feasible logical time when enabling Time Regulation and deliver queued TSO first",
+      "api_methods": [
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.subscribeInteractionClass(active=true)",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.queryLogicalTime",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-time-role-callbacks",
+        "cpp-1516.1-time-advance-and-grant",
+        "cpp-1516.1-timestamped-interaction-delivery"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-188-l99-30",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l138-43",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l144-45"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.2"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l99-30",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l138-43",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l144-45",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        }
+      ],
+      "contract_refs": [
+        "time-role-api-contract.json",
+        "time-role-requirements-contract.json",
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json",
+        "timestamped-interaction-api-contract.json",
+        "timestamped-interaction-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioTimeRegulationImplicitAdvancePortable",
+      "runner_id": "cpp-tck.time-regulation-implicit-advance",
+      "parity": "java-tck.time-regulation-implicit-advance",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.time-regulation-implicit-advance-contract",
+      "category": "time-management",
+      "title": "Standard contract twin for implicit advance during Time Regulation enablement",
+      "api_methods": [
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.queryLogicalTime",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-time-role-callbacks",
+        "cpp-1516.1-time-advance-and-grant",
+        "cpp-1516.1-timestamped-interaction-delivery"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-188-l99-30",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l138-43",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l144-45"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.2"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l99-30",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l138-43",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l144-45",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        }
+      ],
+      "contract_refs": [
+        "time-role-api-contract.json",
+        "time-advance-api-contract.json",
+        "timestamped-interaction-api-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioTimeRegulationImplicitAdvanceContractPortable",
+      "runner_id": "cpp-tck.time-regulation-implicit-advance-contract",
+      "parity": "cpp-tck.time-regulation-implicit-advance",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.query-lits-source-resignation",
       "category": "query-galt-lits-source-resignation",
       "title": "Keep Query LITS defined for a queued TSO after source resignation",

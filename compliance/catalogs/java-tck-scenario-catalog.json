@@ -11483,6 +11483,67 @@
       "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, logical-time implementation, endpoint, and callback configuration; runtime evidence is not yet available."
     },
     {
+      "id": "java-tck.time-regulation-implicit-advance",
+      "category": "time-management",
+      "title": "Assign the smallest feasible logical time when enabling Time Regulation and deliver queued TSO first",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType(TIMESTAMP)",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.sendInteraction(LogicalTime)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant",
+        "FederateAmbassador.receiveInteraction(LogicalTime)"
+      ],
+      "requirement_ids": [
+        "java-1516.1-interaction-declaration-and-delivery",
+        "java-1516.1-time-advance-and-grant"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-188-l99-30",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l138-43",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l144-45"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.2"],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l99-30",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l138-43",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l144-45",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        }
+      ],
+      "mapping_note": "Direct §8.2 slice for smallest-feasible implicit time assignment, implicit advance instead of a separate Time Advance Grant, and queued TSO delivery before Time Regulation Enabled. Provider, FOM, endpoint, callback model, and logical-time implementation are adapter-supplied; the source uses only the official IEEE 1516.1-2025 Java API and JDK.",
+      "contract_refs": ["time-role-api-contract.json", "time-advance-api-contract.json", "timestamped-interaction-api-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#timeRegulationImplicitAdvance",
+      "parity": "cpp-tck.time-regulation-implicit-advance",
+      "default_status": "unsupported",
+      "promotion": "candidate",
+      "exclusion": "Requires adapter-supplied IEEE 1516.1-2025 provider, FOM, endpoint, logical-time implementation, and callback model; Java provider runtime evidence is not yet available."
+    },
+    {
       "id": "java-tck.query-lits-source-resignation",
       "category": "query-galt-lits-source-resignation",
       "title": "Keep Query LITS defined for a queued timestamped interaction after source resignation",
@@ -11859,6 +11920,7 @@
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.queryLookahead",
+        "RTIambassador.queryLogicalTime",
         "RTIambassador.modifyLookahead",
         "RTIambassador.timeAdvanceRequest",
         "RTIambassador.disableTimeRegulation",
@@ -11888,7 +11950,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l84-21", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l162-43", "standard_section": "hla-1516.1-2025:clause-8.20.4"}
       ],
-      "mapping_note": "The planned Java surface mirrors only the direct Modify Lookahead request, zero acceptance, immediate increase, deferred decrease, decrease as logical time advances, and requested-value assertions. Query/modify precondition and invalid-input probes, grant setup, callback delivery, and cleanup remain supplemental. Java provider execution is unsupported pending an adapter/provider and is not conformance evidence.",
+      "mapping_note": "The Java surface covers the direct Modify Lookahead request, zero-interval rejection without changing the active value, immediate increase, deferred decrease, decrease as logical time advances, and requested-value assertions. It also checks the pre-regulation Modify Lookahead error, duplicate Time Regulation/Time Constrained enable and disable errors, pending-advance state, and logical-time queries before and after grants. A time-advance request behind the granted time must fail with LogicalTimeAlreadyPassed. These role and advance-boundary assertions supplement, but are not added to, the direct Clause 8.20.4 mappings. Query Lookahead preconditions and negative-interval construction remain supplemental; the standard factory API has no negative-interval constructor, and this portable TCK does not assume a particular encoding or that subtraction yields a representable negative value. Callback delivery and cleanup are scenario mechanics. Java provider execution is unsupported pending an adapter/provider and is not conformance evidence.",
       "java_test": "org.hla.rti.tck.RtiTckMain#modifyLookaheadContract",
       "parity": "cpp-tck.modify-lookahead",
       "default_status": "unsupported",

@@ -45,6 +45,8 @@ final class ModifyLookaheadTck {
          JavaTckSupport.check(timeFactory.getName().equals(constrained.getTimeFactory().getName()),
             "time-management members selected different logical-time factories");
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
+         JavaTckSupport.expectFailure(() -> regulator.modifyLookahead(epsilon),
+            "TimeRegulationIsNotEnabled", "Modify Lookahead before Time Regulation");
          LogicalTimeInterval initialLookahead = intervalOffset(epsilon, 3);
          LogicalTimeInterval increasedLookahead = intervalOffset(epsilon, 6);
          regulator.enableTimeRegulation(initialLookahead);
@@ -56,6 +58,10 @@ final class ModifyLookaheadTck {
          JavaTckSupport.check(regulatorRecorder.timeRegulationEnabled == 1
                && constrainedRecorder.timeConstrainedEnabled == 1,
             "time-management roles did not complete through their standard callbacks");
+         JavaTckSupport.expectFailure(() -> regulator.enableTimeRegulation(initialLookahead),
+            "TimeRegulationAlreadyEnabled", "enabling time regulation twice");
+         JavaTckSupport.expectFailure(() -> constrained.enableTimeConstrained(),
+            "TimeConstrainedAlreadyEnabled", "enabling time constrained twice");
 
          JavaTckSupport.check(initialLookahead.equals(regulator.queryLookahead()),
             "Query Lookahead did not return the enabled lookahead");
@@ -73,17 +79,25 @@ final class ModifyLookaheadTck {
          JavaTckSupport.check(increasedLookahead.equals(regulator.queryLookahead()),
             "a lower requested lookahead was applied before a grant");
 
-         LogicalTime target = add(regulator.queryLogicalTime(), intervalOffset(epsilon, 12));
+         LogicalTime initialRegulatorTime = regulator.queryLogicalTime();
+         LogicalTime initialConstrainedTime = constrained.queryLogicalTime();
+         LogicalTime target = add(initialRegulatorTime, intervalOffset(epsilon, 12));
          LogicalTime constrainedTarget = add(
-            constrained.queryLogicalTime(), intervalOffset(epsilon, 12));
+            initialConstrainedTime, intervalOffset(epsilon, 12));
          JavaTckSupport.check(target.equals(constrainedTarget),
             "federates did not derive a common advance target");
          regulator.timeAdvanceRequest(target);
          if (callbackModel == CallbackModel.HLA_EVOKED) {
+            JavaTckSupport.expectFailure(() -> regulator.timeAdvanceRequest(target),
+               "InTimeAdvancingState", "second time advance request while the first is pending");
             JavaTckSupport.expectFailure(() -> regulator.modifyLookahead(increasedLookahead),
                "InTimeAdvancingState", "Modify Lookahead during a pending TAR");
             JavaTckSupport.check(increasedLookahead.equals(regulator.queryLookahead()),
                "a rejected pending-TAR Modify Lookahead changed the active interval");
+            JavaTckSupport.check(initialRegulatorTime.equals(regulator.queryLogicalTime()),
+               "regulator logical time changed before Time Advance Grant");
+            JavaTckSupport.check(initialConstrainedTime.equals(constrained.queryLogicalTime()),
+               "constrained logical time changed before Time Advance Grant");
          }
          constrained.timeAdvanceRequest(constrainedTarget);
          JavaTckSupport.drain(regulator);
@@ -91,13 +105,24 @@ final class ModifyLookaheadTck {
          JavaTckSupport.check(regulatorRecorder.timeAdvanceGrants == 1
                && constrainedRecorder.timeAdvanceGrants == 1,
             "the lookahead boundary TAR did not complete for both federates");
+         JavaTckSupport.check(target.equals(regulator.queryLogicalTime()),
+            "the regulator logical time did not advance to the requested target");
+         JavaTckSupport.check(constrainedTarget.equals(constrained.queryLogicalTime()),
+            "the constrained logical time did not advance to the requested target");
          JavaTckSupport.check(epsilon.equals(regulator.queryLookahead()),
             "the deferred lower lookahead was not applied by the grant");
+         LogicalTime earlierTarget = add(initialRegulatorTime, intervalOffset(epsilon, 3));
+         JavaTckSupport.expectFailure(() -> regulator.timeAdvanceRequest(earlierTarget),
+            "LogicalTimeAlreadyPassed", "time advance request behind granted logical time");
 
          constrained.disableTimeConstrained();
          constrainedRole = false;
+         JavaTckSupport.expectFailure(() -> constrained.disableTimeConstrained(),
+            "TimeConstrainedIsNotEnabled", "disabling time constrained twice");
          regulator.disableTimeRegulation();
          regulating = false;
+         JavaTckSupport.expectFailure(() -> regulator.disableTimeRegulation(),
+            "TimeRegulationIsNotEnabled", "disabling time regulation twice");
       } finally {
          if (constrainedRole && constrainedJoined) {
             try { constrained.disableTimeConstrained(); } catch (Exception ignored) { }

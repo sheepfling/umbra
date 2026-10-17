@@ -570,6 +570,8 @@ void scenarioTimeBoundsQueries(Options const&, rti::CallbackModel);
 void scenarioTimeBoundsQueriesContract(Options const&, rti::CallbackModel);
 void scenarioTimeConstrainedEnableAtGaltEquality(Options const&, rti::CallbackModel);
 void scenarioTimeConstrainedEnableAtGaltEqualityContract(Options const&, rti::CallbackModel);
+void scenarioTimeRegulationImplicitAdvance(Options const&, rti::CallbackModel);
+void scenarioTimeRegulationImplicitAdvanceContract(Options const&, rti::CallbackModel);
 void scenarioTimedRegionalAttributeNegotiatedRegularCandidateContinuationAfterRestore(Options const&, rti::CallbackModel);
 void scenarioTimedRegionalAttributeNegotiatedRegularCandidateContinuationAfterRestoreContract(Options const&, rti::CallbackModel);
 void scenarioTimedRegionalAttributeNegotiatedRegularCandidateContinuationImpl(Options const&, rti::CallbackModel, bool cancelAfterConfirmation, bool cancelBeforeConfirmation);
