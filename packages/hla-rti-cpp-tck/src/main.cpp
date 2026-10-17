@@ -19319,6 +19319,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.service-report-interlock-contract",
       "cpp-tck.service-report-synchronization",
       "cpp-tck.service-report-synchronization-contract",
+      "cpp-tck.service-report-federate-save-begun",
+      "cpp-tck.service-report-federate-save-begun-contract",
       "cpp-tck.service-report-regional-interaction",
       "cpp-tck.service-report-regional-interaction-contract",
       "cpp-tck.service-report-regional-interaction-subscription",
@@ -20787,6 +20789,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.service-report-synchronization-contract") {
     return scenarioServiceReportSynchronizationContract;
+  }
+  if (id == "cpp-tck.service-report-federate-save-begun") {
+    return scenarioServiceReportFederateSaveBegun;
+  }
+  if (id == "cpp-tck.service-report-federate-save-begun-contract") {
+    return scenarioServiceReportFederateSaveBegunContract;
   }
   if (id == "cpp-tck.service-report-interaction-failure") {
     return scenarioServiceReportInteractionFailure;

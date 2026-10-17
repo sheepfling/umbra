@@ -1140,6 +1140,158 @@ void scenarioServiceReportSynchronizationContract(
   scenarioServiceReportSynchronization(options, model);
 }
 
+void scenarioServiceReportFederateSaveBegun(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.mimFom.empty(),
+      "Federate Save Begun service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "federate-save-begun-service-report-subject");
+  Session peer(options, model, "federate-save-begun-service-report-peer");
+  Session observer(options, model, "federate-save-begun-service-report-observer");
+  auto const federation = federationName(options, "service-report-federate-save-begun");
+  subject.connect();
+  peer.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-federate-save-begun-service-report-subject",
+      options.federateType,
+      federation);
+  peer.join(
+      options.memberFederateName + L"-federate-save-begun-service-report-peer",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-federate-save-begun-service-report-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Federate Save Begun service-report lookup returned an invalid HLAreportServiceInvocation handle");
+  std::vector<rti::ParameterHandle> reportParameters;
+  for (auto const& name : {
+           L"HLAservice",
+           L"HLAserviceType",
+           L"HLAsuccessIndicator",
+           L"HLAsuppliedArguments",
+           L"HLAreturnedArgument",
+           L"HLAexception",
+           L"HLAserialNumber",
+           L"HLAfederate"}) {
+    auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+    require(
+        parameter.isValid(),
+        "Federate Save Begun service-report lookup returned an invalid standard parameter handle");
+    reportParameters.push_back(parameter);
+  }
+
+  for (auto* session : {&subject, &peer, &observer}) {
+    session->rtiAmbassador().setServiceReportingSwitch(false);
+    session->rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  }
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+
+  auto const reportService = [&](InteractionRecord const& report) {
+    auto const parameter = report.parameters.find(reportParameters.at(0U));
+    if (parameter == report.parameters.end()) {
+      return std::wstring{};
+    }
+    rti::HLAunicodeString service;
+    service.decode(parameter->second);
+    return service.get();
+  };
+  auto const hasSaveBegunReport = [&] {
+    auto const reports = observer.recorder().interactions();
+    return std::any_of(reports.begin(), reports.end(), [&](auto const& report) {
+      return report.interaction == reportClass &&
+          reportService(report) == L"FederateSaveBegun";
+    });
+  };
+
+  std::wstring const saveLabel = L"service-report-federate-save-begun";
+  subject.rtiAmbassador().requestFederationSave(saveLabel);
+  waitForSessions(
+      {&subject, &peer, &observer},
+      [&] {
+        return subject.federateSaveInitiations().size() == 1U &&
+            peer.federateSaveInitiations().size() == 1U &&
+            observer.federateSaveInitiations().size() == 1U;
+      },
+      options,
+      "Federate Save Begun initiation callbacks");
+
+  subject.rtiAmbassador().federateSaveBegun();
+  waitForSessions(
+      {&subject, &peer, &observer},
+      hasSaveBegunReport,
+      options,
+      "FederateSaveBegun HLAreportServiceInvocation callback");
+  auto const reports = observer.recorder().interactions();
+  auto const report = std::find_if(
+      reports.begin(), reports.end(), [&](InteractionRecord const& candidate) {
+        return candidate.interaction == reportClass &&
+            reportService(candidate) == L"FederateSaveBegun";
+      });
+  require(report != reports.end(), "FederateSaveBegun service report was not recorded");
+  rti::HLAinteger32BE serial;
+  serial.decode(report->parameters.at(reportParameters.at(6U)));
+  require(
+      serial.get() >= 0,
+      "FederateSaveBegun service report returned a negative serial number");
+  requirePortableServiceReport(
+      observer,
+      *report,
+      reportClass,
+      reportParameters,
+      L"FederateSaveBegun",
+      {},
+      PortableServiceReportArgument{34, L"", L"null"},
+      serial.get(),
+      "FederateSaveBegun service report",
+      0);
+
+  peer.rtiAmbassador().federateSaveBegun();
+  observer.rtiAmbassador().federateSaveBegun();
+  subject.rtiAmbassador().federateSaveComplete();
+  peer.rtiAmbassador().federateSaveComplete();
+  observer.rtiAmbassador().federateSaveComplete();
+  waitForSessions(
+      {&subject, &peer, &observer},
+      [&] {
+        return subject.federationSavedCount() == 1U &&
+            peer.federationSavedCount() == 1U &&
+            observer.federationSavedCount() == 1U;
+      },
+      options,
+      "Federate Save Begun service-report save completion");
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  peer.resign(rti::NO_ACTION);
+  observer.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  peer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportFederateSaveBegunContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportFederateSaveBegun(options, model);
+}
+
 void scenarioServiceReportQueryGalt(
     Options const& options,
     rti::CallbackModel model) {

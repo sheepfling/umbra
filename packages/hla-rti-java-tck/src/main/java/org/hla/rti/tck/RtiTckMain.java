@@ -2843,6 +2843,22 @@ public final class RtiTckMain {
                "java-1516.1-object-registration-discovery",
                "java-1516.1-time-advance-and-grant"
             }, false), RtiTckMain::timestampedObjectDeletionMixedAdvances);
+      run(new Scenario("java-tck.timestamped-object-deletion-future-nmr-arrival",
+            "retarget a pending Next Message Request when a future timestamped deletion arrives",
+            "time",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.queryGALT;RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.timeAdvanceRequest;RTIambassador.registerObjectInstance;RTIambassador.nextMessageRequest;RTIambassador.deleteObjectInstance(time);RTIambassador.queryLogicalTime;RTIambassador.evokeCallback;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance(time);FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeAdvanceGrant",
+            new String[] {
+               "java-1516.1-object-registration-discovery",
+               "java-1516.1-time-advance-and-grant"
+            }, false), RtiTckMain::timestampedObjectDeletionFutureNmrArrival);
+      run(new Scenario("java-tck.timestamped-object-deletion-future-nmra-arrival",
+            "retarget a pending Next Message Request Available when a future timestamped deletion arrives",
+            "time",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.queryGALT;RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.timeAdvanceRequest;RTIambassador.registerObjectInstance;RTIambassador.nextMessageRequestAvailable;RTIambassador.deleteObjectInstance(time);RTIambassador.queryLogicalTime;RTIambassador.evokeCallback;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance(time);FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeAdvanceGrant",
+            new String[] {
+               "java-1516.1-object-registration-discovery",
+               "java-1516.1-time-advance-and-grant"
+            }, false), RtiTckMain::timestampedObjectDeletionFutureNmraArrival);
       run(new Scenario("java-tck.timestamped-object-deletion-no-fanout",
             "retract a timestamped deletion with no eligible recipient and restore object state",
             "time",
@@ -5295,6 +5311,15 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-attribute-value-update-response"
             }, false), RtiTckMain::serviceReportAttributeUpdate);
+      run(new Scenario("java-tck.service-report-federate-save-begun",
+            "verify the standard MOM report for a successful Federate Save Begun call",
+            "mom-service-reporting",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.getFederateHandleFactory;RTIambassador.subscribeInteractionClass;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.requestFederationSave;RTIambassador.federateSaveBegun;RTIambassador.federateSaveComplete;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;FederateAmbassador.initiateFederateSave;FederateAmbassador.federationSaved;EncoderFactory.createHLAunicodeString;EncoderFactory.createHLAinteger16BE;EncoderFactory.createHLAinteger32BE;EncoderFactory.createHLAboolean;EncoderFactory.createHLAfixedRecord;EncoderFactory.createHLAvariableArray;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
+            new String[] {
+               "cpp-1516.1-mom-service-reporting",
+               "cpp-1516.1-explicit-mim-composition",
+               "cpp-1516.1-federation-save-lifecycle"
+            }, false), RtiTckMain::serviceReportFederateSaveBegun);
       run(new Scenario("java-tck.service-report-attribute-update-failure",
             "verify standard failure reports for invalid ordinary attribute updates",
             "mom-service-reporting",
@@ -7494,6 +7519,16 @@ public final class RtiTckMain {
          timeImplementation(), objectClassName(), attributeName(), callbackModel());
    }
 
+   private static void timestampedObjectDeletionFutureNmrArrival() throws Exception {
+      TimestampedObjectDeletionFutureRequestArrivalTck.runNmr(factory(), requireFom(),
+         timeImplementation(), objectClassName(), attributeName(), callbackModel());
+   }
+
+   private static void timestampedObjectDeletionFutureNmraArrival() throws Exception {
+      TimestampedObjectDeletionFutureRequestArrivalTck.runNmra(factory(), requireFom(),
+         timeImplementation(), objectClassName(), attributeName(), callbackModel());
+   }
+
    private static void timestampedObjectDeletionNoFanout() throws Exception {
       TimestampedObjectDeletionNoFanoutTck.run(factory(), requireFom(),
          timeImplementation(), objectClassName(), attributeName(), callbackModel());
@@ -8520,6 +8555,11 @@ public final class RtiTckMain {
          timeImplementation(), objectClassName(), attributeName(), callbackModel());
    }
 
+   private static void serviceReportFederateSaveBegun() throws Exception {
+      ServiceReportFederateSaveBegunTck.run(
+         factory(), requireFom(), requireMim(), timeImplementation(), callbackModel());
+   }
+
    private static void serviceReportAttributeUpdateFailure() throws Exception {
       ServiceReportAttributeUpdateFailureTck.run(factory(), requireFom(), requireMim(),
          timeImplementation(), objectClassName(), attributeName(), callbackModel());
@@ -9310,6 +9350,10 @@ public final class RtiTckMain {
          case "java-tck.timestamped-object-removal": method = "timestampedObjectRemoval"; break;
          case "java-tck.timestamped-object-deletion-mixed-advances":
             method = "timestampedObjectDeletionMixedAdvances"; break;
+         case "java-tck.timestamped-object-deletion-future-nmr-arrival":
+            method = "timestampedObjectDeletionFutureNmrArrival"; break;
+         case "java-tck.timestamped-object-deletion-future-nmra-arrival":
+            method = "timestampedObjectDeletionFutureNmraArrival"; break;
          case "java-tck.timestamped-object-deletion-no-fanout":
             method = "timestampedObjectDeletionNoFanout"; break;
          case "java-tck.timestamped-object-deletion-tombstone":
@@ -9643,6 +9687,8 @@ public final class RtiTckMain {
             method = "serviceReportTimestampedObjectDeletionFailure"; break;
          case "java-tck.service-report-attribute-update":
             method = "serviceReportAttributeUpdate"; break;
+         case "java-tck.service-report-federate-save-begun":
+            method = "serviceReportFederateSaveBegun"; break;
          case "java-tck.service-report-attribute-update-failure":
             method = "serviceReportAttributeUpdateFailure"; break;
          case "java-tck.service-report-timestamped-attribute-update-failure":

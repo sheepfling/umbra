@@ -59,6 +59,8 @@ void scenarioServiceReportInterlockPortable(Options const&, rti::CallbackModel);
 void scenarioServiceReportInterlockContractPortable(Options const&, rti::CallbackModel);
 void scenarioServiceReportSynchronizationPortable(Options const&, rti::CallbackModel);
 void scenarioServiceReportSynchronizationContractPortable(Options const&, rti::CallbackModel);
+void scenarioServiceReportFederateSaveBegunPortable(Options const&, rti::CallbackModel);
+void scenarioServiceReportFederateSaveBegunContractPortable(Options const&, rti::CallbackModel);
 void scenarioServiceReportTimestampedAttributeUpdatePortable(Options const&, rti::CallbackModel);
 void scenarioServiceReportTimestampedAttributeUpdateContractPortable(Options const&, rti::CallbackModel);
 void scenarioServiceReportTimestampedDeleteObjectInstancePortable(Options const&, rti::CallbackModel);

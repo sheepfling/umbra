@@ -102,6 +102,8 @@ add_executable(hla_rti_cpp_tck
   src/tck_timestamped_attribute_sender_regulation_transition.cpp
   src/tck_unregulated_sender_timestamped_interaction.cpp
   src/tck_timestamped_interaction_scenarios.cpp
+  src/tck_nmr_future_timestamped_object_deletion.cpp
+  src/tck_nmra_future_timestamped_object_deletion.cpp
   src/tck_timestamped_interaction_boundary_scenarios.cpp
   src/tck_time_management_scenarios.cpp
   src/tck_time_coordinated_interaction.cpp

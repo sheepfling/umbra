@@ -1092,6 +1092,18 @@ void scenarioServiceReportSynchronizationContractPortable(
   scenarioServiceReportSynchronizationContract(options, model);
 }
 
+void scenarioServiceReportFederateSaveBegunPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportFederateSaveBegun(options, model);
+}
+
+void scenarioServiceReportFederateSaveBegunContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportFederateSaveBegunContract(options, model);
+}
+
 void scenarioServiceReportTimestampedAttributeUpdatePortable(
     Options const& options,
     rti::CallbackModel model) {

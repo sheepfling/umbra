@@ -218,6 +218,8 @@ void scenarioServiceReportReserveObjectInstanceName(Options const&, rti::Callbac
 void scenarioServiceReportReserveObjectInstanceNameContract(Options const&, rti::CallbackModel);
 void scenarioServiceReportSynchronization(Options const&, rti::CallbackModel);
 void scenarioServiceReportSynchronizationContract(Options const&, rti::CallbackModel);
+void scenarioServiceReportFederateSaveBegun(Options const&, rti::CallbackModel);
+void scenarioServiceReportFederateSaveBegunContract(Options const&, rti::CallbackModel);
 void scenarioServiceReportTimestampedAttributeUpdate(Options const&, rti::CallbackModel);
 void scenarioServiceReportTimestampedAttributeUpdateContract(Options const&, rti::CallbackModel);
 void scenarioServiceReportTimestampedAttributeUpdateFailure(Options const&, rti::CallbackModel);
