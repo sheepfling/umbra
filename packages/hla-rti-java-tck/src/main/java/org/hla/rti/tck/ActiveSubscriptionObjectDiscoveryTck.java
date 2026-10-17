@@ -19,7 +19,8 @@ final class ActiveSubscriptionObjectDiscoveryTck {
    private ActiveSubscriptionObjectDiscoveryTck() { }
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
-         String objectClassName, String attributeName, CallbackModel callbackModel)
+         String objectClassName, String attributeName, String secondAttributeName,
+         CallbackModel callbackModel)
          throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador subscriber = factory.getRtiAmbassador();
@@ -48,8 +49,13 @@ final class ActiveSubscriptionObjectDiscoveryTck {
          publisherClass = publisher.getObjectClassHandle(objectClassName);
          AttributeHandle publisherAttribute = publisher.getAttributeHandle(
             publisherClass, attributeName);
+         AttributeHandle publisherSecondAttribute = publisher.getAttributeHandle(
+            publisherClass, secondAttributeName);
          publisherAttributes = publisher.getAttributeHandleSetFactory().create();
          publisherAttributes.add(publisherAttribute);
+         publisherAttributes.add(publisherSecondAttribute);
+         JavaTckSupport.check(publisherAttributes.size() == 2,
+            "adapter FOM must provide two distinct attributes for this scenario");
          publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
          published = true;
 
@@ -67,8 +73,13 @@ final class ActiveSubscriptionObjectDiscoveryTck {
          subscriberClass = subscriber.getObjectClassHandle(objectClassName);
          AttributeHandle subscriberAttribute = subscriber.getAttributeHandle(
             subscriberClass, attributeName);
+         AttributeHandle subscriberSecondAttribute = subscriber.getAttributeHandle(
+            subscriberClass, secondAttributeName);
          subscriberAttributes = subscriber.getAttributeHandleSetFactory().create();
          subscriberAttributes.add(subscriberAttribute);
+         subscriberAttributes.add(subscriberSecondAttribute);
+         JavaTckSupport.check(subscriberAttributes.size() == 2,
+            "adapter FOM must provide two distinct attributes for this scenario");
          JavaTckSupport.drain(subscriber);
          JavaTckSupport.check(subscriberRecorder.discoveries.isEmpty(),
             "unsubscribed member received discovery for an existing object");

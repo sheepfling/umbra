@@ -30,7 +30,8 @@ final class TransportOrderTck {
    }
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
-         String objectClassName, String attributeName, String interactionClassName,
+         String objectClassName, String attributeName, String secondAttributeName,
+         String interactionClassName,
          CallbackModel callbackModel) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
@@ -60,9 +61,18 @@ final class TransportOrderTck {
          AttributeHandle ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName);
          AttributeHandle observerAttribute = observer.getAttributeHandle(observerClass,
             attributeName);
-         AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
+         AttributeHandle ownerSecondAttribute = owner.getAttributeHandle(ownerClass,
+            secondAttributeName);
+         AttributeHandle observerSecondAttribute = observer.getAttributeHandle(observerClass,
+            secondAttributeName);
+         // The adapter supplies both FOM attributes for the standard set-valued
+         // transportation API.
+         AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(owner,
+            ownerAttribute, ownerSecondAttribute);
          AttributeHandleSet observerAttributes = JavaTckSupport.attributeSet(observer,
-            observerAttribute);
+            observerAttribute, observerSecondAttribute);
+         JavaTckSupport.check(ownerAttributes.size() == 2 && observerAttributes.size() == 2,
+            "transport/order fixture must provide two distinct attributes");
          InteractionClassHandle ownerInteraction =
             owner.getInteractionClassHandle(interactionClassName);
          InteractionClassHandle observerInteraction =
@@ -197,10 +207,11 @@ final class TransportOrderTck {
          AttributeTransportConfirmation unchangedAttributeConfirmation =
             ownerRecorder.attributeConfirmations.get(0);
          JavaTckSupport.check(first.equals(unchangedAttributeConfirmation.object)
-               && unchangedAttributeConfirmation.attributes.size() == 1
+               && unchangedAttributeConfirmation.attributes.size() == ownerAttributes.size()
                && unchangedAttributeConfirmation.attributes.contains(ownerAttribute)
+               && unchangedAttributeConfirmation.attributes.contains(ownerSecondAttribute)
                && sameTransport(owner, unchangedAttributeConfirmation.transportation, reliable),
-            "unchanged attribute transportation confirmation did not report the achieved reliable type");
+            "unchanged attribute transportation confirmation did not report the achieved reliable type for the full requested set");
 
          owner.requestAttributeTransportationTypeChange(first, ownerAttributes, bestEffort);
          boolean evoked = callbackModel == CallbackModel.HLA_EVOKED;
@@ -232,10 +243,11 @@ final class TransportOrderTck {
             "attribute transport requests did not each produce one confirmation callback");
          AttributeTransportConfirmation confirmation = ownerRecorder.attributeConfirmations.get(1);
          JavaTckSupport.check(first.equals(confirmation.object)
-               && confirmation.attributes.size() == 1
+               && confirmation.attributes.size() == ownerAttributes.size()
                && confirmation.attributes.contains(ownerAttribute)
+               && confirmation.attributes.contains(ownerSecondAttribute)
                && sameTransport(owner, confirmation.transportation, bestEffort),
-            "attribute transport confirmation did not commit best effort");
+            "attribute transport confirmation did not commit best effort for the full requested set");
 
          byte[] afterTag = new byte[] {0x02};
          owner.updateAttributeValues(first, oneValue(owner, ownerAttribute, (byte) 0x02), afterTag);
@@ -252,13 +264,20 @@ final class TransportOrderTck {
                   observer.getTransportationTypeHandle("HLAbestEffort")),
             "post-confirmation attribute reflection payload or transport was incorrect");
          owner.queryAttributeTransportationType(first, ownerAttribute);
+         owner.queryAttributeTransportationType(first, ownerSecondAttribute);
          JavaTckSupport.drain(owner);
          AttributeTransportReport finalReport = findAttributeReport(
             ownerRecorder.attributeReports, first, ownerAttribute);
+         AttributeTransportReport finalSecondReport = findAttributeReport(
+            ownerRecorder.attributeReports, first, ownerSecondAttribute);
          JavaTckSupport.check(first.equals(finalReport.object)
                && ownerAttribute.equals(finalReport.attribute)
                && sameTransport(owner, finalReport.transportation, bestEffort),
             "attribute transportation query did not observe the committed change");
+         JavaTckSupport.check(first.equals(finalSecondReport.object)
+               && ownerSecondAttribute.equals(finalSecondReport.attribute)
+               && sameTransport(owner, finalSecondReport.transportation, bestEffort),
+            "second attribute transportation query did not observe the committed set change");
 
          // Interaction transport has the same callback commit boundary, but
          // its query is addressed to the publishing federate.

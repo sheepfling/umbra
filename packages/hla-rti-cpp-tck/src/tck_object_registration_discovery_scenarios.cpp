@@ -547,13 +547,26 @@ void scenarioActiveSubscriptionObjectDiscovery(
   auto const subscriberAttribute = subscriber.rtiAmbassador().getAttributeHandle(
       subscriberClass,
       options.attributeName);
+  auto const publisherSecondAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.secondaryAttributeName);
+  auto const subscriberSecondAttribute = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberClass,
+      options.secondaryAttributeName);
   require(
       publisherClass.isValid() && subscriberClass.isValid() &&
-          publisherAttribute.isValid() && subscriberAttribute.isValid(),
+          publisherAttribute.isValid() && subscriberAttribute.isValid() &&
+          publisherSecondAttribute.isValid() && subscriberSecondAttribute.isValid(),
       "active-subscription discovery lookup returned an invalid class or attribute handle");
 
-  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
-  rti::AttributeHandleSet const subscriberAttributes{subscriberAttribute};
+  rti::AttributeHandleSet const publisherAttributes{
+      publisherAttribute,
+      publisherSecondAttribute};
+  rti::AttributeHandleSet const subscriberAttributes{
+      subscriberAttribute,
+      subscriberSecondAttribute};
+  require(publisherAttributes.size() == 2U && subscriberAttributes.size() == 2U,
+          "active-subscription discovery fixture must provide two distinct attributes");
   publisher.rtiAmbassador().publishObjectClassAttributes(
       publisherClass,
       publisherAttributes);

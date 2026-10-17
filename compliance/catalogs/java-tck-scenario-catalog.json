@@ -4655,7 +4655,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25", "standard_section": "hla-1516.1-2025:clause-5.8" },
         { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l87-26", "standard_section": "hla-1516.1-2025:clause-5.8" }
       ],
-      "mapping_note": "Direct §5.8 mappings cover discovery of a matching object already registered when active subscription is made and discovery of a matching object registered afterward. The case verifies no pre-subscription discovery, one callback per object, and callback/lookup identity. Only official IEEE 1516.1-2025 Java APIs are used; provider, FOM, endpoint, and callback model are adapter-supplied. Java provider runtime evidence remains unverified.",
+      "mapping_note": "Direct §5.8 mappings cover discovery of a matching object already registered when active subscription is made and discovery of a matching object registered afterward. Publication and subscription each declare the adapter-provided primary and secondary attributes; the case verifies discovery remains exactly once per object, independent of attribute count, plus no pre-subscription discovery and callback/lookup identity. Only official IEEE 1516.1-2025 Java APIs are used; provider, FOM, endpoint, both attribute names, and callback model are adapter-supplied. Java provider runtime evidence remains unverified.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-class-attribute-declaration-api-contract.json",
@@ -8082,7 +8082,7 @@
           "standard_section": "hla-1516.1-2025:clause-6.1.11"
         }
       ],
-      "mapping_note": "Catalog mapping is limited to the directly asserted transportation-type controls, confirmation boundaries, query/report results, prospective class default, and resulting update/send transport (§§6.25.1–6.33.6). Both the attribute and interaction paths request their already-achieved reliable type and verify a confirmation reports reliable; these distinct unchanged-type checks map to §§6.1.11 and 6.1.13, respectively. Order-control effects and invalid-input cases are supplemental/unmapped. Java row status remains run-ready in the catalog but does not constitute provider execution or conformance evidence; its OrderType enum has no equivalent to the C++ invalid enum cast.",
+      "mapping_note": "Catalog mapping is limited to the directly asserted transportation-type controls, confirmation boundaries, query/report results, prospective class default, and resulting update/send transport (§§6.25.1–6.33.6). The attribute path requests its already-achieved reliable type for the full two-attribute set and verifies one confirmation reports reliable for that set; both attributes are then queried for the committed best-effort type (§6.1.11). The interaction path separately checks unchanged achieved-type confirmation (§6.1.13). Order-control effects and invalid-input cases are supplemental/unmapped. Java row status remains run-ready in the catalog but does not constitute provider execution or conformance evidence; its OrderType enum has no equivalent to the C++ invalid enum cast.",
       "contract_refs": [
         "order-type-api-contract.json",
         "order-type-requirements-contract.json",

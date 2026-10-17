@@ -7756,7 +7756,7 @@
           "standard_section": "hla-1516.1-2025:clause-6.1.11"
         }
       ],
-      "mapping_note": "Direct mappings cover the attribute request's future-update behavior and confirmation boundary (§§6.25.1, 6.26), the class default and its prospective effect on later instances (§6.27), and query response/current-type reporting (§§6.28, 6.29.1). The attribute path now also requests its already-achieved reliable type and verifies one confirmation reports reliable (§6.1.11). Interaction mappings cover future-send behavior, confirmation, and query/report fields (§§6.30.3, 6.31.3, 6.32.5, 6.33.6); its unchanged-achieved-type branch remains separately mapped to §6.1.13. Remaining assertions are limited to observed transport, confirmation arguments, and queried reports; no broader delivery matrix is implied. Ordinary order-control calls and invalid-input boundaries are exercised but not mapped by this row; setup/cleanup and FOM fixture behavior are supplemental. No provider-conformance claim is made.",
+      "mapping_note": "Direct mappings cover the attribute request's future-update behavior and confirmation boundary (§§6.25.1, 6.26), the class default and its prospective effect on later instances (§6.27), and query response/current-type reporting (§§6.28, 6.29.1). The attribute path requests the already-achieved reliable type for the full two-attribute set and verifies one confirmation reports reliable for that set (§6.1.11); the later best-effort request and individual type queries cover both attributes. Interaction mappings cover future-send behavior, confirmation, and query/report fields (§§6.30.3, 6.31.3, 6.32.5, 6.33.6); its unchanged-achieved-type branch remains separately mapped to §6.1.13. Remaining assertions are limited to observed transport, confirmation arguments, and queried reports; no broader delivery matrix is implied. Ordinary order-control calls and invalid-input boundaries are exercised but not mapped by this row; setup/cleanup and FOM fixture behavior are supplemental. No provider-conformance claim is made.",
       "contract_refs": [
         "standard-transport-order-contract.json"
       ],
@@ -7907,7 +7907,7 @@
           "standard_section": "hla-1516.1-2025:clause-6.1.11"
         }
       ],
-      "mapping_note": "The contract wrapper carries the transportation-type request, confirmation, query/report, prospective default, and resulting update/send transport assertions from the primary slice (§§6.25.1–6.33.6). It verifies that unchanged achieved reliable attribute and interaction types each produce confirmations reporting reliable (§6.1.11 and §6.1.13, respectively). Order-control calls, invalid-input boundaries, setup, and cleanup remain supplemental and unmapped here. No provider-conformance claim is made.",
+      "mapping_note": "The contract wrapper carries the transportation-type request, confirmation, query/report, prospective default, and resulting update/send transport assertions from the primary slice (§§6.25.1–6.33.6). It verifies that the unchanged achieved reliable type is confirmed for the full two-attribute set and that each attribute reports the committed best-effort type (§6.1.11); the unchanged interaction type remains separately mapped to §6.1.13. Order-control calls, invalid-input boundaries, setup, and cleanup remain supplemental and unmapped here. No provider-conformance claim is made.",
       "contract_refs": [
         "standard-transport-order-contract.json"
       ],
@@ -12082,7 +12082,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25", "standard_section": "hla-1516.1-2025:clause-5.8" },
         { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l87-26", "standard_section": "hla-1516.1-2025:clause-5.8" }
       ],
-      "mapping_note": "Direct §5.8 mappings cover the active subscription discovering one matching object that was already registered and one matching object registered afterward. The test asserts no pre-subscription discovery, exact callback counts, object names, handles, and discovered class. Setup/teardown are supplemental; provider library, FOM, endpoint, and callback model come from the adapter. No vendor API, DDM, or initial attribute reflection is asserted.",
+      "mapping_note": "Direct §5.8 mappings cover the active subscription discovering one matching object that was already registered and one matching object registered afterward. Publication and subscription each declare the adapter-provided primary and secondary attributes; the test asserts discovery remains exactly once per matching object, independent of attribute count, alongside no pre-subscription discovery, object names, handles, and discovered class. Setup/teardown are supplemental; provider library, FOM, endpoint, attribute names, and callback model come from the adapter. No vendor API, DDM, or initial attribute reflection is asserted.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",

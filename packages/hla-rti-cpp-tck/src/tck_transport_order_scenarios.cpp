@@ -23,11 +23,17 @@ void scenarioTransportOrderPortable(Options const& options, rti::CallbackModel m
       options.objectClassName);
   auto const observerAttribute = observer.rtiAmbassador().getAttributeHandle(
       observerClass, options.attributeName);
+  auto const ownerSecondAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass, options.objectClassThirdAttributeName);
+  auto const observerSecondAttribute = observer.rtiAmbassador().getAttributeHandle(
+      observerClass, options.objectClassThirdAttributeName);
   auto const observerInteraction = observer.rtiAmbassador().getInteractionClassHandle(
       options.interactionClassName);
   require(observerClass.isValid() && observerAttribute.isValid() &&
-              observerInteraction.isValid(),
+              observerSecondAttribute.isValid() && observerInteraction.isValid(),
           "Transport/order observer lookup returned an invalid handle");
+  require(ownerSecondAttribute.isValid(),
+          "Transport/order second attribute lookup returned an invalid handle");
   auto const reliable = owner.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
   auto const bestEffort = owner.rtiAmbassador().getTransportationTypeHandle(L"HLAbestEffort");
   require(reliable.isValid() && bestEffort.isValid(),
@@ -35,8 +41,14 @@ void scenarioTransportOrderPortable(Options const& options, rti::CallbackModel m
 
   rti::AttributeHandleSet ownerAttributes;
   ownerAttributes.insert(ownerAttribute);
+  // The adapter supplies the additional FOM attribute so the standardized
+  // set-valued transportation API is exercised with multiple members.
+  ownerAttributes.insert(ownerSecondAttribute);
   rti::AttributeHandleSet observerAttributes;
   observerAttributes.insert(observerAttribute);
+  observerAttributes.insert(observerSecondAttribute);
+  require(ownerAttributes.size() == 2U && observerAttributes.size() == 2U,
+          "Transport/order fixture must provide two distinct attributes");
   rti::ObjectClassHandle const invalidObjectClass;
   rti::ObjectInstanceHandle const invalidObject;
   rti::InteractionClassHandle const invalidInteraction;
@@ -258,7 +270,9 @@ void scenarioTransportOrderPortable(Options const& options, rti::CallbackModel m
           "unchanged attribute transportation request did not produce one confirmation");
   auto const& unchangedAttributeConfirmation = unchangedAttributeConfirmations.front();
   require(unchangedAttributeConfirmation.object == first &&
+              unchangedAttributeConfirmation.attributes.size() == ownerAttributes.size() &&
               unchangedAttributeConfirmation.attributes.count(ownerAttribute) == 1U &&
+              unchangedAttributeConfirmation.attributes.count(ownerSecondAttribute) == 1U &&
               sameTransport(owner.rtiAmbassador(),
                             unchangedAttributeConfirmation.transportation,
                             L"HLAreliable"),
@@ -310,9 +324,13 @@ void scenarioTransportOrderPortable(Options const& options, rti::CallbackModel m
           options,
           "attribute transportation confirmation");
   auto const attributeConfirmations = owner.recorder().attributeTransportationConfirmations();
+  require(attributeConfirmations.size() == 1U,
+          "one multi-attribute transportation request did not produce one confirmation");
   auto const& attributeConfirmation = attributeConfirmations.back();
   require(attributeConfirmation.object == first &&
+              attributeConfirmation.attributes.size() == ownerAttributes.size() &&
               attributeConfirmation.attributes.count(ownerAttribute) == 1U &&
+              attributeConfirmation.attributes.count(ownerSecondAttribute) == 1U &&
               sameTransport(owner.rtiAmbassador(), attributeConfirmation.transportation,
                             L"HLAbestEffort"),
           "attribute transportation confirmation did not commit best effort");
@@ -337,15 +355,25 @@ void scenarioTransportOrderPortable(Options const& options, rti::CallbackModel m
           "post-confirmation attribute update did not use best-effort transport");
   owner.recorder().clearTransportationRecords();
   owner.rtiAmbassador().queryAttributeTransportationType(first, ownerAttribute);
+  owner.rtiAmbassador().queryAttributeTransportationType(first, ownerSecondAttribute);
   waitFor(owner,
-          [&] { return owner.recorder().attributeTransportationReports().size() >= 1U; },
+          [&] { return owner.recorder().attributeTransportationReports().size() >= 2U; },
           options,
-          "final attribute transportation query");
-  require(sameTransport(
-              owner.rtiAmbassador(),
-              owner.recorder().attributeTransportationReports().back().transportation,
-              L"HLAbestEffort"),
-          "attribute transportation query did not observe the committed change");
+          "final attribute transportation queries");
+  bool ownerAttributeReportedBestEffort = false;
+  bool secondAttributeReportedBestEffort = false;
+  for (auto const& report : owner.recorder().attributeTransportationReports()) {
+    if (report.object == first && report.attribute == ownerAttribute &&
+        sameTransport(owner.rtiAmbassador(), report.transportation, L"HLAbestEffort")) {
+      ownerAttributeReportedBestEffort = true;
+    }
+    if (report.object == first && report.attribute == ownerSecondAttribute &&
+        sameTransport(owner.rtiAmbassador(), report.transportation, L"HLAbestEffort")) {
+      secondAttributeReportedBestEffort = true;
+    }
+  }
+  require(ownerAttributeReportedBestEffort && secondAttributeReportedBestEffort,
+          "attribute transportation queries did not report best effort for the full requested set");
 
   owner.recorder().clearTransportationRecords();
   observer.recorder().clearInteraction();

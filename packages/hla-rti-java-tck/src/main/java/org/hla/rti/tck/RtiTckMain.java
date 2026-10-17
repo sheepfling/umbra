@@ -10859,7 +10859,7 @@ public final class RtiTckMain {
 
    private static void transportOrder() throws Exception {
       TransportOrderTck.run(factory(), requireFom(), timeImplementation(), objectClassName(),
-         attributeName(), interactionClassName(), callbackModel());
+         attributeName(), objectClassThirdAttributeName(), interactionClassName(), callbackModel());
    }
 
    private static void momTransportationTypeChangeRequest() throws Exception {
@@ -11225,7 +11225,15 @@ public final class RtiTckMain {
 
     private static void activeSubscriptionObjectDiscovery() throws Exception {
        ActiveSubscriptionObjectDiscoveryTck.run(factory(), requireFom(), timeImplementation(),
-          objectClassName(), attributeName(), callbackModel());
+          objectClassName(), attributeName(), objectClassSecondAttributeName(), callbackModel());
+    }
+
+    private static String objectClassSecondAttributeName() {
+       return System.getProperty(OBJECT_CLASS_SECOND_ATTRIBUTE_PROPERTY, "Name");
+    }
+
+    private static String objectClassThirdAttributeName() {
+       return System.getProperty(OBJECT_CLASS_THIRD_ATTRIBUTE_PROPERTY, "PayRate");
     }
 
     private static void multiAttributeValueUpdateRequestResponse() throws Exception {
