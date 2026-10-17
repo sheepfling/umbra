@@ -3714,6 +3714,19 @@
         "cpp-1516.1-object-management",
         "cpp-1516.1-time-management"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-130-l89-25"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l89-25",
+          "standard_section": "hla-1516.1-2025:clause-6.16.4"
+        }
+      ],
+      "mapping_note": "Direct mapping to page-130-l89-25 -> §6.16.4 only for the optional timestamp constraint: the test submits a timestamp before the regulating federate's current-time-plus-lookahead bound, expects InvalidLogicalTime, and confirms no application removal callback. Service-report payload fields are supplemental and are not mapped by this row.",
       "contract_refs": [
         "timestamped-delete-object-instance-failure-service-report-api-contract.json",
         "timestamped-delete-object-instance-failure-service-report-requirements-contract.json",
@@ -3780,6 +3793,19 @@
         "cpp-1516.1-object-management",
         "cpp-1516.1-time-management"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-130-l89-25"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.16.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l89-25",
+          "standard_section": "hla-1516.1-2025:clause-6.16.4"
+        }
+      ],
+      "mapping_note": "Direct mapping to page-130-l89-25 -> §6.16.4 only for the optional timestamp constraint: the test submits a timestamp before the regulating federate's current-time-plus-lookahead bound, expects InvalidLogicalTime, and confirms no application removal callback. Service-report payload fields are supplemental and are not mapped by this row.",
       "contract_refs": [
         "standard-service-report-timestamped-delete-object-instance-failure-contract.json"
       ],
@@ -28411,6 +28437,8 @@
         "RTIambassador.localDeleteObjectInstance",
         "RTIambassador.getObjectInstanceName",
         "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.isAttributeOwnedByFederate",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.createFederationExecution",
@@ -28432,10 +28460,12 @@
         "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
         "requirement-candidate-content-clauses-06-object-management-page-119-l103-29",
         "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l135-38",
         "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
         "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
         "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
         "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l137-40",
         "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
         "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
         "requirement-candidate-content-clauses-06-object-management-page-132-l140-38",
@@ -28454,16 +28484,18 @@
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-119-l103-29", "standard_section": "hla-1516.1-2025:clause-6.9.3"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l123-34", "standard_section": "hla-1516.1-2025:clause-6.16"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l132-37", "standard_section": "hla-1516.1-2025:clause-6.16"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l135-38", "standard_section": "hla-1516.1-2025:clause-6.16"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39", "standard_section": "hla-1516.1-2025:clause-6.16"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l144-41", "standard_section": "hla-1516.1-2025:clause-6.16"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l167-50", "standard_section": "hla-1516.1-2025:clause-6.16.4"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1", "standard_section": "hla-1516.1-2025:clause-6.16.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l137-40", "standard_section": "hla-1516.1-2025:clause-6.16.4"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29", "standard_section": "hla-1516.1-2025:clause-6.17.1"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32", "standard_section": "hla-1516.1-2025:clause-6.17.1"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-132-l140-38", "standard_section": "hla-1516.1-2025:clause-6.18.1"},
         {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-132-l146-40", "standard_section": "hla-1516.1-2025:clause-6.18.1"}
       ],
-      "mapping_note": "Direct mappings: federation-management page-058-l112-33 -> §4.12 for Delete Objects resignation cleanup; object-management page-119-l103-29 -> §6.9.3 for object-instance lookup before and after removal; page-129-l123-34, page-129-l132-37, page-129-l138-39, and page-129-l144-41 -> §6.16 for ordinary non-timestamped deletion and non-reuse of an object-instance designator within one federation execution (the removed handle is compared with a later registration); page-130-l167-50 and page-130-l8-1 -> §6.16.4 for deletion tag handling; page-131-l101-29 and page-131-l110-32 -> §6.17.1 for removal callback delivery; page-132-l140-38 and page-132-l146-40 -> §6.18.1 for recipient-local deletion. Delete-privilege transfer/authorization is not tested. Unknown-handle and pre-connect/pre-join exception precedence remain internal boundary assertions; setup/teardown is fixture behavior. The updated scenario and contract passed all four focused installed-package CTests (evoked/immediate); evidence: out/mgw/cpp-tck-object-handle-nonreuse-20261017.xml. The Java parity source compiles against the official API-only JAR; Java provider runtime remains unverified.",
+      "mapping_note": "Direct mappings: federation-management page-058-l112-33 -> §4.12 for Delete Objects resignation cleanup; object-management page-119-l103-29 -> §6.9.3 for object-instance lookup before and after removal; page-129-l123-34, page-129-l132-37, page-129-l138-39, and page-129-l144-41 -> §6.16 for ordinary non-timestamped deletion and non-reuse of an object-instance designator within one federation execution (the removed handle is compared with a later registration); page-129-l135-38 -> §6.16 for the former owner querying isAttributeOwnedByFederate on the previously owned attribute after deletion and receiving ObjectInstanceNotKnown. This observes that the deleted instance no longer has queryable ownership; it does not assert optional object-name reuse or replacement ownership. Page-130-l167-50 and page-130-l8-1 -> §6.16.4 for deletion tag handling; page-130-l137-40 -> §6.16.4 for the remote recipient receiving removal and then getting ObjectInstanceNotKnown from both object-name lookup and getKnownObjectClassHandle, while the deleting owner also gets ObjectInstanceNotKnown on object lookup; page-131-l101-29 and page-131-l110-32 -> §6.17.1 for removal callback delivery; page-132-l140-38 and page-132-l146-40 -> §6.18.1 for recipient-local deletion. Delete-privilege transfer/authorization is not tested. Unknown-handle and pre-connect/pre-join exception precedence remain internal boundary assertions; setup/teardown is fixture behavior. After the primary and contract scenarios passed 4/4 focused installed-package CTests (HLA_EVOKED/HLA_IMMEDIATE) after the additional class-query assertion; JUnit evidence: out/mgw/cpp-tck-object-deletion-known-class-query-20261017.xml. The Java parity source compiles against the official API-only JAR; Java provider runtime remains unverified.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -28497,6 +28529,8 @@
         "RTIambassador.localDeleteObjectInstance",
         "RTIambassador.getObjectInstanceName",
         "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.isAttributeOwnedByFederate",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.createFederationExecution",
@@ -28518,10 +28552,12 @@
         "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
         "requirement-candidate-content-clauses-06-object-management-page-119-l103-29",
         "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l135-38",
         "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
         "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
         "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
         "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l137-40",
         "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
         "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
         "requirement-candidate-content-clauses-06-object-management-page-132-l140-38",
@@ -28535,7 +28571,11 @@
         "hla-1516.1-2025:clause-6.17.1",
         "hla-1516.1-2025:clause-6.18.1"
       ],
-      "mapping_note": "The contract twin executes the same direct-mapped ordinary deletion, removal metadata, Delete Objects resignation, object lookup, and recipient-local deletion behavior as the primary scenario. Delete-privilege transfer/authorization is not tested; unknown-handle and pre-connect/pre-join exception precedence remain internal boundary assertions.",
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l135-38", "standard_section": "hla-1516.1-2025:clause-6.16"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l137-40", "standard_section": "hla-1516.1-2025:clause-6.16.4"}
+      ],
+      "mapping_note": "The contract twin executes the same direct-mapped ordinary deletion, removal metadata, Delete Objects resignation, object lookup, recipient-local deletion, and post-deletion isAttributeOwnedByFederate check as the primary scenario. For page-129-l135-38 -> §6.16, the former owner queries the previously owned attribute after deletion and receives ObjectInstanceNotKnown; this observes that the deleted instance no longer has queryable ownership and does not assert optional object-name reuse or replacement ownership. For page-130-l137-40 -> §6.16.4, the remote recipient receives removal and then gets ObjectInstanceNotKnown from both object-name lookup and getKnownObjectClassHandle, while the deleting owner also gets ObjectInstanceNotKnown on object lookup. Delete-privilege transfer/authorization is not tested; unknown-handle and pre-connect/pre-join exception precedence remain internal boundary assertions.",
       "contract_refs": [
         "standard-object-deletion-service-boundaries-contract.json"
       ],

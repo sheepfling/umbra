@@ -120,10 +120,18 @@ final class ObjectDeletionServiceBoundariesTck {
                && Arrays.equals(removal.tag, tag)
                && producer.equals(removal.producer),
             "ordinary removal callback did not preserve object, tag, and producer");
+         expectFailure(() -> receiver.getObjectInstanceHandle(remoteName),
+            "ObjectInstanceNotKnown", "receiver handle lookup after remote deletion");
+         expectFailure(() -> receiver.getKnownObjectClassHandle(remotelyDeleted),
+            "ObjectInstanceNotKnown", "receiver class lookup after remote deletion");
          expectFailure(() -> owner.getObjectInstanceName(remotelyDeleted),
             "ObjectInstanceNotKnown", "name lookup after remote deletion");
          expectFailure(() -> owner.getObjectInstanceHandle(remoteName),
             "ObjectInstanceNotKnown", "handle lookup after remote deletion");
+         AttributeHandle deletedObjectAttribute = ownerAttribute;
+         expectFailure(() -> owner.isAttributeOwnedByFederate(remotelyDeleted,
+            deletedObjectAttribute),
+            "ObjectInstanceNotKnown", "ownership-status query after remote deletion");
 
          ObjectInstanceHandle deletedOnResign = owner.registerObjectInstance(ownerClass);
          JavaTckSupport.check(deletedOnResign != null

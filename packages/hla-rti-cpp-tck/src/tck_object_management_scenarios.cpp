@@ -222,9 +222,23 @@ void scenarioObjectDeletion(Options const& options, rti::CallbackModel model) {
       L"ObjectInstanceNotKnown",
       "Object lookup after remote deletion");
   requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getKnownObjectClassHandle(deleted.first));
+      },
+      L"ObjectInstanceNotKnown",
+      "Known-object class lookup after remote deletion");
+  requireException(
       [&] { static_cast<void>(owner.rtiAmbassador().getObjectInstanceName(deleted.first)); },
       L"ObjectInstanceNotKnown",
       "Owner object lookup after remote deletion");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().isAttributeOwnedByFederate(
+            deleted.first,
+            attribute));
+      },
+      L"ObjectInstanceNotKnown",
+      "Owner ownership-status query after remote deletion");
 
   auto const resigned = registerAndDiscover();
   require(resigned.first != deleted.first,
