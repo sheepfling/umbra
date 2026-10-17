@@ -4543,6 +4543,7 @@
         "cpp-1516.1-object-instance-name-lifecycle"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-118-l64-17",
         "requirement-candidate-content-clauses-06-object-management-page-118-l70-19"
       ],
       "standard_sections": [
@@ -4550,11 +4551,15 @@
       ],
       "requirement_mappings": [
         {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l64-17",
+          "standard_section": "hla-1516.1-2025:clause-6.8.4"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l70-19",
           "standard_section": "hla-1516.1-2025:clause-6.8.4"
         }
       ],
-      "mapping_note": "Direct source mapping: page-118-l70-19 -> §6.8.4. The Java scenario asserts each discovery's name/handle pair and verifies getObjectInstanceHandle(name) and getObjectInstanceName(handle) at both subscribers. The Java provider runtime remains unsupported/unverified; this mapping makes no execution or conformance claim.",
+      "mapping_note": "Direct source mappings: page-118-l64-17 -> §6.8.4 for registering both names after the adapter-backed reservation-success callbacks; page-118-l70-19 -> §6.8.4 for bidirectional name/handle identity at the publisher and both discovering subscribers. The Java provider runtime remains unsupported/unverified; this mapping makes no execution or conformance claim.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-attribute-declaration-api-contract.json",

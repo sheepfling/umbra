@@ -9780,6 +9780,7 @@
         "cpp-1516.1-object-instance-name-lifecycle"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-118-l64-17",
         "requirement-candidate-content-clauses-06-object-management-page-118-l70-19"
       ],
       "standard_sections": [
@@ -9787,11 +9788,15 @@
       ],
       "requirement_mappings": [
         {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l64-17",
+          "standard_section": "hla-1516.1-2025:clause-6.8.4"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l70-19",
           "standard_section": "hla-1516.1-2025:clause-6.8.4"
         }
       ],
-      "mapping_note": "Direct mapping: page-118-l70-19 -> §6.8.4. After registering two explicitly named instances, the publisher and both discovering subscribers verify that each name resolves to its corresponding object handle and that each handle resolves back to the same name. The scenario is adapter-backed and uses only the standard API.",
+      "mapping_note": "Direct mappings: page-118-l64-17 -> §6.8.4 for registering each name after the adapter-backed reservation-success callback; page-118-l70-19 -> §6.8.4 for bidirectional name/handle identity at the publisher and both discovering subscribers. The scenario is adapter-backed and uses only the standard API.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-attribute-declaration-api-contract.json",
@@ -9840,6 +9845,7 @@
         "cpp-1516.1-object-instance-name-lifecycle"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-118-l64-17",
         "requirement-candidate-content-clauses-06-object-management-page-118-l70-19"
       ],
       "standard_sections": [
@@ -9847,11 +9853,15 @@
       ],
       "requirement_mappings": [
         {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l64-17",
+          "standard_section": "hla-1516.1-2025:clause-6.8.4"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l70-19",
           "standard_section": "hla-1516.1-2025:clause-6.8.4"
         }
       ],
-      "mapping_note": "Direct mapping: page-118-l70-19 -> §6.8.4. This contract runner invokes the same named-registration fan-out scenario, which verifies bidirectional name/handle identity for both objects at the publisher and both discovering subscribers. Adapter-backed standard API behavior only.",
+      "mapping_note": "Direct mappings: page-118-l64-17 -> §6.8.4 for registering each name after the adapter-backed reservation-success callback; page-118-l70-19 -> §6.8.4 for bidirectional name/handle identity at the publisher and both discovering subscribers. This contract runner invokes the same adapter-backed standard API scenario.",
       "contract_refs": [
         "standard-named-registration-multi-recipient-contract.json"
       ],
