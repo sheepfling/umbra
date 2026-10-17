@@ -3045,7 +3045,7 @@
     {
       "id": "java-tck.logical-time-factory",
       "category": "time",
-      "title": "Check logical-time factory lifecycle boundaries, then create and round-trip logical-time values",
+      "title": "Check logical-time factory lifecycle boundaries and configured time-representation selection, then create and round-trip values",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
@@ -3078,8 +3078,19 @@
         "RTIambassador.disconnect"
       ],
       "requirement_ids": [
-        "java-1516.1-logical-time-factory-values"
+        "java-1516.1-logical-time-factory-values",
+        "requirement-candidate-content-clauses-07-ownership-management-page-175-l131-40"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-175-l131-40",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to the clause-8 requirement that the time representation be specified to the RTI: federation creation receives the configured representation and RTIambassador.getTimeFactory().getName() must return that same name. The FDD time-representation-table documentation recommendation is not inspected by this API scenario.",
       "contract_refs": [
         "reference-time-requirements-contract.json",
         "logical-time-encoding-requirements-contract.json"

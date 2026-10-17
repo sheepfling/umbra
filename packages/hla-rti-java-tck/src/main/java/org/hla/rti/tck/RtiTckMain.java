@@ -10093,6 +10093,7 @@ public final class RtiTckMain {
 
    private static void logicalTimeFactory() throws Exception {
       String fom = requireFom();
+      String timeRepresentation = timeImplementation();
       RtiFactory factory = factory();
       RTIambassador ambassador = factory.getRtiAmbassador();
       CallbackRecorder recorder = new CallbackRecorder();
@@ -10107,13 +10108,13 @@ public final class RtiTckMain {
          connected = true;
          expectException(() -> ambassador.getTimeFactory(), "FederateNotExecutionMember",
             "logical-time factory lookup after connection but before joining");
-         ambassador.createFederationExecution(federation, fom, timeImplementation());
+         ambassador.createFederationExecution(federation, fom, timeRepresentation);
          created = true;
          ambassador.joinFederationExecution("java-tck-time", federation);
          joined = true;
          LogicalTimeFactory<?, ?> timeFactory = ambassador.getTimeFactory();
-         check(timeFactory != null && !timeFactory.getName().isEmpty(),
-            "logical-time factory has no standard name");
+         check(timeFactory != null && timeRepresentation.equals(timeFactory.getName()),
+            "RTI logical-time factory did not match the configured time representation");
          LogicalTime<?, ?> initial = timeFactory.makeInitial();
          LogicalTime<?, ?> finalTime = timeFactory.makeFinal();
          LogicalTimeInterval<?> zero = timeFactory.makeZero();

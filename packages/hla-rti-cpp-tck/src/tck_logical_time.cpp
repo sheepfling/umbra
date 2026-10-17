@@ -712,6 +712,9 @@ void verifyLogicalTimeDataElements(Session& session, TimeContext const& time) {
 void scenarioLogicalTimeFactoryPortable(
     Options const& options,
     rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "logical-time factory scenario requires an adapter-supplied time representation");
   Session session(options, model, "time");
   requireException(
       [&] { static_cast<void>(session.rtiAmbassador().getTimeFactory()); },
@@ -732,6 +735,9 @@ void scenarioLogicalTimeFactoryPortable(
   auto time = makeTimeContext(session);
   verifyReferenceTimeTypes();
   verifyLogicalTimeDataElements(session, time);
+  require(
+      time.factory->getName() == options.logicalTimeImplementationName,
+      "RTI logical-time factory did not match the adapter-specified time representation");
   require(
       time.factory->getName() == time.initial->implementationName(),
       "logical-time factory name did not match the returned logical-time implementation");

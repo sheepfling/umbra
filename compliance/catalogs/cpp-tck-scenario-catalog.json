@@ -4691,7 +4691,7 @@
     {
       "id": "java-tck.logical-time-factory",
       "category": "time",
-      "title": "Enforce logical-time factory lifecycle boundaries and create, classify, encode, and decode values",
+      "title": "Verify the RTI selects the configured time representation and create, classify, encode, and decode values",
       "api_methods": [
         "RTIambassador.getTimeFactory(NotConnected/FederateNotExecutionMember boundaries)",
         "LogicalTimeFactory.makeInitial",
@@ -4704,8 +4704,19 @@
         "LogicalTimeInterval.encode"
       ],
       "requirement_ids": [
-        "cpp-1516.1-logical-time-factory-values"
+        "cpp-1516.1-logical-time-factory-values",
+        "requirement-candidate-content-clauses-07-ownership-management-page-175-l131-40"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-175-l131-40",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to the clause-8 requirement that the time representation be specified to the RTI: federation creation receives the adapter-selected representation and RTIambassador.getTimeFactory().getName() must return that same name. The FDD time-representation-table documentation recommendation is not inspected by this API scenario.",
       "contract_refs": [
         "get-time-factory-api-contract.json",
         "logical-time-encoding-requirements-contract.json"
