@@ -7,6 +7,7 @@
       "attributes": {
         "value": 4
       },
+      "declaration": null,
       "details": null,
       "event_type": "object.updated",
       "family": "generic",
@@ -34,6 +35,7 @@
       "attributes": {
         "value": 5
       },
+      "declaration": null,
       "details": null,
       "event_type": "object.updated",
       "family": "generic",

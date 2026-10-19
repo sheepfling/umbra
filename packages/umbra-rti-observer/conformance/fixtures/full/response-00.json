@@ -49,6 +49,19 @@
       "sources": [],
       "state": "disabled"
     },
+    "declarations": {
+      "description": "Explicit scoped class/attribute declarations, not inferred routing or ownership.",
+      "event_types": [],
+      "label": "Publication and subscription declarations",
+      "observations": [],
+      "owner": "adapter",
+      "owners": [],
+      "reason": null,
+      "reasons": [],
+      "source": null,
+      "sources": [],
+      "state": "available"
+    },
     "event_history": {
       "description": "Bounded, sequence-numbered event retention and cursor pages.",
       "event_types": [],
@@ -289,6 +302,7 @@
       "analytics",
       "attributes",
       "commands",
+      "declarations",
       "event_history",
       "federates",
       "http_api",
@@ -347,6 +361,7 @@
     "interaction.received",
     "callback.invoked",
     "time.observed",
+    "declaration.observed",
     "service.completed",
     "service.failed",
     "session.connected",

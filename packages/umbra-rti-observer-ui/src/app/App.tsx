@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { AnalyticsResponse, EventEnvelope, StateResponse } from "../api/types";
 import { DiagnosticsView } from "../components/DiagnosticsView";
+import { DeclarationsView } from "../components/DeclarationsView";
 import { ActionsView } from "../components/ActionsView";
 import { EventTable } from "../components/EventTable";
 import { FederateView } from "../components/FederateView";
@@ -16,9 +17,9 @@ import { useObserver } from "./useObserver";
 import type { MetricSample } from "./useObserver";
 import { formatTime } from "./observations";
 
-const tabs = ["federation", "federates", "objects", "time", "events", "inspectors", "actions", "diagnostics"] as const;
+const tabs = ["federation", "federates", "objects", "declarations", "time", "events", "inspectors", "actions", "diagnostics"] as const;
 type Tab = typeof tabs[number];
-const labels: Record<Tab, string> = { federation: "Federation", federates: "Federates", objects: "Objects", time: "Logical time", events: "Events", inspectors: "Inspectors", actions: "Actions", diagnostics: "Diagnostics" };
+const labels: Record<Tab, string> = { federation: "Federation", federates: "Federates", objects: "Objects", declarations: "Declarations", time: "Logical time", events: "Events", inspectors: "Inspectors", actions: "Actions", diagnostics: "Diagnostics" };
 
 interface FrozenView {
   state: StateResponse;
@@ -91,6 +92,7 @@ export function App() {
       {tab === "federation" && (analytics ? <FederationView analytics={analytics} state={state} onFederate={inspectFederate} /> : <><EmptyPanel title={supportsAnalytics ? "Preparing activity charts" : "Windowed analytics unavailable"}>{supportsAnalytics ? "Waiting for the first analytics window." : "This backend does not advertise analytics. Live metrics, events, and inspectors remain available."}</EmptyPanel><LiveCharts events={events} samples={samples} /></>)}
       {tab === "federates" && <FederateView state={state} analytics={analytics} events={events} selected={federate} onSelect={setSelectedFederate} />}
       {tab === "objects" && <ObjectsView state={state} />}
+      {tab === "declarations" && <DeclarationsView state={state} />}
       {tab === "time" && <TimeWorkspace state={state} analytics={analytics} />}
       {tab === "events" && <EventTable events={events} />}
       {tab === "inspectors" && <InspectorTables state={state} />}

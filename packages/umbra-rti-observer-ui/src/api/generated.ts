@@ -649,6 +649,67 @@ export interface components {
             snapshot: components["schemas"]["ResourceDescription"];
             stream: components["schemas"]["StreamDescription"];
         };
+        /** DeclarationScopeResponse */
+        DeclarationScopeResponse: {
+            /** Federate */
+            federate: string | null;
+            /** Federation */
+            federation: string | null;
+            /** Session Id */
+            session_id: string | null;
+            /** Source */
+            source: string;
+        };
+        /** DeclarationSnapshotResponse */
+        DeclarationSnapshotResponse: {
+            /**
+             * Attribute Scope
+             * @enum {string}
+             */
+            attribute_scope: "selected" | "all" | "unknown" | "not-applicable";
+            /** Attributes */
+            attributes?: string[] | null;
+            /** Class Key */
+            class_key: string;
+            /** Class Name */
+            class_name?: string | null;
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "publication" | "subscription";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "object" | "interaction";
+            /** Observed At */
+            observed_at: number;
+            /** Reason */
+            reason?: string | null;
+            scope: components["schemas"]["DeclarationScopeResponse"];
+            /** Sequence */
+            sequence: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "declared" | "withdrawn" | "unknown";
+        };
+        /** DeclarationsResponse */
+        DeclarationsResponse: {
+            /**
+             * Basis
+             * @constant
+             */
+            basis: "last-reported-declarations";
+            /** Capacity */
+            capacity: number;
+            /** Dropped Declarations */
+            dropped_declarations: number;
+            /** Snapshots */
+            snapshots: components["schemas"]["DeclarationSnapshotResponse"][];
+        };
         /** DisconnectCommand */
         DisconnectCommand: {
             /**
@@ -686,6 +747,8 @@ export interface components {
         };
         /** EventEnvelope */
         EventEnvelope: {
+            /** Declaration */
+            declaration?: (components["schemas"]["ObjectDeclarationObservation"] | components["schemas"]["InteractionDeclarationObservation"]) | null;
             /** Details */
             details?: {
                 [key: string]: components["schemas"]["JsonValue-Output"];
@@ -745,6 +808,8 @@ export interface components {
             class_name?: string | null;
             /** Connection */
             connection?: string | null;
+            /** Declaration */
+            declaration?: (components["schemas"]["ObjectDeclarationObservation"] | components["schemas"]["InteractionDeclarationObservation"]) | null;
             /** Details */
             details?: {
                 [key: string]: components["schemas"]["JsonValue-Input"];
@@ -917,12 +982,39 @@ export interface components {
         };
         /** InspectorsResponse */
         InspectorsResponse: {
+            declarations?: components["schemas"]["DeclarationsResponse"] | null;
             /** Interactions */
             interactions?: components["schemas"]["InteractionInspectionResponse"][];
             object_observations?: components["schemas"]["ObjectObservationsResponse"] | null;
             /** Objects */
             objects?: components["schemas"]["ObjectInspectionResponse"][];
             time?: components["schemas"]["TimeInspectionResponse"] | null;
+        };
+        /** InteractionDeclarationObservation */
+        InteractionDeclarationObservation: {
+            /** Class Key */
+            class_key: string;
+            /** Class Name */
+            class_name?: string | null;
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "publication" | "subscription";
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "interaction";
+            /** Reason */
+            reason?: string | null;
+            /** Session Id */
+            session_id?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "declared" | "withdrawn" | "unknown";
         };
         /** InteractionInspectionResponse */
         InteractionInspectionResponse: {
@@ -1060,6 +1152,40 @@ export interface components {
             /** Source */
             source: string;
             value: components["schemas"]["JsonValue-Output"];
+        };
+        /** ObjectDeclarationObservation */
+        ObjectDeclarationObservation: {
+            /**
+             * Attribute Scope
+             * @default unknown
+             * @enum {string}
+             */
+            attribute_scope: "selected" | "all" | "unknown";
+            /** Attributes */
+            attributes?: string[] | null;
+            /** Class Key */
+            class_key: string;
+            /** Class Name */
+            class_name?: string | null;
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "publication" | "subscription";
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "object";
+            /** Reason */
+            reason?: string | null;
+            /** Session Id */
+            session_id?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "declared" | "withdrawn" | "unknown";
         };
         /** ObjectInspectionResponse */
         ObjectInspectionResponse: {

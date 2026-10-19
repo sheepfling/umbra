@@ -66,6 +66,13 @@ def scenario(profile: str) -> Generator[FastAPI, None, None]:
             ):
                 store.publish({"event_type": "time.observed", "source": "contract-fixture", "federate": "FixtureFederate",
                                "federation": "ContractFixture", "time_observation": {"session_id": "fixture-session", **observation}})
+            for declaration in (
+                {"kind": "object", "direction": "publication", "class_key": "FixtureClass", "attribute_scope": "selected", "attributes": ["value"]},
+                {"kind": "object", "direction": "subscription", "class_key": "FixtureClass", "attribute_scope": "unknown"},
+                {"kind": "interaction", "direction": "subscription", "class_key": "FixtureInteraction"},
+            ):
+                store.publish({"event_type": "declaration.observed", "source": "contract-fixture", "federate": "FixtureFederate",
+                               "federation": "ContractFixture", "declaration": {"status": "declared", "session_id": "fixture-session", **declaration}})
     if profile == "reconnect":
         unavailable = True
 

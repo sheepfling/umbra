@@ -71,6 +71,30 @@
       ],
       "state": "disabled"
     },
+    "declarations": {
+      "description": "Explicit scoped class/attribute declarations, not inferred routing or ownership.",
+      "event_types": [],
+      "label": "Publication and subscription declarations",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Only an object subscription is reported; publication and interaction declarations are unknown.",
+          "source": "contract-fixture",
+          "state": "partial"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Only an object subscription is reported; publication and interaction declarations are unknown.",
+      "reasons": [],
+      "source": null,
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "partial"
+    },
     "event_history": {
       "description": "Bounded, sequence-numbered event retention and cursor pages.",
       "event_types": [],

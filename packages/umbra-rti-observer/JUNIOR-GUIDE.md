@@ -389,9 +389,10 @@ Check all of the following:
 
 ## 8. Safe change checklist
 
-The React workspace now has eight views: Federation (traffic and composition),
+The React workspace now has nine views: Federation (traffic and composition),
 Federates (one participant's attributed observations), Objects (search, values,
-comparisons and numeric attribute charts), Logical time (timestamps
+comparisons and numeric attribute charts), Declarations (explicit publication/
+subscription snapshots), Logical time (timestamps
 and explicit grants), Events (search/filter/export), Inspectors (live snapshots),
 Actions (owned-session controls and results), and Diagnostics (adapters, errors,
 feature coverage, retention).
@@ -451,6 +452,21 @@ IDs on reconnect/rejoin prevent old tickets from closing new work. Duplicate
 retained IDs become ambiguous; an explicit failed/cancelled/session-ended
 outcome never becomes a successful grant. See CONTRACT.md for the exact wire
 rules and producer ID-uniqueness obligation.
+
+Declarations follow the same layering: `declarations.py` validates provider-
+neutral typed records and maintains a capacity-bounded snapshot index;
+`schemas.py` provides named object/interaction HTTP inputs and response models;
+`DeclarationsView` displays generated TypeScript data. Neither the parser nor
+the screen imports an RTI, parses a FOM, guesses from class names or needs MOM.
+
+An attribute set has four distinct meanings: selected (possibly explicitly
+empty), all (explicitly reported), unknown (not supplied), or not applicable
+for interactions. A new report replaces the previous set; the adapter must
+resolve provider delta calls before publishing a full snapshot, or say unknown.
+Source/session/federation/federate, kind, direction and class key keep reports
+separate. The event's federate is the explicitly reported declaration subject.
+Matching a publisher and subscriber class name is not evidence of a route or
+delivery. Relationship/topology evidence is a separate future model.
 
 Pause view freezes the local screen only. Data collection continues; command
 submission is disabled until the view resumes. The separate `commands`

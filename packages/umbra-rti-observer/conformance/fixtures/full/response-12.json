@@ -235,7 +235,7 @@
     {
       "callbacks": 1,
       "errors": 0,
-      "events": 9,
+      "events": 12,
       "interactions": 0,
       "object_updates": 4,
       "started_at": 1759999970.0
@@ -246,12 +246,13 @@
   "contract_version": "umbra-observer-contract-v1",
   "event_types": {
     "callback.invoked": 1,
+    "declaration.observed": 3,
     "object.updated": 4,
     "time.observed": 4
   },
-  "events_in_window": 9,
+  "events_in_window": 12,
   "families": {
-    "generic": 9
+    "generic": 12
   },
   "generated_at": 1760000000.0,
   "history_truncated": false,
@@ -296,7 +297,7 @@
   "participants": [
     {
       "error_count": 0,
-      "event_count": 9,
+      "event_count": 12,
       "federate": "FixtureFederate",
       "handle": null,
       "interaction_count": 0,
@@ -315,14 +316,14 @@
     "cleared_events": 0,
     "dropped_events": 0,
     "first_retained_sequence": 1,
-    "last_sequence": 9,
+    "last_sequence": 12,
     "max_events": 20,
-    "next_sequence": 10,
-    "retained_events": 9
+    "next_sequence": 13,
+    "retained_events": 12
   },
   "scoped_federate": null,
   "sources": {
-    "contract-fixture": 9
+    "contract-fixture": 12
   },
   "unattributed_events": 0,
   "window_seconds": 900,

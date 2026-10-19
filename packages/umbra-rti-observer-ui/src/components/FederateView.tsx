@@ -5,6 +5,7 @@ import { EmptyPanel } from "./ChartPanel";
 import { EventTable } from "./EventTable";
 import { MetricCard } from "./MetricCard";
 import { TimeWorkspace } from "./TimeWorkspace";
+import { DeclarationsView } from "./DeclarationsView";
 
 export function FederateView({ state, analytics, events, selected, onSelect }: {
   state: StateResponse; analytics?: AnalyticsResponse; events: EventEnvelope[];
@@ -31,6 +32,7 @@ export function FederateView({ state, analytics, events, selected, onSelect }: {
           {objects?.length ? <div className="object-cards">{objects.map((row) => <details key={row.object_key}><summary><strong>{row.object_name}</strong><span>{row.class_name ?? "Class not reported"}</span><span className="state-pill">{row.status}</span></summary><pre>{JSON.stringify(row.attributes, null, 2)}</pre><small>Latest values attributed to {selected} · {formatTime(row.last_seen)} · independent of chart window</small></details>)}</div> : <p className="empty">{objects ? "No attributed object snapshots for this federate." : "Persistent attributed values unavailable on this backend. Global values are not substituted."}</p>}
         </article>
         <TimeWorkspace key={`time:${selected}`} state={state} analytics={analytics} federate={selected} />
+        <DeclarationsView key={`declarations:${selected}`} state={state} federate={selected} />
         <EventTable key={`events:${selected}`} events={scopedEvents} title="Federate event timeline" />
       </>}
     </div>

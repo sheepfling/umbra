@@ -75,6 +75,26 @@ def test_typed_time_inputs_are_atomic_and_persistent_time_does_not_require_analy
             assert streamed == time
 
 
+def test_declarations_have_validated_attribute_sets_and_same_http_stream_scope() -> None:
+    from umbra_rti_observer.schemas import StateResponse
+
+    with TestClient(create_app(enable_analytics=False)) as client:
+        declaration = {"kind": "object", "direction": "publication", "status": "declared", "class_key": "Class",
+                       "attribute_scope": "selected", "attributes": ["A", "A"]}
+        assert client.post("/api/events", json={"events": [{"event_type": "runtime.started"}, {"declaration": declaration}]}).status_code == 422
+        assert client.get("/api/state").json()["retention"]["retained_events"] == 0
+        declaration["attributes"] = []
+        response = client.post("/api/events", json={"event_type": "declaration.observed", "source": "test", "declaration": declaration})
+        assert response.status_code == 200
+        state = client.get("/api/state?include_events=false").json()
+        result = StateResponse.model_validate(state).inspectors.declarations
+        assert result is not None and result.snapshots[0].scope.federate is None
+        assert result.snapshots[0].attributes is not None and not result.snapshots[0].attributes
+        assert client.get("/api/analytics").status_code == 404
+        with client.websocket_connect("/ws/events") as stream:
+            assert stream.receive_json()["state"]["inspectors"]["declarations"] == state["inspectors"]["declarations"]
+
+
 def test_analytics_is_advertised_validated_and_scopable() -> None:
     store = ObserverStore()
     store.publish({"event_type": "callback.invoked", "federate": "A", "logical_time": 0})

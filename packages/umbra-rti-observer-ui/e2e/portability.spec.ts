@@ -11,6 +11,7 @@ test.describe("independent Java HTTP-only backend", () => {
     await expect(page.locator(".connection-badge")).toHaveText("polling");
     const views = [["Federation", "Traffic over time"], ["Federates", "Federates"],
       ["Objects", "Object workspace"],
+      ["Declarations", "Declaration explorer"],
       ["Logical time", "Logical-time observations"], ["Events", "Event explorer"],
       ["Inspectors", "Objects"], ["Actions", "Session controls are not enabled"],
       ["Diagnostics", "Observation health"]] as const;

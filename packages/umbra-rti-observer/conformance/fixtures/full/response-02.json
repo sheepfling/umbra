@@ -68,6 +68,27 @@
       ],
       "state": "disabled"
     },
+    "declarations": {
+      "description": "Explicit scoped class/attribute declarations, not inferred routing or ownership.",
+      "event_types": [],
+      "label": "Publication and subscription declarations",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
     "event_history": {
       "description": "Bounded, sequence-numbered event retention and cursor pages.",
       "event_types": [],
@@ -441,6 +462,61 @@
     }
   ],
   "inspectors": {
+    "declarations": {
+      "basis": "last-reported-declarations",
+      "capacity": 1000,
+      "dropped_declarations": 0,
+      "snapshots": [
+        {
+          "attribute_scope": "selected",
+          "attributes": [
+            "value"
+          ],
+          "class_key": "FixtureClass",
+          "direction": "publication",
+          "kind": "object",
+          "observed_at": 1760000000.0,
+          "scope": {
+            "federate": "FixtureFederate",
+            "federation": "ContractFixture",
+            "session_id": "fixture-session",
+            "source": "contract-fixture"
+          },
+          "sequence": 10,
+          "status": "declared"
+        },
+        {
+          "attribute_scope": "unknown",
+          "class_key": "FixtureClass",
+          "direction": "subscription",
+          "kind": "object",
+          "observed_at": 1760000000.0,
+          "scope": {
+            "federate": "FixtureFederate",
+            "federation": "ContractFixture",
+            "session_id": "fixture-session",
+            "source": "contract-fixture"
+          },
+          "sequence": 11,
+          "status": "declared"
+        },
+        {
+          "attribute_scope": "not-applicable",
+          "class_key": "FixtureInteraction",
+          "direction": "subscription",
+          "kind": "interaction",
+          "observed_at": 1760000000.0,
+          "scope": {
+            "federate": "FixtureFederate",
+            "federation": "ContractFixture",
+            "session_id": "fixture-session",
+            "source": "contract-fixture"
+          },
+          "sequence": 12,
+          "status": "declared"
+        }
+      ]
+    },
     "interactions": [],
     "object_observations": {
       "changes": [
@@ -542,7 +618,7 @@
         }
       ],
       "history_first_sequence": 1,
-      "history_last_sequence": 9,
+      "history_last_sequence": 12,
       "history_truncated": false,
       "snapshots": [
         {
@@ -698,23 +774,24 @@
   },
   "live_metrics": {
     "error_count": 0,
-    "event_count": 9,
+    "event_count": 12,
     "event_rate_per_second": 0.0,
     "event_types": {
       "callback.invoked": 1,
+      "declaration.observed": 3,
       "object.updated": 4,
       "time.observed": 4
     },
     "families": {
-      "generic": 9
+      "generic": 12
     },
     "federate_count": 1,
     "first_sequence": 1,
     "interaction_count": 0,
-    "last_sequence": 9,
+    "last_sequence": 12,
     "object_count": 1,
     "sources": {
-      "contract-fixture": 9
+      "contract-fixture": 12
     }
   },
   "normalized_events": [
@@ -869,16 +946,69 @@
         "request_id": "advance-2",
         "session_id": "fixture-session"
       }
+    },
+    {
+      "declaration": {
+        "attribute_scope": "selected",
+        "attributes": [
+          "value"
+        ],
+        "class_key": "FixtureClass",
+        "direction": "publication",
+        "kind": "object",
+        "session_id": "fixture-session",
+        "status": "declared"
+      },
+      "event_type": "declaration.observed",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federation": "ContractFixture",
+      "observed_at": 1760000000.0,
+      "sequence": 10,
+      "source": "contract-fixture"
+    },
+    {
+      "declaration": {
+        "attribute_scope": "unknown",
+        "class_key": "FixtureClass",
+        "direction": "subscription",
+        "kind": "object",
+        "session_id": "fixture-session",
+        "status": "declared"
+      },
+      "event_type": "declaration.observed",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federation": "ContractFixture",
+      "observed_at": 1760000000.0,
+      "sequence": 11,
+      "source": "contract-fixture"
+    },
+    {
+      "declaration": {
+        "class_key": "FixtureInteraction",
+        "direction": "subscription",
+        "kind": "interaction",
+        "session_id": "fixture-session",
+        "status": "declared"
+      },
+      "event_type": "declaration.observed",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federation": "ContractFixture",
+      "observed_at": 1760000000.0,
+      "sequence": 12,
+      "source": "contract-fixture"
     }
   ],
   "retention": {
     "cleared_events": 0,
     "dropped_events": 0,
     "first_retained_sequence": 1,
-    "last_sequence": 9,
+    "last_sequence": 12,
     "max_events": 20,
-    "next_sequence": 10,
-    "retained_events": 9
+    "next_sequence": 13,
+    "retained_events": 12
   },
   "schema_version": "umbra-runtime-observer-v1",
   "status": "running"

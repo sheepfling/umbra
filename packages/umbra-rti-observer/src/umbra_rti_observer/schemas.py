@@ -24,6 +24,8 @@ from pydantic import (
 )
 from typing_extensions import TypeAliasType
 
+from .declarations import declaration_data
+
 JsonText = Annotated[str, StringConstraints(strip_whitespace=False)]
 
 if TYPE_CHECKING:
@@ -155,6 +157,38 @@ TimeObservationInput = Annotated[
 ]
 
 
+DeclarationId = Annotated[str, StringConstraints(strip_whitespace=False, min_length=1, max_length=512, pattern=r"\S")]
+
+
+class DeclarationObservationBase(ObserverModel):
+    direction: Literal["publication", "subscription"]
+    status: Literal["declared", "withdrawn", "unknown"]
+    class_key: DeclarationId
+    class_name: DeclarationId | None = None
+    session_id: TimeId | None = None
+    reason: JsonText | None = None
+
+
+class ObjectDeclarationObservation(DeclarationObservationBase):
+    kind: Literal["object"]
+    attribute_scope: Literal["selected", "all", "unknown"] = "unknown"
+    attributes: Annotated[Sequence[DeclarationId] | None, Field(default=None, max_length=4096)]
+
+    @model_validator(mode="after")
+    def explicit_attribute_set(self) -> ObjectDeclarationObservation:
+        declaration_data({"declaration": self.model_dump(mode="python", exclude_none=True)})
+        return self
+
+
+class InteractionDeclarationObservation(DeclarationObservationBase):
+    kind: Literal["interaction"]
+
+
+DeclarationObservationInput = Annotated[
+    ObjectDeclarationObservation | InteractionDeclarationObservation, Field(discriminator="kind"),
+]
+
+
 class EventInput(ExtensibleObserverModel):
     """Normalized event input plus JSON-compatible provider extensions."""
 
@@ -188,6 +222,7 @@ class EventInput(ExtensibleObserverModel):
     logical_time: int | float | None = None
     operation: str | None = None
     time_observation: TimeObservationInput | None = None
+    declaration: DeclarationObservationInput | None = None
 
     _reject_batch_shape: ClassVar[bool] = True
 
@@ -326,6 +361,7 @@ class EventEnvelope(WireObserverModel):
     details: Mapping[str, JsonValue] | None = None
     object_key: str | None = None
     time_observation: TimeObservationInput | None = None
+    declaration: DeclarationObservationInput | None = None
 
 
 class ObjectPerspectiveResponse(ObserverModel):
@@ -478,11 +514,65 @@ class TimeInspectionResponse(ObserverModel):
         return self
 
 
+class DeclarationScopeResponse(ObserverModel):
+    source: NonEmptyText
+    session_id: TimeId | None
+    federation: str | None
+    federate: str | None
+
+    @model_serializer(mode="wrap")
+    def preserve_scope(self, handler: SerializerFunctionWrapHandler):
+        serialized = cast(dict[str, object], handler(self))
+        serialized.update(session_id=self.session_id, federation=self.federation, federate=self.federate)
+        return serialized
+
+
+class DeclarationSnapshotResponse(ObserverModel):
+    scope: DeclarationScopeResponse
+    kind: Literal["object", "interaction"]
+    direction: Literal["publication", "subscription"]
+    class_key: DeclarationId
+    class_name: DeclarationId | None = None
+    status: Literal["declared", "withdrawn", "unknown"]
+    attribute_scope: Literal["selected", "all", "unknown", "not-applicable"]
+    attributes: Annotated[Sequence[DeclarationId] | None, Field(default=None, max_length=4096)]
+    reason: JsonText | None = None
+    sequence: SequenceNumber
+    observed_at: Annotated[float, Field(allow_inf_nan=False)]
+
+    @model_validator(mode="after")
+    def consistent_attribute_scope(self) -> DeclarationSnapshotResponse:
+        selected = self.attribute_scope == "selected"
+        if selected != (self.attributes is not None):
+            raise ValueError("only a selected scope has an explicit attribute array")
+        if (self.kind == "interaction") != (self.attribute_scope == "not-applicable"):
+            raise ValueError("interaction attributes are not applicable, object attributes are not implicit")
+        if self.attributes is not None and len(set(self.attributes)) != len(self.attributes):
+            raise ValueError("selected attributes must be unique")
+        return self
+
+
+class DeclarationsResponse(ObserverModel):
+    snapshots: Sequence[DeclarationSnapshotResponse]
+    capacity: PositiveInt
+    dropped_declarations: NonNegativeInt
+    basis: Literal["last-reported-declarations"]
+
+    @model_validator(mode="after")
+    def unique_bounded_snapshots(self) -> DeclarationsResponse:
+        keys = {(row.scope.source, row.scope.session_id, row.scope.federation, row.scope.federate,
+                 row.kind, row.direction, row.class_key) for row in self.snapshots}
+        if len(keys) != len(self.snapshots) or len(keys) > self.capacity:
+            raise ValueError("declaration snapshots must be unique and bounded by capacity")
+        return self
+
+
 class InspectorsResponse(ObserverModel):
     objects: Annotated[Sequence[ObjectInspectionResponse], Field(default_factory=tuple)]
     interactions: Annotated[Sequence[InteractionInspectionResponse], Field(default_factory=tuple)]
     object_observations: ObjectObservationsResponse | None = None
     time: TimeInspectionResponse | None = None
+    declarations: DeclarationsResponse | None = None
 
 
 class StateResponse(ObserverModel):

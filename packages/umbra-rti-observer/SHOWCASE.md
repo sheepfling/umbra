@@ -75,6 +75,11 @@ double-click `Start-Observer.cmd`; use `Start-Observer-Limited.cmd` to demonstra
 missing MOM and grant-only time support. The source checkout needs Python 3.11+
 and Node 22.13+ with first-run dependency downloads.
 
+The later tag `observer-showcase-2026-10-19-declarations` additionally includes
+the declaration explorer increment. Substitute it for the tag in the clone
+command above for the expanded nine-screen showcase. The original checkpoint
+tag is left unchanged.
+
 Run `python tools/observer_playtest.py --bundle` from that checkout to recreate
 the disposable ZIP. Built assets and environments are not stored in Git.
 The tag fixes the source and frontend lockfile, not an indefinitely frozen
@@ -131,6 +136,13 @@ GALT/LBTS stay unknown unless directly reported. The limited showcase reports
 grants without request IDs or role state: its last-grant inspector still works,
 while request-delay analysis clearly has no correlated samples. These inspector
 snapshots are independent of the chart-time window and do not require MOM.
+
+In **Declarations**, compare ShowcaseServer's explicit publications with
+ShowcaseObserver's reported subscriptions, search `load`, then filter by
+interaction versus object or by direction. The limited profile reports only
+one object subscription with an unknown attribute set. These are last-reported
+declarations, not a routing graph; the explorer deliberately draws no edges
+between matching class names. Declarations remain useful without analytics.
 
 After updating sources, stop your own demo with Ctrl+C and launch it again.
 Refreshing the browser does not reload the Python process. The launcher will

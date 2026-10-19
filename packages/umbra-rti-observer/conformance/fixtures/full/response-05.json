@@ -7,6 +7,7 @@
       "attributes": {
         "value": 0
       },
+      "declaration": null,
       "details": null,
       "event_type": "object.updated",
       "family": "generic",
@@ -34,6 +35,7 @@
       "attributes": {
         "value": 1
       },
+      "declaration": null,
       "details": null,
       "event_type": "object.updated",
       "family": "generic",
@@ -61,7 +63,7 @@
   "first_retained_sequence": 1,
   "gap": false,
   "has_more": true,
-  "last_sequence": 9,
+  "last_sequence": 12,
   "next_after": 2,
-  "retained_events": 9
+  "retained_events": 12
 }

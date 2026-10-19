@@ -129,7 +129,8 @@ def test_recorded_http_fixtures_are_reproducible(profile: str) -> None:
                                    "lying_optional_endpoint", "cross_origin", "nan_extension", "wrong_header",
                                    "missing_roster", "missing_inspectors", "missing_states", "analytics_counts",
                                    "missing_perspectives", "duplicate_perspective", "history_scope", "history_bounds",
-                                   "missing_time", "time_scope", "time_outcome", "time_cursor", "time_nan"])
+                                   "missing_time", "time_scope", "time_outcome", "time_cursor", "time_nan",
+                                   "missing_declarations", "declaration_cursor", "duplicate_declaration", "declaration_attributes"])
 def test_malformed_backends_fail_without_coercion_or_unsafe_discovery(fault: str) -> None:
     replay = fixture_fetch("full")
     requested: list[str] = []
@@ -160,6 +161,11 @@ def test_malformed_backends_fail_without_coercion_or_unsafe_discovery(fault: str
             if fault == "time_outcome": body["inspectors"]["time"]["requests"][-1]["latency_seconds"] = 0
             if fault == "time_cursor": body["inspectors"]["time"]["snapshots"][0]["last_sequence"] = 999
             if fault == "time_nan": body["inspectors"]["time"]["requests"][0]["latency_seconds"] = float("nan")
+            if fault == "missing_declarations": body["inspectors"].pop("declarations")
+            if fault == "declaration_cursor": body["inspectors"]["declarations"]["snapshots"][0]["sequence"] = 999
+            if fault == "duplicate_declaration":
+                body["inspectors"]["declarations"]["snapshots"].append(body["inspectors"]["declarations"]["snapshots"][0])
+            if fault == "declaration_attributes": body["inspectors"]["declarations"]["snapshots"][1]["attributes"] = []
         if path == "/api/events?after=0&limit=2":
             if fault == "duplicate": body["events"][1]["sequence"] = body["events"][0]["sequence"]
             if fault == "boolean_sequence": body["events"][0]["sequence"] = True

@@ -38,13 +38,25 @@ membership-error recovery. Live native-provider verification remains pending;
 the opt-in `test_native_control_smoke.py` supplies that check when a built 2025
 extension is available. This is internal adapter evidence, not IEEE conformance.
 
-**Next handoff: OBS-110.** Add named optional publication/subscription declaration
-snapshots with explicit federate/session/class/attribute/direction provenance.
-Keep declarations distinct from observed deliveries and ownership; topology
-edges require explicit relationships, not inferred routing. Then build the
-searchable explorer with partial/unknown states. Keep models, schemas,
-generated types, Java fixtures and capability degradation together. OBS-102's
-native smoke remains a separate gate for real-provider controls.
+**Next handoff: OBS-110 explicit relationships.** The declaration snapshot and
+searchable explorer increment is delivered. Next define adapter-supplied stable
+relationship IDs and explicit producer/recipient endpoints, with independent
+capability, provenance, lifecycle/coverage and Java migration fixtures. Only
+then draw relationship/topology edges; do not pair matching class names or
+infer delivery, ownership or DDM routing from declarations. OBS-102's native
+smoke remains a separate gate for real-provider controls.
+
+OBS-110 first increment: named object/interaction declaration inputs and
+capacity-bounded persistent snapshots, full source/session/federation/federate
+scope, explicit publication/subscription direction and declared/withdrawn/unknown
+status. Selected (including empty), all, unknown and not-applicable attribute
+scopes remain distinct. Complete reports replace sets rather than merging
+partial provider calls. Declarations and per-federate views add searchable,
+filtered tables with provenance, pause/clear, row limits and loss notices.
+The optional model works without MOM, time or analytics; older/disabled/
+unsupported/partial backends keep independent views. No topology is claimed.
+Verified coverage is now 211 backend/tool checks and 94 desktop/mobile browser
+checks; the optional native-provider smoke remains skipped.
 
 OBS-113 / OBS-120 are delivered for explicit observer data: persistent scoped
 grant/request/state snapshots, lookahead/role flags/reported bounds, independent
@@ -83,7 +95,7 @@ the local generation cursor is not that identity.
 
 | ID | Priority | Feature | Acceptance criteria / dependencies |
 | --- | --- | --- | --- |
-| OBS-110 | P1 | Publication/subscription explorer | Typed declarations identify federate, class, attribute set, and direction. Draw topology only from explicit relationships; partial declarations show unknown edges instead of guessed routing. Add optional declaration capability and snapshots. |
+| OBS-110 | P1 | Publication/subscription explorer — snapshots/explorer delivered; explicit relationships next | Typed scoped declarations, distinct attribute scopes, search/filter and capacity coverage. No topology edges inferred; adapter-supplied relationship IDs/endpoints and lifecycle remain. |
 | OBS-111 | P1 | Object and attribute workspace — delivered | Object/class/handle search, lifecycle filtering, independent global/attributed snapshots beyond history eviction, scoped comparisons and explicit opaque bytes; user-selected finite-number charts. Optional named models/capability; no global substitution on older/disabled backends. |
 | OBS-112 | P1 | Interaction flow | Correlate send/receive observations only using adapter-supplied message IDs and explicit endpoints. Show counts without claiming delivery or latency when correlation is absent. Works with receive-order and timestamped traffic. |
 | OBS-113 | P1 | Time request/grant analysis — delivered | Explicit scoped IDs, bounded pending/outcome ledger, monotonic observer delay charts and honest unknown/partial values. No request, grant, role or bound inference; no MOM/analytics dependency. |
@@ -101,7 +113,7 @@ profiles and a small prebuilt-dashboard ZIP. The ZIP needs Python 3.11+ and
 first-run downloads, not Node, native bindings or an RTI. Focused launcher tests
 cover setup recovery, paths with spaces, bundle contents, readiness and process
 cleanup. See [SHOWCASE.md](SHOWCASE.md) for the Miguel-facing flow. The next
-handoff is now OBS-110; startup checks do not replace UI regressions.
+handoff is now OBS-110 explicit relationships; startup checks do not replace UI regressions.
 
 OBS-123 is delivered with 16 browser scenarios in desktop and 390px mobile
 projects (32 checks), using a fresh synthetic FastAPI backend per test. Coverage

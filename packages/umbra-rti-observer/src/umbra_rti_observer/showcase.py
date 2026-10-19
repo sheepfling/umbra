@@ -26,12 +26,14 @@ def _profile_capabilities(profile: ShowcaseProfile) -> dict[str, dict[str, JsonV
             "attributes",
             "interactions",
             "logical_time",
+            "declarations",
         )
     }
     if profile == "limited":
         return {
             **common,
             "time_inspection": {"state": "partial", "reason": "Grants only; request IDs and time-role state are not reported."},
+            "declarations": {"state": "partial", "reason": "Only an object subscription is reported; publication and interaction declarations are unknown."},
             "mom": {
                 "state": "unsupported",
                 "reason": "This profile represents an RTI without MOM callbacks.",
@@ -166,6 +168,21 @@ class ShowcaseAdapter:
             })
             self._emit("time.observed", federate="ShowcaseServer", time_observation={
                 "kind": "request", "session_id": self._session_id, "request_id": "advance-1", "logical_time": 0.5,
+            })
+            for kind, class_key in (("object", "ExampleClass"), ("interaction", "ExampleInteraction")):
+                for direction, federate in (("publication", "ShowcaseServer"), ("subscription", "ShowcaseObserver")):
+                    declaration: dict[str, JsonValue] = {
+                        "kind": kind, "class_key": class_key, "class_name": class_key,
+                        "direction": direction, "status": "declared", "session_id": self._session_id,
+                    }
+                    if kind == "object":
+                        declaration.update(attribute_scope="selected", attributes=["state", "load"])
+                    self._emit("declaration.observed", federate=federate, declaration=declaration)
+        else:
+            self._emit("declaration.observed", federate="ShowcaseObserver", declaration={
+                "kind": "object", "class_key": "ExampleClass", "class_name": "ExampleClass",
+                "direction": "subscription", "status": "declared", "session_id": self._session_id,
+                "attribute_scope": "unknown", "reason": "The selected attribute set is not exposed by this profile.",
             })
 
         while not self._stop.wait(self.interval):

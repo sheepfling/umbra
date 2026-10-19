@@ -152,6 +152,14 @@ class ObserverConformance:
                     if time_inspection is not None:
                         check(name + ".time.cursors", all(row.last_sequence < value.retention.next_sequence
                               for row in time_inspection.snapshots), "persistent time snapshots use existing store sequences")
+                    declarations = value.inspectors.declarations
+                    declaration_capability = value.capabilities.get("declarations")
+                    declarations_usable = declaration_capability is not None and declaration_capability.state in {"available", "partial"}
+                    check(name + ".declarations.advertised", not declarations_usable or declarations is not None,
+                          "usable declaration inspection includes its named snapshot model")
+                    if declarations is not None:
+                        check(name + ".declarations.cursors", all(row.sequence < value.retention.next_sequence
+                              for row in declarations.snapshots), "declarations reference existing observation sequences")
                     observations = value.inspectors.object_observations
                     capability = value.capabilities.get("object_observations")
                     usable = capability is not None and capability.state in {"available", "partial"}

@@ -4,7 +4,7 @@ The React/TypeScript frontend for the provider-neutral Umbra runtime observer.
 It consumes only the observer HTTP contract and can therefore be used with a
 Python, Java, or vendor-specific backend that implements that contract.
 
-The workspace includes Federation, Federates, Objects, Logical time, Events, Inspectors,
+The workspace includes Federation, Federates, Objects, Declarations, Logical time, Events, Inspectors,
 Actions, and Diagnostics tabs. The optional `/api/analytics` resource supplies bounded
 time-window aggregates and explicit participant attribution. Backends that do
 not advertise analytics keep the events, inspectors, and basic metric charts.
@@ -28,6 +28,11 @@ or MOM; grant-only sources stay useful and missing numeric time stays unknown.
 Lookahead/roles/GALT/LBTS are reported facts only. The bounded request ledger
 reports eviction separately from event retention. Reconnects need fresh session
 IDs; delays measure one observer's monotonic ingress clock, not RTI service time.
+
+Declarations adds independent scoped publication/subscription snapshots, class/
+attribute search and kind/direction/status filters. Selected-empty, all, unknown
+and interaction-not-applicable sets are distinct. Capacity loss and missing
+features are explicit; no routing, ownership or delivery edges are inferred.
 
 Pause view freezes the local view while collection continues. Event exports
 contain the current filtered loaded rows; they are not full-session recordings.
@@ -81,7 +86,7 @@ pnpm test:e2e
 The suite builds the production dashboard, starts a fresh synthetic Python or Java
 backend on an OS-selected loopback port for **each test**, and cleans up only
 that owned process tree. No native RTI, fixed port, manually running server,
-or browser session is needed. Desktop and 390px mobile projects cover the eight
+or browser session is needed. Desktop and 390px mobile projects cover the nine
 screens, keyboard/history navigation, charts, participant isolation, payload
 filters/JSON downloads, bounded rendering/history clearing, reconnect,
 connect/join/confirmed resign/disconnect, page refresh, pause safety, stale and
@@ -90,6 +95,8 @@ Object regressions also cover shared-object perspective isolation, evicted
 history, unknown/null comparisons, bytes, numeric selection, pause and filtering.
 Time regressions cover persistent state, scoped matching, pending/granted/failed/
 ambiguous outcomes, distinct sessions, pause/clear, Java and capability fallback.
+Declaration regressions cover scope/session isolation, replacement/withdrawal,
+pause/clear, history/capacity eviction, bounded rendering, Java and feature states.
 
 If you already have Edge on Windows, avoid a browser download by setting
 `$env:UMBRA_OBSERVER_BROWSER_CHANNEL='msedge'` before `pnpm test:e2e`.

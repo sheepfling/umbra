@@ -9,6 +9,7 @@ test("all main screens render without a page-wide mobile overflow", async ({ pag
   const views = [
     ["Federation", "Traffic over time"], ["Federates", "Federates"],
     ["Objects", "Object workspace"],
+    ["Declarations", "Declaration explorer"],
     ["Logical time", "Logical-time observations"], ["Events", "Event explorer"],
     ["Inspectors", "Objects"], ["Actions", "Controlled sessions"],
     ["Diagnostics", "Observation health"],

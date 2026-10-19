@@ -19,6 +19,7 @@ from .capabilities import (
     normalize_capabilities,
 )
 from .contract import OBSERVER_CONTRACT_VERSION
+from .declarations import DeclarationViews, declaration_data
 from .models import (
     AdapterStatus,
     CapabilityRecord,
@@ -53,6 +54,7 @@ EVENT_TYPES = (
     "interaction.received",
     "callback.invoked",
     "time.observed",
+    "declaration.observed",
     "service.completed",
     "service.failed",
     "session.connected",
@@ -161,6 +163,7 @@ def _normalise_event(event: Mapping[str, object], sequence: int) -> EventRecord:
     if not isinstance(event, Mapping):
         raise TypeError("observer events must be mappings")
     time_data(event)  # Validate explicit observations before any batch mutation.
+    declaration_data(event)
     normalized = _copy_mapping(event)
     event_type = _event_type(normalized)
     if len(event_type) > 256:
@@ -396,6 +399,7 @@ class ObserverStore:
         max_events: int = 2_000,
         max_batch_size: int = 10_000,
         max_time_requests: int = 250,
+        max_declarations: int = 1_000,
         capabilities: Mapping[str, object] | None = None,
     ) -> None:
         if max_events < 1:
@@ -404,6 +408,8 @@ class ObserverStore:
             raise ValueError("max_batch_size must be at least 1")
         if isinstance(max_time_requests, bool) or not isinstance(max_time_requests, int) or max_time_requests < 1:
             raise ValueError("max_time_requests must be a positive integer")
+        if isinstance(max_declarations, bool) or not isinstance(max_declarations, int) or max_declarations < 1:
+            raise ValueError("max_declarations must be a positive integer")
         self._events: deque[EventRecord] = deque(maxlen=max_events)
         self._max_events = max_events
         self._max_batch_size = max_batch_size
@@ -418,6 +424,7 @@ class ObserverStore:
         self._objects: dict[str, ObjectInspection] = {}
         self._object_views = ObjectViews(max_events)
         self._time_views = TimeViews(max_time_requests)
+        self._declarations = DeclarationViews(max_declarations)
         self._federates: dict[str, FederateInspection] = {}
         self._interactions: deque[InteractionInspection] = deque(maxlen=250)
         self._adapters: dict[int, tuple[ObserverAdapter, str, str]] = {}
@@ -639,6 +646,7 @@ class ObserverStore:
             self._objects.clear()
             self._object_views.clear()
             self._time_views.clear()
+            self._declarations.clear()
             self._federates.clear()
             self._interactions.clear()
             self._condition.notify_all()
@@ -679,6 +687,7 @@ class ObserverStore:
 
     def _update_indexes_locked(self, event: EventRecord) -> None:
         self._time_views.record(event, _federate_name(event), _first_text(event, "federation"))
+        self._declarations.record(event, _federate_name(event), _first_text(event, "federation"))
         objects = _derive_objects([event])
         self._object_views.record(event, objects, _federate_name(event))
         for incoming in objects:
@@ -794,6 +803,7 @@ class ObserverStore:
                 "interactions": [row.to_json() for row in interactions],
                 "object_observations": self._object_views.to_json(self._retention_locked()),
                 "time": self._time_views.to_json(),
+                "declarations": self._declarations.to_json(),
             },
         })
         if include_events:

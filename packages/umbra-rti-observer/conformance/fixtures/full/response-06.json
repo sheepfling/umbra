@@ -7,6 +7,7 @@
       "attributes": {
         "value": 0
       },
+      "declaration": null,
       "details": null,
       "event_type": "object.updated",
       "family": "generic",
@@ -34,6 +35,7 @@
       "attributes": {
         "value": 1
       },
+      "declaration": null,
       "details": null,
       "event_type": "object.updated",
       "family": "generic",
@@ -61,6 +63,7 @@
       "attributes": {
         "value": 2
       },
+      "declaration": null,
       "details": null,
       "event_type": "object.updated",
       "family": "generic",
@@ -88,6 +91,7 @@
       "attributes": {
         "value": 3
       },
+      "declaration": null,
       "details": null,
       "event_type": "object.updated",
       "family": "generic",
@@ -112,6 +116,7 @@
       }
     },
     {
+      "declaration": null,
       "details": null,
       "event_type": "callback.invoked",
       "family": "generic",
@@ -128,6 +133,7 @@
       "time_observation": null
     },
     {
+      "declaration": null,
       "details": null,
       "event_type": "time.observed",
       "family": "generic",
@@ -154,6 +160,7 @@
       }
     },
     {
+      "declaration": null,
       "details": null,
       "event_type": "time.observed",
       "family": "generic",
@@ -176,6 +183,7 @@
       }
     },
     {
+      "declaration": null,
       "details": null,
       "event_type": "time.observed",
       "family": "generic",
@@ -198,6 +206,7 @@
       }
     },
     {
+      "declaration": null,
       "details": null,
       "event_type": "time.observed",
       "family": "generic",
@@ -218,12 +227,96 @@
         "request_id": "advance-2",
         "session_id": "fixture-session"
       }
+    },
+    {
+      "declaration": {
+        "attribute_scope": "selected",
+        "attributes": [
+          "value"
+        ],
+        "class_key": "FixtureClass",
+        "class_name": null,
+        "direction": "publication",
+        "kind": "object",
+        "reason": null,
+        "session_id": "fixture-session",
+        "status": "declared"
+      },
+      "details": null,
+      "event_type": "declaration.observed",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "federation": "ContractFixture",
+      "logical_time": null,
+      "object_key": null,
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 10,
+      "source": "contract-fixture",
+      "time_observation": null
+    },
+    {
+      "declaration": {
+        "attribute_scope": "unknown",
+        "attributes": null,
+        "class_key": "FixtureClass",
+        "class_name": null,
+        "direction": "subscription",
+        "kind": "object",
+        "reason": null,
+        "session_id": "fixture-session",
+        "status": "declared"
+      },
+      "details": null,
+      "event_type": "declaration.observed",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "federation": "ContractFixture",
+      "logical_time": null,
+      "object_key": null,
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 11,
+      "source": "contract-fixture",
+      "time_observation": null
+    },
+    {
+      "declaration": {
+        "class_key": "FixtureInteraction",
+        "class_name": null,
+        "direction": "subscription",
+        "kind": "interaction",
+        "reason": null,
+        "session_id": "fixture-session",
+        "status": "declared"
+      },
+      "details": null,
+      "event_type": "declaration.observed",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "federation": "ContractFixture",
+      "logical_time": null,
+      "object_key": null,
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 12,
+      "source": "contract-fixture",
+      "time_observation": null
     }
   ],
   "first_retained_sequence": 1,
   "gap": false,
   "has_more": false,
-  "last_sequence": 9,
-  "next_after": 9,
-  "retained_events": 9
+  "last_sequence": 12,
+  "next_after": 12,
+  "retained_events": 12
 }

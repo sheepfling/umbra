@@ -28,6 +28,11 @@ observer-monotonic durations, not timestamp guesses or remote clock differences.
 Grant-only and opaque-time RTIs retain useful views; numeric fields and advanced
 features can remain unknown. See CONTRACT.md for the optional model and limits.
 
+The declaration explorer adds optional scoped publication/subscription
+snapshots, searchable classes/attributes and explicit reported status. Unknown,
+all, selected-empty and interaction-not-applicable attribute sets stay distinct.
+It needs no MOM or analytics and never guesses routes from matching classes.
+
 For a live walkthrough, use the [observer showcase](SHOWCASE.md). It includes
 rich and limited capability profiles so the same frontend can be demonstrated
 against both a mature and a smaller RTI surface.

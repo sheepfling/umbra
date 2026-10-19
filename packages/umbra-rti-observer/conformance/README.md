@@ -50,6 +50,12 @@ fixture includes correlated and pending requests; limited/no-analytics profiles
 remain grant-only, and retention-loss preserves a pending request beyond event
 eviction. Numeric time may be unknown without disabling explicit-ID correlation.
 
+The declaration increment adds a named optional declaration model, unique scoped
+snapshot keys, capacity/cursor checks and distinct selected/all/unknown/not-
+applicable attribute semantics. The full Java/Python fixture includes object
+publication, unknown-set subscription and interaction declarations. No fixture
+or checker infers routing relationships from matching class names.
+
 The old dependency-free `umbra_rti_observer.probe` remains a quick smoke check;
 use `conformance` for these stronger acceptance checks. Passing this HTTP-read
 scope does not validate stream delivery, lifecycle effects or RTI semantics.

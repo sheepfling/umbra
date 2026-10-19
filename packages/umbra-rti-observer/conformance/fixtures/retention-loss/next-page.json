@@ -4,6 +4,7 @@
   "dropped_events": 5,
   "events": [
     {
+      "declaration": null,
       "details": null,
       "event_type": "callback.invoked",
       "family": "generic",

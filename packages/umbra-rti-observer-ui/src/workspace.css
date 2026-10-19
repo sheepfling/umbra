@@ -43,6 +43,9 @@ select { max-width: 100%; min-height: 34px; padding: 6px 9px; border: 1px solid 
 .object-controls label { flex: 1 1 180px; min-width: 0; }
 .object-controls input { width: 100%; min-height: 38px; padding: 8px 11px; border: 1px solid #2a4b68; border-radius: 8px; color: #e8f1f7; background: #0a1a2c; }
 .object-controls select { width: 100%; max-width: 100%; }
+.declaration-controls select { min-width: 0; }
+.declaration-table td { max-width: 350px; overflow-wrap: anywhere; }
+.metrics.declaration-metrics { grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); }
 .object-layout .participant-links button { align-items: flex-start; flex-direction: column; }
 .object-layout > aside { min-width: 0; align-self: start; }
 .object-chart-control { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; margin: 18px 0; }

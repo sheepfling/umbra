@@ -45,6 +45,8 @@ test.describe("analytics disabled", () => {
     await expect(page.getByRole("article", { name: "Retained events", exact: true })).toBeVisible();
     await navigate(page, "Logical time");
     await expect(page.getByRole("heading", { name: "Time analytics unavailable" })).toBeVisible();
+    await navigate(page, "Declarations");
+    await expect(page.getByRole("article", { name: "Reported declarations" }).locator("tbody tr").first()).toBeVisible();
     await navigate(page, "Events");
     await expect(page.getByRole("region", { name: "Event explorer" }).locator("tbody tr").first()).toBeVisible();
     await navigate(page, "Actions");

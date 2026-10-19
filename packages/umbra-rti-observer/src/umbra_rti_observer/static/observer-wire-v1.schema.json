@@ -971,6 +971,212 @@
       "title": "ContractResponse",
       "type": "object"
     },
+    "DeclarationScopeResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "federate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Federate"
+        },
+        "federation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Federation"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Session Id"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "session_id",
+        "federation",
+        "federate"
+      ],
+      "title": "DeclarationScopeResponse",
+      "type": "object"
+    },
+    "DeclarationSnapshotResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "attribute_scope": {
+          "enum": [
+            "selected",
+            "all",
+            "unknown",
+            "not-applicable"
+          ],
+          "title": "Attribute Scope",
+          "type": "string"
+        },
+        "attributes": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attributes"
+        },
+        "class_key": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Class Key",
+          "type": "string"
+        },
+        "class_name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class Name"
+        },
+        "direction": {
+          "enum": [
+            "publication",
+            "subscription"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "object",
+            "interaction"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "scope": {
+          "$ref": "#/$defs/DeclarationScopeResponse"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "status": {
+          "enum": [
+            "declared",
+            "withdrawn",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope",
+        "kind",
+        "direction",
+        "class_key",
+        "status",
+        "attribute_scope",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "DeclarationSnapshotResponse",
+      "type": "object"
+    },
+    "DeclarationsResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "const": "last-reported-declarations",
+          "title": "Basis",
+          "type": "string"
+        },
+        "capacity": {
+          "minimum": 1,
+          "title": "Capacity",
+          "type": "integer"
+        },
+        "dropped_declarations": {
+          "minimum": 0,
+          "title": "Dropped Declarations",
+          "type": "integer"
+        },
+        "snapshots": {
+          "items": {
+            "$ref": "#/$defs/DeclarationSnapshotResponse"
+          },
+          "title": "Snapshots",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshots",
+        "capacity",
+        "dropped_declarations",
+        "basis"
+      ],
+      "title": "DeclarationsResponse",
+      "type": "object"
+    },
     "DisconnectCommand": {
       "additionalProperties": false,
       "properties": {
@@ -1041,6 +1247,32 @@
     "EventEnvelope": {
       "additionalProperties": true,
       "properties": {
+        "declaration": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "interaction": "#/$defs/InteractionDeclarationObservation",
+                  "object": "#/$defs/ObjectDeclarationObservation"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/ObjectDeclarationObservation"
+                },
+                {
+                  "$ref": "#/$defs/InteractionDeclarationObservation"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Declaration"
+        },
         "details": {
           "anyOf": [
             {
@@ -1646,6 +1878,17 @@
     "InspectorsResponse": {
       "additionalProperties": false,
       "properties": {
+        "declarations": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DeclarationsResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "interactions": {
           "items": {
             "$ref": "#/$defs/InteractionInspectionResponse"
@@ -1688,6 +1931,90 @@
         "objects"
       ],
       "title": "InspectorsResponse",
+      "type": "object"
+    },
+    "InteractionDeclarationObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "class_key": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Class Key",
+          "type": "string"
+        },
+        "class_name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class Name"
+        },
+        "direction": {
+          "enum": [
+            "publication",
+            "subscription"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "kind": {
+          "const": "interaction",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Id"
+        },
+        "status": {
+          "enum": [
+            "declared",
+            "withdrawn",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "direction",
+        "status",
+        "class_key",
+        "kind"
+      ],
+      "title": "InteractionDeclarationObservation",
       "type": "object"
     },
     "InteractionInspectionResponse": {
@@ -2061,6 +2388,119 @@
         "observed_at"
       ],
       "title": "ObjectAttributeChangeResponse",
+      "type": "object"
+    },
+    "ObjectDeclarationObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "attribute_scope": {
+          "default": "unknown",
+          "enum": [
+            "selected",
+            "all",
+            "unknown"
+          ],
+          "title": "Attribute Scope",
+          "type": "string"
+        },
+        "attributes": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attributes"
+        },
+        "class_key": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Class Key",
+          "type": "string"
+        },
+        "class_name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class Name"
+        },
+        "direction": {
+          "enum": [
+            "publication",
+            "subscription"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "kind": {
+          "const": "object",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Id"
+        },
+        "status": {
+          "enum": [
+            "declared",
+            "withdrawn",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "direction",
+        "status",
+        "class_key",
+        "kind"
+      ],
+      "title": "ObjectDeclarationObservation",
       "type": "object"
     },
     "ObjectInspectionResponse": {

@@ -41,6 +41,10 @@ CAPABILITY_DEFINITIONS: dict[str, dict[str, str]] = {
         "label": "Object observations",
         "description": "Object discovery, removal, and attribute updates.",
     },
+    "declarations": {
+        "label": "Publication and subscription declarations",
+        "description": "Explicit scoped class/attribute declarations, not inferred routing or ownership.",
+    },
     "attributes": {
         "label": "Attribute values",
         "description": "Decoded or opaque attribute update observations.",
@@ -112,6 +116,10 @@ CAPABILITY_DEFINITIONS: dict[str, dict[str, str]] = {
 }
 
 OBSERVER_CAPABILITIES: dict[str, dict[str, JsonValue]] = {
+    "declarations": {
+        "state": "available", "owner": "observer",
+        "reason": "Optional snapshots of normalized declarations; delivery never establishes a declaration.",
+    },
     "time_inspection": {
         "state": "available",
         "owner": "observer",

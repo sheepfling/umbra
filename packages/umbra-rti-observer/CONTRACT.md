@@ -278,6 +278,80 @@ The UI limits request tables to 100 rows initially and delay charts to 250
 retained matches. Pause freezes the displayed snapshot while collection
 continues. Capabilities are feature switches, not access-control/redaction rules.
 
+### Optional declaration explorer
+
+`declarations` advertises `inspectors.declarations`. This optional model is
+independent of MOM, analytics, time inspection, object/interaction delivery and
+commands. Available/partial backends provide the named model, even with empty
+arrays; older backends may omit capability and model. Unsupported, disabled or
+unknown declarations do not disable other screens.
+
+Adapters report `declaration` on an event, conventionally
+`declaration.observed`. `ObjectDeclarationObservation` and
+`InteractionDeclarationObservation` are discriminated by `kind`:
+
+```json
+{
+  "event_type": "declaration.observed",
+  "source": "my-adapter",
+  "federation": "ExampleFederation",
+  "federate": "Publisher",
+  "declaration": {
+    "kind": "object",
+    "direction": "publication",
+    "status": "declared",
+    "class_key": "adapter-owned-class-id",
+    "class_name": "ExampleClass",
+    "session_id": "fresh-join-session-123",
+    "attribute_scope": "selected",
+    "attributes": ["state", "load"]
+  }
+}
+```
+
+The canonical federate is the explicitly reported declaration subject, not an
+observer inferred from the source name or a recipient inferred from delivery.
+Source, optional session/federation/federate, kind, direction and class key form
+the snapshot identity. A class name alone never merges participants or RTIs.
+IDs/attribute keys preserve supplied text; sessions should use fresh IDs after
+rejoin. Without session identity, name reuse cannot be resolved automatically
+(OBS-127); the UI labels missing provenance rather than manufacturing it.
+
+Direction is explicitly publication/subscription. Status is explicitly
+declared/withdrawn/unknown; omitted status is invalid. A declaration observation
+is a **complete replacement**, not a delta: adapters must normalize partial
+provider calls into a known set, or report unknown. Attribute meanings differ:
+
+- `selected` requires a unique string array (up to 4096), including an explicit
+  empty array. Empty is not unknown and does not itself mean withdrawn.
+- `all` is an explicit all-attributes report for this class scope, not inferred
+  class inheritance; it has no selected array.
+- `unknown` (the default) has no selected array. Unknown is not all or empty.
+- Interactions cannot accept object-attribute fields. Their response snapshot
+  uses `not-applicable`, not an empty selected set.
+
+`DeclarationsResponse` provides `snapshots`, `capacity`, `dropped_declarations`
+and `basis: "last-reported-declarations"`. Each `DeclarationSnapshotResponse`
+has an explicit nullable scope, class identity/name, direction/status, attribute
+scope/set, optional reason, event sequence and observation wall time. Named
+Pydantic models validate shape and scope/set invariants for HTTP and streams;
+the core uses dependency-free typed records and atomic input validation.
+
+Snapshots outlive event eviction, but clear on explicit history clear/restart.
+The index defaults to 1000 records across all scopes, configurable with
+`ObserverStore(max_declarations=...)`. It evicts least-recently-updated rows,
+reports loss and never equates a missing row with a withdrawn declaration.
+These are last-reported facts, not live RTI queries: old session scopes remain
+separate until explicit clear or capacity eviction. Lifecycle/delivery events
+do not invent a declaration status change.
+
+The explorer supports class/key/attribute/reason search, perspective, kind,
+direction/status filters, attribute details and initially 100 rows with explicit
+load-more controls. Pause freezes its snapshot. Matching declaration class names
+never imply ownership, routes, current membership, DDM associations or actual
+delivery. Explicit relationship/topology models are the remaining OBS-110
+increment; no routing edges are drawn from declaration coincidence.
+
 ## Event pages and streams
 
 `GET /api/events?after=42&limit=500` returns a cursor page with `events`,

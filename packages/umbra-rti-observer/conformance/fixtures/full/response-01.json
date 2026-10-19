@@ -71,6 +71,29 @@
       ],
       "state": "disabled"
     },
+    "declarations": {
+      "description": "Explicit scoped class/attribute declarations, not inferred routing or ownership.",
+      "event_types": [],
+      "label": "Publication and subscription declarations",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": null,
+      "reasons": [],
+      "source": null,
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
     "event_history": {
       "description": "Bounded, sequence-numbered event retention and cursor pages.",
       "event_types": [],
@@ -457,15 +480,15 @@
     }
   },
   "contract_version": "umbra-observer-contract-v1",
-  "event_count": 9,
+  "event_count": 12,
   "retention": {
     "cleared_events": 0,
     "dropped_events": 0,
     "first_retained_sequence": 1,
-    "last_sequence": 9,
+    "last_sequence": 12,
     "max_events": 20,
-    "next_sequence": 10,
-    "retained_events": 9
+    "next_sequence": 13,
+    "retained_events": 12
   },
   "schema_version": "umbra-runtime-observer-v1",
   "service": "umbra-rti-observer",

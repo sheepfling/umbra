@@ -48,6 +48,27 @@
       ],
       "state": "disabled"
     },
+    "declarations": {
+      "description": "Explicit scoped class/attribute declarations, not inferred routing or ownership.",
+      "event_types": [],
+      "label": "Publication and subscription declarations",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Optional snapshots of normalized declarations; delivery never establishes a declaration.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Optional snapshots of normalized declarations; delivery never establishes a declaration.",
+      "reasons": [],
+      "source": null,
+      "sources": [],
+      "state": "available"
+    },
     "event_history": {
       "description": "Bounded, sequence-numbered event retention and cursor pages.",
       "event_types": [],

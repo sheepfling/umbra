@@ -56,6 +56,7 @@ TRY THIS
 - Federation: watch the charts and activity update automatically.
 - Federates: select ShowcaseServer to inspect its activity.
 - Objects: search ExampleClass, compare perspectives, and chart the load attribute.
+- Declarations: compare explicit publication/subscription snapshots, not inferred routes.
 - Logical time: inspect persistent grants, pending requests and observed grant delays.
 - Events and Inspectors: explore the generated observations.
 - Actions: select the synthetic session, connect, join as ManagedObserver,
@@ -372,7 +373,7 @@ def launch(layout: Layout, python: Path, *, profile: str, port: int | None,
             print(
                 f"\nDashboard ready: {url}/\n"
                 "Live dummy events and synthetic Actions are enabled. No real RTI is connected.\n"
-                "Try Federation, Federates, Objects, Logical time, Events, Inspectors, Actions and Diagnostics.\n"
+                "Try Federation, Federates, Objects, Declarations, Logical time, Events, Inspectors, Actions and Diagnostics.\n"
                 "Keep this window open. Press Ctrl+C here to stop; closing the browser does not stop it.\n",
                 flush=True,
             )
