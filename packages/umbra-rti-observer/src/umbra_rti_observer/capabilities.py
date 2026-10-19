@@ -29,6 +29,18 @@ CAPABILITY_STATES = (
 )
 
 CAPABILITY_DEFINITIONS: dict[str, dict[str, str]] = {
+    "workspace_validation": {
+        "label": "Workspace contract validation",
+        "description": "Optional canonical view-configuration validation/defaults; browser workspaces remain local and do not depend on this endpoint.",
+    },
+    "alert_controls": {
+        "label": "Alert configuration controls",
+        "description": "Observer-only rule edits, baseline resets and evidence acknowledgements; independent of provider commands.",
+    },
+    "alerts": {
+        "label": "Observer alerts",
+        "description": "Typed thresholds and bounded process-local evidence for ingress, history loss and optional cached commands; no provider authority.",
+    },
     "storage_inspection": {
         "label": "Observation storage coverage",
         "description": "Explicit count/byte budgets, whole-record expiry and unbudgeted collection coverage; not federation lifecycle evidence.",

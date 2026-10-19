@@ -433,11 +433,12 @@ old values. Capacity, cumulative scope evictions and currently omitted scoped
 changes are explicit optional fields. Missing metadata on an older backend means
 unknown capacity/loss, not zero loss. Objects, Federates and Diagnostics show
 coverage; lists initially render 100 entries while search covers all supplied
-snapshots. This does not change the separate classic global inspector lifetime.
+snapshots. Classic global objects, roster and time scopes now have separate
+count capacities too; every collection shares the encoded-evidence budget.
 Clearing history clears snapshots too; restarting the backend resets the demo.
 
 Analytics does not need the whole inspector tree. `analytics_window()` takes one
-consistent retained-envelope/roster/retention projection under the store lock;
+consistent retained-envelope/roster/retention/storage projection under the store lock;
 `AnalyticsWindow` validates that named input and `build_analytics` uses exactly
 the same aggregation rules as a full snapshot. Do not optimize by silently
 dropping participants, samples or unknown values. Recorded analytics negotiates
@@ -446,7 +447,7 @@ still receives the original full-frame request. The file's captured URLs or
 capabilities never decide where the browser sends it.
 
 Use [SCALE.md](SCALE.md) for repeatable workload measurements, explicit reference
-budgets and the remaining large-state/recording findings. Tiny functional tests
+budgets and the recorded limitations. Tiny functional tests
 prove the model/flow; they are not evidence of high-volume performance.
 
 The Logical time screen also has a persistent inspector, independent of the
@@ -473,6 +474,22 @@ IDs on reconnect/rejoin prevent old tickets from closing new work. Duplicate
 retained IDs become ambiguous; an explicit failed/cancelled/session-ended
 outcome never becomes a successful grant. See CONTRACT.md for the exact wire
 rules and producer ID-uniqueness obligation.
+
+Think of latest snapshots as a cache and requests as a separate ticket ledger.
+Either can expire first. A pending ticket without its latest snapshot stays
+selectable, with missing snapshot coverage shown honestly; a later exact scoped
+grant can still close it. Nothing borrows another participant's state. Likewise,
+expired roster metadata does not erase names explicitly present in retained
+events or silently switch the participant you selected.
+
+`storage.py` supplies the shared count/byte collections, `schemas.py` validates
+their coverage, and `StorageCoverage` displays it. The default evidence budget
+is 6 MiB encoded JSON, not process memory. Whole records expire; values are not
+clipped. Diagnostics separates count, byte, oversized, encoding and window loss.
+Missing storage support on a Java/older backend is Unknown, while ordinary
+events, attributes and time remain usable. An expired row is not a disconnected
+participant or a removed object. See [STORAGE.md](STORAGE.md) before changing
+limits or interpreting a missing row; soft reservations are not minimum quotas.
 
 Declarations follow the same layering: `declarations.py` validates provider-
 neutral typed records and maintains a capacity-bounded snapshot index;
@@ -675,6 +692,21 @@ clock offsets. An unavailable recording backend does not break other tabs.
 Recording files include actual federation/context data and may contain secrets
 in provider extensions: review them before sharing. They are not the data-free
 workspace configurations planned separately in the backlog.
+
+The Alerts tab follows the same split: `alerting.py` evaluates typed rules over
+committed ingress without Pydantic/RTI dependencies; `alert_models.py` and
+`alert_routes.py` validate HTTP; `useAlerts` and `AlertsView` consume generated
+models. Java can implement the read model without configuration controls.
+Neither alert capability grants provider authority or requires MOM.
+
+An alert means "this rule has threshold evidence," not "the RTI is unhealthy."
+Idle, a never-seen subject and explicit disconnect are different states. Error
+rules see events even when raw history expires immediately; bounded detail
+produces count ranges, not a guessed zero. Acknowledgement does not resolve a
+condition. Reset starts a baseline while old evidence keeps its rule version;
+it cannot unsee an explicit end for the same filter. Process-local rules can be
+downloaded/reimported without payloads; replay never fetches current evidence.
+See [ALERTS.md](ALERTS.md) before changing this flow or implementing Java.
 
 The Actions tab talks to `useCommands` and `ObserverClient`, which send a named
 command request to FastAPI. `command_models.py` validates the action and its

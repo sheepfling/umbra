@@ -133,12 +133,29 @@ def create_app(
     store: ObserverStore | None = None, *, enable_analytics: bool = True,
     commands: CommandDispatcher | None = None,
     enable_recording: bool = True,
+    enable_alerts: bool = True,
+    enable_alert_controls: bool = True,
+    enable_workspace_validation: bool = True,
 ) -> FastAPI:
     """Create the optional FastAPI transport over an observer store."""
 
     observer = store or ObserverStore()
     observer.set_capabilities(
         {
+            "workspace_validation": {
+                "state": "available" if enable_workspace_validation else "disabled",
+                "reason": "Optional named workspace configuration validation; local browser settings do not require an RTI or this resource.",
+            },
+            "alert_controls": {
+                "state": "available" if enable_alerts and enable_alert_controls else "disabled",
+                "reason": "Observer rule configuration only; no provider commands."
+                if enable_alerts and enable_alert_controls else "Alert configuration is read-only or alerts are disabled.",
+            },
+            "alerts": {
+                "state": "available" if enable_alerts else "disabled",
+                "reason": "Typed thresholds with bounded process-local configuration/evidence; no RTI service dependency."
+                if enable_alerts else "Alert resources and periodic evaluation are disabled by this backend.",
+            },
             "recording_compact": {
                 "state": "available" if enable_recording else "disabled",
                 "reason": "Negotiated v2 baseline/edit files with bounded reconstructed state/work; v1 remains supported.",
@@ -193,10 +210,26 @@ def create_app(
                 await asyncio.sleep(1)
                 await asyncio.to_thread(observer.checkpoint_capture)
 
+        def evaluate_alerts() -> None:
+            if commands is None:
+                observer.evaluate_alerts()
+            else:
+                observer.evaluate_alerts(commands.alert_watch())
+
+        async def alert_clock() -> None:
+            while True:
+                await asyncio.sleep(1)
+                await asyncio.to_thread(evaluate_alerts)
+
         clock_task = asyncio.create_task(capture_clock()) if enable_recording else None
+        alert_task = asyncio.create_task(alert_clock()) if enable_alerts else None
         try:
             yield
         finally:
+            if alert_task is not None:
+                alert_task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await alert_task
             if clock_task is not None:
                 clock_task.cancel()
                 with suppress(asyncio.CancelledError):
@@ -213,6 +246,12 @@ def create_app(
     if enable_recording:
         from .recording_routes import add_recording_routes
         add_recording_routes(app, observer)
+    if enable_alerts:
+        from .alert_routes import add_alert_routes
+        add_alert_routes(app, observer, commands, controls=enable_alert_controls)
+    if enable_workspace_validation:
+        from .workspace_routes import add_workspace_routes
+        add_workspace_routes(app)
 
     react_ui_dist = _react_ui_dist()
     if react_ui_dist is not None and (react_ui_dist / "assets").is_dir():

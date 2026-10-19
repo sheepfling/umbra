@@ -42,6 +42,13 @@ The CLI exposes matching `--max-objects`, `--max-federates`,
 These settings do not load or call an RTI. A different backend can implement
 the same coverage DTOs with its own explicitly reported limits and policy.
 
+Derived alert configuration/evidence is a separate bounded resource, not an
+extra observation array hidden in `StateResponse.storage`. It has 64 rules/
+64 KiB of configuration, 500 transition records and 512 error time marks per
+rule, with fixed named fields rather than provider payload copies. Its history
+does not compete with the main evidence LRU or turn raw-event expiry into a
+healthy zero. See [ALERTS.md](ALERTS.md) for those independent limits/lifetimes.
+
 ## Whole-record expiry, not modified facts
 
 `storage.py` owns typed count/byte collections under the store lock. Records
@@ -101,7 +108,8 @@ control their own views independently.
 
 Roster expiry removes cached metadata, not the participant's identity from
 retained observations. Analytics includes names explicitly present in retained
-events even without a retained roster row, with `roster_retained=false`, status
+events in the selected analytics window even without a retained roster row,
+with `roster_retained=false`, status
 `observed`, and no invented role/handle/membership. `roster_storage` separately
 reports the supplied coverage, or remains unknown on an older request/backend.
 Federates includes explicit event-attributed names, preserves a missing user
@@ -122,6 +130,10 @@ request is not silently cancelled or granted. The exact later scoped ID may
 still match; expired role/bound/grant state is not borrowed. The time selector
 includes retained request scopes and the ledger stays visible without a latest
 snapshot. A genuinely expired ticket still makes later outcomes uncorrelated.
+Explicit disconnect/resignation also closes matching pending tickets whose
+latest snapshot has expired. Retained ended snapshots or session-ended tickets
+reject late packets for that scope. After all terminal evidence expires there
+is no unlimited tombstone registry; fresh producer session IDs remain required.
 
 ## Event windows, cursors and recordings
 

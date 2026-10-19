@@ -1,4 +1,6 @@
 import { useId, useMemo, useState } from "react";
+import { useWorkspaceField } from "../workspace/WorkspaceContext";
+import { RetainedSelect } from "../workspace/RetainedSelect";
 import type { ParticipantIdentity, RelationshipSnapshot, StateResponse } from "../api/types";
 import { formatTime } from "../app/observations";
 import { EmptyPanel } from "./ChartPanel";
@@ -60,12 +62,12 @@ function RelationshipGraph({ rows, selected, onSelect }: { rows: RelationshipSna
 }
 
 export function TopologyView({ state }: { state: StateResponse }) {
-  const [search, setSearch] = useState("");
-  const [source, setSource] = useState("all");
-  const [kind, setKind] = useState("all");
-  const [status, setStatus] = useState("all");
-  const [evidence, setEvidence] = useState("all");
-  const [focused, setFocused] = useState("all");
+  const [search, setSearch] = useWorkspaceField("topology", "search");
+  const [source, setSource] = useWorkspaceField("topology", "source");
+  const [kind, setKind] = useWorkspaceField("topology", "kind");
+  const [status, setStatus] = useWorkspaceField("topology", "status");
+  const [evidence, setEvidence] = useWorkspaceField("topology", "evidence");
+  const [focused, setFocused] = useWorkspaceField("topology", "focused");
   const [limit, setLimit] = useState(100);
   const capability = state.capabilities.relationships;
   const usable = capability?.state === "available" || capability?.state === "partial";
@@ -93,11 +95,11 @@ export function TopologyView({ state }: { state: StateResponse }) {
     {data.dropped_relationships > 0 && <p className="coverage-note" role="status">Relationship coverage is incomplete: {data.dropped_relationships} records expired from the {data.capacity}-record index.</p>}
     <div className="panel object-controls topology-controls">
       <label>Search relationships<input aria-label="Search relationships" placeholder="Participant, class, ID or source" value={search} onChange={(event) => { setSearch(event.target.value); setLimit(100); }} /></label>
-      <label>Reporting source<select aria-label="Relationship source" value={source} onChange={(event) => { setSource(event.target.value); setLimit(100); }}><option value="all">All sources — separate edges</option>{source !== "all" && !rows.some((row) => row.source === source) && <option value={source}>Selected source no longer reported</option>}{[...new Set(rows.map((row) => row.source))].map((name) => <option key={name}>{name}</option>)}</select></label>
-      <label>Participant join<select aria-label="Topology focus" value={focused} onChange={(event) => focus(event.target.value)}><option value="all">All explicit participants</option>{focused !== "all" && !nodes.has(focused) && <option value={focused}>Selected join no longer reported</option>}{[...nodes].map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-      <label>Kind<select aria-label="Relationship kind" value={kind} onChange={(event) => { setKind(event.target.value); setLimit(100); }}><option value="all">Objects and interactions</option><option value="object">Objects</option><option value="interaction">Interactions</option></select></label>
-      <label>Reported status<select aria-label="Relationship status" value={status} onChange={(event) => { setStatus(event.target.value); setLimit(100); }}><option value="all">All reported statuses</option><option value="active">Active</option><option value="ended">Ended</option><option value="unknown">Unknown</option></select></label>
-      <label>Evidence<select aria-label="Relationship evidence" value={evidence} onChange={(event) => { setEvidence(event.target.value); setLimit(100); }}><option value="all">Declared and observed</option><option value="declared">Declared</option><option value="observed">Observed</option></select></label>
+      <label>Reporting source<RetainedSelect aria-label="Relationship source" value={source} onChange={(event) => { setSource(event.target.value); setLimit(100); }}><option value="all">All sources — separate edges</option>{source !== "all" && !rows.some((row) => row.source === source) && <option value={source}>Selected source no longer reported</option>}{[...new Set(rows.map((row) => row.source))].map((name) => <option key={name}>{name}</option>)}</RetainedSelect></label>
+      <label>Participant join<RetainedSelect aria-label="Topology focus" value={focused} onChange={(event) => focus(event.target.value)}><option value="all">All explicit participants</option>{focused !== "all" && !nodes.has(focused) && <option value={focused}>Selected join no longer reported</option>}{[...nodes].map(([key, label]) => <option key={key} value={key}>{label}</option>)}</RetainedSelect></label>
+      <label>Kind<RetainedSelect aria-label="Relationship kind" value={kind} onChange={(event) => { setKind(event.target.value); setLimit(100); }}><option value="all">Objects and interactions</option><option value="object">Objects</option><option value="interaction">Interactions</option></RetainedSelect></label>
+      <label>Reported status<RetainedSelect aria-label="Relationship status" value={status} onChange={(event) => { setStatus(event.target.value); setLimit(100); }}><option value="all">All reported statuses</option><option value="active">Active</option><option value="ended">Ended</option><option value="unknown">Unknown</option></RetainedSelect></label>
+      <label>Evidence<RetainedSelect aria-label="Relationship evidence" value={evidence} onChange={(event) => { setEvidence(event.target.value); setLimit(100); }}><option value="all">Declared and observed</option><option value="declared">Declared</option><option value="observed">Observed</option></RetainedSelect></label>
     </div>
     <section className="metrics declaration-metrics" aria-label="Filtered topology metrics"><MetricCard label="Explicit relationships" value={filtered.length} /><MetricCard label="Participant joins" value={new Set(filtered.flatMap((row) => [topologyNodeKey(row, row.producer), topologyNodeKey(row, row.recipient)])).size} tone="blue" /><MetricCard label="Unknown status" value={filtered.filter((row) => row.status === "unknown").length} tone="amber" /></section>
     <RelationshipGraph rows={filtered} selected={focused} onSelect={focus} />

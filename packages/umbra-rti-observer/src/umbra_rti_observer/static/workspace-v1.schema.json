@@ -1,0 +1,1891 @@
+{
+  "defaults": {
+    "current": {
+      "alerts": {
+        "search": "",
+        "status": "all"
+      },
+      "declarations": {
+        "direction": "all",
+        "kind": "all",
+        "perspective": "all",
+        "search": "",
+        "status": "all"
+      },
+      "events": {
+        "family": "",
+        "federate": "",
+        "search": "",
+        "source": "",
+        "type": ""
+      },
+      "federate_declarations": {
+        "direction": "all",
+        "kind": "all",
+        "perspective": "all",
+        "search": "",
+        "status": "all"
+      },
+      "federate_events": {
+        "family": "",
+        "federate": "",
+        "search": "",
+        "source": "",
+        "type": ""
+      },
+      "federate_time": {
+        "grants_only": false,
+        "selected": null
+      },
+      "federation": {
+        "distribution": "event_types"
+      },
+      "fom": {
+        "kind": "all",
+        "model": "all",
+        "search": "",
+        "selected": null,
+        "status": "all"
+      },
+      "interactions": {
+        "order": "all",
+        "search": "",
+        "status": "all"
+      },
+      "mom": {
+        "counter": null,
+        "scope": "all",
+        "search": "",
+        "service_status": "all"
+      },
+      "object_charts": [],
+      "objects": {
+        "scope": null,
+        "search": "",
+        "selected": "",
+        "status": "all"
+      },
+      "ownership": {
+        "owner_state": "all",
+        "request_status": "all",
+        "scope": "all",
+        "search": ""
+      },
+      "persistence": {
+        "kind": "all",
+        "phase": "all",
+        "scope": "all",
+        "search": "",
+        "selected": "all"
+      },
+      "regions": {
+        "evidence": "all",
+        "kind": "all",
+        "search": "",
+        "selected": null,
+        "status": "all"
+      },
+      "selected_federate": "",
+      "synchronization": {
+        "kind": "all",
+        "phase": "all",
+        "scope": "all",
+        "search": "",
+        "selected": "all"
+      },
+      "time": {
+        "grants_only": false,
+        "selected": null
+      },
+      "topology": {
+        "evidence": "all",
+        "focused": "all",
+        "kind": "all",
+        "search": "",
+        "source": "all",
+        "status": "all"
+      },
+      "view": "federation",
+      "window_seconds": 300
+    },
+    "library_version": "umbra-observer-workspace-library-v1",
+    "saved": []
+  },
+  "library_schema": {
+    "$defs": {
+      "AlertViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "AlertViewSettings",
+        "type": "object"
+      },
+      "CoordinationViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Kind",
+            "type": "string"
+          },
+          "phase": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Phase",
+            "type": "string"
+          },
+          "scope": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Scope",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "selected": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Selected",
+            "type": "string"
+          }
+        },
+        "title": "CoordinationViewSettings",
+        "type": "object"
+      },
+      "DeclarationViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "direction": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Direction",
+            "type": "string"
+          },
+          "kind": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Kind",
+            "type": "string"
+          },
+          "perspective": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Perspective",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "DeclarationViewSettings",
+        "type": "object"
+      },
+      "EventViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "family": {
+            "default": "",
+            "maxLength": 8192,
+            "title": "Family",
+            "type": "string"
+          },
+          "federate": {
+            "default": "",
+            "maxLength": 8192,
+            "title": "Federate",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "source": {
+            "default": "",
+            "maxLength": 8192,
+            "title": "Source",
+            "type": "string"
+          },
+          "type": {
+            "default": "",
+            "maxLength": 8192,
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "title": "EventViewSettings",
+        "type": "object"
+      },
+      "FederationViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "distribution": {
+            "default": "event_types",
+            "enum": [
+              "event_types",
+              "sources",
+              "families"
+            ],
+            "title": "Distribution",
+            "type": "string"
+          }
+        },
+        "title": "FederationViewSettings",
+        "type": "object"
+      },
+      "FomViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Kind",
+            "type": "string"
+          },
+          "model": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Model",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "selected": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Selected"
+          },
+          "status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "FomViewSettings",
+        "type": "object"
+      },
+      "InteractionViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "order": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Order",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "InteractionViewSettings",
+        "type": "object"
+      },
+      "MomViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "counter": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Counter"
+          },
+          "scope": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Scope",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "service_status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Service Status",
+            "type": "string"
+          }
+        },
+        "title": "MomViewSettings",
+        "type": "object"
+      },
+      "ObjectChartChoice": {
+        "additionalProperties": false,
+        "properties": {
+          "attribute": {
+            "maxLength": 8192,
+            "minLength": 1,
+            "title": "Attribute",
+            "type": "string"
+          },
+          "object_key": {
+            "maxLength": 8192,
+            "minLength": 1,
+            "title": "Object Key",
+            "type": "string"
+          },
+          "scope": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Scope"
+          }
+        },
+        "required": [
+          "object_key",
+          "attribute"
+        ],
+        "title": "ObjectChartChoice",
+        "type": "object"
+      },
+      "ObjectViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "scope": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Scope"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "selected": {
+            "default": "",
+            "maxLength": 8192,
+            "title": "Selected",
+            "type": "string"
+          },
+          "status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "ObjectViewSettings",
+        "type": "object"
+      },
+      "OwnershipViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "owner_state": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Owner State",
+            "type": "string"
+          },
+          "request_status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Request Status",
+            "type": "string"
+          },
+          "scope": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Scope",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          }
+        },
+        "title": "OwnershipViewSettings",
+        "type": "object"
+      },
+      "RegionViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Evidence",
+            "type": "string"
+          },
+          "kind": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Kind",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "selected": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Selected"
+          },
+          "status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "RegionViewSettings",
+        "type": "object"
+      },
+      "TimeViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "grants_only": {
+            "default": false,
+            "title": "Grants Only",
+            "type": "boolean"
+          },
+          "selected": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Selected"
+          }
+        },
+        "title": "TimeViewSettings",
+        "type": "object"
+      },
+      "TopologyViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Evidence",
+            "type": "string"
+          },
+          "focused": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Focused",
+            "type": "string"
+          },
+          "kind": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Kind",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "source": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "TopologyViewSettings",
+        "type": "object"
+      },
+      "WorkspaceDocument": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Name",
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/$defs/WorkspaceSettings",
+            "default": {
+              "alerts": {
+                "search": "",
+                "status": "all"
+              },
+              "declarations": {
+                "direction": "all",
+                "kind": "all",
+                "perspective": "all",
+                "search": "",
+                "status": "all"
+              },
+              "events": {
+                "family": "",
+                "federate": "",
+                "search": "",
+                "source": "",
+                "type": ""
+              },
+              "federate_declarations": {
+                "direction": "all",
+                "kind": "all",
+                "perspective": "all",
+                "search": "",
+                "status": "all"
+              },
+              "federate_events": {
+                "family": "",
+                "federate": "",
+                "search": "",
+                "source": "",
+                "type": ""
+              },
+              "federate_time": {
+                "grants_only": false,
+                "selected": null
+              },
+              "federation": {
+                "distribution": "event_types"
+              },
+              "fom": {
+                "kind": "all",
+                "model": "all",
+                "search": "",
+                "selected": null,
+                "status": "all"
+              },
+              "interactions": {
+                "order": "all",
+                "search": "",
+                "status": "all"
+              },
+              "mom": {
+                "counter": null,
+                "scope": "all",
+                "search": "",
+                "service_status": "all"
+              },
+              "object_charts": [],
+              "objects": {
+                "scope": null,
+                "search": "",
+                "selected": "",
+                "status": "all"
+              },
+              "ownership": {
+                "owner_state": "all",
+                "request_status": "all",
+                "scope": "all",
+                "search": ""
+              },
+              "persistence": {
+                "kind": "all",
+                "phase": "all",
+                "scope": "all",
+                "search": "",
+                "selected": "all"
+              },
+              "regions": {
+                "evidence": "all",
+                "kind": "all",
+                "search": "",
+                "selected": null,
+                "status": "all"
+              },
+              "selected_federate": "",
+              "synchronization": {
+                "kind": "all",
+                "phase": "all",
+                "scope": "all",
+                "search": "",
+                "selected": "all"
+              },
+              "time": {
+                "grants_only": false,
+                "selected": null
+              },
+              "topology": {
+                "evidence": "all",
+                "focused": "all",
+                "kind": "all",
+                "search": "",
+                "source": "all",
+                "status": "all"
+              },
+              "view": "federation",
+              "window_seconds": 300
+            }
+          },
+          "workspace_version": {
+            "const": "umbra-observer-workspace-v1",
+            "title": "Workspace Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_version",
+          "name"
+        ],
+        "title": "WorkspaceDocument",
+        "type": "object"
+      },
+      "WorkspaceSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "alerts": {
+            "$ref": "#/$defs/AlertViewSettings",
+            "default": {
+              "search": "",
+              "status": "all"
+            }
+          },
+          "declarations": {
+            "$ref": "#/$defs/DeclarationViewSettings",
+            "default": {
+              "direction": "all",
+              "kind": "all",
+              "perspective": "all",
+              "search": "",
+              "status": "all"
+            }
+          },
+          "events": {
+            "$ref": "#/$defs/EventViewSettings",
+            "default": {
+              "family": "",
+              "federate": "",
+              "search": "",
+              "source": "",
+              "type": ""
+            }
+          },
+          "federate_declarations": {
+            "$ref": "#/$defs/DeclarationViewSettings",
+            "default": {
+              "direction": "all",
+              "kind": "all",
+              "perspective": "all",
+              "search": "",
+              "status": "all"
+            }
+          },
+          "federate_events": {
+            "$ref": "#/$defs/EventViewSettings",
+            "default": {
+              "family": "",
+              "federate": "",
+              "search": "",
+              "source": "",
+              "type": ""
+            }
+          },
+          "federate_time": {
+            "$ref": "#/$defs/TimeViewSettings",
+            "default": {
+              "grants_only": false,
+              "selected": null
+            }
+          },
+          "federation": {
+            "$ref": "#/$defs/FederationViewSettings",
+            "default": {
+              "distribution": "event_types"
+            }
+          },
+          "fom": {
+            "$ref": "#/$defs/FomViewSettings",
+            "default": {
+              "kind": "all",
+              "model": "all",
+              "search": "",
+              "selected": null,
+              "status": "all"
+            }
+          },
+          "interactions": {
+            "$ref": "#/$defs/InteractionViewSettings",
+            "default": {
+              "order": "all",
+              "search": "",
+              "status": "all"
+            }
+          },
+          "mom": {
+            "$ref": "#/$defs/MomViewSettings",
+            "default": {
+              "counter": null,
+              "scope": "all",
+              "search": "",
+              "service_status": "all"
+            }
+          },
+          "object_charts": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/ObjectChartChoice"
+            },
+            "maxItems": 64,
+            "title": "Object Charts",
+            "type": "array"
+          },
+          "objects": {
+            "$ref": "#/$defs/ObjectViewSettings",
+            "default": {
+              "scope": null,
+              "search": "",
+              "selected": "",
+              "status": "all"
+            }
+          },
+          "ownership": {
+            "$ref": "#/$defs/OwnershipViewSettings",
+            "default": {
+              "owner_state": "all",
+              "request_status": "all",
+              "scope": "all",
+              "search": ""
+            }
+          },
+          "persistence": {
+            "$ref": "#/$defs/CoordinationViewSettings",
+            "default": {
+              "kind": "all",
+              "phase": "all",
+              "scope": "all",
+              "search": "",
+              "selected": "all"
+            }
+          },
+          "regions": {
+            "$ref": "#/$defs/RegionViewSettings",
+            "default": {
+              "evidence": "all",
+              "kind": "all",
+              "search": "",
+              "selected": null,
+              "status": "all"
+            }
+          },
+          "selected_federate": {
+            "default": "",
+            "maxLength": 8192,
+            "title": "Selected Federate",
+            "type": "string"
+          },
+          "synchronization": {
+            "$ref": "#/$defs/CoordinationViewSettings",
+            "default": {
+              "kind": "all",
+              "phase": "all",
+              "scope": "all",
+              "search": "",
+              "selected": "all"
+            }
+          },
+          "time": {
+            "$ref": "#/$defs/TimeViewSettings",
+            "default": {
+              "grants_only": false,
+              "selected": null
+            }
+          },
+          "topology": {
+            "$ref": "#/$defs/TopologyViewSettings",
+            "default": {
+              "evidence": "all",
+              "focused": "all",
+              "kind": "all",
+              "search": "",
+              "source": "all",
+              "status": "all"
+            }
+          },
+          "view": {
+            "default": "federation",
+            "enum": [
+              "federation",
+              "federates",
+              "objects",
+              "declarations",
+              "topology",
+              "interactions",
+              "ownership",
+              "regions",
+              "mom",
+              "fom",
+              "time",
+              "synchronization",
+              "persistence",
+              "events",
+              "inspectors",
+              "recordings",
+              "alerts",
+              "actions",
+              "diagnostics"
+            ],
+            "title": "View",
+            "type": "string"
+          },
+          "window_seconds": {
+            "default": 300,
+            "enum": [
+              30,
+              300,
+              900,
+              3600
+            ],
+            "title": "Window Seconds",
+            "type": "integer"
+          }
+        },
+        "title": "WorkspaceSettings",
+        "type": "object"
+      }
+    },
+    "$id": "urn:umbra:observer:workspace-library:v1",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "current": {
+        "$ref": "#/$defs/WorkspaceSettings",
+        "default": {
+          "alerts": {
+            "search": "",
+            "status": "all"
+          },
+          "declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "federate_events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "federation": {
+            "distribution": "event_types"
+          },
+          "fom": {
+            "kind": "all",
+            "model": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "interactions": {
+            "order": "all",
+            "search": "",
+            "status": "all"
+          },
+          "mom": {
+            "counter": null,
+            "scope": "all",
+            "search": "",
+            "service_status": "all"
+          },
+          "object_charts": [],
+          "objects": {
+            "scope": null,
+            "search": "",
+            "selected": "",
+            "status": "all"
+          },
+          "ownership": {
+            "owner_state": "all",
+            "request_status": "all",
+            "scope": "all",
+            "search": ""
+          },
+          "persistence": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "regions": {
+            "evidence": "all",
+            "kind": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "selected_federate": "",
+          "synchronization": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "topology": {
+            "evidence": "all",
+            "focused": "all",
+            "kind": "all",
+            "search": "",
+            "source": "all",
+            "status": "all"
+          },
+          "view": "federation",
+          "window_seconds": 300
+        }
+      },
+      "library_version": {
+        "const": "umbra-observer-workspace-library-v1",
+        "title": "Library Version",
+        "type": "string"
+      },
+      "saved": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/WorkspaceDocument"
+        },
+        "maxItems": 12,
+        "title": "Saved",
+        "type": "array"
+      }
+    },
+    "required": [
+      "library_version"
+    ],
+    "title": "WorkspaceLibrary",
+    "type": "object"
+  },
+  "workspace_schema": {
+    "$defs": {
+      "AlertViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "AlertViewSettings",
+        "type": "object"
+      },
+      "CoordinationViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Kind",
+            "type": "string"
+          },
+          "phase": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Phase",
+            "type": "string"
+          },
+          "scope": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Scope",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "selected": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Selected",
+            "type": "string"
+          }
+        },
+        "title": "CoordinationViewSettings",
+        "type": "object"
+      },
+      "DeclarationViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "direction": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Direction",
+            "type": "string"
+          },
+          "kind": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Kind",
+            "type": "string"
+          },
+          "perspective": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Perspective",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "DeclarationViewSettings",
+        "type": "object"
+      },
+      "EventViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "family": {
+            "default": "",
+            "maxLength": 8192,
+            "title": "Family",
+            "type": "string"
+          },
+          "federate": {
+            "default": "",
+            "maxLength": 8192,
+            "title": "Federate",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "source": {
+            "default": "",
+            "maxLength": 8192,
+            "title": "Source",
+            "type": "string"
+          },
+          "type": {
+            "default": "",
+            "maxLength": 8192,
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "title": "EventViewSettings",
+        "type": "object"
+      },
+      "FederationViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "distribution": {
+            "default": "event_types",
+            "enum": [
+              "event_types",
+              "sources",
+              "families"
+            ],
+            "title": "Distribution",
+            "type": "string"
+          }
+        },
+        "title": "FederationViewSettings",
+        "type": "object"
+      },
+      "FomViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Kind",
+            "type": "string"
+          },
+          "model": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Model",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "selected": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Selected"
+          },
+          "status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "FomViewSettings",
+        "type": "object"
+      },
+      "InteractionViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "order": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Order",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "InteractionViewSettings",
+        "type": "object"
+      },
+      "MomViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "counter": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Counter"
+          },
+          "scope": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Scope",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "service_status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Service Status",
+            "type": "string"
+          }
+        },
+        "title": "MomViewSettings",
+        "type": "object"
+      },
+      "ObjectChartChoice": {
+        "additionalProperties": false,
+        "properties": {
+          "attribute": {
+            "maxLength": 8192,
+            "minLength": 1,
+            "title": "Attribute",
+            "type": "string"
+          },
+          "object_key": {
+            "maxLength": 8192,
+            "minLength": 1,
+            "title": "Object Key",
+            "type": "string"
+          },
+          "scope": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Scope"
+          }
+        },
+        "required": [
+          "object_key",
+          "attribute"
+        ],
+        "title": "ObjectChartChoice",
+        "type": "object"
+      },
+      "ObjectViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "scope": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Scope"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "selected": {
+            "default": "",
+            "maxLength": 8192,
+            "title": "Selected",
+            "type": "string"
+          },
+          "status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "ObjectViewSettings",
+        "type": "object"
+      },
+      "OwnershipViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "owner_state": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Owner State",
+            "type": "string"
+          },
+          "request_status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Request Status",
+            "type": "string"
+          },
+          "scope": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Scope",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          }
+        },
+        "title": "OwnershipViewSettings",
+        "type": "object"
+      },
+      "RegionViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Evidence",
+            "type": "string"
+          },
+          "kind": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Kind",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "selected": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Selected"
+          },
+          "status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "RegionViewSettings",
+        "type": "object"
+      },
+      "TimeViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "grants_only": {
+            "default": false,
+            "title": "Grants Only",
+            "type": "boolean"
+          },
+          "selected": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Selected"
+          }
+        },
+        "title": "TimeViewSettings",
+        "type": "object"
+      },
+      "TopologyViewSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Evidence",
+            "type": "string"
+          },
+          "focused": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Focused",
+            "type": "string"
+          },
+          "kind": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Kind",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          },
+          "source": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "default": "all",
+            "maxLength": 8192,
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "TopologyViewSettings",
+        "type": "object"
+      },
+      "WorkspaceSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "alerts": {
+            "$ref": "#/$defs/AlertViewSettings",
+            "default": {
+              "search": "",
+              "status": "all"
+            }
+          },
+          "declarations": {
+            "$ref": "#/$defs/DeclarationViewSettings",
+            "default": {
+              "direction": "all",
+              "kind": "all",
+              "perspective": "all",
+              "search": "",
+              "status": "all"
+            }
+          },
+          "events": {
+            "$ref": "#/$defs/EventViewSettings",
+            "default": {
+              "family": "",
+              "federate": "",
+              "search": "",
+              "source": "",
+              "type": ""
+            }
+          },
+          "federate_declarations": {
+            "$ref": "#/$defs/DeclarationViewSettings",
+            "default": {
+              "direction": "all",
+              "kind": "all",
+              "perspective": "all",
+              "search": "",
+              "status": "all"
+            }
+          },
+          "federate_events": {
+            "$ref": "#/$defs/EventViewSettings",
+            "default": {
+              "family": "",
+              "federate": "",
+              "search": "",
+              "source": "",
+              "type": ""
+            }
+          },
+          "federate_time": {
+            "$ref": "#/$defs/TimeViewSettings",
+            "default": {
+              "grants_only": false,
+              "selected": null
+            }
+          },
+          "federation": {
+            "$ref": "#/$defs/FederationViewSettings",
+            "default": {
+              "distribution": "event_types"
+            }
+          },
+          "fom": {
+            "$ref": "#/$defs/FomViewSettings",
+            "default": {
+              "kind": "all",
+              "model": "all",
+              "search": "",
+              "selected": null,
+              "status": "all"
+            }
+          },
+          "interactions": {
+            "$ref": "#/$defs/InteractionViewSettings",
+            "default": {
+              "order": "all",
+              "search": "",
+              "status": "all"
+            }
+          },
+          "mom": {
+            "$ref": "#/$defs/MomViewSettings",
+            "default": {
+              "counter": null,
+              "scope": "all",
+              "search": "",
+              "service_status": "all"
+            }
+          },
+          "object_charts": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/ObjectChartChoice"
+            },
+            "maxItems": 64,
+            "title": "Object Charts",
+            "type": "array"
+          },
+          "objects": {
+            "$ref": "#/$defs/ObjectViewSettings",
+            "default": {
+              "scope": null,
+              "search": "",
+              "selected": "",
+              "status": "all"
+            }
+          },
+          "ownership": {
+            "$ref": "#/$defs/OwnershipViewSettings",
+            "default": {
+              "owner_state": "all",
+              "request_status": "all",
+              "scope": "all",
+              "search": ""
+            }
+          },
+          "persistence": {
+            "$ref": "#/$defs/CoordinationViewSettings",
+            "default": {
+              "kind": "all",
+              "phase": "all",
+              "scope": "all",
+              "search": "",
+              "selected": "all"
+            }
+          },
+          "regions": {
+            "$ref": "#/$defs/RegionViewSettings",
+            "default": {
+              "evidence": "all",
+              "kind": "all",
+              "search": "",
+              "selected": null,
+              "status": "all"
+            }
+          },
+          "selected_federate": {
+            "default": "",
+            "maxLength": 8192,
+            "title": "Selected Federate",
+            "type": "string"
+          },
+          "synchronization": {
+            "$ref": "#/$defs/CoordinationViewSettings",
+            "default": {
+              "kind": "all",
+              "phase": "all",
+              "scope": "all",
+              "search": "",
+              "selected": "all"
+            }
+          },
+          "time": {
+            "$ref": "#/$defs/TimeViewSettings",
+            "default": {
+              "grants_only": false,
+              "selected": null
+            }
+          },
+          "topology": {
+            "$ref": "#/$defs/TopologyViewSettings",
+            "default": {
+              "evidence": "all",
+              "focused": "all",
+              "kind": "all",
+              "search": "",
+              "source": "all",
+              "status": "all"
+            }
+          },
+          "view": {
+            "default": "federation",
+            "enum": [
+              "federation",
+              "federates",
+              "objects",
+              "declarations",
+              "topology",
+              "interactions",
+              "ownership",
+              "regions",
+              "mom",
+              "fom",
+              "time",
+              "synchronization",
+              "persistence",
+              "events",
+              "inspectors",
+              "recordings",
+              "alerts",
+              "actions",
+              "diagnostics"
+            ],
+            "title": "View",
+            "type": "string"
+          },
+          "window_seconds": {
+            "default": 300,
+            "enum": [
+              30,
+              300,
+              900,
+              3600
+            ],
+            "title": "Window Seconds",
+            "type": "integer"
+          }
+        },
+        "title": "WorkspaceSettings",
+        "type": "object"
+      }
+    },
+    "$id": "urn:umbra:observer:workspace:v1",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "name": {
+        "maxLength": 128,
+        "minLength": 1,
+        "pattern": "\\S",
+        "title": "Name",
+        "type": "string"
+      },
+      "settings": {
+        "$ref": "#/$defs/WorkspaceSettings",
+        "default": {
+          "alerts": {
+            "search": "",
+            "status": "all"
+          },
+          "declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "federate_events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "federation": {
+            "distribution": "event_types"
+          },
+          "fom": {
+            "kind": "all",
+            "model": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "interactions": {
+            "order": "all",
+            "search": "",
+            "status": "all"
+          },
+          "mom": {
+            "counter": null,
+            "scope": "all",
+            "search": "",
+            "service_status": "all"
+          },
+          "object_charts": [],
+          "objects": {
+            "scope": null,
+            "search": "",
+            "selected": "",
+            "status": "all"
+          },
+          "ownership": {
+            "owner_state": "all",
+            "request_status": "all",
+            "scope": "all",
+            "search": ""
+          },
+          "persistence": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "regions": {
+            "evidence": "all",
+            "kind": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "selected_federate": "",
+          "synchronization": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "topology": {
+            "evidence": "all",
+            "focused": "all",
+            "kind": "all",
+            "search": "",
+            "source": "all",
+            "status": "all"
+          },
+          "view": "federation",
+          "window_seconds": 300
+        }
+      },
+      "workspace_version": {
+        "const": "umbra-observer-workspace-v1",
+        "title": "Workspace Version",
+        "type": "string"
+      }
+    },
+    "required": [
+      "workspace_version",
+      "name"
+    ],
+    "title": "WorkspaceDocument",
+    "type": "object"
+  }
+}

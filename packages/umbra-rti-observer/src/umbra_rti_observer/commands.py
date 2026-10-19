@@ -17,6 +17,7 @@ from collections import OrderedDict
 from collections.abc import Callable
 from typing import Protocol
 
+from .alerting import CommandWatch, PendingCommandFact
 from .command_models import (
     CommandCatalog,
     CommandError,
@@ -82,6 +83,7 @@ class CommandDispatcher:
         self._lock = threading.RLock()
         self._workers: dict[str, _Worker] = {}
         self._records: OrderedDict[str, CommandRecord] = OrderedDict()
+        self._accepted_clocks: dict[str, float] = {}
         self._requests: dict[str, str] = {}
         self._timers: dict[str, threading.Timer] = {}
         self._evicted = 0
@@ -184,6 +186,7 @@ class CommandDispatcher:
                 if oldest is None:
                     raise CommandConflict("command history is full of active work")
                 removed = self._records.pop(oldest)
+                self._accepted_clocks.pop(oldest, None)
                 self._requests.pop(removed.request.request_id, None)
                 self._evicted += 1
             record = CommandRecord(
@@ -193,6 +196,7 @@ class CommandDispatcher:
                 accepted_at=time.time(),
             )
             self._records[record.command_id] = record
+            self._accepted_clocks[record.command_id] = time.monotonic()
             self._requests[request.request_id] = record.command_id
             reason = self._unavailable(worker, request)
             if reason is not None:
@@ -227,6 +231,17 @@ class CommandDispatcher:
                 limit=self.history_limit,
                 evicted_records=self._evicted,
             )
+
+    def alert_watch(self) -> CommandWatch:
+        """Read owner caches only, including timed-out calls still in flight."""
+        with self._lock:
+            now = time.monotonic()
+            inflight = {row.inflight for row in self._workers.values() if row.inflight is not None}
+            return CommandWatch(tuple(PendingCommandFact(row.command_id, row.request.target_id,
+                max(0., now - self._accepted_clocks[row.command_id]), row.error is not None and row.error.effect == "unknown")
+                for row in self._records.values() if row.status in {"accepted", "running"} or
+                row.command_id in inflight and row.error is not None and row.error.effect == "unknown"),
+                not self._closed, tuple(self._workers))
 
     def close(self) -> None:
         with self._lock:

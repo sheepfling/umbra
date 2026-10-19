@@ -10,6 +10,7 @@ from typing import cast
 
 from pydantic import BaseModel
 
+from .alert_models import AlertConfiguration, AlertReport
 from .command_models import CommandCatalog, CommandHistory, CommandRecord
 from .contract import OBSERVER_CONTRACT_VERSION
 from .recording_models import (
@@ -33,8 +34,15 @@ from .schemas import (
     SnapshotMessage,
     StateResponse,
 )
+from .workspace_models import (
+    WorkspaceDefaultsResponse,
+    WorkspaceDocument,
+    WorkspaceLibrary,
+)
 
 WIRE_MODELS: tuple[type[BaseModel], ...] = (
+    WorkspaceDocument, WorkspaceLibrary, WorkspaceDefaultsResponse,
+    AlertConfiguration, AlertReport,
     ContractResponse, HealthResponse, StateResponse, MetricsResponse,
     EventPageResponse, InspectorResponse, AnalyticsResponse, CommandCatalog,
     CommandHistory, CommandRecord, SnapshotMessage, EventsMessage,

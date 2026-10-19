@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { useWorkspaceField } from "../workspace/WorkspaceContext";
+import { RetainedSelect } from "../workspace/RetainedSelect";
 import type { DeclarationSnapshot, StateResponse } from "../api/types";
 import { formatTime } from "../app/observations";
 import { EmptyPanel } from "./ChartPanel";
@@ -9,11 +11,12 @@ function scopeKey(row: DeclarationSnapshot): string {
 }
 
 export function DeclarationsView({ state, federate }: { state: StateResponse; federate?: string }) {
-  const [search, setSearch] = useState("");
-  const [perspective, setPerspective] = useState("all");
-  const [kind, setKind] = useState("all");
-  const [direction, setDirection] = useState("all");
-  const [status, setStatus] = useState("all");
+  const preference = federate === undefined ? "declarations" : "federate_declarations";
+  const [search, setSearch] = useWorkspaceField(preference, "search");
+  const [perspective, setPerspective] = useWorkspaceField(preference, "perspective");
+  const [kind, setKind] = useWorkspaceField(preference, "kind");
+  const [direction, setDirection] = useWorkspaceField(preference, "direction");
+  const [status, setStatus] = useWorkspaceField(preference, "status");
   const [limit, setLimit] = useState(100);
   const capability = state.capabilities.declarations;
   const usable = capability?.state === "available" || capability?.state === "partial";
@@ -33,10 +36,10 @@ export function DeclarationsView({ state, federate }: { state: StateResponse; fe
     {data.dropped_declarations > 0 && <p className="coverage-note" role="status">Declaration coverage is incomplete: {data.dropped_declarations} snapshots expired from the {data.capacity}-record index. Missing rows do not establish undeclared classes.</p>}
     <div className="panel object-controls declaration-controls">
       <label>Search classes or attributes<input aria-label="Search declarations" value={search} placeholder="Class name, class key, attribute or reason" onChange={(event) => { setSearch(event.target.value); setLimit(100); }} /></label>
-      <label>Perspective<select aria-label="Declaration perspective" value={perspective} onChange={(event) => { setPerspective(event.target.value); setLimit(100); }}><option value="all">All reported perspectives — separate rows</option>{perspective !== "all" && !scopes.some(([key]) => key === perspective) && <option value={perspective}>Selected perspective no longer reported</option>}{scopes.map(([key, scope]) => <option value={key} key={key}>{scope.federate ?? "Unattributed"} · {scope.source} · {scope.session_id ?? "session unknown"} · {scope.federation ?? "federation unreported"}</option>)}</select></label>
-      <label>Kind<select aria-label="Declaration kind" value={kind} onChange={(event) => { setKind(event.target.value); setLimit(100); }}><option value="all">Objects and interactions</option><option value="object">Objects</option><option value="interaction">Interactions</option></select></label>
-      <label>Direction<select aria-label="Declaration direction" value={direction} onChange={(event) => { setDirection(event.target.value); setLimit(100); }}><option value="all">Publications and subscriptions</option><option value="publication">Publications</option><option value="subscription">Subscriptions</option></select></label>
-      <label>Reported status<select aria-label="Declaration status" value={status} onChange={(event) => { setStatus(event.target.value); setLimit(100); }}><option value="all">All reported statuses</option><option value="declared">Declared</option><option value="withdrawn">Withdrawn</option><option value="unknown">Unknown</option></select></label>
+      <label>Perspective<RetainedSelect aria-label="Declaration perspective" value={perspective} onChange={(event) => { setPerspective(event.target.value); setLimit(100); }}><option value="all">All reported perspectives — separate rows</option>{perspective !== "all" && !scopes.some(([key]) => key === perspective) && <option value={perspective}>Selected perspective no longer reported</option>}{scopes.map(([key, scope]) => <option value={key} key={key}>{scope.federate ?? "Unattributed"} · {scope.source} · {scope.session_id ?? "session unknown"} · {scope.federation ?? "federation unreported"}</option>)}</RetainedSelect></label>
+      <label>Kind<RetainedSelect aria-label="Declaration kind" value={kind} onChange={(event) => { setKind(event.target.value); setLimit(100); }}><option value="all">Objects and interactions</option><option value="object">Objects</option><option value="interaction">Interactions</option></RetainedSelect></label>
+      <label>Direction<RetainedSelect aria-label="Declaration direction" value={direction} onChange={(event) => { setDirection(event.target.value); setLimit(100); }}><option value="all">Publications and subscriptions</option><option value="publication">Publications</option><option value="subscription">Subscriptions</option></RetainedSelect></label>
+      <label>Reported status<RetainedSelect aria-label="Declaration status" value={status} onChange={(event) => { setStatus(event.target.value); setLimit(100); }}><option value="all">All reported statuses</option><option value="declared">Declared</option><option value="withdrawn">Withdrawn</option><option value="unknown">Unknown</option></RetainedSelect></label>
     </div>
     <section className="metrics declaration-metrics" aria-label="Filtered declaration metrics"><MetricCard label="Matching snapshots" value={filtered.length} /><MetricCard label="Unknown attribute sets" value={filtered.filter((row) => row.attribute_scope === "unknown").length} tone="amber" /><MetricCard label="Withdrawn records" value={filtered.filter((row) => row.status === "withdrawn").length} tone="violet" /></section>
     <article className="panel" aria-label="Reported declarations"><div className="panel-heading"><div><p className="eyebrow">Latest snapshots · newest first</p><h2>Reported declarations</h2></div><span className="panel-note">{filtered.length} matching records · independent of event retention</span></div>

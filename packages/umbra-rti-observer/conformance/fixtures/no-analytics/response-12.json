@@ -1,0 +1,132 @@
+{
+  "configuration_version": "umbra-observer-alerts-v1",
+  "contract_version": "umbra-observer-contract-v1",
+  "error_basis": "since-rule-activation-window",
+  "error_marks_per_rule": 512,
+  "evaluation_basis": "observer-ingress-monotonic",
+  "evicted_evidence": 0,
+  "evidence_capacity": 500,
+  "history": [
+    {
+      "acknowledged": false,
+      "evidence_id": 2,
+      "result": {
+        "captured_at": 1760000000.0,
+        "command": null,
+        "coverage": "unavailable",
+        "history_loss": null,
+        "last_sequence": null,
+        "metric": null,
+        "metric_upper": null,
+        "pending_count": null,
+        "reason": "commands-unavailable",
+        "rule_generation": 1,
+        "rule_id": "fixture-pending",
+        "state": "unknown",
+        "threshold": 5,
+        "unit": "seconds"
+      },
+      "rule": {
+        "enabled": true,
+        "kind": "pending-commands",
+        "name": "Fixture pending work",
+        "rule_id": "fixture-pending",
+        "severity": "warning",
+        "target_id": null,
+        "threshold_seconds": 5.0
+      }
+    },
+    {
+      "acknowledged": false,
+      "evidence_id": 1,
+      "result": {
+        "captured_at": 1760000000.0,
+        "command": null,
+        "coverage": "complete",
+        "history_loss": {
+          "baseline": 0,
+          "current": 0
+        },
+        "last_sequence": null,
+        "metric": 0,
+        "metric_upper": 0,
+        "pending_count": null,
+        "reason": "history-below-threshold",
+        "rule_generation": 1,
+        "rule_id": "fixture-loss",
+        "state": "clear",
+        "threshold": 1,
+        "unit": "observations"
+      },
+      "rule": {
+        "enabled": true,
+        "kind": "dropped-history",
+        "name": "Fixture history loss",
+        "rule_id": "fixture-loss",
+        "severity": "warning",
+        "threshold_count": 1
+      }
+    }
+  ],
+  "instance_id": "fixture-alert-instance",
+  "max_configuration_bytes": 65536,
+  "max_rules": 64,
+  "persistence": "server-process",
+  "results": [
+    {
+      "captured_at": 1760000000.0,
+      "command": null,
+      "coverage": "complete",
+      "history_loss": {
+        "baseline": 0,
+        "current": 0
+      },
+      "last_sequence": null,
+      "metric": 0,
+      "metric_upper": 0,
+      "pending_count": null,
+      "reason": "history-below-threshold",
+      "rule_generation": 1,
+      "rule_id": "fixture-loss",
+      "state": "clear",
+      "threshold": 1,
+      "unit": "observations"
+    },
+    {
+      "captured_at": 1760000000.0,
+      "command": null,
+      "coverage": "unavailable",
+      "history_loss": null,
+      "last_sequence": null,
+      "metric": null,
+      "metric_upper": null,
+      "pending_count": null,
+      "reason": "commands-unavailable",
+      "rule_generation": 1,
+      "rule_id": "fixture-pending",
+      "state": "unknown",
+      "threshold": 5,
+      "unit": "seconds"
+    }
+  ],
+  "revision": 1,
+  "rules": [
+    {
+      "enabled": true,
+      "kind": "dropped-history",
+      "name": "Fixture history loss",
+      "rule_id": "fixture-loss",
+      "severity": "warning",
+      "threshold_count": 1
+    },
+    {
+      "enabled": true,
+      "kind": "pending-commands",
+      "name": "Fixture pending work",
+      "rule_id": "fixture-pending",
+      "severity": "warning",
+      "target_id": null,
+      "threshold_seconds": 5.0
+    }
+  ]
+}

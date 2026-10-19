@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useWorkspaceField } from "../workspace/WorkspaceContext";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { AnalyticsResponse, StateResponse } from "../api/types";
 import { formatTime } from "../app/observations";
@@ -7,7 +7,7 @@ import { ChartPanel, chartColors, chartTick, chartTooltip } from "./ChartPanel";
 export function FederationView({ analytics, state, onFederate }: {
   analytics: AnalyticsResponse; state: StateResponse; onFederate: (name: string) => void;
 }) {
-  const [distribution, setDistribution] = useState<"event_types" | "sources" | "families">("event_types");
+  const [distribution, setDistribution] = useWorkspaceField("federation", "distribution");
   const buckets = analytics.activity.map((bucket) => ({ ...bucket,
     other: bucket.events - bucket.object_updates - bucket.interactions - bucket.callbacks - bucket.errors,
   }));

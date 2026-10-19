@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react";
 import type { EventEnvelope } from "../api/types";
 import { eventFederate, exportEvents, formatTime } from "../app/observations";
+import { useWorkspaceField } from "../workspace/WorkspaceContext";
+import { RetainedSelect } from "../workspace/RetainedSelect";
 
-export function EventTable({ events, title = "Event explorer" }: { events: EventEnvelope[]; title?: string }) {
-  const [search, setSearch] = useState("");
-  const [family, setFamily] = useState("");
-  const [type, setType] = useState("");
-  const [source, setSource] = useState("");
-  const [federate, setFederate] = useState("");
+export function EventTable({ events, title = "Event explorer", preference = "events" }: { events: EventEnvelope[]; title?: string; preference?: "events" | "federate_events" }) {
+  const [search, setSearch] = useWorkspaceField(preference, "search");
+  const [family, setFamily] = useWorkspaceField(preference, "family");
+  const [type, setType] = useWorkspaceField(preference, "type");
+  const [source, setSource] = useWorkspaceField(preference, "source");
+  const [federate, setFederate] = useWorkspaceField(preference, "federate");
   const [limit, setLimit] = useState(100);
   const families = useMemo(() => [...new Set(events.map((event) => event.family))].sort(), [events]);
   const types = useMemo(() => [...new Set(events.map((event) => event.event_type))].sort(), [events]);
@@ -32,5 +34,5 @@ export function EventTable({ events, title = "Event explorer" }: { events: Event
 }
 
 function Filter({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (value: string) => void }) {
-  return <select aria-label={`Filter by ${label}`} value={value} onChange={(event) => onChange(event.target.value)}><option value="">All {label === "family" ? "families" : `${label}s`}</option>{options.map((option) => <option key={option}>{option}</option>)}</select>;
+  return <RetainedSelect aria-label={`Filter by ${label}`} value={value} onChange={(event) => onChange(event.target.value)}><option value="">All {label === "family" ? "families" : `${label}s`}</option>{options.map((option) => <option key={option}>{option}</option>)}</RetainedSelect>;
 }

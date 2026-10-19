@@ -11,10 +11,17 @@ import json
 import threading
 import time
 from collections import Counter
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import replace
 from typing import Protocol
 
+from .alerting import (
+    NO_COMMAND_WATCH,
+    AlertEngine,
+    AlertRuleSpec,
+    AlertScope,
+    CommandWatch,
+)
 from .capabilities import (
     OBSERVER_CAPABILITIES,
     merge_capabilities,
@@ -511,7 +518,37 @@ class ObserverStore:
         self._adapter_capabilities: dict[int, dict[str, CapabilityRecord]] = {}
         self._condition = threading.Condition()
         self._capture: CaptureBuffer | None = None
+        self._alerts = AlertEngine()
         self._validate_metadata_locked()
+
+    @property
+    def alert_instance_id(self) -> str:
+        return self._alerts.instance_id
+
+    def evaluate_alerts(self, commands: CommandWatch = NO_COMMAND_WATCH) -> None:
+        with self._condition:
+            self._alerts.evaluate(self._dropped_events + self._events.dropped, commands)
+
+    def alert_report(self, commands: CommandWatch = NO_COMMAND_WATCH) -> JsonObject:
+        with self._condition:
+            return {"contract_version": OBSERVER_CONTRACT_VERSION,
+                    **self._alerts.report(self._dropped_events + self._events.dropped, commands)}
+
+    def configure_alerts(self, rules: Sequence[AlertRuleSpec], expected_revision: int, commands: CommandWatch = NO_COMMAND_WATCH) -> JsonObject:
+        with self._condition:
+            self._alerts.configure(rules, expected_revision, self._dropped_events + self._events.dropped)
+            return self.alert_report(commands)
+
+    def reset_alert(self, rule_id: str, expected_revision: int, commands: CommandWatch = NO_COMMAND_WATCH) -> JsonObject:
+        with self._condition:
+            self._alerts.configure(tuple(row.spec for row in self._alerts.runs.values()), expected_revision,
+                                   self._dropped_events + self._events.dropped, reset_id=rule_id)
+            return self.alert_report(commands)
+
+    def acknowledge_alert(self, evidence_id: int, commands: CommandWatch = NO_COMMAND_WATCH) -> JsonObject:
+        with self._condition:
+            self._alerts.acknowledge(evidence_id)
+            return self.alert_report(commands)
 
     def set_context(self, **values: object) -> JsonObject:
         with self._condition:
@@ -862,6 +899,9 @@ class ObserverStore:
             self._events.append(event)
             self._next_sequence += 1
             self._update_indexes_locked(event)
+            if self._alerts.runs:
+                self._alerts.observe(AlertScope(event.source, _first_text(event, "federation"),
+                    _federate_name(event), _first_text(event, "session_id")), event.event_type, event.sequence)
             self._context.update(
                 {
                     key: value
@@ -879,6 +919,7 @@ class ObserverStore:
             elif self._status == "idle":
                 self._status = "running"
         self._object_views.trim_history(self._retention_locked())
+        self._alerts.commit(self._dropped_events + self._events.dropped)
         self._capture_locked("events", normalized)
 
     def _update_indexes_locked(self, event: EventRecord) -> None:

@@ -72,6 +72,539 @@
       "title": "AdapterResponse",
       "type": "object"
     },
+    "AlertCommandProof": {
+      "additionalProperties": false,
+      "properties": {
+        "age_seconds": {
+          "minimum": 0,
+          "title": "Age Seconds",
+          "type": "number"
+        },
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "effect_unknown": {
+          "title": "Effect Unknown",
+          "type": "boolean"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "command_id",
+        "target_id",
+        "age_seconds",
+        "effect_unknown"
+      ],
+      "title": "AlertCommandProof",
+      "type": "object"
+    },
+    "AlertConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "configuration_version": {
+          "const": "umbra-observer-alerts-v1",
+          "title": "Configuration Version",
+          "type": "string"
+        },
+        "rules": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "dropped-history": "#/$defs/DroppedHistoryRule",
+                "errors": "#/$defs/ErrorCountRule",
+                "pending-commands": "#/$defs/PendingCommandRule",
+                "stale-observations": "#/$defs/StaleObservationRule"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/StaleObservationRule"
+              },
+              {
+                "$ref": "#/$defs/ErrorCountRule"
+              },
+              {
+                "$ref": "#/$defs/DroppedHistoryRule"
+              },
+              {
+                "$ref": "#/$defs/PendingCommandRule"
+              }
+            ]
+          },
+          "maxItems": 64,
+          "title": "Rules",
+          "type": "array"
+        }
+      },
+      "required": [
+        "configuration_version",
+        "rules"
+      ],
+      "title": "AlertConfiguration",
+      "type": "object"
+    },
+    "AlertEvidenceModel": {
+      "additionalProperties": false,
+      "properties": {
+        "acknowledged": {
+          "title": "Acknowledged",
+          "type": "boolean"
+        },
+        "evidence_id": {
+          "minimum": 1,
+          "title": "Evidence Id",
+          "type": "integer"
+        },
+        "result": {
+          "$ref": "#/$defs/AlertResultModel"
+        },
+        "rule": {
+          "discriminator": {
+            "mapping": {
+              "dropped-history": "#/$defs/DroppedHistoryRule",
+              "errors": "#/$defs/ErrorCountRule",
+              "pending-commands": "#/$defs/PendingCommandRule",
+              "stale-observations": "#/$defs/StaleObservationRule"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/StaleObservationRule"
+            },
+            {
+              "$ref": "#/$defs/ErrorCountRule"
+            },
+            {
+              "$ref": "#/$defs/DroppedHistoryRule"
+            },
+            {
+              "$ref": "#/$defs/PendingCommandRule"
+            }
+          ],
+          "title": "Rule"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "rule",
+        "result",
+        "acknowledged"
+      ],
+      "title": "AlertEvidenceModel",
+      "type": "object"
+    },
+    "AlertReport": {
+      "additionalProperties": false,
+      "properties": {
+        "configuration_version": {
+          "const": "umbra-observer-alerts-v1",
+          "title": "Configuration Version",
+          "type": "string"
+        },
+        "contract_version": {
+          "const": "umbra-observer-contract-v1",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "error_basis": {
+          "const": "since-rule-activation-window",
+          "title": "Error Basis",
+          "type": "string"
+        },
+        "error_marks_per_rule": {
+          "const": 512,
+          "title": "Error Marks Per Rule",
+          "type": "integer"
+        },
+        "evaluation_basis": {
+          "const": "observer-ingress-monotonic",
+          "title": "Evaluation Basis",
+          "type": "string"
+        },
+        "evicted_evidence": {
+          "minimum": 0,
+          "title": "Evicted Evidence",
+          "type": "integer"
+        },
+        "evidence_capacity": {
+          "const": 500,
+          "title": "Evidence Capacity",
+          "type": "integer"
+        },
+        "history": {
+          "items": {
+            "$ref": "#/$defs/AlertEvidenceModel"
+          },
+          "maxItems": 500,
+          "title": "History",
+          "type": "array"
+        },
+        "instance_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Instance Id",
+          "type": "string"
+        },
+        "max_configuration_bytes": {
+          "const": 65536,
+          "title": "Max Configuration Bytes",
+          "type": "integer"
+        },
+        "max_rules": {
+          "const": 64,
+          "title": "Max Rules",
+          "type": "integer"
+        },
+        "persistence": {
+          "const": "server-process",
+          "title": "Persistence",
+          "type": "string"
+        },
+        "results": {
+          "items": {
+            "$ref": "#/$defs/AlertResultModel"
+          },
+          "title": "Results",
+          "type": "array"
+        },
+        "revision": {
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "rules": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "dropped-history": "#/$defs/DroppedHistoryRule",
+                "errors": "#/$defs/ErrorCountRule",
+                "pending-commands": "#/$defs/PendingCommandRule",
+                "stale-observations": "#/$defs/StaleObservationRule"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/StaleObservationRule"
+              },
+              {
+                "$ref": "#/$defs/ErrorCountRule"
+              },
+              {
+                "$ref": "#/$defs/DroppedHistoryRule"
+              },
+              {
+                "$ref": "#/$defs/PendingCommandRule"
+              }
+            ]
+          },
+          "maxItems": 64,
+          "title": "Rules",
+          "type": "array"
+        }
+      },
+      "required": [
+        "configuration_version",
+        "rules",
+        "contract_version",
+        "instance_id",
+        "revision",
+        "results",
+        "history",
+        "evicted_evidence",
+        "persistence",
+        "evaluation_basis",
+        "error_basis",
+        "max_rules",
+        "max_configuration_bytes",
+        "evidence_capacity",
+        "error_marks_per_rule"
+      ],
+      "title": "AlertReport",
+      "type": "object"
+    },
+    "AlertResultModel": {
+      "additionalProperties": false,
+      "properties": {
+        "captured_at": {
+          "title": "Captured At",
+          "type": "number"
+        },
+        "command": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AlertCommandProof"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "coverage": {
+          "enum": [
+            "complete",
+            "partial",
+            "unavailable",
+            "not-observed"
+          ],
+          "title": "Coverage",
+          "type": "string"
+        },
+        "history_loss": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HistoryLossProof"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "last_sequence": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Sequence"
+        },
+        "metric": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Metric"
+        },
+        "metric_upper": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Metric Upper"
+        },
+        "pending_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Pending Count"
+        },
+        "reason": {
+          "enum": [
+            "disabled",
+            "not-observed",
+            "observations-current",
+            "observations-idle",
+            "explicit-disconnect",
+            "explicit-resignation",
+            "errors-below-threshold",
+            "errors-threshold",
+            "error-window-incomplete",
+            "history-below-threshold",
+            "history-loss-threshold",
+            "pending-below-threshold",
+            "pending-threshold",
+            "commands-unavailable",
+            "target-unavailable",
+            "clock-unusable"
+          ],
+          "title": "Reason",
+          "type": "string"
+        },
+        "rule_generation": {
+          "minimum": 1,
+          "title": "Rule Generation",
+          "type": "integer"
+        },
+        "rule_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "disabled",
+            "unknown",
+            "clear",
+            "firing",
+            "ended"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "minimum": 0,
+              "type": "number"
+            }
+          ],
+          "title": "Threshold"
+        },
+        "unit": {
+          "enum": [
+            "seconds",
+            "observations"
+          ],
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule_id",
+        "rule_generation",
+        "state",
+        "reason",
+        "coverage",
+        "metric",
+        "metric_upper",
+        "threshold",
+        "unit",
+        "last_sequence",
+        "captured_at",
+        "command",
+        "pending_count",
+        "history_loss"
+      ],
+      "title": "AlertResultModel",
+      "type": "object"
+    },
+    "AlertScopeModel": {
+      "additionalProperties": false,
+      "properties": {
+        "federate": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federate"
+        },
+        "federation": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federation"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Id"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        }
+      },
+      "title": "AlertScopeModel",
+      "type": "object"
+    },
+    "AlertViewSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "search": {
+          "default": "",
+          "maxLength": 2048,
+          "title": "Search",
+          "type": "string"
+        },
+        "status": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "search",
+        "status"
+      ],
+      "title": "AlertViewSettings",
+      "type": "object"
+    },
     "AnalyticsResponse": {
       "additionalProperties": false,
       "properties": {
@@ -1502,6 +2035,50 @@
       "title": "CoordinationSnapshotResponse",
       "type": "object"
     },
+    "CoordinationViewSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Kind",
+          "type": "string"
+        },
+        "phase": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Phase",
+          "type": "string"
+        },
+        "scope": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Scope",
+          "type": "string"
+        },
+        "search": {
+          "default": "",
+          "maxLength": 2048,
+          "title": "Search",
+          "type": "string"
+        },
+        "selected": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Selected",
+          "type": "string"
+        }
+      },
+      "required": [
+        "search",
+        "kind",
+        "scope",
+        "phase",
+        "selected"
+      ],
+      "title": "CoordinationViewSettings",
+      "type": "object"
+    },
     "DeclarationScopeResponse": {
       "additionalProperties": false,
       "properties": {
@@ -1673,6 +2250,50 @@
       "title": "DeclarationSnapshotResponse",
       "type": "object"
     },
+    "DeclarationViewSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "direction": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Direction",
+          "type": "string"
+        },
+        "kind": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Kind",
+          "type": "string"
+        },
+        "perspective": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Perspective",
+          "type": "string"
+        },
+        "search": {
+          "default": "",
+          "maxLength": 2048,
+          "title": "Search",
+          "type": "string"
+        },
+        "status": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "search",
+        "perspective",
+        "kind",
+        "direction",
+        "status"
+      ],
+      "title": "DeclarationViewSettings",
+      "type": "object"
+    },
     "DeclarationsResponse": {
       "additionalProperties": false,
       "properties": {
@@ -1805,11 +2426,127 @@
       "title": "DisconnectCommand",
       "type": "object"
     },
+    "DroppedHistoryRule": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "dropped-history",
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "rule_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "severity": {
+          "default": "warning",
+          "enum": [
+            "info",
+            "warning",
+            "critical"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "threshold_count": {
+          "maximum": 1000000000,
+          "minimum": 1,
+          "title": "Threshold Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "rule_id",
+        "name",
+        "kind",
+        "threshold_count"
+      ],
+      "title": "DroppedHistoryRule",
+      "type": "object"
+    },
     "EmptyParameters": {
       "additionalProperties": false,
       "description": "Connection configuration and credentials belong to the server.",
       "properties": {},
       "title": "EmptyParameters",
+      "type": "object"
+    },
+    "ErrorCountRule": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "errors",
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "rule_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/AlertScopeModel"
+        },
+        "severity": {
+          "default": "warning",
+          "enum": [
+            "info",
+            "warning",
+            "critical"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "threshold_count": {
+          "maximum": 1000000000,
+          "minimum": 1,
+          "title": "Threshold Count",
+          "type": "integer"
+        },
+        "window_seconds": {
+          "default": 300.0,
+          "maximum": 3600,
+          "minimum": 1,
+          "title": "Window Seconds",
+          "type": "number"
+        }
+      },
+      "required": [
+        "rule_id",
+        "name",
+        "kind",
+        "threshold_count"
+      ],
+      "title": "ErrorCountRule",
       "type": "object"
     },
     "ErrorMessage": {
@@ -2323,6 +3060,50 @@
       "title": "EventPageResponse",
       "type": "object"
     },
+    "EventViewSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "family": {
+          "default": "",
+          "maxLength": 8192,
+          "title": "Family",
+          "type": "string"
+        },
+        "federate": {
+          "default": "",
+          "maxLength": 8192,
+          "title": "Federate",
+          "type": "string"
+        },
+        "search": {
+          "default": "",
+          "maxLength": 2048,
+          "title": "Search",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "maxLength": 8192,
+          "title": "Source",
+          "type": "string"
+        },
+        "type": {
+          "default": "",
+          "maxLength": 8192,
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "search",
+        "family",
+        "type",
+        "source",
+        "federate"
+      ],
+      "title": "EventViewSettings",
+      "type": "object"
+    },
     "EventsMessage": {
       "additionalProperties": false,
       "properties": {
@@ -2532,6 +3313,26 @@
         "source"
       ],
       "title": "FederateInspectionResponse",
+      "type": "object"
+    },
+    "FederationViewSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "distribution": {
+          "default": "event_types",
+          "enum": [
+            "event_types",
+            "sources",
+            "families"
+          ],
+          "title": "Distribution",
+          "type": "string"
+        }
+      },
+      "required": [
+        "distribution"
+      ],
+      "title": "FederationViewSettings",
       "type": "object"
     },
     "FomDatatypeObservation": {
@@ -4048,6 +4849,57 @@
       "title": "FomResponse",
       "type": "object"
     },
+    "FomViewSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Kind",
+          "type": "string"
+        },
+        "model": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Model",
+          "type": "string"
+        },
+        "search": {
+          "default": "",
+          "maxLength": 2048,
+          "title": "Search",
+          "type": "string"
+        },
+        "selected": {
+          "anyOf": [
+            {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selected"
+        },
+        "status": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "search",
+        "model",
+        "kind",
+        "status",
+        "selected"
+      ],
+      "title": "FomViewSettings",
+      "type": "object"
+    },
     "GapMessage": {
       "additionalProperties": false,
       "properties": {
@@ -4131,6 +4983,27 @@
         "type"
       ],
       "title": "HeartbeatMessage",
+      "type": "object"
+    },
+    "HistoryLossProof": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline": {
+          "minimum": 0,
+          "title": "Baseline",
+          "type": "integer"
+        },
+        "current": {
+          "minimum": 0,
+          "title": "Current",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "baseline",
+        "current"
+      ],
+      "title": "HistoryLossProof",
       "type": "object"
     },
     "InspectorResponse": {
@@ -4895,6 +5768,36 @@
         "observed_at"
       ],
       "title": "InteractionInspectionResponse",
+      "type": "object"
+    },
+    "InteractionViewSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "order": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Order",
+          "type": "string"
+        },
+        "search": {
+          "default": "",
+          "maxLength": 2048,
+          "title": "Search",
+          "type": "string"
+        },
+        "status": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "search",
+        "status",
+        "order"
+      ],
+      "title": "InteractionViewSettings",
       "type": "object"
     },
     "JoinCommand": {
@@ -5963,6 +6866,50 @@
       "title": "MomServiceReportResponse",
       "type": "object"
     },
+    "MomViewSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "counter": {
+          "anyOf": [
+            {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Counter"
+        },
+        "scope": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Scope",
+          "type": "string"
+        },
+        "search": {
+          "default": "",
+          "maxLength": 2048,
+          "title": "Search",
+          "type": "string"
+        },
+        "service_status": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Service Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "search",
+        "scope",
+        "service_status",
+        "counter"
+      ],
+      "title": "MomViewSettings",
+      "type": "object"
+    },
     "ObjectAttributeChangeResponse": {
       "additionalProperties": false,
       "properties": {
@@ -6030,6 +6977,43 @@
         "observed_at"
       ],
       "title": "ObjectAttributeChangeResponse",
+      "type": "object"
+    },
+    "ObjectChartChoice": {
+      "additionalProperties": false,
+      "properties": {
+        "attribute": {
+          "maxLength": 8192,
+          "minLength": 1,
+          "title": "Attribute",
+          "type": "string"
+        },
+        "object_key": {
+          "maxLength": 8192,
+          "minLength": 1,
+          "title": "Object Key",
+          "type": "string"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scope"
+        }
+      },
+      "required": [
+        "scope",
+        "object_key",
+        "attribute"
+      ],
+      "title": "ObjectChartChoice",
       "type": "object"
     },
     "ObjectDeclarationObservation": {
@@ -6383,6 +7367,50 @@
         "object"
       ],
       "title": "ObjectPerspectiveResponse",
+      "type": "object"
+    },
+    "ObjectViewSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "anyOf": [
+            {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scope"
+        },
+        "search": {
+          "default": "",
+          "maxLength": 2048,
+          "title": "Search",
+          "type": "string"
+        },
+        "selected": {
+          "default": "",
+          "maxLength": 8192,
+          "title": "Selected",
+          "type": "string"
+        },
+        "status": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope",
+        "search",
+        "status",
+        "selected"
+      ],
+      "title": "ObjectViewSettings",
       "type": "object"
     },
     "OwnershipOutcomeObservation": {
@@ -7219,6 +8247,43 @@
       "title": "OwnershipTicketResponse",
       "type": "object"
     },
+    "OwnershipViewSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "owner_state": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Owner State",
+          "type": "string"
+        },
+        "request_status": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Request Status",
+          "type": "string"
+        },
+        "scope": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Scope",
+          "type": "string"
+        },
+        "search": {
+          "default": "",
+          "maxLength": 2048,
+          "title": "Search",
+          "type": "string"
+        }
+      },
+      "required": [
+        "search",
+        "scope",
+        "owner_state",
+        "request_status"
+      ],
+      "title": "OwnershipViewSettings",
+      "type": "object"
+    },
     "ParticipantIdentityResponse": {
       "additionalProperties": false,
       "description": "Opaque IDs identify a participant join; names and handles never do.",
@@ -7321,6 +8386,74 @@
         }
       },
       "title": "ParticipantReferenceResponse",
+      "type": "object"
+    },
+    "PendingCommandRule": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "pending-commands",
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "rule_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "severity": {
+          "default": "warning",
+          "enum": [
+            "info",
+            "warning",
+            "critical"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "target_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Id"
+        },
+        "threshold_seconds": {
+          "maximum": 86400,
+          "minimum": 0.1,
+          "title": "Threshold Seconds",
+          "type": "number"
+        }
+      },
+      "required": [
+        "rule_id",
+        "name",
+        "kind",
+        "threshold_seconds"
+      ],
+      "title": "PendingCommandRule",
       "type": "object"
     },
     "PersistenceObservation": {
@@ -8753,6 +9886,57 @@
       "title": "RegionStateReportResponse",
       "type": "object"
     },
+    "RegionViewSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Evidence",
+          "type": "string"
+        },
+        "kind": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Kind",
+          "type": "string"
+        },
+        "search": {
+          "default": "",
+          "maxLength": 2048,
+          "title": "Search",
+          "type": "string"
+        },
+        "selected": {
+          "anyOf": [
+            {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selected"
+        },
+        "status": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "search",
+        "kind",
+        "status",
+        "evidence",
+        "selected"
+      ],
+      "title": "RegionViewSettings",
+      "type": "object"
+    },
     "RegionsResponse": {
       "additionalProperties": false,
       "properties": {
@@ -9469,6 +10653,62 @@
         "state"
       ],
       "title": "SnapshotMessage",
+      "type": "object"
+    },
+    "StaleObservationRule": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "stale-observations",
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "rule_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/AlertScopeModel"
+        },
+        "severity": {
+          "default": "warning",
+          "enum": [
+            "info",
+            "warning",
+            "critical"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "threshold_seconds": {
+          "maximum": 86400,
+          "minimum": 0.1,
+          "title": "Threshold Seconds",
+          "type": "number"
+        }
+      },
+      "required": [
+        "rule_id",
+        "name",
+        "kind",
+        "threshold_seconds"
+      ],
+      "title": "StaleObservationRule",
       "type": "object"
     },
     "StateResponse": {
@@ -10691,6 +11931,295 @@
         "kind"
       ],
       "title": "TimeStateObservation",
+      "type": "object"
+    },
+    "TimeViewSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "grants_only": {
+          "default": false,
+          "title": "Grants Only",
+          "type": "boolean"
+        },
+        "selected": {
+          "anyOf": [
+            {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selected"
+        }
+      },
+      "required": [
+        "selected",
+        "grants_only"
+      ],
+      "title": "TimeViewSettings",
+      "type": "object"
+    },
+    "TopologyViewSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Evidence",
+          "type": "string"
+        },
+        "focused": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Focused",
+          "type": "string"
+        },
+        "kind": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Kind",
+          "type": "string"
+        },
+        "search": {
+          "default": "",
+          "maxLength": 2048,
+          "title": "Search",
+          "type": "string"
+        },
+        "source": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "default": "all",
+          "maxLength": 8192,
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "search",
+        "source",
+        "kind",
+        "status",
+        "evidence",
+        "focused"
+      ],
+      "title": "TopologyViewSettings",
+      "type": "object"
+    },
+    "WorkspaceDefaultsResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_version": {
+          "const": "umbra-observer-contract-v1",
+          "default": "umbra-observer-contract-v1",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "library": {
+          "$ref": "#/$defs/WorkspaceLibrary"
+        }
+      },
+      "required": [
+        "contract_version",
+        "library"
+      ],
+      "title": "WorkspaceDefaultsResponse",
+      "type": "object"
+    },
+    "WorkspaceDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "settings": {
+          "$ref": "#/$defs/WorkspaceSettings"
+        },
+        "workspace_version": {
+          "const": "umbra-observer-workspace-v1",
+          "title": "Workspace Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspace_version",
+        "name",
+        "settings"
+      ],
+      "title": "WorkspaceDocument",
+      "type": "object"
+    },
+    "WorkspaceLibrary": {
+      "additionalProperties": false,
+      "properties": {
+        "current": {
+          "$ref": "#/$defs/WorkspaceSettings"
+        },
+        "library_version": {
+          "const": "umbra-observer-workspace-library-v1",
+          "title": "Library Version",
+          "type": "string"
+        },
+        "saved": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/WorkspaceDocument"
+          },
+          "maxItems": 12,
+          "title": "Saved",
+          "type": "array"
+        }
+      },
+      "required": [
+        "library_version",
+        "current",
+        "saved"
+      ],
+      "title": "WorkspaceLibrary",
+      "type": "object"
+    },
+    "WorkspaceSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "alerts": {
+          "$ref": "#/$defs/AlertViewSettings"
+        },
+        "declarations": {
+          "$ref": "#/$defs/DeclarationViewSettings"
+        },
+        "events": {
+          "$ref": "#/$defs/EventViewSettings"
+        },
+        "federate_declarations": {
+          "$ref": "#/$defs/DeclarationViewSettings"
+        },
+        "federate_events": {
+          "$ref": "#/$defs/EventViewSettings"
+        },
+        "federate_time": {
+          "$ref": "#/$defs/TimeViewSettings"
+        },
+        "federation": {
+          "$ref": "#/$defs/FederationViewSettings"
+        },
+        "fom": {
+          "$ref": "#/$defs/FomViewSettings"
+        },
+        "interactions": {
+          "$ref": "#/$defs/InteractionViewSettings"
+        },
+        "mom": {
+          "$ref": "#/$defs/MomViewSettings"
+        },
+        "object_charts": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObjectChartChoice"
+          },
+          "maxItems": 64,
+          "title": "Object Charts",
+          "type": "array"
+        },
+        "objects": {
+          "$ref": "#/$defs/ObjectViewSettings"
+        },
+        "ownership": {
+          "$ref": "#/$defs/OwnershipViewSettings"
+        },
+        "persistence": {
+          "$ref": "#/$defs/CoordinationViewSettings"
+        },
+        "regions": {
+          "$ref": "#/$defs/RegionViewSettings"
+        },
+        "selected_federate": {
+          "default": "",
+          "maxLength": 8192,
+          "title": "Selected Federate",
+          "type": "string"
+        },
+        "synchronization": {
+          "$ref": "#/$defs/CoordinationViewSettings"
+        },
+        "time": {
+          "$ref": "#/$defs/TimeViewSettings"
+        },
+        "topology": {
+          "$ref": "#/$defs/TopologyViewSettings"
+        },
+        "view": {
+          "default": "federation",
+          "enum": [
+            "federation",
+            "federates",
+            "objects",
+            "declarations",
+            "topology",
+            "interactions",
+            "ownership",
+            "regions",
+            "mom",
+            "fom",
+            "time",
+            "synchronization",
+            "persistence",
+            "events",
+            "inspectors",
+            "recordings",
+            "alerts",
+            "actions",
+            "diagnostics"
+          ],
+          "title": "View",
+          "type": "string"
+        },
+        "window_seconds": {
+          "default": 300,
+          "enum": [
+            30,
+            300,
+            900,
+            3600
+          ],
+          "title": "Window Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "view",
+        "window_seconds",
+        "selected_federate",
+        "federation",
+        "events",
+        "federate_events",
+        "objects",
+        "object_charts",
+        "declarations",
+        "federate_declarations",
+        "time",
+        "federate_time",
+        "topology",
+        "interactions",
+        "synchronization",
+        "persistence",
+        "ownership",
+        "regions",
+        "mom",
+        "fom",
+        "alerts"
+      ],
+      "title": "WorkspaceSettings",
       "type": "object"
     }
   },

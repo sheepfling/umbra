@@ -23,6 +23,12 @@ STREAM_MESSAGE_TYPES = (
 )
 
 API_PATHS = {
+    "workspace_defaults": "/api/workspaces/defaults",
+    "workspace_validate": "/api/workspaces/validate",
+    "alerts": "/api/alerts",
+    "alert_configuration": "/api/alerts/configuration",
+    "alert_reset": "/api/alerts/reset",
+    "alert_acknowledge": "/api/alerts/acknowledge",
     "recordings": "/api/recordings",
     "recording_start": "/api/recordings/start",
     "recording_stop": "/api/recordings/stop",
@@ -56,6 +62,20 @@ def build_contract_document(
 
     normalized_capabilities = normalize_capabilities(capabilities)
     paths = dict(API_PATHS)
+    workspaces = normalized_capabilities.get("workspace_validation")
+    if workspaces is None or workspaces.state not in {"available", "partial"}:
+        paths.pop("workspace_defaults", None)
+        paths.pop("workspace_validate", None)
+    alerts = normalized_capabilities.get("alerts")
+    if alerts is None or alerts.state not in {"available", "partial"}:
+        for name in tuple(paths):
+            if name == "alerts" or name.startswith("alert_"):
+                paths.pop(name)
+    alert_controls = normalized_capabilities.get("alert_controls")
+    if alert_controls is None or alert_controls.state not in {"available", "partial"}:
+        for name in tuple(paths):
+            if name.startswith("alert_"):
+                paths.pop(name)
     recording = normalized_capabilities.get("recording")
     if recording is None or recording.state not in {"available", "partial"}:
         for name in tuple(paths):

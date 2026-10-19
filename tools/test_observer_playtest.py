@@ -38,12 +38,19 @@ class ObserverPlaytestTests(unittest.TestCase):
         for name in ("Start-Observer.cmd", "Start-Observer-Limited.cmd", "tools/observer_playtest.py",
                      "packages/umbra-rti-observer/pyproject.toml",
                      "packages/umbra-rti-observer/README.md",
+                     "packages/umbra-rti-observer/STORAGE.md",
+                     "packages/umbra-rti-observer/RECORDING.md",
+                     "packages/umbra-rti-observer/ALERTS.md",
+                     "packages/umbra-rti-observer/benchmarks/synthetic.json",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/__init__.py",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/mom.py",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/fom.py",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/capture.py",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/recording_models.py",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/recording_routes.py",
+                     "packages/umbra-rti-observer/src/umbra_rti_observer/alerting.py",
+                     "packages/umbra-rti-observer/src/umbra_rti_observer/alert_models.py",
+                     "packages/umbra-rti-observer/src/umbra_rti_observer/alert_routes.py",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/py.typed",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/static/dashboard.html",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/static/observer-wire-v1.schema.json",
@@ -66,11 +73,13 @@ class ObserverPlaytestTests(unittest.TestCase):
             self.assertTrue(any(name.endswith("dist/assets/main.js") for name in names))
             self.assertTrue(any(name.endswith("py.typed") for name in names))
             self.assertTrue(any(name.endswith("observer-wire-v1.schema.json") for name in names))
-            for module in ("mom.py", "fom.py", "capture.py", "recording_models.py", "recording_routes.py"):
+            for guide_name in ("STORAGE.md", "RECORDING.md", "ALERTS.md", "benchmarks/synthetic.json"):
+                self.assertIn(f"umbra-observer-playtest/packages/umbra-rti-observer/{guide_name}", names)
+            for module in ("mom.py", "fom.py", "capture.py", "recording_models.py", "recording_routes.py", "alerting.py", "alert_models.py", "alert_routes.py"):
                 self.assertTrue(any(name.endswith(f"umbra_rti_observer/{module}") for name in names))
             self.assertFalse(any("private" in name or "__pycache__" in name for name in names))
             guide = bundle.read("umbra-observer-playtest/README.txt").decode()
-            for text in ("Extract this ZIP", "MOM reports", "FOM browser", "Recordings"):
+            for text in ("Extract this ZIP", "MOM reports", "FOM browser", "Recordings", "Alerts"):
                 self.assertIn(text, guide)
 
     def test_prebuilt_bundle_needs_no_node_or_ui_install(self) -> None:

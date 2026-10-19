@@ -41,7 +41,7 @@ export function FederateView({ state, analytics, events, selected, onSelect }: {
         </article>
         <TimeWorkspace key={`time:${selected}`} state={state} analytics={analytics} federate={selected} />
         <DeclarationsView key={`declarations:${selected}`} state={state} federate={selected} />
-        <EventTable key={`events:${selected}`} events={scopedEvents} title="Federate event timeline" />
+        <EventTable key={`events:${selected}`} events={scopedEvents} title="Federate event timeline" preference="federate_events" />
       </>}
     </div>
   </div>;

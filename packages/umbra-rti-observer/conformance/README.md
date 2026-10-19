@@ -43,6 +43,23 @@ must advertise an endpoint that returns its validated response model. Disabled,
 unsupported or unknown features need not provide their optional endpoints.
 Optional command catalogs/history are read, but no command is executed.
 
+Usable `alerts` requires its named report and discovered read resource.
+Configuration/results/evidence must agree on rule IDs, generations, thresholds,
+units, finite bounds and counter/command proof. Usable `alert_controls` requires
+mutation paths, but the checker never invokes them. Reports explicitly leave
+`alert-rule-evaluation` and `alert-configuration-mutation` unchecked. Shared
+Python/Java fixtures show read-only loss and unavailable-command rules, not
+live Java evaluation.
+
+Usable `storage_inspection` requires the named storage model, actual wire
+collections and exact delivered collection counts. Budget sums, loss-reason
+totals and declared unbudgeted gaps are validated; absent coverage remains
+unknown. The HTTP checker cannot prove a backend actually enforces eviction:
+reports list `storage-eviction` among unchecked features. The Java server serves
+static read fixtures, not live Java storage/provider behavior. Reference Python
+and browser tests separately exercise count/byte expiry, empty lost cursors,
+retained event attribution and pending tickets without latest snapshots.
+
 Optional object/time inspectors also require their named models when advertised
 as available/partial. Time validation checks unique scoped request IDs, capacity,
 ordered outcomes, snapshot cursors and duration/status consistency. The full

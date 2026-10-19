@@ -18,6 +18,7 @@ from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_ope
 
 from pydantic import Field, ValidationError, computed_field
 
+from .alert_models import AlertReport
 from .command_models import CommandCatalog, CommandHistory
 from .contract import OBSERVER_CONTRACT_VERSION, OBSERVER_JSON_MEDIA_TYPE
 from .recording_models import RecordingStatusResponse
@@ -31,9 +32,10 @@ from .schemas import (
     ObserverModel,
     StateResponse,
 )
+from .workspace_models import WorkspaceDefaultsResponse
 
 Model = TypeVar("Model", bound=ObserverModel)
-OptionalResponse = AnalyticsResponse | CommandCatalog | CommandHistory | RecordingStatusResponse
+OptionalResponse = AnalyticsResponse | CommandCatalog | CommandHistory | RecordingStatusResponse | AlertReport | WorkspaceDefaultsResponse
 
 class HttpReply(ObserverModel):
     status: int
@@ -52,7 +54,7 @@ class ConformanceReport(ObserverModel):
     scope: str = "observer-http-read-v1"
     checks: tuple[ConformanceCheck, ...]
     omitted_features: tuple[str, ...]
-    unchecked_features: tuple[str, ...] = ("stream-delivery", "command-execution", "recording-capture-import-replay", "storage-eviction", "rti-semantics")
+    unchecked_features: tuple[str, ...] = ("stream-delivery", "command-execution", "recording-capture-import-replay", "storage-eviction", "alert-rule-evaluation", "alert-configuration-mutation", "rti-semantics")
 
     @computed_field
     @property
@@ -325,6 +327,8 @@ class ObserverConformance:
                 except (OSError, ValueError, TypeError) as error:
                     check("events.invalid_query", False, str(error))
         optional_models: tuple[tuple[str, tuple[tuple[str, type[OptionalResponse]], ...]], ...] = (
+            ("workspace_validation", (("workspace_defaults", WorkspaceDefaultsResponse),)),
+            ("alerts", (("alerts", AlertReport),)),
             ("analytics", (("analytics", AnalyticsResponse),)),
             ("commands", (("command_catalog", CommandCatalog), ("commands", CommandHistory))),
             ("recording", (("recordings", RecordingStatusResponse),)),
@@ -350,6 +354,16 @@ class ObserverConformance:
                                   and sum(payload.sources.values()) == payload.events_in_window
                                   and sum(payload.families.values()) == payload.events_in_window,
                                   "window and disjoint activity/type/source/family counts agree")
+        workspace_capability = contract.capabilities.get("workspace_validation")
+        if workspace_capability is not None and workspace_capability.state in {"available", "partial"}:
+            check("workspace_validation.discovery", bool(contract.api_paths.get("workspace_validate")),
+                  "workspace validation advertises its named normalization endpoint; no file is applied")
+        alert_controls = contract.capabilities.get("alert_controls")
+        if alert_controls is not None and alert_controls.state in {"available", "partial"}:
+            alerts = contract.capabilities.get("alerts")
+            check("alert_controls.discovery", alerts is not None and alerts.state in {"available", "partial"}
+                and all(contract.api_paths.get(path) for path in ("alert_configuration", "alert_reset", "alert_acknowledge")),
+                "alert controls require usable alert reads and discovered mutation resources")
         window_capability = contract.capabilities.get("recording_analytics_window")
         if window_capability is not None and window_capability.state in {"available", "partial"}:
             recording_capability = contract.capabilities.get("recording")

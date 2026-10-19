@@ -93,6 +93,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-evidence-bytes", type=int, default=6 * 1024 * 1024, help="shared encoded evidence budget, at most 6 MiB; not process RSS")
     parser.add_argument("--max-evidence-record-bytes", type=int, help="whole-record bound within the shared budget (default: min(1 MiB, budget))")
     parser.add_argument("--no-analytics", action="store_true", help="disable optional windowed analytics")
+    parser.add_argument("--no-alerts", action="store_true", help="disable optional alert configuration/evidence resources")
+    parser.add_argument("--no-workspace-validation", action="store_true", help="omit optional server normalization; browser workspaces remain usable")
+    parser.add_argument("--read-only-alerts", action="store_true", help="show alert evidence without editing/reset/acknowledgement endpoints")
     parser.add_argument("--no-recording", action="store_true", help="disable optional capture/import/replay-analysis resources")
     parser.add_argument("--enable-controls", action="store_true", help="enable synthetic session controls (requires --showcase)")
     mode = parser.add_mutually_exclusive_group()
@@ -140,7 +143,9 @@ def main(argv: list[str] | None = None) -> int:
                 driver_factory=ShowcaseSessionDriver, federations=("ShowcaseFederation",),
                 sink=store.publish, synthetic=True,
             ))
-        app = create_app(store, enable_analytics=not args.no_analytics, commands=commands, enable_recording=not args.no_recording)
+        app = create_app(store, enable_analytics=not args.no_analytics, commands=commands,
+                         enable_recording=not args.no_recording, enable_alerts=not args.no_alerts,
+                         enable_alert_controls=not args.read_only_alerts, enable_workspace_validation=not args.no_workspace_validation)
         try:
             import uvicorn
         except ImportError as error:  # pragma: no cover - depends on optional extra

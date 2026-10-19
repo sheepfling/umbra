@@ -20,6 +20,7 @@ test("all main screens render without a page-wide mobile overflow", async ({ pag
     ["Logical time", "Logical-time observations"], ["Events", "Event explorer"],
     ["Inspectors", "Objects"], ["Actions", "Controlled sessions"],
     ["Recordings", "Recordings and replay"],
+    ["Alerts", "Observer alerts"],
     ["Diagnostics", "Observation health"],
   ] as const;
   for (const [view, heading] of views) {

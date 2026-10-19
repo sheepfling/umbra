@@ -43,7 +43,12 @@ def scenario(profile: str) -> Generator[FastAPI, None, None]:
                                owner="adapter", source="contract-fixture")
     # The Java fixture is explicitly HTTP-only, so both sides of the fixture
     # matrix advertise the same transport boundary instead of promising WS.
-    app = create_app(store, enable_analytics=profile != "no-analytics", enable_recording=False)
+    app = create_app(store, enable_analytics=profile != "no-analytics", enable_recording=False,
+                     enable_alert_controls=False, enable_workspace_validation=False)
+    if profile != "empty":
+        from .alerting import AlertRuleSpec
+        store.configure_alerts((AlertRuleSpec("fixture-loss", "Fixture history loss", "dropped-history", threshold_count=1),
+                                AlertRuleSpec("fixture-pending", "Fixture pending work", "pending-commands", threshold_seconds=5)), 0)
     store.set_capabilities({name: {"state": "unsupported", "reason": "This fixture uses HTTP polling."}
                             for name in ("websocket", "sse")}, owner="backend", source="fastapi")
     if profile != "empty":
@@ -173,6 +178,8 @@ def capture(profile: str) -> dict[str, str]:
     with (patch("time.time", return_value=1_760_000_000.0),
           patch("umbra_rti_observer.time_views.monotonic", return_value=100.0),
           patch("umbra_rti_observer.interaction_flow.monotonic", return_value=100.0),
+          patch("umbra_rti_observer.alerting.monotonic", return_value=100.0),
+          patch("umbra_rti_observer.alerting.uuid4", return_value="fixture-alert-instance"),
           scenario(profile) as app, TestClient(app) as client):
         targets = ["/api/contract", "/api/health", "/api/state?include_events=true",
                    "/api/state?include_events=false", "/api/metrics", "/api/events?after=0&limit=2",
@@ -183,6 +190,7 @@ def capture(profile: str) -> dict[str, str]:
             targets.append("/api/analytics")
             targets.extend(f"/api/analytics?window_seconds={seconds}&bucket_count=30" for seconds in (30, 300, 900, 3600))
         targets.extend(f"/api/inspectors/{kind}" for kind in ("objects", "interactions", "federates"))
+        targets.append("/api/alerts")
         manifest: list[str] = []
         for index, target in enumerate(targets):
             response = client.get(target)

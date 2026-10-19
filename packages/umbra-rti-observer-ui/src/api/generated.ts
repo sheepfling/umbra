@@ -21,6 +21,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alerts */
+        get: operations["alerts_api_alerts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/alerts/acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Acknowledge Alert */
+        post: operations["acknowledge_alert_api_alerts_acknowledge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/alerts/configuration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Configure Alerts */
+        put: operations["configure_alerts_api_alerts_configuration_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/alerts/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset Alert */
+        post: operations["reset_alert_api_alerts_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/analytics": {
         parameters: {
             query?: never;
@@ -381,6 +449,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/defaults": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Defaults */
+        get: operations["defaults_api_workspaces_defaults_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate Workspace */
+        post: operations["validate_workspace_api_workspaces_validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -407,6 +509,199 @@ export interface components {
             /** Name */
             name: string;
             /** Status */
+            status: string;
+        };
+        /** AlertAcknowledgeRequest */
+        AlertAcknowledgeRequest: {
+            /** Evidence Id */
+            evidence_id: number;
+            /** Expected Instance Id */
+            expected_instance_id: string;
+        };
+        /** AlertCommandProof */
+        AlertCommandProof: {
+            /** Age Seconds */
+            age_seconds: number;
+            /** Command Id */
+            command_id: string;
+            /** Effect Unknown */
+            effect_unknown: boolean;
+            /** Target Id */
+            target_id: string;
+        };
+        /** AlertConfiguration */
+        AlertConfiguration: {
+            /**
+             * Configuration Version
+             * @constant
+             */
+            configuration_version: "umbra-observer-alerts-v1";
+            /** Rules */
+            rules: (components["schemas"]["StaleObservationRule"] | components["schemas"]["ErrorCountRule"] | components["schemas"]["DroppedHistoryRule"] | components["schemas"]["PendingCommandRule"])[];
+        };
+        /** AlertConfigurationUpdate */
+        AlertConfigurationUpdate: {
+            configuration: components["schemas"]["AlertConfiguration"];
+            /** Expected Instance Id */
+            expected_instance_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+        };
+        /** AlertEvidenceModel */
+        AlertEvidenceModel: {
+            /** Acknowledged */
+            acknowledged: boolean;
+            /** Evidence Id */
+            evidence_id: number;
+            result: components["schemas"]["AlertResultModel"];
+            /** Rule */
+            rule: components["schemas"]["StaleObservationRule"] | components["schemas"]["ErrorCountRule"] | components["schemas"]["DroppedHistoryRule"] | components["schemas"]["PendingCommandRule"];
+        };
+        /** AlertReport */
+        AlertReport: {
+            /**
+             * Configuration Version
+             * @constant
+             */
+            configuration_version: "umbra-observer-alerts-v1";
+            /**
+             * Contract Version
+             * @constant
+             */
+            contract_version: "umbra-observer-contract-v1";
+            /**
+             * Error Basis
+             * @constant
+             */
+            error_basis: "since-rule-activation-window";
+            /**
+             * Error Marks Per Rule
+             * @constant
+             */
+            error_marks_per_rule: 512;
+            /**
+             * Evaluation Basis
+             * @constant
+             */
+            evaluation_basis: "observer-ingress-monotonic";
+            /** Evicted Evidence */
+            evicted_evidence: number;
+            /**
+             * Evidence Capacity
+             * @constant
+             */
+            evidence_capacity: 500;
+            /** History */
+            history: components["schemas"]["AlertEvidenceModel"][];
+            /** Instance Id */
+            instance_id: string;
+            /**
+             * Max Configuration Bytes
+             * @constant
+             */
+            max_configuration_bytes: 65536;
+            /**
+             * Max Rules
+             * @constant
+             */
+            max_rules: 64;
+            /**
+             * Persistence
+             * @constant
+             */
+            persistence: "server-process";
+            /** Results */
+            results: components["schemas"]["AlertResultModel"][];
+            /** Revision */
+            revision: number;
+            /** Rules */
+            rules: (components["schemas"]["StaleObservationRule"] | components["schemas"]["ErrorCountRule"] | components["schemas"]["DroppedHistoryRule"] | components["schemas"]["PendingCommandRule"])[];
+        };
+        /** AlertResetRequest */
+        AlertResetRequest: {
+            /** Expected Instance Id */
+            expected_instance_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /** Rule Id */
+            rule_id: string;
+        };
+        /** AlertResultModel */
+        AlertResultModel: {
+            /** Captured At */
+            captured_at: number;
+            command: components["schemas"]["AlertCommandProof"] | null;
+            /**
+             * Coverage
+             * @enum {string}
+             */
+            coverage: "complete" | "partial" | "unavailable" | "not-observed";
+            history_loss: components["schemas"]["HistoryLossProof"] | null;
+            /** Last Sequence */
+            last_sequence: number | null;
+            /** Metric */
+            metric: number | null;
+            /** Metric Upper */
+            metric_upper: number | null;
+            /** Pending Count */
+            pending_count: number | null;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "disabled" | "not-observed" | "observations-current" | "observations-idle" | "explicit-disconnect" | "explicit-resignation" | "errors-below-threshold" | "errors-threshold" | "error-window-incomplete" | "history-below-threshold" | "history-loss-threshold" | "pending-below-threshold" | "pending-threshold" | "commands-unavailable" | "target-unavailable" | "clock-unusable";
+            /** Rule Generation */
+            rule_generation: number;
+            /** Rule Id */
+            rule_id: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "disabled" | "unknown" | "clear" | "firing" | "ended";
+            /** Threshold */
+            threshold: number;
+            /**
+             * Unit
+             * @enum {string}
+             */
+            unit: "seconds" | "observations";
+        };
+        /** AlertScopeModel */
+        AlertScopeModel: {
+            /** Federate */
+            federate?: string | null;
+            /** Federation */
+            federation?: string | null;
+            /** Session Id */
+            session_id?: string | null;
+            /** Source */
+            source?: string | null;
+        };
+        /** AlertViewSettings */
+        "AlertViewSettings-Input": {
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Status
+             * @default all
+             */
+            status: string;
+        };
+        /** AlertViewSettings */
+        "AlertViewSettings-Output": {
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Status
+             * @default all
+             */
             status: string;
         };
         /** AnalyticsResponse */
@@ -1031,6 +1326,62 @@ export interface components {
             source: string;
             subject?: components["schemas"]["ParticipantIdentityResponse"] | null;
         };
+        /** CoordinationViewSettings */
+        "CoordinationViewSettings-Input": {
+            /**
+             * Kind
+             * @default all
+             */
+            kind: string;
+            /**
+             * Phase
+             * @default all
+             */
+            phase: string;
+            /**
+             * Scope
+             * @default all
+             */
+            scope: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Selected
+             * @default all
+             */
+            selected: string;
+        };
+        /** CoordinationViewSettings */
+        "CoordinationViewSettings-Output": {
+            /**
+             * Kind
+             * @default all
+             */
+            kind: string;
+            /**
+             * Phase
+             * @default all
+             */
+            phase: string;
+            /**
+             * Scope
+             * @default all
+             */
+            scope: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Selected
+             * @default all
+             */
+            selected: string;
+        };
         /** DeclarationScopeResponse */
         DeclarationScopeResponse: {
             /** Federate */
@@ -1092,6 +1443,62 @@ export interface components {
             /** Snapshots */
             snapshots: components["schemas"]["DeclarationSnapshotResponse"][];
         };
+        /** DeclarationViewSettings */
+        "DeclarationViewSettings-Input": {
+            /**
+             * Direction
+             * @default all
+             */
+            direction: string;
+            /**
+             * Kind
+             * @default all
+             */
+            kind: string;
+            /**
+             * Perspective
+             * @default all
+             */
+            perspective: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Status
+             * @default all
+             */
+            status: string;
+        };
+        /** DeclarationViewSettings */
+        "DeclarationViewSettings-Output": {
+            /**
+             * Direction
+             * @default all
+             */
+            direction: string;
+            /**
+             * Kind
+             * @default all
+             */
+            kind: string;
+            /**
+             * Perspective
+             * @default all
+             */
+            perspective: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Status
+             * @default all
+             */
+            status: string;
+        };
         /** DimensionRangeResponse */
         DimensionRangeResponse: {
             /** Dimension Id */
@@ -1121,11 +1528,67 @@ export interface components {
             /** Target Id */
             target_id: string;
         };
+        /** DroppedHistoryRule */
+        DroppedHistoryRule: {
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "dropped-history";
+            /** Name */
+            name: string;
+            /** Rule Id */
+            rule_id: string;
+            /**
+             * Severity
+             * @default warning
+             * @enum {string}
+             */
+            severity: "info" | "warning" | "critical";
+            /** Threshold Count */
+            threshold_count: number;
+        };
         /**
          * EmptyParameters
          * @description Connection configuration and credentials belong to the server.
          */
         EmptyParameters: Record<string, never>;
+        /** ErrorCountRule */
+        ErrorCountRule: {
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "errors";
+            /** Name */
+            name: string;
+            /** Rule Id */
+            rule_id: string;
+            scope?: components["schemas"]["AlertScopeModel"];
+            /**
+             * Severity
+             * @default warning
+             * @enum {string}
+             */
+            severity: "info" | "warning" | "critical";
+            /** Threshold Count */
+            threshold_count: number;
+            /**
+             * Window Seconds
+             * @default 300
+             */
+            window_seconds: number;
+        };
         /**
          * EventBatchRequest
          * @description Atomic event batch request.
@@ -1369,6 +1832,62 @@ export interface components {
             /** Retained Events */
             retained_events: number;
         };
+        /** EventViewSettings */
+        "EventViewSettings-Input": {
+            /**
+             * Family
+             * @default
+             */
+            family: string;
+            /**
+             * Federate
+             * @default
+             */
+            federate: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Source
+             * @default
+             */
+            source: string;
+            /**
+             * Type
+             * @default
+             */
+            type: string;
+        };
+        /** EventViewSettings */
+        "EventViewSettings-Output": {
+            /**
+             * Family
+             * @default
+             */
+            family: string;
+            /**
+             * Federate
+             * @default
+             */
+            federate: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Source
+             * @default
+             */
+            source: string;
+            /**
+             * Type
+             * @default
+             */
+            type: string;
+        };
         /** FederateActivity */
         FederateActivity: {
             /** Error Count */
@@ -1412,6 +1931,24 @@ export interface components {
             source: string;
             /** Status */
             status: string;
+        };
+        /** FederationViewSettings */
+        "FederationViewSettings-Input": {
+            /**
+             * Distribution
+             * @default event_types
+             * @enum {string}
+             */
+            distribution: "event_types" | "sources" | "families";
+        };
+        /** FederationViewSettings */
+        "FederationViewSettings-Output": {
+            /**
+             * Distribution
+             * @default event_types
+             * @enum {string}
+             */
+            distribution: "event_types" | "sources" | "families";
         };
         /** FomDatatypeObservation */
         FomDatatypeObservation: {
@@ -1801,6 +2338,56 @@ export interface components {
             /** Transitions */
             transitions: (components["schemas"]["FomObjectReportResponse"] | components["schemas"]["FomInteractionReportResponse"] | components["schemas"]["FomDatatypeReportResponse"] | components["schemas"]["FomDimensionReportResponse"])[];
         };
+        /** FomViewSettings */
+        "FomViewSettings-Input": {
+            /**
+             * Kind
+             * @default all
+             */
+            kind: string;
+            /**
+             * Model
+             * @default all
+             */
+            model: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /** Selected */
+            selected?: string | null;
+            /**
+             * Status
+             * @default all
+             */
+            status: string;
+        };
+        /** FomViewSettings */
+        "FomViewSettings-Output": {
+            /**
+             * Kind
+             * @default all
+             */
+            kind: string;
+            /**
+             * Model
+             * @default all
+             */
+            model: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /** Selected */
+            selected: string | null;
+            /**
+             * Status
+             * @default all
+             */
+            status: string;
+        };
         /** HealthResponse */
         HealthResponse: {
             /** Capabilities */
@@ -1818,6 +2405,13 @@ export interface components {
             service: string;
             /** Status */
             status: string;
+        };
+        /** HistoryLossProof */
+        HistoryLossProof: {
+            /** Baseline */
+            baseline: number;
+            /** Current */
+            current: number;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -2047,6 +2641,42 @@ export interface components {
             /** Source */
             source: string;
             tag?: components["schemas"]["JsonValue-Output"];
+        };
+        /** InteractionViewSettings */
+        "InteractionViewSettings-Input": {
+            /**
+             * Order
+             * @default all
+             */
+            order: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Status
+             * @default all
+             */
+            status: string;
+        };
+        /** InteractionViewSettings */
+        "InteractionViewSettings-Output": {
+            /**
+             * Order
+             * @default all
+             */
+            order: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Status
+             * @default all
+             */
+            status: string;
         };
         /** JoinCommand */
         JoinCommand: {
@@ -2361,6 +2991,46 @@ export interface components {
             status: "invoked" | "completed" | "failed" | "unknown";
             subject?: components["schemas"]["ParticipantReferenceResponse"] | null;
         };
+        /** MomViewSettings */
+        "MomViewSettings-Input": {
+            /** Counter */
+            counter?: string | null;
+            /**
+             * Scope
+             * @default all
+             */
+            scope: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Service Status
+             * @default all
+             */
+            service_status: string;
+        };
+        /** MomViewSettings */
+        "MomViewSettings-Output": {
+            /** Counter */
+            counter: string | null;
+            /**
+             * Scope
+             * @default all
+             */
+            scope: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Service Status
+             * @default all
+             */
+            service_status: string;
+        };
         /** ObjectAttributeChangeResponse */
         "ObjectAttributeChangeResponse-Input": {
             /** Attribute */
@@ -2402,6 +3072,24 @@ export interface components {
             /** Source */
             source: string;
             value: components["schemas"]["JsonValue-Output"];
+        };
+        /** ObjectChartChoice */
+        "ObjectChartChoice-Input": {
+            /** Attribute */
+            attribute: string;
+            /** Object Key */
+            object_key: string;
+            /** Scope */
+            scope?: string | null;
+        };
+        /** ObjectChartChoice */
+        "ObjectChartChoice-Output": {
+            /** Attribute */
+            attribute: string;
+            /** Object Key */
+            object_key: string;
+            /** Scope */
+            scope: string | null;
         };
         /** ObjectDeclarationObservation */
         ObjectDeclarationObservation: {
@@ -2562,6 +3250,46 @@ export interface components {
             /** Last Sequence */
             last_sequence: number;
             object: components["schemas"]["ObjectInspectionResponse-Output"];
+        };
+        /** ObjectViewSettings */
+        "ObjectViewSettings-Input": {
+            /** Scope */
+            scope?: string | null;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Selected
+             * @default
+             */
+            selected: string;
+            /**
+             * Status
+             * @default all
+             */
+            status: string;
+        };
+        /** ObjectViewSettings */
+        "ObjectViewSettings-Output": {
+            /** Scope */
+            scope: string | null;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Selected
+             * @default
+             */
+            selected: string;
+            /**
+             * Status
+             * @default all
+             */
+            status: string;
         };
         /** OwnershipOutcomeObservation */
         OwnershipOutcomeObservation: {
@@ -2815,6 +3543,52 @@ export interface components {
              */
             status: "pending" | "completed" | "failed" | "cancelled" | "ambiguous";
         };
+        /** OwnershipViewSettings */
+        "OwnershipViewSettings-Input": {
+            /**
+             * Owner State
+             * @default all
+             */
+            owner_state: string;
+            /**
+             * Request Status
+             * @default all
+             */
+            request_status: string;
+            /**
+             * Scope
+             * @default all
+             */
+            scope: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+        };
+        /** OwnershipViewSettings */
+        "OwnershipViewSettings-Output": {
+            /**
+             * Owner State
+             * @default all
+             */
+            owner_state: string;
+            /**
+             * Request Status
+             * @default all
+             */
+            request_status: string;
+            /**
+             * Scope
+             * @default all
+             */
+            scope: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+        };
         /**
          * ParticipantIdentityResponse
          * @description Opaque IDs identify a participant join; names and handles never do.
@@ -2836,6 +3610,33 @@ export interface components {
             /** Handle */
             handle?: string | null;
             identity?: components["schemas"]["ParticipantIdentityResponse"] | null;
+        };
+        /** PendingCommandRule */
+        PendingCommandRule: {
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "pending-commands";
+            /** Name */
+            name: string;
+            /** Rule Id */
+            rule_id: string;
+            /**
+             * Severity
+             * @default warning
+             * @enum {string}
+             */
+            severity: "info" | "warning" | "critical";
+            /** Target Id */
+            target_id?: string | null;
+            /** Threshold Seconds */
+            threshold_seconds: number;
         };
         /** PersistenceObservation */
         PersistenceObservation: {
@@ -3417,6 +4218,56 @@ export interface components {
             status: "active" | "deleted" | "unknown";
             subject?: components["schemas"]["ParticipantIdentityResponse"] | null;
         };
+        /** RegionViewSettings */
+        "RegionViewSettings-Input": {
+            /**
+             * Evidence
+             * @default all
+             */
+            evidence: string;
+            /**
+             * Kind
+             * @default all
+             */
+            kind: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /** Selected */
+            selected?: string | null;
+            /**
+             * Status
+             * @default all
+             */
+            status: string;
+        };
+        /** RegionViewSettings */
+        "RegionViewSettings-Output": {
+            /**
+             * Evidence
+             * @default all
+             */
+            evidence: string;
+            /**
+             * Kind
+             * @default all
+             */
+            kind: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /** Selected */
+            selected: string | null;
+            /**
+             * Status
+             * @default all
+             */
+            status: string;
+        };
         /** RelationshipObservationInput */
         RelationshipObservationInput: {
             /** Class Key */
@@ -3589,6 +4440,32 @@ export interface components {
             next_sequence: number;
             /** Retained Events */
             retained_events: number;
+        };
+        /** StaleObservationRule */
+        StaleObservationRule: {
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "stale-observations";
+            /** Name */
+            name: string;
+            /** Rule Id */
+            rule_id: string;
+            scope?: components["schemas"]["AlertScopeModel"];
+            /**
+             * Severity
+             * @default warning
+             * @enum {string}
+             */
+            severity: "info" | "warning" | "critical";
+            /** Threshold Seconds */
+            threshold_seconds: number;
         };
         /** StateResponse */
         "StateResponse-Input": {
@@ -3947,6 +4824,92 @@ export interface components {
             /** Session Id */
             session_id?: string | null;
         };
+        /** TimeViewSettings */
+        "TimeViewSettings-Input": {
+            /**
+             * Grants Only
+             * @default false
+             */
+            grants_only: boolean;
+            /** Selected */
+            selected?: string | null;
+        };
+        /** TimeViewSettings */
+        "TimeViewSettings-Output": {
+            /**
+             * Grants Only
+             * @default false
+             */
+            grants_only: boolean;
+            /** Selected */
+            selected: string | null;
+        };
+        /** TopologyViewSettings */
+        "TopologyViewSettings-Input": {
+            /**
+             * Evidence
+             * @default all
+             */
+            evidence: string;
+            /**
+             * Focused
+             * @default all
+             */
+            focused: string;
+            /**
+             * Kind
+             * @default all
+             */
+            kind: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Source
+             * @default all
+             */
+            source: string;
+            /**
+             * Status
+             * @default all
+             */
+            status: string;
+        };
+        /** TopologyViewSettings */
+        "TopologyViewSettings-Output": {
+            /**
+             * Evidence
+             * @default all
+             */
+            evidence: string;
+            /**
+             * Focused
+             * @default all
+             */
+            focused: string;
+            /**
+             * Kind
+             * @default all
+             */
+            kind: string;
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+            /**
+             * Source
+             * @default all
+             */
+            source: string;
+            /**
+             * Status
+             * @default all
+             */
+            status: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -3959,6 +4922,136 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** WorkspaceDefaultsResponse */
+        WorkspaceDefaultsResponse: {
+            /**
+             * Contract Version
+             * @default umbra-observer-contract-v1
+             * @constant
+             */
+            contract_version: "umbra-observer-contract-v1";
+            library: components["schemas"]["WorkspaceLibrary"];
+        };
+        /** WorkspaceDocument */
+        "WorkspaceDocument-Input": {
+            /** Name */
+            name: string;
+            settings?: components["schemas"]["WorkspaceSettings-Input"];
+            /**
+             * Workspace Version
+             * @constant
+             */
+            workspace_version: "umbra-observer-workspace-v1";
+        };
+        /** WorkspaceDocument */
+        "WorkspaceDocument-Output": {
+            /** Name */
+            name: string;
+            settings: components["schemas"]["WorkspaceSettings-Output"];
+            /**
+             * Workspace Version
+             * @constant
+             */
+            workspace_version: "umbra-observer-workspace-v1";
+        };
+        /** WorkspaceLibrary */
+        WorkspaceLibrary: {
+            current: components["schemas"]["WorkspaceSettings-Output"];
+            /**
+             * Library Version
+             * @constant
+             */
+            library_version: "umbra-observer-workspace-library-v1";
+            /**
+             * Saved
+             * @default []
+             */
+            saved: components["schemas"]["WorkspaceDocument-Output"][];
+        };
+        /** WorkspaceSettings */
+        "WorkspaceSettings-Input": {
+            alerts?: components["schemas"]["AlertViewSettings-Input"];
+            declarations?: components["schemas"]["DeclarationViewSettings-Input"];
+            events?: components["schemas"]["EventViewSettings-Input"];
+            federate_declarations?: components["schemas"]["DeclarationViewSettings-Input"];
+            federate_events?: components["schemas"]["EventViewSettings-Input"];
+            federate_time?: components["schemas"]["TimeViewSettings-Input"];
+            federation?: components["schemas"]["FederationViewSettings-Input"];
+            fom?: components["schemas"]["FomViewSettings-Input"];
+            interactions?: components["schemas"]["InteractionViewSettings-Input"];
+            mom?: components["schemas"]["MomViewSettings-Input"];
+            /**
+             * Object Charts
+             * @default []
+             */
+            object_charts: components["schemas"]["ObjectChartChoice-Input"][];
+            objects?: components["schemas"]["ObjectViewSettings-Input"];
+            ownership?: components["schemas"]["OwnershipViewSettings-Input"];
+            persistence?: components["schemas"]["CoordinationViewSettings-Input"];
+            regions?: components["schemas"]["RegionViewSettings-Input"];
+            /**
+             * Selected Federate
+             * @default
+             */
+            selected_federate: string;
+            synchronization?: components["schemas"]["CoordinationViewSettings-Input"];
+            time?: components["schemas"]["TimeViewSettings-Input"];
+            topology?: components["schemas"]["TopologyViewSettings-Input"];
+            /**
+             * View
+             * @default federation
+             * @enum {string}
+             */
+            view: "federation" | "federates" | "objects" | "declarations" | "topology" | "interactions" | "ownership" | "regions" | "mom" | "fom" | "time" | "synchronization" | "persistence" | "events" | "inspectors" | "recordings" | "alerts" | "actions" | "diagnostics";
+            /**
+             * Window Seconds
+             * @default 300
+             * @enum {integer}
+             */
+            window_seconds: 30 | 300 | 900 | 3600;
+        };
+        /** WorkspaceSettings */
+        "WorkspaceSettings-Output": {
+            alerts: components["schemas"]["AlertViewSettings-Output"];
+            declarations: components["schemas"]["DeclarationViewSettings-Output"];
+            events: components["schemas"]["EventViewSettings-Output"];
+            federate_declarations: components["schemas"]["DeclarationViewSettings-Output"];
+            federate_events: components["schemas"]["EventViewSettings-Output"];
+            federate_time: components["schemas"]["TimeViewSettings-Output"];
+            federation: components["schemas"]["FederationViewSettings-Output"];
+            fom: components["schemas"]["FomViewSettings-Output"];
+            interactions: components["schemas"]["InteractionViewSettings-Output"];
+            mom: components["schemas"]["MomViewSettings-Output"];
+            /**
+             * Object Charts
+             * @default []
+             */
+            object_charts: components["schemas"]["ObjectChartChoice-Output"][];
+            objects: components["schemas"]["ObjectViewSettings-Output"];
+            ownership: components["schemas"]["OwnershipViewSettings-Output"];
+            persistence: components["schemas"]["CoordinationViewSettings-Output"];
+            regions: components["schemas"]["RegionViewSettings-Output"];
+            /**
+             * Selected Federate
+             * @default
+             */
+            selected_federate: string;
+            synchronization: components["schemas"]["CoordinationViewSettings-Output"];
+            time: components["schemas"]["TimeViewSettings-Output"];
+            topology: components["schemas"]["TopologyViewSettings-Output"];
+            /**
+             * View
+             * @default federation
+             * @enum {string}
+             */
+            view: "federation" | "federates" | "objects" | "declarations" | "topology" | "interactions" | "ownership" | "regions" | "mom" | "fom" | "time" | "synchronization" | "persistence" | "events" | "inspectors" | "recordings" | "alerts" | "actions" | "diagnostics";
+            /**
+             * Window Seconds
+             * @default 300
+             * @enum {integer}
+             */
+            window_seconds: 30 | 300 | 900 | 3600;
         };
     };
     responses: never;
@@ -3985,6 +5078,125 @@ export interface operations {
                 };
                 content: {
                     "text/html": string;
+                };
+            };
+        };
+    };
+    alerts_api_alerts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertReport"];
+                };
+            };
+        };
+    };
+    acknowledge_alert_api_alerts_acknowledge_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AlertAcknowledgeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    configure_alerts_api_alerts_configuration_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AlertConfigurationUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_alert_api_alerts_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AlertResetRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -4644,6 +5856,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StateResponse-Output"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    defaults_api_workspaces_defaults_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceDefaultsResponse"];
+                };
+            };
+        };
+    };
+    validate_workspace_api_workspaces_validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceDocument-Input"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceDocument-Output"];
                 };
             };
             /** @description Validation Error */

@@ -1,4 +1,6 @@
 import type {
+  AlertConfiguration,
+  AlertReport,
   AnalyticsResponse,
   CommandCatalog,
   CommandHistory,
@@ -44,6 +46,35 @@ export class ObserverClient {
       throw error;
     });
     return this.contractPromise;
+  }
+
+  async getAlerts(signal?: AbortSignal): Promise<AlertReport> {
+    return this.request<AlertReport>(await this.resource("alerts"), signal);
+  }
+
+  async configureAlerts(configuration: AlertConfiguration, revision: number, instanceId: string): Promise<AlertReport> {
+    return this.request<AlertReport>(await this.resource("alert_configuration"), undefined,
+      { method: "PUT", body: JSON.stringify({ expected_instance_id: instanceId, expected_revision: revision, configuration }) });
+  }
+
+  async importAlerts(raw: string, revision: number, instanceId: string): Promise<AlertReport> {
+    if (new TextEncoder().encode(raw).length > 128 * 1024) throw new ObserverApiError(413, "Alert configuration file exceeds 128 KiB.");
+    let configuration: unknown;
+    try { configuration = JSON.parse(raw); } catch { throw new ObserverApiError(422, "Alert configuration is not valid JSON."); }
+    // Untrusted file input is validated by the endpoint's named discriminated
+    // models. Never cast it into a rule or follow an imported resource URL.
+    return this.request<AlertReport>(await this.resource("alert_configuration"), undefined,
+      { method: "PUT", body: JSON.stringify({ expected_instance_id: instanceId, expected_revision: revision, configuration }) });
+  }
+
+  async resetAlert(ruleId: string, revision: number, instanceId: string): Promise<AlertReport> {
+    return this.request<AlertReport>(await this.resource("alert_reset"), undefined,
+      { method: "POST", body: JSON.stringify({ expected_instance_id: instanceId, expected_revision: revision, rule_id: ruleId }) });
+  }
+
+  async acknowledgeAlert(evidenceId: number, instanceId: string): Promise<AlertReport> {
+    return this.request<AlertReport>(await this.resource("alert_acknowledge"), undefined,
+      { method: "POST", body: JSON.stringify({ expected_instance_id: instanceId, evidence_id: evidenceId }) });
   }
 
   async getState(includeEvents = true): Promise<StateResponse> {

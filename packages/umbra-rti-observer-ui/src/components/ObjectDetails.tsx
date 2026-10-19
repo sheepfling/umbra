@@ -3,6 +3,8 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 import type { JsonValue, ObjectAttributeChange, ObjectPerspective } from "../api/types";
 import { formatTime } from "../app/observations";
 import { ChartPanel, chartColors, chartTick, chartTooltip, EmptyPanel } from "./ChartPanel";
+import { useObjectChart } from "../workspace/WorkspaceContext";
+import { RetainedSelect } from "../workspace/RetainedSelect";
 
 function numeric(value: JsonValue | undefined): value is number {
   return typeof value === "number" && Number.isFinite(value);
@@ -21,7 +23,7 @@ function Value({ value }: { value: JsonValue }) {
 }
 
 export function ObjectDetails({ snapshot, changes }: { snapshot: ObjectPerspective; changes: ObjectAttributeChange[] }) {
-  const [attribute, setAttribute] = useState("");
+  const [attribute, setAttribute] = useObjectChart(snapshot.federate, snapshot.object.object_key);
   const [limit, setLimit] = useState(100);
   const row = snapshot.object;
   const history = useMemo(() => changes.filter((change) => change.object_key === row.object_key
@@ -31,7 +33,7 @@ export function ObjectDetails({ snapshot, changes }: { snapshot: ObjectPerspecti
     ...Object.entries(row.attributes ?? {}).filter(([, value]) => numeric(value)).map(([name]) => name),
     ...history.filter((change) => numeric(change.value)).map((change) => change.attribute),
   ])].sort(), [row.attributes, history]);
-  const selected = numericAttributes.includes(attribute) ? attribute : numericAttributes[0] ?? "";
+  const selected = attribute || numericAttributes[0] || "";
   const samples = useMemo(() => history.filter((change) => change.attribute === selected).slice(-500).map((change) => ({
     sequence: change.sequence, value: numeric(change.value) ? change.value : null,
   })), [history, selected]);
@@ -48,7 +50,7 @@ export function ObjectDetails({ snapshot, changes }: { snapshot: ObjectPerspecti
         return <tr key={name}><td><strong>{name}</strong></td><td><Value value={value} /></td><td>{valueFormat(value)}</td><td>{change ? change.previous_known ? <Value value={change.previous_value} /> : "Unknown — first observation" : "No retained comparison"}</td></tr>;
       })}</tbody></table></div> : <p className="empty">No attribute values have been reported in this perspective.</p>}
     </article>
-    <div className="object-chart-control"><label>Numeric attribute<select aria-label="Numeric attribute" value={selected} disabled={!numericAttributes.length} onChange={(event) => setAttribute(event.target.value)}>{!numericAttributes.length && <option value="">None reported</option>}{numericAttributes.map((name) => <option key={name} value={name}>{name}</option>)}</select></label><p className="footnote">Finite JSON numbers only. Strings, booleans and opaque bytes are never converted into chart values.</p></div>
+    <div className="object-chart-control"><label>Numeric attribute<RetainedSelect aria-label="Numeric attribute" value={selected} disabled={!numericAttributes.length} onChange={(event) => setAttribute(event.target.value)}>{!numericAttributes.length && <option value="">None reported</option>}{numericAttributes.map((name) => <option key={name} value={name}>{name}</option>)}</RetainedSelect></label><p className="footnote">Finite JSON numbers only. Strings, booleans and opaque bytes are never converted into chart values. Saved attribute choices stay selected when temporarily unreported.</p></div>
     {numericSamples ? <ChartPanel title="Numeric attribute observations" eyebrow={selected} note={`${numericSamples} numeric samples · latest 500 observations maximum`}>
       <ResponsiveContainer width="100%" height="100%"><LineChart data={samples} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}><CartesianGrid stroke="#1d3852" strokeDasharray="3 3" /><XAxis dataKey="sequence" tick={chartTick} label={{ value: "Observation sequence", position: "insideBottom", offset: -5, fill: "#8ea5b8" }} /><YAxis tick={chartTick} domain={["auto", "auto"]} /><Tooltip contentStyle={chartTooltip} labelFormatter={(value) => `Sequence #${value}`} /><Line dataKey="value" name={selected} stroke={chartColors[0]} dot={{ r: 3 }} isAnimationActive={false} connectNulls={false} /></LineChart></ResponsiveContainer>
     </ChartPanel> : <EmptyPanel title={history.some((change) => change.attribute === selected && numeric(change.value)) ? "Numeric samples outside chart limit" : "No retained numeric samples"}>Only the latest 500 attribute observations are charted. Choose an attribute with numeric observations in that range. A latest snapshot value alone does not reconstruct historical samples.</EmptyPanel>}

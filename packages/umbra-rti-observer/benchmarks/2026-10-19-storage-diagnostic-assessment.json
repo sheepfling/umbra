@@ -1,0 +1,45 @@
+{
+  "assessment_version": "umbra-observer-scale-reference-v1",
+  "scope": "Saved in-process synthetic snapshot/analytics measurements only; not recording, HTTP/browser, provider or portable SLA coverage.",
+  "budget": {
+    "minimum_published_events": 20000,
+    "minimum_pipeline_samples": 7,
+    "retained_events": 2000,
+    "participants": 100,
+    "objects": 1000,
+    "perspectives": 5000,
+    "payload_bytes": 128,
+    "inspector_rows": 64,
+    "minimum_ingress_events_per_second": 1000.0,
+    "maximum_full_pipeline_p95_ms": 500.0,
+    "maximum_analytics_pipeline_p95_ms": 100.0,
+    "maximum_full_response_bytes": 8388608
+  },
+  "cases": [
+    {
+      "report_file": "2026-10-19-storage-large-index.json",
+      "source_fingerprint": "d434065ee3f8916a8f532f9efd042e567986381303fbd9c17a53c5b06927494f",
+      "workload_within_reference": false,
+      "measurement_coverage_sufficient": true,
+      "ingress_budget_met": true,
+      "full_pipeline_budget_met": true,
+      "analytics_pipeline_budget_met": true,
+      "response_size_budget_met": true,
+      "semantic_checks_passed": true,
+      "passed": false
+    },
+    {
+      "report_file": "2026-10-19-storage-wide.json",
+      "source_fingerprint": "d434065ee3f8916a8f532f9efd042e567986381303fbd9c17a53c5b06927494f",
+      "workload_within_reference": false,
+      "measurement_coverage_sufficient": true,
+      "ingress_budget_met": true,
+      "full_pipeline_budget_met": true,
+      "analytics_pipeline_budget_met": true,
+      "response_size_budget_met": true,
+      "semantic_checks_passed": true,
+      "passed": false
+    }
+  ],
+  "passed": false
+}

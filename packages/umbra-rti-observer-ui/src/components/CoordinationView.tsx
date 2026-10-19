@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { useWorkspaceField } from "../workspace/WorkspaceContext";
+import { RetainedSelect } from "../workspace/RetainedSelect";
 import type { CoordinationSnapshot, StateResponse } from "../api/types";
 import { formatTime } from "../app/observations";
 import { EmptyPanel } from "./ChartPanel";
@@ -24,11 +26,11 @@ function Participants({ row }: { row: CoordinationSnapshot }) {
 }
 
 export function CoordinationView({ state, workspace }: { state: StateResponse; workspace: "synchronization" | "persistence" }) {
-  const [search, setSearch] = useState("");
-  const [kind, setKind] = useState("all");
-  const [scope, setScope] = useState("all");
-  const [phase, setPhase] = useState("all");
-  const [selected, setSelected] = useState("all");
+  const [search, setSearch] = useWorkspaceField(workspace, "search");
+  const [kind, setKind] = useWorkspaceField(workspace, "kind");
+  const [scope, setScope] = useWorkspaceField(workspace, "scope");
+  const [phase, setPhase] = useWorkspaceField(workspace, "phase");
+  const [selected, setSelected] = useWorkspaceField(workspace, "selected");
   const [limit, setLimit] = useState(100);
   const [historyLimit, setHistoryLimit] = useState(100);
   const capability = state.capabilities[workspace === "persistence" ? "persistence_inspection" : "synchronization"];
@@ -58,10 +60,10 @@ export function CoordinationView({ state, workspace }: { state: StateResponse; w
     {(data.dropped_operations > 0 || data.dropped_transitions > 0) && <p className="coverage-note" role="status">Coordination coverage is incomplete: {data.dropped_operations} scoped snapshots and {data.dropped_transitions} transitions expired. Shared capacities: {data.capacity} snapshots / {data.history_capacity} transitions.</p>}
     <div className="panel object-controls coordination-controls">
       <label>Search latest reports<input aria-label="Search coordination reports" value={search} placeholder="Label, ID, source, subject or reason" onChange={(event) => { setSearch(event.target.value); setLimit(100); }} /></label>
-      <label>Operation<select aria-label="Coordination operation" value={selected} onChange={(event) => focus(event.target.value)}><option value="all">All reported operations</option>{selected !== "all" && !operations.has(selected) && <option value={selected}>Selected operation no longer reported</option>}{[...operations].map(([key, row]) => <option value={key} key={key}>{row.label} · {row.kind} · {row.operation_id} · {row.source} / {row.session_id} / {row.federation_id}</option>)}</select></label>
-      {workspace === "persistence" && <label>Kind<select aria-label="Coordination kind" value={kind} onChange={(event) => { setKind(event.target.value); setLimit(100); }}><option value="all">Save and restore</option><option value="save">Save</option><option value="restore">Restore</option></select></label>}
-      <label>Reported scope<select aria-label="Coordination scope" value={scope} onChange={(event) => { setScope(event.target.value); setLimit(100); }}><option value="all">Local and federation-wide</option><option value="local">Local only</option><option value="federation">Federation-wide only</option></select></label>
-      <label>Latest reported phase<select aria-label="Coordination phase" value={phase} onChange={(event) => { setPhase(event.target.value); setLimit(100); }}><option value="all">All phases</option>{(workspace === "synchronization" ? ["requested", "registered", "registration-failed", "announced", "achieved", "completed", "failed"] : ["requested", "begun", "completed", "failed"]).map((value) => <option key={value}>{value}</option>)}</select></label>
+      <label>Operation<RetainedSelect aria-label="Coordination operation" value={selected} onChange={(event) => focus(event.target.value)}><option value="all">All reported operations</option>{selected !== "all" && !operations.has(selected) && <option value={selected}>Selected operation no longer reported</option>}{[...operations].map(([key, row]) => <option value={key} key={key}>{row.label} · {row.kind} · {row.operation_id} · {row.source} / {row.session_id} / {row.federation_id}</option>)}</RetainedSelect></label>
+      {workspace === "persistence" && <label>Kind<RetainedSelect aria-label="Coordination kind" value={kind} onChange={(event) => { setKind(event.target.value); setLimit(100); }}><option value="all">Save and restore</option><option value="save">Save</option><option value="restore">Restore</option></RetainedSelect></label>}
+      <label>Reported scope<RetainedSelect aria-label="Coordination scope" value={scope} onChange={(event) => { setScope(event.target.value); setLimit(100); }}><option value="all">Local and federation-wide</option><option value="local">Local only</option><option value="federation">Federation-wide only</option></RetainedSelect></label>
+      <label>Latest reported phase<RetainedSelect aria-label="Coordination phase" value={phase} onChange={(event) => { setPhase(event.target.value); setLimit(100); }}><option value="all">All phases</option>{(workspace === "synchronization" ? ["requested", "registered", "registration-failed", "announced", "achieved", "completed", "failed"] : ["requested", "begun", "completed", "failed"]).map((value) => <option key={value}>{value}</option>)}</RetainedSelect></label>
     </div>
     <section className="metrics declaration-metrics" aria-label="Coordination metrics"><MetricCard label="Matching scoped reports" value={filtered.length} /><MetricCard label="Latest failures" value={filtered.filter((row) => row.phase === "failed" || row.phase === "registration-failed").length} tone="red" /><MetricCard label="Retained phase reports" value={history.length} tone="blue" /></section>
     <article className="panel" aria-label="Latest coordination reports"><div className="panel-heading"><div><p className="eyebrow">Separate local / federation scopes</p><h2>Latest coordination reports</h2></div><span className="panel-note">{filtered.length} matching scoped snapshots · newest first</span></div>

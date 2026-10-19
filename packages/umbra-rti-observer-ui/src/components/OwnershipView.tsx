@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useWorkspaceField } from "../workspace/WorkspaceContext";
+import { RetainedSelect } from "../workspace/RetainedSelect";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { OwnershipReport, StateResponse } from "../api/types";
 import { formatTime } from "../app/observations";
@@ -30,10 +32,10 @@ function Provenance({ row }: { row: OwnershipReport }) {
 }
 
 export function OwnershipView({ state }: { state: StateResponse }) {
-  const [search, setSearch] = useState("");
-  const [scope, setScope] = useState("all");
-  const [ownerState, setOwnerState] = useState("all");
-  const [requestStatus, setRequestStatus] = useState("all");
+  const [search, setSearch] = useWorkspaceField("ownership", "search");
+  const [scope, setScope] = useWorkspaceField("ownership", "scope");
+  const [ownerState, setOwnerState] = useWorkspaceField("ownership", "owner_state");
+  const [requestStatus, setRequestStatus] = useWorkspaceField("ownership", "request_status");
   const [stateLimit, setStateLimit] = useState(100);
   const [requestLimit, setRequestLimit] = useState(100);
   const [historyLimit, setHistoryLimit] = useState(100);
@@ -57,9 +59,9 @@ export function OwnershipView({ state }: { state: StateResponse }) {
     {data.unmatched_outcomes > 0 && <p className="coverage-note">{data.unmatched_outcomes} outcome reports had no retained pending ticket with an exact matching scope. They remain visible in retained history, without changing owners or inventing completions.</p>}
     <div className="panel object-controls ownership-controls">
       <label>Search ownership evidence<input aria-label="Search ownership evidence" value={search} placeholder="Object, attribute, participant, request or source" onChange={(event) => { setSearch(event.target.value); resetLimits(); }} /></label>
-      <label>Reported attribute scope<select aria-label="Ownership scope" value={scope} onChange={(event) => focus(event.target.value)}><option value="all">All reported scopes — separate records</option>{scope !== "all" && !scopes.has(scope) && <option value={scope}>Selected scope no longer reported</option>}{[...scopes].map(([key, row]) => <option value={key} key={key}>{row.object_id} / {row.attribute_key} · {row.source} / {row.session_id} / {row.identity_namespace} / {row.federation_id}</option>)}</select></label>
-      <label>Owner state<select aria-label="Ownership state filter" value={ownerState} onChange={(event) => { setOwnerState(event.target.value); setStateLimit(100); }}><option value="all">All reported owner states</option>{["known", "unowned", "rti", "unknown"].map((value) => <option key={value}>{value}</option>)}</select></label>
-      <label>Request status<select aria-label="Ownership request status" value={requestStatus} onChange={(event) => { setRequestStatus(event.target.value); setRequestLimit(100); }}><option value="all">All request evidence</option>{["pending", "completed", "failed", "cancelled", "ambiguous"].map((value) => <option key={value}>{value}</option>)}</select></label>
+      <label>Reported attribute scope<RetainedSelect aria-label="Ownership scope" value={scope} onChange={(event) => focus(event.target.value)}><option value="all">All reported scopes — separate records</option>{scope !== "all" && !scopes.has(scope) && <option value={scope}>Selected scope no longer reported</option>}{[...scopes].map(([key, row]) => <option value={key} key={key}>{row.object_id} / {row.attribute_key} · {row.source} / {row.session_id} / {row.identity_namespace} / {row.federation_id}</option>)}</RetainedSelect></label>
+      <label>Owner state<RetainedSelect aria-label="Ownership state filter" value={ownerState} onChange={(event) => { setOwnerState(event.target.value); setStateLimit(100); }}><option value="all">All reported owner states</option>{["known", "unowned", "rti", "unknown"].map((value) => <option key={value}>{value}</option>)}</RetainedSelect></label>
+      <label>Request status<RetainedSelect aria-label="Ownership request status" value={requestStatus} onChange={(event) => { setRequestStatus(event.target.value); setRequestLimit(100); }}><option value="all">All request evidence</option>{["pending", "completed", "failed", "cancelled", "ambiguous"].map((value) => <option key={value}>{value}</option>)}</RetainedSelect></label>
     </div>
     <section className="metrics declaration-metrics" aria-label="Filtered ownership evidence metrics"><MetricCard label="Reported attribute scopes" value={states.length} /><MetricCard label="Pending tickets" value={requests.filter((row) => row.status === "pending").length} tone="amber" /><MetricCard label="Ambiguous tickets" value={requests.filter((row) => row.status === "ambiguous").length} tone="red" /></section>
     <ChartPanel title="Reported attribute scopes by owner state" eyebrow="Latest filtered evidence · not a federation census" note="Separate reporters and sessions remain separate counts">

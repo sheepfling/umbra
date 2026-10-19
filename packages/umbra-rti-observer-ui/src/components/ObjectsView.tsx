@@ -3,12 +3,13 @@ import type { StateResponse } from "../api/types";
 import { EmptyPanel } from "./ChartPanel";
 import { ObjectDetails } from "./ObjectDetails";
 import { ObjectCoverage } from "./ObjectCoverage";
+import { useWorkspaceField } from "../workspace/WorkspaceContext";
 
 export function ObjectsView({ state }: { state: StateResponse }) {
-  const [scope, setScope] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("all");
-  const [selected, setSelected] = useState("");
+  const [scope, setScope] = useWorkspaceField("objects", "scope");
+  const [search, setSearch] = useWorkspaceField("objects", "search");
+  const [status, setStatus] = useWorkspaceField("objects", "status");
+  const [selected, setSelected] = useWorkspaceField("objects", "selected");
   const [limit, setLimit] = useState(100);
   const capability = state.capabilities.object_observations;
   const supported = capability?.state === "available" || capability?.state === "partial";
@@ -25,7 +26,7 @@ export function ObjectsView({ state }: { state: StateResponse }) {
     && [row.object.object_key, row.object.object_name, row.object.class_name,
       row.object.object_handle, row.object.class_handle].join(" ").toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())) ?? [],
   [data, scope, status, search]);
-  const current = rows.find((row) => row.object.object_key === selected) ?? rows[0];
+  const current = selected ? rows.find((row) => row.object.object_key === selected) : rows[0];
 
   if (!data) return <EmptyPanel title="Object perspectives unavailable">{capability?.reason
     ?? "This backend does not advertise persistent object perspectives."} The Inspectors screen still shows any reported global object values. No federate-specific values are inferred.</EmptyPanel>;

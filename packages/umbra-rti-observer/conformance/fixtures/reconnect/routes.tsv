@@ -17,3 +17,4 @@
 /api/inspectors/objects	200	response-15.json
 /api/inspectors/interactions	200	response-16.json
 /api/inspectors/federates	200	response-17.json
+/api/alerts	200	response-18.json

@@ -1,6 +1,13 @@
 import type { components } from "./generated";
 
 type Generated = components["schemas"];
+export type WorkspaceDocument = Generated["WorkspaceDocument-Output"];
+export type WorkspaceLibrary = Generated["WorkspaceLibrary"];
+export type WorkspaceSettings = Generated["WorkspaceSettings-Output"];
+export type AlertReport = Generated["AlertReport"];
+export type AlertConfiguration = Generated["AlertConfiguration"];
+export type AlertRule = AlertConfiguration["rules"][number];
+export type AlertResult = Generated["AlertResultModel"];
 export type StorageCoverage = Generated["StorageCoverageResponse"];
 
 export type AnalyticsResponse = Generated["AnalyticsResponse"];

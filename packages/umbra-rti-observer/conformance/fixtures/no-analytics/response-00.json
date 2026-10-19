@@ -1,5 +1,6 @@
 {
   "api_paths": {
+    "alerts": "/api/alerts",
     "contract": "/api/contract",
     "event_stream": "/api/events/stream",
     "events": "/api/events",
@@ -9,6 +10,32 @@
   },
   "backend_rule": "Provider and language-specific code ends at normalized events; the frontend consumes only this contract.",
   "capabilities": {
+    "alert_controls": {
+      "description": "Observer-only rule edits, baseline resets and evidence acknowledgements; independent of provider commands.",
+      "event_types": [],
+      "label": "Alert configuration controls",
+      "observations": [],
+      "owner": "backend",
+      "owners": [],
+      "reason": "Alert configuration is read-only or alerts are disabled.",
+      "reasons": [],
+      "source": null,
+      "sources": [],
+      "state": "disabled"
+    },
+    "alerts": {
+      "description": "Typed thresholds and bounded process-local evidence for ingress, history loss and optional cached commands; no provider authority.",
+      "event_types": [],
+      "label": "Observer alerts",
+      "observations": [],
+      "owner": "backend",
+      "owners": [],
+      "reason": "Typed thresholds with bounded process-local configuration/evidence; no RTI service dependency.",
+      "reasons": [],
+      "source": null,
+      "sources": [],
+      "state": "available"
+    },
     "analytics": {
       "description": "Windowed activity, participant attribution, and logical timestamp observations.",
       "event_types": [],
@@ -437,6 +464,19 @@
       "source": null,
       "sources": [],
       "state": "unsupported"
+    },
+    "workspace_validation": {
+      "description": "Optional canonical view-configuration validation/defaults; browser workspaces remain local and do not depend on this endpoint.",
+      "event_types": [],
+      "label": "Workspace contract validation",
+      "observations": [],
+      "owner": "backend",
+      "owners": [],
+      "reason": "Optional named workspace configuration validation; local browser settings do not require an RTI or this resource.",
+      "reasons": [],
+      "source": null,
+      "sources": [],
+      "state": "disabled"
     }
   },
   "capability_schema": {
@@ -454,6 +494,8 @@
       "event_types"
     ],
     "known": [
+      "alert_controls",
+      "alerts",
       "analytics",
       "attributes",
       "commands",
@@ -486,7 +528,8 @@
       "storage_inspection",
       "synchronization",
       "time_inspection",
-      "websocket"
+      "websocket",
+      "workspace_validation"
     ],
     "state_meanings": {
       "available": "The feature is supported and enabled for observation.",

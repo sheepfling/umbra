@@ -17,12 +17,14 @@ export default defineConfig({
     },
   },
   build: {
+    commonjsOptions: { include: [/node_modules/, /workspace-validator\.cjs$/] },
     outDir: "dist",
     emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks: {
           charts: ["recharts"],
+          "workspace-validation": ["./src/api/workspace-validator.cjs"],
         },
       },
     },

@@ -56,18 +56,25 @@ class TimeViews:
         if data is None:
             session = event.get("session_id")
             if event.event_type in {"session.disconnected", "federate.resigned"} and isinstance(session, str):
+                def affected(scope: TimeScope) -> bool:
+                    return (scope.source == event.source and scope.session_id == session and scope.federation == federation
+                            and (federate == scope.federate or (event.event_type == "session.disconnected" and federate is None)))
+
                 for scope, row in self._snapshots.items():
-                    if (scope.source == event.source and scope.session_id == session and scope.federation == federation
-                            and (federate == scope.federate or (event.event_type == "session.disconnected" and federate is None))):
+                    if affected(scope):
                         row.status = "ended"
                         row.last_sequence = event.sequence
                         row.observed_at = event.observed_at
                         self._changed_snapshots.add(scope)
-                        for request in self._requests.values():
-                            if request.scope == scope and request.status == "pending":
-                                self._finish(request, event, "session-ended", "Explicit session/federate end observed")
+                # Tickets can outlive their latest snapshots. Closing only the
+                # snapshot join would let an orphaned ticket accept a late grant.
+                for request in self._requests.values():
+                    if affected(request.scope) and request.status == "pending":
+                        self._finish(request, event, "session-ended", "Explicit session/federate end observed")
             return
         scope = TimeScope(event.source, data.session_id, federation, federate)
+        if any(request.scope == scope and request.status == "session-ended" for request in self._requests.values()):
+            return  # Retained terminal evidence also protects an expired latest scope.
         row = self._snapshots.get(scope)
         if row is None:
             row = TimeSnapshot(scope, event.sequence, event.observed_at)

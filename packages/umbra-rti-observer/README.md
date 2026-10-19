@@ -99,8 +99,16 @@ events, idle roster entries, attribution and retention semantics are preserved.
 Scoped object baselines have an independent 5000-record default budget and
 visible loss metadata; reobserved scopes start fresh comparisons. Object lists
 page in groups of 100 without limiting search. See [SCALE.md](SCALE.md) for
-reproducible measurements, the tested snapshot/analytics envelope and open
-recording/oversized-state work. These are not hardware-independent guarantees.
+reproducible measurements and the tested snapshot/analytics envelope. These are
+not hardware-independent guarantees.
+
+All observation collections now have count limits and share a 6 MiB encoded-JSON
+evidence budget, with independent bounded context/metadata. Whole-record expiry
+is disclosed, never interpreted as removal, resignation or unsupported services.
+Diagnostics shows optional typed storage coverage; older/limited backends keep
+their independent screens. Retained attribution and time tickets survive expiry
+of their latest metadata. See [STORAGE.md](STORAGE.md) for CLI/Python limits,
+soft reservations, exact loss/cursor behavior and what the accounting excludes.
 
 The Recordings tab captures a bounded, versioned journal of complete observer
 states and committed envelope batches. It preserves existing inspectors, partial
@@ -117,6 +125,13 @@ When the live backend advertises compact recording, the UI negotiates lossless
 v2 baseline/edit files with bounded reconstruction; older backends/files keep
 the v1 flow. A worker expands only the current state, not the complete timeline.
 See [RECORDING.md](RECORDING.md) for the format and safety limits.
+
+The Alerts tab adds user-defined stale-observation, error-window, dropped-history
+and pending-command thresholds with bounded evidence. Idle is not disconnected;
+unknown/partial coverage is not zero. Configuration uses named/generated models,
+instance/revision checks and separate read/control capabilities. Downloads
+contain rules only, not captured observations or credentials. Rules/evidence
+are process-local; replay never fetches live alerts. See [ALERTS.md](ALERTS.md).
 
 MOM reports and the FOM browser are independently optional, read-only screens.
 Management member reports retain coverage/provenance without replacing the

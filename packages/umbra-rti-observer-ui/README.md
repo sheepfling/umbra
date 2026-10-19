@@ -66,11 +66,27 @@ through an isolated worker with explicit pending/error states and bounded work,
 without expanding all recorded states in page memory. See the package's
 [recording guide](../umbra-rti-observer/RECORDING.md).
 
+The optional `storage_inspection` capability adds budget meters and per-collection
+loss reasons in Diagnostics. Missing/disabled/unsupported coverage is Unknown,
+not zero loss, and never disables the other workspaces. Expired roster metadata
+does not erase explicitly attributed events or replace the selected participant;
+retained time tickets remain selectable without a latest snapshot. Values are
+never clipped or substituted. See [storage coverage](../umbra-rti-observer/STORAGE.md)
+for the difference between cache expiry and reported federation lifecycle.
+
 Pause view freezes the local view while collection continues. Event exports
 contain the current filtered loaded rows; they are not full-session recordings.
 Paused or stale control views cannot submit new commands.
 
 ## Development
+
+Alerts uses independently discovered read/control capabilities and generated
+discriminated rules. It provides a current-state chart, editable thresholds,
+bounded searchable evidence, acknowledgement and configuration-only files.
+Idle does not imply disconnection; unknown error bounds stay unknown. Drafts
+lock after a remote revision/backend change. Pause disables mutations without
+stopping evaluation; replay never fetches current alerts. Older/read-only Java
+backends keep other screens. See [the alert contract](../umbra-rti-observer/ALERTS.md).
 
 For a complete synthetic playtest without separate terminals, run
 `python tools/observer_playtest.py` from the repository root (or double-click

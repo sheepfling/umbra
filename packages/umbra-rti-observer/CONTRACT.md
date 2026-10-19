@@ -163,7 +163,8 @@ objects or provider-specific handle types.
   `previous_value: null`; a known null uses `previous_known: true`.
 - `history_first_sequence` and `history_last_sequence` exactly match the event
   retention window. `history_truncated` reports dropped/cleared history or
-  omitted changes belonging to expired scoped baselines.
+  omitted changes belonging to expired scoped baselines, or independently
+  expired change batches (`dropped_history_batches`, when reported).
   History retains at most `max_events` event batches, including empty batches
   for non-attribute events; it is not an archive or a time-window aggregate.
   Snapshot and event-history limits are independent; neither missing snapshots
@@ -178,8 +179,10 @@ since clear; omitted changes counts the **current** event-window changes whose
 scoped baseline is no longer retained. They must not reference invented scopes.
 Clear resets the index counters. Reobserved scopes begin a fresh comparison
 baseline, never reusing another participant's or a global value. Raw envelopes
-and their analytics are not dropped by this scoped-index expiry. This budget
-does not change the separate classic global object/roster inspector lifetime.
+and their analytics are not dropped merely by this scoped-index expiry. All
+collections also participate in the shared encoded-byte budget below; byte
+pressure can independently expire raw envelopes, classic objects or roster
+metadata. Their individual coverage makes the different losses explicit.
 Older backends without metadata have unknown capacity/loss, not zero loss or an
 infinite index. Objects, Federates and Diagnostics disclose the budget/loss;
 object navigation and attributed cards initially render 100 rows with explicit
@@ -262,6 +265,12 @@ without inventing a grant or grant delay.
   `ObserverStore(max_time_requests=...)`. Oldest requests, including pending
   ones, can expire. Eviction is reported; retained counts are not RTI-wide
   counts. Expired requests do not reconstruct matches from event history.
+- Optional `snapshot_capacity` and `dropped_snapshots` report the separate
+  latest-scope budget (2000 by default). A request can outlive its latest
+  snapshot. Its `snapshot_retained: false` requires explicit snapshot-expiry
+  coverage and no matching latest snapshot; absent/true keeps the older
+  matching-snapshot requirement. Retained tickets keep exact scope and may
+  still match a later grant, without borrowing expired role/bound/grant state.
 - `duration_basis: "observer-ingress-monotonic"` and
   `scope_basis: "explicit-observations"`: durations use one observer process's
   monotonic ingress clock, not remote timestamps or provider service time.
@@ -287,11 +296,15 @@ Explicit `session.disconnected` / `federate.resigned` events can end matching
 scopes when they carry the same source, federation and top-level session ID.
 A session disconnect without a federate ends all its reported federate scopes;
 a resignation must identify its federate. Pending records become session-ended,
-not granted. Late time packets cannot reopen an ended session; use a fresh ID.
+not granted, even when their latest snapshot has expired. Retained ended
+snapshots or session-ended tickets prevent late packets reopening that scope.
+Once all such bounded evidence expires, the observer cannot remember an
+unlimited history of ended sessions: producers must still use fresh IDs.
 
-Snapshots and pending requests survive event-history eviction, but not explicit
-history clearing or process restart. The scope index grows with observed
-identities until clear/restart; this is an inspector, not durable storage.
+Snapshots and pending requests can survive event-history eviction, subject to
+their independent count/byte budgets. Explicit history clearing or process
+restart resets both. Snapshot expiry is not ticket cancellation or session
+termination; the UI includes retained request scopes even without a snapshot.
 The UI limits request tables to 100 rows initially and delay charts to 250
 retained matches. Pause freezes the displayed snapshot while collection
 continues. Capabilities are feature switches, not access-control/redaction rules.
@@ -355,12 +368,13 @@ scope/set, optional reason, event sequence and observation wall time. Named
 Pydantic models validate shape and scope/set invariants for HTTP and streams;
 the core uses dependency-free typed records and atomic input validation.
 
-Snapshots outlive event eviction, but clear on explicit history clear/restart.
+Snapshots can outlive event eviction, subject to their own count/byte budgets,
+and clear on explicit history clear/restart.
 The index defaults to 1000 records across all scopes, configurable with
 `ObserverStore(max_declarations=...)`. It evicts least-recently-updated rows,
 reports loss and never equates a missing row with a withdrawn declaration.
 These are last-reported facts, not live RTI queries: old session scopes remain
-separate until explicit clear or capacity eviction. Lifecycle/delivery events
+separate until explicit clear or count/byte expiry. Lifecycle/delivery events
 do not invent a declaration status change.
 
 The explorer supports class/key/attribute/reason search, perspective, kind,
@@ -370,11 +384,48 @@ never imply ownership, routes, current membership, DDM associations or actual
 delivery. Explicit relationships use a separate optional model below; no
 routing edges are drawn from declaration coincidence.
 
+## Optional storage coverage
+
+`storage_inspection` is an observer capability, not an RTI service. When
+available/partial, `StateResponse.storage` is required and contains named
+`StorageCoverageResponse` evidence/context budgets. Missing/disabled/unsupported
+coverage stays unknown, not unlimited or zero loss. Other capabilities remain
+independent. A paused/replayed view uses its captured coverage.
+
+The reference store bounds retained observation JSON to 6 MiB plus separately
+admitted metadata. Every observation collection has both a count capacity and
+shared encoded-byte accounting; whole-record LRU uses disclosed soft collection
+reservations, not guaranteed minimums. Context uses a separate 256 KiB budget.
+This measures encoded evidence with a 64-byte per-record reserve, not RSS or
+temporary ingress allocations. Values are never clipped or replaced with null.
+
+`StorageBudgetResponse` reports accounting basis, policy, total/single-record
+limits, accounted bytes, reserve, collection coverage and explicitly unbudgeted
+collections. `StorageCollectionResponse` reports name/unit, capacity, retained
+and accounted amounts, optional soft reservation, total loss and separate
+count/byte/oversize/encoding/parent-window reasons. Named models validate sums,
+uniqueness and delivered collection counts. These overlapping collection losses
+are not additive unique federation/event totals. The reference store lists no
+unbudgeted observation collections; another backend must disclose any gaps.
+
+Classic objects/roster/time snapshots default to 5000/2000/2000 rows. Retention
+expiry never proves object removal, resignation, disconnection or an RTI
+incarnation. See [STORAGE.md](STORAGE.md) for configuration, metadata admission,
+loss semantics, orphaned time tickets and exact cursor/recording rules.
+
 ## Event pages and streams
 
 `GET /api/events?after=42&limit=500` returns a cursor page with `events`,
 `next_after`, `has_more`, `gap`, `first_retained_sequence`,
-`last_sequence`, `retained_events`, and `dropped_events`.
+`last_sequence`, `retained_events`, and `dropped_events`. Optional
+`next_sequence` reports the lifetime next sequence, including observations
+that immediately exceeded a byte/record budget. Retained envelopes are an exact
+contiguous suffix, never a sampled subset with hidden holes. First/last retained
+sequence are zero for an empty window, even after previous observations.
+For a lost empty window, `gap=true` and `next_after=next_sequence-1` advance
+the reader without claiming delivered events; reading again at that cursor
+does not repeat the same gap. Streams recheck retention after waiting before
+consuming rows, including when no accepted envelope remains retained.
 
 Both streaming transports use the same message vocabulary:
 
@@ -965,6 +1016,46 @@ boundary separate. The portable response schema also includes the recording
 models. HTTP-read conformance checks advertised recording status only; capture,
 import, clock/seek and command-isolation tests are separate internal lanes.
 
+## Optional observer alerts
+
+`alerts` advertises `GET api_paths.alerts` returning `AlertReport` independently
+of MOM, analytics and provider commands. Separate `alert_controls` advertises
+`alert_configuration` (PUT `AlertConfigurationUpdate`), `alert_reset` (POST
+`AlertResetRequest`) and `alert_acknowledge` (POST `AlertAcknowledgeRequest`).
+Each returns the validated report. Missing/disabled controls keep read-only
+evidence useful. Discovery is not authentication or provider authority; a static
+Java read fixture does not promise mutations.
+
+`AlertConfiguration` requires version `umbra-observer-alerts-v1` and at most 64
+unique discriminated rules within 64 KiB. Kinds are `stale-observations`,
+`errors`, `dropped-history` and `pending-commands`, with only their applicable
+parameters. Named finite models reject unknown fields and coercible counters.
+Every mutation carries `expected_instance_id`; configuration/reset also carry
+`expected_revision`. Restart/conflict returns 409 without applying stale input.
+Configuration files cannot choose resource URLs.
+
+Results distinguish disabled, unknown, clear, firing and explicitly ended;
+metric bounds, threshold/unit, coverage and reason agree with the actual rule.
+Evidence retains its rule/generation, original proof and acknowledgement in a
+separate 500-record history with explicit expiry. Error detail is bounded to
+512 marks per rule; overflow preserves exact counts where measurable and honest
+lower/upper bounds across uncertain window boundaries. History loss retains
+baseline/current counters; pending work identifies the oldest cached command/
+target and any unknown effect. Provider payloads/arguments are not copied.
+
+Rules observe committed ingress, not just retained events. Never observed is
+unknown; idle is not disconnected. An ended subject requires an exact source/
+session filter and explicit lifecycle evidence; resignation also requires a
+federate filter. Late ordinary observations cannot reopen that watch. Root
+filters do not silently combine nested protocol identities. Pending checks use
+dispatcher caches only; unsupported commands do not disable other rule kinds.
+These are legacy textual filters pending OBS-127.
+
+Configuration/evidence last for this process, not a backend restart. Download/
+import explicitly keeps rules, not evidence/credentials. Pause freezes the view
+while evaluation continues. Recordings omit this separate resource; replay
+never fetches/mutates live alerts. See [ALERTS.md](ALERTS.md) for exact limits.
+
 ## Backend replacement rules
 
 ### Optional observation analytics
@@ -979,14 +1070,17 @@ offline. The reference service accepts windows of 30..3600 seconds and
 
 The reference backend takes a dedicated `AnalyticsWindow` projection under the
 same store lock: contract version, complete retained normalized envelopes,
-persistent federate roster and retention metadata. It does not build, validate
+persistent federate roster, retention and optional storage coverage. It does not build, validate
 or serialize unrelated object-history/MOM/FOM/DDM inspectors merely to count
 events. This is not sampling or downsampling. Window/scoped attribution, idle
 roster entries, explicit unknown/numeric times and loss semantics are unchanged;
 tests compare complete aggregate outputs against full-state aggregation.
 
 Recorded analysis can use `RecordedWindowAnalysisRequest`: `window` with those
-four named fields, finite `captured_at`, bounded window seconds and bucket count.
+four original named fields and optional `storage`, finite `captured_at`, bounded
+window seconds and bucket count. Clients include storage only when the live
+backend separately advertises usable `storage_inspection`; older strict
+backends still receive the original shape.
 Window validation checks complete ordered retained cursors, counts, unique
 roster identities and finite JSON. A backend advertises
 `recording_analytics_window` only with usable `recording` and the discovered
@@ -1016,11 +1110,18 @@ in `/openapi.json` and generated into the frontend API snapshot.
   `callback.*`, and `runtime.error`. Distribution fields use exact reported
   event types, source names and explicit families. Counters are observations,
   not deduplicated RTI deliveries or actual network throughput.
-- Participants come from the persistent observed roster, including idle rows.
-  Each has identity/role/status/source/last-seen metadata, window counts,
+- Participants are the union of the persistent observed roster (including idle
+  rows) and names explicitly attributed to events within the requested retained
+  window. Each has
+  identity/role/status/source/last-seen metadata, window counts,
   observed `object_keys`, and the latest numeric logical timestamp in event
   sequence order. Unreported values are null, not zero. A scoped response
-  includes only that roster row and explicitly attributed events.
+  includes only that identity and explicitly attributed events. A name without
+  cached roster metadata has `roster_retained: false`, status `observed`, no
+  inferred role/handle/membership, and last-seen/source from actual observations.
+  Optional `roster_storage` carries projected roster coverage; missing coverage
+  on an older backend is unknown, not zero loss. This is still legacy
+  name-based attribution pending OBS-127, not a federation membership census.
 - Identity uses `federate` or `participant`, including a structured
   `name`/`id`/`handle`, then explicit `federate_name`/`participant_name` fields.
   Source names never imply participant identity. Attributed object observations

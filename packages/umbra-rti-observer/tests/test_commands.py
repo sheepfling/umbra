@@ -186,6 +186,10 @@ def test_timeout_keeps_session_busy_and_records_late_success() -> None:
         assert timed_out.status == "failed"
         assert timed_out.error.code == "timeout"
         assert timed_out.error.effect == "unknown"
+        watch = dispatcher.alert_watch()
+        assert watch.available and watch.target_ids == ("test",)
+        assert len(watch.pending) == 1 and watch.pending[0].effect_unknown
+        assert watch.pending[0].age_seconds >= 0.05
         assert dispatcher.catalog().targets[0].busy
         assert dispatcher.catalog().targets[0].state == "unknown"
         with pytest.raises(CommandConflict, match="busy"):
@@ -201,6 +205,7 @@ def test_timeout_keeps_session_busy_and_records_late_success() -> None:
         assert late.status == "failed"  # A late return does not erase the timeout.
         assert late.late_outcome.summary == "The adapter session is connected."
         assert not dispatcher.catalog().targets[0].busy
+        assert not dispatcher.alert_watch().pending
         assert dispatcher.catalog().targets[0].state == "connected"
     finally:
         release.set()

@@ -113,6 +113,28 @@ def test_time_request_survives_snapshot_expiry_and_late_exact_grant_does_not_bor
     assert current.snapshots[0].reported_state is None
 
 
+@pytest.mark.parametrize("event_type,federate", [("session.disconnected", None), ("federate.resigned", "A")])
+def test_expired_time_snapshot_does_not_hide_a_retained_ticket_from_explicit_session_end(event_type, federate):
+    store = ObserverStore(max_time_snapshots=1)
+    for name in ("A", "B"):
+        store.publish({"event_type": "time.advance_requested", "source": "provider", "federate": name, "federation": "F",
+                       "time_observation": {"kind": "request", "session_id": "shared-session", "request_id": "r", "logical_time": 5}})
+    # A's latest snapshot expired, but its pending ticket is independent.
+    end = store.publish({"event_type": event_type, "source": "provider", "federate": federate,
+                         "federation": "F", "session_id": "shared-session"})
+    store.publish({"event_type": "time.advance_granted", "source": "provider", "federate": "A", "federation": "F",
+                   "time_observation": {"kind": "grant", "session_id": "shared-session", "request_id": "r", "logical_time": 5}})
+    store.publish({"event_type": "time.advance_requested", "source": "provider", "federate": "A", "federation": "F",
+                   "time_observation": {"kind": "request", "session_id": "shared-session", "request_id": "new", "logical_time": 6}})
+    state = StateResponse.model_validate(store.state()).inspectors.time
+    a = next(row for row in state.requests if row.scope.federate == "A")
+    b = next(row for row in state.requests if row.scope.federate == "B")
+    assert a.status == "session-ended" and a.outcome_sequence == end["sequence"] and a.latency_seconds is None
+    assert len(state.requests) == 2  # The ended scope cannot acquire a new ticket.
+    assert b.status == ("session-ended" if federate is None else "pending")
+    assert all(row.scope.federate != "A" for row in state.snapshots)
+
+
 @pytest.mark.parametrize("storage_format", ["full-v1", "compact-v2"])
 def test_recordings_preserve_arrivals_and_exact_prefix_expiry_even_when_no_envelope_fits(storage_format):
     store = ObserverStore(max_evidence_bytes=30000, max_evidence_record_bytes=3000)

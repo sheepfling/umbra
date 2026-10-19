@@ -5,6 +5,10 @@ checker do not depend on Python. This is **not a Java RTI adapter**, a productio
 observer, or HLA conformance evidence. It serves deterministic, read-only JSON
 fixtures; it does not collect callbacks, implement commands, or fake WebSockets.
 
+Alert fixtures expose the same named read report with configuration controls
+disabled. They demonstrate loss/unknown-command states and UI portability, not
+a Java alert evaluator, mutation implementation or provider behavior.
+
 It has no third-party Java dependencies and does not start a Python process.
 The shared corpus is in `../umbra-rti-observer/conformance/fixtures`. Each
 profile's `routes.tsv` maps exact GET request targets to HTTP status and JSON

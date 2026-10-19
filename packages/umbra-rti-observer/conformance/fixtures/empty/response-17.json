@@ -1,0 +1,17 @@
+{
+  "configuration_version": "umbra-observer-alerts-v1",
+  "contract_version": "umbra-observer-contract-v1",
+  "error_basis": "since-rule-activation-window",
+  "error_marks_per_rule": 512,
+  "evaluation_basis": "observer-ingress-monotonic",
+  "evicted_evidence": 0,
+  "evidence_capacity": 500,
+  "history": [],
+  "instance_id": "fixture-alert-instance",
+  "max_configuration_bytes": 65536,
+  "max_rules": 64,
+  "persistence": "server-process",
+  "results": [],
+  "revision": 0,
+  "rules": []
+}

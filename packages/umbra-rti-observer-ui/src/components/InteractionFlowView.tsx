@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useWorkspaceField } from "../workspace/WorkspaceContext";
+import { RetainedSelect } from "../workspace/RetainedSelect";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { InteractionFlowRecord, InteractionFlowReport, StateResponse } from "../api/types";
 import { formatTime } from "../app/observations";
@@ -22,9 +24,9 @@ function Endpoints({ row }: { row: InteractionFlowRecord }) {
 }
 
 export function InteractionFlowView({ state }: { state: StateResponse }) {
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("all");
-  const [order, setOrder] = useState("all");
+  const [search, setSearch] = useWorkspaceField("interactions", "search");
+  const [status, setStatus] = useWorkspaceField("interactions", "status");
+  const [order, setOrder] = useWorkspaceField("interactions", "order");
   const [limit, setLimit] = useState(100);
   const capability = state.capabilities.interaction_flow;
   const usable = capability?.state === "available" || capability?.state === "partial";
@@ -46,8 +48,8 @@ export function InteractionFlowView({ state }: { state: StateResponse }) {
     <section className="metrics declaration-metrics" aria-label="Interaction observation totals"><MetricCard label="Send observations since clear" value={data.send_observations} /><MetricCard label="Receive observations since clear" value={data.receive_observations} tone="blue" /><MetricCard label="Retained records" value={data.records.length} /></section>
     <div className="panel object-controls flow-controls">
       <label>Search interaction evidence<input aria-label="Search interaction evidence" value={search} placeholder="Message, class, endpoint, reporter or scope" onChange={(event) => { setSearch(event.target.value); setLimit(100); }} /></label>
-      <label>Pairing status<select aria-label="Interaction pairing status" value={status} onChange={(event) => { setStatus(event.target.value); setLimit(100); }}><option value="all">All evidence statuses</option>{statuses.map((value) => <option key={value}>{value}</option>)}</select></label>
-      <label>Reported order<select aria-label="Interaction reported order" value={order} onChange={(event) => { setOrder(event.target.value); setLimit(100); }}><option value="all">All orders</option><option value="receive-order">Receive-order</option><option value="timestamped">Timestamped</option><option value="unknown">Unknown</option></select></label>
+      <label>Pairing status<RetainedSelect aria-label="Interaction pairing status" value={status} onChange={(event) => { setStatus(event.target.value); setLimit(100); }}><option value="all">All evidence statuses</option>{statuses.map((value) => <option key={value}>{value}</option>)}</RetainedSelect></label>
+      <label>Reported order<RetainedSelect aria-label="Interaction reported order" value={order} onChange={(event) => { setOrder(event.target.value); setLimit(100); }}><option value="all">All orders</option><option value="receive-order">Receive-order</option><option value="timestamped">Timestamped</option><option value="unknown">Unknown</option></RetainedSelect></label>
     </div>
     <div className="flow-statuses" aria-label="Filtered retained evidence statuses">{statuses.map((value) => <span className={`state-pill flow-status ${value}`} key={value}>{value}: {filtered.filter((row) => row.status === value).length}</span>)}</div>
     <ChartPanel title="Observer send-to-receive arrival interval" eyebrow="Explicit matching observations" note="Filtered unambiguous pairs · monotonic observer clock · not network latency">

@@ -83,6 +83,14 @@ the file. Both versions share cursor/arrival/window/transition checks: no lost
 batch arrivals, rewritten/resurrected envelopes, reset lifetime cursor or
 unannounced history changes. Manifest/capabilities, finite JSON, stop boundaries
 and duration are validated too. Malformed edits cannot bypass named models.
+The retained window is an exact contiguous suffix ending at the lifetime
+cursor, not necessarily the configured number of event slots. Count/byte expiry
+is accounted by exact loss increments. Every committed arrival remains in the
+journal even when it was immediately too large to retain in that state's raw
+window; an empty lost window still advances the arrival cursor. See
+[STORAGE.md](STORAGE.md) for whole-record expiry. The reference store now bounds
+full-state evidence, but v2's independent 8 MiB decoded-state guard still applies
+to imports and direct capture clients; it is not replaced by trusted metadata.
 Required context/adapter/capability/roster and object/interaction collections
 must actually be present in the file and every reconstructed state. Python
 constructor defaults cannot stand in for captured evidence. The same shared

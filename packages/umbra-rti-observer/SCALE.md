@@ -1,8 +1,9 @@
 # Observer scale and retention
 
-OBS-124 is in progress. The snapshot/analytics path, scoped object budget and
-versioned compact recording have been improved and measured. Oversized-state
-delivery and remaining persistent-index budgets are still open.
+OBS-124 is delivered within the explicit reference envelope below. Exact
+snapshot/analytics projections, lossless compact recording and shared count/
+encoded-byte evidence budgets have repeatable measurements. Wider loads now
+have bounded delivery and disclosed expiry, not a promise of full retention.
 These are internal synthetic application measurements, not IEEE RTI evidence.
 
 ## Reproduce a measurement
@@ -70,7 +71,7 @@ they were equivalent. The standard/sustained/rich/many-perspectives assessment
 must pass; large-index and wide intentionally expose limits and are assessed
 separately. The `--enforce` exit code is opt-in, never part of default CI timings.
 
-## Measured checkpoint: 19 October 2026
+## Historical snapshot checkpoint: 19 October 2026
 
 These serial runs used Windows 11, CPython 3.14.6, Pydantic 2.14.1 and the
 32-logical-CPU AMD host identified in each report. All six have the same source
@@ -101,7 +102,8 @@ snapshot assessment: standard retained five complete states; sustained, rich
 and many-perspectives retained three; large-index retained one; wide could not
 fit its initial state. All limit behavior was explicit and retained observation
 counts/attribution/clear checks passed. The compact increment below addresses
-repeated-state storage; it does not remove the oversized-state finding.
+repeated-state storage; at that checkpoint it did not remove the oversized-state
+finding. The later shared-storage measurements below address bounded delivery.
 
 ## Changes justified by measurement
 
@@ -129,6 +131,8 @@ cumulative scope evictions and currently omitted changes for expired scopes are
 explicit. Raw events/analytics are not removed by this expiry. Reobserving a
 scope starts a fresh comparison baseline, not borrowed global/other-participant
 values and not proof of a new RTI incarnation. Older metadata remains unknown.
+The later shared byte budget can independently expire envelopes, classic objects
+and roster metadata too; this is separate from a scoped-index count eviction.
 Objects, Federates and Diagnostics show coverage; object lists initially render
 100 rows and retain complete supplied-snapshot search/load-more access.
 
@@ -181,19 +185,75 @@ Both new reports also pass the separate snapshot/analytics
 [reference assessment](benchmarks/2026-10-19-recording-assessment.json); that
 assessment does not turn capture/import cost into a latency guarantee.
 
-## Remaining finding — not a completion gate silently waived
+## Shared-storage verification: 19 October 2026
 
-Wide payload/history combinations can still make full state exceed the
-checker/import envelopes. Compact v2 explicitly rejects a baseline above its
-8 MiB decoded-state limit; compact encoding must not conceal unlimited state
-expansion. The classic global object/roster and persistent time-scope indexes
-also keep their earlier lifetime; the scoped object budget does not bound every
-source of growth. Add explicit budgets/delivery behavior and coverage where
-needed, without substituting unknown data, quietly dropping providers or
-weakening model validation. The `wide`/`large-index` reports remain evidence,
-not passes.
+The reference store now accounts every observation collection within a shared
+6 MiB encoded-JSON budget, with independent count limits, single-record limits
+and disclosed soft collection reservations. Context and adapter/capability
+metadata have separately admitted bounds. Whole records expire; values are not
+clipped, sampled or replaced with unknown/null. Latest-cache loss does not erase
+retained event attribution or pending time tickets. Explicit disconnect/resign
+also closes orphaned tickets; retained ended evidence blocks late grants.
+See [STORAGE.md](STORAGE.md) for exact accounting, cursors and limitations.
 
-Complete the remaining OBS-124 finding before calling scale/retention delivered. Then
-continue alerts, saved workspaces, stable identity migration, transport
+Six new serial runs use source fingerprint `d434065ee3f8…`, unchanged throughout,
+on the same Windows/Python/Pydantic host. Each has seven pipeline samples with
+no allocation tracing during timings; the first four additionally have separate
+allocation probes. Reports contain actual coverage for every collection.
+The generator verifies every retained original envelope, the exact contiguous
+suffix/lifetime cursor/drop count, participant/unattributed totals, projection
+equivalence and clear behavior. A byte-limited window is not mislabeled as the
+configured slot count.
+
+| Profile | Timed events / actual retained | Scoped baselines | Full response MiB | Full pipeline p95 ms | Projected analytics p95 ms |
+| --- | --- | --- | --- | --- | --- |
+| standard | 20,000 / 2000 | 400 | 2.955 | 162.95 | 22.43 |
+| sustained | 100,000 / 2000 | 2000 | 4.594 | 252.03 | 28.70 |
+| rich | 20,000 / 2000 | 2000 | 4.932 | 314.78 | 97.70 |
+| many-perspectives | 20,000 / 2000 | 5000; 13,381 expiries | 4.629 | 368.91 | 23.33 |
+| large-index, diagnostic | 20,000 / 2000 | 6157; 12,224 expiries | 5.074 | 432.87 | 24.80 |
+| wide, diagnostic | 20,000 / 739 (10,000 slots configured) | 1410; 36,771 expiries | 5.674 | 133.34 | 59.78 |
+
+The four reference profiles pass the unchanged
+[reference assessment](benchmarks/2026-10-19-storage-reference.json).
+Ingress spans 6026–8680 events/second across all six loads on this host. Rich's
+97.70 ms empirical p95 is close to the 100 ms reference budget; seven samples
+are not a portable latency guarantee. Do not treat this as a speed improvement
+over historical runs on another source revision.
+
+The [diagnostic assessment](benchmarks/2026-10-19-storage-diagnostic-assessment.json)
+remains a non-pass because both loads exceed the defined reference shape. The
+large-index configuration asks for 50,000 perspectives; its state is now 5.074
+MiB rather than the historical 9.73 MiB, with actual expired baselines disclosed.
+Wide is now 5.674 MiB rather than 65.47 MiB, with 19,261 expired envelopes and a
+739-event exact suffix, not silent retention of all 10,000 configured slots.
+Its accounted evidence is 6,291,360 bytes under the 6,291,456-byte budget.
+Expiry counts are record operations, not unique RTI entities or incarnations.
+
+All six compact captures can start with the bounded state. Standard, sustained
+and rich retain 14 states through the 12-commit profiling exercise and stop on
+request. Many-perspectives, large-index and wide retain 3, 5 and 7 states before
+the unchanged encoded byte limit stops capture, not collection. These bounded
+capture outcomes do not promise a useful duration for arbitrary payloads or a
+lower capture/import latency. The earlier 100-commit v1/v2 comparison remains
+historical evidence, not a new storage-revision measurement.
+
+The portable schema and generated types are current; 662 backend/tool checks
+and the full 292 desktop/mobile browser checks pass. The two new lifecycle
+regressions reproduce and fix disconnect/resign of an expired snapshot's
+pending ticket. Python 3.11 core-only and both playtest startup profiles work.
+The native-provider smoke remains skipped, not evidence of RTI conformance.
+
+## Limits that remain explicit
+
+The budget is encoded evidence, not process RSS, transient normalization,
+unbounded incoming bodies, filesystem durability, network/HTTP/browser timing
+or arbitrary recording duration. No limited RTI must provide MOM, DDM or
+unrelated optional families to use events, attributes and time. Older backends
+with missing storage models stay unknown; Java's static HTTP fixture proves
+read-contract portability, not live Java eviction or provider performance.
+V2 still rejects an imported baseline over its independent 8 MiB decoded-state
+limit. Native-provider command verification remains a separate gate.
+
+Continue alerts, saved workspaces, stable identity migration, transport
 negotiation and unknown-session recovery from [FEATURE-BACKLOG.md](FEATURE-BACKLOG.md).
-Native-provider command verification remains an honest separate gate.

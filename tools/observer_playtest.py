@@ -64,6 +64,7 @@ TRY THIS
 - MOM reports: inspect reported members, service errors and numeric/opaque counters.
 - FOM browser: navigate explicit classes, fields, datatypes and model revisions.
 - Recordings: start/stop/download a bounded capture, then replay and seek across screens.
+- Alerts: define observer thresholds, review bounded evidence and download configuration without captured payloads.
 - Logical time: inspect persistent grants, pending requests and observed grant delays.
 - Synchronization: follow explicit registration and achievement phase reports.
 - Save / restore: compare local completion with a federation-wide failure and its timeline.
@@ -413,7 +414,11 @@ def make_bundle(layout: Layout, output: Path) -> None:
     output = output.resolve()
     files = [layout.root / name for name in
              ("Start-Observer.cmd", "Start-Observer-Limited.cmd", "tools/observer_playtest.py")]
-    files.extend(layout.observer / name for name in ("pyproject.toml", "README.md"))
+    files.append(layout.observer / "pyproject.toml")
+    # The packaged README links these guides; keep the extracted ZIP usable
+    # without a checkout or a connection back to the repository.
+    files.extend(path for path in layout.observer.glob("*.md") if path.is_file())
+    files.extend(path for path in (layout.observer / "benchmarks").glob("*.json") if path.is_file())
     files.extend(path for path in (layout.observer / "src").rglob("*")
                  if path.is_file() and (path.suffix in {".py", ".html"}
                      or path.name in {"py.typed", "observer-wire-v1.schema.json"}))
