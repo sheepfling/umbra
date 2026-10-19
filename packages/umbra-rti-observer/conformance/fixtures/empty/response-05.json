@@ -8,5 +8,6 @@
   "has_more": false,
   "last_sequence": 0,
   "next_after": 0,
+  "next_sequence": 1,
   "retained_events": 0
 }

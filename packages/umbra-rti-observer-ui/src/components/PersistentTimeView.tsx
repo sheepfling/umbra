@@ -25,11 +25,16 @@ export function PersistentTimeView({ state, federate }: { state: StateResponse; 
   const data = usable ? state.inspectors.time : undefined;
   const snapshots = useMemo(() => data?.snapshots.filter((row) => federate === undefined || row.scope.federate === federate)
     .sort((left, right) => Number(right.scope.session_id !== null) - Number(left.scope.session_id !== null)) ?? [], [data, federate]);
-  const selectedKey = selected ?? (snapshots[0] ? scopeKey(snapshots[0].scope) : "");
+  const perspectives = useMemo(() => {
+    const scopes = new Map(snapshots.map((row) => [scopeKey(row.scope), row.scope]));
+    for (const row of data?.requests ?? []) if (federate === undefined || row.scope.federate === federate) scopes.set(scopeKey(row.scope), row.scope);
+    return [...scopes.values()];
+  }, [data, snapshots, federate]);
+  const selectedKey = selected ?? (perspectives[0] ? scopeKey(perspectives[0]) : "");
   const snapshot = snapshots.find((row) => scopeKey(row.scope) === selectedKey);
   useEffect(() => {
-    if (selected === undefined && snapshots[0]) setSelected(scopeKey(snapshots[0].scope));
-  }, [selected, snapshots]);
+    if (selected === undefined && perspectives[0]) setSelected(scopeKey(perspectives[0]));
+  }, [selected, perspectives]);
   const requests = useMemo(() => data?.requests.filter((row) => scopeKey(row.scope) === selectedKey) ?? [], [data, selectedKey]);
   const pending = requests.filter((row) => row.status === "pending");
   const grants = requests.filter((row) => row.status === "granted");
@@ -43,11 +48,12 @@ export function PersistentTimeView({ state, federate }: { state: StateResponse; 
     <div className="section-intro"><div><p className="eyebrow">Persistent inspector</p><h2>Time state and requests</h2><p>Last reported state outlives event history. Requests match grants only with explicit IDs in the same source/session/federation/federate scope.</p></div><span className="state-pill">{capability?.state}</span></div>
     {capability?.state === "partial" && <div className="notice-banner">Partial time inspection: {capability.reason ?? (capability.reasons.join("; ") || "Some time observations are unavailable.")}</div>}
     {data.dropped_requests > 0 && <p className="coverage-note" role="status">Request history is incomplete: {data.dropped_requests} records expired from the {data.request_capacity}-record ledger. Pending counts and delay charts cover retained requests only; late grants for evicted requests remain uncorrelated.</p>}
-    <div className="panel time-perspective"><label>Time perspective<select aria-label="Time perspective" value={selectedKey} disabled={!snapshots.length && !selected} onChange={(event) => { setSelected(event.target.value); setLimit(100); }}>
-      {!snapshot && <option value={selectedKey}>{selected ? "Selected perspective no longer reported" : "No time perspective reported"}</option>}
-      {snapshots.map((row) => <option value={scopeKey(row.scope)} key={scopeKey(row.scope)}>{row.scope.federate ?? "Unattributed"} · {row.scope.source} · {row.scope.session_id ?? "session unknown"} · {row.scope.federation ?? "federation unreported"}</option>)}
+    {(data.dropped_snapshots ?? 0) > 0 && <p className="coverage-note" role="status">Time snapshot coverage is incomplete: {data.dropped_snapshots} latest-state records expired independently of the request ledger. This is not a session end or a new RTI incarnation. Retained requests keep their explicit scope below.</p>}
+    <div className="panel time-perspective"><label>Time perspective<select aria-label="Time perspective" value={selectedKey} disabled={!perspectives.length && !selected} onChange={(event) => { setSelected(event.target.value); setLimit(100); }}>
+      {!perspectives.some((scope) => scopeKey(scope) === selectedKey) && <option value={selectedKey}>{selected ? "Selected perspective no longer reported" : "No time perspective reported"}</option>}
+      {perspectives.map((scope) => <option value={scopeKey(scope)} key={scopeKey(scope)}>{scope.federate ?? "Unattributed"} · {scope.source} · {scope.session_id ?? "session unknown"} · {scope.federation ?? "federation unreported"}{snapshots.some((row) => scopeKey(row.scope) === scopeKey(scope)) ? "" : " · snapshot expired"}</option>)}
     </select></label></div>
-    {!snapshot ? <EmptyPanel title="No persistent time observations">{selected ? "The chosen perspective has no current snapshot. Select another explicitly; global values are not substituted." : "Grants, explicit time-role state or time requests appear when reported. Timestamped objects/interactions alone do not establish granted time."}</EmptyPanel> : <>
+    {!snapshot ? <EmptyPanel title="No persistent time observations">{selected ? "The chosen perspective has no retained latest-state snapshot. Retained requests remain inspectable below; global values are not substituted." : "Grants, explicit time-role state or time requests appear when reported. Timestamped objects/interactions alone do not establish granted time."}</EmptyPanel> : <>
       <article className="panel" aria-label="Reported time state">
         <div className="panel-heading"><div><p className="eyebrow">{snapshot.scope.federate ?? "Unattributed"} · {snapshot.scope.source}</p><h2>Last reported time state</h2></div><span className="state-pill">{snapshot.status}</span></div>
         <p className="panel-note">Session {snapshot.scope.session_id ?? "not reported"} · {snapshot.scope.federation ?? "Federation not reported"} · observed {formatTime(snapshot.observed_at)} · sequence #{snapshot.last_sequence}</p>
@@ -68,6 +74,8 @@ export function PersistentTimeView({ state, federate }: { state: StateResponse; 
         <p className="footnote">State fields are last reported values, not live queries or inferred bounds. State update: {snapshot.state_sequence == null ? "not reported" : `#${snapshot.state_sequence}`}. This inspector is independent of the analytics chart-time menu.</p>
         {(snapshot.uncorrelated_requests > 0 || snapshot.uncorrelated_grants > 0) && <p className="coverage-note">Uncorrelated observations: {snapshot.uncorrelated_requests} requests · {snapshot.uncorrelated_grants} grants. Missing scope/IDs, duplicate outcomes or expired requests never imply completion or zero delay.</p>}
       </article>
+    </>}
+    {(snapshot || requests.length > 0) && <>
       {points.length ? <ChartPanel title="Observed request-to-grant delay" eyebrow="Explicitly matched requests" note={`${points.length} retained matches · latest 250 maximum`}>
         <ResponsiveContainer width="100%" height="100%"><LineChart data={points} margin={{ left: 5, right: 15 }}><CartesianGrid stroke="#1d3852" strokeDasharray="3 3" /><XAxis dataKey="sequence" tick={chartTick} /><YAxis tick={chartTick} unit=" ms" /><Tooltip contentStyle={chartTooltip} labelFormatter={(value) => `Grant sequence #${value}`} /><Line dataKey="milliseconds" name="Observer delay" stroke={chartColors[1]} dot={{ r: 3 }} isAnimationActive={false} /></LineChart></ResponsiveContainer>
       </ChartPanel> : <EmptyPanel title="No correlated grant delays">Grant-only RTIs remain useful above. A delay sample requires a retained request and a later matching grant with the same explicit scope and request ID.</EmptyPanel>}

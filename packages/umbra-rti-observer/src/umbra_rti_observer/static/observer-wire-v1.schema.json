@@ -143,6 +143,17 @@
         "retention": {
           "$ref": "#/$defs/RetentionResponse"
         },
+        "roster_storage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StorageCollectionResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "scoped_federate": {
           "anyOf": [
             {
@@ -355,6 +366,162 @@
         "state_meanings"
       ],
       "title": "CapabilitySchemaResponse",
+      "type": "object"
+    },
+    "CaptureStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "active": {
+          "title": "Active",
+          "type": "boolean"
+        },
+        "captured_bytes": {
+          "minimum": 0,
+          "title": "Captured Bytes",
+          "type": "integer"
+        },
+        "decoded_state_bytes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Decoded State Bytes"
+        },
+        "duration_seconds": {
+          "minimum": 0,
+          "title": "Duration Seconds",
+          "type": "number"
+        },
+        "edit_count": {
+          "anyOf": [
+            {
+              "maximum": 100000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Edit Count"
+        },
+        "frame_count": {
+          "minimum": 0,
+          "title": "Frame Count",
+          "type": "integer"
+        },
+        "label": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "max_bytes": {
+          "maximum": 16777216,
+          "minimum": 1,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "max_decoded_state_bytes": {
+          "anyOf": [
+            {
+              "const": 1073741824,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Decoded State Bytes"
+        },
+        "max_frames": {
+          "maximum": 2000,
+          "minimum": 1,
+          "title": "Max Frames",
+          "type": "integer"
+        },
+        "max_state_bytes": {
+          "anyOf": [
+            {
+              "const": 8388608,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max State Bytes"
+        },
+        "recording_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Recording Id",
+          "type": "string"
+        },
+        "started_at": {
+          "title": "Started At",
+          "type": "number"
+        },
+        "stop_reason": {
+          "anyOf": [
+            {
+              "enum": [
+                "user",
+                "frame-limit",
+                "byte-limit",
+                "invalid-state",
+                "backend-stopped",
+                "state-limit",
+                "decode-limit",
+                "edit-limit"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stop Reason"
+        },
+        "storage_format": {
+          "anyOf": [
+            {
+              "enum": [
+                "full-v1",
+                "compact-v2"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Storage Format"
+        }
+      },
+      "required": [
+        "recording_id",
+        "label",
+        "started_at",
+        "active",
+        "frame_count",
+        "captured_bytes",
+        "max_frames",
+        "max_bytes",
+        "duration_seconds",
+        "stop_reason"
+      ],
+      "title": "CaptureStatus",
       "type": "object"
     },
     "CommandCatalog": {
@@ -854,6 +1021,136 @@
       "title": "CommandTarget",
       "type": "object"
     },
+    "CompactRecordingDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline": {
+          "$ref": "#/$defs/StateResponse"
+        },
+        "captured_bytes": {
+          "minimum": 0,
+          "title": "Captured Bytes",
+          "type": "integer"
+        },
+        "codec": {
+          "const": "observer-json-edits-v1",
+          "title": "Codec",
+          "type": "string"
+        },
+        "contract": {
+          "$ref": "#/$defs/ContractResponse"
+        },
+        "decoded_state_bytes": {
+          "maximum": 1073741824,
+          "minimum": 1,
+          "title": "Decoded State Bytes",
+          "type": "integer"
+        },
+        "duration_seconds": {
+          "minimum": 0,
+          "title": "Duration Seconds",
+          "type": "number"
+        },
+        "edit_count": {
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Edit Count",
+          "type": "integer"
+        },
+        "frames": {
+          "items": {
+            "$ref": "#/$defs/RecordingDeltaFrame"
+          },
+          "maxItems": 2000,
+          "minItems": 1,
+          "title": "Frames",
+          "type": "array"
+        },
+        "label": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "max_bytes": {
+          "maximum": 16777216,
+          "minimum": 1,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "max_decoded_state_bytes": {
+          "const": 1073741824,
+          "title": "Max Decoded State Bytes",
+          "type": "integer"
+        },
+        "max_frames": {
+          "maximum": 2000,
+          "minimum": 1,
+          "title": "Max Frames",
+          "type": "integer"
+        },
+        "max_state_bytes": {
+          "const": 8388608,
+          "title": "Max State Bytes",
+          "type": "integer"
+        },
+        "recording_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Recording Id",
+          "type": "string"
+        },
+        "recording_version": {
+          "const": "umbra-observer-recording-v2",
+          "title": "Recording Version",
+          "type": "string"
+        },
+        "started_at": {
+          "title": "Started At",
+          "type": "number"
+        },
+        "stop_reason": {
+          "enum": [
+            "user",
+            "frame-limit",
+            "byte-limit",
+            "invalid-state",
+            "backend-stopped",
+            "state-limit",
+            "decode-limit",
+            "edit-limit"
+          ],
+          "title": "Stop Reason",
+          "type": "string"
+        },
+        "stopped_at": {
+          "title": "Stopped At",
+          "type": "number"
+        }
+      },
+      "required": [
+        "recording_version",
+        "codec",
+        "recording_id",
+        "label",
+        "contract",
+        "started_at",
+        "stopped_at",
+        "duration_seconds",
+        "stop_reason",
+        "max_frames",
+        "max_bytes",
+        "captured_bytes",
+        "max_state_bytes",
+        "max_decoded_state_bytes",
+        "decoded_state_bytes",
+        "edit_count",
+        "baseline",
+        "frames"
+      ],
+      "title": "CompactRecordingDocument",
+      "type": "object"
+    },
     "ConnectCommand": {
       "additionalProperties": false,
       "properties": {
@@ -969,6 +1266,240 @@
         "stream"
       ],
       "title": "ContractResponse",
+      "type": "object"
+    },
+    "CoordinationParticipantResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/ParticipantIdentityResponse"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "achieved",
+            "begun",
+            "completed",
+            "failed",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "identity",
+        "status"
+      ],
+      "title": "CoordinationParticipantResponse",
+      "type": "object"
+    },
+    "CoordinationResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "const": "explicit-coordination-observations",
+          "title": "Basis",
+          "type": "string"
+        },
+        "capacity": {
+          "minimum": 1,
+          "title": "Capacity",
+          "type": "integer"
+        },
+        "dropped_operations": {
+          "minimum": 0,
+          "title": "Dropped Operations",
+          "type": "integer"
+        },
+        "dropped_transitions": {
+          "minimum": 0,
+          "title": "Dropped Transitions",
+          "type": "integer"
+        },
+        "history_capacity": {
+          "minimum": 1,
+          "title": "History Capacity",
+          "type": "integer"
+        },
+        "snapshots": {
+          "items": {
+            "$ref": "#/$defs/CoordinationSnapshotResponse"
+          },
+          "title": "Snapshots",
+          "type": "array"
+        },
+        "transitions": {
+          "items": {
+            "$ref": "#/$defs/CoordinationSnapshotResponse"
+          },
+          "title": "Transitions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshots",
+        "transitions",
+        "capacity",
+        "history_capacity",
+        "dropped_operations",
+        "dropped_transitions",
+        "basis"
+      ],
+      "title": "CoordinationResponse",
+      "type": "object"
+    },
+    "CoordinationSnapshotResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "synchronization",
+            "save",
+            "restore"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "operation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "participants": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/CoordinationParticipantResponse"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Participants"
+        },
+        "phase": {
+          "enum": [
+            "requested",
+            "registered",
+            "registration-failed",
+            "announced",
+            "achieved",
+            "begun",
+            "completed",
+            "failed"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "scope": {
+          "enum": [
+            "local",
+            "federation"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "subject": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "operation_id",
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "label",
+        "scope",
+        "kind",
+        "phase",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "CoordinationSnapshotResponse",
       "type": "object"
     },
     "DeclarationScopeResponse": {
@@ -1177,6 +1708,63 @@
       "title": "DeclarationsResponse",
       "type": "object"
     },
+    "DimensionRangeResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "dimension_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Dimension Id",
+          "type": "string"
+        },
+        "dimension_upper_bound": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "not": {
+                "pattern": "[^0-9]"
+              },
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dimension Upper Bound"
+        },
+        "lower_bound": {
+          "maxLength": 128,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^0-9]"
+          },
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Lower Bound",
+          "type": "string"
+        },
+        "upper_bound": {
+          "maxLength": 128,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^0-9]"
+          },
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Upper Bound",
+          "type": "string"
+        }
+      },
+      "required": [
+        "dimension_id",
+        "lower_bound",
+        "upper_bound"
+      ],
+      "title": "DimensionRangeResponse",
+      "type": "object"
+    },
     "DisconnectCommand": {
       "additionalProperties": false,
       "properties": {
@@ -1247,6 +1835,33 @@
     "EventEnvelope": {
       "additionalProperties": true,
       "properties": {
+        "coordination": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "restore": "#/$defs/PersistenceObservation",
+                  "save": "#/$defs/PersistenceObservation",
+                  "synchronization": "#/$defs/SynchronizationObservation"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/SynchronizationObservation"
+                },
+                {
+                  "$ref": "#/$defs/PersistenceObservation"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Coordination"
+        },
         "declaration": {
           "anyOf": [
             {
@@ -1328,6 +1943,51 @@
           "default": null,
           "title": "Federate Name"
         },
+        "fom_observation": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "datatype": "#/$defs/FomDatatypeObservation",
+                  "dimension": "#/$defs/FomDimensionObservation",
+                  "interaction-class": "#/$defs/FomInteractionObservation",
+                  "object-class": "#/$defs/FomObjectObservation"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/FomObjectObservation"
+                },
+                {
+                  "$ref": "#/$defs/FomInteractionObservation"
+                },
+                {
+                  "$ref": "#/$defs/FomDatatypeObservation"
+                },
+                {
+                  "$ref": "#/$defs/FomDimensionObservation"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fom Observation"
+        },
+        "interaction_flow": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InteractionFlowObservationInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "logical_time": {
           "anyOf": [
             {
@@ -1342,6 +2002,36 @@
           ],
           "default": null,
           "title": "Logical Time"
+        },
+        "mom_observation": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "counter": "#/$defs/MomCounterObservation",
+                  "members": "#/$defs/MomMembersObservation",
+                  "service": "#/$defs/MomServiceObservation"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/MomMembersObservation"
+                },
+                {
+                  "$ref": "#/$defs/MomServiceObservation"
+                },
+                {
+                  "$ref": "#/$defs/MomCounterObservation"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mom Observation"
         },
         "object_key": {
           "anyOf": [
@@ -1370,6 +2060,36 @@
           ],
           "default": null,
           "title": "Operation"
+        },
+        "ownership": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "outcome": "#/$defs/OwnershipOutcomeObservation",
+                  "request": "#/$defs/OwnershipRequestObservation",
+                  "state": "#/$defs/OwnershipStateObservation"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/OwnershipStateObservation"
+                },
+                {
+                  "$ref": "#/$defs/OwnershipRequestObservation"
+                },
+                {
+                  "$ref": "#/$defs/OwnershipOutcomeObservation"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ownership"
         },
         "participant": {
           "anyOf": [
@@ -1400,6 +2120,47 @@
           ],
           "default": null,
           "title": "Participant Name"
+        },
+        "region_observation": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "association": "#/$defs/RegionAssociationObservation",
+                  "region": "#/$defs/RegionStateObservation",
+                  "routing": "#/$defs/RegionRoutingObservation"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/RegionStateObservation"
+                },
+                {
+                  "$ref": "#/$defs/RegionAssociationObservation"
+                },
+                {
+                  "$ref": "#/$defs/RegionRoutingObservation"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Region Observation"
+        },
+        "relationship": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RelationshipObservationInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "sequence": {
           "minimum": 1,
@@ -1527,6 +2288,19 @@
           "minimum": 0,
           "title": "Next After",
           "type": "integer"
+        },
+        "next_sequence": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Sequence"
         },
         "retained_events": {
           "minimum": 0,
@@ -1657,6 +2431,18 @@
           ],
           "title": "Role"
         },
+        "roster_retained": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Roster Retained"
+        },
         "source": {
           "minLength": 1,
           "title": "Source",
@@ -1746,6 +2532,1520 @@
         "source"
       ],
       "title": "FederateInspectionResponse",
+      "type": "object"
+    },
+    "FomDatatypeObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "cardinality": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "not": {
+                "pattern": "[^0-9]"
+              },
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cardinality"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "element_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Element Id",
+          "type": "string"
+        },
+        "element_type_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Type Id"
+        },
+        "encoding": {
+          "enum": [
+            "primitive",
+            "enumeration",
+            "array",
+            "record",
+            "variant",
+            "opaque",
+            "unknown"
+          ],
+          "title": "Encoding",
+          "type": "string"
+        },
+        "enumerators": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/FomEnumeratorResponse"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Enumerators"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "fields": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/FomFieldResponse"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fields"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "datatype",
+          "title": "Kind",
+          "type": "string"
+        },
+        "model_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "representation": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Representation"
+        },
+        "revision": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Revision",
+          "type": "string"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "present",
+            "removed",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "model_id",
+        "revision",
+        "element_id",
+        "status",
+        "kind",
+        "encoding"
+      ],
+      "title": "FomDatatypeObservation",
+      "type": "object"
+    },
+    "FomDatatypeReportResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "cardinality": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "not": {
+                "pattern": "[^0-9]"
+              },
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cardinality"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "element_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Element Id",
+          "type": "string"
+        },
+        "element_type_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Type Id"
+        },
+        "encoding": {
+          "enum": [
+            "primitive",
+            "enumeration",
+            "array",
+            "record",
+            "variant",
+            "opaque",
+            "unknown"
+          ],
+          "title": "Encoding",
+          "type": "string"
+        },
+        "enumerators": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/FomEnumeratorResponse"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Enumerators"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "fields": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/FomFieldResponse"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fields"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "datatype",
+          "title": "Kind",
+          "type": "string"
+        },
+        "model_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "representation": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Representation"
+        },
+        "revision": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Revision",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "present",
+            "removed",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "model_id",
+        "revision",
+        "element_id",
+        "status",
+        "kind",
+        "encoding",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "FomDatatypeReportResponse",
+      "type": "object"
+    },
+    "FomDimensionObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "element_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Element Id",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "dimension",
+          "title": "Kind",
+          "type": "string"
+        },
+        "model_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "revision": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Revision",
+          "type": "string"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "present",
+            "removed",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "upper_bound": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "not": {
+                "pattern": "[^0-9]"
+              },
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Upper Bound"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "model_id",
+        "revision",
+        "element_id",
+        "status",
+        "kind"
+      ],
+      "title": "FomDimensionObservation",
+      "type": "object"
+    },
+    "FomDimensionReportResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "element_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Element Id",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "dimension",
+          "title": "Kind",
+          "type": "string"
+        },
+        "model_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "revision": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Revision",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "present",
+            "removed",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "upper_bound": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "not": {
+                "pattern": "[^0-9]"
+              },
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Upper Bound"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "model_id",
+        "revision",
+        "element_id",
+        "status",
+        "kind",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "FomDimensionReportResponse",
+      "type": "object"
+    },
+    "FomEnumeratorResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "FomEnumeratorResponse",
+      "type": "object"
+    },
+    "FomFieldResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "datatype_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Datatype Id"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "field_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Field Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        }
+      },
+      "required": [
+        "field_id"
+      ],
+      "title": "FomFieldResponse",
+      "type": "object"
+    },
+    "FomInteractionObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "element_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Element Id",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "field_scope": {
+          "enum": [
+            "declared",
+            "effective",
+            "unknown"
+          ],
+          "title": "Field Scope",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "interaction-class",
+          "title": "Kind",
+          "type": "string"
+        },
+        "model_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "parameters": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/FomFieldResponse"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parameters"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "parent_state": {
+          "enum": [
+            "root",
+            "parent",
+            "unknown"
+          ],
+          "title": "Parent State",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Revision",
+          "type": "string"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "present",
+            "removed",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "model_id",
+        "revision",
+        "element_id",
+        "status",
+        "parent_state",
+        "field_scope",
+        "kind"
+      ],
+      "title": "FomInteractionObservation",
+      "type": "object"
+    },
+    "FomInteractionReportResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "element_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Element Id",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "field_scope": {
+          "enum": [
+            "declared",
+            "effective",
+            "unknown"
+          ],
+          "title": "Field Scope",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "interaction-class",
+          "title": "Kind",
+          "type": "string"
+        },
+        "model_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "parameters": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/FomFieldResponse"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parameters"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "parent_state": {
+          "enum": [
+            "root",
+            "parent",
+            "unknown"
+          ],
+          "title": "Parent State",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Revision",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "present",
+            "removed",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "model_id",
+        "revision",
+        "element_id",
+        "status",
+        "parent_state",
+        "field_scope",
+        "kind",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "FomInteractionReportResponse",
+      "type": "object"
+    },
+    "FomObjectObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "attributes": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/FomFieldResponse"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attributes"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "element_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Element Id",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "field_scope": {
+          "enum": [
+            "declared",
+            "effective",
+            "unknown"
+          ],
+          "title": "Field Scope",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "object-class",
+          "title": "Kind",
+          "type": "string"
+        },
+        "model_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "parent_state": {
+          "enum": [
+            "root",
+            "parent",
+            "unknown"
+          ],
+          "title": "Parent State",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Revision",
+          "type": "string"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "present",
+            "removed",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "model_id",
+        "revision",
+        "element_id",
+        "status",
+        "parent_state",
+        "field_scope",
+        "kind"
+      ],
+      "title": "FomObjectObservation",
+      "type": "object"
+    },
+    "FomObjectReportResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "attributes": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/FomFieldResponse"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attributes"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "element_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Element Id",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "field_scope": {
+          "enum": [
+            "declared",
+            "effective",
+            "unknown"
+          ],
+          "title": "Field Scope",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "object-class",
+          "title": "Kind",
+          "type": "string"
+        },
+        "model_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "parent_state": {
+          "enum": [
+            "root",
+            "parent",
+            "unknown"
+          ],
+          "title": "Parent State",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Revision",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "present",
+            "removed",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "model_id",
+        "revision",
+        "element_id",
+        "status",
+        "parent_state",
+        "field_scope",
+        "kind",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "FomObjectReportResponse",
+      "type": "object"
+    },
+    "FomResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "const": "adapter-supplied-fom-metadata",
+          "title": "Basis",
+          "type": "string"
+        },
+        "capacity": {
+          "minimum": 1,
+          "title": "Capacity",
+          "type": "integer"
+        },
+        "dropped_snapshots": {
+          "minimum": 0,
+          "title": "Dropped Snapshots",
+          "type": "integer"
+        },
+        "dropped_transitions": {
+          "minimum": 0,
+          "title": "Dropped Transitions",
+          "type": "integer"
+        },
+        "history_capacity": {
+          "minimum": 1,
+          "title": "History Capacity",
+          "type": "integer"
+        },
+        "snapshots": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "datatype": "#/$defs/FomDatatypeReportResponse",
+                "dimension": "#/$defs/FomDimensionReportResponse",
+                "interaction-class": "#/$defs/FomInteractionReportResponse",
+                "object-class": "#/$defs/FomObjectReportResponse"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/FomObjectReportResponse"
+              },
+              {
+                "$ref": "#/$defs/FomInteractionReportResponse"
+              },
+              {
+                "$ref": "#/$defs/FomDatatypeReportResponse"
+              },
+              {
+                "$ref": "#/$defs/FomDimensionReportResponse"
+              }
+            ]
+          },
+          "title": "Snapshots",
+          "type": "array"
+        },
+        "transitions": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "datatype": "#/$defs/FomDatatypeReportResponse",
+                "dimension": "#/$defs/FomDimensionReportResponse",
+                "interaction-class": "#/$defs/FomInteractionReportResponse",
+                "object-class": "#/$defs/FomObjectReportResponse"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/FomObjectReportResponse"
+              },
+              {
+                "$ref": "#/$defs/FomInteractionReportResponse"
+              },
+              {
+                "$ref": "#/$defs/FomDatatypeReportResponse"
+              },
+              {
+                "$ref": "#/$defs/FomDimensionReportResponse"
+              }
+            ]
+          },
+          "title": "Transitions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshots",
+        "transitions",
+        "capacity",
+        "history_capacity",
+        "dropped_snapshots",
+        "dropped_transitions",
+        "basis"
+      ],
+      "title": "FomResponse",
       "type": "object"
     },
     "GapMessage": {
@@ -1878,10 +4178,43 @@
     "InspectorsResponse": {
       "additionalProperties": false,
       "properties": {
+        "coordination": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CoordinationResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "declarations": {
           "anyOf": [
             {
               "$ref": "#/$defs/DeclarationsResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "fom": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FomResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "interaction_flow": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InteractionFlowResponse"
             },
             {
               "type": "null"
@@ -1895,6 +4228,17 @@
           },
           "title": "Interactions",
           "type": "array"
+        },
+        "mom": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MomResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "object_observations": {
           "anyOf": [
@@ -1913,6 +4257,39 @@
           },
           "title": "Objects",
           "type": "array"
+        },
+        "ownership": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OwnershipResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "regions": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RegionsResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "relationships": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RelationshipsResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "time": {
           "anyOf": [
@@ -2015,6 +4392,430 @@
         "kind"
       ],
       "title": "InteractionDeclarationObservation",
+      "type": "object"
+    },
+    "InteractionFlowObservationInput": {
+      "additionalProperties": false,
+      "properties": {
+        "class_key": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class Key"
+        },
+        "federation_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federation Id"
+        },
+        "identity_namespace": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Identity Namespace"
+        },
+        "kind": {
+          "enum": [
+            "send",
+            "receive"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "logical_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Logical Time"
+        },
+        "message_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message Id"
+        },
+        "order": {
+          "enum": [
+            "receive-order",
+            "timestamped",
+            "unknown"
+          ],
+          "title": "Order",
+          "type": "string"
+        },
+        "producer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "recipient": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Id"
+        }
+      },
+      "required": [
+        "kind",
+        "order"
+      ],
+      "title": "InteractionFlowObservationInput",
+      "type": "object"
+    },
+    "InteractionFlowRecordResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "arrival_delay_seconds": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Arrival Delay Seconds"
+        },
+        "last_sequence": {
+          "minimum": 1,
+          "title": "Last Sequence",
+          "type": "integer"
+        },
+        "receive": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InteractionFlowReportResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "receive_count": {
+          "minimum": 0,
+          "title": "Receive Count",
+          "type": "integer"
+        },
+        "record_id": {
+          "minimum": 1,
+          "title": "Record Id",
+          "type": "integer"
+        },
+        "send": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InteractionFlowReportResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "send_count": {
+          "minimum": 0,
+          "title": "Send Count",
+          "type": "integer"
+        },
+        "status": {
+          "enum": [
+            "uncorrelated",
+            "send-only",
+            "receive-only",
+            "paired",
+            "ambiguous"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "record_id",
+        "last_sequence",
+        "status",
+        "send_count",
+        "receive_count"
+      ],
+      "title": "InteractionFlowRecordResponse",
+      "type": "object"
+    },
+    "InteractionFlowReportResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "class_key": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class Key"
+        },
+        "federation_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federation Id"
+        },
+        "identity_namespace": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Identity Namespace"
+        },
+        "kind": {
+          "enum": [
+            "send",
+            "receive"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "logical_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Logical Time"
+        },
+        "message_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message Id"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "order": {
+          "enum": [
+            "receive-order",
+            "timestamped",
+            "unknown"
+          ],
+          "title": "Order",
+          "type": "string"
+        },
+        "producer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "recipient": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Id"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "order",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "InteractionFlowReportResponse",
+      "type": "object"
+    },
+    "InteractionFlowResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "const": "explicit-interaction-observations",
+          "title": "Basis",
+          "type": "string"
+        },
+        "capacity": {
+          "minimum": 1,
+          "title": "Capacity",
+          "type": "integer"
+        },
+        "dropped_records": {
+          "minimum": 0,
+          "title": "Dropped Records",
+          "type": "integer"
+        },
+        "receive_observations": {
+          "minimum": 0,
+          "title": "Receive Observations",
+          "type": "integer"
+        },
+        "records": {
+          "items": {
+            "$ref": "#/$defs/InteractionFlowRecordResponse"
+          },
+          "title": "Records",
+          "type": "array"
+        },
+        "send_observations": {
+          "minimum": 0,
+          "title": "Send Observations",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "records",
+        "capacity",
+        "dropped_records",
+        "send_observations",
+        "receive_observations",
+        "basis"
+      ],
+      "title": "InteractionFlowResponse",
       "type": "object"
     },
     "InteractionInspectionResponse": {
@@ -2321,6 +5122,847 @@
       "title": "MetricsResponse",
       "type": "object"
     },
+    "MomCounterObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "counter_key": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Counter Key",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "counter",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "report_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Report Id",
+          "type": "string"
+        },
+        "semantics": {
+          "enum": [
+            "cumulative",
+            "gauge",
+            "unknown"
+          ],
+          "title": "Semantics",
+          "type": "string"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "subject": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantReferenceResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "value_text": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Text"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "report_id",
+        "kind",
+        "counter_key",
+        "semantics"
+      ],
+      "title": "MomCounterObservation",
+      "type": "object"
+    },
+    "MomCounterReportResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "counter_key": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Counter Key",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "counter",
+          "title": "Kind",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "report_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Report Id",
+          "type": "string"
+        },
+        "semantics": {
+          "enum": [
+            "cumulative",
+            "gauge",
+            "unknown"
+          ],
+          "title": "Semantics",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "subject": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantReferenceResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "value_text": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Text"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "report_id",
+        "kind",
+        "counter_key",
+        "semantics",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "MomCounterReportResponse",
+      "type": "object"
+    },
+    "MomMemberResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "participant": {
+          "$ref": "#/$defs/ParticipantReferenceResponse"
+        },
+        "status": {
+          "enum": [
+            "joined",
+            "resigned",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "participant",
+        "status"
+      ],
+      "title": "MomMemberResponse",
+      "type": "object"
+    },
+    "MomMembersObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage": {
+          "enum": [
+            "complete",
+            "partial",
+            "unknown"
+          ],
+          "title": "Coverage",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "members",
+          "title": "Kind",
+          "type": "string"
+        },
+        "members": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/MomMemberResponse"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Members"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "report_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Report Id",
+          "type": "string"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "report_id",
+        "kind",
+        "coverage"
+      ],
+      "title": "MomMembersObservation",
+      "type": "object"
+    },
+    "MomMembersReportResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage": {
+          "enum": [
+            "complete",
+            "partial",
+            "unknown"
+          ],
+          "title": "Coverage",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "members",
+          "title": "Kind",
+          "type": "string"
+        },
+        "members": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/MomMemberResponse"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Members"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "report_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Report Id",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "report_id",
+        "kind",
+        "coverage",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "MomMembersReportResponse",
+      "type": "object"
+    },
+    "MomResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "const": "explicit-management-reports",
+          "title": "Basis",
+          "type": "string"
+        },
+        "capacity": {
+          "minimum": 1,
+          "title": "Capacity",
+          "type": "integer"
+        },
+        "dropped_snapshots": {
+          "minimum": 0,
+          "title": "Dropped Snapshots",
+          "type": "integer"
+        },
+        "dropped_transitions": {
+          "minimum": 0,
+          "title": "Dropped Transitions",
+          "type": "integer"
+        },
+        "history_capacity": {
+          "minimum": 1,
+          "title": "History Capacity",
+          "type": "integer"
+        },
+        "snapshots": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "counter": "#/$defs/MomCounterReportResponse",
+                "members": "#/$defs/MomMembersReportResponse",
+                "service": "#/$defs/MomServiceReportResponse"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/MomMembersReportResponse"
+              },
+              {
+                "$ref": "#/$defs/MomServiceReportResponse"
+              },
+              {
+                "$ref": "#/$defs/MomCounterReportResponse"
+              }
+            ]
+          },
+          "title": "Snapshots",
+          "type": "array"
+        },
+        "transitions": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "counter": "#/$defs/MomCounterReportResponse",
+                "members": "#/$defs/MomMembersReportResponse",
+                "service": "#/$defs/MomServiceReportResponse"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/MomMembersReportResponse"
+              },
+              {
+                "$ref": "#/$defs/MomServiceReportResponse"
+              },
+              {
+                "$ref": "#/$defs/MomCounterReportResponse"
+              }
+            ]
+          },
+          "title": "Transitions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshots",
+        "transitions",
+        "capacity",
+        "history_capacity",
+        "dropped_snapshots",
+        "dropped_transitions",
+        "basis"
+      ],
+      "title": "MomResponse",
+      "type": "object"
+    },
+    "MomServiceObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "error_name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Name"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "invocation_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Invocation Id"
+        },
+        "kind": {
+          "const": "service",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "report_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Report Id",
+          "type": "string"
+        },
+        "service_name": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Service Name",
+          "type": "string"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "invoked",
+            "completed",
+            "failed",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantReferenceResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "report_id",
+        "kind",
+        "service_name",
+        "status"
+      ],
+      "title": "MomServiceObservation",
+      "type": "object"
+    },
+    "MomServiceReportResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "error_name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Name"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "invocation_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Invocation Id"
+        },
+        "kind": {
+          "const": "service",
+          "title": "Kind",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "report_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Report Id",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "service_name": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Service Name",
+          "type": "string"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "invoked",
+            "completed",
+            "failed",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantReferenceResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "report_id",
+        "kind",
+        "service_name",
+        "status",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "MomServiceReportResponse",
+      "type": "object"
+    },
     "ObjectAttributeChangeResponse": {
       "additionalProperties": false,
       "properties": {
@@ -2620,6 +6262,32 @@
           "title": "Changes",
           "type": "array"
         },
+        "dropped_history_batches": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dropped History Batches"
+        },
+        "dropped_snapshots": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dropped Snapshots"
+        },
         "history_first_sequence": {
           "minimum": 0,
           "title": "History First Sequence",
@@ -2633,6 +6301,32 @@
         "history_truncated": {
           "title": "History Truncated",
           "type": "boolean"
+        },
+        "omitted_changes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Omitted Changes"
+        },
+        "snapshot_capacity": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Capacity"
         },
         "snapshots": {
           "items": {
@@ -2689,6 +6383,2779 @@
         "object"
       ],
       "title": "ObjectPerspectiveResponse",
+      "type": "object"
+    },
+    "OwnershipOutcomeObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "acquire",
+            "divest"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "attribute_key": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Attribute Key",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "outcome",
+          "title": "Kind",
+          "type": "string"
+        },
+        "object_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "completed",
+            "failed",
+            "cancelled"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "request_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "requester": {
+          "$ref": "#/$defs/ParticipantIdentityResponse"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "object_id",
+        "attribute_key",
+        "request_id",
+        "action",
+        "requester",
+        "kind",
+        "outcome"
+      ],
+      "title": "OwnershipOutcomeObservation",
+      "type": "object"
+    },
+    "OwnershipOutcomeReportResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "acquire",
+            "divest"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "attribute_key": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Attribute Key",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "outcome",
+          "title": "Kind",
+          "type": "string"
+        },
+        "object_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "outcome": {
+          "enum": [
+            "completed",
+            "failed",
+            "cancelled"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "request_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "requester": {
+          "$ref": "#/$defs/ParticipantIdentityResponse"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "object_id",
+        "attribute_key",
+        "request_id",
+        "action",
+        "requester",
+        "kind",
+        "outcome",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "OwnershipOutcomeReportResponse",
+      "type": "object"
+    },
+    "OwnershipRequestObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "acquire",
+            "divest"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "attribute_key": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Attribute Key",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "request",
+          "title": "Kind",
+          "type": "string"
+        },
+        "object_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "request_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "requester": {
+          "$ref": "#/$defs/ParticipantIdentityResponse"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "object_id",
+        "attribute_key",
+        "request_id",
+        "action",
+        "requester",
+        "kind"
+      ],
+      "title": "OwnershipRequestObservation",
+      "type": "object"
+    },
+    "OwnershipRequestReportResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "acquire",
+            "divest"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "attribute_key": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Attribute Key",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "request",
+          "title": "Kind",
+          "type": "string"
+        },
+        "object_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "request_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "requester": {
+          "$ref": "#/$defs/ParticipantIdentityResponse"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "object_id",
+        "attribute_key",
+        "request_id",
+        "action",
+        "requester",
+        "kind",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "OwnershipRequestReportResponse",
+      "type": "object"
+    },
+    "OwnershipResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "const": "explicit-ownership-observations",
+          "title": "Basis",
+          "type": "string"
+        },
+        "capacity": {
+          "minimum": 1,
+          "title": "Capacity",
+          "type": "integer"
+        },
+        "dropped_requests": {
+          "minimum": 0,
+          "title": "Dropped Requests",
+          "type": "integer"
+        },
+        "dropped_states": {
+          "minimum": 0,
+          "title": "Dropped States",
+          "type": "integer"
+        },
+        "dropped_transitions": {
+          "minimum": 0,
+          "title": "Dropped Transitions",
+          "type": "integer"
+        },
+        "history_capacity": {
+          "minimum": 1,
+          "title": "History Capacity",
+          "type": "integer"
+        },
+        "request_capacity": {
+          "minimum": 1,
+          "title": "Request Capacity",
+          "type": "integer"
+        },
+        "requests": {
+          "items": {
+            "$ref": "#/$defs/OwnershipTicketResponse"
+          },
+          "title": "Requests",
+          "type": "array"
+        },
+        "states": {
+          "items": {
+            "$ref": "#/$defs/OwnershipStateReportResponse"
+          },
+          "title": "States",
+          "type": "array"
+        },
+        "transitions": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "outcome": "#/$defs/OwnershipOutcomeReportResponse",
+                "request": "#/$defs/OwnershipRequestReportResponse",
+                "state": "#/$defs/OwnershipStateReportResponse"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/OwnershipStateReportResponse"
+              },
+              {
+                "$ref": "#/$defs/OwnershipRequestReportResponse"
+              },
+              {
+                "$ref": "#/$defs/OwnershipOutcomeReportResponse"
+              }
+            ]
+          },
+          "title": "Transitions",
+          "type": "array"
+        },
+        "unmatched_outcomes": {
+          "minimum": 0,
+          "title": "Unmatched Outcomes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "states",
+        "requests",
+        "transitions",
+        "capacity",
+        "request_capacity",
+        "history_capacity",
+        "dropped_states",
+        "dropped_requests",
+        "dropped_transitions",
+        "unmatched_outcomes",
+        "basis"
+      ],
+      "title": "OwnershipResponse",
+      "type": "object"
+    },
+    "OwnershipStateObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "attribute_key": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Attribute Key",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "state",
+          "title": "Kind",
+          "type": "string"
+        },
+        "object_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "owner": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "owner_state": {
+          "enum": [
+            "known",
+            "unowned",
+            "rti",
+            "unknown"
+          ],
+          "title": "Owner State",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "reported_owner_handle": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reported Owner Handle"
+        },
+        "reported_owner_name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reported Owner Name"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "transition": {
+          "enum": [
+            "reported",
+            "acquired",
+            "divested"
+          ],
+          "title": "Transition",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "object_id",
+        "attribute_key",
+        "kind",
+        "owner_state",
+        "transition"
+      ],
+      "title": "OwnershipStateObservation",
+      "type": "object"
+    },
+    "OwnershipStateReportResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "attribute_key": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Attribute Key",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "state",
+          "title": "Kind",
+          "type": "string"
+        },
+        "object_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "owner": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "owner_state": {
+          "enum": [
+            "known",
+            "unowned",
+            "rti",
+            "unknown"
+          ],
+          "title": "Owner State",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "reported_owner_handle": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reported Owner Handle"
+        },
+        "reported_owner_name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reported Owner Name"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "transition": {
+          "enum": [
+            "reported",
+            "acquired",
+            "divested"
+          ],
+          "title": "Transition",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "object_id",
+        "attribute_key",
+        "kind",
+        "owner_state",
+        "transition",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "OwnershipStateReportResponse",
+      "type": "object"
+    },
+    "OwnershipTicketResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "duplicate_requests": {
+          "minimum": 0,
+          "title": "Duplicate Requests",
+          "type": "integer"
+        },
+        "last_sequence": {
+          "minimum": 1,
+          "title": "Last Sequence",
+          "type": "integer"
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OwnershipOutcomeReportResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "request": {
+          "$ref": "#/$defs/OwnershipRequestReportResponse"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "completed",
+            "failed",
+            "cancelled",
+            "ambiguous"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request",
+        "status",
+        "last_sequence",
+        "duplicate_requests"
+      ],
+      "title": "OwnershipTicketResponse",
+      "type": "object"
+    },
+    "ParticipantIdentityResponse": {
+      "additionalProperties": false,
+      "description": "Opaque IDs identify a participant join; names and handles never do.",
+      "properties": {
+        "display_name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Display Name"
+        },
+        "handle": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Handle"
+        },
+        "membership_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Membership Id",
+          "type": "string"
+        },
+        "participant_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Participant Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "participant_id",
+        "membership_id"
+      ],
+      "title": "ParticipantIdentityResponse",
+      "type": "object"
+    },
+    "ParticipantReferenceResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Display Name"
+        },
+        "handle": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Handle"
+        },
+        "identity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "ParticipantReferenceResponse",
+      "type": "object"
+    },
+    "PersistenceObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "save",
+            "restore"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "operation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "participants": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/CoordinationParticipantResponse"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Participants"
+        },
+        "phase": {
+          "enum": [
+            "requested",
+            "begun",
+            "completed",
+            "failed"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "scope": {
+          "enum": [
+            "local",
+            "federation"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "subject": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "operation_id",
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "label",
+        "scope",
+        "kind",
+        "phase"
+      ],
+      "title": "PersistenceObservation",
+      "type": "object"
+    },
+    "RecordingDeleteEdit": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "delete",
+          "title": "Op",
+          "type": "string"
+        },
+        "path": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "minimum": 0,
+                "type": "integer"
+              }
+            ]
+          },
+          "maxItems": 96,
+          "minItems": 1,
+          "title": "Path",
+          "type": "array"
+        }
+      },
+      "required": [
+        "op",
+        "path"
+      ],
+      "title": "RecordingDeleteEdit",
+      "type": "object"
+    },
+    "RecordingDeltaFrame": {
+      "additionalProperties": false,
+      "properties": {
+        "arrivals": {
+          "items": {
+            "$ref": "#/$defs/EventEnvelope"
+          },
+          "title": "Arrivals",
+          "type": "array"
+        },
+        "captured_at": {
+          "title": "Captured At",
+          "type": "number"
+        },
+        "change": {
+          "enum": [
+            "start",
+            "events",
+            "metadata",
+            "clear",
+            "checkpoint",
+            "stop"
+          ],
+          "title": "Change",
+          "type": "string"
+        },
+        "edits": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "delete": "#/$defs/RecordingDeleteEdit",
+                "set": "#/$defs/RecordingSetEdit",
+                "splice": "#/$defs/RecordingSpliceEdit"
+              },
+              "propertyName": "op"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/RecordingSetEdit"
+              },
+              {
+                "$ref": "#/$defs/RecordingDeleteEdit"
+              },
+              {
+                "$ref": "#/$defs/RecordingSpliceEdit"
+              }
+            ]
+          },
+          "maxItems": 20000,
+          "title": "Edits",
+          "type": "array"
+        },
+        "index": {
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "offset_seconds": {
+          "minimum": 0,
+          "title": "Offset Seconds",
+          "type": "number"
+        },
+        "state_bytes": {
+          "maximum": 8388608,
+          "minimum": 1,
+          "title": "State Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "index",
+        "offset_seconds",
+        "captured_at",
+        "change",
+        "arrivals",
+        "edits",
+        "state_bytes"
+      ],
+      "title": "RecordingDeltaFrame",
+      "type": "object"
+    },
+    "RecordingDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "captured_bytes": {
+          "minimum": 0,
+          "title": "Captured Bytes",
+          "type": "integer"
+        },
+        "contract": {
+          "$ref": "#/$defs/ContractResponse"
+        },
+        "duration_seconds": {
+          "minimum": 0,
+          "title": "Duration Seconds",
+          "type": "number"
+        },
+        "frames": {
+          "items": {
+            "$ref": "#/$defs/RecordingFrame"
+          },
+          "maxItems": 2000,
+          "minItems": 1,
+          "title": "Frames",
+          "type": "array"
+        },
+        "label": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "max_bytes": {
+          "maximum": 16777216,
+          "minimum": 1,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "max_frames": {
+          "maximum": 2000,
+          "minimum": 1,
+          "title": "Max Frames",
+          "type": "integer"
+        },
+        "recording_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Recording Id",
+          "type": "string"
+        },
+        "recording_version": {
+          "const": "umbra-observer-recording-v1",
+          "title": "Recording Version",
+          "type": "string"
+        },
+        "started_at": {
+          "title": "Started At",
+          "type": "number"
+        },
+        "stop_reason": {
+          "enum": [
+            "user",
+            "frame-limit",
+            "byte-limit",
+            "invalid-state",
+            "backend-stopped",
+            "state-limit",
+            "decode-limit",
+            "edit-limit"
+          ],
+          "title": "Stop Reason",
+          "type": "string"
+        },
+        "stopped_at": {
+          "title": "Stopped At",
+          "type": "number"
+        }
+      },
+      "required": [
+        "recording_version",
+        "recording_id",
+        "label",
+        "contract",
+        "started_at",
+        "stopped_at",
+        "duration_seconds",
+        "stop_reason",
+        "max_frames",
+        "max_bytes",
+        "captured_bytes",
+        "frames"
+      ],
+      "title": "RecordingDocument",
+      "type": "object"
+    },
+    "RecordingFrame": {
+      "additionalProperties": false,
+      "properties": {
+        "arrivals": {
+          "items": {
+            "$ref": "#/$defs/EventEnvelope"
+          },
+          "title": "Arrivals",
+          "type": "array"
+        },
+        "captured_at": {
+          "title": "Captured At",
+          "type": "number"
+        },
+        "change": {
+          "enum": [
+            "start",
+            "events",
+            "metadata",
+            "clear",
+            "checkpoint",
+            "stop"
+          ],
+          "title": "Change",
+          "type": "string"
+        },
+        "index": {
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "offset_seconds": {
+          "minimum": 0,
+          "title": "Offset Seconds",
+          "type": "number"
+        },
+        "state": {
+          "$ref": "#/$defs/StateResponse"
+        }
+      },
+      "required": [
+        "index",
+        "offset_seconds",
+        "captured_at",
+        "change",
+        "arrivals",
+        "state"
+      ],
+      "title": "RecordingFrame",
+      "type": "object"
+    },
+    "RecordingSetEdit": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "set",
+          "title": "Op",
+          "type": "string"
+        },
+        "path": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "minimum": 0,
+                "type": "integer"
+              }
+            ]
+          },
+          "maxItems": 96,
+          "title": "Path",
+          "type": "array"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue"
+        }
+      },
+      "required": [
+        "op",
+        "path",
+        "value"
+      ],
+      "title": "RecordingSetEdit",
+      "type": "object"
+    },
+    "RecordingSpliceEdit": {
+      "additionalProperties": false,
+      "properties": {
+        "delete_count": {
+          "minimum": 0,
+          "title": "Delete Count",
+          "type": "integer"
+        },
+        "index": {
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "op": {
+          "const": "splice",
+          "title": "Op",
+          "type": "string"
+        },
+        "path": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "minimum": 0,
+                "type": "integer"
+              }
+            ]
+          },
+          "maxItems": 96,
+          "title": "Path",
+          "type": "array"
+        }
+      },
+      "required": [
+        "op",
+        "path",
+        "index",
+        "delete_count",
+        "items"
+      ],
+      "title": "RecordingSpliceEdit",
+      "type": "object"
+    },
+    "RecordingStatusResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_version": {
+          "const": "umbra-observer-contract-v1",
+          "default": "umbra-observer-contract-v1",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "recording": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CaptureStatus"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scope": {
+          "const": "backend-process",
+          "default": "backend-process",
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "recording"
+      ],
+      "title": "RecordingStatusResponse",
+      "type": "object"
+    },
+    "RegionAssociationObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "association_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Association Id",
+          "type": "string"
+        },
+        "attribute_keys": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attribute Keys"
+        },
+        "direction": {
+          "enum": [
+            "publication",
+            "subscription",
+            "update",
+            "send",
+            "unknown"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "evidence": {
+          "enum": [
+            "declared",
+            "observed",
+            "unknown"
+          ],
+          "title": "Evidence",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "association",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "region_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Region Ids"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "ended",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "target_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Target Id",
+          "type": "string"
+        },
+        "target_kind": {
+          "enum": [
+            "object",
+            "interaction"
+          ],
+          "title": "Target Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "evidence",
+        "kind",
+        "association_id",
+        "status",
+        "target_kind",
+        "target_id",
+        "direction"
+      ],
+      "title": "RegionAssociationObservation",
+      "type": "object"
+    },
+    "RegionAssociationReportResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "association_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Association Id",
+          "type": "string"
+        },
+        "attribute_keys": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attribute Keys"
+        },
+        "direction": {
+          "enum": [
+            "publication",
+            "subscription",
+            "update",
+            "send",
+            "unknown"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "evidence": {
+          "enum": [
+            "declared",
+            "observed",
+            "unknown"
+          ],
+          "title": "Evidence",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "association",
+          "title": "Kind",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "region_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Region Ids"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "ended",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "target_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Target Id",
+          "type": "string"
+        },
+        "target_kind": {
+          "enum": [
+            "object",
+            "interaction"
+          ],
+          "title": "Target Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "evidence",
+        "kind",
+        "association_id",
+        "status",
+        "target_kind",
+        "target_id",
+        "direction",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "RegionAssociationReportResponse",
+      "type": "object"
+    },
+    "RegionExtentResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "dimensions": {
+          "items": {
+            "$ref": "#/$defs/DimensionRangeResponse"
+          },
+          "maxItems": 256,
+          "title": "Dimensions",
+          "type": "array"
+        },
+        "extent_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Extent Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "extent_id",
+        "dimensions"
+      ],
+      "title": "RegionExtentResponse",
+      "type": "object"
+    },
+    "RegionRoutingObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "enum": [
+            "declared",
+            "observed",
+            "unknown"
+          ],
+          "title": "Evidence",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "routing",
+          "title": "Kind",
+          "type": "string"
+        },
+        "producer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "recipient": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "region_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Region Ids"
+        },
+        "routing_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Routing Id",
+          "type": "string"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "ended",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "target_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Id"
+        },
+        "target_kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "object",
+                "interaction"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Kind"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "evidence",
+        "kind",
+        "routing_id",
+        "status"
+      ],
+      "title": "RegionRoutingObservation",
+      "type": "object"
+    },
+    "RegionRoutingReportResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "enum": [
+            "declared",
+            "observed",
+            "unknown"
+          ],
+          "title": "Evidence",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "routing",
+          "title": "Kind",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "producer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "recipient": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "region_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Region Ids"
+        },
+        "routing_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Routing Id",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "ended",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "target_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Id"
+        },
+        "target_kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "object",
+                "interaction"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Kind"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "evidence",
+        "kind",
+        "routing_id",
+        "status",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "RegionRoutingReportResponse",
+      "type": "object"
+    },
+    "RegionStateObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "enum": [
+            "declared",
+            "observed",
+            "unknown"
+          ],
+          "title": "Evidence",
+          "type": "string"
+        },
+        "extents": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/RegionExtentResponse"
+              },
+              "maxItems": 256,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Extents"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "region",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "region_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Region Id",
+          "type": "string"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "deleted",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "evidence",
+        "kind",
+        "region_id",
+        "status"
+      ],
+      "title": "RegionStateObservation",
+      "type": "object"
+    },
+    "RegionStateReportResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "enum": [
+            "declared",
+            "observed",
+            "unknown"
+          ],
+          "title": "Evidence",
+          "type": "string"
+        },
+        "extents": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/RegionExtentResponse"
+              },
+              "maxItems": 256,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Extents"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "region",
+          "title": "Kind",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "region_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Region Id",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "deleted",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "evidence",
+        "kind",
+        "region_id",
+        "status",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "RegionStateReportResponse",
+      "type": "object"
+    },
+    "RegionsResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "const": "explicit-region-observations",
+          "title": "Basis",
+          "type": "string"
+        },
+        "capacity": {
+          "minimum": 1,
+          "title": "Capacity",
+          "type": "integer"
+        },
+        "dropped_snapshots": {
+          "minimum": 0,
+          "title": "Dropped Snapshots",
+          "type": "integer"
+        },
+        "dropped_transitions": {
+          "minimum": 0,
+          "title": "Dropped Transitions",
+          "type": "integer"
+        },
+        "history_capacity": {
+          "minimum": 1,
+          "title": "History Capacity",
+          "type": "integer"
+        },
+        "snapshots": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "association": "#/$defs/RegionAssociationReportResponse",
+                "region": "#/$defs/RegionStateReportResponse",
+                "routing": "#/$defs/RegionRoutingReportResponse"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/RegionStateReportResponse"
+              },
+              {
+                "$ref": "#/$defs/RegionAssociationReportResponse"
+              },
+              {
+                "$ref": "#/$defs/RegionRoutingReportResponse"
+              }
+            ]
+          },
+          "title": "Snapshots",
+          "type": "array"
+        },
+        "transitions": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "association": "#/$defs/RegionAssociationReportResponse",
+                "region": "#/$defs/RegionStateReportResponse",
+                "routing": "#/$defs/RegionRoutingReportResponse"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/RegionStateReportResponse"
+              },
+              {
+                "$ref": "#/$defs/RegionAssociationReportResponse"
+              },
+              {
+                "$ref": "#/$defs/RegionRoutingReportResponse"
+              }
+            ]
+          },
+          "title": "Transitions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshots",
+        "transitions",
+        "capacity",
+        "history_capacity",
+        "dropped_snapshots",
+        "dropped_transitions",
+        "basis"
+      ],
+      "title": "RegionsResponse",
+      "type": "object"
+    },
+    "RelationshipObservationInput": {
+      "additionalProperties": false,
+      "properties": {
+        "class_key": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class Key"
+        },
+        "class_name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class Name"
+        },
+        "evidence": {
+          "enum": [
+            "declared",
+            "observed"
+          ],
+          "title": "Evidence",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "object",
+            "interaction"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "producer": {
+          "$ref": "#/$defs/ParticipantIdentityResponse"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "recipient": {
+          "$ref": "#/$defs/ParticipantIdentityResponse"
+        },
+        "relationship_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Relationship Id",
+          "type": "string"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "ended",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "viewpoint": {
+          "enum": [
+            "observer",
+            "producer",
+            "recipient",
+            "unknown"
+          ],
+          "title": "Viewpoint",
+          "type": "string"
+        }
+      },
+      "required": [
+        "relationship_id",
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "producer",
+        "recipient",
+        "kind",
+        "evidence",
+        "status",
+        "viewpoint"
+      ],
+      "title": "RelationshipObservationInput",
+      "type": "object"
+    },
+    "RelationshipSnapshotResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "class_key": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class Key"
+        },
+        "class_name": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class Name"
+        },
+        "evidence": {
+          "enum": [
+            "declared",
+            "observed"
+          ],
+          "title": "Evidence",
+          "type": "string"
+        },
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "object",
+            "interaction"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "producer": {
+          "$ref": "#/$defs/ParticipantIdentityResponse"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "recipient": {
+          "$ref": "#/$defs/ParticipantIdentityResponse"
+        },
+        "relationship_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Relationship Id",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "ended",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "viewpoint": {
+          "enum": [
+            "observer",
+            "producer",
+            "recipient",
+            "unknown"
+          ],
+          "title": "Viewpoint",
+          "type": "string"
+        }
+      },
+      "required": [
+        "relationship_id",
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "producer",
+        "recipient",
+        "kind",
+        "evidence",
+        "status",
+        "viewpoint",
+        "source",
+        "sequence",
+        "observed_at"
+      ],
+      "title": "RelationshipSnapshotResponse",
+      "type": "object"
+    },
+    "RelationshipsResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "const": "last-reported-explicit-relationships",
+          "title": "Basis",
+          "type": "string"
+        },
+        "capacity": {
+          "minimum": 1,
+          "title": "Capacity",
+          "type": "integer"
+        },
+        "dropped_relationships": {
+          "minimum": 0,
+          "title": "Dropped Relationships",
+          "type": "integer"
+        },
+        "snapshots": {
+          "items": {
+            "$ref": "#/$defs/RelationshipSnapshotResponse"
+          },
+          "title": "Snapshots",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshots",
+        "capacity",
+        "dropped_relationships",
+        "basis"
+      ],
+      "title": "RelationshipsResponse",
       "type": "object"
     },
     "ReportedTimeStateResponse": {
@@ -2896,7 +9363,7 @@
           "type": "integer"
         },
         "first_retained_sequence": {
-          "minimum": 1,
+          "minimum": 0,
           "title": "First Retained Sequence",
           "type": "integer"
         },
@@ -2904,6 +9371,19 @@
           "minimum": 0,
           "title": "Last Sequence",
           "type": "integer"
+        },
+        "next_sequence": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Sequence"
         },
         "retained_events": {
           "minimum": 0,
@@ -3060,6 +9540,17 @@
           "minLength": 1,
           "title": "Status",
           "type": "string"
+        },
+        "storage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StorageCoverageResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -3075,6 +9566,182 @@
         "status"
       ],
       "title": "StateResponse",
+      "type": "object"
+    },
+    "StorageBudgetResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "accounted_bytes": {
+          "minimum": 0,
+          "title": "Accounted Bytes",
+          "type": "integer"
+        },
+        "basis": {
+          "const": "encoded-json-plus-record-reserve",
+          "title": "Basis",
+          "type": "string"
+        },
+        "collections": {
+          "items": {
+            "$ref": "#/$defs/StorageCollectionResponse"
+          },
+          "title": "Collections",
+          "type": "array"
+        },
+        "max_bytes": {
+          "minimum": 1,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "max_record_bytes": {
+          "minimum": 1,
+          "title": "Max Record Bytes",
+          "type": "integer"
+        },
+        "policy": {
+          "enum": [
+            "shared-evidence-lru",
+            "shared-evidence-lru-with-soft-reservations"
+          ],
+          "title": "Policy",
+          "type": "string"
+        },
+        "record_reserve_bytes": {
+          "minimum": 0,
+          "title": "Record Reserve Bytes",
+          "type": "integer"
+        },
+        "unbudgeted_collections": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Unbudgeted Collections",
+          "type": "array"
+        }
+      },
+      "required": [
+        "basis",
+        "policy",
+        "max_bytes",
+        "max_record_bytes",
+        "accounted_bytes",
+        "record_reserve_bytes",
+        "collections",
+        "unbudgeted_collections"
+      ],
+      "title": "StorageBudgetResponse",
+      "type": "object"
+    },
+    "StorageCollectionResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "accounted_bytes": {
+          "minimum": 0,
+          "title": "Accounted Bytes",
+          "type": "integer"
+        },
+        "byte_limit_drops": {
+          "minimum": 0,
+          "title": "Byte Limit Drops",
+          "type": "integer"
+        },
+        "capacity": {
+          "minimum": 1,
+          "title": "Capacity",
+          "type": "integer"
+        },
+        "collection": {
+          "minLength": 1,
+          "title": "Collection",
+          "type": "string"
+        },
+        "count_limit_drops": {
+          "minimum": 0,
+          "title": "Count Limit Drops",
+          "type": "integer"
+        },
+        "dropped_bytes": {
+          "minimum": 0,
+          "title": "Dropped Bytes",
+          "type": "integer"
+        },
+        "dropped_records": {
+          "minimum": 0,
+          "title": "Dropped Records",
+          "type": "integer"
+        },
+        "encoding_drops": {
+          "minimum": 0,
+          "title": "Encoding Drops",
+          "type": "integer"
+        },
+        "oversized_drops": {
+          "minimum": 0,
+          "title": "Oversized Drops",
+          "type": "integer"
+        },
+        "retained_records": {
+          "minimum": 0,
+          "title": "Retained Records",
+          "type": "integer"
+        },
+        "soft_reservation_bytes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Soft Reservation Bytes"
+        },
+        "unit": {
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "window_drops": {
+          "minimum": 0,
+          "title": "Window Drops",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "collection",
+        "unit",
+        "capacity",
+        "retained_records",
+        "accounted_bytes",
+        "dropped_records",
+        "dropped_bytes",
+        "count_limit_drops",
+        "byte_limit_drops",
+        "oversized_drops",
+        "encoding_drops",
+        "window_drops"
+      ],
+      "title": "StorageCollectionResponse",
+      "type": "object"
+    },
+    "StorageCoverageResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/StorageBudgetResponse"
+        },
+        "evidence": {
+          "$ref": "#/$defs/StorageBudgetResponse"
+        }
+      },
+      "required": [
+        "evidence",
+        "context"
+      ],
+      "title": "StorageCoverageResponse",
       "type": "object"
     },
     "StreamDescription": {
@@ -3119,6 +9786,124 @@
         "messages"
       ],
       "title": "StreamDescription",
+      "type": "object"
+    },
+    "SynchronizationObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "kind": {
+          "const": "synchronization",
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "operation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "participants": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/CoordinationParticipantResponse"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Participants"
+        },
+        "phase": {
+          "enum": [
+            "requested",
+            "registered",
+            "registration-failed",
+            "announced",
+            "achieved",
+            "completed",
+            "failed"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "scope": {
+          "enum": [
+            "local",
+            "federation"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "subject": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantIdentityResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "operation_id",
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "label",
+        "scope",
+        "kind",
+        "phase"
+      ],
+      "title": "SynchronizationObservation",
       "type": "object"
     },
     "TimeGrantObservation": {
@@ -3189,6 +9974,19 @@
           "title": "Dropped Requests",
           "type": "integer"
         },
+        "dropped_snapshots": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dropped Snapshots"
+        },
         "duration_basis": {
           "const": "observer-ingress-monotonic",
           "title": "Duration Basis",
@@ -3210,6 +10008,19 @@
           "const": "explicit-observations",
           "title": "Scope Basis",
           "type": "string"
+        },
+        "snapshot_capacity": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Capacity"
         },
         "snapshots": {
           "items": {
@@ -3537,6 +10348,18 @@
         },
         "scope": {
           "$ref": "#/$defs/TimeScopeResponse"
+        },
+        "snapshot_retained": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Retained"
         },
         "status": {
           "enum": [

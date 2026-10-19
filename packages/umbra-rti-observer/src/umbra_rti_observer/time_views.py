@@ -4,11 +4,11 @@
 from __future__ import annotations
 
 import math
-from collections import OrderedDict
 from dataclasses import replace
 from time import monotonic
 
 from .models import EventRecord, JsonObject, to_json_object
+from .storage import EvidenceBudget, EvidenceIndex
 from .time_models import (
     RequestStatus,
     TimeData,
@@ -21,18 +21,37 @@ from .time_models import (
 
 
 class TimeViews:
-    def __init__(self, capacity: int) -> None:
+    def __init__(self, capacity: int, snapshot_capacity: int = 2000, *, budget: EvidenceBudget | None = None) -> None:
         self.capacity = capacity
-        self._snapshots: dict[TimeScope, TimeSnapshot] = {}
-        self._requests: OrderedDict[tuple[TimeScope, str], TimeRequest] = OrderedDict()
-        self._dropped = 0
+        shared = budget if budget is not None else EvidenceBudget()
+        self._snapshots = EvidenceIndex[TimeScope, TimeSnapshot]("time_snapshots", snapshot_capacity, shared, lambda _, row: row.to_json())
+        self._requests = EvidenceIndex[tuple[TimeScope, str], TimeRequest]("time_requests", capacity, shared, lambda _, row: row.to_json(monotonic()))
+        self._changed_snapshots: set[TimeScope] = set()
+        self._changed_requests: set[tuple[TimeScope, str]] = set()
 
     def clear(self) -> None:
         self._snapshots.clear()
         self._requests.clear()
-        self._dropped = 0
+        self._changed_snapshots.clear()
+        self._changed_requests.clear()
 
     def record(self, event: EventRecord, federate: str | None, federation: str | None) -> None:
+        self._changed_snapshots.clear()
+        self._changed_requests.clear()
+        self._record(event, federate, federation)
+        # Mutations happen in the owner, never as a side effect of JSON reads.
+        for key in self._changed_snapshots:
+            snapshot = self._snapshots.get(key)
+            if snapshot is not None and snapshot.last_sequence == event.sequence:
+                self._snapshots.refresh(key)
+        for key in self._changed_requests:
+            row = self._requests.get(key)
+            if row is not None and (row.request_sequence == event.sequence or row.outcome_sequence == event.sequence):
+                self._requests.refresh(key)
+        self._changed_snapshots.clear()
+        self._changed_requests.clear()
+
+    def _record(self, event: EventRecord, federate: str | None, federation: str | None) -> None:
         data = time_data(event)
         if data is None:
             session = event.get("session_id")
@@ -43,6 +62,7 @@ class TimeViews:
                         row.status = "ended"
                         row.last_sequence = event.sequence
                         row.observed_at = event.observed_at
+                        self._changed_snapshots.add(scope)
                         for request in self._requests.values():
                             if request.scope == scope and request.status == "pending":
                                 self._finish(request, event, "session-ended", "Explicit session/federate end observed")
@@ -54,6 +74,7 @@ class TimeViews:
             self._snapshots[scope] = row
         if row.status == "ended":
             return  # Reconnection requires a fresh session ID, not resurrected pending work.
+        self._changed_snapshots.add(scope)
         row.last_sequence = event.sequence
         row.observed_at = event.observed_at
         if data.kind == "state":
@@ -85,9 +106,6 @@ class TimeViews:
             if previous_request is not None:
                 self._finish(previous_request, event, "ambiguous", "Request ID repeated within its retained session scope")
                 return
-            if len(self._requests) == self.capacity:
-                self._requests.popitem(last=False)
-                self._dropped += 1
             self._requests[key] = TimeRequest(scope, key[1], event.sequence, data.logical_time, event.observed_at, monotonic())
         elif data.kind in {"grant", "failed", "cancelled"}:
             request = self._requests.get(key) if key is not None else None
@@ -103,8 +121,7 @@ class TimeViews:
             else:
                 self._finish(request, event, data.kind, data.reason)
 
-    @staticmethod
-    def _finish(request: TimeRequest, event: EventRecord, status: RequestStatus, reason: str | None) -> None:
+    def _finish(self, request: TimeRequest, event: EventRecord, status: RequestStatus, reason: str | None) -> None:
         # Only this internal literal set calls the helper; retain a typed status.
         if status not in ("granted", "failed", "cancelled", "ambiguous", "session-ended"):
             raise ValueError("unknown time request outcome")
@@ -112,6 +129,7 @@ class TimeViews:
         request.outcome_sequence = event.sequence
         request.outcome_at = event.observed_at
         request.reason = reason
+        self._changed_requests.add((request.scope, request.request_id))
         if status != "granted":
             request.latency_seconds = None
             request.granted_time = None
@@ -120,7 +138,8 @@ class TimeViews:
         now = monotonic()
         return to_json_object({
             "snapshots": [row.to_json() for row in self._snapshots.values()],
-            "requests": [row.to_json(now) for row in self._requests.values()],
-            "request_capacity": self.capacity, "dropped_requests": self._dropped,
+            "requests": [{**row.to_json(now), "snapshot_retained": row.scope in self._snapshots} for row in self._requests.values()],
+            "request_capacity": self.capacity, "dropped_requests": self._requests.dropped,
+            "snapshot_capacity": self._snapshots.capacity, "dropped_snapshots": self._snapshots.dropped,
             "duration_basis": "observer-ingress-monotonic", "scope_basis": "explicit-observations",
         })

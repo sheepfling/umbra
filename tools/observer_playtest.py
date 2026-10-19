@@ -57,7 +57,16 @@ TRY THIS
 - Federates: select ShowcaseServer to inspect its activity.
 - Objects: search ExampleClass, compare perspectives, and chart the load attribute.
 - Declarations: compare explicit publication/subscription snapshots, not inferred routes.
+- Topology: focus explicit participant joins and relationship evidence; names are not IDs.
+- Interaction flow: compare paired/uncorrelated observations and observer arrival intervals.
+- Ownership: compare explicit owner reports with acquisition/divestiture tickets.
+- Regions / DDM: inspect exact large bounds, scoped associations and routing evidence.
+- MOM reports: inspect reported members, service errors and numeric/opaque counters.
+- FOM browser: navigate explicit classes, fields, datatypes and model revisions.
+- Recordings: start/stop/download a bounded capture, then replay and seek across screens.
 - Logical time: inspect persistent grants, pending requests and observed grant delays.
+- Synchronization: follow explicit registration and achievement phase reports.
+- Save / restore: compare local completion with a federation-wide failure and its timeline.
 - Events and Inspectors: explore the generated observations.
 - Actions: select the synthetic session, connect, join as ManagedObserver,
   then confirm resign and disconnect. These controls affect only that dummy
@@ -373,7 +382,7 @@ def launch(layout: Layout, python: Path, *, profile: str, port: int | None,
             print(
                 f"\nDashboard ready: {url}/\n"
                 "Live dummy events and synthetic Actions are enabled. No real RTI is connected.\n"
-                "Try Federation, Federates, Objects, Declarations, Logical time, Events, Inspectors, Actions and Diagnostics.\n"
+                "Try Topology, Interaction flow, Synchronization and Save / restore alongside the federation and federate views.\n"
                 "Keep this window open. Press Ctrl+C here to stop; closing the browser does not stop it.\n",
                 flush=True,
             )

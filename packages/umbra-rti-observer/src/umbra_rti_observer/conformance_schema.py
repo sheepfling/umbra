@@ -11,9 +11,15 @@ from typing import cast
 from pydantic import BaseModel
 
 from .command_models import CommandCatalog, CommandHistory, CommandRecord
-from .conformance import WIRE_REQUIRED_FIELDS
 from .contract import OBSERVER_CONTRACT_VERSION
+from .recording_models import (
+    CaptureStatus,
+    CompactRecordingDocument,
+    RecordingDocument,
+    RecordingStatusResponse,
+)
 from .schemas import (
+    WIRE_REQUIRED_FIELDS,
     AnalyticsResponse,
     ContractResponse,
     ErrorMessage,
@@ -33,6 +39,7 @@ WIRE_MODELS: tuple[type[BaseModel], ...] = (
     EventPageResponse, InspectorResponse, AnalyticsResponse, CommandCatalog,
     CommandHistory, CommandRecord, SnapshotMessage, EventsMessage,
     HeartbeatMessage, GapMessage, ErrorMessage,
+    CaptureStatus, RecordingStatusResponse, RecordingDocument, CompactRecordingDocument,
 )
 SCHEMA_PATH = Path(__file__).with_name("static") / "observer-wire-v1.schema.json"
 

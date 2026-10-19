@@ -245,6 +245,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/recordings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status */
+        get: operations["status_api_recordings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recordings/analyze": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Analyze */
+        post: operations["analyze_api_recordings_analyze_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recordings/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export */
+        get: operations["export_api_recordings_export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recordings/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start */
+        post: operations["start_api_recordings_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recordings/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop */
+        post: operations["stop_api_recordings_stop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recordings/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validated Response */
+        post: operations["validated_response_api_recordings_validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/schema": {
         parameters: {
             query?: never;
@@ -339,6 +441,7 @@ export interface components {
             /** Participants */
             participants: components["schemas"]["FederateActivity"][];
             retention: components["schemas"]["RetentionResponse"];
+            roster_storage?: components["schemas"]["StorageCollectionResponse"] | null;
             /** Scoped Federate */
             scoped_federate: string | null;
             /** Sources */
@@ -352,8 +455,54 @@ export interface components {
             /** Window Start */
             window_start: number;
         };
+        /**
+         * AnalyticsWindow
+         * @description Consistent retained observations/roster, without unrelated inspectors.
+         */
+        AnalyticsWindow: {
+            /** Contract Version */
+            contract_version: string;
+            /** Federate Roster */
+            federate_roster: components["schemas"]["FederateInspectionResponse"][];
+            /** Normalized Events */
+            normalized_events: components["schemas"]["EventEnvelope-Input"][];
+            retention: components["schemas"]["RetentionResponse"];
+            storage?: components["schemas"]["StorageCoverageResponse"] | null;
+        };
         /** CapabilityResponse */
-        CapabilityResponse: {
+        "CapabilityResponse-Input": {
+            /** Description */
+            description: string;
+            /** Event Types */
+            event_types?: string[];
+            /** Label */
+            label: string;
+            /** Observations */
+            observations?: {
+                [key: string]: components["schemas"]["JsonValue-Input"];
+            }[];
+            /** Owner */
+            owner: string;
+            /** Owners */
+            owners?: string[];
+            /** Reason */
+            reason?: string | null;
+            /** Reasons */
+            reasons?: string[];
+            /** Source */
+            source?: string | null;
+            /** Sources */
+            sources?: string[];
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "available" | "partial" | "disabled" | "unsupported" | "unknown";
+        } & {
+            [key: string]: unknown;
+        };
+        /** CapabilityResponse */
+        "CapabilityResponse-Output": {
             /** Description */
             description: string;
             /** Event Types */
@@ -397,13 +546,46 @@ export interface components {
             /** States */
             states: ("available" | "partial" | "disabled" | "unsupported" | "unknown")[];
         };
+        /** CaptureStatus */
+        CaptureStatus: {
+            /** Active */
+            active: boolean;
+            /** Captured Bytes */
+            captured_bytes: number;
+            /** Decoded State Bytes */
+            decoded_state_bytes?: number | null;
+            /** Duration Seconds */
+            duration_seconds: number;
+            /** Edit Count */
+            edit_count?: number | null;
+            /** Frame Count */
+            frame_count: number;
+            /** Label */
+            label: string;
+            /** Max Bytes */
+            max_bytes: number;
+            /** Max Decoded State Bytes */
+            max_decoded_state_bytes?: 1073741824 | null;
+            /** Max Frames */
+            max_frames: number;
+            /** Max State Bytes */
+            max_state_bytes?: 8388608 | null;
+            /** Recording Id */
+            recording_id: string;
+            /** Started At */
+            started_at: number;
+            /** Stop Reason */
+            stop_reason: ("user" | "frame-limit" | "byte-limit" | "invalid-state" | "backend-stopped" | "state-limit" | "decode-limit" | "edit-limit") | null;
+            /** Storage Format */
+            storage_format?: ("full-v1" | "compact-v2") | null;
+        };
         /** CatalogResponse */
         CatalogResponse: {
             /** Capabilities */
             capabilities?: {
-                [key: string]: components["schemas"]["CapabilityResponse"];
+                [key: string]: components["schemas"]["CapabilityResponse-Output"];
             };
-            contract: components["schemas"]["ContractResponse"];
+            contract: components["schemas"]["ContractResponse-Output"];
             /** Contract Version */
             contract_version: string;
             /** Event Schema */
@@ -591,6 +773,110 @@ export interface components {
             /** Target Id */
             target_id: string;
         };
+        /** CompactRecordingDocument */
+        "CompactRecordingDocument-Input": {
+            baseline: components["schemas"]["StateResponse-Input"];
+            /** Captured Bytes */
+            captured_bytes: number;
+            /**
+             * Codec
+             * @constant
+             */
+            codec: "observer-json-edits-v1";
+            contract: components["schemas"]["ContractResponse-Input"];
+            /** Decoded State Bytes */
+            decoded_state_bytes: number;
+            /** Duration Seconds */
+            duration_seconds: number;
+            /** Edit Count */
+            edit_count: number;
+            /** Frames */
+            frames: components["schemas"]["RecordingDeltaFrame-Input"][];
+            /** Label */
+            label: string;
+            /** Max Bytes */
+            max_bytes: number;
+            /**
+             * Max Decoded State Bytes
+             * @constant
+             */
+            max_decoded_state_bytes: 1073741824;
+            /** Max Frames */
+            max_frames: number;
+            /**
+             * Max State Bytes
+             * @constant
+             */
+            max_state_bytes: 8388608;
+            /** Recording Id */
+            recording_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            recording_version: "umbra-observer-recording-v2";
+            /** Started At */
+            started_at: number;
+            /**
+             * Stop Reason
+             * @enum {string}
+             */
+            stop_reason: "user" | "frame-limit" | "byte-limit" | "invalid-state" | "backend-stopped" | "state-limit" | "decode-limit" | "edit-limit";
+            /** Stopped At */
+            stopped_at: number;
+        };
+        /** CompactRecordingDocument */
+        "CompactRecordingDocument-Output": {
+            baseline: components["schemas"]["StateResponse-Output"];
+            /** Captured Bytes */
+            captured_bytes: number;
+            /**
+             * Codec
+             * @constant
+             */
+            codec: "observer-json-edits-v1";
+            contract: components["schemas"]["ContractResponse-Output"];
+            /** Decoded State Bytes */
+            decoded_state_bytes: number;
+            /** Duration Seconds */
+            duration_seconds: number;
+            /** Edit Count */
+            edit_count: number;
+            /** Frames */
+            frames: components["schemas"]["RecordingDeltaFrame-Output"][];
+            /** Label */
+            label: string;
+            /** Max Bytes */
+            max_bytes: number;
+            /**
+             * Max Decoded State Bytes
+             * @constant
+             */
+            max_decoded_state_bytes: 1073741824;
+            /** Max Frames */
+            max_frames: number;
+            /**
+             * Max State Bytes
+             * @constant
+             */
+            max_state_bytes: 8388608;
+            /** Recording Id */
+            recording_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            recording_version: "umbra-observer-recording-v2";
+            /** Started At */
+            started_at: number;
+            /**
+             * Stop Reason
+             * @enum {string}
+             */
+            stop_reason: "user" | "frame-limit" | "byte-limit" | "invalid-state" | "backend-stopped" | "state-limit" | "decode-limit" | "edit-limit";
+            /** Stopped At */
+            stopped_at: number;
+        };
         /** ConnectCommand */
         ConnectCommand: {
             /**
@@ -624,7 +910,7 @@ export interface components {
             };
         };
         /** ContractResponse */
-        ContractResponse: {
+        "ContractResponse-Input": {
             /** Api Paths */
             api_paths: {
                 [key: string]: string;
@@ -633,7 +919,7 @@ export interface components {
             backend_rule: string;
             /** Capabilities */
             capabilities?: {
-                [key: string]: components["schemas"]["CapabilityResponse"];
+                [key: string]: components["schemas"]["CapabilityResponse-Input"];
             };
             capability_schema: components["schemas"]["CapabilitySchemaResponse"];
             /** Contract Version */
@@ -648,6 +934,102 @@ export interface components {
             media_type: string;
             snapshot: components["schemas"]["ResourceDescription"];
             stream: components["schemas"]["StreamDescription"];
+        };
+        /** ContractResponse */
+        "ContractResponse-Output": {
+            /** Api Paths */
+            api_paths: {
+                [key: string]: string;
+            };
+            /** Backend Rule */
+            backend_rule: string;
+            /** Capabilities */
+            capabilities?: {
+                [key: string]: components["schemas"]["CapabilityResponse-Output"];
+            };
+            capability_schema: components["schemas"]["CapabilitySchemaResponse"];
+            /** Contract Version */
+            contract_version: string;
+            event_envelope: components["schemas"]["EventEnvelopeDescription"];
+            /** Event Schema Version */
+            event_schema_version: string;
+            /** Event Types */
+            event_types: string[];
+            events: components["schemas"]["ResourceDescription"];
+            /** Media Type */
+            media_type: string;
+            snapshot: components["schemas"]["ResourceDescription"];
+            stream: components["schemas"]["StreamDescription"];
+        };
+        /** CoordinationParticipantResponse */
+        CoordinationParticipantResponse: {
+            identity: components["schemas"]["ParticipantIdentityResponse"];
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "achieved" | "begun" | "completed" | "failed" | "unknown";
+        };
+        /** CoordinationResponse */
+        CoordinationResponse: {
+            /**
+             * Basis
+             * @constant
+             */
+            basis: "explicit-coordination-observations";
+            /** Capacity */
+            capacity: number;
+            /** Dropped Operations */
+            dropped_operations: number;
+            /** Dropped Transitions */
+            dropped_transitions: number;
+            /** History Capacity */
+            history_capacity: number;
+            /** Snapshots */
+            snapshots: components["schemas"]["CoordinationSnapshotResponse"][];
+            /** Transitions */
+            transitions: components["schemas"]["CoordinationSnapshotResponse"][];
+        };
+        /** CoordinationSnapshotResponse */
+        CoordinationSnapshotResponse: {
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "synchronization" | "save" | "restore";
+            /** Label */
+            label: string;
+            /** Observed At */
+            observed_at: number;
+            /** Operation Id */
+            operation_id: string;
+            /** Participants */
+            participants?: components["schemas"]["CoordinationParticipantResponse"][] | null;
+            /**
+             * Phase
+             * @enum {string}
+             */
+            phase: "requested" | "registered" | "registration-failed" | "announced" | "achieved" | "begun" | "completed" | "failed";
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "local" | "federation";
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+            subject?: components["schemas"]["ParticipantIdentityResponse"] | null;
         };
         /** DeclarationScopeResponse */
         DeclarationScopeResponse: {
@@ -710,6 +1092,17 @@ export interface components {
             /** Snapshots */
             snapshots: components["schemas"]["DeclarationSnapshotResponse"][];
         };
+        /** DimensionRangeResponse */
+        DimensionRangeResponse: {
+            /** Dimension Id */
+            dimension_id: string;
+            /** Dimension Upper Bound */
+            dimension_upper_bound?: string | null;
+            /** Lower Bound */
+            lower_bound: string;
+            /** Upper Bound */
+            upper_bound: string;
+        };
         /** DisconnectCommand */
         DisconnectCommand: {
             /**
@@ -746,7 +1139,62 @@ export interface components {
             events: components["schemas"]["EventInput"][];
         };
         /** EventEnvelope */
-        EventEnvelope: {
+        "EventEnvelope-Input": {
+            /** Coordination */
+            coordination?: (components["schemas"]["SynchronizationObservation"] | components["schemas"]["PersistenceObservation"]) | null;
+            /** Declaration */
+            declaration?: (components["schemas"]["ObjectDeclarationObservation"] | components["schemas"]["InteractionDeclarationObservation"]) | null;
+            /** Details */
+            details?: {
+                [key: string]: components["schemas"]["JsonValue-Input"];
+            } | null;
+            /** Event Type */
+            event_type: string;
+            /** Family */
+            family: string;
+            /** Federate */
+            federate?: string | {
+                [key: string]: components["schemas"]["JsonValue-Input"];
+            } | null;
+            /** Federate Name */
+            federate_name?: string | null;
+            /** Fom Observation */
+            fom_observation?: (components["schemas"]["FomObjectObservation"] | components["schemas"]["FomInteractionObservation"] | components["schemas"]["FomDatatypeObservation"] | components["schemas"]["FomDimensionObservation"]) | null;
+            interaction_flow?: components["schemas"]["InteractionFlowObservationInput"] | null;
+            /** Logical Time */
+            logical_time?: number | null;
+            /** Mom Observation */
+            mom_observation?: (components["schemas"]["MomMembersObservation"] | components["schemas"]["MomServiceObservation"] | components["schemas"]["MomCounterObservation"]) | null;
+            /** Object Key */
+            object_key?: string | null;
+            /** Observed At */
+            observed_at: number;
+            /** Operation */
+            operation?: string | null;
+            /** Ownership */
+            ownership?: (components["schemas"]["OwnershipStateObservation"] | components["schemas"]["OwnershipRequestObservation"] | components["schemas"]["OwnershipOutcomeObservation"]) | null;
+            /** Participant */
+            participant?: string | {
+                [key: string]: components["schemas"]["JsonValue-Input"];
+            } | null;
+            /** Participant Name */
+            participant_name?: string | null;
+            /** Region Observation */
+            region_observation?: (components["schemas"]["RegionStateObservation"] | components["schemas"]["RegionAssociationObservation"] | components["schemas"]["RegionRoutingObservation"]) | null;
+            relationship?: components["schemas"]["RelationshipObservationInput"] | null;
+            /** Sequence */
+            sequence: number;
+            /** Source */
+            source: string;
+            /** Time Observation */
+            time_observation?: (components["schemas"]["TimeRequestObservation"] | components["schemas"]["TimeGrantObservation"] | components["schemas"]["TimeStateObservation"] | components["schemas"]["TimeOutcomeObservation"]) | null;
+        } & {
+            [key: string]: unknown;
+        };
+        /** EventEnvelope */
+        "EventEnvelope-Output": {
+            /** Coordination */
+            coordination?: (components["schemas"]["SynchronizationObservation"] | components["schemas"]["PersistenceObservation"]) | null;
             /** Declaration */
             declaration?: (components["schemas"]["ObjectDeclarationObservation"] | components["schemas"]["InteractionDeclarationObservation"]) | null;
             /** Details */
@@ -763,20 +1211,30 @@ export interface components {
             } | null;
             /** Federate Name */
             federate_name?: string | null;
+            /** Fom Observation */
+            fom_observation?: (components["schemas"]["FomObjectObservation"] | components["schemas"]["FomInteractionObservation"] | components["schemas"]["FomDatatypeObservation"] | components["schemas"]["FomDimensionObservation"]) | null;
+            interaction_flow?: components["schemas"]["InteractionFlowObservationInput"] | null;
             /** Logical Time */
             logical_time?: number | null;
+            /** Mom Observation */
+            mom_observation?: (components["schemas"]["MomMembersObservation"] | components["schemas"]["MomServiceObservation"] | components["schemas"]["MomCounterObservation"]) | null;
             /** Object Key */
             object_key?: string | null;
             /** Observed At */
             observed_at: number;
             /** Operation */
             operation?: string | null;
+            /** Ownership */
+            ownership?: (components["schemas"]["OwnershipStateObservation"] | components["schemas"]["OwnershipRequestObservation"] | components["schemas"]["OwnershipOutcomeObservation"]) | null;
             /** Participant */
             participant?: string | {
                 [key: string]: components["schemas"]["JsonValue-Output"];
             } | null;
             /** Participant Name */
             participant_name?: string | null;
+            /** Region Observation */
+            region_observation?: (components["schemas"]["RegionStateObservation"] | components["schemas"]["RegionAssociationObservation"] | components["schemas"]["RegionRoutingObservation"]) | null;
+            relationship?: components["schemas"]["RelationshipObservationInput"] | null;
             /** Sequence */
             sequence: number;
             /** Source */
@@ -808,6 +1266,8 @@ export interface components {
             class_name?: string | null;
             /** Connection */
             connection?: string | null;
+            /** Coordination */
+            coordination?: (components["schemas"]["SynchronizationObservation"] | components["schemas"]["PersistenceObservation"]) | null;
             /** Declaration */
             declaration?: (components["schemas"]["ObjectDeclarationObservation"] | components["schemas"]["InteractionDeclarationObservation"]) | null;
             /** Details */
@@ -832,8 +1292,11 @@ export interface components {
             federate_name?: string | null;
             /** Federation */
             federation?: string | null;
+            /** Fom Observation */
+            fom_observation?: (components["schemas"]["FomObjectObservation"] | components["schemas"]["FomInteractionObservation"] | components["schemas"]["FomDatatypeObservation"] | components["schemas"]["FomDimensionObservation"]) | null;
             /** Interaction Class */
             interaction_class?: string | null;
+            interaction_flow?: components["schemas"]["InteractionFlowObservationInput"] | null;
             /** Interaction Handle */
             interaction_handle?: string | null;
             /** Interaction Key */
@@ -842,6 +1305,8 @@ export interface components {
             kind?: string | null;
             /** Logical Time */
             logical_time?: number | null;
+            /** Mom Observation */
+            mom_observation?: (components["schemas"]["MomMembersObservation"] | components["schemas"]["MomServiceObservation"] | components["schemas"]["MomCounterObservation"]) | null;
             /** Object Handle */
             object_handle?: string | null;
             /** Object Key */
@@ -852,6 +1317,8 @@ export interface components {
             observed_at?: number | null;
             /** Operation */
             operation?: string | null;
+            /** Ownership */
+            ownership?: (components["schemas"]["OwnershipStateObservation"] | components["schemas"]["OwnershipRequestObservation"] | components["schemas"]["OwnershipOutcomeObservation"]) | null;
             /** Parameters */
             parameters?: {
                 [key: string]: components["schemas"]["JsonValue-Input"];
@@ -864,6 +1331,9 @@ export interface components {
             participant_handle?: string | null;
             /** Participant Name */
             participant_name?: string | null;
+            /** Region Observation */
+            region_observation?: (components["schemas"]["RegionStateObservation"] | components["schemas"]["RegionAssociationObservation"] | components["schemas"]["RegionRoutingObservation"]) | null;
+            relationship?: components["schemas"]["RelationshipObservationInput"] | null;
             /** Role */
             role?: string | null;
             /** Sequence */
@@ -883,7 +1353,7 @@ export interface components {
             /** Dropped Events */
             dropped_events: number;
             /** Events */
-            events?: components["schemas"]["EventEnvelope"][];
+            events?: components["schemas"]["EventEnvelope-Output"][];
             /** First Retained Sequence */
             first_retained_sequence: number;
             /** Gap */
@@ -894,6 +1364,8 @@ export interface components {
             last_sequence: number;
             /** Next After */
             next_after: number;
+            /** Next Sequence */
+            next_sequence?: number | null;
             /** Retained Events */
             retained_events: number;
         };
@@ -919,6 +1391,8 @@ export interface components {
             object_updates: number;
             /** Role */
             role: string | null;
+            /** Roster Retained */
+            roster_retained?: boolean | null;
             /** Source */
             source: string;
             /** Status */
@@ -939,11 +1413,399 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** FomDatatypeObservation */
+        FomDatatypeObservation: {
+            /** Cardinality */
+            cardinality?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Element Id */
+            element_id: string;
+            /** Element Type Id */
+            element_type_id?: string | null;
+            /**
+             * Encoding
+             * @enum {string}
+             */
+            encoding: "primitive" | "enumeration" | "array" | "record" | "variant" | "opaque" | "unknown";
+            /** Enumerators */
+            enumerators?: components["schemas"]["FomEnumeratorResponse"][] | null;
+            /** Federation Id */
+            federation_id: string;
+            /** Fields */
+            fields?: components["schemas"]["FomFieldResponse"][] | null;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "datatype";
+            /** Model Id */
+            model_id: string;
+            /** Name */
+            name?: string | null;
+            /** Representation */
+            representation?: string | null;
+            /** Revision */
+            revision: string;
+            /** Session Id */
+            session_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "present" | "removed" | "unknown";
+        };
+        /** FomDatatypeReportResponse */
+        FomDatatypeReportResponse: {
+            /** Cardinality */
+            cardinality?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Element Id */
+            element_id: string;
+            /** Element Type Id */
+            element_type_id?: string | null;
+            /**
+             * Encoding
+             * @enum {string}
+             */
+            encoding: "primitive" | "enumeration" | "array" | "record" | "variant" | "opaque" | "unknown";
+            /** Enumerators */
+            enumerators?: components["schemas"]["FomEnumeratorResponse"][] | null;
+            /** Federation Id */
+            federation_id: string;
+            /** Fields */
+            fields?: components["schemas"]["FomFieldResponse"][] | null;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "datatype";
+            /** Model Id */
+            model_id: string;
+            /** Name */
+            name?: string | null;
+            /** Observed At */
+            observed_at: number;
+            /** Representation */
+            representation?: string | null;
+            /** Revision */
+            revision: string;
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "present" | "removed" | "unknown";
+        };
+        /** FomDimensionObservation */
+        FomDimensionObservation: {
+            /** Description */
+            description?: string | null;
+            /** Element Id */
+            element_id: string;
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "dimension";
+            /** Model Id */
+            model_id: string;
+            /** Name */
+            name?: string | null;
+            /** Revision */
+            revision: string;
+            /** Session Id */
+            session_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "present" | "removed" | "unknown";
+            /** Unit */
+            unit?: string | null;
+            /** Upper Bound */
+            upper_bound?: string | null;
+        };
+        /** FomDimensionReportResponse */
+        FomDimensionReportResponse: {
+            /** Description */
+            description?: string | null;
+            /** Element Id */
+            element_id: string;
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "dimension";
+            /** Model Id */
+            model_id: string;
+            /** Name */
+            name?: string | null;
+            /** Observed At */
+            observed_at: number;
+            /** Revision */
+            revision: string;
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "present" | "removed" | "unknown";
+            /** Unit */
+            unit?: string | null;
+            /** Upper Bound */
+            upper_bound?: string | null;
+        };
+        /** FomEnumeratorResponse */
+        FomEnumeratorResponse: {
+            /** Name */
+            name: string;
+            /** Value */
+            value: string;
+        };
+        /** FomFieldResponse */
+        FomFieldResponse: {
+            /** Datatype Id */
+            datatype_id?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Field Id */
+            field_id: string;
+            /** Name */
+            name?: string | null;
+        };
+        /** FomInteractionObservation */
+        FomInteractionObservation: {
+            /** Description */
+            description?: string | null;
+            /** Element Id */
+            element_id: string;
+            /** Federation Id */
+            federation_id: string;
+            /**
+             * Field Scope
+             * @enum {string}
+             */
+            field_scope: "declared" | "effective" | "unknown";
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "interaction-class";
+            /** Model Id */
+            model_id: string;
+            /** Name */
+            name?: string | null;
+            /** Parameters */
+            parameters?: components["schemas"]["FomFieldResponse"][] | null;
+            /** Parent Id */
+            parent_id?: string | null;
+            /**
+             * Parent State
+             * @enum {string}
+             */
+            parent_state: "root" | "parent" | "unknown";
+            /** Revision */
+            revision: string;
+            /** Session Id */
+            session_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "present" | "removed" | "unknown";
+        };
+        /** FomInteractionReportResponse */
+        FomInteractionReportResponse: {
+            /** Description */
+            description?: string | null;
+            /** Element Id */
+            element_id: string;
+            /** Federation Id */
+            federation_id: string;
+            /**
+             * Field Scope
+             * @enum {string}
+             */
+            field_scope: "declared" | "effective" | "unknown";
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "interaction-class";
+            /** Model Id */
+            model_id: string;
+            /** Name */
+            name?: string | null;
+            /** Observed At */
+            observed_at: number;
+            /** Parameters */
+            parameters?: components["schemas"]["FomFieldResponse"][] | null;
+            /** Parent Id */
+            parent_id?: string | null;
+            /**
+             * Parent State
+             * @enum {string}
+             */
+            parent_state: "root" | "parent" | "unknown";
+            /** Revision */
+            revision: string;
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "present" | "removed" | "unknown";
+        };
+        /** FomObjectObservation */
+        FomObjectObservation: {
+            /** Attributes */
+            attributes?: components["schemas"]["FomFieldResponse"][] | null;
+            /** Description */
+            description?: string | null;
+            /** Element Id */
+            element_id: string;
+            /** Federation Id */
+            federation_id: string;
+            /**
+             * Field Scope
+             * @enum {string}
+             */
+            field_scope: "declared" | "effective" | "unknown";
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "object-class";
+            /** Model Id */
+            model_id: string;
+            /** Name */
+            name?: string | null;
+            /** Parent Id */
+            parent_id?: string | null;
+            /**
+             * Parent State
+             * @enum {string}
+             */
+            parent_state: "root" | "parent" | "unknown";
+            /** Revision */
+            revision: string;
+            /** Session Id */
+            session_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "present" | "removed" | "unknown";
+        };
+        /** FomObjectReportResponse */
+        FomObjectReportResponse: {
+            /** Attributes */
+            attributes?: components["schemas"]["FomFieldResponse"][] | null;
+            /** Description */
+            description?: string | null;
+            /** Element Id */
+            element_id: string;
+            /** Federation Id */
+            federation_id: string;
+            /**
+             * Field Scope
+             * @enum {string}
+             */
+            field_scope: "declared" | "effective" | "unknown";
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "object-class";
+            /** Model Id */
+            model_id: string;
+            /** Name */
+            name?: string | null;
+            /** Observed At */
+            observed_at: number;
+            /** Parent Id */
+            parent_id?: string | null;
+            /**
+             * Parent State
+             * @enum {string}
+             */
+            parent_state: "root" | "parent" | "unknown";
+            /** Revision */
+            revision: string;
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "present" | "removed" | "unknown";
+        };
+        /** FomResponse */
+        FomResponse: {
+            /**
+             * Basis
+             * @constant
+             */
+            basis: "adapter-supplied-fom-metadata";
+            /** Capacity */
+            capacity: number;
+            /** Dropped Snapshots */
+            dropped_snapshots: number;
+            /** Dropped Transitions */
+            dropped_transitions: number;
+            /** History Capacity */
+            history_capacity: number;
+            /** Snapshots */
+            snapshots: (components["schemas"]["FomObjectReportResponse"] | components["schemas"]["FomInteractionReportResponse"] | components["schemas"]["FomDatatypeReportResponse"] | components["schemas"]["FomDimensionReportResponse"])[];
+            /** Transitions */
+            transitions: (components["schemas"]["FomObjectReportResponse"] | components["schemas"]["FomInteractionReportResponse"] | components["schemas"]["FomDatatypeReportResponse"] | components["schemas"]["FomDimensionReportResponse"])[];
+        };
         /** HealthResponse */
         HealthResponse: {
             /** Capabilities */
             capabilities?: {
-                [key: string]: components["schemas"]["CapabilityResponse"];
+                [key: string]: components["schemas"]["CapabilityResponse-Output"];
             };
             /** Contract Version */
             contract_version: string;
@@ -966,14 +1828,14 @@ export interface components {
         IngestResponse: {
             /** Accepted */
             accepted: number;
-            state: components["schemas"]["StateResponse"];
+            state: components["schemas"]["StateResponse-Output"];
         };
         /** InspectorResponse */
         InspectorResponse: {
             /** Contract Version */
             contract_version: string;
             /** Items */
-            items?: (components["schemas"]["ObjectInspectionResponse"] | components["schemas"]["InteractionInspectionResponse"] | components["schemas"]["FederateInspectionResponse"])[];
+            items?: (components["schemas"]["ObjectInspectionResponse-Output"] | components["schemas"]["InteractionInspectionResponse-Output"] | components["schemas"]["FederateInspectionResponse"])[];
             /**
              * Kind
              * @enum {string}
@@ -981,13 +1843,37 @@ export interface components {
             kind: "objects" | "interactions" | "federates";
         };
         /** InspectorsResponse */
-        InspectorsResponse: {
+        "InspectorsResponse-Input": {
+            coordination?: components["schemas"]["CoordinationResponse"] | null;
             declarations?: components["schemas"]["DeclarationsResponse"] | null;
+            fom?: components["schemas"]["FomResponse"] | null;
+            interaction_flow?: components["schemas"]["InteractionFlowResponse"] | null;
             /** Interactions */
-            interactions?: components["schemas"]["InteractionInspectionResponse"][];
-            object_observations?: components["schemas"]["ObjectObservationsResponse"] | null;
+            interactions?: components["schemas"]["InteractionInspectionResponse-Input"][];
+            mom?: components["schemas"]["MomResponse"] | null;
+            object_observations?: components["schemas"]["ObjectObservationsResponse-Input"] | null;
             /** Objects */
-            objects?: components["schemas"]["ObjectInspectionResponse"][];
+            objects?: components["schemas"]["ObjectInspectionResponse-Input"][];
+            ownership?: components["schemas"]["OwnershipResponse"] | null;
+            regions?: components["schemas"]["RegionsResponse"] | null;
+            relationships?: components["schemas"]["RelationshipsResponse"] | null;
+            time?: components["schemas"]["TimeInspectionResponse"] | null;
+        };
+        /** InspectorsResponse */
+        "InspectorsResponse-Output": {
+            coordination?: components["schemas"]["CoordinationResponse"] | null;
+            declarations?: components["schemas"]["DeclarationsResponse"] | null;
+            fom?: components["schemas"]["FomResponse"] | null;
+            interaction_flow?: components["schemas"]["InteractionFlowResponse"] | null;
+            /** Interactions */
+            interactions?: components["schemas"]["InteractionInspectionResponse-Output"][];
+            mom?: components["schemas"]["MomResponse"] | null;
+            object_observations?: components["schemas"]["ObjectObservationsResponse-Output"] | null;
+            /** Objects */
+            objects?: components["schemas"]["ObjectInspectionResponse-Output"][];
+            ownership?: components["schemas"]["OwnershipResponse"] | null;
+            regions?: components["schemas"]["RegionsResponse"] | null;
+            relationships?: components["schemas"]["RelationshipsResponse"] | null;
             time?: components["schemas"]["TimeInspectionResponse"] | null;
         };
         /** InteractionDeclarationObservation */
@@ -1016,8 +1902,130 @@ export interface components {
              */
             status: "declared" | "withdrawn" | "unknown";
         };
+        /** InteractionFlowObservationInput */
+        InteractionFlowObservationInput: {
+            /** Class Key */
+            class_key?: string | null;
+            /** Federation Id */
+            federation_id?: string | null;
+            /** Identity Namespace */
+            identity_namespace?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "send" | "receive";
+            /** Logical Time */
+            logical_time?: number | null;
+            /** Message Id */
+            message_id?: string | null;
+            /**
+             * Order
+             * @enum {string}
+             */
+            order: "receive-order" | "timestamped" | "unknown";
+            producer?: components["schemas"]["ParticipantIdentityResponse"] | null;
+            recipient?: components["schemas"]["ParticipantIdentityResponse"] | null;
+            /** Session Id */
+            session_id?: string | null;
+        };
+        /** InteractionFlowRecordResponse */
+        InteractionFlowRecordResponse: {
+            /** Arrival Delay Seconds */
+            arrival_delay_seconds?: number | null;
+            /** Last Sequence */
+            last_sequence: number;
+            receive?: components["schemas"]["InteractionFlowReportResponse"] | null;
+            /** Receive Count */
+            receive_count: number;
+            /** Record Id */
+            record_id: number;
+            send?: components["schemas"]["InteractionFlowReportResponse"] | null;
+            /** Send Count */
+            send_count: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "uncorrelated" | "send-only" | "receive-only" | "paired" | "ambiguous";
+        };
+        /** InteractionFlowReportResponse */
+        InteractionFlowReportResponse: {
+            /** Class Key */
+            class_key?: string | null;
+            /** Federation Id */
+            federation_id?: string | null;
+            /** Identity Namespace */
+            identity_namespace?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "send" | "receive";
+            /** Logical Time */
+            logical_time?: number | null;
+            /** Message Id */
+            message_id?: string | null;
+            /** Observed At */
+            observed_at: number;
+            /**
+             * Order
+             * @enum {string}
+             */
+            order: "receive-order" | "timestamped" | "unknown";
+            producer?: components["schemas"]["ParticipantIdentityResponse"] | null;
+            recipient?: components["schemas"]["ParticipantIdentityResponse"] | null;
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id?: string | null;
+            /** Source */
+            source: string;
+        };
+        /** InteractionFlowResponse */
+        InteractionFlowResponse: {
+            /**
+             * Basis
+             * @constant
+             */
+            basis: "explicit-interaction-observations";
+            /** Capacity */
+            capacity: number;
+            /** Dropped Records */
+            dropped_records: number;
+            /** Receive Observations */
+            receive_observations: number;
+            /** Records */
+            records: components["schemas"]["InteractionFlowRecordResponse"][];
+            /** Send Observations */
+            send_observations: number;
+        };
         /** InteractionInspectionResponse */
-        InteractionInspectionResponse: {
+        "InteractionInspectionResponse-Input": {
+            /** Class Handle */
+            class_handle?: string | null;
+            /** Family */
+            family: string;
+            /** Federate */
+            federate?: string | null;
+            /** Interaction Class */
+            interaction_class: string;
+            /** Interaction Key */
+            interaction_key: string;
+            /** Observed At */
+            observed_at: number;
+            /** Parameters */
+            parameters?: {
+                [key: string]: components["schemas"]["JsonValue-Input"];
+            };
+            /** Sequence */
+            sequence: number;
+            /** Source */
+            source: string;
+            tag?: components["schemas"]["JsonValue-Input"];
+        };
+        /** InteractionInspectionResponse */
+        "InteractionInspectionResponse-Output": {
             /** Class Handle */
             class_handle?: string | null;
             /** Family */
@@ -1132,8 +2140,250 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** MomCounterObservation */
+        MomCounterObservation: {
+            /** Counter Key */
+            counter_key: string;
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "counter";
+            /** Reason */
+            reason?: string | null;
+            /** Report Id */
+            report_id: string;
+            /**
+             * Semantics
+             * @enum {string}
+             */
+            semantics: "cumulative" | "gauge" | "unknown";
+            /** Session Id */
+            session_id: string;
+            subject?: components["schemas"]["ParticipantReferenceResponse"] | null;
+            /** Unit */
+            unit?: string | null;
+            /** Value */
+            value?: number | null;
+            /** Value Text */
+            value_text?: string | null;
+        };
+        /** MomCounterReportResponse */
+        MomCounterReportResponse: {
+            /** Counter Key */
+            counter_key: string;
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "counter";
+            /** Observed At */
+            observed_at: number;
+            /** Reason */
+            reason?: string | null;
+            /** Report Id */
+            report_id: string;
+            /**
+             * Semantics
+             * @enum {string}
+             */
+            semantics: "cumulative" | "gauge" | "unknown";
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+            subject?: components["schemas"]["ParticipantReferenceResponse"] | null;
+            /** Unit */
+            unit?: string | null;
+            /** Value */
+            value?: number | null;
+            /** Value Text */
+            value_text?: string | null;
+        };
+        /** MomMemberResponse */
+        MomMemberResponse: {
+            participant: components["schemas"]["ParticipantReferenceResponse"];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "joined" | "resigned" | "unknown";
+        };
+        /** MomMembersObservation */
+        MomMembersObservation: {
+            /**
+             * Coverage
+             * @enum {string}
+             */
+            coverage: "complete" | "partial" | "unknown";
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "members";
+            /** Members */
+            members?: components["schemas"]["MomMemberResponse"][] | null;
+            /** Reason */
+            reason?: string | null;
+            /** Report Id */
+            report_id: string;
+            /** Session Id */
+            session_id: string;
+        };
+        /** MomMembersReportResponse */
+        MomMembersReportResponse: {
+            /**
+             * Coverage
+             * @enum {string}
+             */
+            coverage: "complete" | "partial" | "unknown";
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "members";
+            /** Members */
+            members?: components["schemas"]["MomMemberResponse"][] | null;
+            /** Observed At */
+            observed_at: number;
+            /** Reason */
+            reason?: string | null;
+            /** Report Id */
+            report_id: string;
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+        };
+        /** MomResponse */
+        MomResponse: {
+            /**
+             * Basis
+             * @constant
+             */
+            basis: "explicit-management-reports";
+            /** Capacity */
+            capacity: number;
+            /** Dropped Snapshots */
+            dropped_snapshots: number;
+            /** Dropped Transitions */
+            dropped_transitions: number;
+            /** History Capacity */
+            history_capacity: number;
+            /** Snapshots */
+            snapshots: (components["schemas"]["MomMembersReportResponse"] | components["schemas"]["MomServiceReportResponse"] | components["schemas"]["MomCounterReportResponse"])[];
+            /** Transitions */
+            transitions: (components["schemas"]["MomMembersReportResponse"] | components["schemas"]["MomServiceReportResponse"] | components["schemas"]["MomCounterReportResponse"])[];
+        };
+        /** MomServiceObservation */
+        MomServiceObservation: {
+            /** Error Name */
+            error_name?: string | null;
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /** Invocation Id */
+            invocation_id?: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "service";
+            /** Reason */
+            reason?: string | null;
+            /** Report Id */
+            report_id: string;
+            /** Service Name */
+            service_name: string;
+            /** Session Id */
+            session_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "invoked" | "completed" | "failed" | "unknown";
+            subject?: components["schemas"]["ParticipantReferenceResponse"] | null;
+        };
+        /** MomServiceReportResponse */
+        MomServiceReportResponse: {
+            /** Error Name */
+            error_name?: string | null;
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /** Invocation Id */
+            invocation_id?: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "service";
+            /** Observed At */
+            observed_at: number;
+            /** Reason */
+            reason?: string | null;
+            /** Report Id */
+            report_id: string;
+            /** Sequence */
+            sequence: number;
+            /** Service Name */
+            service_name: string;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "invoked" | "completed" | "failed" | "unknown";
+            subject?: components["schemas"]["ParticipantReferenceResponse"] | null;
+        };
         /** ObjectAttributeChangeResponse */
-        ObjectAttributeChangeResponse: {
+        "ObjectAttributeChangeResponse-Input": {
+            /** Attribute */
+            attribute: string;
+            /** Federate */
+            federate: string | null;
+            /** Generation */
+            generation: number;
+            /** Object Key */
+            object_key: string;
+            /** Observed At */
+            observed_at: number;
+            /** Previous Known */
+            previous_known: boolean;
+            previous_value: components["schemas"]["JsonValue-Input"];
+            /** Sequence */
+            sequence: number;
+            /** Source */
+            source: string;
+            value: components["schemas"]["JsonValue-Input"];
+        };
+        /** ObjectAttributeChangeResponse */
+        "ObjectAttributeChangeResponse-Output": {
             /** Attribute */
             attribute: string;
             /** Federate */
@@ -1188,7 +2438,36 @@ export interface components {
             status: "declared" | "withdrawn" | "unknown";
         };
         /** ObjectInspectionResponse */
-        ObjectInspectionResponse: {
+        "ObjectInspectionResponse-Input": {
+            /** Attributes */
+            attributes?: {
+                [key: string]: components["schemas"]["JsonValue-Input"];
+            };
+            /** Class Handle */
+            class_handle?: string | null;
+            /** Class Name */
+            class_name?: string | null;
+            /** Discovery Count */
+            discovery_count: number;
+            /** Family */
+            family: string;
+            /** Last Seen */
+            last_seen?: number | null;
+            /** Object Handle */
+            object_handle?: string | null;
+            /** Object Key */
+            object_key: string;
+            /** Object Name */
+            object_name: string;
+            /** Sources */
+            sources?: string[];
+            /** Status */
+            status: string;
+            /** Update Count */
+            update_count: number;
+        };
+        /** ObjectInspectionResponse */
+        "ObjectInspectionResponse-Output": {
             /** Attributes */
             attributes?: {
                 [key: string]: components["schemas"]["JsonValue-Output"];
@@ -1217,30 +2496,1024 @@ export interface components {
             update_count: number;
         };
         /** ObjectObservationsResponse */
-        ObjectObservationsResponse: {
+        "ObjectObservationsResponse-Input": {
             /** Changes */
-            changes: components["schemas"]["ObjectAttributeChangeResponse"][];
+            changes: components["schemas"]["ObjectAttributeChangeResponse-Input"][];
+            /** Dropped History Batches */
+            dropped_history_batches?: number | null;
+            /** Dropped Snapshots */
+            dropped_snapshots?: number | null;
             /** History First Sequence */
             history_first_sequence: number;
             /** History Last Sequence */
             history_last_sequence: number;
             /** History Truncated */
             history_truncated: boolean;
+            /** Omitted Changes */
+            omitted_changes?: number | null;
+            /** Snapshot Capacity */
+            snapshot_capacity?: number | null;
             /** Snapshots */
-            snapshots: components["schemas"]["ObjectPerspectiveResponse"][];
+            snapshots: components["schemas"]["ObjectPerspectiveResponse-Input"][];
+        };
+        /** ObjectObservationsResponse */
+        "ObjectObservationsResponse-Output": {
+            /** Changes */
+            changes: components["schemas"]["ObjectAttributeChangeResponse-Output"][];
+            /** Dropped History Batches */
+            dropped_history_batches?: number | null;
+            /** Dropped Snapshots */
+            dropped_snapshots?: number | null;
+            /** History First Sequence */
+            history_first_sequence: number;
+            /** History Last Sequence */
+            history_last_sequence: number;
+            /** History Truncated */
+            history_truncated: boolean;
+            /** Omitted Changes */
+            omitted_changes?: number | null;
+            /** Snapshot Capacity */
+            snapshot_capacity?: number | null;
+            /** Snapshots */
+            snapshots: components["schemas"]["ObjectPerspectiveResponse-Output"][];
         };
         /**
          * ObjectPerspectiveResponse
          * @description Null federate is global; a name is explicit adapter attribution only.
          */
-        ObjectPerspectiveResponse: {
+        "ObjectPerspectiveResponse-Input": {
             /** Federate */
             federate: string | null;
             /** Generation */
             generation: number;
             /** Last Sequence */
             last_sequence: number;
-            object: components["schemas"]["ObjectInspectionResponse"];
+            object: components["schemas"]["ObjectInspectionResponse-Input"];
+        };
+        /**
+         * ObjectPerspectiveResponse
+         * @description Null federate is global; a name is explicit adapter attribution only.
+         */
+        "ObjectPerspectiveResponse-Output": {
+            /** Federate */
+            federate: string | null;
+            /** Generation */
+            generation: number;
+            /** Last Sequence */
+            last_sequence: number;
+            object: components["schemas"]["ObjectInspectionResponse-Output"];
+        };
+        /** OwnershipOutcomeObservation */
+        OwnershipOutcomeObservation: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "acquire" | "divest";
+            /** Attribute Key */
+            attribute_key: string;
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "outcome";
+            /** Object Id */
+            object_id: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "completed" | "failed" | "cancelled";
+            /** Reason */
+            reason?: string | null;
+            /** Request Id */
+            request_id: string;
+            requester: components["schemas"]["ParticipantIdentityResponse"];
+            /** Session Id */
+            session_id: string;
+        };
+        /** OwnershipOutcomeReportResponse */
+        OwnershipOutcomeReportResponse: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "acquire" | "divest";
+            /** Attribute Key */
+            attribute_key: string;
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "outcome";
+            /** Object Id */
+            object_id: string;
+            /** Observed At */
+            observed_at: number;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "completed" | "failed" | "cancelled";
+            /** Reason */
+            reason?: string | null;
+            /** Request Id */
+            request_id: string;
+            requester: components["schemas"]["ParticipantIdentityResponse"];
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+        };
+        /** OwnershipRequestObservation */
+        OwnershipRequestObservation: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "acquire" | "divest";
+            /** Attribute Key */
+            attribute_key: string;
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "request";
+            /** Object Id */
+            object_id: string;
+            /** Reason */
+            reason?: string | null;
+            /** Request Id */
+            request_id: string;
+            requester: components["schemas"]["ParticipantIdentityResponse"];
+            /** Session Id */
+            session_id: string;
+        };
+        /** OwnershipRequestReportResponse */
+        OwnershipRequestReportResponse: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "acquire" | "divest";
+            /** Attribute Key */
+            attribute_key: string;
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "request";
+            /** Object Id */
+            object_id: string;
+            /** Observed At */
+            observed_at: number;
+            /** Reason */
+            reason?: string | null;
+            /** Request Id */
+            request_id: string;
+            requester: components["schemas"]["ParticipantIdentityResponse"];
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+        };
+        /** OwnershipResponse */
+        OwnershipResponse: {
+            /**
+             * Basis
+             * @constant
+             */
+            basis: "explicit-ownership-observations";
+            /** Capacity */
+            capacity: number;
+            /** Dropped Requests */
+            dropped_requests: number;
+            /** Dropped States */
+            dropped_states: number;
+            /** Dropped Transitions */
+            dropped_transitions: number;
+            /** History Capacity */
+            history_capacity: number;
+            /** Request Capacity */
+            request_capacity: number;
+            /** Requests */
+            requests: components["schemas"]["OwnershipTicketResponse"][];
+            /** States */
+            states: components["schemas"]["OwnershipStateReportResponse"][];
+            /** Transitions */
+            transitions: (components["schemas"]["OwnershipStateReportResponse"] | components["schemas"]["OwnershipRequestReportResponse"] | components["schemas"]["OwnershipOutcomeReportResponse"])[];
+            /** Unmatched Outcomes */
+            unmatched_outcomes: number;
+        };
+        /** OwnershipStateObservation */
+        OwnershipStateObservation: {
+            /** Attribute Key */
+            attribute_key: string;
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "state";
+            /** Object Id */
+            object_id: string;
+            owner?: components["schemas"]["ParticipantIdentityResponse"] | null;
+            /**
+             * Owner State
+             * @enum {string}
+             */
+            owner_state: "known" | "unowned" | "rti" | "unknown";
+            /** Reason */
+            reason?: string | null;
+            /** Reported Owner Handle */
+            reported_owner_handle?: string | null;
+            /** Reported Owner Name */
+            reported_owner_name?: string | null;
+            /** Session Id */
+            session_id: string;
+            /**
+             * Transition
+             * @enum {string}
+             */
+            transition: "reported" | "acquired" | "divested";
+        };
+        /** OwnershipStateReportResponse */
+        OwnershipStateReportResponse: {
+            /** Attribute Key */
+            attribute_key: string;
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "state";
+            /** Object Id */
+            object_id: string;
+            /** Observed At */
+            observed_at: number;
+            owner?: components["schemas"]["ParticipantIdentityResponse"] | null;
+            /**
+             * Owner State
+             * @enum {string}
+             */
+            owner_state: "known" | "unowned" | "rti" | "unknown";
+            /** Reason */
+            reason?: string | null;
+            /** Reported Owner Handle */
+            reported_owner_handle?: string | null;
+            /** Reported Owner Name */
+            reported_owner_name?: string | null;
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+            /**
+             * Transition
+             * @enum {string}
+             */
+            transition: "reported" | "acquired" | "divested";
+        };
+        /** OwnershipTicketResponse */
+        OwnershipTicketResponse: {
+            /** Duplicate Requests */
+            duplicate_requests: number;
+            /** Last Sequence */
+            last_sequence: number;
+            outcome?: components["schemas"]["OwnershipOutcomeReportResponse"] | null;
+            request: components["schemas"]["OwnershipRequestReportResponse"];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "completed" | "failed" | "cancelled" | "ambiguous";
+        };
+        /**
+         * ParticipantIdentityResponse
+         * @description Opaque IDs identify a participant join; names and handles never do.
+         */
+        ParticipantIdentityResponse: {
+            /** Display Name */
+            display_name?: string | null;
+            /** Handle */
+            handle?: string | null;
+            /** Membership Id */
+            membership_id: string;
+            /** Participant Id */
+            participant_id: string;
+        };
+        /** ParticipantReferenceResponse */
+        ParticipantReferenceResponse: {
+            /** Display Name */
+            display_name?: string | null;
+            /** Handle */
+            handle?: string | null;
+            identity?: components["schemas"]["ParticipantIdentityResponse"] | null;
+        };
+        /** PersistenceObservation */
+        PersistenceObservation: {
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "restore" | "save";
+            /** Label */
+            label: string;
+            /** Operation Id */
+            operation_id: string;
+            /** Participants */
+            participants?: components["schemas"]["CoordinationParticipantResponse"][] | null;
+            /**
+             * Phase
+             * @enum {string}
+             */
+            phase: "requested" | "begun" | "completed" | "failed";
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "local" | "federation";
+            /** Session Id */
+            session_id: string;
+            subject?: components["schemas"]["ParticipantIdentityResponse"] | null;
+        };
+        /** RecordedWindowAnalysisRequest */
+        RecordedWindowAnalysisRequest: {
+            /**
+             * Bucket Count
+             * @default 30
+             */
+            bucket_count: number;
+            /** Captured At */
+            captured_at: number;
+            window: components["schemas"]["AnalyticsWindow"];
+            /**
+             * Window Seconds
+             * @default 300
+             */
+            window_seconds: number;
+        };
+        /** RecordingAnalysisRequest */
+        RecordingAnalysisRequest: {
+            /**
+             * Bucket Count
+             * @default 30
+             */
+            bucket_count: number;
+            frame: components["schemas"]["RecordingFrame-Input"];
+            /**
+             * Window Seconds
+             * @default 300
+             */
+            window_seconds: number;
+        };
+        /** RecordingDeleteEdit */
+        RecordingDeleteEdit: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "delete";
+            /** Path */
+            path: (string | number)[];
+        };
+        /** RecordingDeltaFrame */
+        "RecordingDeltaFrame-Input": {
+            /** Arrivals */
+            arrivals: components["schemas"]["EventEnvelope-Input"][];
+            /** Captured At */
+            captured_at: number;
+            /**
+             * Change
+             * @enum {string}
+             */
+            change: "start" | "events" | "metadata" | "clear" | "checkpoint" | "stop";
+            /** Edits */
+            edits: (components["schemas"]["RecordingSetEdit-Input"] | components["schemas"]["RecordingDeleteEdit"] | components["schemas"]["RecordingSpliceEdit-Input"])[];
+            /** Index */
+            index: number;
+            /** Offset Seconds */
+            offset_seconds: number;
+            /** State Bytes */
+            state_bytes: number;
+        };
+        /** RecordingDeltaFrame */
+        "RecordingDeltaFrame-Output": {
+            /** Arrivals */
+            arrivals: components["schemas"]["EventEnvelope-Output"][];
+            /** Captured At */
+            captured_at: number;
+            /**
+             * Change
+             * @enum {string}
+             */
+            change: "start" | "events" | "metadata" | "clear" | "checkpoint" | "stop";
+            /** Edits */
+            edits: (components["schemas"]["RecordingSetEdit-Output"] | components["schemas"]["RecordingDeleteEdit"] | components["schemas"]["RecordingSpliceEdit-Output"])[];
+            /** Index */
+            index: number;
+            /** Offset Seconds */
+            offset_seconds: number;
+            /** State Bytes */
+            state_bytes: number;
+        };
+        /** RecordingDocument */
+        "RecordingDocument-Input": {
+            /** Captured Bytes */
+            captured_bytes: number;
+            contract: components["schemas"]["ContractResponse-Input"];
+            /** Duration Seconds */
+            duration_seconds: number;
+            /** Frames */
+            frames: components["schemas"]["RecordingFrame-Input"][];
+            /** Label */
+            label: string;
+            /** Max Bytes */
+            max_bytes: number;
+            /** Max Frames */
+            max_frames: number;
+            /** Recording Id */
+            recording_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            recording_version: "umbra-observer-recording-v1";
+            /** Started At */
+            started_at: number;
+            /**
+             * Stop Reason
+             * @enum {string}
+             */
+            stop_reason: "user" | "frame-limit" | "byte-limit" | "invalid-state" | "backend-stopped" | "state-limit" | "decode-limit" | "edit-limit";
+            /** Stopped At */
+            stopped_at: number;
+        };
+        /** RecordingDocument */
+        "RecordingDocument-Output": {
+            /** Captured Bytes */
+            captured_bytes: number;
+            contract: components["schemas"]["ContractResponse-Output"];
+            /** Duration Seconds */
+            duration_seconds: number;
+            /** Frames */
+            frames: components["schemas"]["RecordingFrame-Output"][];
+            /** Label */
+            label: string;
+            /** Max Bytes */
+            max_bytes: number;
+            /** Max Frames */
+            max_frames: number;
+            /** Recording Id */
+            recording_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            recording_version: "umbra-observer-recording-v1";
+            /** Started At */
+            started_at: number;
+            /**
+             * Stop Reason
+             * @enum {string}
+             */
+            stop_reason: "user" | "frame-limit" | "byte-limit" | "invalid-state" | "backend-stopped" | "state-limit" | "decode-limit" | "edit-limit";
+            /** Stopped At */
+            stopped_at: number;
+        };
+        /** RecordingFrame */
+        "RecordingFrame-Input": {
+            /** Arrivals */
+            arrivals: components["schemas"]["EventEnvelope-Input"][];
+            /** Captured At */
+            captured_at: number;
+            /**
+             * Change
+             * @enum {string}
+             */
+            change: "start" | "events" | "metadata" | "clear" | "checkpoint" | "stop";
+            /** Index */
+            index: number;
+            /** Offset Seconds */
+            offset_seconds: number;
+            state: components["schemas"]["StateResponse-Input"];
+        };
+        /** RecordingFrame */
+        "RecordingFrame-Output": {
+            /** Arrivals */
+            arrivals: components["schemas"]["EventEnvelope-Output"][];
+            /** Captured At */
+            captured_at: number;
+            /**
+             * Change
+             * @enum {string}
+             */
+            change: "start" | "events" | "metadata" | "clear" | "checkpoint" | "stop";
+            /** Index */
+            index: number;
+            /** Offset Seconds */
+            offset_seconds: number;
+            state: components["schemas"]["StateResponse-Output"];
+        };
+        /** RecordingSetEdit */
+        "RecordingSetEdit-Input": {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "set";
+            /** Path */
+            path: (string | number)[];
+            value: components["schemas"]["JsonValue-Input"];
+        };
+        /** RecordingSetEdit */
+        "RecordingSetEdit-Output": {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "set";
+            /** Path */
+            path: (string | number)[];
+            value: components["schemas"]["JsonValue-Output"];
+        };
+        /** RecordingSpliceEdit */
+        "RecordingSpliceEdit-Input": {
+            /** Delete Count */
+            delete_count: number;
+            /** Index */
+            index: number;
+            /** Items */
+            items: components["schemas"]["JsonValue-Input"][];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "splice";
+            /** Path */
+            path: (string | number)[];
+        };
+        /** RecordingSpliceEdit */
+        "RecordingSpliceEdit-Output": {
+            /** Delete Count */
+            delete_count: number;
+            /** Index */
+            index: number;
+            /** Items */
+            items: components["schemas"]["JsonValue-Output"][];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "splice";
+            /** Path */
+            path: (string | number)[];
+        };
+        /** RecordingStartRequest */
+        RecordingStartRequest: {
+            /** Label */
+            label: string;
+            /**
+             * Max Bytes
+             * @default 16777216
+             */
+            max_bytes: number;
+            /**
+             * Max Frames
+             * @default 600
+             */
+            max_frames: number;
+            /** Replace Id */
+            replace_id?: string | null;
+            /**
+             * Storage Format
+             * @default full-v1
+             * @enum {string}
+             */
+            storage_format: "full-v1" | "compact-v2";
+        };
+        /** RecordingStatusResponse */
+        RecordingStatusResponse: {
+            /**
+             * Contract Version
+             * @default umbra-observer-contract-v1
+             * @constant
+             */
+            contract_version: "umbra-observer-contract-v1";
+            recording: components["schemas"]["CaptureStatus"] | null;
+            /**
+             * Scope
+             * @default backend-process
+             * @constant
+             */
+            scope: "backend-process";
+        };
+        /** RecordingTargetRequest */
+        RecordingTargetRequest: {
+            /** Recording Id */
+            recording_id: string;
+        };
+        /** RegionAssociationObservation */
+        RegionAssociationObservation: {
+            /** Association Id */
+            association_id: string;
+            /** Attribute Keys */
+            attribute_keys?: string[] | null;
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "publication" | "subscription" | "update" | "send" | "unknown";
+            /**
+             * Evidence
+             * @enum {string}
+             */
+            evidence: "declared" | "observed" | "unknown";
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "association";
+            /** Reason */
+            reason?: string | null;
+            /** Region Ids */
+            region_ids?: string[] | null;
+            /** Session Id */
+            session_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "ended" | "unknown";
+            subject?: components["schemas"]["ParticipantIdentityResponse"] | null;
+            /** Target Id */
+            target_id: string;
+            /**
+             * Target Kind
+             * @enum {string}
+             */
+            target_kind: "object" | "interaction";
+        };
+        /** RegionAssociationReportResponse */
+        RegionAssociationReportResponse: {
+            /** Association Id */
+            association_id: string;
+            /** Attribute Keys */
+            attribute_keys?: string[] | null;
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "publication" | "subscription" | "update" | "send" | "unknown";
+            /**
+             * Evidence
+             * @enum {string}
+             */
+            evidence: "declared" | "observed" | "unknown";
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "association";
+            /** Observed At */
+            observed_at: number;
+            /** Reason */
+            reason?: string | null;
+            /** Region Ids */
+            region_ids?: string[] | null;
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "ended" | "unknown";
+            subject?: components["schemas"]["ParticipantIdentityResponse"] | null;
+            /** Target Id */
+            target_id: string;
+            /**
+             * Target Kind
+             * @enum {string}
+             */
+            target_kind: "object" | "interaction";
+        };
+        /** RegionExtentResponse */
+        RegionExtentResponse: {
+            /** Dimensions */
+            dimensions: components["schemas"]["DimensionRangeResponse"][];
+            /** Extent Id */
+            extent_id: string;
+        };
+        /** RegionRoutingObservation */
+        RegionRoutingObservation: {
+            /**
+             * Evidence
+             * @enum {string}
+             */
+            evidence: "declared" | "observed" | "unknown";
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "routing";
+            producer?: components["schemas"]["ParticipantIdentityResponse"] | null;
+            /** Reason */
+            reason?: string | null;
+            recipient?: components["schemas"]["ParticipantIdentityResponse"] | null;
+            /** Region Ids */
+            region_ids?: string[] | null;
+            /** Routing Id */
+            routing_id: string;
+            /** Session Id */
+            session_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "ended" | "unknown";
+            subject?: components["schemas"]["ParticipantIdentityResponse"] | null;
+            /** Target Id */
+            target_id?: string | null;
+            /** Target Kind */
+            target_kind?: ("object" | "interaction") | null;
+        };
+        /** RegionRoutingReportResponse */
+        RegionRoutingReportResponse: {
+            /**
+             * Evidence
+             * @enum {string}
+             */
+            evidence: "declared" | "observed" | "unknown";
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "routing";
+            /** Observed At */
+            observed_at: number;
+            producer?: components["schemas"]["ParticipantIdentityResponse"] | null;
+            /** Reason */
+            reason?: string | null;
+            recipient?: components["schemas"]["ParticipantIdentityResponse"] | null;
+            /** Region Ids */
+            region_ids?: string[] | null;
+            /** Routing Id */
+            routing_id: string;
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "ended" | "unknown";
+            subject?: components["schemas"]["ParticipantIdentityResponse"] | null;
+            /** Target Id */
+            target_id?: string | null;
+            /** Target Kind */
+            target_kind?: ("object" | "interaction") | null;
+        };
+        /** RegionsResponse */
+        RegionsResponse: {
+            /**
+             * Basis
+             * @constant
+             */
+            basis: "explicit-region-observations";
+            /** Capacity */
+            capacity: number;
+            /** Dropped Snapshots */
+            dropped_snapshots: number;
+            /** Dropped Transitions */
+            dropped_transitions: number;
+            /** History Capacity */
+            history_capacity: number;
+            /** Snapshots */
+            snapshots: (components["schemas"]["RegionStateReportResponse"] | components["schemas"]["RegionAssociationReportResponse"] | components["schemas"]["RegionRoutingReportResponse"])[];
+            /** Transitions */
+            transitions: (components["schemas"]["RegionStateReportResponse"] | components["schemas"]["RegionAssociationReportResponse"] | components["schemas"]["RegionRoutingReportResponse"])[];
+        };
+        /** RegionStateObservation */
+        RegionStateObservation: {
+            /**
+             * Evidence
+             * @enum {string}
+             */
+            evidence: "declared" | "observed" | "unknown";
+            /** Extents */
+            extents?: components["schemas"]["RegionExtentResponse"][] | null;
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "region";
+            /** Reason */
+            reason?: string | null;
+            /** Region Id */
+            region_id: string;
+            /** Session Id */
+            session_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "deleted" | "unknown";
+            subject?: components["schemas"]["ParticipantIdentityResponse"] | null;
+        };
+        /** RegionStateReportResponse */
+        RegionStateReportResponse: {
+            /**
+             * Evidence
+             * @enum {string}
+             */
+            evidence: "declared" | "observed" | "unknown";
+            /** Extents */
+            extents?: components["schemas"]["RegionExtentResponse"][] | null;
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "region";
+            /** Observed At */
+            observed_at: number;
+            /** Reason */
+            reason?: string | null;
+            /** Region Id */
+            region_id: string;
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "deleted" | "unknown";
+            subject?: components["schemas"]["ParticipantIdentityResponse"] | null;
+        };
+        /** RelationshipObservationInput */
+        RelationshipObservationInput: {
+            /** Class Key */
+            class_key?: string | null;
+            /** Class Name */
+            class_name?: string | null;
+            /**
+             * Evidence
+             * @enum {string}
+             */
+            evidence: "declared" | "observed";
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "object" | "interaction";
+            producer: components["schemas"]["ParticipantIdentityResponse"];
+            /** Reason */
+            reason?: string | null;
+            recipient: components["schemas"]["ParticipantIdentityResponse"];
+            /** Relationship Id */
+            relationship_id: string;
+            /** Session Id */
+            session_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "ended" | "unknown";
+            /**
+             * Viewpoint
+             * @enum {string}
+             */
+            viewpoint: "observer" | "producer" | "recipient" | "unknown";
+        };
+        /** RelationshipSnapshotResponse */
+        RelationshipSnapshotResponse: {
+            /** Class Key */
+            class_key?: string | null;
+            /** Class Name */
+            class_name?: string | null;
+            /**
+             * Evidence
+             * @enum {string}
+             */
+            evidence: "declared" | "observed";
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "object" | "interaction";
+            /** Observed At */
+            observed_at: number;
+            producer: components["schemas"]["ParticipantIdentityResponse"];
+            /** Reason */
+            reason?: string | null;
+            recipient: components["schemas"]["ParticipantIdentityResponse"];
+            /** Relationship Id */
+            relationship_id: string;
+            /** Sequence */
+            sequence: number;
+            /** Session Id */
+            session_id: string;
+            /** Source */
+            source: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "ended" | "unknown";
+            /**
+             * Viewpoint
+             * @enum {string}
+             */
+            viewpoint: "observer" | "producer" | "recipient" | "unknown";
+        };
+        /** RelationshipsResponse */
+        RelationshipsResponse: {
+            /**
+             * Basis
+             * @constant
+             */
+            basis: "last-reported-explicit-relationships";
+            /** Capacity */
+            capacity: number;
+            /** Dropped Relationships */
+            dropped_relationships: number;
+            /** Snapshots */
+            snapshots: components["schemas"]["RelationshipSnapshotResponse"][];
         };
         /** ReportedTimeStateResponse */
         ReportedTimeStateResponse: {
@@ -1318,12 +3591,39 @@ export interface components {
             retained_events: number;
         };
         /** StateResponse */
-        StateResponse: {
+        "StateResponse-Input": {
             /** Adapters */
             adapters?: components["schemas"]["AdapterResponse"][];
             /** Capabilities */
             capabilities?: {
-                [key: string]: components["schemas"]["CapabilityResponse"];
+                [key: string]: components["schemas"]["CapabilityResponse-Input"];
+            };
+            /** Context */
+            context?: {
+                [key: string]: components["schemas"]["JsonValue-Input"];
+            };
+            /** Contract Version */
+            contract_version: string;
+            /** Federate Roster */
+            federate_roster?: components["schemas"]["FederateInspectionResponse"][];
+            inspectors: components["schemas"]["InspectorsResponse-Input"];
+            live_metrics: components["schemas"]["LiveMetricsResponse"];
+            /** Normalized Events */
+            normalized_events?: components["schemas"]["EventEnvelope-Input"][] | null;
+            retention: components["schemas"]["RetentionResponse"];
+            /** Schema Version */
+            schema_version: string;
+            /** Status */
+            status: string;
+            storage?: components["schemas"]["StorageCoverageResponse"] | null;
+        };
+        /** StateResponse */
+        "StateResponse-Output": {
+            /** Adapters */
+            adapters?: components["schemas"]["AdapterResponse"][];
+            /** Capabilities */
+            capabilities?: {
+                [key: string]: components["schemas"]["CapabilityResponse-Output"];
             };
             /** Context */
             context?: {
@@ -1333,15 +3633,16 @@ export interface components {
             contract_version: string;
             /** Federate Roster */
             federate_roster?: components["schemas"]["FederateInspectionResponse"][];
-            inspectors: components["schemas"]["InspectorsResponse"];
+            inspectors: components["schemas"]["InspectorsResponse-Output"];
             live_metrics: components["schemas"]["LiveMetricsResponse"];
             /** Normalized Events */
-            normalized_events?: components["schemas"]["EventEnvelope"][] | null;
+            normalized_events?: components["schemas"]["EventEnvelope-Output"][] | null;
             retention: components["schemas"]["RetentionResponse"];
             /** Schema Version */
             schema_version: string;
             /** Status */
             status: string;
+            storage?: components["schemas"]["StorageCoverageResponse"] | null;
         };
         /** StatusRequest */
         StatusRequest: {
@@ -1356,6 +3657,65 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** StorageBudgetResponse */
+        StorageBudgetResponse: {
+            /** Accounted Bytes */
+            accounted_bytes: number;
+            /**
+             * Basis
+             * @constant
+             */
+            basis: "encoded-json-plus-record-reserve";
+            /** Collections */
+            collections: components["schemas"]["StorageCollectionResponse"][];
+            /** Max Bytes */
+            max_bytes: number;
+            /** Max Record Bytes */
+            max_record_bytes: number;
+            /**
+             * Policy
+             * @enum {string}
+             */
+            policy: "shared-evidence-lru" | "shared-evidence-lru-with-soft-reservations";
+            /** Record Reserve Bytes */
+            record_reserve_bytes: number;
+            /** Unbudgeted Collections */
+            unbudgeted_collections: string[];
+        };
+        /** StorageCollectionResponse */
+        StorageCollectionResponse: {
+            /** Accounted Bytes */
+            accounted_bytes: number;
+            /** Byte Limit Drops */
+            byte_limit_drops: number;
+            /** Capacity */
+            capacity: number;
+            /** Collection */
+            collection: string;
+            /** Count Limit Drops */
+            count_limit_drops: number;
+            /** Dropped Bytes */
+            dropped_bytes: number;
+            /** Dropped Records */
+            dropped_records: number;
+            /** Encoding Drops */
+            encoding_drops: number;
+            /** Oversized Drops */
+            oversized_drops: number;
+            /** Retained Records */
+            retained_records: number;
+            /** Soft Reservation Bytes */
+            soft_reservation_bytes?: number | null;
+            /** Unit */
+            unit: string;
+            /** Window Drops */
+            window_drops: number;
+        };
+        /** StorageCoverageResponse */
+        StorageCoverageResponse: {
+            context: components["schemas"]["StorageBudgetResponse"];
+            evidence: components["schemas"]["StorageBudgetResponse"];
+        };
         /** StreamDescription */
         StreamDescription: {
             /** Message Types */
@@ -1368,6 +3728,39 @@ export interface components {
             sse_path: string;
             /** Websocket Path */
             websocket_path: string;
+        };
+        /** SynchronizationObservation */
+        SynchronizationObservation: {
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "synchronization";
+            /** Label */
+            label: string;
+            /** Operation Id */
+            operation_id: string;
+            /** Participants */
+            participants?: components["schemas"]["CoordinationParticipantResponse"][] | null;
+            /**
+             * Phase
+             * @enum {string}
+             */
+            phase: "requested" | "registered" | "registration-failed" | "announced" | "achieved" | "completed" | "failed";
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "local" | "federation";
+            /** Session Id */
+            session_id: string;
+            subject?: components["schemas"]["ParticipantIdentityResponse"] | null;
         };
         /** TimeGrantObservation */
         TimeGrantObservation: {
@@ -1387,6 +3780,8 @@ export interface components {
         TimeInspectionResponse: {
             /** Dropped Requests */
             dropped_requests: number;
+            /** Dropped Snapshots */
+            dropped_snapshots?: number | null;
             /**
              * Duration Basis
              * @constant
@@ -1401,6 +3796,8 @@ export interface components {
              * @constant
              */
             scope_basis: "explicit-observations";
+            /** Snapshot Capacity */
+            snapshot_capacity?: number | null;
             /** Snapshots */
             snapshots: components["schemas"]["TimeSnapshotResponse"][];
         };
@@ -1476,6 +3873,8 @@ export interface components {
             /** Requested Time */
             requested_time?: number | null;
             scope: components["schemas"]["TimeScopeResponse"];
+            /** Snapshot Retained */
+            snapshot_retained?: boolean | null;
             /**
              * Status
              * @enum {string}
@@ -1795,7 +4194,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ContractResponse"];
+                    "application/json": components["schemas"]["ContractResponse-Output"];
                 };
             };
         };
@@ -1819,7 +4218,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StateResponse"];
+                    "application/json": components["schemas"]["StateResponse-Output"];
                 };
             };
             /** @description Validation Error */
@@ -1916,7 +4315,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StateResponse"];
+                    "application/json": components["schemas"]["StateResponse-Output"];
                 };
             };
         };
@@ -2023,6 +4422,190 @@ export interface operations {
             };
         };
     };
+    status_api_recordings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordingStatusResponse"];
+                };
+            };
+        };
+    };
+    analyze_api_recordings_analyze_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordingAnalysisRequest"] | components["schemas"]["RecordedWindowAnalysisRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_api_recordings_export_get: {
+        parameters: {
+            query: {
+                recording_id: string;
+                storage_format?: "full-v1" | "compact-v2";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordingDocument-Output"] | components["schemas"]["CompactRecordingDocument-Output"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_api_recordings_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordingStartRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaptureStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stop_api_recordings_stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordingTargetRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaptureStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validated_response_api_recordings_validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordingDocument-Input"] | components["schemas"]["CompactRecordingDocument-Input"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordingDocument-Output"] | components["schemas"]["CompactRecordingDocument-Output"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     schema_api_schema_get: {
         parameters: {
             query?: never;
@@ -2060,7 +4643,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StateResponse"];
+                    "application/json": components["schemas"]["StateResponse-Output"];
                 };
             };
             /** @description Validation Error */

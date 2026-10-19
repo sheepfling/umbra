@@ -1,5 +1,30 @@
 {
   "contract_version": "umbra-observer-contract-v1",
-  "items": [],
+  "items": [
+    {
+      "class_handle": null,
+      "family": "generic",
+      "federate": null,
+      "interaction_class": "FixtureInteraction",
+      "interaction_key": "FixtureInteraction",
+      "observed_at": 1760000000.0,
+      "parameters": {},
+      "sequence": 19,
+      "source": "contract-fixture",
+      "tag": null
+    },
+    {
+      "class_handle": null,
+      "family": "generic",
+      "federate": null,
+      "interaction_class": "FixtureInteraction",
+      "interaction_key": "FixtureInteraction",
+      "observed_at": 1760000000.0,
+      "parameters": {},
+      "sequence": 20,
+      "source": "contract-fixture",
+      "tag": null
+    }
+  ],
   "kind": "interactions"
 }

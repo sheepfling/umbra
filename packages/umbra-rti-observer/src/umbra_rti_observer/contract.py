@@ -23,6 +23,12 @@ STREAM_MESSAGE_TYPES = (
 )
 
 API_PATHS = {
+    "recordings": "/api/recordings",
+    "recording_start": "/api/recordings/start",
+    "recording_stop": "/api/recordings/stop",
+    "recording_export": "/api/recordings/export",
+    "recording_validate": "/api/recordings/validate",
+    "recording_analyze": "/api/recordings/analyze",
     "contract": "/api/contract",
     "state": "/api/state",
     "metrics": "/api/metrics",
@@ -50,6 +56,11 @@ def build_contract_document(
 
     normalized_capabilities = normalize_capabilities(capabilities)
     paths = dict(API_PATHS)
+    recording = normalized_capabilities.get("recording")
+    if recording is None or recording.state not in {"available", "partial"}:
+        for name in tuple(paths):
+            if name == "recordings" or name.startswith("recording_"):
+                paths.pop(name)
     analytics = normalized_capabilities.get("analytics")
     if analytics is None or analytics.state not in {"available", "partial"}:
         paths.pop("analytics", None)

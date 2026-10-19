@@ -3,12 +3,12 @@
 # pyright: strict
 from __future__ import annotations
 
-from collections import OrderedDict
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal, cast
 
 from .models import EventRecord, JsonObject, to_json_object
+from .storage import EvidenceBudget, EvidenceIndex
 
 DeclarationKind = Literal["object", "interaction"]
 DeclarationDirection = Literal["publication", "subscription"]
@@ -114,10 +114,9 @@ def declaration_data(event: Mapping[str, object]) -> DeclarationData | None:
 
 
 class DeclarationViews:
-    def __init__(self, capacity: int) -> None:
+    def __init__(self, capacity: int, *, budget: EvidenceBudget | None = None) -> None:
         self.capacity = capacity
-        self._rows: OrderedDict[tuple[DeclarationScope, DeclarationKind, DeclarationDirection, str], DeclarationSnapshot] = OrderedDict()
-        self._dropped = 0
+        self._rows = EvidenceIndex[tuple[DeclarationScope, DeclarationKind, DeclarationDirection, str], DeclarationSnapshot]("declarations", capacity, budget if budget is not None else EvidenceBudget(), lambda _, row: row.to_json())
 
     def record(self, event: EventRecord, federate: str | None, federation: str | None) -> None:
         data = declaration_data(event)
@@ -125,17 +124,12 @@ class DeclarationViews:
             return
         scope = DeclarationScope(event.source, data.session_id, federation, federate)
         key = scope, data.kind, data.direction, data.class_key
-        if key not in self._rows and len(self._rows) == self.capacity:
-            self._rows.popitem(last=False)
-            self._dropped += 1
         self._rows[key] = DeclarationSnapshot(scope, data, event.sequence, event.observed_at)
-        self._rows.move_to_end(key)
 
     def clear(self) -> None:
         self._rows.clear()
-        self._dropped = 0
 
     def to_json(self) -> JsonObject:
         return to_json_object({"snapshots": [row.to_json() for row in self._rows.values()],
-                               "capacity": self.capacity, "dropped_declarations": self._dropped,
+                               "capacity": self.capacity, "dropped_declarations": self._rows.dropped,
                                "basis": "last-reported-declarations"})

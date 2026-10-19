@@ -6,7 +6,7 @@ import asyncio
 import json
 import os
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 
 from .contract import (
@@ -46,13 +46,13 @@ try:  # The web extra is optional; only importing this transport requires it.
     from .commands import CommandConflict, CommandDispatcher
     from .schemas import (
         AnalyticsResponse,
+        AnalyticsWindow,
         CapabilityResponse,
         CatalogResponse,
         ContextRequest,
         ContextResponse,
         ContractResponse,
         EventBatchRequest,
-        EventEnvelope,
         EventIngestRequest,
         EventPageResponse,
         EventsMessage,
@@ -64,6 +64,7 @@ try:  # The web extra is optional; only importing this transport requires it.
         JsonObjectResponse,
         MetricsResponse,
         RetentionGapResponse,
+        RuntimeSummaryResponse,
         SnapshotMessage,
         StateResponse,
         StatusRequest,
@@ -113,8 +114,8 @@ def _validated_state(observer: ObserverStore, *, include_events: bool) -> StateR
     return StateResponse.model_validate(observer.state(include_events=include_events))
 
 
-def _validated_events(rows: list[JsonObject]) -> tuple[EventEnvelope, ...]:
-    return tuple(EventEnvelope.model_validate(row) for row in rows)
+def _validated_summary(observer: ObserverStore) -> RuntimeSummaryResponse:
+    return RuntimeSummaryResponse.model_validate(observer.runtime_summary())
 
 
 def _stream_json(message: BaseModel) -> str:
@@ -131,12 +132,26 @@ def _validated_capabilities(observer: ObserverStore) -> dict[str, CapabilityResp
 def create_app(
     store: ObserverStore | None = None, *, enable_analytics: bool = True,
     commands: CommandDispatcher | None = None,
+    enable_recording: bool = True,
 ) -> FastAPI:
     """Create the optional FastAPI transport over an observer store."""
 
     observer = store or ObserverStore()
     observer.set_capabilities(
         {
+            "recording_compact": {
+                "state": "available" if enable_recording else "disabled",
+                "reason": "Negotiated v2 baseline/edit files with bounded reconstructed state/work; v1 remains supported.",
+            },
+            "recording_analytics_window": {
+                "state": "available" if enable_recording else "disabled",
+                "reason": "Named validated retained-window requests; legacy complete-frame requests remain accepted.",
+            },
+            "recording": {
+                "state": "available" if enable_recording else "disabled",
+                "reason": "Bounded observer-state journal and validated read-only replay files."
+                if enable_recording else "Recording/import resources are disabled by this backend.",
+            },
             "http_api": {
                 "state": "available",
                 "reason": "Provided by the FastAPI backend.",
@@ -173,9 +188,19 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        async def capture_clock() -> None:
+            while True:
+                await asyncio.sleep(1)
+                await asyncio.to_thread(observer.checkpoint_capture)
+
+        clock_task = asyncio.create_task(capture_clock()) if enable_recording else None
         try:
             yield
         finally:
+            if clock_task is not None:
+                clock_task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await clock_task
             if commands is not None:
                 await asyncio.to_thread(commands.close)
 
@@ -185,6 +210,9 @@ def create_app(
         description="Provider-neutral runtime event observer.",
         lifespan=lifespan,
     )
+    if enable_recording:
+        from .recording_routes import add_recording_routes
+        add_recording_routes(app, observer)
 
     react_ui_dist = _react_ui_dist()
     if react_ui_dist is not None and (react_ui_dist / "assets").is_dir():
@@ -210,7 +238,7 @@ def create_app(
 
     @app.get("/api/health", response_model=HealthResponse)
     async def health() -> HealthResponse:
-        state = _validated_state(observer, include_events=False)
+        state = _validated_summary(observer)
         return HealthResponse(
             service="umbra-rti-observer",
             status=state.status,
@@ -251,7 +279,7 @@ def create_app(
 
     @app.get("/api/metrics", response_model=MetricsResponse)
     async def metrics() -> MetricsResponse:
-        state = _validated_state(observer, include_events=False)
+        state = _validated_summary(observer)
         return MetricsResponse(
             contract_version=OBSERVER_CONTRACT_VERSION,
             schema_version=OBSERVER_SCHEMA_VERSION,
@@ -302,7 +330,7 @@ def create_app(
             federate: str | None = Query(default=None, min_length=1, max_length=512),
         ) -> AnalyticsResponse:
             return build_analytics(
-                _validated_state(observer, include_events=True),
+                AnalyticsWindow.model_validate(observer.analytics_window()),
                 window_seconds=window_seconds, bucket_count=bucket_count, federate=federate,
             )
 
@@ -355,7 +383,10 @@ def create_app(
 
     @app.put("/api/context", response_model=ContextResponse)
     async def context(payload: ContextRequest) -> ContextResponse:
-        return ContextResponse(context=observer.set_context(**payload.root))
+        try:
+            return ContextResponse(context=observer.set_context(**payload.root))
+        except (ValueError, TypeError) as error:
+            raise HTTPException(status_code=400, detail=str(error)) from error
 
     @app.post("/api/control/status", response_model=StateResponse, response_model_exclude_none=True)
     async def status(payload: StatusRequest) -> StateResponse:
@@ -392,18 +423,22 @@ def create_app(
                         retained_events=page.retained_events,
                         dropped_events=page.dropped_events,
                         cleared_events=page.cleared_events,
+                        next_sequence=page.next_sequence,
                     )
                     yield f"data: {_stream_json(GapMessage(type='gap', retention=retention))}\n\n"
-                    cursor = max(cursor, page.first_retained_sequence - 1)
+                    cursor = max(cursor, page.first_retained_sequence - 1 if page.retained_events else page.next_after)
                     continue
                 rows = page.events
                 if not rows:
-                    raw_rows = await asyncio.to_thread(
+                    await asyncio.to_thread(
                         observer.wait_for_events,
                         after_sequence=cursor,
                         timeout=15.0,
                     )
-                    rows = _validated_events(raw_rows)
+                    fresh = EventPageResponse.model_validate(observer.event_page(after_sequence=cursor, limit=500))
+                    if fresh.gap:
+                        continue
+                    rows = fresh.events
                 if not rows:
                     yield f"data: {_stream_json(HeartbeatMessage(type='heartbeat'))}\n\n"
                     continue
@@ -437,18 +472,22 @@ def create_app(
                         retained_events=page.retained_events,
                         dropped_events=page.dropped_events,
                         cleared_events=page.cleared_events,
+                        next_sequence=page.next_sequence,
                     )
                     await socket.send_json(json_model(GapMessage(type="gap", retention=retention)))
-                    cursor = max(cursor, page.first_retained_sequence - 1)
+                    cursor = max(cursor, page.first_retained_sequence - 1 if page.retained_events else page.next_after)
                     continue
                 rows = page.events
                 if not rows:
-                    raw_rows = await asyncio.to_thread(
+                    await asyncio.to_thread(
                         observer.wait_for_events,
                         after_sequence=cursor,
                         timeout=15.0,
                     )
-                    rows = _validated_events(raw_rows)
+                    fresh = EventPageResponse.model_validate(observer.event_page(after_sequence=cursor, limit=500))
+                    if fresh.gap:
+                        continue
+                    rows = fresh.events
                 if rows:
                     cursor = max(cursor, rows[-1].sequence)
                     await socket.send_json(json_model(EventsMessage(

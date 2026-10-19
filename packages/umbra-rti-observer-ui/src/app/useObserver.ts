@@ -27,7 +27,7 @@ export interface ObserverViewModel {
   refresh: () => Promise<void>;
 }
 
-export function useObserver(): ObserverViewModel {
+export function useObserver(active = true): ObserverViewModel {
   const client = useMemo(() => new ObserverClient(), []);
   const [contract, setContract] = useState<ContractResponse>();
   const [state, setState] = useState<StateResponse>();
@@ -91,6 +91,7 @@ export function useObserver(): ObserverViewModel {
   }, [applyState, client]);
 
   useEffect(() => {
+    if (!active) return;
     let disposed = false;
     let reconnect: number | undefined;
     let poll: number | undefined;
@@ -131,7 +132,7 @@ export function useObserver(): ObserverViewModel {
       socketRef.current?.close();
       socketRef.current = undefined;
     };
-  }, [applyMessage, client, refresh]);
+  }, [active, applyMessage, client, refresh]);
 
   const events = useMemo(
     () => [...eventsBySequence.values()].sort((left, right) => left.sequence - right.sequence),

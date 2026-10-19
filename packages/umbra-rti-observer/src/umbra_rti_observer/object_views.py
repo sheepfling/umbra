@@ -8,7 +8,6 @@ The caller holds the store lock; no web framework or provider API is used here.
 # pyright: strict
 from __future__ import annotations
 
-from collections import deque
 from copy import deepcopy
 from dataclasses import dataclass
 
@@ -20,6 +19,7 @@ from .models import (
     Retention,
     to_json_object,
 )
+from .storage import EvidenceBudget, EvidenceIndex, EvidenceQueue
 
 
 @dataclass(slots=True)
@@ -59,12 +59,23 @@ class ObjectAttributeChange:
         })
 
 
+@dataclass(frozen=True, slots=True)
+class ObjectChangeBatch:
+    sequence: int
+    changes: list[ObjectAttributeChange]
+
+    def to_json(self) -> JsonObject:
+        return to_json_object({"sequence": self.sequence, "changes": [row.to_json() for row in self.changes]})
+
+
 class ObjectViews:
-    def __init__(self, max_events: int) -> None:
-        self._snapshots: dict[tuple[str | None, str], ObjectPerspective] = {}
+    def __init__(self, max_events: int, snapshot_capacity: int = 5000, *, budget: EvidenceBudget | None = None) -> None:
+        self.snapshot_capacity = _snapshot_capacity(snapshot_capacity)
+        shared = budget if budget is not None else EvidenceBudget()
+        self._snapshots = EvidenceIndex[tuple[str | None, str], ObjectPerspective]("object_snapshots", snapshot_capacity, shared, lambda _, row: row.to_json())
         # One slot per event, including events with no attributes. History is
         # therefore bounded by, and exactly aligned with, the event window.
-        self._history: deque[list[ObjectAttributeChange]] = deque(maxlen=max_events)
+        self._history = EvidenceQueue[ObjectChangeBatch]("object_changes", max_events, shared, lambda row: row.to_json(), unit="event-batches")
 
     def record(self, event: EventRecord, objects: list[ObjectInspection], federate: str | None) -> None:
         changes: list[ObjectAttributeChange] = []
@@ -75,7 +86,6 @@ class ObjectViews:
                 if current is None or (current.object.status == "removed" and event.event_type == "object.discovered"):
                     current = ObjectPerspective(scope, event.sequence, event.sequence, deepcopy(incoming))
                     current.object.attributes.clear()
-                    self._snapshots[key] = current
                 else:
                     row = current.object
                     # Missing metadata in an update must not erase discovery.
@@ -104,18 +114,36 @@ class ObjectViews:
                         source=event.source, observed_at=event.observed_at,
                     ))
                     current.object.attributes[name] = deepcopy(value)
-        self._history.append(changes)
+                self._snapshots[key] = current
+        self._history.append(ObjectChangeBatch(event.sequence, changes))
+
+    def trim_history(self, retention: Retention) -> None:
+        self._history.trim(lambda row: retention.retained_events > 0 and retention.first_retained_sequence <= row.sequence <= retention.last_sequence)
 
     def clear(self) -> None:
         self._snapshots.clear()
         self._history.clear()
 
     def to_json(self, retention: Retention) -> JsonObject:
+        history = [change for batch in self._history for change in batch.changes
+                   if retention.first_retained_sequence <= change.sequence <= retention.last_sequence and retention.retained_events > 0]
+        changes = [change for change in history if (change.federate, change.object_key) in self._snapshots]
+        omitted = len(history) - len(changes)
         return to_json_object({
             "snapshots": [row.to_json() for _, row in sorted(
                 self._snapshots.items(), key=lambda entry: (entry[0][0] or "", entry[0][1]))],
-            "changes": [change.to_json() for batch in self._history for change in batch],
-            "history_truncated": bool(retention.dropped_events or retention.cleared_events),
+            "changes": [change.to_json() for change in changes],
+            "snapshot_capacity": self.snapshot_capacity,
+            "dropped_snapshots": self._snapshots.dropped,
+            "omitted_changes": omitted,
+            "dropped_history_batches": self._history.dropped,
+            "history_truncated": bool(retention.dropped_events or retention.cleared_events or omitted or self._history.dropped),
             "history_first_sequence": retention.first_retained_sequence,
             "history_last_sequence": retention.last_sequence,
         })
+
+
+def _snapshot_capacity(value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise ValueError("max_object_perspectives must be a positive integer")
+    return value

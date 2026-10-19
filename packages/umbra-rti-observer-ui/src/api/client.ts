@@ -7,6 +7,10 @@ import type {
   ContractResponse,
   EventPageResponse,
   StateResponse,
+  CaptureStatus,
+  PortableRecording,
+  RecordingFrame,
+  RecordingStatusResponse,
 } from "./types";
 import { parseStreamMessage } from "./stream";
 import type { StreamMessage } from "./stream";
@@ -66,6 +70,68 @@ export class ObserverClient {
 
   async submitCommand(request: CommandRequest): Promise<CommandRecord> {
     return this.request<CommandRecord>(await this.resource("commands"), undefined, { method: "POST", body: JSON.stringify(request) });
+  }
+
+  async getRecordingStatus(signal?: AbortSignal): Promise<RecordingStatusResponse> {
+    return this.request<RecordingStatusResponse>(await this.resource("recordings"), signal);
+  }
+
+  async startRecording(label: string, replaceId?: string): Promise<CaptureStatus> {
+    const state = (await this.getContract()).capabilities.recording_compact?.state;
+    const compact = state === "available" || state === "partial";
+    return this.request<CaptureStatus>(await this.resource("recording_start"), undefined,
+      { method: "POST", body: JSON.stringify({ label, replace_id: replaceId ?? null, max_frames: 600, max_bytes: 16 * 1024 * 1024,
+        ...(compact ? { storage_format: "compact-v2" } : {}) }) });
+  }
+
+  async stopRecording(recordingId: string): Promise<CaptureStatus> {
+    return this.request<CaptureStatus>(await this.resource("recording_stop"), undefined,
+      { method: "POST", body: JSON.stringify({ recording_id: recordingId }) });
+  }
+
+  async getRecording(recordingId: string): Promise<PortableRecording> {
+    const status = await this.getRecordingStatus();
+    if (status.recording?.recording_id !== recordingId) throw new ObserverApiError(409, "The retained recording changed. Refresh its status before exporting.");
+    const query = new URLSearchParams({ recording_id: recordingId });
+    if (status.recording.storage_format === "compact-v2") {
+      const state = (await this.getContract()).capabilities.recording_compact?.state;
+      if (state !== "available" && state !== "partial") throw new ObserverApiError(501, "This retained file requires a backend advertising compact v2 support.");
+      query.set("storage_format", "compact-v2");
+    }
+    return this.request<PortableRecording>(`${await this.resource("recording_export")}?${query}`, AbortSignal.timeout(60_000));
+  }
+
+  async validateRecording(raw: string): Promise<PortableRecording> {
+    try {
+      if (new TextEncoder().encode(raw).length > 16 * 1024 * 1024) throw new ObserverApiError(413, "Recording exceeds 16 MiB.");
+      let parsed: unknown;
+      try { parsed = JSON.parse(raw); } catch { throw new ObserverApiError(422, "Recording is not valid JSON."); }
+      const version = parsed !== null && typeof parsed === "object" && "recording_version" in parsed ? parsed.recording_version : undefined;
+      if (version === "umbra-observer-recording-v2") {
+        const state = (await this.getContract()).capabilities.recording_compact?.state;
+        if (state !== "available" && state !== "partial") throw new ObserverApiError(501, "This backend does not advertise compact v2 recording validation. V1 recordings remain usable.");
+      }
+      return await this.request<PortableRecording>(await this.resource("recording_validate"), AbortSignal.timeout(60_000), { method: "POST", body: raw });
+    } catch (error) {
+      if (error instanceof ObserverApiError && error.status === 422) throw new ObserverApiError(422,
+        "Recording rejected by the validated contract. Check its version, timeline, fields and bounds; the live view was not replaced.");
+      throw error;
+    }
+  }
+
+  async analyzeRecording(frame: RecordingFrame, windowSeconds: number, signal?: AbortSignal): Promise<AnalyticsResponse> {
+    const contract = await this.getContract();
+    const capability = contract.capabilities.recording_analytics_window?.state;
+    const projected = capability === "available" || capability === "partial";
+    const storageState = contract.capabilities.storage_inspection?.state;
+    const parameters = projected ? {
+      window: { contract_version: frame.state.contract_version, retention: frame.state.retention,
+        normalized_events: frame.state.normalized_events ?? [], federate_roster: frame.state.federate_roster,
+        ...(storageState === "available" || storageState === "partial" ? { storage: frame.state.storage } : {}) },
+      captured_at: frame.captured_at, window_seconds: windowSeconds, bucket_count: 30,
+    } : { frame, window_seconds: windowSeconds, bucket_count: 30 };
+    return this.request<AnalyticsResponse>(await this.resource("recording_analyze"), signal,
+      { method: "POST", body: JSON.stringify(parameters) });
   }
 
   async openStream(

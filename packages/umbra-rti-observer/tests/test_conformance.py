@@ -49,6 +49,42 @@ def test_live_python_uses_the_same_contract_checks(profile: str) -> None:
         assert report.passed, report.model_dump_json(indent=2)
 
 
+def test_legacy_provider_persistence_does_not_promise_a_new_coordination_model() -> None:
+    replay = fixture_fetch("full")
+
+    def fetch(path: str) -> HttpReply:
+        reply = replay(path)
+        body = json.loads(reply.body)
+        if path == "/api/contract" or path.startswith("/api/state?"):
+            body["capabilities"].pop("synchronization", None)
+            body["capabilities"].pop("persistence_inspection", None)
+            assert body["capabilities"]["persistence"]["state"] == "available"
+            if path.startswith("/api/state?"):
+                body["inspectors"].pop("coordination")
+        return HttpReply(status=reply.status, body=json.dumps(body), headers=reply.headers)
+
+    report = ObserverConformance("http://fixture", fetch=fetch).run()
+    assert report.passed, report.model_dump_json(indent=2)
+
+
+@pytest.mark.parametrize("provider,inspection,model", [("ownership", "ownership_inspection", "ownership"), ("regions", "regions_inspection", "regions"), ("mom", "mom_inspection", "mom")])
+def test_legacy_provider_flags_do_not_promise_new_typed_inspectors(provider: str, inspection: str, model: str) -> None:
+    replay = fixture_fetch("full")
+
+    def fetch(path: str) -> HttpReply:
+        reply = replay(path)
+        body = json.loads(reply.body)
+        if path == "/api/contract" or path.startswith("/api/state?"):
+            body["capabilities"].pop(inspection)
+            assert body["capabilities"][provider]["state"] == "available"
+            if path.startswith("/api/state?"):
+                body["inspectors"].pop(model)
+        return HttpReply(status=reply.status, body=json.dumps(body), headers=reply.headers)
+
+    report = ObserverConformance("http://fixture", fetch=fetch).run()
+    assert report.passed, report.model_dump_json(indent=2)
+
+
 def test_portable_schema_is_current() -> None:
     assert SCHEMA_PATH.read_text(encoding="utf-8") == wire_schema_text()
 
@@ -130,7 +166,14 @@ def test_recorded_http_fixtures_are_reproducible(profile: str) -> None:
                                    "missing_roster", "missing_inspectors", "missing_states", "analytics_counts",
                                    "missing_perspectives", "duplicate_perspective", "history_scope", "history_bounds",
                                    "missing_time", "time_scope", "time_outcome", "time_cursor", "time_nan",
-                                   "missing_declarations", "declaration_cursor", "duplicate_declaration", "declaration_attributes"])
+                                   "missing_declarations", "declaration_cursor", "duplicate_declaration", "declaration_attributes",
+                                   "missing_relationships", "relationship_cursor", "duplicate_relationship", "relationship_endpoint",
+                                   "missing_coordination", "coordination_cursor", "duplicate_coordination", "coordination_phase",
+                                   "missing_flow", "flow_cursor", "flow_pair", "flow_delay", "flow_endpoint",
+                                   "missing_ownership", "ownership_cursor", "ownership_owner", "ownership_outcome", "duplicate_ownership",
+                                   "missing_regions", "region_cursor", "region_bound", "region_duplicate", "region_evidence",
+                                   "missing_mom", "mom_cursor", "mom_coverage", "mom_counter", "mom_duplicate",
+                                   "missing_fom", "fom_cursor", "fom_parent", "fom_bound", "fom_duplicate", "fom_datatype"])
 def test_malformed_backends_fail_without_coercion_or_unsafe_discovery(fault: str) -> None:
     replay = fixture_fetch("full")
     requested: list[str] = []
@@ -166,6 +209,42 @@ def test_malformed_backends_fail_without_coercion_or_unsafe_discovery(fault: str
             if fault == "duplicate_declaration":
                 body["inspectors"]["declarations"]["snapshots"].append(body["inspectors"]["declarations"]["snapshots"][0])
             if fault == "declaration_attributes": body["inspectors"]["declarations"]["snapshots"][1]["attributes"] = []
+            if fault == "missing_relationships": body["inspectors"].pop("relationships")
+            if fault == "relationship_cursor": body["inspectors"]["relationships"]["snapshots"][0]["sequence"] = 999
+            if fault == "duplicate_relationship":
+                body["inspectors"]["relationships"]["snapshots"].append(body["inspectors"]["relationships"]["snapshots"][0])
+            if fault == "relationship_endpoint": body["inspectors"]["relationships"]["snapshots"][0]["producer"].pop("membership_id")
+            if fault == "missing_coordination": body["inspectors"].pop("coordination")
+            if fault == "coordination_cursor": body["inspectors"]["coordination"]["snapshots"][0]["sequence"] = 999
+            if fault == "duplicate_coordination":
+                body["inspectors"]["coordination"]["transitions"].append(body["inspectors"]["coordination"]["transitions"][0])
+            if fault == "coordination_phase": body["inspectors"]["coordination"]["snapshots"][-1]["phase"] = "announced"
+            if fault == "missing_flow": body["inspectors"].pop("interaction_flow")
+            if fault == "flow_cursor": body["inspectors"]["interaction_flow"]["records"][0]["last_sequence"] = 999
+            if fault == "flow_pair": body["inspectors"]["interaction_flow"]["records"][0]["receive_count"] = 2
+            if fault == "flow_delay": body["inspectors"]["interaction_flow"]["records"][0]["arrival_delay_seconds"] = -1
+            if fault == "flow_endpoint": body["inspectors"]["interaction_flow"]["records"][0]["receive"]["recipient"]["membership_id"] = "unrelated-join"
+            if fault == "missing_ownership": body["inspectors"].pop("ownership")
+            if fault == "ownership_cursor": body["inspectors"]["ownership"]["states"][0]["sequence"] = 999
+            if fault == "ownership_owner": body["inspectors"]["ownership"]["states"][0].pop("owner")
+            if fault == "ownership_outcome": body["inspectors"]["ownership"]["requests"][0]["outcome"]["request_id"] = "unrelated"
+            if fault == "duplicate_ownership": body["inspectors"]["ownership"]["requests"].append(body["inspectors"]["ownership"]["requests"][0])
+            if fault == "missing_regions": body["inspectors"].pop("regions")
+            if fault == "region_cursor": body["inspectors"]["regions"]["snapshots"][0]["sequence"] = 999
+            if fault == "region_bound": body["inspectors"]["regions"]["snapshots"][0]["extents"][0]["dimensions"][0]["lower_bound"] = 1
+            if fault == "region_duplicate": body["inspectors"]["regions"]["snapshots"].append(body["inspectors"]["regions"]["snapshots"][0])
+            if fault == "region_evidence": body["inspectors"]["regions"]["snapshots"][1]["evidence"] = "guessed"
+            if fault == "missing_mom": body["inspectors"].pop("mom")
+            if fault == "mom_cursor": body["inspectors"]["mom"]["snapshots"][0]["sequence"] = 999
+            if fault == "mom_coverage": body["inspectors"]["mom"]["snapshots"][0].update(coverage="complete", members=None)
+            if fault == "mom_counter": body["inspectors"]["mom"]["snapshots"][-1]["value"] = 1
+            if fault == "mom_duplicate": body["inspectors"]["mom"]["snapshots"].append(body["inspectors"]["mom"]["snapshots"][0])
+            if fault == "missing_fom": body["inspectors"].pop("fom")
+            if fault == "fom_cursor": body["inspectors"]["fom"]["snapshots"][0]["sequence"] = 999
+            if fault == "fom_parent": body["inspectors"]["fom"]["snapshots"][0].update(parent_state="root", parent_id="invented")
+            if fault == "fom_bound": body["inspectors"]["fom"]["snapshots"][-1]["upper_bound"] = 18446744073709551615
+            if fault == "fom_duplicate": body["inspectors"]["fom"]["snapshots"].append(body["inspectors"]["fom"]["snapshots"][0])
+            if fault == "fom_datatype": body["inspectors"]["fom"]["snapshots"][3].update(encoding="primitive", cardinality="4")
         if path == "/api/events?after=0&limit=2":
             if fault == "duplicate": body["events"][1]["sequence"] = body["events"][0]["sequence"]
             if fault == "boolean_sequence": body["events"][0]["sequence"] = True

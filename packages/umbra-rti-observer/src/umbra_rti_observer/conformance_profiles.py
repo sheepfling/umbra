@@ -22,6 +22,7 @@ from starlette.responses import Response
 
 from .conformance import Fetch, HttpReply
 from .core import ObserverStore
+from .models import JsonObject
 from .server import create_app
 from .showcase import ShowcaseAdapter
 
@@ -33,7 +34,7 @@ FIXTURE_ROOT = Path(__file__).resolve().parents[2] / "conformance" / "fixtures"
 def scenario(profile: str) -> Generator[FastAPI, None, None]:
     if profile not in PROFILES:
         raise ValueError(f"unknown conformance profile: {profile}")
-    store = ObserverStore(max_events=3 if profile == "retention-loss" else 20)
+    store = ObserverStore(max_events=3 if profile == "retention-loss" else 64)
     if profile != "empty":
         store.set_capabilities(ShowcaseAdapter(profile="umbra" if profile == "full" else "limited").capabilities,
                                owner="adapter", source="contract-fixture")
@@ -42,7 +43,7 @@ def scenario(profile: str) -> Generator[FastAPI, None, None]:
                                owner="adapter", source="contract-fixture")
     # The Java fixture is explicitly HTTP-only, so both sides of the fixture
     # matrix advertise the same transport boundary instead of promising WS.
-    app = create_app(store, enable_analytics=profile != "no-analytics")
+    app = create_app(store, enable_analytics=profile != "no-analytics", enable_recording=False)
     store.set_capabilities({name: {"state": "unsupported", "reason": "This fixture uses HTTP polling."}
                             for name in ("websocket", "sse")}, owner="backend", source="fastapi")
     if profile != "empty":
@@ -57,6 +58,9 @@ def scenario(profile: str) -> Generator[FastAPI, None, None]:
                            "vendor_extension": {"nested": [True, None, "retained"]}})
         store.publish({"event_type": "callback.invoked", "family": "generic", "source": "contract-fixture",
                        "federate": "FixtureFederate", "logical_time": 4, "operation": "timeAdvanceGrant"})
+        if profile != "full":
+            store.publish({"event_type": "interaction.received", "source": "contract-fixture",
+                           "federate": "FixtureFederate", "interaction_class": "FixtureInteraction"})
         if profile == "full":
             for observation in (
                 {"kind": "state", "lookahead": 0.5, "regulating": True, "constrained": False, "galt": 3},
@@ -73,6 +77,79 @@ def scenario(profile: str) -> Generator[FastAPI, None, None]:
             ):
                 store.publish({"event_type": "declaration.observed", "source": "contract-fixture", "federate": "FixtureFederate",
                                "federation": "ContractFixture", "declaration": {"status": "declared", "session_id": "fixture-session", **declaration}})
+            store.publish({"event_type": "relationship.observed", "source": "contract-fixture", "relationship": {
+                "relationship_id": "fixture-route", "session_id": "fixture-session", "identity_namespace": "fixture-provider",
+                "federation_id": "fixture-federation", "kind": "object", "evidence": "declared", "status": "active", "viewpoint": "observer",
+                "producer": {"participant_id": "producer", "membership_id": "join-1", "display_name": "FixtureFederate"},
+                "recipient": {"participant_id": "recipient", "membership_id": "join-2", "display_name": "FixtureRecipient"},
+                "class_key": "FixtureClass", "reason": "Explicit fixture edge; not proof of delivery.",
+            }})
+            for kind, phase, scope, subject in (
+                ("synchronization", "registered", "local", {"participant_id": "producer", "membership_id": "join-1", "display_name": "FixtureFederate"}),
+                ("synchronization", "completed", "federation", None),
+                ("save", "begun", "local", {"participant_id": "producer", "membership_id": "join-1", "display_name": "FixtureFederate"}),
+                ("save", "completed", "local", {"participant_id": "producer", "membership_id": "join-1", "display_name": "FixtureFederate"}),
+                ("save", "failed", "federation", None),
+            ):
+                store.publish({"event_type": "coordination.observed", "source": "contract-fixture", "coordination": {
+                    "kind": kind, "operation_id": f"fixture-{kind}", "label": f"Fixture {kind}", "phase": phase, "scope": scope,
+                    "session_id": "fixture-session", "identity_namespace": "fixture-provider", "federation_id": "fixture-federation",
+                    "subject": subject, "reason": "Explicit fixture phase; local completion is not federation completion.",
+                }})
+            for kind in ("send", "receive"):
+                store.publish({"event_type": "interaction.sent" if kind == "send" else "interaction.received", "source": "contract-fixture", "interaction_class": "FixtureInteraction", "interaction_flow": {
+                    "kind": kind, "order": "timestamped", "logical_time": 5, "message_id": "fixture-message",
+                    "identity_namespace": "fixture-provider", "federation_id": "fixture-federation", "session_id": "fixture-session",
+                    "producer": {"participant_id": "producer", "membership_id": "join-1", "display_name": "FixtureFederate"},
+                    "recipient": {"participant_id": "recipient", "membership_id": "join-2", "display_name": "FixtureRecipient"},
+                    "class_key": "FixtureInteraction",
+                }})
+            ownership_subject = {"participant_id": "recipient", "membership_id": "join-2", "display_name": "FixtureRecipient"}
+            fom_observations: tuple[JsonObject, ...] = (
+                {"kind": "object-class", "element_id": "FixtureBase", "parent_state": "root", "field_scope": "declared", "attributes": []},
+                {"kind": "object-class", "element_id": "FixtureClass", "parent_state": "parent", "parent_id": "FixtureBase", "field_scope": "declared", "attributes": [{"field_id": "value", "name": "value", "datatype_id": "FixtureNumber"}]},
+                {"kind": "interaction-class", "element_id": "FixtureInteraction", "parent_state": "root", "field_scope": "declared", "parameters": [{"field_id": "sample", "name": "sample", "datatype_id": "FixtureNumber"}]},
+                {"kind": "datatype", "element_id": "FixtureNumber", "encoding": "primitive", "representation": "FixtureNumeric"},
+                {"kind": "datatype", "element_id": "FixtureArray", "encoding": "array", "element_type_id": "FixtureNumber", "cardinality": "4"},
+                {"kind": "datatype", "element_id": "FixtureEnum", "encoding": "enumeration", "enumerators": [{"name": "Off", "value": "0"}, {"name": "On", "value": "1"}]},
+                {"kind": "dimension", "element_id": "dimension-1", "upper_bound": "18446744073709551615"},
+            )
+            for observation in fom_observations:
+                store.publish({"event_type": "fom.observed", "source": "contract-fixture", "fom_observation": {
+                    "session_id": "fixture-session", "identity_namespace": "fixture-provider", "federation_id": "fixture-federation",
+                    "model_id": "fixture-model", "revision": "1", "name": observation["element_id"], "status": "present", **observation,
+                }})
+            for observation in (
+                {"kind": "members", "report_id": "fixture-members", "coverage": "partial", "members": [{"participant": {"identity": ownership_subject}, "status": "joined"}, {"participant": {"display_name": "Unresolved member", "handle": "0x45"}, "status": "unknown"}]},
+                {"kind": "service", "report_id": "fixture-service", "service_name": "FixtureService", "status": "failed", "error_name": "FixtureError", "invocation_id": "invoke-1"},
+                {"kind": "counter", "report_id": "fixture-counter", "counter_key": "reports", "semantics": "cumulative", "value": 0, "unit": "reports"},
+                {"kind": "counter", "report_id": "fixture-counter", "counter_key": "reports", "semantics": "cumulative", "value": 7, "unit": "reports"},
+                {"kind": "counter", "report_id": "fixture-opaque", "counter_key": "wide-integer", "semantics": "unknown", "value_text": "18446744073709551615"},
+            ):
+                store.publish({"event_type": "mom.observed", "source": "contract-fixture", "mom_observation": {
+                    "session_id": "fixture-session", "identity_namespace": "fixture-provider", "federation_id": "fixture-federation", **observation,
+                }})
+            for observation in (
+                {"kind": "region", "region_id": "fixture-region", "extents": [{"extent_id": "e1", "dimensions": [{"dimension_id": "dimension-1", "lower_bound": "9007199254740993", "upper_bound": "9007199254741093", "dimension_upper_bound": "18446744073709551615"}]}]},
+                {"kind": "association", "association_id": "fixture-association", "target_kind": "object", "target_id": "fixture-object-instance-1", "direction": "update", "region_ids": ["fixture-region"], "attribute_keys": ["value"]},
+                {"kind": "routing", "routing_id": "fixture-routing", "region_ids": ["fixture-region"], "evidence": "observed", "recipient": ownership_subject},
+            ):
+                store.publish({"event_type": "region.observed", "source": "contract-fixture", "region_observation": {
+                    "session_id": "fixture-session", "identity_namespace": "fixture-provider", "federation_id": "fixture-federation",
+                    "evidence": "declared", "status": "active", **observation,
+                }})
+            for observation in (
+                {"kind": "state", "owner_state": "unknown", "transition": "reported"},
+                {"kind": "request", "request_id": "acquire-1", "action": "acquire", "requester": ownership_subject},
+                {"kind": "outcome", "request_id": "acquire-1", "action": "acquire", "requester": ownership_subject, "outcome": "completed"},
+                {"kind": "state", "owner_state": "known", "owner": ownership_subject, "transition": "acquired"},
+                {"kind": "request", "request_id": "divest-1", "action": "divest", "requester": ownership_subject},
+                {"kind": "state", "attribute_key": "unresolved-value", "owner_state": "unknown", "transition": "reported", "reported_owner_name": "Unresolved owner", "reported_owner_handle": "0x45"},
+            ):
+                store.publish({"event_type": "ownership.observed", "source": "contract-fixture", "ownership": {
+                    "session_id": "fixture-session", "identity_namespace": "fixture-provider", "federation_id": "fixture-federation",
+                    "object_id": "fixture-object-instance-1", "attribute_key": "value", **observation,
+                }})
     if profile == "reconnect":
         unavailable = True
 
@@ -95,6 +172,7 @@ def capture(profile: str) -> dict[str, str]:
     # and their digests can then be regenerated and compared without churn.
     with (patch("time.time", return_value=1_760_000_000.0),
           patch("umbra_rti_observer.time_views.monotonic", return_value=100.0),
+          patch("umbra_rti_observer.interaction_flow.monotonic", return_value=100.0),
           scenario(profile) as app, TestClient(app) as client):
         targets = ["/api/contract", "/api/health", "/api/state?include_events=true",
                    "/api/state?include_events=false", "/api/metrics", "/api/events?after=0&limit=2",

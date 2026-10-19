@@ -292,6 +292,7 @@ class EventPage:
     retained_events: int
     dropped_events: int
     cleared_events: int
+    next_sequence: int
 
     def to_json(self, contract_version: str) -> JsonObject:
         return {
@@ -305,6 +306,7 @@ class EventPage:
             "retained_events": self.retained_events,
             "dropped_events": self.dropped_events,
             "cleared_events": self.cleared_events,
+            "next_sequence": self.next_sequence,
         }
 
 

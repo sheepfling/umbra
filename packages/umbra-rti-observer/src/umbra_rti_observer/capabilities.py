@@ -29,6 +29,54 @@ CAPABILITY_STATES = (
 )
 
 CAPABILITY_DEFINITIONS: dict[str, dict[str, str]] = {
+    "storage_inspection": {
+        "label": "Observation storage coverage",
+        "description": "Explicit count/byte budgets, whole-record expiry and unbudgeted collection coverage; not federation lifecycle evidence.",
+    },
+    "recording_compact": {
+        "label": "Compact recording files",
+        "description": "Explicitly negotiated v2 baseline/edit capture/import/export, bounded reconstruction and unchanged evidence.",
+    },
+    "recording_analytics_window": {
+        "label": "Lightweight recorded analytics",
+        "description": "Accepts the named retained-window request instead of uploading unrelated recorded inspectors.",
+    },
+    "recording": {
+        "label": "Recording and replay",
+        "description": "Bounded state/envelope journals and validated portable replay files; never provider command execution.",
+    },
+    "fom_inspection": {
+        "label": "FOM metadata inspection",
+        "description": "Adapter-supplied class, field, datatype and dimension metadata with explicit revision and references.",
+    },
+    "mom_inspection": {
+        "label": "Management report inspection",
+        "description": "Typed roster coverage, service invocation/error reports and explicit numeric or opaque counters.",
+    },
+    "regions_inspection": {
+        "label": "Region and DDM inspection",
+        "description": "Explicit extents, exact dimension ranges, associations and declared/observed routing evidence.",
+    },
+    "ownership_inspection": {
+        "label": "Attribute ownership inspection",
+        "description": "Explicit owner state, acquisition/divestiture reports and scoped request/outcome evidence.",
+    },
+    "persistence_inspection": {
+        "label": "Save and restore inspection",
+        "description": "Named local/federation save/restore phase snapshots and retained transition reports.",
+    },
+    "interaction_flow": {
+        "label": "Interaction flow inspection",
+        "description": "Explicit send/receive transmission pairing, scoped endpoints and observer arrival intervals.",
+    },
+    "synchronization": {
+        "label": "Synchronization observations",
+        "description": "Explicit labels, registration outcomes, announcements and participant achievement reports.",
+    },
+    "relationships": {
+        "label": "Explicit federation relationships",
+        "description": "Adapter-reported producer/recipient edges with stable scoped join identities, not inferred routing.",
+    },
     "lifecycle": {
         "label": "Runtime lifecycle",
         "description": "Connection, startup, shutdown, and runtime errors.",
@@ -116,6 +164,42 @@ CAPABILITY_DEFINITIONS: dict[str, dict[str, str]] = {
 }
 
 OBSERVER_CAPABILITIES: dict[str, dict[str, JsonValue]] = {
+    "storage_inspection": {
+        "state": "available", "owner": "observer",
+        "reason": "Count/byte expiry coverage is explicit; remaining row-only collections are listed, never silently covered.",
+    },
+    "fom_inspection": {
+        "state": "available", "owner": "observer",
+        "reason": "Read-only supplied metadata; no FOM files parsed, attribute values decoded or domain meanings inferred.",
+    },
+    "mom_inspection": {
+        "state": "available", "owner": "observer",
+        "reason": "Read-only management reports; they never replace ordinary roster/time/attributes or imply control authority.",
+    },
+    "regions_inspection": {
+        "state": "available", "owner": "observer",
+        "reason": "Explicit region reports only; geometric overlap or class matches never establish routing or delivery.",
+    },
+    "ownership_inspection": {
+        "state": "available", "owner": "observer",
+        "reason": "Named explicit ownership evidence only; updates, publishers and successful calls never establish an owner.",
+    },
+    "interaction_flow": {
+        "state": "available", "owner": "observer",
+        "reason": "Exact send/receive counts; pairing requires explicit transmission and endpoint join identities.",
+    },
+    "synchronization": {
+        "state": "available", "owner": "observer",
+        "reason": "Read-only normalized phase inspection; no register/achieve command is implied.",
+    },
+    "persistence_inspection": {
+        "state": "available", "owner": "observer",
+        "reason": "Read-only explicit save/restore phases; local success is not federation-wide completion.",
+    },
+    "relationships": {
+        "state": "available", "owner": "observer",
+        "reason": "Accepts explicit adapter-supplied edges only; an empty index does not establish absent routing.",
+    },
     "declarations": {
         "state": "available", "owner": "observer",
         "reason": "Optional snapshots of normalized declarations; delivery never establishes a declaration.",
@@ -252,7 +336,9 @@ def _aggregate_state(states: list[CapabilityState]) -> CapabilityState:
         return "partial"
     if "unknown" in unique:
         return "unknown"
-    return "partial"
+    # Disabled + unsupported contains no usable reporter. Calling it partial
+    # would incorrectly enable a view or command with no supporting source.
+    return "disabled"
 
 
 def merge_capabilities(*manifests: Mapping[str, object] | None) -> dict[str, CapabilityRecord]:

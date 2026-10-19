@@ -87,7 +87,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--max-events", type=int, default=2_000)
+    parser.add_argument("--max-objects", type=int, default=5_000)
+    parser.add_argument("--max-federates", type=int, default=2_000)
+    parser.add_argument("--max-time-snapshots", type=int, default=2_000)
+    parser.add_argument("--max-evidence-bytes", type=int, default=6 * 1024 * 1024, help="shared encoded evidence budget, at most 6 MiB; not process RSS")
+    parser.add_argument("--max-evidence-record-bytes", type=int, help="whole-record bound within the shared budget (default: min(1 MiB, budget))")
     parser.add_argument("--no-analytics", action="store_true", help="disable optional windowed analytics")
+    parser.add_argument("--no-recording", action="store_true", help="disable optional capture/import/replay-analysis resources")
     parser.add_argument("--enable-controls", action="store_true", help="enable synthetic session controls (requires --showcase)")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--demo", action="store_true", help="seed generic events before serving")
@@ -111,7 +117,12 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.enable_controls and not args.showcase:
         raise SystemExit("--enable-controls requires --showcase; real sessions must be explicitly registered by the application")
-    store = ObserverStore(max_events=args.max_events)
+    try:
+        store = ObserverStore(max_events=args.max_events, max_objects=args.max_objects, max_federates=args.max_federates,
+                              max_time_snapshots=args.max_time_snapshots, max_evidence_bytes=args.max_evidence_bytes,
+                              max_evidence_record_bytes=args.max_evidence_record_bytes)
+    except ValueError as error:
+        raise SystemExit(str(error)) from error
     if args.demo:
         _seed_demo(store)
     if args.showcase:
@@ -129,7 +140,7 @@ def main(argv: list[str] | None = None) -> int:
                 driver_factory=ShowcaseSessionDriver, federations=("ShowcaseFederation",),
                 sink=store.publish, synthetic=True,
             ))
-        app = create_app(store, enable_analytics=not args.no_analytics, commands=commands)
+        app = create_app(store, enable_analytics=not args.no_analytics, commands=commands, enable_recording=not args.no_recording)
         try:
             import uvicorn
         except ImportError as error:  # pragma: no cover - depends on optional extra

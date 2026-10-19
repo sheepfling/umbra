@@ -19,6 +19,50 @@ def update(store: ObserverStore, federate: str | None, **attributes: object) -> 
                           "federate": federate, "attributes": attributes})
 
 
+def test_independent_snapshot_budget_uses_recently_observed_scopes_and_discloses_omissions() -> None:
+    store = ObserverStore(max_events=10, max_object_perspectives=2)
+    for key in ("a", "b", "a", "c"):
+        store.publish({"event_type": "object.updated", "object_key": key, "attributes": {"value": key}})
+    data = observations(store)
+    assert {row.object.object_key for row in data.snapshots} == {"a", "c"}
+    assert data.snapshot_capacity == 2 and data.dropped_snapshots == 1 and data.omitted_changes == 1
+    assert data.history_truncated and store.state()["retention"]["dropped_events"] == 0
+    assert {row.object_key for row in data.changes} == {"a", "c"}
+    assert len(store.events()) == 4 and len(store.state()["inspectors"]["objects"]) == 3
+
+
+def test_reobserved_perspective_gets_a_fresh_comparison_not_another_federates_values() -> None:
+    store = ObserverStore(max_object_perspectives=2)
+    update(store, "A", a_only=1)
+    update(store, "B", b_only=7)
+    update(store, "A", next_value=9)
+    data = observations(store)
+    a = next(row for row in data.snapshots if row.federate == "A")
+    assert a.generation == 3 and a.object.attributes == {"next_value": 9}
+    current_changes = [row for row in data.changes if row.federate == "A" and row.generation == a.generation]
+    assert len(current_changes) == 1 and not current_changes[0].previous_known and current_changes[0].previous_value is None
+    store.clear()
+    assert observations(store).dropped_snapshots == observations(store).omitted_changes == 0
+
+
+@pytest.mark.parametrize("value", [0, -1, True, 1.5, "2"])
+def test_snapshot_capacity_is_a_positive_integer(value: object) -> None:
+    with pytest.raises(ValueError): ObserverStore(max_object_perspectives=value)
+
+
+def test_older_object_budget_is_unknown_not_reported_as_zero_loss() -> None:
+    raw = observations(ObserverStore()).model_dump(mode="json")
+    for name in ("snapshot_capacity", "dropped_snapshots", "omitted_changes"): raw.pop(name)
+    older = ObjectObservationsResponse.model_validate(raw)
+    assert older.snapshot_capacity is older.dropped_snapshots is older.omitted_changes is None
+
+
+@pytest.mark.parametrize("fields", [{"snapshot_capacity": None}, {"snapshot_capacity": 0}, {"dropped_snapshots": True}, {"omitted_changes": -1}, {"omitted_changes": 1, "history_truncated": False}])
+def test_snapshot_budget_metadata_cannot_be_incomplete_or_coerced(fields: dict[str, object]) -> None:
+    raw = observations(ObserverStore()).model_dump(mode="json")
+    with pytest.raises(ValueError): ObjectObservationsResponse.model_validate({**raw, **fields})
+
+
 def test_perspectives_survive_eviction_without_mixing_global_or_other_federate():
     store = ObserverStore(max_events=2)
     update(store, "Alice", value=10, only_alice=True)

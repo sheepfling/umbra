@@ -4,8 +4,10 @@ The React/TypeScript frontend for the provider-neutral Umbra runtime observer.
 It consumes only the observer HTTP contract and can therefore be used with a
 Python, Java, or vendor-specific backend that implements that contract.
 
-The workspace includes Federation, Federates, Objects, Declarations, Logical time, Events, Inspectors,
-Actions, and Diagnostics tabs. The optional `/api/analytics` resource supplies bounded
+The workspace includes Federation, Federates, Objects, Declarations, Topology,
+Interaction flow, Ownership, Regions / DDM, MOM reports, FOM browser, Logical time,
+Synchronization, Save / restore, Events, Inspectors, Recordings, Actions and Diagnostics.
+The optional `/api/analytics` resource supplies bounded
 time-window aggregates and explicit participant attribution. Backends that do
 not advertise analytics keep the events, inspectors, and basic metric charts.
 See the [feature backlog](../umbra-rti-observer/FEATURE-BACKLOG.md) for delivered
@@ -18,6 +20,12 @@ explicitly attributed snapshots, previous-value comparisons, byte/representation
 inspection and selectable finite-number charts. The optional
 `object_observations` capability/model is independent of MOM and analytics.
 Snapshots survive history eviction; charts never reconstruct missing history.
+The scoped index has an independent default budget with explicit capacity,
+eviction and omitted-change metadata. Expired scopes are not removed objects;
+reobserving one starts a fresh local comparison baseline. Object navigation and
+attributed cards initially render 100 rows with load-more controls, while search
+covers all supplied snapshots. Unknown older-backend budgets are not shown as
+unlimited or zero loss.
 Older/disabled backends show an unavailable panel, not another federate's
 global values. The same models work through the Java HTTP fixture.
 
@@ -33,6 +41,30 @@ Declarations adds independent scoped publication/subscription snapshots, class/
 attribute search and kind/direction/status filters. Selected-empty, all, unknown
 and interaction-not-applicable sets are distinct. Capacity loss and missing
 features are explicit; no routing, ownership or delivery edges are inferred.
+
+Topology, flow, coordination, ownership and DDM use separate explicit evidence
+models, bounded inspectors and independent capabilities. Matching class names,
+local completion, successful ownership calls or overlapping ranges never imply
+a route, federation completion, owner or delivery. MOM reports retain member
+coverage, service/error evidence and numeric/opaque counters independently of
+the ordinary roster. FOM metadata navigation keeps revisions and reporting
+scopes separate, with missing/cyclic references and unknown field lists visible.
+No screen parses provider FOMs or decodes runtime bytes. The limited profile
+deliberately supplies partial FOM metadata without MOM.
+
+Recordings uses a separate optional backend capability and named capture/file/
+analysis models. It preserves atomic event batches, all inspector state, context,
+capability provenance and clear boundaries; limits stop capture, not observation.
+Downloaded JSON can be validated/reopened and navigated with monotonic play/speed/
+seek/exact-state controls. Replay suspends live subscriptions, never follows
+captured URLs or submits provider commands, and never substitutes live/future
+analytics after a seek. Files contain actual federation data; review before
+sharing. Undownloaded captures last only for the backend process.
+The live `recording_compact` capability negotiates lossless v2 baseline/edit
+storage; its absence keeps the original v1 request. Both file versions replay
+through an isolated worker with explicit pending/error states and bounded work,
+without expanding all recorded states in page memory. See the package's
+[recording guide](../umbra-rti-observer/RECORDING.md).
 
 Pause view freezes the local view while collection continues. Event exports
 contain the current filtered loaded rows; they are not full-session recordings.
@@ -86,7 +118,7 @@ pnpm test:e2e
 The suite builds the production dashboard, starts a fresh synthetic Python or Java
 backend on an OS-selected loopback port for **each test**, and cleans up only
 that owned process tree. No native RTI, fixed port, manually running server,
-or browser session is needed. Desktop and 390px mobile projects cover the nine
+or browser session is needed. Desktop and 390px mobile projects cover all 18
 screens, keyboard/history navigation, charts, participant isolation, payload
 filters/JSON downloads, bounded rendering/history clearing, reconnect,
 connect/join/confirmed resign/disconnect, page refresh, pause safety, stale and
@@ -97,6 +129,10 @@ Time regressions cover persistent state, scoped matching, pending/granted/failed
 ambiguous outcomes, distinct sessions, pause/clear, Java and capability fallback.
 Declaration regressions cover scope/session isolation, replacement/withdrawal,
 pause/clear, history/capacity eviction, bounded rendering, Java and feature states.
+Additional suites cover exact relationship/flow identity, coordination scopes,
+ownership ticket ambiguity, exact large DDM bounds, optional MOM evidence and
+scoped FOM schema navigation. All cover relevant capability fallback, independent
+retention, pause/clear and unchanged Java models.
 
 If you already have Edge on Windows, avoid a browser download by setting
 `$env:UMBRA_OBSERVER_BROWSER_CHANNEL='msedge'` before `pnpm test:e2e`.

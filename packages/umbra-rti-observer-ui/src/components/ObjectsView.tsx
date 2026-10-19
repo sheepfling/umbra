@@ -2,12 +2,14 @@ import { useMemo, useState } from "react";
 import type { StateResponse } from "../api/types";
 import { EmptyPanel } from "./ChartPanel";
 import { ObjectDetails } from "./ObjectDetails";
+import { ObjectCoverage } from "./ObjectCoverage";
 
 export function ObjectsView({ state }: { state: StateResponse }) {
   const [scope, setScope] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [selected, setSelected] = useState("");
+  const [limit, setLimit] = useState(100);
   const capability = state.capabilities.object_observations;
   const supported = capability?.state === "available" || capability?.state === "partial";
   const data = supported ? state.inspectors.object_observations : undefined;
@@ -30,17 +32,18 @@ export function ObjectsView({ state }: { state: StateResponse }) {
   return <section aria-label="Object workspace" className="objects-workspace">
     <div className="section-intro"><div><p className="eyebrow">Inspect · compare · trace</p><h2>Object workspace</h2><p>Snapshots persist beyond event retention. Comparisons and charts use retained attribute observations.</p></div><span className="state-pill">{capability?.state}</span></div>
     <div className="panel object-controls">
-      <label>Perspective<select aria-label="Object perspective" value={scope === null ? "global" : `f:${scope}`} onChange={(event) => setScope(event.target.value === "global" ? null : event.target.value.slice(2))}>
+      <label>Perspective<select aria-label="Object perspective" value={scope === null ? "global" : `f:${scope}`} onChange={(event) => { setScope(event.target.value === "global" ? null : event.target.value.slice(2)); setLimit(100); }}>
         <option value="global">Global observer — all sources</option>{scopes.map((name) => <option key={name} value={`f:${name}`}>{name} — attributed only</option>)}
       </select></label>
-      <label>Find an object<input aria-label="Search objects" placeholder="Object name, class or handle" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
-      <label>Status<select aria-label="Object status" value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">All observed</option><option value="active">Active</option><option value="removed">Removed</option></select></label>
+      <label>Find an object<input aria-label="Search objects" placeholder="Object name, class or handle" value={search} onChange={(event) => { setSearch(event.target.value); setLimit(100); }} /></label>
+      <label>Status<select aria-label="Object status" value={status} onChange={(event) => { setStatus(event.target.value); setLimit(100); }}><option value="all">All observed</option><option value="active">Active</option><option value="removed">Removed</option></select></label>
     </div>
     <p className="coverage-note">{scope === null ? "Global values combine observations from all sources; they are not a federate's local view." : `Only observations explicitly attributed to ${scope}. Attribution does not establish ownership, subscription or complete RTI visibility.`}</p>
     {capability?.state === "partial" && <p className="coverage-note">Partial object perspectives: {capability.reason ?? "Only some observations are available."}</p>}
-    {data.history_truncated && <p className="coverage-note" role="status">History is incomplete: older events expired or were cleared. Snapshots retain their latest observed values; a previous comparison can predate the retained window.</p>}
+    <ObjectCoverage data={data} />
+    {data.history_truncated && <p className="coverage-note" role="status">History is incomplete: older events or scoped baselines expired or were cleared. Retained snapshots keep their latest observed values; a previous comparison can predate the retained window.</p>}
     <div className="federate-layout object-layout">
-      <aside aria-label="Matching objects" className="panel"><p className="eyebrow">{rows.length} matching objects</p><div className="participant-links">{rows.map((row) => <button type="button" key={row.object.object_key} className={current === row ? "selected" : ""} aria-pressed={current === row} onClick={() => setSelected(row.object.object_key)}><span><strong>{row.object.object_name}</strong><small>{row.object.class_name ?? "Class not reported"} · {row.object.object_key}</small></span><span className="state-pill">{row.object.status}</span></button>)}</div>{!rows.length && <p className="empty">No objects match this perspective and search.</p>}</aside>
+      <aside aria-label="Matching objects" className="panel"><p className="eyebrow">{rows.length} matching objects · {Math.min(limit, rows.length)} shown</p><div className="participant-links">{rows.slice(0, limit).map((row) => <button type="button" key={row.object.object_key} className={current === row ? "selected" : ""} aria-pressed={current === row} onClick={() => setSelected(row.object.object_key)}><span><strong>{row.object.object_name}</strong><small>{row.object.class_name ?? "Class not reported"} · {row.object.object_key}</small></span><span className="state-pill">{row.object.status}</span></button>)}</div>{rows.length > limit && <button className="secondary-button load-more" type="button" onClick={() => setLimit((count) => count + 100)}>Show 100 more objects</button>}{!rows.length && <p className="empty">No objects match this perspective and search.</p>}</aside>
       <div className="federate-content">{current ? <ObjectDetails key={JSON.stringify([scope, current.object.object_key, current.generation])} snapshot={current} changes={data.changes} />
         : <EmptyPanel title="No object selected">Try a different search or perspective. An empty result does not imply that the federation has no objects.</EmptyPanel>}</div>
     </div>

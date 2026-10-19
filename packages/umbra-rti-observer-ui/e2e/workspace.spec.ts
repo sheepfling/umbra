@@ -10,8 +10,16 @@ test("all main screens render without a page-wide mobile overflow", async ({ pag
     ["Federation", "Traffic over time"], ["Federates", "Federates"],
     ["Objects", "Object workspace"],
     ["Declarations", "Declaration explorer"],
+    ["Topology", "Federation topology"],
+    ["Interaction flow", "Interaction flow"],
+    ["Ownership", "Attribute ownership"],
+    ["Regions / DDM", "Regions and DDM"],
+    ["MOM reports", "Management reports"],
+    ["FOM browser", "FOM metadata browser"],
+    ["Synchronization", "Synchronization"], ["Save / restore", "Save and restore"],
     ["Logical time", "Logical-time observations"], ["Events", "Event explorer"],
     ["Inspectors", "Objects"], ["Actions", "Controlled sessions"],
+    ["Recordings", "Recordings and replay"],
     ["Diagnostics", "Observation health"],
   ] as const;
   for (const [view, heading] of views) {

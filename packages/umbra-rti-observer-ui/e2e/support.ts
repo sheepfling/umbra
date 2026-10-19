@@ -18,6 +18,6 @@ export async function seedEvents(request: APIRequestContext,
 export async function eventCount(request: APIRequestContext): Promise<number> {
   const response = await request.get("/api/state?include_events=false");
   expect(response.ok()).toBeTruthy();
-  const state = await response.json() as components["schemas"]["StateResponse"];
+  const state = await response.json() as components["schemas"]["StateResponse-Output"];
   return state.live_metrics.event_count;
 }

@@ -10,6 +10,7 @@ export type BackendVariant = "rich" | "limited" | "read-only" | "no-analytics" |
 
 interface ObserverFixtures {
   backendVariant: BackendVariant;
+  observerArgs: string[];
   observerURL: string;
   frontendHealth: void;
 }
@@ -45,7 +46,8 @@ async function stopBackend(child: ChildProcess): Promise<void> {
 
 export const test = base.extend<ObserverFixtures>({
   backendVariant: ["rich", { option: true }],
-  observerURL: async ({ backendVariant }, use, testInfo) => {
+  observerArgs: [[], { option: true }],
+  observerURL: async ({ backendVariant, observerArgs }, use, testInfo) => {
     const python = process.env.UMBRA_OBSERVER_TEST_PYTHON
       || (existsSync(privatePython) ? privatePython : "python");
     let program = python;
@@ -54,6 +56,7 @@ export const test = base.extend<ObserverFixtures>({
     if (["rich", "limited", "no-analytics"].includes(backendVariant)) args.push("--enable-controls");
     if (backendVariant === "limited") args.push("--profile", "limited");
     if (backendVariant === "no-analytics") args.push("--no-analytics");
+    args.push(...observerArgs);
     if (backendVariant.startsWith("java-")) {
       program = process.env.UMBRA_OBSERVER_TEST_JAVA || "java";
       args = ["--add-modules", "jdk.httpserver",
@@ -107,8 +110,14 @@ export const test = base.extend<ObserverFixtures>({
   frontendHealth: [async ({ page }, use) => {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
+    page.on("requestfailed", (request) => {
+      if (request.resourceType() === "stylesheet") errors.push(`Stylesheet failed: ${request.url()} (${request.failure()?.errorText ?? "unknown network failure"})`);
+    });
+    page.on("response", (response) => {
+      if (response.request().resourceType() === "stylesheet" && response.status() >= 400) errors.push(`Stylesheet HTTP ${response.status()}: ${response.url()}`);
+    });
     await use();
-    expect.soft(errors, "No uncaught frontend errors").toEqual([]);
+    expect.soft(errors, "No uncaught frontend errors or missing stylesheets").toEqual([]);
   }, { auto: true }],
 });
 

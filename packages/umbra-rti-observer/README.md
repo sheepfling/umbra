@@ -92,6 +92,74 @@ timeouts, late effects and process-lifetime history.
 
 ## Provider integration
 
+Analytics now reads a named retained-window projection without traversing
+unrelated inspectors; recorded analytics negotiates the same lightweight shape
+while retaining the original full-frame request for older backends. All source
+events, idle roster entries, attribution and retention semantics are preserved.
+Scoped object baselines have an independent 5000-record default budget and
+visible loss metadata; reobserved scopes start fresh comparisons. Object lists
+page in groups of 100 without limiting search. See [SCALE.md](SCALE.md) for
+reproducible measurements, the tested snapshot/analytics envelope and open
+recording/oversized-state work. These are not hardware-independent guarantees.
+
+The Recordings tab captures a bounded, versioned journal of complete observer
+states and committed envelope batches. It preserves existing inspectors, partial
+capabilities, context, clear boundaries and explicit history loss. Stop and
+download the file, then inspect it using play/speed/time/exact-state controls
+across the same workspaces. Replay is visibly separate from live observation,
+never follows captured URLs and cannot submit provider commands. Imports and
+recorded analytics run through named validated models; no provider is needed.
+Limits stop capture, not collection. One capture is shared/retained by the
+backend process until restart or explicit replacement; download it to keep it.
+Files contain federation data and are not credential-scrubbed. Recording is an
+optional backend capability, independent of MOM and analytics.
+When the live backend advertises compact recording, the UI negotiates lossless
+v2 baseline/edit files with bounded reconstruction; older backends/files keep
+the v1 flow. A worker expands only the current state, not the complete timeline.
+See [RECORDING.md](RECORDING.md) for the format and safety limits.
+
+MOM reports and the FOM browser are independently optional, read-only screens.
+Management member reports retain coverage/provenance without replacing the
+ordinary roster; service/error evidence never becomes an observer command.
+Provider counters keep numeric and opaque representations distinct, with
+exact-series numeric charts and explicit retention loss. FOM search/navigation
+uses supplied class/attribute/parameter/datatype/dimension metadata scoped to an
+explicit model revision. Missing/cyclic references, unknown ancestry and unknown
+field lists stay visible. The generic observer never parses provider FOMs or
+decodes runtime bytes. `mom_inspection` and `fom_inspection` are separate
+capabilities; the limited playtest has partial FOM metadata and no MOM while
+ordinary attributes, time and lifecycle controls keep working.
+
+Ownership and Regions / DDM add independently optional, read-only workspaces.
+Ownership separates explicit owner state from acquire/divest tickets, preserving
+unresolved handle metadata without guessing a participant. DDM preserves exact
+large range bounds, explicit associations and declared/observed routing, with
+exact-scope reference navigation and no inferred overlap/delivery. Both retain
+bounded evidence beyond event expiry and report loss. Legacy provider flags
+keep their meanings; typed inspection uses separate capabilities. No native
+ownership or DDM command is implied.
+
+The optional Topology tab draws only explicit adapter-reported relationships.
+Participant/join IDs (not names or handles) identify nodes; each edge retains
+source/session/federation provenance, declared/observed evidence and reported
+lifecycle. Search, filters, keyboard node focus, bounded drawing, paged tables
+and coverage notices work without MOM or analytics. See CONTRACT.md before
+adding an adapter: matching declarations never establish a route or delivery.
+
+Synchronization and Save / restore add read-only operation timelines, scoped
+latest reports, participant failures and retained phase counts. A local
+completion never becomes a federation-wide completion. These independently
+optional workspaces use explicit operation and join IDs, survive event-history
+expiry, disclose index/history loss and work with the unchanged Java fixture.
+No collective-management commands are implied or advertised.
+
+Interaction flow pairs explicit transmission and endpoint join IDs, retaining
+send/receive provenance and reported order. Missing identities stay counted but
+uncorrelated; duplicates are ambiguous. The dynamic chart shows local observer
+arrival intervals, never guessed network latency or delivery percentages. Its
+bounded evidence index, cumulative counts and loss notices work without MOM or
+analytics, including receive-only and independent Java backends.
+
 An adapter can use the zero-dependency core directly:
 
 ```python

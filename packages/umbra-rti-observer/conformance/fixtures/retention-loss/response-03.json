@@ -132,6 +132,29 @@
       ],
       "state": "available"
     },
+    "fom_inspection": {
+      "description": "Adapter-supplied class, field, datatype and dimension metadata with explicit revision and references.",
+      "event_types": [],
+      "label": "FOM metadata inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Only object-class metadata is supplied; ancestry and datatype references may be unresolved.",
+          "source": "contract-fixture",
+          "state": "partial"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Only object-class metadata is supplied; ancestry and datatype references may be unresolved.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "partial"
+    },
     "http_api": {
       "description": "HTTP resources for contract, state, metrics, and event pages.",
       "event_types": [],
@@ -154,6 +177,29 @@
         "fastapi"
       ],
       "state": "available"
+    },
+    "interaction_flow": {
+      "description": "Explicit send/receive transmission pairing, scoped endpoints and observer arrival intervals.",
+      "event_types": [],
+      "label": "Interaction flow inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Receive observations only; transmission and endpoint IDs are not reported.",
+          "source": "contract-fixture",
+          "state": "partial"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Receive observations only; transmission and endpoint IDs are not reported.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "partial"
     },
     "interactions": {
       "description": "Receive-order and directed interaction observations.",
@@ -281,6 +327,29 @@
       ],
       "state": "unsupported"
     },
+    "mom_inspection": {
+      "description": "Typed roster coverage, service invocation/error reports and explicit numeric or opaque counters.",
+      "event_types": [],
+      "label": "Management report inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile reports no typed management reports; ordinary observation and join controls remain available.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile reports no typed management reports; ordinary observation and join controls remain available.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
     "object_observations": {
       "description": "Persistent attributed object snapshots and retained attribute comparisons.",
       "event_types": [],
@@ -345,6 +414,29 @@
       ],
       "state": "unsupported"
     },
+    "ownership_inspection": {
+      "description": "Explicit owner state, acquisition/divestiture reports and scoped request/outcome evidence.",
+      "event_types": [],
+      "label": "Attribute ownership inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile reports no explicit owner or ownership request evidence.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile reports no explicit owner or ownership request evidence.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
     "persistence": {
       "description": "Federation save, restore, and related lifecycle observations.",
       "event_types": [],
@@ -365,6 +457,98 @@
       "reasons": [],
       "sources": [
         "contract-fixture"
+      ],
+      "state": "disabled"
+    },
+    "persistence_inspection": {
+      "description": "Named local/federation save/restore phase snapshots and retained transition reports.",
+      "event_types": [],
+      "label": "Save and restore inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Save/restore inspection is disabled for this profile.",
+          "source": "contract-fixture",
+          "state": "disabled"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Save/restore inspection is disabled for this profile.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "disabled"
+    },
+    "recording": {
+      "description": "Bounded state/envelope journals and validated portable replay files; never provider command execution.",
+      "event_types": [],
+      "label": "Recording and replay",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Recording/import resources are disabled by this backend.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Recording/import resources are disabled by this backend.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
+    "recording_analytics_window": {
+      "description": "Accepts the named retained-window request instead of uploading unrelated recorded inspectors.",
+      "event_types": [],
+      "label": "Lightweight recorded analytics",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Named validated retained-window requests; legacy complete-frame requests remain accepted.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Named validated retained-window requests; legacy complete-frame requests remain accepted.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
+    "recording_compact": {
+      "description": "Explicitly negotiated v2 baseline/edit capture/import/export, bounded reconstruction and unchanged evidence.",
+      "event_types": [],
+      "label": "Compact recording files",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Negotiated v2 baseline/edit files with bounded reconstructed state/work; v1 remains supported.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Negotiated v2 baseline/edit files with bounded reconstructed state/work; v1 remains supported.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
       ],
       "state": "disabled"
     },
@@ -391,6 +575,52 @@
       ],
       "state": "unsupported"
     },
+    "regions_inspection": {
+      "description": "Explicit extents, exact dimension ranges, associations and declared/observed routing evidence.",
+      "event_types": [],
+      "label": "Region and DDM inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile reports no region extents, associations or routing evidence.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile reports no region extents, associations or routing evidence.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
+    "relationships": {
+      "description": "Adapter-reported producer/recipient edges with stable scoped join identities, not inferred routing.",
+      "event_types": [],
+      "label": "Explicit federation relationships",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile reports no explicit producer/recipient relationships or stable join IDs.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile reports no explicit producer/recipient relationships or stable join IDs.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
     "sse": {
       "description": "Live event delivery over an HTTP event stream.",
       "event_types": [],
@@ -411,6 +641,49 @@
       "reasons": [],
       "sources": [
         "fastapi"
+      ],
+      "state": "unsupported"
+    },
+    "storage_inspection": {
+      "description": "Explicit count/byte budgets, whole-record expiry and unbudgeted collection coverage; not federation lifecycle evidence.",
+      "event_types": [],
+      "label": "Observation storage coverage",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Count/byte expiry coverage is explicit; remaining row-only collections are listed, never silently covered.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Count/byte expiry coverage is explicit; remaining row-only collections are listed, never silently covered.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "synchronization": {
+      "description": "Explicit labels, registration outcomes, announcements and participant achievement reports.",
+      "event_types": [],
+      "label": "Synchronization observations",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile does not report synchronization phases.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile does not report synchronization phases.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
       ],
       "state": "unsupported"
     },
@@ -475,39 +748,77 @@
     }
   ],
   "inspectors": {
+    "coordination": {
+      "basis": "explicit-coordination-observations",
+      "capacity": 1000,
+      "dropped_operations": 0,
+      "dropped_transitions": 0,
+      "history_capacity": 2000,
+      "snapshots": [],
+      "transitions": []
+    },
     "declarations": {
       "basis": "last-reported-declarations",
       "capacity": 1000,
       "dropped_declarations": 0,
       "snapshots": []
     },
-    "interactions": [],
+    "fom": {
+      "basis": "adapter-supplied-fom-metadata",
+      "capacity": 1000,
+      "dropped_snapshots": 0,
+      "dropped_transitions": 0,
+      "history_capacity": 2000,
+      "snapshots": [],
+      "transitions": []
+    },
+    "interaction_flow": {
+      "basis": "explicit-interaction-observations",
+      "capacity": 500,
+      "dropped_records": 0,
+      "receive_observations": 1,
+      "records": [
+        {
+          "last_sequence": 9,
+          "receive": {
+            "class_key": "FixtureInteraction",
+            "kind": "receive",
+            "observed_at": 1760000000.0,
+            "order": "unknown",
+            "sequence": 9,
+            "source": "contract-fixture"
+          },
+          "receive_count": 1,
+          "record_id": 9,
+          "send_count": 0,
+          "status": "uncorrelated"
+        }
+      ],
+      "send_observations": 0
+    },
+    "interactions": [
+      {
+        "family": "generic",
+        "federate": "FixtureFederate",
+        "interaction_class": "FixtureInteraction",
+        "interaction_key": "FixtureInteraction",
+        "observed_at": 1760000000.0,
+        "parameters": {},
+        "sequence": 9,
+        "source": "contract-fixture"
+      }
+    ],
+    "mom": {
+      "basis": "explicit-management-reports",
+      "capacity": 500,
+      "dropped_snapshots": 0,
+      "dropped_transitions": 0,
+      "history_capacity": 2000,
+      "snapshots": [],
+      "transitions": []
+    },
     "object_observations": {
       "changes": [
-        {
-          "attribute": "value",
-          "federate": null,
-          "generation": 2,
-          "object_key": "fixture-object",
-          "observed_at": 1760000000.0,
-          "previous_known": true,
-          "previous_value": 3,
-          "sequence": 6,
-          "source": "contract-fixture",
-          "value": 4
-        },
-        {
-          "attribute": "value",
-          "federate": "FixtureFederate",
-          "generation": 2,
-          "object_key": "fixture-object",
-          "observed_at": 1760000000.0,
-          "previous_known": true,
-          "previous_value": 3,
-          "sequence": 6,
-          "source": "contract-fixture",
-          "value": 4
-        },
         {
           "attribute": "value",
           "federate": null,
@@ -533,9 +844,13 @@
           "value": 5
         }
       ],
-      "history_first_sequence": 6,
-      "history_last_sequence": 8,
+      "dropped_history_batches": 6,
+      "dropped_snapshots": 0,
+      "history_first_sequence": 7,
+      "history_last_sequence": 9,
       "history_truncated": true,
+      "omitted_changes": 0,
+      "snapshot_capacity": 5000,
       "snapshots": [
         {
           "federate": null,
@@ -596,8 +911,37 @@
         "update_count": 6
       }
     ],
+    "ownership": {
+      "basis": "explicit-ownership-observations",
+      "capacity": 500,
+      "dropped_requests": 0,
+      "dropped_states": 0,
+      "dropped_transitions": 0,
+      "history_capacity": 1000,
+      "request_capacity": 500,
+      "requests": [],
+      "states": [],
+      "transitions": [],
+      "unmatched_outcomes": 0
+    },
+    "regions": {
+      "basis": "explicit-region-observations",
+      "capacity": 500,
+      "dropped_snapshots": 0,
+      "dropped_transitions": 0,
+      "history_capacity": 1000,
+      "snapshots": [],
+      "transitions": []
+    },
+    "relationships": {
+      "basis": "last-reported-explicit-relationships",
+      "capacity": 1000,
+      "dropped_relationships": 0,
+      "snapshots": []
+    },
     "time": {
       "dropped_requests": 0,
+      "dropped_snapshots": 0,
       "duration_basis": "observer-ingress-monotonic",
       "request_capacity": 250,
       "requests": [
@@ -613,10 +957,12 @@
             "session_id": "fixture-session",
             "source": "contract-fixture"
           },
+          "snapshot_retained": true,
           "status": "pending"
         }
       ],
       "scope_basis": "explicit-observations",
+      "snapshot_capacity": 2000,
       "snapshots": [
         {
           "last_request": {
@@ -664,15 +1010,16 @@
     "event_rate_per_second": 0.0,
     "event_types": {
       "callback.invoked": 1,
-      "object.updated": 2
+      "interaction.received": 1,
+      "object.updated": 1
     },
     "families": {
       "generic": 3
     },
     "federate_count": 1,
-    "first_sequence": 6,
-    "interaction_count": 0,
-    "last_sequence": 8,
+    "first_sequence": 7,
+    "interaction_count": 1,
+    "last_sequence": 9,
     "object_count": 1,
     "sources": {
       "contract-fixture": 3
@@ -680,13 +1027,382 @@
   },
   "retention": {
     "cleared_events": 0,
-    "dropped_events": 5,
-    "first_retained_sequence": 6,
-    "last_sequence": 8,
+    "dropped_events": 6,
+    "first_retained_sequence": 7,
+    "last_sequence": 9,
     "max_events": 3,
-    "next_sequence": 9,
+    "next_sequence": 10,
     "retained_events": 3
   },
   "schema_version": "umbra-runtime-observer-v1",
-  "status": "running"
+  "status": "running",
+  "storage": {
+    "context": {
+      "accounted_bytes": 189,
+      "basis": "encoded-json-plus-record-reserve",
+      "collections": [
+        {
+          "accounted_bytes": 189,
+          "byte_limit_drops": 0,
+          "capacity": 128,
+          "collection": "context",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 2,
+          "soft_reservation_bytes": 0,
+          "unit": "keys",
+          "window_drops": 0
+        }
+      ],
+      "max_bytes": 262144,
+      "max_record_bytes": 131072,
+      "policy": "shared-evidence-lru-with-soft-reservations",
+      "record_reserve_bytes": 64,
+      "unbudgeted_collections": []
+    },
+    "evidence": {
+      "accounted_bytes": 5007,
+      "basis": "encoded-json-plus-record-reserve",
+      "collections": [
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 2000,
+          "collection": "coordination_history",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 0,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 1000,
+          "collection": "coordination_snapshots",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 131072,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 1000,
+          "collection": "declarations",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 131072,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 868,
+          "byte_limit_drops": 0,
+          "capacity": 3,
+          "collection": "events",
+          "count_limit_drops": 6,
+          "dropped_bytes": 2073,
+          "dropped_records": 6,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 3,
+          "soft_reservation_bytes": 524288,
+          "unit": "envelopes",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 191,
+          "byte_limit_drops": 0,
+          "capacity": 2000,
+          "collection": "federates",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 1,
+          "soft_reservation_bytes": 65536,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 2000,
+          "collection": "fom_history",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 0,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 1000,
+          "collection": "fom_snapshots",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 262144,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 479,
+          "byte_limit_drops": 0,
+          "capacity": 500,
+          "collection": "interaction_flow",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 1,
+          "soft_reservation_bytes": 131072,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 308,
+          "byte_limit_drops": 0,
+          "capacity": 250,
+          "collection": "interactions",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 1,
+          "soft_reservation_bytes": 65536,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 2000,
+          "collection": "mom_history",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 0,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 500,
+          "collection": "mom_snapshots",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 131072,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 689,
+          "byte_limit_drops": 0,
+          "capacity": 3,
+          "collection": "object_changes",
+          "count_limit_drops": 6,
+          "dropped_bytes": 2634,
+          "dropped_records": 6,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 3,
+          "soft_reservation_bytes": 262144,
+          "unit": "event-batches",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 811,
+          "byte_limit_drops": 0,
+          "capacity": 5000,
+          "collection": "object_snapshots",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 2,
+          "soft_reservation_bytes": 393216,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 339,
+          "byte_limit_drops": 0,
+          "capacity": 5000,
+          "collection": "objects",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 1,
+          "soft_reservation_bytes": 262144,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 1000,
+          "collection": "ownership_history",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 0,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 500,
+          "collection": "ownership_requests",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 65536,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 500,
+          "collection": "ownership_states",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 131072,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 1000,
+          "collection": "regions_history",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 0,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 500,
+          "collection": "regions_snapshots",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 131072,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 1000,
+          "collection": "relationships",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 131072,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 421,
+          "byte_limit_drops": 0,
+          "capacity": 250,
+          "collection": "time_requests",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 1,
+          "soft_reservation_bytes": 65536,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 901,
+          "byte_limit_drops": 0,
+          "capacity": 2000,
+          "collection": "time_snapshots",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 2,
+          "soft_reservation_bytes": 65536,
+          "unit": "records",
+          "window_drops": 0
+        }
+      ],
+      "max_bytes": 6291456,
+      "max_record_bytes": 1048576,
+      "policy": "shared-evidence-lru-with-soft-reservations",
+      "record_reserve_bytes": 64,
+      "unbudgeted_collections": []
+    }
+  }
 }

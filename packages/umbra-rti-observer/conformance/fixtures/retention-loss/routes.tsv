@@ -4,7 +4,7 @@
 /api/state?include_events=false	200	response-03.json
 /api/metrics	200	response-04.json
 /api/events?after=0&limit=2	200	response-05.json
-/api/events?after=7&limit=2	200	next-page.json
+/api/events?after=8&limit=2	200	next-page.json
 /api/events?after=0&limit=500	200	response-06.json
 /api/events?after=-1&limit=2	422	response-07.json
 /api/events?after=0&limit=0	422	response-08.json

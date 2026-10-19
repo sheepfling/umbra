@@ -236,8 +236,8 @@
       "callbacks": 1,
       "errors": 0,
       "events": 3,
-      "interactions": 0,
-      "object_updates": 2,
+      "interactions": 1,
+      "object_updates": 1,
       "started_at": 1759999990.0
     }
   ],
@@ -246,7 +246,8 @@
   "contract_version": "umbra-observer-contract-v1",
   "event_types": {
     "callback.invoked": 1,
-    "object.updated": 2
+    "interaction.received": 1,
+    "object.updated": 1
   },
   "events_in_window": 3,
   "families": {
@@ -271,26 +272,42 @@
       "event_count": 3,
       "federate": "FixtureFederate",
       "handle": null,
-      "interaction_count": 0,
+      "interaction_count": 1,
       "last_seen": 1760000000.0,
       "latest_logical_time": 4,
       "object_keys": [
         "fixture-object"
       ],
-      "object_updates": 2,
+      "object_updates": 1,
       "role": null,
+      "roster_retained": true,
       "source": "contract-fixture",
       "status": "active"
     }
   ],
   "retention": {
     "cleared_events": 0,
-    "dropped_events": 5,
-    "first_retained_sequence": 6,
-    "last_sequence": 8,
+    "dropped_events": 6,
+    "first_retained_sequence": 7,
+    "last_sequence": 9,
     "max_events": 3,
-    "next_sequence": 9,
+    "next_sequence": 10,
     "retained_events": 3
+  },
+  "roster_storage": {
+    "accounted_bytes": 191,
+    "byte_limit_drops": 0,
+    "capacity": 2000,
+    "collection": "federates",
+    "count_limit_drops": 0,
+    "dropped_bytes": 0,
+    "dropped_records": 0,
+    "encoding_drops": 0,
+    "oversized_drops": 0,
+    "retained_records": 1,
+    "soft_reservation_bytes": 65536,
+    "unit": "records",
+    "window_drops": 0
   },
   "scoped_federate": null,
   "sources": {

@@ -20,7 +20,9 @@ from pydantic import Field, ValidationError, computed_field
 
 from .command_models import CommandCatalog, CommandHistory
 from .contract import OBSERVER_CONTRACT_VERSION, OBSERVER_JSON_MEDIA_TYPE
+from .recording_models import RecordingStatusResponse
 from .schemas import (
+    WIRE_REQUIRED_FIELDS,
     AnalyticsResponse,
     ContractResponse,
     EventPageResponse,
@@ -31,18 +33,7 @@ from .schemas import (
 )
 
 Model = TypeVar("Model", bound=ObserverModel)
-OptionalResponse = AnalyticsResponse | CommandCatalog | CommandHistory
-
-# DTO defaults help Python callers construct models. They are not permission
-# for a different HTTP implementation to omit collections the UI consumes.
-WIRE_REQUIRED_FIELDS: dict[str, set[str]] = {
-    "ContractResponse": {"capabilities"},
-    "StateResponse": {"context", "adapters", "capabilities", "federate_roster", "inspectors"},
-    "InspectorsResponse": {"objects", "interactions"},
-    "HealthResponse": {"capabilities"}, "MetricsResponse": {"adapters"},
-    "EventPageResponse": {"events"}, "CommandCatalog": {"targets"}, "CommandHistory": {"records"},
-}
-
+OptionalResponse = AnalyticsResponse | CommandCatalog | CommandHistory | RecordingStatusResponse
 
 class HttpReply(ObserverModel):
     status: int
@@ -61,7 +52,7 @@ class ConformanceReport(ObserverModel):
     scope: str = "observer-http-read-v1"
     checks: tuple[ConformanceCheck, ...]
     omitted_features: tuple[str, ...]
-    unchecked_features: tuple[str, ...] = ("stream-delivery", "command-execution", "rti-semantics")
+    unchecked_features: tuple[str, ...] = ("stream-delivery", "command-execution", "recording-capture-import-replay", "storage-eviction", "rti-semantics")
 
     @computed_field
     @property
@@ -153,6 +144,64 @@ class ObserverConformance:
                         check(name + ".time.cursors", all(row.last_sequence < value.retention.next_sequence
                               for row in time_inspection.snapshots), "persistent time snapshots use existing store sequences")
                     declarations = value.inspectors.declarations
+                    relationships = value.inspectors.relationships
+                    coordination = value.inspectors.coordination
+                    ownership = value.inspectors.ownership
+                    regions = value.inspectors.regions
+                    mom = value.inspectors.mom
+                    fom = value.inspectors.fom
+                    fom_capability = value.capabilities.get("fom_inspection")
+                    fom_usable = fom_capability is not None and fom_capability.state in {"available", "partial"}
+                    check(name + ".fom.advertised", not fom_usable or fom is not None,
+                          "usable FOM inspection includes named adapter metadata models")
+                    if fom is not None:
+                        check(name + ".fom.cursors", all(row.sequence < value.retention.next_sequence for row in (*fom.snapshots, *fom.transitions)),
+                              "FOM metadata references existing observation sequences")
+                    mom_capability = value.capabilities.get("mom_inspection")
+                    mom_usable = mom_capability is not None and mom_capability.state in {"available", "partial"}
+                    check(name + ".mom.advertised", not mom_usable or mom is not None,
+                          "usable management inspection includes typed coverage, service and counter models")
+                    if mom is not None:
+                        check(name + ".mom.cursors", all(row.sequence < value.retention.next_sequence for row in (*mom.snapshots, *mom.transitions)),
+                              "management reports reference existing observation sequences")
+                    regions_capability = value.capabilities.get("regions_inspection")
+                    regions_usable = regions_capability is not None and regions_capability.state in {"available", "partial"}
+                    check(name + ".regions.advertised", not regions_usable or regions is not None,
+                          "usable region inspection includes exact extents and explicit association/routing models")
+                    if regions is not None:
+                        check(name + ".regions.cursors", all(row.sequence < value.retention.next_sequence for row in (*regions.snapshots, *regions.transitions)),
+                              "region reports reference existing observation sequences")
+                    ownership_capability = value.capabilities.get("ownership_inspection")
+                    ownership_usable = ownership_capability is not None and ownership_capability.state in {"available", "partial"}
+                    check(name + ".ownership.advertised", not ownership_usable or ownership is not None,
+                          "usable ownership inspection includes its named owner/request evidence model")
+                    if ownership is not None:
+                        cursors = [row.sequence for row in (*ownership.states, *ownership.transitions)]
+                        cursors.extend(row.last_sequence for row in ownership.requests)
+                        check(name + ".ownership.cursors", all(sequence < value.retention.next_sequence for sequence in cursors),
+                              "ownership evidence references existing observation sequences")
+                    flow = value.inspectors.interaction_flow
+                    flow_capability = value.capabilities.get("interaction_flow")
+                    flow_usable = flow_capability is not None and flow_capability.state in {"available", "partial"}
+                    check(name + ".interaction_flow.advertised", not flow_usable or flow is not None,
+                          "usable interaction flow includes its named evidence model")
+                    if flow is not None:
+                        check(name + ".interaction_flow.cursors", all(row.last_sequence < value.retention.next_sequence for row in flow.records),
+                              "interaction records reference existing observation sequences")
+                    coordination_usable = any(feature in value.capabilities and value.capabilities[feature].state in {"available", "partial"}
+                                              for feature in ("synchronization", "persistence_inspection"))
+                    check(name + ".coordination.advertised", not coordination_usable or coordination is not None,
+                          "usable coordination inspection includes named local/federation phase models")
+                    if coordination is not None:
+                        check(name + ".coordination.cursors", all(row.sequence < value.retention.next_sequence
+                              for row in (*coordination.snapshots, *coordination.transitions)), "coordination reports reference existing observation sequences")
+                    relationship_capability = value.capabilities.get("relationships")
+                    relationships_usable = relationship_capability is not None and relationship_capability.state in {"available", "partial"}
+                    check(name + ".relationships.advertised", not relationships_usable or relationships is not None,
+                          "usable relationship inspection includes explicit scoped endpoint models")
+                    if relationships is not None:
+                        check(name + ".relationships.cursors", all(row.sequence < value.retention.next_sequence
+                              for row in relationships.snapshots), "relationships reference existing observation sequences")
                     declaration_capability = value.capabilities.get("declarations")
                     declarations_usable = declaration_capability is not None and declaration_capability.state in {"available", "partial"}
                     check(name + ".declarations.advertised", not declarations_usable or declarations is not None,
@@ -177,7 +226,7 @@ class ObserverConformance:
                               and [row.sequence for row in changes] == sorted(row.sequence for row in changes)
                               and observations.history_first_sequence == value.retention.first_retained_sequence
                               and observations.history_last_sequence == value.retention.last_sequence
-                              and observations.history_truncated == bool(value.retention.dropped_events or value.retention.cleared_events)
+                              and observations.history_truncated == bool(value.retention.dropped_events or value.retention.cleared_events or observations.omitted_changes or observations.dropped_history_batches)
                               and all(observations.history_first_sequence <= row.sequence <= observations.history_last_sequence
                                       and row.generation <= row.sequence
                                       and (row.previous_known or row.previous_value is None)
@@ -257,11 +306,13 @@ class ObserverConformance:
                 sequences = [row.sequence for row in page.events]
                 check(name + ".cursor", sequences == sorted(set(sequences))
                       and all(after < sequence <= page.last_sequence for sequence in sequences)
-                      and len(sequences) <= 2 and page.next_after == (sequences[-1] if sequences else after),
+                        and len(sequences) <= 2 and page.next_after == (sequences[-1] if sequences else
+                            (page.next_sequence - 1 if page.gap and not page.retained_events and page.next_sequence is not None else after)),
                       "unique ordered rows, limit, exclusive cursor and next_after")
                 check(name + ".retention", len(sequences) <= page.retained_events
                       and (not sequences or min(sequences) >= page.first_retained_sequence)
-                      and page.gap == bool(page.first_retained_sequence and after < page.first_retained_sequence - 1)
+                        and page.gap == bool(page.first_retained_sequence and after < page.first_retained_sequence - 1
+                            or not page.retained_events and page.next_sequence is not None and after < page.next_sequence - 1)
                       and (not page.has_more or bool(sequences)), "retention bounds and gap marker agree")
                 if not page.has_more:
                     break
@@ -276,6 +327,7 @@ class ObserverConformance:
         optional_models: tuple[tuple[str, tuple[tuple[str, type[OptionalResponse]], ...]], ...] = (
             ("analytics", (("analytics", AnalyticsResponse),)),
             ("commands", (("command_catalog", CommandCatalog), ("commands", CommandHistory))),
+            ("recording", (("recordings", RecordingStatusResponse),)),
         )
         for feature, resources in optional_models:
             capability = contract.capabilities.get(feature)
@@ -298,6 +350,20 @@ class ObserverConformance:
                                   and sum(payload.sources.values()) == payload.events_in_window
                                   and sum(payload.families.values()) == payload.events_in_window,
                                   "window and disjoint activity/type/source/family counts agree")
+        window_capability = contract.capabilities.get("recording_analytics_window")
+        if window_capability is not None and window_capability.state in {"available", "partial"}:
+            recording_capability = contract.capabilities.get("recording")
+            check("recording_analytics_window.discovery", recording_capability is not None
+                  and recording_capability.state in {"available", "partial"}
+                  and bool(contract.api_paths.get("recording_analyze")),
+                  "lightweight recorded analytics requires usable recording and its discovered analysis resource")
+        compact_capability = contract.capabilities.get("recording_compact")
+        if compact_capability is not None and compact_capability.state in {"available", "partial"}:
+            recording_capability = contract.capabilities.get("recording")
+            check("recording_compact.discovery", recording_capability is not None
+                  and recording_capability.state in {"available", "partial"}
+                  and all(contract.api_paths.get(path) for path in ("recording_start", "recording_export", "recording_validate")),
+                  "compact files require usable recording and discovered capture/export/import resources")
         return ConformanceReport(base_url=self.base_url, checks=tuple(checks), omitted_features=tuple(omitted))
 
 

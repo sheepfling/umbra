@@ -117,6 +117,32 @@ def test_contract_is_language_neutral_and_declares_stream_messages() -> None:
     assert contract["capabilities"]["logical_time"]["state"] == "available"
 
 
+@pytest.mark.parametrize("feature", ["declarations", "relationships", "synchronization", "persistence_inspection", "time_inspection", "interaction_flow", "ownership_inspection", "regions_inspection", "mom_inspection", "fom_inspection"])
+def test_optional_inspector_support_does_not_upgrade_unsupported_reporters(feature: str) -> None:
+    from umbra_rti_observer.capabilities import merge_capabilities
+
+    class Adapter:
+        name = "unsupported-reporter"
+        capabilities = {feature: "unsupported"}
+
+        def start(self, sink: object) -> None:
+            pass
+
+        def stop(self) -> None:
+            pass
+
+    store = ObserverStore()
+    adapter = Adapter()
+    store.attach_adapter(adapter)
+    assert store.capabilities()[feature]["state"] == "unsupported"
+    assert store.capabilities()["event_history"]["state"] == "available"
+    store.set_capabilities({feature: "disabled"})
+    assert store.capabilities()[feature]["state"] == "disabled"
+    store.close()
+    assert merge_capabilities({feature: "unsupported"}, {feature: "disabled"})[feature].state == "disabled"
+    assert merge_capabilities({feature: "available"}, {feature: "unsupported"})[feature].state == "partial"
+
+
 def test_capabilities_distinguish_provider_features_from_observer_features() -> None:
     store = ObserverStore(
         capabilities={

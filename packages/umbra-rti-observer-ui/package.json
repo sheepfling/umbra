@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test:codegen": "node --test scripts/generate-api.test.mjs",
+    "test:replay": "node --experimental-strip-types --test scripts/replay.test.mjs",
     "test:e2e": "pnpm build && playwright test",
     "test:e2e:headed": "pnpm build && playwright test --headed",
     "test:e2e:report": "playwright show-report",

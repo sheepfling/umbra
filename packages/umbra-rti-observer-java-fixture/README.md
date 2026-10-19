@@ -38,6 +38,12 @@ empty, no-analytics, full and retention-loss profiles. Full demonstrates the
 same named persistent time models with matched and pending requests; grant-only
 profiles need no request-ID support. No provider-specific library is involved.
 
+Full also supplies explicit topology/interaction/coordination, ownership and DDM
+models, optional MOM member/service/counter reports, and revision-scoped FOM
+class/field/datatype/dimension metadata. The same React code navigates those
+reports without importing Python. Opaque counters and large bounds remain text;
+reported metadata does not decode values or provide native management services.
+
 Before replacing this test double with a real Java backend, implement the
 versioned resources and truthful capability manifest, then run these checks
 and any appropriate command/stream suites. A passing HTTP-read report alone

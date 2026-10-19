@@ -56,6 +56,27 @@ applicable attribute semantics. The full Java/Python fixture includes object
 publication, unknown-set subscription and interaction declarations. No fixture
 or checker infers routing relationships from matching class names.
 
+The full profile also carries explicit relationships, coordination phases,
+interaction pairs, ownership state/tickets and exact decimal-string DDM ranges.
+MOM reports include a partial member report with an unresolved handle, a service
+error, numeric counter history and opaque wide-integer text. FOM metadata
+includes explicit parent/type references, array/enum encodings and an exact
+dimension upper bound. Named discriminated models enforce applicability,
+identity uniqueness, replacement consistency, bounds and cursor rules. The
+checker requires each advertised inspection model independently; legacy MOM,
+ownership and regions flags do not promise these newer typed inspectors.
+Malformed input tests cover each family. None implies native RTI behavior.
+
+The optional `recording` capability advertises named process-local capture
+status. HTTP-read conformance checks only that GET model and discovery; it never
+starts/stops a capture or uploads a file. Its report explicitly lists capture/
+import/replay as unchecked. Dedicated tests cover recording versions, finite
+JSON, bounds, concurrency, batch/cursor continuity, clear boundaries, idle
+checkpoints, import error/size safety and exact replay clock/command isolation.
+Java fixture profiles currently disable recording resources; this does not
+disable their independent observation workspaces. The portable full-model corpus
+also validates and displays as a recording without reconstructing inspectors.
+
 The old dependency-free `umbra_rti_observer.probe` remains a quick smoke check;
 use `conformance` for these stronger acceptance checks. Passing this HTTP-read
 scope does not validate stream delivery, lifecycle effects or RTI semantics.

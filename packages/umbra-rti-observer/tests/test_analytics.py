@@ -8,7 +8,7 @@ pytest.importorskip("pydantic")
 
 from umbra_rti_observer import ObserverStore
 from umbra_rti_observer.analytics import build_analytics
-from umbra_rti_observer.schemas import StateResponse
+from umbra_rti_observer.schemas import AnalyticsWindow, StateResponse
 
 
 def test_window_scope_buckets_and_explicit_participant_attribution() -> None:
@@ -80,3 +80,43 @@ def test_logical_timestamps_keep_zero_and_regressions_without_inferring_grants()
 def test_analytics_rejects_unbounded_queries(window: int, buckets: int) -> None:
     with pytest.raises(ValueError):
         build_analytics(StateResponse.model_validate(ObserverStore().state()), window_seconds=window, bucket_count=buckets)
+
+
+@pytest.mark.parametrize("window,buckets,federate", [(30, 10, None), (300, 30, "Alpha"), (3600, 120, "Idle"), (300, 30, "Unknown")])
+def test_projection_exactly_preserves_analytics_windows_attribution_and_idle_roster(window: int, buckets: int, federate: str | None) -> None:
+    store = ObserverStore(max_events=3)
+    with patch("umbra_rti_observer.core.time.time", return_value=100):
+        store.publish({"event_type": "federate.joined", "federate": "Idle"})
+    with patch("umbra_rti_observer.core.time.time", return_value=200):
+        store.publish_many([{"event_type": "object.updated", "federate": "Alpha", "object_key": "one", "attributes": {"value": 0}},
+                            {"event_type": "callback.invoked", "source": "Alpha", "logical_time": 0},
+                            {"event_type": "runtime.error", "federate": "Alpha"}])
+    full = build_analytics(StateResponse.model_validate(store.state()), now=200, window_seconds=window, bucket_count=buckets, federate=federate)
+    projected = build_analytics(AnalyticsWindow.model_validate(store.analytics_window()), now=200, window_seconds=window, bucket_count=buckets, federate=federate)
+    assert projected == full
+    store.clear()
+    assert build_analytics(AnalyticsWindow.model_validate(store.analytics_window()), now=200) == build_analytics(StateResponse.model_validate(store.state()), now=200)
+
+
+def test_projection_does_not_construct_or_expose_unrelated_inspectors_and_returns_detached_values() -> None:
+    store = ObserverStore()
+    store.publish({"event_type": "object.updated", "object_key": "one", "attributes": {"nested": {"value": 7}}})
+    with patch.object(store, "_state_locked", side_effect=AssertionError("full inspector walk is forbidden in the projection")):
+        window = store.analytics_window()
+        assert "inspectors" not in window and "context" not in window
+        AnalyticsWindow.model_validate(window)
+    window["normalized_events"][0]["attributes"]["nested"]["value"] = "mutated"
+    assert store.events()[0]["attributes"]["nested"]["value"] == 7
+
+
+@pytest.mark.parametrize("fault", ["count", "duplicate", "next", "nan", "roster"])
+def test_analytics_window_rejects_invalid_or_coerced_views(fault: str) -> None:
+    store = ObserverStore()
+    store.publish({"event_type": "object.updated", "federate": "A", "attributes": {"value": 7}})
+    data = store.analytics_window()
+    if fault == "count": data["retention"]["retained_events"] = True
+    if fault == "duplicate": data["normalized_events"].append(data["normalized_events"][0])
+    if fault == "next": data["retention"]["next_sequence"] = 1
+    if fault == "nan": data["normalized_events"][0]["details"] = {"invalid": float("nan")}
+    if fault == "roster": data["federate_roster"].append(data["federate_roster"][0])
+    with pytest.raises(ValueError): AnalyticsWindow.model_validate(data)

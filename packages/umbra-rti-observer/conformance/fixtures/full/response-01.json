@@ -138,6 +138,29 @@
       ],
       "state": "available"
     },
+    "fom_inspection": {
+      "description": "Adapter-supplied class, field, datatype and dimension metadata with explicit revision and references.",
+      "event_types": [],
+      "label": "FOM metadata inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": null,
+      "reasons": [],
+      "source": null,
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
     "http_api": {
       "description": "HTTP resources for contract, state, metrics, and event pages.",
       "event_types": [],
@@ -160,6 +183,27 @@
       "sources": [
         "fastapi"
       ],
+      "state": "available"
+    },
+    "interaction_flow": {
+      "description": "Explicit send/receive transmission pairing, scoped endpoints and observer arrival intervals.",
+      "event_types": [],
+      "label": "Interaction flow inspection",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Exact send/receive counts; pairing requires explicit transmission and endpoint join identities.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Exact send/receive counts; pairing requires explicit transmission and endpoint join identities.",
+      "reasons": [],
+      "source": null,
+      "sources": [],
       "state": "available"
     },
     "interactions": {
@@ -296,6 +340,29 @@
       ],
       "state": "available"
     },
+    "mom_inspection": {
+      "description": "Typed roster coverage, service invocation/error reports and explicit numeric or opaque counters.",
+      "event_types": [],
+      "label": "Management report inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": null,
+      "reasons": [],
+      "source": null,
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
     "object_observations": {
       "description": "Persistent attributed object snapshots and retained attribute comparisons.",
       "event_types": [],
@@ -363,6 +430,29 @@
       ],
       "state": "available"
     },
+    "ownership_inspection": {
+      "description": "Explicit owner state, acquisition/divestiture reports and scoped request/outcome evidence.",
+      "event_types": [],
+      "label": "Attribute ownership inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": null,
+      "reasons": [],
+      "source": null,
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
     "persistence": {
       "description": "Federation save, restore, and related lifecycle observations.",
       "event_types": [],
@@ -386,6 +476,101 @@
       ],
       "state": "available"
     },
+    "persistence_inspection": {
+      "description": "Named local/federation save/restore phase snapshots and retained transition reports.",
+      "event_types": [],
+      "label": "Save and restore inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": null,
+      "reasons": [],
+      "source": null,
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
+    "recording": {
+      "description": "Bounded state/envelope journals and validated portable replay files; never provider command execution.",
+      "event_types": [],
+      "label": "Recording and replay",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Recording/import resources are disabled by this backend.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Recording/import resources are disabled by this backend.",
+      "reasons": [],
+      "source": null,
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
+    "recording_analytics_window": {
+      "description": "Accepts the named retained-window request instead of uploading unrelated recorded inspectors.",
+      "event_types": [],
+      "label": "Lightweight recorded analytics",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Named validated retained-window requests; legacy complete-frame requests remain accepted.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Named validated retained-window requests; legacy complete-frame requests remain accepted.",
+      "reasons": [],
+      "source": null,
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
+    "recording_compact": {
+      "description": "Explicitly negotiated v2 baseline/edit capture/import/export, bounded reconstruction and unchanged evidence.",
+      "event_types": [],
+      "label": "Compact recording files",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Negotiated v2 baseline/edit files with bounded reconstructed state/work; v1 remains supported.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Negotiated v2 baseline/edit files with bounded reconstructed state/work; v1 remains supported.",
+      "reasons": [],
+      "source": null,
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
     "regions": {
       "description": "Region creation and region-scoped publication or subscription.",
       "event_types": [],
@@ -402,6 +587,53 @@
         "adapter"
       ],
       "reason": null,
+      "reasons": [],
+      "source": null,
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
+    "regions_inspection": {
+      "description": "Explicit extents, exact dimension ranges, associations and declared/observed routing evidence.",
+      "event_types": [],
+      "label": "Region and DDM inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": null,
+      "reasons": [],
+      "source": null,
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
+    "relationships": {
+      "description": "Adapter-reported producer/recipient edges with stable scoped join identities, not inferred routing.",
+      "event_types": [],
+      "label": "Explicit federation relationships",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Synthetic explicit edges; not inferred from declarations or delivery.",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Synthetic explicit edges; not inferred from declarations or delivery.",
       "reasons": [],
       "source": null,
       "sources": [
@@ -432,6 +664,48 @@
         "fastapi"
       ],
       "state": "unsupported"
+    },
+    "storage_inspection": {
+      "description": "Explicit count/byte budgets, whole-record expiry and unbudgeted collection coverage; not federation lifecycle evidence.",
+      "event_types": [],
+      "label": "Observation storage coverage",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Count/byte expiry coverage is explicit; remaining row-only collections are listed, never silently covered.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Count/byte expiry coverage is explicit; remaining row-only collections are listed, never silently covered.",
+      "reasons": [],
+      "source": null,
+      "sources": [],
+      "state": "available"
+    },
+    "synchronization": {
+      "description": "Explicit labels, registration outcomes, announcements and participant achievement reports.",
+      "event_types": [],
+      "label": "Synchronization observations",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Read-only normalized phase inspection; no register/achieve command is implied.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Read-only normalized phase inspection; no register/achieve command is implied.",
+      "reasons": [],
+      "source": null,
+      "sources": [],
+      "state": "available"
     },
     "time_inspection": {
       "description": "Last reported grants/state and bounded explicitly correlated requests, without MOM.",
@@ -480,15 +754,15 @@
     }
   },
   "contract_version": "umbra-observer-contract-v1",
-  "event_count": 12,
+  "event_count": 41,
   "retention": {
     "cleared_events": 0,
     "dropped_events": 0,
     "first_retained_sequence": 1,
-    "last_sequence": 12,
-    "max_events": 20,
-    "next_sequence": 13,
-    "retained_events": 12
+    "last_sequence": 41,
+    "max_events": 64,
+    "next_sequence": 42,
+    "retained_events": 41
   },
   "schema_version": "umbra-runtime-observer-v1",
   "service": "umbra-rti-observer",

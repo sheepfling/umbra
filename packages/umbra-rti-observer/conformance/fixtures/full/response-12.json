@@ -235,8 +235,8 @@
     {
       "callbacks": 1,
       "errors": 0,
-      "events": 12,
-      "interactions": 0,
+      "events": 41,
+      "interactions": 2,
       "object_updates": 4,
       "started_at": 1759999970.0
     }
@@ -246,13 +246,21 @@
   "contract_version": "umbra-observer-contract-v1",
   "event_types": {
     "callback.invoked": 1,
+    "coordination.observed": 5,
     "declaration.observed": 3,
+    "fom.observed": 7,
+    "interaction.received": 1,
+    "interaction.sent": 1,
+    "mom.observed": 5,
     "object.updated": 4,
+    "ownership.observed": 6,
+    "region.observed": 3,
+    "relationship.observed": 1,
     "time.observed": 4
   },
-  "events_in_window": 12,
+  "events_in_window": 41,
   "families": {
-    "generic": 12
+    "generic": 41
   },
   "generated_at": 1760000000.0,
   "history_truncated": false,
@@ -308,6 +316,7 @@
       ],
       "object_updates": 4,
       "role": null,
+      "roster_retained": true,
       "source": "contract-fixture",
       "status": "active"
     }
@@ -316,16 +325,31 @@
     "cleared_events": 0,
     "dropped_events": 0,
     "first_retained_sequence": 1,
-    "last_sequence": 12,
-    "max_events": 20,
-    "next_sequence": 13,
-    "retained_events": 12
+    "last_sequence": 41,
+    "max_events": 64,
+    "next_sequence": 42,
+    "retained_events": 41
+  },
+  "roster_storage": {
+    "accounted_bytes": 191,
+    "byte_limit_drops": 0,
+    "capacity": 2000,
+    "collection": "federates",
+    "count_limit_drops": 0,
+    "dropped_bytes": 0,
+    "dropped_records": 0,
+    "encoding_drops": 0,
+    "oversized_drops": 0,
+    "retained_records": 1,
+    "soft_reservation_bytes": 65536,
+    "unit": "records",
+    "window_drops": 0
   },
   "scoped_federate": null,
   "sources": {
-    "contract-fixture": 12
+    "contract-fixture": 41
   },
-  "unattributed_events": 0,
+  "unattributed_events": 29,
   "window_seconds": 900,
   "window_start": 1759999100.0
 }

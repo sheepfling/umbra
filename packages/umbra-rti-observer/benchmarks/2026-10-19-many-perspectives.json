@@ -1,0 +1,135 @@
+{
+  "report_version": "umbra-observer-scale-v1",
+  "generated_at": "2026-10-19T19:25:32.519693+00:00",
+  "python": "3.14.6",
+  "python_implementation": "CPython",
+  "pydantic": "2.14.1",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "AMD64 Family 26 Model 68 Stepping 0, AuthenticAMD",
+  "cpu_count": 32,
+  "source_fingerprint": "1c0509664bf0a0a0c4bffebd97ca058fd15833842c0ece58a49713a2d614e1a1",
+  "source_changed_during_run": false,
+  "instrumentation_active_during_timings": false,
+  "workload": {
+    "events": 20000,
+    "retained_events": 2000,
+    "participants": 100,
+    "objects": 200,
+    "payload_bytes": 64,
+    "batch_size": 100,
+    "inspector_rows": 0,
+    "perspective_capacity": 5000,
+    "rotate_perspectives": true,
+    "recording_commits": 12
+  },
+  "seed_events": 0,
+  "ingress_seconds": 0.9871356000003289,
+  "ingress_events_per_second": 20260.64098994438,
+  "snapshot": {
+    "retained_events": 2000,
+    "dropped_events": 18000,
+    "roster_rows": 100,
+    "objects": 200,
+    "object_perspectives": 5000,
+    "object_perspective_evictions": 13381,
+    "omitted_attribute_changes": 0,
+    "attribute_changes": 7636,
+    "full_bytes": 4846806,
+    "compact_bytes": 4141678,
+    "analytics_bytes": 51199,
+    "analytics_window_bytes": 715738,
+    "full_within_http_checker_limit": true,
+    "full_snapshot": {
+      "samples": 7,
+      "minimum_ms": 115.75050000101328,
+      "median_ms": 120.9366000002774,
+      "p95_ms": 168.0501999981061,
+      "maximum_ms": 168.0501999981061
+    },
+    "compact_snapshot": {
+      "samples": 7,
+      "minimum_ms": 109.09729999912088,
+      "median_ms": 111.80000000240398,
+      "p95_ms": 158.73759999885806,
+      "maximum_ms": 158.73759999885806
+    },
+    "validation": {
+      "samples": 7,
+      "minimum_ms": 36.07950000150595,
+      "median_ms": 38.87329999997746,
+      "p95_ms": 92.9980999972031,
+      "maximum_ms": 92.9980999972031
+    },
+    "serialization": {
+      "samples": 7,
+      "minimum_ms": 46.48279999673832,
+      "median_ms": 47.657499999331776,
+      "p95_ms": 93.77989999848069,
+      "maximum_ms": 93.77989999848069
+    },
+    "full_response_pipeline": {
+      "samples": 7,
+      "minimum_ms": 203.72589999897173,
+      "median_ms": 256.9069999990461,
+      "p95_ms": 266.3219999994908,
+      "maximum_ms": 266.3219999994908
+    },
+    "analytics_only": {
+      "samples": 7,
+      "minimum_ms": 2.8229999988980126,
+      "median_ms": 2.8534999983094167,
+      "p95_ms": 2.9228999992483296,
+      "maximum_ms": 2.9228999992483296
+    },
+    "analytics_with_full_snapshot": {
+      "samples": 7,
+      "minimum_ms": 160.88260000105947,
+      "median_ms": 214.4326000016008,
+      "p95_ms": 229.13419999895268,
+      "maximum_ms": 229.13419999895268
+    },
+    "analytics_with_projection": {
+      "samples": 7,
+      "minimum_ms": 16.852299999300158,
+      "median_ms": 17.42770000055316,
+      "p95_ms": 80.06310000200756,
+      "maximum_ms": 80.06310000200756
+    },
+    "runtime_summary_pipeline": {
+      "samples": 7,
+      "minimum_ms": 2.6274000010744203,
+      "median_ms": 2.6580999983707443,
+      "p95_ms": 2.758800001174677,
+      "maximum_ms": 2.758800001174677
+    },
+    "python_allocation_peak_bytes": 30827878,
+    "projection_allocation_peak_bytes": 6747308
+  },
+  "recording": {
+    "started": true,
+    "unavailable_reason": null,
+    "baseline_publish_commit": {
+      "samples": 7,
+      "minimum_ms": 4.7952000022633,
+      "median_ms": 4.82449999981327,
+      "p95_ms": 5.019500000344124,
+      "maximum_ms": 5.019500000344124
+    },
+    "start_ms": 142.87059999696794,
+    "recorded_publish_commit": {
+      "samples": 3,
+      "minimum_ms": 145.3354000004765,
+      "median_ms": 153.10800000224845,
+      "p95_ms": 199.36719999896013,
+      "maximum_ms": 199.36719999896013
+    },
+    "frames": 3,
+    "accounted_bytes": 15280956,
+    "export_bytes": 15277191,
+    "export_validation_ms": 695.6611999994493,
+    "stop_reason": "byte-limit"
+  },
+  "retained_count_and_attribution_verified": true,
+  "clear_verified": true,
+  "measurement_scope": "In-process synthetic Python pipeline; no network, HTTP framework, browser or provider timing."
+}

@@ -14,8 +14,10 @@ from collections import Counter
 from .schemas import (
     ActivityBucket,
     AnalyticsResponse,
+    AnalyticsWindow,
     EventEnvelope,
     FederateActivity,
+    FederateInspectionResponse,
     StateResponse,
     TimeGrantObservation,
     TimeObservation,
@@ -48,7 +50,7 @@ def event_logical_time(event: EventEnvelope) -> int | float | None:
 
 
 def build_analytics(
-    snapshot: StateResponse,
+    snapshot: StateResponse | AnalyticsWindow,
     *,
     window_seconds: int = 300,
     bucket_count: int = 30,
@@ -90,7 +92,14 @@ def build_analytics(
             ))
 
     participants: list[FederateActivity] = []
-    for row in snapshot.federate_roster:
+    roster = {row.federate: row for row in snapshot.federate_roster}
+    retained_roster = set(roster)
+    for name, observations in by_federate.items():
+        if name not in roster:
+            latest = observations[-1]
+            roster[name] = FederateInspectionResponse(federate=name, status="observed",
+                source=latest.source, last_seen=latest.observed_at)
+    for row in sorted(roster.values(), key=lambda item: item.federate):
         if federate is not None and row.federate != federate:
             continue
         observed = by_federate.get(row.federate, [])
@@ -104,6 +113,7 @@ def build_analytics(
         participants.append(FederateActivity(
             federate=row.federate, role=row.role, handle=row.handle,
             status=row.status, source=row.source, last_seen=row.last_seen,
+            roster_retained=row.federate in retained_roster,
             event_count=len(observed),
             object_updates=sum(event.event_type == "object.updated" for event in observed),
             interaction_count=sum(event.event_type.startswith("interaction.") for event in observed),
@@ -119,6 +129,7 @@ def build_analytics(
         events_in_window=len(events), unattributed_events=unattributed,
         history_truncated=snapshot.retention.dropped_events > 0 or snapshot.retention.cleared_events > 0,
         retention=snapshot.retention, participants=tuple(participants),
+        roster_storage=next((row for row in snapshot.storage.evidence.collections if row.collection == "federates"), None) if snapshot.storage is not None else None,
         activity=tuple(ActivityBucket(
             started_at=start + index * bucket_seconds, events=len(rows),
             object_updates=sum(event.event_type == "object.updated" for event in rows),

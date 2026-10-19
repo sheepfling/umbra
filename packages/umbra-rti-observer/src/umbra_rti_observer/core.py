@@ -7,10 +7,12 @@ Provider adapters may retain arbitrary extra fields in each event.
 
 from __future__ import annotations
 
+import json
 import threading
 import time
-from collections import Counter, deque
+from collections import Counter
 from collections.abc import Callable, Iterable, Mapping
+from dataclasses import replace
 from typing import Protocol
 
 from .capabilities import (
@@ -18,8 +20,18 @@ from .capabilities import (
     merge_capabilities,
     normalize_capabilities,
 )
-from .contract import OBSERVER_CONTRACT_VERSION
+from .capture import (
+    CaptureBuffer,
+    CaptureChange,
+    CaptureConflict,
+    CaptureInfo,
+    CompactCaptureBuffer,
+)
+from .contract import OBSERVER_CONTRACT_VERSION, build_contract_document
+from .coordination import CoordinationViews, coordination_data
 from .declarations import DeclarationViews, declaration_data
+from .fom import FomViews, fom_data
+from .interaction_flow import InteractionFlowViews, interaction_flow_data
 from .models import (
     AdapterStatus,
     CapabilityRecord,
@@ -35,7 +47,13 @@ from .models import (
     to_json_object,
     to_json_value,
 )
+from .mom import MomViews, mom_data
 from .object_views import ObjectViews
+from .ownership import OwnershipViews, ownership_data
+from .recording_codec import StorageFormat
+from .regions import RegionViews, region_data
+from .relationships import RelationshipViews, relationship_data
+from .storage import MAX_EVIDENCE_BYTES, EvidenceBudget, EvidenceIndex, EvidenceQueue
 from .time_models import time_data
 from .time_views import TimeViews
 
@@ -55,6 +73,12 @@ EVENT_TYPES = (
     "callback.invoked",
     "time.observed",
     "declaration.observed",
+    "relationship.observed",
+    "coordination.observed",
+    "ownership.observed",
+    "region.observed",
+    "mom.observed",
+    "fom.observed",
     "service.completed",
     "service.failed",
     "session.connected",
@@ -164,6 +188,13 @@ def _normalise_event(event: Mapping[str, object], sequence: int) -> EventRecord:
         raise TypeError("observer events must be mappings")
     time_data(event)  # Validate explicit observations before any batch mutation.
     declaration_data(event)
+    relationship_data(event)
+    coordination_data(event)
+    interaction_flow_data(event)
+    ownership_data(event)
+    region_data(event)
+    mom_data(event)
+    fom_data(event)
     normalized = _copy_mapping(event)
     event_type = _event_type(normalized)
     if len(event_type) > 256:
@@ -398,8 +429,27 @@ class ObserverStore:
         *,
         max_events: int = 2_000,
         max_batch_size: int = 10_000,
+        max_object_perspectives: int = 5000,
         max_time_requests: int = 250,
         max_declarations: int = 1_000,
+        max_relationships: int = 1_000,
+        max_coordination: int = 1_000,
+        max_coordination_transitions: int = 2_000,
+        max_interaction_flow: int = 500,
+        max_ownership_states: int = 500,
+        max_ownership_requests: int = 500,
+        max_ownership_transitions: int = 1_000,
+        max_regions: int = 500,
+        max_region_transitions: int = 1_000,
+        max_mom_reports: int = 500,
+        max_mom_transitions: int = 2_000,
+        max_fom_elements: int = 1_000,
+        max_fom_transitions: int = 2_000,
+        max_objects: int = 5_000,
+        max_federates: int = 2_000,
+        max_time_snapshots: int = 2_000,
+        max_evidence_bytes: int = MAX_EVIDENCE_BYTES,
+        max_evidence_record_bytes: int | None = None,
         capabilities: Mapping[str, object] | None = None,
     ) -> None:
         if max_events < 1:
@@ -410,23 +460,48 @@ class ObserverStore:
             raise ValueError("max_time_requests must be a positive integer")
         if isinstance(max_declarations, bool) or not isinstance(max_declarations, int) or max_declarations < 1:
             raise ValueError("max_declarations must be a positive integer")
-        self._events: deque[EventRecord] = deque(maxlen=max_events)
+        if isinstance(max_relationships, bool) or not isinstance(max_relationships, int) or max_relationships < 1:
+            raise ValueError("max_relationships must be a positive integer")
+        if isinstance(max_coordination, bool) or not isinstance(max_coordination, int) or max_coordination < 1:
+            raise ValueError("max_coordination must be a positive integer")
+        if isinstance(max_coordination_transitions, bool) or not isinstance(max_coordination_transitions, int) or max_coordination_transitions < 1:
+            raise ValueError("max_coordination_transitions must be a positive integer")
+        if isinstance(max_interaction_flow, bool) or not isinstance(max_interaction_flow, int) or max_interaction_flow < 1:
+            raise ValueError("max_interaction_flow must be a positive integer")
+        for name, value in (("max_ownership_states", max_ownership_states), ("max_ownership_requests", max_ownership_requests),
+                            ("max_ownership_transitions", max_ownership_transitions), ("max_regions", max_regions),
+                            ("max_region_transitions", max_region_transitions), ("max_mom_reports", max_mom_reports),
+                            ("max_mom_transitions", max_mom_transitions), ("max_fom_elements", max_fom_elements),
+                            ("max_fom_transitions", max_fom_transitions)):
+            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                raise ValueError(f"{name} must be a positive integer")
+        self._evidence = EvidenceBudget(max_evidence_bytes, max_evidence_record_bytes)
+        self._context_budget = EvidenceBudget(256 * 1024, 128 * 1024)
+        self._events = EvidenceQueue[EventRecord]("events", max_events, self._evidence,
+                                                 lambda row: row.to_json(), unit="envelopes", contiguous=True)
         self._max_events = max_events
         self._max_batch_size = max_batch_size
         self._next_sequence = 1
         self._dropped_events = 0
         self._cleared_events = 0
         self._status = "idle"
-        self._context: JsonObject = {}
+        self._context = EvidenceIndex[str, JsonValue]("context", 128, self._context_budget, lambda key, value: {key: value}, unit="keys")
         # These indexes are intentionally independent from the bounded event
         # deque. A long-running observer must not forget a live object or
         # participant merely because its older event history was evicted.
-        self._objects: dict[str, ObjectInspection] = {}
-        self._object_views = ObjectViews(max_events)
-        self._time_views = TimeViews(max_time_requests)
-        self._declarations = DeclarationViews(max_declarations)
-        self._federates: dict[str, FederateInspection] = {}
-        self._interactions: deque[InteractionInspection] = deque(maxlen=250)
+        self._objects = EvidenceIndex[str, ObjectInspection]("objects", max_objects, self._evidence, lambda _, row: row.to_json())
+        self._object_views = ObjectViews(max_events, max_object_perspectives, budget=self._evidence)
+        self._time_views = TimeViews(max_time_requests, max_time_snapshots, budget=self._evidence)
+        self._declarations = DeclarationViews(max_declarations, budget=self._evidence)
+        self._relationships = RelationshipViews(max_relationships, budget=self._evidence)
+        self._coordination = CoordinationViews(max_coordination, max_coordination_transitions, budget=self._evidence)
+        self._interaction_flow = InteractionFlowViews(max_interaction_flow, budget=self._evidence)
+        self._ownership = OwnershipViews(max_ownership_states, max_ownership_requests, max_ownership_transitions, budget=self._evidence)
+        self._regions = RegionViews(max_regions, max_region_transitions, budget=self._evidence)
+        self._mom = MomViews(max_mom_reports, max_mom_transitions, budget=self._evidence)
+        self._fom = FomViews(max_fom_elements, max_fom_transitions, budget=self._evidence)
+        self._federates = EvidenceIndex[str, FederateInspection]("federates", max_federates, self._evidence, lambda _, row: row.to_json())
+        self._interactions = EvidenceQueue[InteractionInspection]("interactions", 250, self._evidence, lambda row: row.to_json())
         self._adapters: dict[int, tuple[ObserverAdapter, str, str]] = {}
         self._manual_capabilities: dict[str, CapabilityRecord] = normalize_capabilities(
             capabilities,
@@ -435,19 +510,25 @@ class ObserverStore:
         )
         self._adapter_capabilities: dict[int, dict[str, CapabilityRecord]] = {}
         self._condition = threading.Condition()
+        self._capture: CaptureBuffer | None = None
+        self._validate_metadata_locked()
 
     def set_context(self, **values: object) -> JsonObject:
         with self._condition:
-            self._context.update({str(key): _jsonable(value) for key, value in values.items() if value is not None})
-            return dict(self._context)
+            self._apply_context_locked({str(key): _jsonable(value) for key, value in values.items() if value is not None})
+            self._capture_locked("metadata")
+            return to_json_object(dict(self._context))
 
     def set_status(self, status: str, **context: object) -> JsonObject:
         status_text = _text(status)
         if not status_text:
             raise ValueError("status must not be empty")
+        if len(status_text.encode("utf-8")) > 256:
+            raise ValueError("status exceeds 256 UTF-8 bytes")
         with self._condition:
+            self._apply_context_locked({str(key): _jsonable(value) for key, value in context.items() if value is not None})
             self._status = status_text
-            self._context.update({str(key): _jsonable(value) for key, value in context.items() if value is not None})
+            self._capture_locked("metadata")
             self._condition.notify_all()
             return self._state_locked(include_events=False)
 
@@ -462,7 +543,14 @@ class ObserverStore:
 
         normalized = normalize_capabilities(capabilities, owner=owner, source=source)
         with self._condition:
+            previous = self._manual_capabilities.copy()
             self._manual_capabilities.update(normalized)
+            try:
+                self._validate_metadata_locked()
+            except (ValueError, TypeError, UnicodeError):
+                self._manual_capabilities = previous
+                raise
+            self._capture_locked("metadata")
             self._condition.notify_all()
             return self._capabilities_locked()
 
@@ -477,7 +565,7 @@ class ObserverStore:
             normalized = _normalise_event(event, self._next_sequence)
             self._append_locked([normalized])
             self._condition.notify_all()
-            return normalized.to_json()
+            return to_json_object(normalized.to_json())
 
     def publish_many(self, events: Iterable[Mapping[str, object]]) -> int:
         rows = list(events)
@@ -507,6 +595,8 @@ class ObserverStore:
 
         key = id(adapter)
         name = _text(getattr(adapter, "name", None)) or type(adapter).__name__
+        if len(name.encode("utf-8")) > 1024:
+            raise ValueError("adapter name exceeds 1024 UTF-8 bytes")
         adapter_capabilities = normalize_capabilities(
             getattr(adapter, "capabilities", None),
             owner="provider",
@@ -517,14 +607,24 @@ class ObserverStore:
                 # Attaching the same object twice is harmless and avoids two
                 # provider sessions being opened by a repeated setup call.
                 return
+            if len(self._adapters) >= 64:
+                raise ValueError("observer supports at most 64 attached adapters")
             self._adapters[key] = (adapter, name, "starting")
             self._adapter_capabilities[key] = adapter_capabilities
+            try:
+                self._validate_metadata_locked()
+            except (ValueError, TypeError, UnicodeError):
+                self._adapters.pop(key, None)
+                self._adapter_capabilities.pop(key, None)
+                raise
+            self._capture_locked("metadata")
         try:
             adapter.start(self.publish)
         except Exception as error:
             with self._condition:
                 self._adapters.pop(key, None)
                 self._adapter_capabilities.pop(key, None)
+                self._capture_locked("metadata")
             try:
                 adapter.stop()
             except Exception:  # noqa: BLE001,S110 - cleanup continues across adapters
@@ -544,6 +644,7 @@ class ObserverStore:
         with self._condition:
             if key in self._adapters:
                 self._adapters[key] = (adapter, name, "running")
+                self._capture_locked("metadata")
 
     def detach_adapter(self, adapter: ObserverAdapter) -> None:
         """Stop a provider-specific adapter previously attached to this store."""
@@ -555,6 +656,7 @@ class ObserverStore:
             with self._condition:
                 self._adapters.pop(key, None)
                 self._adapter_capabilities.pop(key, None)
+                self._capture_locked("metadata")
 
     def close(self) -> None:
         """Stop all attached adapters and mark the store stopped.
@@ -573,6 +675,9 @@ class ObserverStore:
             except Exception as error:  # noqa: BLE001 - cleanup must attempt every adapter
                 first_error = first_error or error
         self.set_status("stopped")
+        with self._condition:
+            if self._capture is not None:
+                self._capture.stop("backend-stopped")
         if first_error is not None:
             raise first_error
 
@@ -613,11 +718,11 @@ class ObserverStore:
             rows = tuple(candidates[:limit])
             first_sequence = retained[0].sequence if retained else 0
             last_sequence = retained[-1].sequence if retained else 0
-            gap = bool(first_sequence and after_sequence < first_sequence - 1)
+            gap = bool(first_sequence and after_sequence < first_sequence - 1 or not retained and after_sequence < self._next_sequence - 1)
             next_after = rows[-1].sequence if rows else after_sequence
             if gap and not rows:
-                next_after = first_sequence - 1
-            return EventPage(
+                next_after = first_sequence - 1 if retained else self._next_sequence - 1
+            return to_json_object(EventPage(
                 events=rows,
                 next_after=next_after,
                 has_more=len(candidates) > len(rows),
@@ -625,14 +730,17 @@ class ObserverStore:
                 first_retained_sequence=first_sequence,
                 last_sequence=last_sequence,
                 retained_events=len(retained),
-                dropped_events=self._dropped_events,
+                dropped_events=self._dropped_events + self._events.dropped,
                 cleared_events=self._cleared_events,
-            ).to_json(OBSERVER_CONTRACT_VERSION)
+                next_sequence=self._next_sequence,
+            ).to_json(OBSERVER_CONTRACT_VERSION))
 
     def wait_for_events(self, *, after_sequence: int = 0, timeout: float = 15.0) -> list[JsonObject]:
         deadline = time.monotonic() + max(timeout, 0.0)
         with self._condition:
             while not any(event.sequence > after_sequence for event in self._events):
+                if not self._events and after_sequence < self._next_sequence - 1:
+                    break
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
                     break
@@ -642,29 +750,115 @@ class ObserverStore:
     def clear(self) -> None:
         with self._condition:
             self._cleared_events += len(self._events)
+            self._dropped_events += self._events.dropped
             self._events.clear()
             self._objects.clear()
             self._object_views.clear()
             self._time_views.clear()
             self._declarations.clear()
+            self._relationships.clear()
+            self._coordination.clear()
+            self._interaction_flow.clear()
+            self._ownership.clear()
+            self._regions.clear()
+            self._mom.clear()
+            self._fom.clear()
             self._federates.clear()
             self._interactions.clear()
+            self._capture_locked("clear")
             self._condition.notify_all()
 
     def state(self, *, include_events: bool = True) -> JsonObject:
         with self._condition:
             return self._state_locked(include_events=include_events)
 
+    def analytics_window(self) -> JsonObject:
+        """Take one consistent projection without building unrelated inspectors.
+
+        Keep the full retained envelope and persistent roster semantics. In
+        particular, this is not a sample and an idle roster entry is not lost.
+        """
+        with self._condition:
+            return to_json_object({
+                "contract_version": OBSERVER_CONTRACT_VERSION,
+                "retention": self._retention_locked().to_json(),
+                "federate_roster": [row.to_json() for row in sorted(self._federates.values(), key=lambda row: row.federate)],
+                "normalized_events": [event.to_json() for event in self._events],
+                "storage": self._storage_locked(),
+            })
+
+    def runtime_summary(self) -> JsonObject:
+        """Health/metrics fields only, without walking any inspector history."""
+        with self._condition:
+            return to_json_object({
+                "contract_version": OBSERVER_CONTRACT_VERSION,
+                "schema_version": OBSERVER_SCHEMA_VERSION,
+                "status": self._status,
+                "live_metrics": self._metrics_locked().to_json(),
+                "retention": self._retention_locked().to_json(),
+                "adapters": [row.to_json() for row in self._adapters_locked()],
+                "capabilities": self._capabilities_locked(),
+            })
+
+    def start_capture(self, label: str, *, replace_id: str | None = None, max_frames: int = 600,
+                      max_bytes: int = 16 * 1024 * 1024, storage_format: StorageFormat = "full-v1") -> CaptureInfo:
+        """Start one process-local journal; replacing retained data requires its ID."""
+        with self._condition:
+            if self._capture is not None and (self._capture.info().active or replace_id != self._capture.recording_id):
+                raise CaptureConflict("A recording is active or retained. Stop/export it and explicitly replace its recording ID.")
+            manifest = self._capabilities_locked()
+            contract = build_contract_document(EVENT_TYPES, event_schema_version=OBSERVER_SCHEMA_VERSION, capabilities=manifest)
+            # Ordinary discovery normalizes capability declarations. A capture
+            # also preserves the exact aggregated owners/reporter observations.
+            contract["capabilities"] = to_json_value(manifest)
+            if storage_format not in ("full-v1", "compact-v2"):
+                raise ValueError("Unsupported recording storage format.")
+            buffer_type = CompactCaptureBuffer if storage_format == "compact-v2" else CaptureBuffer
+            candidate = buffer_type(label, contract, max_frames=max_frames, max_bytes=max_bytes)
+            candidate.append(self._state_locked(include_events=True), "start")
+            if not candidate.info().frame_count:
+                raise ValueError("The initial observer snapshot does not fit the recording budget or is not valid JSON.")
+            self._capture = candidate
+            return candidate.info()
+
+    def capture_info(self) -> CaptureInfo | None:
+        with self._condition:
+            return self._capture.info() if self._capture is not None else None
+
+    def checkpoint_capture(self) -> None:
+        """Capture clock-dependent inspector ages without fabricating an event."""
+        with self._condition:
+            self._capture_locked("checkpoint")
+
+    def stop_capture(self, recording_id: str) -> CaptureInfo:
+        with self._condition:
+            capture = self._require_capture_locked(recording_id)
+            self._capture_locked("stop")
+            capture.stop()
+            return capture.info()
+
+    def capture_document(self, recording_id: str) -> JsonObject:
+        with self._condition:
+            return self._require_capture_locked(recording_id).document()
+
+    def _require_capture_locked(self, recording_id: str) -> CaptureBuffer:
+        if self._capture is None or self._capture.recording_id != recording_id:
+            raise CaptureConflict("That recording is no longer retained by this backend.")
+        return self._capture
+
+    def _capture_locked(self, change: CaptureChange, arrivals: list[EventRecord] | None = None) -> None:
+        if self._capture is not None and self._capture.info().active:
+            self._capture.append(self._state_locked(include_events=True), change,
+                                 [event.to_json() for event in arrivals] if arrivals else None)
+
     def _events_locked(self, *, after_sequence: int, limit: int | None) -> list[JsonObject]:
-        rows = [event.to_json() for event in self._events if event.sequence > max(after_sequence, 0)]
+        rows = [to_json_object(event.to_json()) for event in self._events if event.sequence > max(after_sequence, 0)]
         if limit is not None:
             rows = rows[: max(limit, 0)]
         return rows
 
     def _append_locked(self, normalized: list[EventRecord]) -> None:
         for event in normalized:
-            if len(self._events) == self._max_events:
-                self._dropped_events += 1
             self._events.append(event)
             self._next_sequence += 1
             self._update_indexes_locked(event)
@@ -684,10 +878,19 @@ class ObserverStore:
                 self._status = "error"
             elif self._status == "idle":
                 self._status = "running"
+        self._object_views.trim_history(self._retention_locked())
+        self._capture_locked("events", normalized)
 
     def _update_indexes_locked(self, event: EventRecord) -> None:
         self._time_views.record(event, _federate_name(event), _first_text(event, "federation"))
         self._declarations.record(event, _federate_name(event), _first_text(event, "federation"))
+        self._relationships.record(event)
+        self._coordination.record(event)
+        self._interaction_flow.record(event)
+        self._ownership.record(event)
+        self._regions.record(event)
+        self._mom.record(event)
+        self._fom.record(event)
         objects = _derive_objects([event])
         self._object_views.record(event, objects, _federate_name(event))
         for incoming in objects:
@@ -716,6 +919,7 @@ class ObserverStore:
                 if source not in current.sources:
                     current.sources.append(source)
             current.last_seen = incoming.last_seen
+            self._objects.refresh(key)
 
         for incoming in _derive_federates([event]):
             key = incoming.federate
@@ -728,6 +932,7 @@ class ObserverStore:
             current.status = incoming.status
             current.source = incoming.source
             current.last_seen = incoming.last_seen
+            self._federates.refresh(key)
 
         self._interactions.extend(_derive_interactions([event]))
 
@@ -737,7 +942,7 @@ class ObserverStore:
         return Retention(
             max_events=self._max_events,
             retained_events=len(self._events),
-            dropped_events=self._dropped_events,
+            dropped_events=self._dropped_events + self._events.dropped,
             cleared_events=self._cleared_events,
             first_retained_sequence=first_sequence,
             last_sequence=last_sequence,
@@ -754,8 +959,14 @@ class ObserverStore:
         return rows
 
     def _capabilities_locked(self) -> dict[str, JsonObject]:
+        adapter_features = {name for manifest in self._adapter_capabilities.values() for name in manifest}
+        optional_inspectors = {"declarations", "relationships", "synchronization", "persistence_inspection", "time_inspection", "interaction_flow", "ownership_inspection", "regions_inspection", "mom_inspection", "fom_inspection"}
         effective = merge_capabilities(
-            OBSERVER_CAPABILITIES,
+            # Accepting a normalized model is infrastructure support, not
+            # contrary evidence that an explicitly unsupported RTI feature is
+            # partially available. Aggregate actual reporters with each other.
+            {name: value for name, value in OBSERVER_CAPABILITIES.items()
+             if name not in optional_inspectors or name not in adapter_features},
             *self._adapter_capabilities.values(),
         )
         # Store/application declarations are authoritative. This is what lets
@@ -768,6 +979,33 @@ class ObserverStore:
             for name, capability in sorted(effective.items())
         }
 
+    def _validate_metadata_locked(self) -> None:
+        encoded = json.dumps(self._capabilities_locked(), ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+        if len(encoded.encode("utf-8")) > 128 * 1024:
+            raise ValueError("aggregated capability metadata exceeds 128 KiB")
+        adapters = json.dumps([row.to_json() for row in self._adapters_locked()], ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+        if len(adapters.encode("utf-8")) > 128 * 1024:
+            raise ValueError("aggregated adapter metadata exceeds 128 KiB")
+
+    def _apply_context_locked(self, updates: JsonObject) -> None:
+        # Explicit operator/app updates are admitted atomically. Event-derived
+        # context is observation evidence and instead reports whole-key expiry.
+        candidate = {key: value for key, value in self._context.items() if key not in updates}
+        candidate.update(updates)
+        if len(candidate) > self._context.capacity:
+            raise ValueError("context exceeds 128 retained keys")
+        sizes = [len(json.dumps({key: value}, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")) + 64
+                 for key, value in candidate.items()]
+        if any(size > self._context_budget.max_record_bytes for size in sizes) or sum(sizes) > self._context_budget.max_bytes:
+            raise ValueError("context update exceeds its encoded key/total byte budget")
+        for key in tuple(self._context):
+            del self._context[key]
+        self._context.update(candidate)
+
+    def _metrics_locked(self) -> LiveMetrics:
+        return replace(_derive_metrics(self._events), object_count=len(self._objects),
+                       interaction_count=len(self._interactions), federate_count=len(self._federates))
+
     def _state_locked(self, *, include_events: bool) -> JsonObject:
         events = tuple(self._events)
         objects = sorted(
@@ -779,15 +1017,7 @@ class ObserverStore:
             self._federates.values(),
             key=lambda row: row.federate,
         )
-        metrics = _derive_metrics(events)
-        metrics = LiveMetrics(
-            **{
-                **metrics.to_json(),
-                "object_count": len(objects),
-                "interaction_count": len(interactions),
-                "federate_count": len(federates),
-            }
-        )
+        metrics = self._metrics_locked()
         state = to_json_object({
             "contract_version": OBSERVER_CONTRACT_VERSION,
             "schema_version": OBSERVER_SCHEMA_VERSION,
@@ -797,6 +1027,7 @@ class ObserverStore:
             "retention": self._retention_locked().to_json(),
             "adapters": [row.to_json() for row in self._adapters_locked()],
             "capabilities": self._capabilities_locked(),
+            "storage": self._storage_locked(),
             "federate_roster": [row.to_json() for row in federates],
             "inspectors": {
                 "objects": [row.to_json() for row in objects],
@@ -804,11 +1035,22 @@ class ObserverStore:
                 "object_observations": self._object_views.to_json(self._retention_locked()),
                 "time": self._time_views.to_json(),
                 "declarations": self._declarations.to_json(),
+                "relationships": self._relationships.to_json(),
+                "coordination": self._coordination.to_json(),
+                "interaction_flow": self._interaction_flow.to_json(),
+                "ownership": self._ownership.to_json(),
+                "regions": self._regions.to_json(),
+                "mom": self._mom.to_json(),
+                "fom": self._fom.to_json(),
             },
         })
         if include_events:
             state["normalized_events"] = [event.to_json() for event in events]
         return to_json_object(state)
+
+    def _storage_locked(self) -> JsonObject:
+        return {"evidence": self._evidence.coverage(),
+                "context": self._context_budget.coverage()}
 
 
 __all__ = [

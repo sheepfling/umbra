@@ -144,6 +144,34 @@ one object subscription with an unknown attribute set. These are last-reported
 declarations, not a routing graph; the explorer deliberately draws no edges
 between matching class names. Declarations remain useful without analytics.
 
+The current working-tree showcase also adds **Topology**, **Interaction flow**,
+**Synchronization**, **Save / restore**, **Ownership**, **Regions / DDM**,
+**MOM reports** and **FOM browser**. These additions are not part of the older
+fixed tags above. Topology and interaction pairing require explicit identities;
+no matching names create edges. Save/restore separates local and collective
+results. Ownership separates state from service tickets; DDM keeps exact bounds
+without claiming that overlap proves delivery.
+
+In **MOM reports**, inspect the partial member report and unresolved handle,
+reported service failure, and the selectable counter history. The wide-integer
+counter stays opaque text rather than becoming a rounded number. These reports
+do not replace the ordinary Federates roster or grant command authority.
+In **FOM browser**, inspect ExampleClass, follow its parent and datatype links,
+and browse the array, enum and dimension metadata. Restart with the limited
+profile to show that useful class metadata remains available even with unknown
+ancestry/types and no MOM. The browser never parses FOM files or decodes bytes.
+
+In **Recordings**, give the capture a label, start it, explore other tabs, then
+return to stop/download it. Choose **Replay retained recording** or reopen its
+JSON file. Show the purple replay banner, speed and time/exact-state sliders,
+then visit Objects, MOM or FOM and seek backwards. Actions are unavailable in
+replay even if captured controls were available. **Return to live** fetches fresh
+state; the real/synthetic backend was not rewound or stopped. A recording lasts
+only for the backend process unless downloaded. Its memory/frame limits stop
+capture automatically without stopping traffic. Files contain actual captured
+context/data; review them before sharing. The fixed tags above predate this
+working-tree increment.
+
 After updating sources, stop your own demo with Ctrl+C and launch it again.
 Refreshing the browser does not reload the Python process. The launcher will
 leave an already running older demo alone and choose another free port.

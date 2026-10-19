@@ -133,6 +133,7 @@ test.describe("time feature degradation", () => {
     else await expect(page.getByRole("heading", { name: "Persistent time inspection unavailable" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Reported logical timestamps" })).toBeVisible();
     await navigate(page, "Events");
-    await expect(page.getByRole("region", { name: "Event explorer" }).locator("tbody tr")).toHaveCount(5);
+    // The shared partial fixture now also includes one uncorrelated receive.
+    await expect(page.getByRole("region", { name: "Event explorer" }).locator("tbody tr")).toHaveCount(6);
   });
 });

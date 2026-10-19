@@ -5,8 +5,8 @@ test.describe("limited provider", () => {
   test.use({ backendVariant: "limited" });
   test("missing MOM, ownership and regions do not blank useful views", async ({ page }) => {
     await page.goto("/#diagnostics");
-    for (const name of ["Management object model", "Attribute ownership", "Regions and DDM"]) {
-      const capability = page.locator("article.capability").filter({ has: page.locator("strong", { hasText: new RegExp(name, "i") }) });
+    for (const name of ["Management object model", "Attribute ownership", "Regions and DDM", "Attribute ownership inspection", "Region and DDM inspection", "Management report inspection"]) {
+      const capability = page.locator("article.capability").filter({ has: page.locator("strong", { hasText: new RegExp(`^${name}$`, "i") }) });
       await expect(capability.getByText("unsupported", { exact: true })).toBeVisible();
     }
     await navigate(page, "Logical time");

@@ -426,7 +426,28 @@ history from the latest snapshot. It shows at most 500 recent observations;
 comparison tables initially render 100 rows with explicit load-more controls.
 These views use the retained event window, not the analytics chart-time menu.
 Removal followed by discovery starts a new local comparison generation.
+The scoped snapshot index also has its own budget (5000 default), independently
+of the retained event window. An expired scope can be reobserved, but its
+comparison baseline starts fresh; it must not borrow a global/other federate's
+old values. Capacity, cumulative scope evictions and currently omitted scoped
+changes are explicit optional fields. Missing metadata on an older backend means
+unknown capacity/loss, not zero loss. Objects, Federates and Diagnostics show
+coverage; lists initially render 100 entries while search covers all supplied
+snapshots. This does not change the separate classic global inspector lifetime.
 Clearing history clears snapshots too; restarting the backend resets the demo.
+
+Analytics does not need the whole inspector tree. `analytics_window()` takes one
+consistent retained-envelope/roster/retention projection under the store lock;
+`AnalyticsWindow` validates that named input and `build_analytics` uses exactly
+the same aggregation rules as a full snapshot. Do not optimize by silently
+dropping participants, samples or unknown values. Recorded analytics negotiates
+the lightweight input through `recording_analytics_window`; an older backend
+still receives the original full-frame request. The file's captured URLs or
+capabilities never decide where the browser sends it.
+
+Use [SCALE.md](SCALE.md) for repeatable workload measurements, explicit reference
+budgets and the remaining large-state/recording findings. Tiny functional tests
+prove the model/flow; they are not evidence of high-volume performance.
 
 The Logical time screen also has a persistent inspector, independent of the
 analytics time window. `time_models.py` parses explicit provider-neutral time
@@ -466,12 +487,194 @@ resolve provider delta calls before publishing a full snapshot, or say unknown.
 Source/session/federation/federate, kind, direction and class key keep reports
 separate. The event's federate is the explicitly reported declaration subject.
 Matching a publisher and subscriber class name is not evidence of a route or
-delivery. Relationship/topology evidence is a separate future model.
+delivery. Explicit relationship evidence is a separate optional model.
+
+The Topology screen consumes `inspectors.relationships`. `relationships.py`
+validates dependency-free records and keeps a bounded latest-report index;
+`schemas.py` validates the same named wire models; `TopologyView` uses their
+generated TypeScript shapes. A Java server can supply those shapes unchanged.
+Only adapter-supplied producer/recipient endpoints draw arrows. Each endpoint
+has a participant ID and a membership (join) ID, scoped by namespace and
+federation ID. Display names and RTI handles are labels, not identity: two
+"Observer" names or reused handles never merge joins. A fresh join needs a
+fresh membership ID; a reconnect needs a fresh reporting session ID.
+
+The graph separates declared/observed evidence and active/ended/unknown reported
+status, and offers keyboard-selectable nodes, search and filters. Separate
+reporters remain separate edges with provenance in the table. The newest 40
+filtered edges are drawn; the complete bounded index is paged in the table.
+No edge means unknown evidence, not proof of no route. Old sessions remain
+last-reported facts, not a current membership census. This new identity model
+does not reinterpret the older name-attributed roster or time/object views.
 
 Pause view freezes the local screen only. Data collection continues; command
 submission is disabled until the view resumes. The separate `commands`
 capability enables only explicitly registered control sessions. Available MOM
 or time observations do not imply permission to send commands.
+
+Synchronization and Save / restore are read-only coordination workspaces.
+`coordination.py` validates explicit phases and maintains two bounded indexes:
+latest scoped reports and a separate phase sequence. `schemas.py` exposes named
+discriminated inputs and response models, and `CoordinationView` consumes the
+generated types. Different adapters can translate different RTI callback shapes
+into this contract; the generic observer never calls those APIs itself.
+
+An operation ID is a ticket for an attempt; the label is just display text and
+may be reused. Keep reporter sessions, federation IDs and local participant join
+IDs separate. Local save completion can coexist with a federation-wide failure:
+one participant finishing is not everybody finishing. The screen deliberately
+shows both scopes and never fills in missing phases or declares success from
+counts. An omitted participant report is unknown, while an empty array means
+explicitly empty — neither proves full membership coverage. Selecting an
+operation follows its retained phases across all scopes; table filters affect
+only latest reports. Index/history losses are disclosed separately.
+
+Each workspace has an independent capability and works without MOM or
+analytics. Observer infrastructure being able to accept a model does not turn
+an unsupported provider feature into partial support. No synchronization or
+save/restore controls appear until a future adapter explicitly owns and
+advertises those commands.
+
+The new save/restore inspector uses `persistence_inspection`, not the earlier
+provider-level `persistence` flag. Existing v1 backends keep that old meaning
+without suddenly being required to implement this new model.
+
+Interaction flow is a different question from declarations or topology:
+"Which send and receive observations refer to the same explicit transmission?"
+`interaction_flow.py` parses named dependency-free records and maintains a
+bounded pairing ledger; the HTTP boundary validates named Pydantic models and
+`InteractionFlowView` consumes their generated TypeScript types. It works with
+the Java fixture and does not depend on MOM or analytics.
+
+An adapter supplies a message ticket plus both endpoint join IDs in a shared
+namespace/federation. Missing tickets/endpoints leave counted observations
+uncorrelated; two identically named federates or two Signal-class messages are
+not enough. A repeated ticket is ambiguous, not another successful delivery.
+Separate reporters may supply the two observations, but their source/session
+details are retained and the adapter must guarantee truly shared, unique IDs.
+Each join needs a new membership ID. Sender/receiver name, handle or timestamp
+does not replace that identity.
+
+The chart measures observer arrival intervals on a monotonic local clock, not
+network latency or logical-time advancement. Receiving first can still pair
+explicit evidence, but does not produce a made-up positive duration. Unknown
+durations stay unknown; a genuine zero stays zero. Legacy receive-only RTIs
+still show counts and uncorrelated records. Cumulative counts include expired
+flow records since clear, while charts/statuses describe only retained records;
+loss is visible. Pairing never silently creates a topology edge or changes
+ownership. Per-report details preserve the original endpoint metadata.
+
+Ownership is another independent inspector. `ownership.py` keeps explicit owner
+states, scoped request tickets and a separate bounded report sequence;
+`OwnershipView` consumes generated models. An updater is not necessarily an
+owner. Completing an acquire/divest call is not proof that ownership changed.
+Only an explicit owner-state report changes the displayed owner. Unknown,
+unowned and RTI-owned are distinct. A handle-only RTI can retain its reported
+name/handle as unresolved metadata without inventing a participant join.
+
+Tickets match only within the same reporter/session/federation/object/attribute
+scope, request ID, action and requester join. Duplicate retained tickets are
+ambiguous; a late unmatched outcome does not complete unrelated pending work.
+Each object ID identifies an instance lifetime, not just its display name.
+The chart counts reported attribute scopes, not a complete federation census.
+Separate latest-state, request and history capacities disclose their own loss.
+The new `ownership_inspection` capability is independent of MOM and analytics;
+the earlier provider `ownership` flag does not promise this additive model.
+
+`regions.py` supplies typed region extents, associations and routing reports.
+`RegionsView` preserves exact decimal-string bounds, including integers beyond
+JavaScript's safe-number range. BigInt arithmetic converts only a bounded
+display ratio; it never rounds the original values through Number. A dimension
+limit that was not reported stays unknown and produces no invented scale.
+Very narrow ranges have a minimum-width marker, with exact text alongside it.
+The graph is a dimension-range diagram, not a geographic map or overlap proof.
+
+Region references resolve only in the same source/session/namespace/federation
+scope. Declared associations and observed routing remain separate reports; no
+association, overlap or class match establishes message delivery. Deleting a
+region does not silently rewrite another report. Null/omitted extents or sets
+mean unreported, while empty arrays mean explicitly empty. Search/filter,
+selection, exact-scope links, bounded sequences and coverage work with the
+unchanged Java fixture. `regions_inspection` is separate from the legacy
+provider `regions` flag, and no ownership or DDM controls are advertised.
+
+The MOM reports screen is independent of ordinary membership. `mom.py` keeps
+typed member, service and counter reports; `MomView` reads the generated
+`MomResponse`. Think of a management roster as a report from a particular
+source, not a replacement for everything the observer knows. Its coverage can
+be complete, partial or unknown. A name/handle-only entry stays unresolved;
+inventing a join ID would make later correlation unsafe. Service errors are
+evidence, not a failed command issued by this dashboard.
+
+Counters carry either a finite numeric value or opaque text, plus explicit
+semantics and optional unit. The chart never converts strings to numbers or
+guesses a rate/reset. Wide integers use text rather than losing precision in
+JavaScript. Only the same reporting scope, report ID, counter key, subject
+identity, semantics and unit belong to one series. Latest evidence and arrivals
+have separate bounds/loss. `mom_inspection` enables this model; the old provider
+`mom` flag alone does not. An RTI with no MOM still supports independent
+attributes, time, roster and explicitly registered lifecycle commands.
+
+The FOM browser follows the same split. `fom.py` indexes adapter-supplied class,
+attribute, parameter, datatype and dimension metadata; `FomView` navigates
+generated `FomResponse` models. The adapter—not React or the generic observer—
+owns any provider-specific schema API or FOM parsing. Metadata references need
+an exact reporter/session/namespace/federation/model/revision match. If a type
+was only reported in revision 2, it must not resolve a revision-1 field.
+
+A class explicitly says whether it is a root, has a parent or has unknown
+ancestry. Its field list explicitly says declared/effective/unknown scope.
+Unknown is not empty, and parent fields are not automatically inherited. Cyclic
+or missing parent references show a warning instead of an invented tree. Arrays
+and dimension bounds retain exact decimal text; unknown cardinality does not
+mean variable length. The screen does not decode any live attribute bytes.
+The limited demo deliberately supplies useful class metadata but no referenced
+datatypes or MOM: only the relevant panels show partial/unavailable notices.
+Both screens preserve a missing selection after clear and disclose bounded
+history loss. Their browser tests also use the unchanged Java fixture.
+
+Recording follows the same three-layer split. `capture.py` is a dependency-free,
+bounded journal owned by the store lock. It freezes the initial state, every
+committed batch, metadata changes, clear boundaries and periodic clock
+checkpoints. It stores full inspectors as evidence; replay must not guess their
+previous state from event names. New arrivals include a whole committed batch
+even when ordinary history immediately evicts some of its events. Limits stop
+recording, not observation, and the baseline discloses any earlier history loss.
+`recording_codec.py` adds a provider-free v2 format: one complete baseline plus
+literal set/delete/splice edits, preserving every committed state rather than
+sampling. The live `recording_compact` capability negotiates it; otherwise the
+frontend uses the original v1 request/file. Both versions remain supported.
+Separate encoded-file, reconstructed-state/work and operation bounds stop an
+over-budget capture without stopping collection. See [RECORDING.md](RECORDING.md).
+
+`recording_models.py` validates the portable document, frames, requests and
+status. `recording_routes.py` bounds uploads before parsing and exposes only
+observer recording operations. It does not call a provider, follow captured URLs
+or save an imported file. A recording is process-local until the user downloads
+it. Other browser clients share the same backend capture; replacing a stopped
+capture requires its exact ID and an explicit confirmation in the UI.
+
+`useReplay` owns a local monotonic playback clock and exact frame selection.
+The same workspaces read the selected recorded state. A permanent replay banner
+distinguishes it from live data; live subscriptions stop and Actions cannot
+submit commands, regardless of captured capabilities. Between frames, pending
+ages remain as captured, not "now minus an old timestamp." Recorded analytics
+uses the frame's captured time and selected window through another validated
+request. Seeking must immediately reject stale/future analysis results.
+Returning to live fetches fresh state; it does not rewind or pause the RTI.
+A dedicated worker reconstructs only the current state and keeps 60 small
+metric samples, rather than expanding all v2 states in page memory. Pending
+seeks identify the still-displayed state; analytics waits for the exact target.
+Closing/replacing replay terminates its worker. Invalid reconstruction never
+substitutes live data or enables Actions.
+
+Start on **Recordings**, capture some traffic, stop, download, then replay the
+retained capture or reopen its JSON file. Try a clear boundary, speed control,
+time slider and exact-state slider. The latter can inspect commits with equal
+clock offsets. An unavailable recording backend does not break other tabs.
+Recording files include actual federation/context data and may contain secrets
+in provider extensions: review them before sharing. They are not the data-free
+workspace configurations planned separately in the backlog.
 
 The Actions tab talks to `useCommands` and `ObserverClient`, which send a named
 command request to FastAPI. `command_models.py` validates the action and its

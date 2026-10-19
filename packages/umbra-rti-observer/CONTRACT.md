@@ -148,24 +148,42 @@ objects or provider-specific handle types.
   means only events explicitly attributed to that name. Global values can mix
   sources; they must never substitute for an attributed snapshot.
 - Each snapshot nests the ordinary object-inspector model and includes
-  `last_sequence` and `generation`. Snapshots outlive event eviction, but clear
-  with `DELETE /api/events` and reset on backend restart. A generation starts
-  at the first observed sequence in that scope, or on discovery after an
+  `last_sequence` and `generation`. Snapshots outlive event eviction, subject to
+  their independent scoped-snapshot budget, and clear with `DELETE /api/events`
+  or backend restart. A generation starts at the first observed sequence in
+  that retained scope, after scoped-index expiry, or on discovery after an
   observed removal. This is not a stable RTI identity or proof of incarnation
   across federates. Multi-producer/name-reuse identity is tracked in OBS-127.
-- `changes` contains every retained attribute observation, including repeated
-  values, for the global scope and, when reported, its attributed scope. Each
+- `changes` contains retained attribute observations for retained scopes,
+  including repeated values, for global and explicitly attributed scopes. Each
   row has sequence, object key, scope, generation, attribute name, value,
   previous-known flag, previous value, source and observation wall time.
   Previous values come from the same perspective/generation and may predate
   retained history. Unknown previous values use `previous_known: false` and
   `previous_value: null`; a known null uses `previous_known: true`.
 - `history_first_sequence` and `history_last_sequence` exactly match the event
-  retention window. `history_truncated` reports dropped or cleared history.
+  retention window. `history_truncated` reports dropped/cleared history or
+  omitted changes belonging to expired scoped baselines.
   History retains at most `max_events` event batches, including empty batches
   for non-attribute events; it is not an archive or a time-window aggregate.
-  Snapshot indexes grow with observed object/perspective identities, like the
-  existing live inspectors, until clear/restart.
+  Snapshot and event-history limits are independent; neither missing snapshots
+  nor omitted scoped changes imply object removal or absent attributes.
+
+The reference scoped index defaults to 5000 least-recently-observed records
+(`max_object_perspectives`). Global `null` and each attributed perspective use
+separate slots; this is not a limit on unique federation objects. Optional
+`snapshot_capacity`, `dropped_snapshots` and `omitted_changes` are either all
+reported or all unreported. The first is positive; eviction count is cumulative
+since clear; omitted changes counts the **current** event-window changes whose
+scoped baseline is no longer retained. They must not reference invented scopes.
+Clear resets the index counters. Reobserved scopes begin a fresh comparison
+baseline, never reusing another participant's or a global value. Raw envelopes
+and their analytics are not dropped by this scoped-index expiry. This budget
+does not change the separate classic global object/roster inspector lifetime.
+Older backends without metadata have unknown capacity/loss, not zero loss or an
+infinite index. Objects, Federates and Diagnostics disclose the budget/loss;
+object navigation and attributed cards initially render 100 rows with explicit
+load-more controls. Search still covers all supplied snapshots.
 
 Required nullable fields (`federate`, `value`, `previous_value`) must remain
 present even when a transport omits optional null fields. Bytes normalized as
@@ -349,8 +367,8 @@ The explorer supports class/key/attribute/reason search, perspective, kind,
 direction/status filters, attribute details and initially 100 rows with explicit
 load-more controls. Pause freezes its snapshot. Matching declaration class names
 never imply ownership, routes, current membership, DDM associations or actual
-delivery. Explicit relationship/topology models are the remaining OBS-110
-increment; no routing edges are drawn from declaration coincidence.
+delivery. Explicit relationships use a separate optional model below; no
+routing edges are drawn from declaration coincidence.
 
 ## Event pages and streams
 
@@ -443,6 +461,510 @@ evoked callback pump belong to the execution owner. A Java replacement can use
 its own executor while preserving these wire semantics. Applications own
 session authorization at the HTTP boundary when exposing real controls.
 
+## Explicit federation topology (optional)
+
+The independent `relationships` capability enables `inspectors.relationships`:
+`RelationshipsResponse` has `snapshots`, positive `capacity`,
+`dropped_relationships`, and basis `last-reported-explicit-relationships`.
+Older backends may omit both capability and model. Disabled/unsupported states
+hide the workspace; partial states retain evidence with a coverage warning.
+This feature needs neither MOM, analytics nor commands.
+
+An event's reserved `relationship` payload is a named
+`RelationshipObservationInput`. It requires opaque `relationship_id`,
+`session_id` (max 256 characters), `identity_namespace`, `federation_id`, explicit
+`producer`/`recipient`, `kind` (object/interaction), `evidence`
+(declared/observed), `status` (active/ended/unknown), and `viewpoint`
+(observer/producer/recipient/unknown). `class_key`, `class_name` and `reason`
+are optional. IDs are nonblank bounded text, not trimmed or coerced; other IDs
+are at most 512 characters and reason at most 4096. Unknown payload fields are
+rejected even though unrelated event extensions remain supported.
+
+Each endpoint has required `participant_id` and `membership_id`; optional
+`display_name` and `handle` are display metadata, never correlation keys.
+Node identity is `(identity_namespace, federation_id, participant_id,
+membership_id)`. Adapters must assign a fresh membership ID on every rejoin,
+a fresh reporting session ID on reconnect, and coordinate an identity namespace
+only when they can guarantee shared identifiers. A name or handle reused in
+another join must not reuse the old identity. Reporters that cannot provide
+this evidence should advertise unsupported/partial, not invent identities
+from display names. This additive model does not silently change the legacy
+name-based roster, object/time perspectives or analytics attribution.
+
+A relationship snapshot is identified by `(event.source, session_id,
+identity_namespace, federation_id, relationship_id)`. Repeated reports are
+complete replacements, including clearing omitted optional metadata; distinct
+reporters remain distinct edges. Adapters supply stable relationship IDs for
+updates and fresh IDs for unrelated relationships. The default 1000-record
+index evicts the least recently updated record and reports its own loss count.
+It survives event-history eviction; clear/restart resets it. Generic lifecycle
+events do not silently end or revive explicit relationship records.
+
+Snapshots add source, sequence and observed_at provenance. Neither an active
+status nor observed evidence is proof of current membership, ownership,
+message delivery, DDM routing or complete federation coverage. No edge is
+inferred from matching class names, publication/subscription declarations,
+object updates or receive callbacks. The graph draws the newest 40 filtered
+edges with a visible limit; its accessible table renders 100 at a time.
+Both use the same explicit data and support pause/clear. Layout positions
+do not represent latency or network location. The shared Java fixture includes
+these named endpoint and relationship models without importing Python.
+
+## Synchronization and save/restore inspection (optional, read-only)
+
+Independent `synchronization` and `persistence_inspection` capabilities enable their
+respective workspaces over the additive `inspectors.coordination` model.
+`CoordinationResponse` contains latest `snapshots`, retained `transitions`,
+positive `capacity` and `history_capacity`, `dropped_operations` and
+`dropped_transitions`, and basis `explicit-coordination-observations`. If either
+feature is advertised available/partial, the model (including empty arrays)
+must be supplied. Older backends may omit the feature and model. These views
+do not require MOM, analytics, commands or native RTI bindings.
+
+Legacy provider-level `persistence` retains its earlier meaning; it does not
+promise this additive typed inspector. A v1 backend advertising only that
+older capability may omit `coordination` and still pass conformance. The new
+workspace remains explicitly unavailable, without disabling its other views.
+
+The reserved `coordination` event payload is a discriminated named input:
+
+- `SynchronizationObservation`: kind `synchronization`; phase `requested`,
+  `registered`, `registration-failed`, `announced`, `achieved`, `completed` or
+  `failed`.
+- `PersistenceObservation`: kind `save` or `restore`; phase `requested`,
+  `begun`, `completed` or `failed`.
+- Both require opaque `operation_id`, fresh reporter `session_id`,
+  `identity_namespace`, `federation_id`, `label`, and `scope` (`local` or
+  `federation`). Identifier limits and preservation match relationship inputs.
+- Optional `subject` uses the explicit participant/join identity and is allowed
+  only for local scope. A missing local subject is unknown, not global. Optional
+  `participants` is a complete replacement of the supplied progress report,
+  **not** necessarily complete federation membership. Null/omitted means
+  unreported; `[]` means an explicitly empty report. Each named entry contains
+  `identity`, `status` (pending/achieved/begun/completed/failed/unknown), and an
+  optional reason. Join IDs must be unique within the array (max 4096 entries).
+  Reasons are at most 4096 text characters. Extra/coerced fields are rejected.
+
+The adapter assigns operation IDs that distinguish repeated uses of a label.
+Latest-report identity is `(source, session_id, identity_namespace,
+federation_id, kind, operation_id, scope, subject participant/membership IDs)`.
+Neither identical labels nor names merge operations. A fresh local join gets
+a fresh membership ID. Complete replacements discard omitted optional reasons
+and participant lists rather than carrying stale data forward.
+
+Snapshots add `source`, `sequence` and `observed_at`. The default independent
+index retains 1000 scoped snapshots and 2000 phase reports; least-recently
+updated snapshots and oldest transitions expire separately. Configure these
+with `max_coordination` / `max_coordination_transitions`. `dropped_operations`
+counts evicted **scoped snapshots**, not unique collective operations.
+Clear/restart resets both indexes and loss counters. Ordinary event-history
+eviction does not erase them. The combined capacities/loss counters cover all
+three kinds, even when the UI filters to one workspace.
+
+These are reported facts, not a reconstructed RTI state machine. Missing
+intermediate phases are never filled in; arrival order is not an assertion of
+provider execution order. A local completed/achieved report, a list of successful
+participants, or an accepted request never establishes collective completion.
+Only an explicit federation-scoped completed report displays that outcome.
+Raw callbacks with similar names do not create normalized phases automatically.
+
+The UI has operation selection, label/source/identity/reason search, latest
+phase/scope filters, participant failures and a retained phase sequence with
+report counts. The sequence shows all scopes/phases for the selected operation
+independently of the latest-report table filters. Tables and sequences initially
+render 100 records with explicit load-more controls. Pause freezes them; clear
+preserves a missing selection instead of silently choosing another operation.
+The Java fixture supplies the same models unchanged. No register, achieve,
+save or restore command is advertised; observation does not grant authority.
+
+Optional inspector infrastructure support does not upgrade an adapter's
+unsupported/disabled feature to partial. Actual adapter reports aggregate with
+one another; an available reporter plus an unsupported reporter is partial,
+whereas disabled plus unsupported remains unusable. Application/operator
+capability overrides remain authoritative.
+
+## Interaction-flow inspection (optional)
+
+The independent `interaction_flow` capability enables the additive
+`inspectors.interaction_flow: InteractionFlowResponse`. It contains bounded
+`records`, positive `capacity` (default 500), `dropped_records`, cumulative
+`send_observations`/`receive_observations` since clear, and basis
+`explicit-interaction-observations`. An available/partial feature must include
+the model, even when empty. Older, disabled or unsupported backends keep their
+other views. The feature needs neither MOM, analytics nor commands.
+
+Reserved event field `interaction_flow` uses named
+`InteractionFlowObservationInput`: required `kind` (send/receive) and explicit
+`order` (receive-order/timestamped/unknown); optional opaque `message_id`,
+`identity_namespace`, `federation_id`, reporter `session_id`, `producer`,
+`recipient`, `class_key` and finite numeric `logical_time`. Endpoint models
+require participant and membership IDs, with optional display names/handles.
+Identifier bounds/preservation match topology. Unknown fields and number/string/
+boolean coercion are rejected. Direction must agree with a canonical
+`interaction.sent` or `interaction.received` envelope, including its `kind`
+alias, before any batch mutation. A logical timestamp never implies timestamped
+delivery order. Opaque/unavailable numeric times can be omitted.
+
+Pairing requires the complete exact key `(identity_namespace, federation_id,
+message_id, producer participant/membership IDs, recipient participant/membership
+IDs)`. Names, handles, classes, timestamps and reporter source/session are not
+pairing keys. Independent sender/receiver reporters can therefore contribute
+evidence when their adapter-supplied identity namespace is genuinely shared;
+their original source/session metadata remain separate. Adapters must guarantee
+a fresh message ID for each transmission in that namespace, federation and
+endpoint-join scope, including across reporter reconnects. Never invent IDs or
+shared namespaces from names. Each rejoin requires a fresh membership ID.
+Deduplication cannot detect reuse after capacity eviction; uniqueness is a
+producer obligation, not a claim of infinite retained memory.
+
+Each named record retains `record_id` (its first observation sequence),
+`last_sequence`, first `send` and/or `receive` report with source/sequence/
+observed_at provenance, send/receive counts, status and optional
+`arrival_delay_seconds`:
+
+- `uncorrelated`: an incomplete key; each observation stays a separate record.
+- `send-only` / `receive-only`: one side of a complete explicit key is observed.
+  Neither establishes delivery failure or absence of the other observation.
+- `paired`: exactly one send and one receive with matching identity. This means
+  paired adapter observations, not proof of RTI delivery correctness.
+- `ambiguous`: a retained key has repeated send or receive observations. Counts
+  increase; original evidence is retained; prior pairing and delay are invalidated.
+  Do not treat a duplicate as an additional delivered transmission.
+
+Delay is the observer's monotonic receive-arrival minus send-arrival interval,
+only for an unambiguous send-before-receive pair with a finite nonnegative
+duration. It is **not network latency**, a provider service duration or a
+remote-clock measurement. Receive-before-send evidence may pair, but has no
+invented positive interval. Invalid/backwards clocks produce unknown, not zero;
+a genuine measured zero remains zero. Logical times are unrelated to this clock.
+
+Exact legacy `interaction.sent` / `interaction.received` events without the
+typed field still contribute uncorrelated observations, with unknown endpoints
+and order. Similar callback names, matching classes or a numeric root timestamp
+do not establish a pair or order. Explicit flow does not create topology edges:
+the separate relationship model remains the only topology source.
+
+The least-recently-updated flow record expires when capacity is reached;
+cumulative observation totals still include expired reports. Retained statuses
+and charts cover only retained evidence, not a delivery success ratio. Configure
+`max_interaction_flow`; clear/restart resets records, totals and loss. Event
+history expiry alone does not erase flow evidence. The UI adds search, pairing/
+order filters, paged evidence tables, per-report details and a dynamic arrival-
+interval chart. Pause freezes the view. Java full/no-ID/no-analytics fixtures
+use these unchanged named models, including a real measured-zero interval.
+
+## Attribute ownership inspection (optional, read-only)
+
+`ownership_inspection` advertises the additive `inspectors.ownership` model.
+Legacy provider-level `ownership` does not promise this new resource shape.
+`OwnershipResponse` contains `states`, `requests`, `transitions`, positive
+`capacity`/`request_capacity`/`history_capacity`, separate `dropped_states`,
+`dropped_requests`, `dropped_transitions`, `unmatched_outcomes`, and basis
+`explicit-ownership-observations`. Available/partial inspection includes the
+model and its empty arrays; older/disabled/unsupported backends keep other views.
+MOM, analytics, commands and native RTI bindings are not dependencies.
+
+Reserved event field `ownership` is a discriminated named input. All three
+kinds require reporter `session_id`, `identity_namespace`, `federation_id`,
+adapter-supplied object-instance-lifetime `object_id` and `attribute_key`:
+
+- `OwnershipStateObservation`: kind `state`, explicit `owner_state`
+  (known/unowned/rti/unknown) and `transition` (reported/acquired/divested).
+  Only known state has an `owner` with explicit participant/membership IDs;
+  all other states have no owner identity. Optional `reported_owner_name` and
+  `reported_owner_handle` preserve unresolved provider metadata without
+  establishing a join identity or changing unknown into known. Omitted metadata
+  is cleared by the next complete state report, not carried forward.
+- `OwnershipRequestObservation`: kind `request`, `request_id`, action
+  (acquire/divest), and identified `requester` participant join.
+- `OwnershipOutcomeObservation`: kind `outcome`, the same ticket/action/
+  requester fields, and outcome completed/failed/cancelled. Completion describes
+  the reported request outcome, **not** an inferred change in owner.
+
+All identifiers preserve opaque nonblank bounded text (512 characters; reporter
+session 256), reasons are optional text up to 4096 characters, and extra or
+inapplicable fields are rejected atomically. Unknown ownership is different from
+unowned and RTI-owned. State identity includes source, session, namespace,
+federation, object instance and attribute; repeated state reports replace the
+complete report. No publisher, last updater, callback source or successful
+service call establishes an owner. Object/federate lifecycle events do not
+silently rewrite these last-reported facts.
+
+Ticket correlation additionally requires exact request ID, action and requester
+participant/membership IDs in that reporting scope. A fresh join/session gets
+fresh IDs. Duplicate retained request IDs become ambiguous and invalidate any
+matched completion. Outcomes before requests or without an exact retained
+pending ticket increment `unmatched_outcomes` and remain explicit history,
+without retroactive completion. Adapters must not reuse tickets for unrelated
+requests; deduplication cannot detect reuse after ledger eviction.
+
+Default independent capacities are 500 latest attribute scopes, 500 requests
+and 1000 arrival reports (`max_ownership_states`, `max_ownership_requests`,
+`max_ownership_transitions`). States expire least-recently-updated; oldest
+recorded requests expire first, including pending ones; history expires oldest
+arrivals. Expiry is not a successful outcome. Ordinary event-history eviction
+does not erase these indexes; clear/restart resets them. Pending means last
+reported evidence, not a live RTI query. The UI provides separate owner and
+request tables with independent row limits, scoped search/selection, a reported-
+state distribution and a retained report sequence. No ownership command is
+advertised. Python/Java fixtures cover identified, unknown and pending evidence.
+
+## Regions and DDM inspection (optional, read-only)
+
+`regions_inspection` advertises additive `inspectors.regions: RegionsResponse`;
+the older provider-level `regions` capability keeps its earlier meaning. The
+model has `snapshots`, `transitions`, positive `capacity`/`history_capacity`,
+`dropped_snapshots`, `dropped_transitions`, and basis
+`explicit-region-observations`. Available/partial inspection must supply this
+model. It is independent of MOM, analytics, commands and topology relationships.
+
+Reserved `region_observation` is a discriminated named input. Common fields
+are session/namespace/federation IDs, required `evidence`
+(declared/observed/unknown), optional identified `subject` and bounded reason:
+
+- `RegionStateObservation`: kind `region`, explicit region-instance `region_id`,
+  status active/deleted/unknown, and optional `extents`. An extent has a unique
+  `extent_id` and explicit `dimensions` array. Each range has a unique-in-extent
+  `dimension_id`, `lower_bound`, `upper_bound` and optional
+  `dimension_upper_bound`. Null/omitted extents mean unreported; `[]` explicitly
+  reports an empty set. No missing ranges are fabricated or retained from a
+  previous complete replacement.
+- `RegionAssociationObservation`: kind `association`, `association_id`, status
+  active/ended/unknown, explicit target kind (object/interaction), `target_id`,
+  direction (publication/subscription/update/send/unknown), optional `region_ids`
+  and object `attribute_keys`. Null/omitted sets mean unreported; empty arrays
+  are explicit empty sets. Interaction associations cannot report object
+  attribute selections. These are adapter-reported labels, not an authorization
+  to invoke a corresponding RTI service.
+- `RegionRoutingObservation`: kind `routing`, `routing_id`, status
+  active/ended/unknown, optional region references, target metadata and identified
+  producer/recipient joins. Missing endpoints stay unknown. A routing report is
+  not a delivery receipt and never creates a topology relationship implicitly.
+
+Range bounds are canonical nonnegative decimal **strings**, up to 128 digits,
+with no whitespace, sign, leading zero (except `0`), exponent or numeric coercion.
+Lower must not exceed upper; an explicitly supplied dimension limit must cover
+upper. This preserves large provider bounds exactly through Python/Java/JSON/
+TypeScript. The portable schema rejects nondecimal characters, including a final
+newline. Up to 256 extents, 256 dimensions per extent and 4096 total ranges per
+region report are accepted; reference/attribute arrays are unique and bounded
+at 4096. Identifier/reason limits match the other typed inspectors.
+
+Latest identity is source + reporter session + namespace + federation + kind +
+explicit region/association/routing ID. Reused display names or IDs in another
+scope do not merge. Region IDs identify instance lifetimes; fresh lifetimes need
+fresh IDs or a fresh capture scope. References resolve only against explicitly
+reported regions in that exact scope; an unresolved reference does not create a
+phantom region. Deletion never silently changes a separate association/routing
+snapshot. Neither extent overlap nor matching class names infer routing,
+subscription coverage, current membership or delivery.
+
+Default capacities are 500 latest reports and 1000 arrivals (`max_regions`,
+`max_region_transitions`). They expire separately with loss notices and survive
+ordinary event-history expiry. Clear/restart resets both. The UI adds kind/
+status/evidence/search filters, paged reports, exact-scope reference navigation,
+selected report details and retained sequences. Range plots use only explicitly
+reported dimension limits, approximate ratios at 0.01% display precision and a
+minimum-width marker; original bounds remain exact text. Unknown/zero limits
+do not produce an invented proportional plot. At most 40 dimension ranges are
+drawn, with an explicit limit and complete selected report details. Pause freezes
+the data; clear preserves a missing selection. No DDM command is advertised.
+
+## MOM reports (optional, read-only)
+
+`mom_inspection` advertises `inspectors.mom: MomResponse`, not the older
+provider-level `mom` flag. Available/partial inspection requires this named
+model; absent, disabled or unsupported inspection never disables ordinary
+roster, attributes, time or session control. It has `snapshots`, `transitions`,
+positive `capacity`/`history_capacity`, separate dropped counts and basis
+`explicit-management-reports`.
+
+Reserved `mom_observation` is a discriminated input. Every report requires
+session/namespace/federation IDs and `report_id`; reason is optional. Output
+adds the observer source, sequence and arrival time. Kinds are:
+
+- `members`: explicit coverage complete/partial/unknown and optional members.
+  Null/omitted members means unknown; `[]` explicitly reports no entries. A
+  complete report requires an array. Each member has status joined/resigned/
+  unknown and a `ParticipantReferenceResponse`: an explicit participant/join
+  identity, unresolved display name/handle metadata, or both. At least one form
+  of evidence is required. Identified joins cannot repeat within a report;
+  unresolved same-name entries need not identify the same join. These reports
+  never replace the ordinary observer roster, even with complete coverage.
+- `service`: service name, invoked/completed/failed/unknown status, optional
+  subject reference, invocation ID and error name. These are reported evidence,
+  not observer-dispatched commands. No command completion, paired invocation,
+  duration or provider service meaning is inferred.
+- `counter`: counter key, cumulative/gauge/unknown semantics, optional unit and
+  subject reference, and exactly one finite numeric `value` or opaque
+  `value_text`. Booleans, numeric strings and nonfinite numbers are rejected.
+  Integers outside ±9007199254740991 require text to avoid JavaScript precision
+  loss. Zero is a sample, not missing data. Text is never parsed into a chart.
+
+Latest identity is source/session/namespace/federation/kind/report ID. A complete
+replacement clears omitted fields rather than carrying stale errors or members
+forward. Default bounds are 500 latest reports and 2000 arrivals
+(`max_mom_reports`, `max_mom_transitions`), independent of event retention.
+Clear/restart resets both indexes. The UI filters reporting scope, service
+status and text, pages member/service/counter evidence, retains selected scope
+after clear, and charts only exact numeric counter series. Series also separate
+counter key, identified subject, unit and semantics. Unresolved subjects are
+metadata within the report ID, not invented joins. Opaque arrivals break chart
+lines; rates, resets and complete federation totals are not inferred.
+
+## FOM metadata (optional, read-only)
+
+`fom_inspection` advertises `inspectors.fom: FomResponse`, with snapshots,
+transitions, independent capacities/dropped counts and basis
+`adapter-supplied-fom-metadata`. It is independent of MOM, analytics and native
+bindings. Available/partial inspection supplies the model; partial metadata can
+be useful even when referenced types or parents are unavailable.
+
+Reserved `fom_observation` requires session/namespace/federation IDs, model ID,
+revision, element ID and present/removed/unknown status. Name and description
+are optional; an ID display fallback never becomes a reported name. Kinds are:
+
+- `object-class` and `interaction-class`: explicit parent state root/parent/
+  unknown, parent ID if and only if state is parent, and declared/effective/
+  unknown field scope. Attributes or parameters are optional arrays with unique
+  field IDs, optional names, datatype references and descriptions. Null/omitted
+  lists are unknown; empty arrays are explicitly empty. No inherited fields
+  are synthesized from the reported hierarchy.
+- `datatype`: primitive/enumeration/array/record/variant/opaque/unknown encoding
+  and optional opaque representation. Only record/variant allow fields; only
+  enumeration allows enumerators (unique names with opaque string values;
+  aliases may share a value); only array allows element-type reference and fixed
+  cardinality. Unknown cardinality does not imply a variable-length array.
+- `dimension`: optional exact upper bound and unit. Dimension upper bounds and
+  array cardinalities use the same canonical nonnegative decimal strings as
+  region bounds, up to 128 digits. Numeric coercion is not accepted.
+
+Latest identity is source/session/namespace/federation/model/revision/kind/
+element ID. Revisions are explicit adapter identifiers, not ordered or guessed
+from time. References resolve only within that exact model scope and target
+kind. A same-name/ID element from a different reporter or revision never fills
+a missing reference. Parent cycles are visible reports, not recursively
+expanded forever: the UI stops at a cycle or 64 ancestors and discloses it.
+No missing parent becomes an invented root. Datatype navigation is one explicit
+link at a time; recursive types never trigger recursive decoding.
+
+Each report completely replaces its element snapshot. Defaults are 1000 latest
+elements and 2000 arrivals (`max_fom_elements`, `max_fom_transitions`), surviving
+event expiry independently and resetting on clear/restart. Field/enumerator
+arrays are bounded at 4096. Search, model/kind/status filters, paged elements,
+fields and history, selected metadata, parent/child/type navigation and exact
+bounds use generated types unchanged with Java. Selection survives clear as a
+missing element rather than silently switching revision. Present/removed is
+adapter-reported metadata status, not proof of the currently loaded federation
+schema. The generic observer does not parse provider FOM files, infer domain
+semantics, decode runtime bytes or advertise a schema-editing command.
+
+## Recording and replay (optional, read-only with respect to the federation)
+
+`recording` advertises an observer feature, not an RTI service. Missing MOM,
+ownership, DDM, analytics or command support does not prevent capture. With the
+feature disabled (`create_app(..., enable_recording=False)` or backend CLI
+`--no-recording`), its paths and
+routes are absent and independent observation remains usable. Discovered paths:
+
+| Resource key | Method | Named boundary |
+| --- | --- | --- |
+| `recordings` | GET | `RecordingStatusResponse`: process scope and nullable `CaptureStatus` |
+| `recording_start` | POST | `RecordingStartRequest` → `CaptureStatus` |
+| `recording_stop` | POST | `RecordingTargetRequest` → `CaptureStatus` |
+| `recording_export` | GET, `recording_id` / optional `storage_format` query | `RecordingDocument` or negotiated `CompactRecordingDocument`, JSON attachment |
+| `recording_validate` | POST | Either named portable document → validated same format, never expanded into a full-state array |
+| `recording_analyze` | POST | `RecordingAnalysisRequest` or `RecordedWindowAnalysisRequest` → `AnalyticsResponse` |
+
+The reference paths are `/api/recordings`, `/start`, `/stop`, `/export`,
+`/validate`, `/analyze` (the latter five beneath `/api/recordings`). Clients
+discover every resource key rather than using a captured document's paths.
+Request bodies, including chunked bodies, are bounded at 16 MiB before JSON
+parsing. Validation errors do not echo captured federation data. Imports do not
+open files, follow URLs, register sessions or dispatch provider operations.
+
+One process-local capture is retained, shared by browser clients. Start takes a
+nonblank label (1..120 characters), optional `replace_id`, `max_frames` (1..2000,
+default 600), `max_bytes` (65536..16777216, default 16 MiB) and optional
+`storage_format` (default `full-v1`). Only a live backend advertising
+`recording_compact` accepts a client's `compact-v2` negotiation. An active capture
+cannot be replaced. A stopped capture can be replaced only by explicitly naming
+its retained ID; the UI confirms the data loss and offers download first. Wrong
+IDs/conflicts return 409. An initial state that does not fit is rejected without
+discarding an earlier capture. Stop is ID-scoped/idempotent; export requires a
+stopped capture so the file has a fixed timeline. Navigation, page refresh or
+closing the browser does not stop capture. Backend restart loses an
+undownloaded capture; this is not a durable server-side recording archive.
+
+`RecordingDocument` version `umbra-observer-recording-v1` contains recording ID,
+label, initial `ContractResponse` with exact aggregated capability provenance,
+start/stop wall times, duration, explicit stop reason, bounds/accounted bytes and
+ordered `RecordingFrame` records. A frame has index, monotonic offset, capture
+wall time, change (start/events/metadata/clear/checkpoint/stop), new `arrivals`
+and a complete `StateResponse` including retained `normalized_events`.
+
+`CompactRecordingDocument` version `umbra-observer-recording-v2` preserves the
+same complete states with a baseline plus strict named set/delete/splice edits.
+Every reconstructed state passes `StateResponse`/`RecordingFrame` validation and
+the shared transition rules. Encoded bytes, per-state size/depth/nodes, cumulative
+reconstruction work and edit counts have separate fixed limits. New status
+fields disclose format/work; absent legacy metadata stays unknown. Compact
+export requires the explicit matching `storage_format=compact-v2`; a mismatch
+returns 409, not a silent downgrade or new format for an old client. V1 start/
+export defaults and imports remain supported. See [RECORDING.md](RECORDING.md)
+for the exact codec, bounds, negotiation and independent consumer rules.
+
+The zero-offset baseline preserves all current inspectors, context, capability
+coverage and explicit retained-history loss. It does not claim a complete earlier
+session. Every committed event batch has one atomic frame and retains **all**
+its new envelopes, even those immediately expired from ordinary event history.
+Metadata/capability/adapter changes and clear boundaries have their own frames.
+One-second checkpoints also preserve clock-dependent inspector ages/rates when
+no event arrives; stopping takes a final state. Inspector snapshots are stored,
+not reconstructed from guessed event meanings, current clocks or later data.
+
+Limits stop capture rather than evicting earlier frames or interrupting event
+collection. Stop reasons are user/frame-limit/byte-limit/invalid-state/backend-
+stopped; v2 additionally reports state-limit/decode-limit/edit-limit. Duration
+ends at the last accepted frame; a rejected over-budget tail
+is not replayed or extrapolated. `captured_bytes` is conservative accounted
+UTF-8 document space (including manifest/wrapper reserve), not exact file size
+or process RSS. Models verify bounds, finite JSON, versions, manifest/baseline
+agreement, frame order, retained-window/count consistency, complete contiguous
+arrivals, cursor continuity and no rewriting/resurrection across commits.
+Clearing empties retained history without resetting the lifetime next cursor.
+
+The React replay clock uses monotonic offsets, selectable 0.25×..8× speed,
+play/pause, time seek, exact frame seek and previous/next state. Equal-offset
+commits remain individually inspectable by frame; time seek uses the last state
+at/before its clock. Between frames, evidence and pending ages remain as captured,
+never extrapolated. Analytics is recomputed through a named validated request
+using that frame's captured wall time and selected window, not today's time.
+Missing analytics still leaves recorded events, metrics and inspectors usable;
+failed/stale analysis never substitutes another frame's or a live result.
+
+A prominent replay banner and connection badge remain across workspaces. Live
+snapshot/stream/analytics subscriptions stop while replay is displayed; returning
+to live reconciles from a fresh snapshot. The underlying backend/federation can
+continue collecting. No captured URL is followed, no captured capability grants
+authority, and Actions cannot load or submit provider commands during replay.
+The file may contain sensitive context, names/handles and provider extensions;
+it is **not credential-scrubbed** and is different from a shareable configuration.
+Review it before sharing. Validation/import/analyze do not persist the file.
+Compact replay expands only the current state in a dedicated worker, not all
+states on the page. Seeking yields to newer requests; a pending banner names
+the actual displayed state separately from its requested target. Recorded
+analytics pauses during reconstruction, and pending/error replay never falls
+back to a live snapshot. Changing/closing the recording terminates its worker.
+
+Adding recorded states as model inputs makes FastAPI expose distinct `-Input`
+and `-Output` schema components where serialization differs. These are generated
+OpenAPI names, not changed JSON field names or a contract version bump. The UI
+aliases response schemas explicitly and keeps the recursive JSON extension
+boundary separate. The portable response schema also includes the recording
+models. HTTP-read conformance checks advertised recording status only; capture,
+import, clock/seek and command-isolation tests are separate internal lanes.
+
 ## Backend replacement rules
 
 ### Optional observation analytics
@@ -454,6 +976,26 @@ Backends without it continue to support events and inspectors; the React UI
 shows an unavailable analytics state without treating the whole service as
 offline. The reference service accepts windows of 30..3600 seconds and
 10..120 buckets. `federate` is an optional exact identity filter.
+
+The reference backend takes a dedicated `AnalyticsWindow` projection under the
+same store lock: contract version, complete retained normalized envelopes,
+persistent federate roster and retention metadata. It does not build, validate
+or serialize unrelated object-history/MOM/FOM/DDM inspectors merely to count
+events. This is not sampling or downsampling. Window/scoped attribution, idle
+roster entries, explicit unknown/numeric times and loss semantics are unchanged;
+tests compare complete aggregate outputs against full-state aggregation.
+
+Recorded analysis can use `RecordedWindowAnalysisRequest`: `window` with those
+four named fields, finite `captured_at`, bounded window seconds and bucket count.
+Window validation checks complete ordered retained cursors, counts, unique
+roster identities and finite JSON. A backend advertises
+`recording_analytics_window` only with usable `recording` and the discovered
+`recording_analyze` resource. Clients use it when advertised; otherwise they
+continue sending the original `RecordingAnalysisRequest` with a full frame.
+The reference backend accepts both and produces identical analytics at the
+captured wall time. A captured document never chooses the live backend's
+request shape or endpoint. This keeps older/Java recording implementations
+compatible rather than silently making recorded analysis unavailable.
 
 The Python backend can turn this module off with `--no-analytics` or
 `create_app(store, enable_analytics=False)`. Its route and OpenAPI path are then
@@ -501,8 +1043,9 @@ commands; the planned command catalog is tracked separately in
 To replace the Python server with Java:
 
 1. Keep the built React dashboard static asset unchanged.
-2. Implement `/api/contract`, `/api/state`, `/api/events`, and one streaming
-   endpoint with the shapes above.
+2. Implement `/api/contract`, `/api/state` and `/api/events` with the shapes
+   above. Implement streaming only when advertising a supported transport;
+   HTTP-only backends can use snapshot polling.
 3. Advertise provider and backend capability states in the contract and state
    snapshot. Do not silently omit unsupported features.
 4. Translate Java RTI callbacks into the normalized event envelope in a Java

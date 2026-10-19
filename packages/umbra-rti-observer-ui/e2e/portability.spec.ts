@@ -53,7 +53,8 @@ test.describe("Java without analytics", () => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Windowed analytics unavailable" })).toBeVisible();
     await navigate(page, "Events");
-    await expect(page.getByRole("region", { name: "Event explorer" }).locator("tbody tr")).toHaveCount(5);
+    // Four updates, one grant and one explicitly uncorrelated receive report.
+    await expect(page.getByRole("region", { name: "Event explorer" }).locator("tbody tr")).toHaveCount(6);
     await expect(page.getByRole("alert")).toHaveCount(0);
   });
 });

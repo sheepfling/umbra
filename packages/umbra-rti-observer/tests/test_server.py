@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from unittest.mock import patch
 import pytest
 
 pytest.importorskip("fastapi")
@@ -9,6 +10,29 @@ from fastapi.testclient import TestClient
 
 from umbra_rti_observer import OBSERVER_CONTRACT_VERSION, ObserverStore
 from umbra_rti_observer.server import create_app
+
+
+def test_live_analytics_does_not_materialize_unrelated_inspectors() -> None:
+    store = ObserverStore()
+    store.publish({"event_type": "object.updated", "federate": "A", "object_key": "one"})
+    with TestClient(create_app(store)) as client, patch.object(store._object_views, "to_json", side_effect=AssertionError("expensive unrelated inspector traversal")):
+        response = client.get("/api/analytics")
+        assert response.status_code == 200 and response.json()["events_in_window"] == 1
+
+
+@pytest.mark.parametrize("path", ["/api/health", "/api/metrics"])
+def test_health_and_metrics_use_a_validated_summary_without_inspector_history(path: str) -> None:
+    store = ObserverStore()
+    store.publish({"event_type": "object.updated", "federate": "A", "object_key": "one"})
+    expected = store.state()
+    summary = store.runtime_summary()
+    assert "inspectors" not in summary and "normalized_events" not in summary
+    assert summary["live_metrics"] == expected["live_metrics"]
+    with TestClient(create_app(store)) as client, patch.object(store, "_state_locked", side_effect=AssertionError("full state traversal is forbidden for summaries")):
+        response = client.get(path)
+        assert response.status_code == 200
+        if path.endswith("health"): assert response.json()["event_count"] == 1
+        else: assert response.json()["live_metrics"] == expected["live_metrics"]
 
 
 def test_object_perspectives_have_identical_required_nulls_in_http_and_stream() -> None:
@@ -197,13 +221,18 @@ def test_http_contract_uses_named_pydantic_models_at_the_transport_boundary() ->
         "family",
         "source",
         "observed_at",
-    }.issubset(response_schemas["EventEnvelope"]["properties"])
+    }.issubset(response_schemas["EventEnvelope-Output"]["properties"])
     assert {
         "state",
         "label",
         "description",
         "owner",
-    }.issubset(response_schemas["CapabilityResponse"]["properties"])
+    }.issubset(response_schemas["CapabilityResponse-Output"]["properties"])
+    assert {"EventEnvelope-Input", "StateResponse-Input", "RecordingDocument-Input", "RecordingDocument-Output"}.issubset(response_schemas)
+    recording_schema = openapi.json()["paths"]["/api/recordings/validate"]["post"]["requestBody"]["content"]["application/json"]["schema"]
+    assert {item["$ref"].rsplit("/", 1)[-1] for item in recording_schema["oneOf"]} == {"RecordingDocument-Input", "CompactRecordingDocument-Input"}
+    assert recording_schema["discriminator"]["propertyName"] == "recording_version"
+    assert {item["$ref"].rsplit("/", 1)[-1] for item in response_schemas["RecordingDeltaFrame-Input"]["properties"]["edits"]["items"]["oneOf"]} == {"RecordingSetEdit-Input", "RecordingDeleteEdit", "RecordingSpliceEdit-Input"}
 
     invalid_context = client.put("/api/context", json=["not", "an", "object"])
     assert invalid_context.status_code == 422
