@@ -1,16 +1,5 @@
-import type { EventEnvelope, JsonValue } from "../api/types";
-
-export function eventFederate(event: EventEnvelope): string | undefined {
-  const value = event.federate ?? event.participant;
-  if (typeof value === "string" && value.trim()) return value.trim();
-  if (value && typeof value === "object" && !Array.isArray(value)) {
-    for (const field of ["name", "id", "handle"]) {
-      const item: JsonValue | undefined = value[field] as JsonValue | undefined;
-      if ((typeof item === "string" || typeof item === "number") && String(item).trim()) return String(item).trim();
-    }
-  }
-  return event.federate_name ?? event.participant_name ?? undefined;
-}
+import type { EventEnvelope } from "../api/types";
+export { eventFederate } from "./participants";
 
 export function formatTime(at: number | null | undefined): string {
   return at == null ? "Not observed" : new Date(at * 1_000).toLocaleTimeString();

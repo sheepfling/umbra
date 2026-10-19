@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { AlertsView } from "../components/AlertsView";
 import type { AnalyticsResponse, EventEnvelope, PortableRecording, StateResponse } from "../api/types";
 import { DiagnosticsView } from "../components/DiagnosticsView";
@@ -29,6 +29,7 @@ import type { MetricSample } from "./useObserver";
 import { formatTime } from "./observations";
 import { useWorkspaceRoot, useWorkspaces } from "../workspace/WorkspaceContext";
 import { WorkspacePanel } from "../workspace/WorkspacePanel";
+import { participantChoices, supportsParticipantProvenance } from "./participants";
 import type { WorkspaceSettings } from "../api/types";
 
 const tabs = ["federation", "federates", "objects", "declarations", "topology", "interactions", "ownership", "regions", "mom", "fom", "time", "synchronization", "persistence", "events", "inspectors", "recordings", "alerts", "actions", "diagnostics"] as const;
@@ -71,7 +72,8 @@ export function App() {
   const samples = frozen?.samples ?? (isReplay ? replay.samples : observer.samples);
   const activeAnalytics = isReplay ? replayAnalytics : liveAnalytics;
   const analytics = frozen ? frozen.analytics : activeAnalytics.data;
-  const federate = selectedFederate || state?.federate_roster[0]?.federate || analytics?.participants[0]?.federate || "";
+  const participants = useMemo(() => state ? participantChoices(state, events, analytics) : [], [state, events, analytics]);
+  const federate = selectedFederate || participants[0]?.key || "";
 
   useEffect(() => {
     const initial = tabFromHash();
@@ -125,7 +127,7 @@ export function App() {
       <StorageNotice data={usable(state, "storage_inspection") ? state.storage : undefined} />
       {!frozen && activeAnalytics.error && <div className="notice-banner" role="status">{activeAnalytics.error}</div>}
       {tab === "federation" && (analytics ? <FederationView analytics={analytics} state={state} onFederate={inspectFederate} /> : <><EmptyPanel title={supportsAnalytics ? "Preparing activity charts" : "Windowed analytics unavailable"}>{supportsAnalytics ? "Waiting for the first analytics window." : "This backend does not advertise analytics. Live metrics, events, and inspectors remain available."}</EmptyPanel><LiveCharts events={events} samples={samples} /></>)}
-      {tab === "federates" && <FederateView state={state} analytics={analytics} events={events} selected={federate} onSelect={setSelectedFederate} />}
+      {tab === "federates" && <FederateView state={state} analytics={analytics} events={events} selected={federate} choices={participants} onSelect={setSelectedFederate} />}
       {tab === "objects" && <ObjectsView state={state} />}
       {tab === "declarations" && <DeclarationsView state={state} />}
       {tab === "topology" && <TopologyView state={state} />}
@@ -137,7 +139,7 @@ export function App() {
       {tab === "synchronization" && <CoordinationView key="synchronization" state={state} workspace="synchronization" />}
       {tab === "persistence" && <CoordinationView key="persistence" state={state} workspace="persistence" />}
       {tab === "time" && <TimeWorkspace state={state} analytics={analytics} />}
-      {tab === "events" && <EventTable events={events} />}
+      {tab === "events" && <EventTable events={events} provenance={supportsParticipantProvenance(state, events)} />}
       {tab === "inspectors" && <InspectorTables state={state} />}
       {tab === "recordings" && <RecordingsView enabled={Boolean(observer.state && usable(observer.state, "recording"))} reason={observer.state?.capabilities.recording?.reason} onReplay={openReplay} />}
       {tab === "alerts" && <AlertsView enabled={usable(state, "alerts")} controls={usable(state, "alert_controls")} paused={Boolean(frozen)} replay={isReplay} reason={state.capabilities.alerts?.reason} />}

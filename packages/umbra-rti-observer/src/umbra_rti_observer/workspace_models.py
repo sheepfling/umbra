@@ -18,7 +18,10 @@ ViewName: TypeAlias = Literal["federation", "federates", "objects", "declaration
     "ownership", "regions", "mom", "fom", "time", "synchronization", "persistence", "events", "inspectors", "recordings", "alerts", "actions", "diagnostics"]
 FilterKey = Annotated[str, StringConstraints(max_length=8192)]
 SearchText = Annotated[str, StringConstraints(max_length=2048)]
-WorkspaceName = Annotated[str, StringConstraints(min_length=1, max_length=128, pattern=r"\S")]
+# Spell out Unicode White_Space: model validation and JavaScript disagree
+# about \S for NEXT LINE and BOM, so the portable schema must not use \S.
+WorkspaceName = Annotated[str, StringConstraints(min_length=1, max_length=128,
+    pattern=r"[^\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]")]
 
 
 class WorkspaceModel(ObserverModel):
@@ -122,11 +125,24 @@ class FederationViewSettings(WorkspaceModel):
     distribution: Literal["event_types", "sources", "families"] = "event_types"
 
 
+class FederateListSettings(WorkspaceModel):
+    search: SearchText = ""
+    basis: Literal["all", "explicit-join", "legacy-provenance", "legacy-name"] = "all"
+
+
+class FederateWorkspaceSettings(WorkspaceModel):
+    participant: Annotated[str, StringConstraints(min_length=1, max_length=8192)]
+    events: EventViewSettings = Field(default_factory=EventViewSettings)
+    declarations: DeclarationViewSettings = Field(default_factory=DeclarationViewSettings)
+    time: TimeViewSettings = Field(default_factory=TimeViewSettings)
+
+
 class WorkspaceSettings(WorkspaceModel):
     view: ViewName = "federation"
     window_seconds: Literal[30, 300, 900, 3600] = 300
     selected_federate: FilterKey = ""
     federation: FederationViewSettings = Field(default_factory=FederationViewSettings)
+    federates: FederateListSettings = Field(default_factory=FederateListSettings)
     events: EventViewSettings = Field(default_factory=EventViewSettings)
     federate_events: EventViewSettings = Field(default_factory=EventViewSettings)
     objects: ObjectViewSettings = Field(default_factory=ObjectViewSettings)
@@ -135,6 +151,7 @@ class WorkspaceSettings(WorkspaceModel):
     federate_declarations: DeclarationViewSettings = Field(default_factory=DeclarationViewSettings)
     time: TimeViewSettings = Field(default_factory=TimeViewSettings)
     federate_time: TimeViewSettings = Field(default_factory=TimeViewSettings)
+    federate_views: Annotated[Sequence[FederateWorkspaceSettings], Field(max_length=64)] = ()
     topology: TopologyViewSettings = Field(default_factory=TopologyViewSettings)
     interactions: InteractionViewSettings = Field(default_factory=InteractionViewSettings)
     synchronization: CoordinationViewSettings = Field(default_factory=CoordinationViewSettings)
@@ -150,6 +167,9 @@ class WorkspaceSettings(WorkspaceModel):
         keys = [(row.scope, row.object_key) for row in self.object_charts]
         if len(keys) != len(set(keys)):
             raise ValueError("numeric chart targets must be unique within a workspace")
+        participants = [row.participant for row in self.federate_views]
+        if len(set(participants)) != len(participants):
+            raise ValueError("saved federate perspectives must be unique within a workspace")
         _bounded(self.model_dump(mode="json"), MAX_WORKSPACE_BYTES)
         return self
 

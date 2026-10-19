@@ -155,9 +155,12 @@ export class ObserverClient {
     const capability = contract.capabilities.recording_analytics_window?.state;
     const projected = capability === "available" || capability === "partial";
     const storageState = contract.capabilities.storage_inspection?.state;
+    const provenanceState = contract.capabilities.participant_provenance?.state;
+    const capturedProvenance = frame.state.capabilities.participant_provenance?.state;
     const parameters = projected ? {
       window: { contract_version: frame.state.contract_version, retention: frame.state.retention,
         normalized_events: frame.state.normalized_events ?? [], federate_roster: frame.state.federate_roster,
+        ...(provenanceState === "available" || provenanceState === "partial" ? { participant_provenance: capturedProvenance === "available" || capturedProvenance === "partial" } : {}),
         ...(storageState === "available" || storageState === "partial" ? { storage: frame.state.storage } : {}) },
       captured_at: frame.captured_at, window_seconds: windowSeconds, bucket_count: 30,
     } : { frame, window_seconds: windowSeconds, bucket_count: 30 };

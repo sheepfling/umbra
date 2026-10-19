@@ -41,6 +41,7 @@ class ObserverPlaytestTests(unittest.TestCase):
                      "packages/umbra-rti-observer/STORAGE.md",
                      "packages/umbra-rti-observer/RECORDING.md",
                      "packages/umbra-rti-observer/ALERTS.md",
+                     "packages/umbra-rti-observer/WORKSPACES.md",
                      "packages/umbra-rti-observer/benchmarks/synthetic.json",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/__init__.py",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/mom.py",
@@ -51,9 +52,13 @@ class ObserverPlaytestTests(unittest.TestCase):
                      "packages/umbra-rti-observer/src/umbra_rti_observer/alerting.py",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/alert_models.py",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/alert_routes.py",
+                     "packages/umbra-rti-observer/src/umbra_rti_observer/workspace_models.py",
+                     "packages/umbra-rti-observer/src/umbra_rti_observer/workspace_routes.py",
+                     "packages/umbra-rti-observer/src/umbra_rti_observer/workspace_schema.py",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/py.typed",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/static/dashboard.html",
                      "packages/umbra-rti-observer/src/umbra_rti_observer/static/observer-wire-v1.schema.json",
+                     "packages/umbra-rti-observer/src/umbra_rti_observer/static/workspace-v1.schema.json",
                      "packages/umbra-rti-observer-ui/dist/index.html",
                      "packages/umbra-rti-observer-ui/dist/assets/main.js"):
             self.write(name)
@@ -73,9 +78,11 @@ class ObserverPlaytestTests(unittest.TestCase):
             self.assertTrue(any(name.endswith("dist/assets/main.js") for name in names))
             self.assertTrue(any(name.endswith("py.typed") for name in names))
             self.assertTrue(any(name.endswith("observer-wire-v1.schema.json") for name in names))
-            for guide_name in ("STORAGE.md", "RECORDING.md", "ALERTS.md", "benchmarks/synthetic.json"):
+            self.assertTrue(any(name.endswith("workspace-v1.schema.json") for name in names))
+            for guide_name in ("STORAGE.md", "RECORDING.md", "ALERTS.md", "WORKSPACES.md", "benchmarks/synthetic.json"):
                 self.assertIn(f"umbra-observer-playtest/packages/umbra-rti-observer/{guide_name}", names)
-            for module in ("mom.py", "fom.py", "capture.py", "recording_models.py", "recording_routes.py", "alerting.py", "alert_models.py", "alert_routes.py"):
+            for module in ("mom.py", "fom.py", "capture.py", "recording_models.py", "recording_routes.py", "alerting.py", "alert_models.py", "alert_routes.py",
+                           "workspace_models.py", "workspace_routes.py", "workspace_schema.py"):
                 self.assertTrue(any(name.endswith(f"umbra_rti_observer/{module}") for name in names))
             self.assertFalse(any("private" in name or "__pycache__" in name for name in names))
             guide = bundle.read("umbra-observer-playtest/README.txt").decode()

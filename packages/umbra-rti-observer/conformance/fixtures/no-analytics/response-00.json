@@ -296,6 +296,19 @@
       "sources": [],
       "state": "unsupported"
     },
+    "participant_provenance": {
+      "description": "Canonical reporter/session and optional explicit join attribution; legacy name-only data remains unresolved, never a membership census or authority.",
+      "event_types": [],
+      "label": "Participant perspective model",
+      "observations": [],
+      "owner": "observer",
+      "owners": [],
+      "reason": "The backend emits named participant perspectives; IDs exist only when supplied explicitly. This describes the observer codec, not RTI identity coverage.",
+      "reasons": [],
+      "source": null,
+      "sources": [],
+      "state": "available"
+    },
     "persistence": {
       "description": "Federation save, restore, and related lifecycle observations.",
       "event_types": [],
@@ -516,6 +529,7 @@
       "objects",
       "ownership",
       "ownership_inspection",
+      "participant_provenance",
       "persistence",
       "persistence_inspection",
       "recording",

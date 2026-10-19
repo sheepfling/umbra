@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useWorkspaceField } from "../workspace/WorkspaceContext";
+import { useScopedWorkspaceField } from "../workspace/WorkspaceContext";
 import { RetainedSelect } from "../workspace/RetainedSelect";
 import type { DeclarationSnapshot, StateResponse } from "../api/types";
 import { formatTime } from "../app/observations";
@@ -11,12 +11,11 @@ function scopeKey(row: DeclarationSnapshot): string {
 }
 
 export function DeclarationsView({ state, federate }: { state: StateResponse; federate?: string }) {
-  const preference = federate === undefined ? "declarations" : "federate_declarations";
-  const [search, setSearch] = useWorkspaceField(preference, "search");
-  const [perspective, setPerspective] = useWorkspaceField(preference, "perspective");
-  const [kind, setKind] = useWorkspaceField(preference, "kind");
-  const [direction, setDirection] = useWorkspaceField(preference, "direction");
-  const [status, setStatus] = useWorkspaceField(preference, "status");
+  const [search, setSearch] = useScopedWorkspaceField("declarations", "search", federate);
+  const [perspective, setPerspective] = useScopedWorkspaceField("declarations", "perspective", federate);
+  const [kind, setKind] = useScopedWorkspaceField("declarations", "kind", federate);
+  const [direction, setDirection] = useScopedWorkspaceField("declarations", "direction", federate);
+  const [status, setStatus] = useScopedWorkspaceField("declarations", "status", federate);
   const [limit, setLimit] = useState(100);
   const capability = state.capabilities.declarations;
   const usable = capability?.state === "available" || capability?.state === "partial";

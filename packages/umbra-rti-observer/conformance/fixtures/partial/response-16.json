@@ -5,6 +5,15 @@
       "federate": "FixtureFederate",
       "handle": null,
       "last_seen": 1760000000.0,
+      "perspective": {
+        "attribution": null,
+        "basis": "legacy-provenance",
+        "federation": null,
+        "key": "[\"legacy-provenance\",\"contract-fixture\",null,null,\"FixtureFederate\"]",
+        "reported_name": "FixtureFederate",
+        "session_id": null,
+        "source": "contract-fixture"
+      },
       "role": null,
       "source": "contract-fixture",
       "status": "active"

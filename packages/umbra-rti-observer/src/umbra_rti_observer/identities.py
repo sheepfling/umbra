@@ -15,6 +15,7 @@ def identity_text(value: object, *, optional: bool = False, limit: int = 512) ->
     if value is None and optional:
         return None
     if isinstance(value, str) and value.strip() and len(value) <= limit:
+        value.encode("utf-8")  # Opaque identifiers must still be valid JSON text.
         return value
     raise ValueError("observation identifiers must be bounded nonblank strings")
 

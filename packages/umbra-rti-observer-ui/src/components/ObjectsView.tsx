@@ -4,6 +4,7 @@ import { EmptyPanel } from "./ChartPanel";
 import { ObjectDetails } from "./ObjectDetails";
 import { ObjectCoverage } from "./ObjectCoverage";
 import { useWorkspaceField } from "../workspace/WorkspaceContext";
+import { RetainedSelect } from "../workspace/RetainedSelect";
 
 export function ObjectsView({ state }: { state: StateResponse }) {
   const [scope, setScope] = useWorkspaceField("objects", "scope");
@@ -37,7 +38,7 @@ export function ObjectsView({ state }: { state: StateResponse }) {
         <option value="global">Global observer — all sources</option>{scopes.map((name) => <option key={name} value={`f:${name}`}>{name} — attributed only</option>)}
       </select></label>
       <label>Find an object<input aria-label="Search objects" placeholder="Object name, class or handle" value={search} onChange={(event) => { setSearch(event.target.value); setLimit(100); }} /></label>
-      <label>Status<select aria-label="Object status" value={status} onChange={(event) => { setStatus(event.target.value); setLimit(100); }}><option value="all">All observed</option><option value="active">Active</option><option value="removed">Removed</option></select></label>
+      <label>Status<RetainedSelect aria-label="Object status" value={status} onChange={(event) => { setStatus(event.target.value); setLimit(100); }}><option value="all">All observed</option><option value="active">Active</option><option value="removed">Removed</option></RetainedSelect></label>
     </div>
     <p className="coverage-note">{scope === null ? "Global values combine observations from all sources; they are not a federate's local view." : `Only observations explicitly attributed to ${scope}. Attribution does not establish ownership, subscription or complete RTI visibility.`}</p>
     {capability?.state === "partial" && <p className="coverage-note">Partial object perspectives: {capability.reason ?? "Only some observations are available."}</p>}

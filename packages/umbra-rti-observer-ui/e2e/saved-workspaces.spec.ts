@@ -49,6 +49,42 @@ test.describe("saved view configurations", () => {
     await expect(page.getByLabel("Numeric attribute", { exact: true })).toHaveValue("b");
   });
 
+  test("Alice and Bob retain independent time selections and filters across switches and reload without altering global views", async ({ page, request }) => {
+    await seedEvents(request, [
+      { event_type: "time.observed", source: "e2e", federate: "Alice", time_observation: { kind: "grant", session_id: "a1", logical_time: 1 } },
+      { event_type: "time.observed", source: "e2e", federate: "Alice", time_observation: { kind: "grant", session_id: "a2", logical_time: 2 } },
+      { event_type: "time.observed", source: "e2e", federate: "Bob", time_observation: { kind: "grant", session_id: "b1", logical_time: 3 } },
+      { event_type: "time.observed", source: "e2e", federate: "Bob", time_observation: { kind: "grant", session_id: "b2", logical_time: 4 } },
+    ]);
+    await page.goto("/#federates");
+    const people = page.getByRole("complementary", { name: "Observed federates" });
+    await people.getByRole("button", { name: /^Alice / }).click();
+    await page.getByLabel("Time perspective", { exact: true }).selectOption({ index: 1 });
+    const alice = await page.getByLabel("Time perspective", { exact: true }).inputValue();
+    await page.getByLabel("Search events", { exact: true }).fill("alice-only");
+    await page.getByLabel("Search declarations", { exact: true }).fill("alice-classes");
+    await people.getByRole("button", { name: /^Bob / }).click();
+    await expect(page.getByLabel("Search events", { exact: true })).toHaveValue("");
+    await expect(page.getByLabel("Search declarations", { exact: true })).toHaveValue("");
+    await page.getByLabel("Time perspective", { exact: true }).selectOption({ index: 1 });
+    const bob = await page.getByLabel("Time perspective", { exact: true }).inputValue();
+    expect(bob).not.toBe(alice);
+    await page.getByLabel("Search events", { exact: true }).fill("bob-only");
+    await page.reload();
+    await expect(page.getByLabel("Search events", { exact: true })).toHaveValue("bob-only");
+    await expect(page.getByLabel("Time perspective", { exact: true })).toHaveValue(bob);
+    await people.getByRole("button", { name: /^Alice / }).click();
+    await expect(page.getByLabel("Search events", { exact: true })).toHaveValue("alice-only");
+    await expect(page.getByLabel("Search declarations", { exact: true })).toHaveValue("alice-classes");
+    await expect(page.getByLabel("Time perspective", { exact: true })).toHaveValue(alice);
+    await navigate(page, "Events");
+    await expect(page.getByLabel("Search events", { exact: true })).toHaveValue("");
+    await navigate(page, "Declarations");
+    await expect(page.getByLabel("Search declarations", { exact: true })).toHaveValue("");
+    await navigate(page, "Logical time");
+    await expect(page.getByLabel("Time perspective", { exact: true })).not.toHaveValue(alice);
+  });
+
   test("unavailable saved participants and filters stay selected instead of borrowing another participant", async ({ page, request }) => {
     await seedEvents(request, [{ event_type: "object.updated", federate: "Bob", object_key: "one" }]);
     await page.goto("/");
@@ -95,6 +131,140 @@ test.describe("saved view configurations", () => {
     await page.goto("/#events");
     await expect(page.getByText(/Current settings could not be saved/)).toBeVisible();
     await expect(page.getByRole("region", { name: "Event explorer" })).toBeVisible();
+  });
+
+  test("another tab never silently overwrites the active investigation; explicit reload reconciles the browser copy", async ({ page }) => {
+    await page.goto("/#events");
+    await page.getByLabel("Search events", { exact: true }).fill("first-tab");
+    await expect.poll(() => page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "null")?.current?.events.search, storageKey)).toBe("first-tab");
+    const other = await page.context().newPage();
+    try {
+      await other.goto(page.url());
+      await expect(other.getByLabel("Search events", { exact: true })).toHaveValue("first-tab");
+      await other.getByLabel("Search events", { exact: true }).fill("second-tab");
+      await expect(page.getByText(/Saved workspaces changed in another tab/)).toBeVisible();
+      await expect(page.getByLabel("Search events", { exact: true })).toHaveValue("first-tab");
+      await page.getByRole("button", { name: "Saved workspaces", exact: true }).click();
+      await expect(page.getByRole("button", { name: "Save current workspace", exact: true })).toBeDisabled();
+      await page.getByRole("button", { name: "Reload browser copy", exact: true }).click();
+      await expect(page.getByLabel("Search events", { exact: true })).toHaveValue("second-tab");
+      await expect(page.getByRole("button", { name: "Save current workspace", exact: true })).toBeEnabled();
+    } finally { await other.close(); }
+  });
+
+  test("reset removes only this application's settings and does not clear unrelated browser data or observations", async ({ page, request }) => {
+    await seedEvents(request, [{ event_type: "runtime.error", details: { message: "keep-this-observation" } }]);
+    await page.goto("/#events");
+    await page.evaluate(() => localStorage.setItem("unrelated-application", "keep-this-copy"));
+    await page.getByRole("button", { name: "Saved workspaces", exact: true }).click();
+    await page.getByRole("button", { name: "Save current workspace", exact: true }).click();
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Reset browser workspaces", exact: true }).click();
+    await expect(page.getByLabel("Saved workspace", { exact: true })).toHaveValue("");
+    expect(await page.evaluate(() => localStorage.getItem("unrelated-application"))).toBe("keep-this-copy");
+    const state = await request.get("/api/state?include_events=true");
+    expect((await state.json()).normalized_events).toHaveLength(1);
+  });
+
+  test("named capacity failures and declined replacement keep all previously saved choices", async ({ page }) => {
+    const saved = Array.from({ length: 12 }, (_, index) => document(`Workspace ${index}`, { view: "events", events: { search: `saved-${index}` } }));
+    await page.addInitScript(({ key, saved }) => localStorage.setItem(key, JSON.stringify({ library_version: "umbra-observer-workspace-library-v1", saved })), { key: storageKey, saved });
+    await page.goto("/#events");
+    await page.getByRole("button", { name: "Saved workspaces", exact: true }).click();
+    await page.getByRole("button", { name: "Save current workspace", exact: true }).click();
+    await expect(page.getByRole("alert")).toContainText("At most 12 named workspaces");
+    await page.getByLabel("Workspace name", { exact: true }).fill("Workspace 0");
+    page.once("dialog", (dialog) => dialog.dismiss());
+    await page.getByRole("button", { name: "Save current workspace", exact: true }).click();
+    await page.getByRole("button", { name: "Apply saved workspace", exact: true }).click();
+    await expect(page.getByLabel("Search events", { exact: true })).toHaveValue("saved-0");
+    expect(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!).saved.length, storageKey)).toBe(12);
+  });
+
+  test("a delayed import cannot replace a newer same-name profile without fresh confirmation", async ({ page }) => {
+    await page.addInitScript(() => {
+      const original = File.prototype.text;
+      File.prototype.text = async function () {
+        const raw = await original.call(this);
+        if (this.name === "slow.json") await new Promise<void>((done) => { (window as Window & { releaseWorkspaceImport?: () => void }).releaseWorkspaceImport = done; });
+        return raw;
+      };
+    });
+    await page.goto("/#events");
+    await page.getByRole("button", { name: "Saved workspaces", exact: true }).click();
+    const upload = page.getByLabel("Import workspace configuration", { exact: false });
+    await upload.setInputFiles({ name: "slow.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(document("Same name", { view: "events", events: { search: "stale-import" } }))) });
+    await expect.poll(() => page.evaluate(() => typeof (window as Window & { releaseWorkspaceImport?: () => void }).releaseWorkspaceImport)).toBe("function");
+    await upload.setInputFiles({ name: "fast.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(document("Same name", { view: "events", events: { search: "newer-profile" } }))) });
+    await expect(page.getByLabel("Saved workspace", { exact: true })).toHaveValue("Same name");
+    await page.evaluate(() => (window as Window & { releaseWorkspaceImport?: () => void }).releaseWorkspaceImport?.());
+    await expect(page.getByRole("alert")).toContainText("changed before replacement was confirmed");
+    await page.getByRole("button", { name: "Apply saved workspace", exact: true }).click();
+    await expect(page.getByLabel("Search events", { exact: true })).toHaveValue("newer-profile");
+  });
+
+  test("replay cannot apply reload or reset live workspace settings", async ({ page, request }) => {
+    const started = await request.post("/api/recordings/start", { data: { label: "Workspace isolation" } });
+    const { recording_id } = await started.json();
+    expect((await request.post("/api/recordings/stop", { data: { recording_id } })).ok()).toBeTruthy();
+    const exported = await request.get(`/api/recordings/export?recording_id=${recording_id}`);
+    await page.goto("/#recordings");
+    await page.getByLabel("Recording file", { exact: true }).setInputFiles({ name: "capture.json", mimeType: "application/json", buffer: Buffer.from(await exported.text()) });
+    await page.getByRole("button", { name: "Open recording", exact: true }).click();
+    await expect(page.getByRole("region", { name: "Replay controls" })).toBeVisible();
+    await page.getByRole("button", { name: "Saved workspaces", exact: true }).click();
+    await page.getByLabel("Import workspace configuration", { exact: false }).setInputFiles({ name: "safe.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(document("Live view"))) });
+    await expect(page.getByLabel("Saved workspace", { exact: true })).toHaveValue("Live view");
+    for (const name of ["Apply saved workspace", "Reload browser copy", "Reset browser workspaces"]) {
+      await expect(page.getByRole("button", { name, exact: true })).toBeDisabled();
+    }
+    await page.getByRole("button", { name: "Return to live", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Apply saved workspace", exact: true })).toBeEnabled();
+  });
+});
+
+test.describe("saved settings across investigation screens", () => {
+  test.use({ backendVariant: "rich" });
+  test("restored filters and exact unavailable selections survive every independent workspace", async ({ page }) => {
+    const settings = { view: "events", window_seconds: 900, selected_federate: "absent-participant",
+      events: { search: "global-event-filter" }, federate_events: { search: "perspective-event-filter" },
+      federation: { distribution: "families" }, objects: { status: "future-object-status", selected: "absent-object" },
+      declarations: { search: "global-declarations", kind: "future-kind" }, federate_declarations: { search: "perspective-declarations" },
+      topology: { source: "absent-source", focused: "absent-join" }, interactions: { order: "future-order" },
+      ownership: { owner_state: "future-owner-state" }, regions: { selected: "absent-region", status: "future-region-status" },
+      mom: { counter: "absent-series", service_status: "future-service-status" },
+      fom: { selected: "absent-element", model: "absent-model" }, time: { selected: "absent-time-scope" },
+      synchronization: { selected: "absent-sync", search: "sync-filter" }, persistence: { selected: "absent-save", search: "save-filter" },
+      alerts: { search: "alert-filter" } };
+    await page.goto("/#events");
+    await page.getByRole("button", { name: "Saved workspaces", exact: true }).click();
+    await page.getByLabel("Import workspace configuration", { exact: false }).setInputFiles({ name: "all.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(document("All views", settings))) });
+    await page.getByRole("button", { name: "Apply saved workspace", exact: true }).click();
+    await page.reload();
+    await expect(page.getByLabel("Chart time window", { exact: true })).toHaveValue("900");
+    const screens: [string, Record<string, string>][] = [
+      ["Events", { "Search events": "global-event-filter" }],
+      ["Objects", { "Object status": "future-object-status" }],
+      ["Declarations", { "Search declarations": "global-declarations", "Declaration kind": "future-kind" }],
+      ["Topology", { "Relationship source": "absent-source", "Topology focus": "absent-join" }],
+      ["Interaction flow", { "Interaction reported order": "future-order" }],
+      ["Ownership", { "Ownership state filter": "future-owner-state" }],
+      ["Regions / DDM", { "Selected DDM report": "absent-region", "Region reported status": "future-region-status" }],
+      ["MOM reports", { "Management counter series": "absent-series", "Management service status": "future-service-status" }],
+      ["FOM browser", { "Selected FOM element": "absent-element", "FOM model revision": "absent-model" }],
+      ["Logical time", { "Time perspective": "absent-time-scope" }],
+      ["Synchronization", { "Coordination operation": "absent-sync", "Search coordination reports": "sync-filter" }],
+      ["Save / restore", { "Coordination operation": "absent-save", "Search coordination reports": "save-filter" }],
+      ["Alerts", { "Search alert evidence": "alert-filter" }],
+    ];
+    for (const [screen, controls] of screens) {
+      await navigate(page, screen);
+      for (const [label, value] of Object.entries(controls)) await expect(page.getByLabel(label, { exact: true })).toHaveValue(value);
+    }
+    await navigate(page, "Federates");
+    await expect(page.getByRole("heading", { name: "absent-participant", exact: true })).toBeVisible();
+    await expect(page.getByLabel("Search events", { exact: true })).toHaveValue("perspective-event-filter");
+    await expect(page.getByLabel("Search declarations", { exact: true })).toHaveValue("perspective-declarations");
   });
 });
 

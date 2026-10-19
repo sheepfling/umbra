@@ -11,6 +11,8 @@ import math
 import time
 from collections import Counter
 
+from .attribution import ParticipantPerspective
+from .attribution import event_perspective as _event_perspective
 from .schemas import (
     ActivityBucket,
     AnalyticsResponse,
@@ -18,6 +20,7 @@ from .schemas import (
     EventEnvelope,
     FederateActivity,
     FederateInspectionResponse,
+    ParticipantPerspectiveResponse,
     StateResponse,
     TimeGrantObservation,
     TimeObservation,
@@ -27,15 +30,22 @@ from .schemas import (
 
 
 def event_federate(event: EventEnvelope) -> str | None:
-    value = event.federate if event.federate is not None else event.participant
-    if isinstance(value, dict):
-        for key in ("name", "id", "handle"):
-            item = value.get(key)
-            if isinstance(item, (str, int)) and not isinstance(item, bool) and str(item).strip():
-                return str(item).strip()
-    elif isinstance(value, str) and value.strip():
-        return value.strip()
-    return event.federate_name or event.participant_name
+    perspective = event_perspective(event)
+    return perspective.label if perspective else None
+
+
+def event_perspective(event: EventEnvelope) -> ParticipantPerspective | None:
+    # Project only attribution metadata; never copy wide payloads for grouping.
+    return _event_perspective({"source": event.source, "federation": event.federation,
+        "session_id": event.session_id, "federate": event.federate,
+        "participant": event.participant, "federate_name": event.federate_name, "participant_name": event.participant_name,
+        "time_observation": {"session_id": event.time_observation.session_id} if event.time_observation else None,
+        "participant_attribution": event.participant_attribution.model_dump(mode="python", exclude_none=True) if event.participant_attribution else None})
+
+
+def _roster_perspective(row: FederateInspectionResponse) -> ParticipantPerspectiveResponse:
+    return row.perspective or ParticipantPerspectiveResponse.model_validate(
+        ParticipantPerspective(row.source, None, None, row.federate, None).to_json())
 
 
 def event_logical_time(event: EventEnvelope) -> int | float | None:
@@ -55,6 +65,7 @@ def build_analytics(
     window_seconds: int = 300,
     bucket_count: int = 30,
     federate: str | None = None,
+    perspective: str | None = None,
     now: float | None = None,
 ) -> AnalyticsResponse:
     """Aggregate observed wall-clock buckets; logical timestamps stay separate."""
@@ -63,26 +74,38 @@ def build_analytics(
     generated_at = time.time() if now is None else now
     start = generated_at - window_seconds
     bucket_seconds = window_seconds / bucket_count
-    events = [
-        event for event in snapshot.normalized_events or ()
+    capability = snapshot.capabilities.get("participant_provenance") if isinstance(snapshot, StateResponse) else None
+    scoped = ((snapshot.participant_provenance if isinstance(snapshot, AnalyticsWindow) else
+               capability is not None and capability.state in {"available", "partial"})
+              or perspective is not None or any(row.perspective for row in snapshot.federate_roster)
+              or any(row.participant_attribution for row in snapshot.normalized_events or ()))
+    observations = [
+        (event, subject) for event in snapshot.normalized_events or ()
+        for subject in (event_perspective(event),)
         if start <= event.observed_at <= generated_at
-        and (federate is None or event_federate(event) == federate)
+        and (federate is None or subject is not None and subject.label == federate)
+        and (perspective is None or subject is not None and subject.key == perspective)
     ]
+    events = [event for event, _ in observations]
     buckets: list[list[EventEnvelope]] = [[] for _ in range(bucket_count)]
     by_federate: dict[str, list[EventEnvelope]] = {}
     times: list[TimeObservation] = []
     unattributed = 0
-    for event in events:
+    subjects: dict[str, ParticipantPerspective] = {}
+    for event, subject in observations:
         index = min(int((event.observed_at - start) / bucket_seconds), bucket_count - 1)
         buckets[index].append(event)
-        name = event_federate(event)
-        if name is None:
+        name = subject.label if subject else None
+        if subject is None:
             unattributed += 1
         else:
-            by_federate.setdefault(name, []).append(event)
+            key = subject.key if scoped else subject.label
+            by_federate.setdefault(key, []).append(event)
+            subjects[key] = subject
         logical_time = event_logical_time(event)
         if logical_time is not None:
             times.append(TimeObservation(
+                perspective=ParticipantPerspectiveResponse.model_validate(subject.to_json()) if subject and scoped else None,
                 sequence=event.sequence, federate=name, logical_time=logical_time,
                 observed_at=event.observed_at, event_type=event.event_type,
                 operation=event.operation,
@@ -92,17 +115,22 @@ def build_analytics(
             ))
 
     participants: list[FederateActivity] = []
-    roster = {row.federate: row for row in snapshot.federate_roster}
+    roster = {_roster_perspective(row).key if scoped else row.federate: row for row in snapshot.federate_roster}
     retained_roster = set(roster)
-    for name, observations in by_federate.items():
-        if name not in roster:
-            latest = observations[-1]
-            roster[name] = FederateInspectionResponse(federate=name, status="observed",
-                source=latest.source, last_seen=latest.observed_at)
+    for key, rows in by_federate.items():
+        subject = subjects[key]
+        if key not in roster:
+            latest = rows[-1]
+            roster[key] = FederateInspectionResponse(federate=subject.label, status="observed",
+                source=latest.source, last_seen=latest.observed_at,
+                perspective=ParticipantPerspectiveResponse.model_validate(subject.to_json()) if scoped else None)
     for row in sorted(roster.values(), key=lambda item: item.federate):
+        subject = _roster_perspective(row)
         if federate is not None and row.federate != federate:
             continue
-        observed = by_federate.get(row.federate, [])
+        if perspective is not None and subject.key != perspective:
+            continue
+        observed = by_federate.get(subject.key if scoped else row.federate, [])
         logical = [event_logical_time(event) for event in observed]
         object_keys = {
             key for event in observed
@@ -111,9 +139,10 @@ def build_analytics(
             if isinstance(key, str)
         }
         participants.append(FederateActivity(
+            perspective=subject if scoped else None,
             federate=row.federate, role=row.role, handle=row.handle,
             status=row.status, source=row.source, last_seen=row.last_seen,
-            roster_retained=row.federate in retained_roster,
+            roster_retained=(subject.key if scoped else row.federate) in retained_roster,
             event_count=len(observed),
             object_updates=sum(event.event_type == "object.updated" for event in observed),
             interaction_count=sum(event.event_type.startswith("interaction.") for event in observed),
@@ -126,6 +155,7 @@ def build_analytics(
         contract_version=snapshot.contract_version, basis="retained-observations",
         generated_at=generated_at, window_start=start, window_seconds=window_seconds,
         bucket_seconds=bucket_seconds, scoped_federate=federate,
+        scoped_perspective=perspective,
         events_in_window=len(events), unattributed_events=unattributed,
         history_truncated=snapshot.retention.dropped_events > 0 or snapshot.retention.cleared_events > 0,
         retention=snapshot.retention, participants=tuple(participants),

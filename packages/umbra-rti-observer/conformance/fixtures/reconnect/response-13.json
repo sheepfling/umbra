@@ -263,6 +263,15 @@
       "observation_kind": "grant",
       "observed_at": 1760000000.0,
       "operation": "timeAdvanceGrant",
+      "perspective": {
+        "attribution": null,
+        "basis": "legacy-provenance",
+        "federation": null,
+        "key": "[\"legacy-provenance\",\"contract-fixture\",null,null,\"FixtureFederate\"]",
+        "reported_name": "FixtureFederate",
+        "session_id": null,
+        "source": "contract-fixture"
+      },
       "sequence": 5
     }
   ],
@@ -279,6 +288,15 @@
         "fixture-object"
       ],
       "object_updates": 4,
+      "perspective": {
+        "attribution": null,
+        "basis": "legacy-provenance",
+        "federation": null,
+        "key": "[\"legacy-provenance\",\"contract-fixture\",null,null,\"FixtureFederate\"]",
+        "reported_name": "FixtureFederate",
+        "session_id": null,
+        "source": "contract-fixture"
+      },
       "role": null,
       "roster_retained": true,
       "source": "contract-fixture",
@@ -295,7 +313,7 @@
     "retained_events": 6
   },
   "roster_storage": {
-    "accounted_bytes": 191,
+    "accounted_bytes": 435,
     "byte_limit_drops": 0,
     "capacity": 2000,
     "collection": "federates",
@@ -310,6 +328,7 @@
     "window_drops": 0
   },
   "scoped_federate": null,
+  "scoped_perspective": null,
   "sources": {
     "contract-fixture": 6
   },

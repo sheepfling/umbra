@@ -19,6 +19,9 @@ are provider adapters around that implementation.
 - [Requirements and testing](docs/testing/REQUIREMENTS-AND-TESTING.md) —
   authoritative test lanes and evidence rules.
 - [Package map](packages/README.md) — Python and Java provider selection.
+- [Observer playtest](packages/umbra-rti-observer/SHOWCASE.md) — double-click
+  `Start-Observer.cmd` for a live dashboard with synthetic traffic and controls;
+  no native RTI needed. Includes a shareable, prebuilt-dashboard ZIP option.
 
 ## Quick build
 

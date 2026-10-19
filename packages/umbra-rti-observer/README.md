@@ -133,6 +133,15 @@ instance/revision checks and separate read/control capabilities. Downloads
 contain rules only, not captured observations or credentials. Rules/evidence
 are process-local; replay never fetches live alerts. See [ALERTS.md](ALERTS.md).
 
+**Saved workspaces** in the header remembers views, filters, participants,
+numeric-chart choices and time windows in this browser. Named JSON profiles can
+be shared without automatically exporting observations, credentials or backend
+authority; review any identifying text you typed into filters. Imports validate
+offline and require explicit application, so a Java or less-featured backend
+needs no Python settings service. Unsupported choices stay dormant and missing
+selections are not replaced. See [WORKSPACES.md](WORKSPACES.md) for limits,
+conflict recovery and the frontend/backend ownership split.
+
 MOM reports and the FOM browser are independently optional, read-only screens.
 Management member reports retain coverage/provenance without replacing the
 ordinary roster; service/error evidence never becomes an observer command.

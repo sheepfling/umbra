@@ -63,6 +63,9 @@ jobs:
         run: |
           python -m umbra_rti_observer.conformance_schema --openapi ../../.cache/observer-openapi.json
           pnpm generate:api --check --schema ../../.cache/observer-openapi.json
+          python -m umbra_rti_observer.workspace_schema --frontend src/api/workspace-contract.json --cases scripts/fixtures/workspaces.json
+          pnpm generate:workspaces --check
+          pnpm test:workspaces
           pnpm test:codegen
           pnpm test:replay
       - name: Install headless Chromium

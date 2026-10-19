@@ -1,0 +1,41 @@
+import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, dirname, join, resolve } from "node:path";
+import test from "node:test";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+
+test("compiled workspace drift checks detect stale schemas and output without rewriting, allowing checkout line endings", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "umbra-workspace-drift-"));
+  t.after(async () => {
+    assert.equal(resolve(dirname(root)), resolve(tmpdir()));
+    assert.ok(basename(root).startsWith("umbra-workspace-drift-"));
+    await rm(root, { recursive: true, force: true });
+  });
+  const schema = join(root, "contract.json"), output = join(root, "validator.cjs");
+  const source = await readFile(new URL("../src/api/workspace-contract.json", import.meta.url), "utf8");
+  await writeFile(schema, source);
+  const generator = fileURLToPath(new URL("./generate-workspaces.mjs", import.meta.url));
+  const run = (...args) => promisify(execFile)(process.execPath, [generator, "--schema", schema, "--out", output, ...args]);
+  await run();
+  const generated = await readFile(output, "utf8");
+  await run("--check");
+  await writeFile(output, generated.replace(/\n/g, "\r\n"));
+  await run("--check");
+  const stale = generated + "// deliberately stale fixture\n";
+  await writeFile(output, stale);
+  await assert.rejects(run("--check"), { code: 1 });
+  assert.equal(await readFile(output, "utf8"), stale);
+  await writeFile(output, generated);
+  const changed = JSON.parse(source);
+  changed.workspace_schema.properties.name.maxLength = 127;
+  await writeFile(schema, JSON.stringify(changed));
+  await assert.rejects(run("--check"), { code: 1 });
+  assert.equal(await readFile(output, "utf8"), generated);
+  for (let index = 0; index < 100; index += 1) changed.workspace_schema.properties[`growth_${index}`] = { type: "string" };
+  await writeFile(schema, JSON.stringify(changed));
+  await assert.rejects(run(), (error) => error.code === 1 && /growth guard/.test(error.stderr));
+  assert.equal(await readFile(output, "utf8"), generated);
+});

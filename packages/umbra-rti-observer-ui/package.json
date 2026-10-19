@@ -11,7 +11,7 @@
     "test:codegen": "node --test scripts/generate-api.test.mjs",
     "test:replay": "node --experimental-strip-types --test scripts/replay.test.mjs",
     "generate:workspaces": "node scripts/generate-workspaces.mjs",
-    "test:workspaces": "node --experimental-strip-types --test scripts/workspaces.test.mjs",
+    "test:workspaces": "node --experimental-strip-types --test scripts/workspaces.test.mjs scripts/generate-workspaces.test.mjs",
     "test:e2e": "pnpm build && playwright test",
     "test:e2e:headed": "pnpm build && playwright test --headed",
     "test:e2e:report": "playwright show-report",

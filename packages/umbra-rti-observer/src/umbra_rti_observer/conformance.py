@@ -54,7 +54,7 @@ class ConformanceReport(ObserverModel):
     scope: str = "observer-http-read-v1"
     checks: tuple[ConformanceCheck, ...]
     omitted_features: tuple[str, ...]
-    unchecked_features: tuple[str, ...] = ("stream-delivery", "command-execution", "recording-capture-import-replay", "storage-eviction", "alert-rule-evaluation", "alert-configuration-mutation", "rti-semantics")
+    unchecked_features: tuple[str, ...] = ("stream-delivery", "command-execution", "recording-capture-import-replay", "storage-eviction", "alert-rule-evaluation", "alert-configuration-mutation", "workspace-import-validation", "rti-semantics")
 
     @computed_field
     @property

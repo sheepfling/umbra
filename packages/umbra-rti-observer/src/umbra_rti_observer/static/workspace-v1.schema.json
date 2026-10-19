@@ -37,6 +37,11 @@
         "grants_only": false,
         "selected": null
       },
+      "federate_views": [],
+      "federates": {
+        "basis": "all",
+        "search": ""
+      },
       "federation": {
         "distribution": "event_types"
       },
@@ -241,6 +246,73 @@
           }
         },
         "title": "EventViewSettings",
+        "type": "object"
+      },
+      "FederateListSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "default": "all",
+            "enum": [
+              "all",
+              "explicit-join",
+              "legacy-provenance",
+              "legacy-name"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          }
+        },
+        "title": "FederateListSettings",
+        "type": "object"
+      },
+      "FederateWorkspaceSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "declarations": {
+            "$ref": "#/$defs/DeclarationViewSettings",
+            "default": {
+              "direction": "all",
+              "kind": "all",
+              "perspective": "all",
+              "search": "",
+              "status": "all"
+            }
+          },
+          "events": {
+            "$ref": "#/$defs/EventViewSettings",
+            "default": {
+              "family": "",
+              "federate": "",
+              "search": "",
+              "source": "",
+              "type": ""
+            }
+          },
+          "participant": {
+            "maxLength": 8192,
+            "minLength": 1,
+            "title": "Participant",
+            "type": "string"
+          },
+          "time": {
+            "$ref": "#/$defs/TimeViewSettings",
+            "default": {
+              "grants_only": false,
+              "selected": null
+            }
+          }
+        },
+        "required": [
+          "participant"
+        ],
+        "title": "FederateWorkspaceSettings",
         "type": "object"
       },
       "FederationViewSettings": {
@@ -590,7 +662,7 @@
           "name": {
             "maxLength": 128,
             "minLength": 1,
-            "pattern": "\\S",
+            "pattern": "[^\\u0009-\\u000d\\u0020\\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]",
             "title": "Name",
             "type": "string"
           },
@@ -632,6 +704,11 @@
               "federate_time": {
                 "grants_only": false,
                 "selected": null
+              },
+              "federate_views": [],
+              "federates": {
+                "basis": "all",
+                "search": ""
               },
               "federation": {
                 "distribution": "event_types"
@@ -773,6 +850,22 @@
             "default": {
               "grants_only": false,
               "selected": null
+            }
+          },
+          "federate_views": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/FederateWorkspaceSettings"
+            },
+            "maxItems": 64,
+            "title": "Federate Views",
+            "type": "array"
+          },
+          "federates": {
+            "$ref": "#/$defs/FederateListSettings",
+            "default": {
+              "basis": "all",
+              "search": ""
             }
           },
           "federation": {
@@ -973,6 +1066,11 @@
           "federate_time": {
             "grants_only": false,
             "selected": null
+          },
+          "federate_views": [],
+          "federates": {
+            "basis": "all",
+            "search": ""
           },
           "federation": {
             "distribution": "event_types"
@@ -1197,6 +1295,73 @@
           }
         },
         "title": "EventViewSettings",
+        "type": "object"
+      },
+      "FederateListSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "default": "all",
+            "enum": [
+              "all",
+              "explicit-join",
+              "legacy-provenance",
+              "legacy-name"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "search": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Search",
+            "type": "string"
+          }
+        },
+        "title": "FederateListSettings",
+        "type": "object"
+      },
+      "FederateWorkspaceSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "declarations": {
+            "$ref": "#/$defs/DeclarationViewSettings",
+            "default": {
+              "direction": "all",
+              "kind": "all",
+              "perspective": "all",
+              "search": "",
+              "status": "all"
+            }
+          },
+          "events": {
+            "$ref": "#/$defs/EventViewSettings",
+            "default": {
+              "family": "",
+              "federate": "",
+              "search": "",
+              "source": "",
+              "type": ""
+            }
+          },
+          "participant": {
+            "maxLength": 8192,
+            "minLength": 1,
+            "title": "Participant",
+            "type": "string"
+          },
+          "time": {
+            "$ref": "#/$defs/TimeViewSettings",
+            "default": {
+              "grants_only": false,
+              "selected": null
+            }
+          }
+        },
+        "required": [
+          "participant"
+        ],
+        "title": "FederateWorkspaceSettings",
         "type": "object"
       },
       "FederationViewSettings": {
@@ -1597,6 +1762,22 @@
               "selected": null
             }
           },
+          "federate_views": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/FederateWorkspaceSettings"
+            },
+            "maxItems": 64,
+            "title": "Federate Views",
+            "type": "array"
+          },
+          "federates": {
+            "$ref": "#/$defs/FederateListSettings",
+            "default": {
+              "basis": "all",
+              "search": ""
+            }
+          },
           "federation": {
             "$ref": "#/$defs/FederationViewSettings",
             "default": {
@@ -1760,7 +1941,7 @@
       "name": {
         "maxLength": 128,
         "minLength": 1,
-        "pattern": "\\S",
+        "pattern": "[^\\u0009-\\u000d\\u0020\\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]",
         "title": "Name",
         "type": "string"
       },
@@ -1802,6 +1983,11 @@
           "federate_time": {
             "grants_only": false,
             "selected": null
+          },
+          "federate_views": [],
+          "federates": {
+            "basis": "all",
+            "search": ""
           },
           "federation": {
             "distribution": "event_types"

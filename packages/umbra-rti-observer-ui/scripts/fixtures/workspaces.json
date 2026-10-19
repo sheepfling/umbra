@@ -1,0 +1,2360 @@
+{
+  "case_version": "umbra-observer-workspace-cases-v1",
+  "cases": [
+    {
+      "input": {
+        "name": "Miguel",
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "minimal workspace",
+      "normalized": {
+        "name": "Miguel",
+        "settings": {
+          "alerts": {
+            "search": "",
+            "status": "all"
+          },
+          "declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "federate_events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "federate_views": [],
+          "federates": {
+            "basis": "all",
+            "search": ""
+          },
+          "federation": {
+            "distribution": "event_types"
+          },
+          "fom": {
+            "kind": "all",
+            "model": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "interactions": {
+            "order": "all",
+            "search": "",
+            "status": "all"
+          },
+          "mom": {
+            "counter": null,
+            "scope": "all",
+            "search": "",
+            "service_status": "all"
+          },
+          "object_charts": [],
+          "objects": {
+            "scope": null,
+            "search": "",
+            "selected": "",
+            "status": "all"
+          },
+          "ownership": {
+            "owner_state": "all",
+            "request_status": "all",
+            "scope": "all",
+            "search": ""
+          },
+          "persistence": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "regions": {
+            "evidence": "all",
+            "kind": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "selected_federate": "",
+          "synchronization": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "topology": {
+            "evidence": "all",
+            "focused": "all",
+            "kind": "all",
+            "search": "",
+            "source": "all",
+            "status": "all"
+          },
+          "view": "federation",
+          "window_seconds": 300
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "valid": true
+    },
+    {
+      "input": {
+        "name": "Miguel",
+        "settings": {
+          "events": {
+            "search": "load"
+          }
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "nested defaults",
+      "normalized": {
+        "name": "Miguel",
+        "settings": {
+          "alerts": {
+            "search": "",
+            "status": "all"
+          },
+          "declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "events": {
+            "family": "",
+            "federate": "",
+            "search": "load",
+            "source": "",
+            "type": ""
+          },
+          "federate_declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "federate_events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "federate_views": [],
+          "federates": {
+            "basis": "all",
+            "search": ""
+          },
+          "federation": {
+            "distribution": "event_types"
+          },
+          "fom": {
+            "kind": "all",
+            "model": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "interactions": {
+            "order": "all",
+            "search": "",
+            "status": "all"
+          },
+          "mom": {
+            "counter": null,
+            "scope": "all",
+            "search": "",
+            "service_status": "all"
+          },
+          "object_charts": [],
+          "objects": {
+            "scope": null,
+            "search": "",
+            "selected": "",
+            "status": "all"
+          },
+          "ownership": {
+            "owner_state": "all",
+            "request_status": "all",
+            "scope": "all",
+            "search": ""
+          },
+          "persistence": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "regions": {
+            "evidence": "all",
+            "kind": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "selected_federate": "",
+          "synchronization": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "topology": {
+            "evidence": "all",
+            "focused": "all",
+            "kind": "all",
+            "search": "",
+            "source": "all",
+            "status": "all"
+          },
+          "view": "federation",
+          "window_seconds": 300
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "valid": true
+    },
+    {
+      "input": {
+        "name": "Miguel",
+        "settings": {
+          "mom": {
+            "counter": "unreported-series",
+            "scope": "unreported"
+          },
+          "objects": {
+            "status": "future-status"
+          }
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "future filter stays dormant",
+      "normalized": {
+        "name": "Miguel",
+        "settings": {
+          "alerts": {
+            "search": "",
+            "status": "all"
+          },
+          "declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "federate_events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "federate_views": [],
+          "federates": {
+            "basis": "all",
+            "search": ""
+          },
+          "federation": {
+            "distribution": "event_types"
+          },
+          "fom": {
+            "kind": "all",
+            "model": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "interactions": {
+            "order": "all",
+            "search": "",
+            "status": "all"
+          },
+          "mom": {
+            "counter": "unreported-series",
+            "scope": "unreported",
+            "search": "",
+            "service_status": "all"
+          },
+          "object_charts": [],
+          "objects": {
+            "scope": null,
+            "search": "",
+            "selected": "",
+            "status": "future-status"
+          },
+          "ownership": {
+            "owner_state": "all",
+            "request_status": "all",
+            "scope": "all",
+            "search": ""
+          },
+          "persistence": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "regions": {
+            "evidence": "all",
+            "kind": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "selected_federate": "",
+          "synchronization": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "topology": {
+            "evidence": "all",
+            "focused": "all",
+            "kind": "all",
+            "search": "",
+            "source": "all",
+            "status": "all"
+          },
+          "view": "federation",
+          "window_seconds": 300
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "valid": true
+    },
+    {
+      "input": {
+        "name": "Miguel",
+        "settings": {
+          "object_charts": [
+            {
+              "attribute": "speed",
+              "object_key": "same"
+            },
+            {
+              "attribute": "height",
+              "object_key": "same",
+              "scope": "Alice"
+            }
+          ]
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "exact numeric perspectives",
+      "normalized": {
+        "name": "Miguel",
+        "settings": {
+          "alerts": {
+            "search": "",
+            "status": "all"
+          },
+          "declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "federate_events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "federate_views": [],
+          "federates": {
+            "basis": "all",
+            "search": ""
+          },
+          "federation": {
+            "distribution": "event_types"
+          },
+          "fom": {
+            "kind": "all",
+            "model": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "interactions": {
+            "order": "all",
+            "search": "",
+            "status": "all"
+          },
+          "mom": {
+            "counter": null,
+            "scope": "all",
+            "search": "",
+            "service_status": "all"
+          },
+          "object_charts": [
+            {
+              "attribute": "speed",
+              "object_key": "same",
+              "scope": null
+            },
+            {
+              "attribute": "height",
+              "object_key": "same",
+              "scope": "Alice"
+            }
+          ],
+          "objects": {
+            "scope": null,
+            "search": "",
+            "selected": "",
+            "status": "all"
+          },
+          "ownership": {
+            "owner_state": "all",
+            "request_status": "all",
+            "scope": "all",
+            "search": ""
+          },
+          "persistence": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "regions": {
+            "evidence": "all",
+            "kind": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "selected_federate": "",
+          "synchronization": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "topology": {
+            "evidence": "all",
+            "focused": "all",
+            "kind": "all",
+            "search": "",
+            "source": "all",
+            "status": "all"
+          },
+          "view": "federation",
+          "window_seconds": 300
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "valid": true
+    },
+    {
+      "input": {
+        "name": "\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e",
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "Unicode scalar length",
+      "normalized": {
+        "name": "\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e",
+        "settings": {
+          "alerts": {
+            "search": "",
+            "status": "all"
+          },
+          "declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "federate_events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "federate_views": [],
+          "federates": {
+            "basis": "all",
+            "search": ""
+          },
+          "federation": {
+            "distribution": "event_types"
+          },
+          "fom": {
+            "kind": "all",
+            "model": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "interactions": {
+            "order": "all",
+            "search": "",
+            "status": "all"
+          },
+          "mom": {
+            "counter": null,
+            "scope": "all",
+            "search": "",
+            "service_status": "all"
+          },
+          "object_charts": [],
+          "objects": {
+            "scope": null,
+            "search": "",
+            "selected": "",
+            "status": "all"
+          },
+          "ownership": {
+            "owner_state": "all",
+            "request_status": "all",
+            "scope": "all",
+            "search": ""
+          },
+          "persistence": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "regions": {
+            "evidence": "all",
+            "kind": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "selected_federate": "",
+          "synchronization": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "topology": {
+            "evidence": "all",
+            "focused": "all",
+            "kind": "all",
+            "search": "",
+            "source": "all",
+            "status": "all"
+          },
+          "view": "federation",
+          "window_seconds": 300
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "valid": true
+    },
+    {
+      "input": {
+        "name": "\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e\ud83d\udd0e",
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "overlong scalar length",
+      "valid": false
+    },
+    {
+      "input": {
+        "name": "\ufeff",
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "BOM is not Unicode White_Space",
+      "normalized": {
+        "name": "\ufeff",
+        "settings": {
+          "alerts": {
+            "search": "",
+            "status": "all"
+          },
+          "declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "federate_events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "federate_views": [],
+          "federates": {
+            "basis": "all",
+            "search": ""
+          },
+          "federation": {
+            "distribution": "event_types"
+          },
+          "fom": {
+            "kind": "all",
+            "model": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "interactions": {
+            "order": "all",
+            "search": "",
+            "status": "all"
+          },
+          "mom": {
+            "counter": null,
+            "scope": "all",
+            "search": "",
+            "service_status": "all"
+          },
+          "object_charts": [],
+          "objects": {
+            "scope": null,
+            "search": "",
+            "selected": "",
+            "status": "all"
+          },
+          "ownership": {
+            "owner_state": "all",
+            "request_status": "all",
+            "scope": "all",
+            "search": ""
+          },
+          "persistence": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "regions": {
+            "evidence": "all",
+            "kind": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "selected_federate": "",
+          "synchronization": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "topology": {
+            "evidence": "all",
+            "focused": "all",
+            "kind": "all",
+            "search": "",
+            "source": "all",
+            "status": "all"
+          },
+          "view": "federation",
+          "window_seconds": 300
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "valid": true
+    },
+    {
+      "input": {
+        "name": "\u0085",
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "NEXT LINE is Unicode White_Space",
+      "valid": false
+    },
+    {
+      "input": {
+        "name": "\t \u00a0\u1680\u2000\u2028\u202f\u205f\u3000",
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "Unicode whitespace only",
+      "valid": false
+    },
+    {
+      "input": {
+        "name": "\ud800",
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "unpaired surrogate",
+      "valid": false
+    },
+    {
+      "input": {
+        "name": "Miguel",
+        "settings": {
+          "window_seconds": "300"
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "numeric text is not a window",
+      "valid": false
+    },
+    {
+      "input": {
+        "name": "Miguel",
+        "settings": {
+          "window_seconds": true
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "boolean is not a window",
+      "valid": false
+    },
+    {
+      "input": {
+        "name": "Miguel",
+        "settings": {
+          "time": {
+            "grants_only": "false"
+          }
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "boolean text is not a flag",
+      "valid": false
+    },
+    {
+      "input": {
+        "name": "Miguel",
+        "workspace_version": "future"
+      },
+      "kind": "workspace",
+      "name": "unknown version",
+      "valid": false
+    },
+    {
+      "input": {
+        "name": "Miguel",
+        "state": {},
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "captured state forbidden",
+      "valid": false
+    },
+    {
+      "input": {
+        "api_paths": {
+          "state": "https://never-follow.invalid"
+        },
+        "name": "Miguel",
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "captured URL forbidden",
+      "valid": false
+    },
+    {
+      "input": {
+        "name": "Miguel",
+        "settings": {
+          "commands": {
+            "confirmed": true
+          }
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "command draft forbidden",
+      "valid": false
+    },
+    {
+      "input": {
+        "name": "Miguel",
+        "settings": {
+          "object_charts": [
+            {
+              "attribute": "speed",
+              "object_key": "same"
+            },
+            {
+              "attribute": "height",
+              "object_key": "same",
+              "scope": "Alice"
+            },
+            {
+              "attribute": "speed",
+              "object_key": "same"
+            }
+          ]
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "duplicate chart target",
+      "valid": false
+    },
+    {
+      "input": {
+        "name": "Miguel",
+        "settings": {
+          "federate_views": [
+            {
+              "events": {
+                "source": "source-a"
+              },
+              "participant": "Alice",
+              "time": {
+                "selected": "alice-scope"
+              }
+            },
+            {
+              "events": {
+                "source": "source-b"
+              },
+              "participant": "Bob",
+              "time": {
+                "selected": "bob-scope"
+              }
+            }
+          ]
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "separate federate settings",
+      "normalized": {
+        "name": "Miguel",
+        "settings": {
+          "alerts": {
+            "search": "",
+            "status": "all"
+          },
+          "declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "federate_events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "federate_views": [
+            {
+              "declarations": {
+                "direction": "all",
+                "kind": "all",
+                "perspective": "all",
+                "search": "",
+                "status": "all"
+              },
+              "events": {
+                "family": "",
+                "federate": "",
+                "search": "",
+                "source": "source-a",
+                "type": ""
+              },
+              "participant": "Alice",
+              "time": {
+                "grants_only": false,
+                "selected": "alice-scope"
+              }
+            },
+            {
+              "declarations": {
+                "direction": "all",
+                "kind": "all",
+                "perspective": "all",
+                "search": "",
+                "status": "all"
+              },
+              "events": {
+                "family": "",
+                "federate": "",
+                "search": "",
+                "source": "source-b",
+                "type": ""
+              },
+              "participant": "Bob",
+              "time": {
+                "grants_only": false,
+                "selected": "bob-scope"
+              }
+            }
+          ],
+          "federates": {
+            "basis": "all",
+            "search": ""
+          },
+          "federation": {
+            "distribution": "event_types"
+          },
+          "fom": {
+            "kind": "all",
+            "model": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "interactions": {
+            "order": "all",
+            "search": "",
+            "status": "all"
+          },
+          "mom": {
+            "counter": null,
+            "scope": "all",
+            "search": "",
+            "service_status": "all"
+          },
+          "object_charts": [],
+          "objects": {
+            "scope": null,
+            "search": "",
+            "selected": "",
+            "status": "all"
+          },
+          "ownership": {
+            "owner_state": "all",
+            "request_status": "all",
+            "scope": "all",
+            "search": ""
+          },
+          "persistence": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "regions": {
+            "evidence": "all",
+            "kind": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "selected_federate": "",
+          "synchronization": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "topology": {
+            "evidence": "all",
+            "focused": "all",
+            "kind": "all",
+            "search": "",
+            "source": "all",
+            "status": "all"
+          },
+          "view": "federation",
+          "window_seconds": 300
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "valid": true
+    },
+    {
+      "input": {
+        "name": "Miguel",
+        "settings": {
+          "federate_views": [
+            {
+              "participant": "Alice"
+            },
+            {
+              "participant": "Alice"
+            }
+          ]
+        },
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "duplicate federate settings",
+      "valid": false
+    },
+    {
+      "input": {
+        "__proto__": {
+          "polluted": true
+        },
+        "name": "Miguel",
+        "workspace_version": "umbra-observer-workspace-v1"
+      },
+      "kind": "workspace",
+      "name": "prototype property forbidden",
+      "valid": false
+    },
+    {
+      "input": {
+        "library_version": "umbra-observer-workspace-library-v1"
+      },
+      "kind": "library",
+      "name": "minimal library",
+      "normalized": {
+        "current": {
+          "alerts": {
+            "search": "",
+            "status": "all"
+          },
+          "declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "federate_events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "federate_views": [],
+          "federates": {
+            "basis": "all",
+            "search": ""
+          },
+          "federation": {
+            "distribution": "event_types"
+          },
+          "fom": {
+            "kind": "all",
+            "model": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "interactions": {
+            "order": "all",
+            "search": "",
+            "status": "all"
+          },
+          "mom": {
+            "counter": null,
+            "scope": "all",
+            "search": "",
+            "service_status": "all"
+          },
+          "object_charts": [],
+          "objects": {
+            "scope": null,
+            "search": "",
+            "selected": "",
+            "status": "all"
+          },
+          "ownership": {
+            "owner_state": "all",
+            "request_status": "all",
+            "scope": "all",
+            "search": ""
+          },
+          "persistence": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "regions": {
+            "evidence": "all",
+            "kind": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "selected_federate": "",
+          "synchronization": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "topology": {
+            "evidence": "all",
+            "focused": "all",
+            "kind": "all",
+            "search": "",
+            "source": "all",
+            "status": "all"
+          },
+          "view": "federation",
+          "window_seconds": 300
+        },
+        "library_version": "umbra-observer-workspace-library-v1",
+        "saved": []
+      },
+      "valid": true
+    },
+    {
+      "input": {
+        "library_version": "umbra-observer-workspace-library-v1",
+        "saved": [
+          {
+            "name": "Miguel",
+            "workspace_version": "umbra-observer-workspace-v1"
+          }
+        ]
+      },
+      "kind": "library",
+      "name": "saved document defaults",
+      "normalized": {
+        "current": {
+          "alerts": {
+            "search": "",
+            "status": "all"
+          },
+          "declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "federate_events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "federate_views": [],
+          "federates": {
+            "basis": "all",
+            "search": ""
+          },
+          "federation": {
+            "distribution": "event_types"
+          },
+          "fom": {
+            "kind": "all",
+            "model": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "interactions": {
+            "order": "all",
+            "search": "",
+            "status": "all"
+          },
+          "mom": {
+            "counter": null,
+            "scope": "all",
+            "search": "",
+            "service_status": "all"
+          },
+          "object_charts": [],
+          "objects": {
+            "scope": null,
+            "search": "",
+            "selected": "",
+            "status": "all"
+          },
+          "ownership": {
+            "owner_state": "all",
+            "request_status": "all",
+            "scope": "all",
+            "search": ""
+          },
+          "persistence": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "regions": {
+            "evidence": "all",
+            "kind": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "selected_federate": "",
+          "synchronization": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "topology": {
+            "evidence": "all",
+            "focused": "all",
+            "kind": "all",
+            "search": "",
+            "source": "all",
+            "status": "all"
+          },
+          "view": "federation",
+          "window_seconds": 300
+        },
+        "library_version": "umbra-observer-workspace-library-v1",
+        "saved": [
+          {
+            "name": "Miguel",
+            "settings": {
+              "alerts": {
+                "search": "",
+                "status": "all"
+              },
+              "declarations": {
+                "direction": "all",
+                "kind": "all",
+                "perspective": "all",
+                "search": "",
+                "status": "all"
+              },
+              "events": {
+                "family": "",
+                "federate": "",
+                "search": "",
+                "source": "",
+                "type": ""
+              },
+              "federate_declarations": {
+                "direction": "all",
+                "kind": "all",
+                "perspective": "all",
+                "search": "",
+                "status": "all"
+              },
+              "federate_events": {
+                "family": "",
+                "federate": "",
+                "search": "",
+                "source": "",
+                "type": ""
+              },
+              "federate_time": {
+                "grants_only": false,
+                "selected": null
+              },
+              "federate_views": [],
+              "federates": {
+                "basis": "all",
+                "search": ""
+              },
+              "federation": {
+                "distribution": "event_types"
+              },
+              "fom": {
+                "kind": "all",
+                "model": "all",
+                "search": "",
+                "selected": null,
+                "status": "all"
+              },
+              "interactions": {
+                "order": "all",
+                "search": "",
+                "status": "all"
+              },
+              "mom": {
+                "counter": null,
+                "scope": "all",
+                "search": "",
+                "service_status": "all"
+              },
+              "object_charts": [],
+              "objects": {
+                "scope": null,
+                "search": "",
+                "selected": "",
+                "status": "all"
+              },
+              "ownership": {
+                "owner_state": "all",
+                "request_status": "all",
+                "scope": "all",
+                "search": ""
+              },
+              "persistence": {
+                "kind": "all",
+                "phase": "all",
+                "scope": "all",
+                "search": "",
+                "selected": "all"
+              },
+              "regions": {
+                "evidence": "all",
+                "kind": "all",
+                "search": "",
+                "selected": null,
+                "status": "all"
+              },
+              "selected_federate": "",
+              "synchronization": {
+                "kind": "all",
+                "phase": "all",
+                "scope": "all",
+                "search": "",
+                "selected": "all"
+              },
+              "time": {
+                "grants_only": false,
+                "selected": null
+              },
+              "topology": {
+                "evidence": "all",
+                "focused": "all",
+                "kind": "all",
+                "search": "",
+                "source": "all",
+                "status": "all"
+              },
+              "view": "federation",
+              "window_seconds": 300
+            },
+            "workspace_version": "umbra-observer-workspace-v1"
+          }
+        ]
+      },
+      "valid": true
+    },
+    {
+      "input": {
+        "library_version": "umbra-observer-workspace-library-v1",
+        "saved": [
+          {
+            "name": "A",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "a",
+            "workspace_version": "umbra-observer-workspace-v1"
+          }
+        ]
+      },
+      "kind": "library",
+      "name": "exact case-sensitive names",
+      "normalized": {
+        "current": {
+          "alerts": {
+            "search": "",
+            "status": "all"
+          },
+          "declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "federate_events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "federate_views": [],
+          "federates": {
+            "basis": "all",
+            "search": ""
+          },
+          "federation": {
+            "distribution": "event_types"
+          },
+          "fom": {
+            "kind": "all",
+            "model": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "interactions": {
+            "order": "all",
+            "search": "",
+            "status": "all"
+          },
+          "mom": {
+            "counter": null,
+            "scope": "all",
+            "search": "",
+            "service_status": "all"
+          },
+          "object_charts": [],
+          "objects": {
+            "scope": null,
+            "search": "",
+            "selected": "",
+            "status": "all"
+          },
+          "ownership": {
+            "owner_state": "all",
+            "request_status": "all",
+            "scope": "all",
+            "search": ""
+          },
+          "persistence": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "regions": {
+            "evidence": "all",
+            "kind": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "selected_federate": "",
+          "synchronization": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "topology": {
+            "evidence": "all",
+            "focused": "all",
+            "kind": "all",
+            "search": "",
+            "source": "all",
+            "status": "all"
+          },
+          "view": "federation",
+          "window_seconds": 300
+        },
+        "library_version": "umbra-observer-workspace-library-v1",
+        "saved": [
+          {
+            "name": "A",
+            "settings": {
+              "alerts": {
+                "search": "",
+                "status": "all"
+              },
+              "declarations": {
+                "direction": "all",
+                "kind": "all",
+                "perspective": "all",
+                "search": "",
+                "status": "all"
+              },
+              "events": {
+                "family": "",
+                "federate": "",
+                "search": "",
+                "source": "",
+                "type": ""
+              },
+              "federate_declarations": {
+                "direction": "all",
+                "kind": "all",
+                "perspective": "all",
+                "search": "",
+                "status": "all"
+              },
+              "federate_events": {
+                "family": "",
+                "federate": "",
+                "search": "",
+                "source": "",
+                "type": ""
+              },
+              "federate_time": {
+                "grants_only": false,
+                "selected": null
+              },
+              "federate_views": [],
+              "federates": {
+                "basis": "all",
+                "search": ""
+              },
+              "federation": {
+                "distribution": "event_types"
+              },
+              "fom": {
+                "kind": "all",
+                "model": "all",
+                "search": "",
+                "selected": null,
+                "status": "all"
+              },
+              "interactions": {
+                "order": "all",
+                "search": "",
+                "status": "all"
+              },
+              "mom": {
+                "counter": null,
+                "scope": "all",
+                "search": "",
+                "service_status": "all"
+              },
+              "object_charts": [],
+              "objects": {
+                "scope": null,
+                "search": "",
+                "selected": "",
+                "status": "all"
+              },
+              "ownership": {
+                "owner_state": "all",
+                "request_status": "all",
+                "scope": "all",
+                "search": ""
+              },
+              "persistence": {
+                "kind": "all",
+                "phase": "all",
+                "scope": "all",
+                "search": "",
+                "selected": "all"
+              },
+              "regions": {
+                "evidence": "all",
+                "kind": "all",
+                "search": "",
+                "selected": null,
+                "status": "all"
+              },
+              "selected_federate": "",
+              "synchronization": {
+                "kind": "all",
+                "phase": "all",
+                "scope": "all",
+                "search": "",
+                "selected": "all"
+              },
+              "time": {
+                "grants_only": false,
+                "selected": null
+              },
+              "topology": {
+                "evidence": "all",
+                "focused": "all",
+                "kind": "all",
+                "search": "",
+                "source": "all",
+                "status": "all"
+              },
+              "view": "federation",
+              "window_seconds": 300
+            },
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "a",
+            "settings": {
+              "alerts": {
+                "search": "",
+                "status": "all"
+              },
+              "declarations": {
+                "direction": "all",
+                "kind": "all",
+                "perspective": "all",
+                "search": "",
+                "status": "all"
+              },
+              "events": {
+                "family": "",
+                "federate": "",
+                "search": "",
+                "source": "",
+                "type": ""
+              },
+              "federate_declarations": {
+                "direction": "all",
+                "kind": "all",
+                "perspective": "all",
+                "search": "",
+                "status": "all"
+              },
+              "federate_events": {
+                "family": "",
+                "federate": "",
+                "search": "",
+                "source": "",
+                "type": ""
+              },
+              "federate_time": {
+                "grants_only": false,
+                "selected": null
+              },
+              "federate_views": [],
+              "federates": {
+                "basis": "all",
+                "search": ""
+              },
+              "federation": {
+                "distribution": "event_types"
+              },
+              "fom": {
+                "kind": "all",
+                "model": "all",
+                "search": "",
+                "selected": null,
+                "status": "all"
+              },
+              "interactions": {
+                "order": "all",
+                "search": "",
+                "status": "all"
+              },
+              "mom": {
+                "counter": null,
+                "scope": "all",
+                "search": "",
+                "service_status": "all"
+              },
+              "object_charts": [],
+              "objects": {
+                "scope": null,
+                "search": "",
+                "selected": "",
+                "status": "all"
+              },
+              "ownership": {
+                "owner_state": "all",
+                "request_status": "all",
+                "scope": "all",
+                "search": ""
+              },
+              "persistence": {
+                "kind": "all",
+                "phase": "all",
+                "scope": "all",
+                "search": "",
+                "selected": "all"
+              },
+              "regions": {
+                "evidence": "all",
+                "kind": "all",
+                "search": "",
+                "selected": null,
+                "status": "all"
+              },
+              "selected_federate": "",
+              "synchronization": {
+                "kind": "all",
+                "phase": "all",
+                "scope": "all",
+                "search": "",
+                "selected": "all"
+              },
+              "time": {
+                "grants_only": false,
+                "selected": null
+              },
+              "topology": {
+                "evidence": "all",
+                "focused": "all",
+                "kind": "all",
+                "search": "",
+                "source": "all",
+                "status": "all"
+              },
+              "view": "federation",
+              "window_seconds": 300
+            },
+            "workspace_version": "umbra-observer-workspace-v1"
+          }
+        ]
+      },
+      "valid": true
+    },
+    {
+      "input": {
+        "library_version": "umbra-observer-workspace-library-v1",
+        "saved": [
+          {
+            "name": "\u00e9",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "e\u0301",
+            "workspace_version": "umbra-observer-workspace-v1"
+          }
+        ]
+      },
+      "kind": "library",
+      "name": "no Unicode normalization",
+      "normalized": {
+        "current": {
+          "alerts": {
+            "search": "",
+            "status": "all"
+          },
+          "declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_declarations": {
+            "direction": "all",
+            "kind": "all",
+            "perspective": "all",
+            "search": "",
+            "status": "all"
+          },
+          "federate_events": {
+            "family": "",
+            "federate": "",
+            "search": "",
+            "source": "",
+            "type": ""
+          },
+          "federate_time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "federate_views": [],
+          "federates": {
+            "basis": "all",
+            "search": ""
+          },
+          "federation": {
+            "distribution": "event_types"
+          },
+          "fom": {
+            "kind": "all",
+            "model": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "interactions": {
+            "order": "all",
+            "search": "",
+            "status": "all"
+          },
+          "mom": {
+            "counter": null,
+            "scope": "all",
+            "search": "",
+            "service_status": "all"
+          },
+          "object_charts": [],
+          "objects": {
+            "scope": null,
+            "search": "",
+            "selected": "",
+            "status": "all"
+          },
+          "ownership": {
+            "owner_state": "all",
+            "request_status": "all",
+            "scope": "all",
+            "search": ""
+          },
+          "persistence": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "regions": {
+            "evidence": "all",
+            "kind": "all",
+            "search": "",
+            "selected": null,
+            "status": "all"
+          },
+          "selected_federate": "",
+          "synchronization": {
+            "kind": "all",
+            "phase": "all",
+            "scope": "all",
+            "search": "",
+            "selected": "all"
+          },
+          "time": {
+            "grants_only": false,
+            "selected": null
+          },
+          "topology": {
+            "evidence": "all",
+            "focused": "all",
+            "kind": "all",
+            "search": "",
+            "source": "all",
+            "status": "all"
+          },
+          "view": "federation",
+          "window_seconds": 300
+        },
+        "library_version": "umbra-observer-workspace-library-v1",
+        "saved": [
+          {
+            "name": "\u00e9",
+            "settings": {
+              "alerts": {
+                "search": "",
+                "status": "all"
+              },
+              "declarations": {
+                "direction": "all",
+                "kind": "all",
+                "perspective": "all",
+                "search": "",
+                "status": "all"
+              },
+              "events": {
+                "family": "",
+                "federate": "",
+                "search": "",
+                "source": "",
+                "type": ""
+              },
+              "federate_declarations": {
+                "direction": "all",
+                "kind": "all",
+                "perspective": "all",
+                "search": "",
+                "status": "all"
+              },
+              "federate_events": {
+                "family": "",
+                "federate": "",
+                "search": "",
+                "source": "",
+                "type": ""
+              },
+              "federate_time": {
+                "grants_only": false,
+                "selected": null
+              },
+              "federate_views": [],
+              "federates": {
+                "basis": "all",
+                "search": ""
+              },
+              "federation": {
+                "distribution": "event_types"
+              },
+              "fom": {
+                "kind": "all",
+                "model": "all",
+                "search": "",
+                "selected": null,
+                "status": "all"
+              },
+              "interactions": {
+                "order": "all",
+                "search": "",
+                "status": "all"
+              },
+              "mom": {
+                "counter": null,
+                "scope": "all",
+                "search": "",
+                "service_status": "all"
+              },
+              "object_charts": [],
+              "objects": {
+                "scope": null,
+                "search": "",
+                "selected": "",
+                "status": "all"
+              },
+              "ownership": {
+                "owner_state": "all",
+                "request_status": "all",
+                "scope": "all",
+                "search": ""
+              },
+              "persistence": {
+                "kind": "all",
+                "phase": "all",
+                "scope": "all",
+                "search": "",
+                "selected": "all"
+              },
+              "regions": {
+                "evidence": "all",
+                "kind": "all",
+                "search": "",
+                "selected": null,
+                "status": "all"
+              },
+              "selected_federate": "",
+              "synchronization": {
+                "kind": "all",
+                "phase": "all",
+                "scope": "all",
+                "search": "",
+                "selected": "all"
+              },
+              "time": {
+                "grants_only": false,
+                "selected": null
+              },
+              "topology": {
+                "evidence": "all",
+                "focused": "all",
+                "kind": "all",
+                "search": "",
+                "source": "all",
+                "status": "all"
+              },
+              "view": "federation",
+              "window_seconds": 300
+            },
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "e\u0301",
+            "settings": {
+              "alerts": {
+                "search": "",
+                "status": "all"
+              },
+              "declarations": {
+                "direction": "all",
+                "kind": "all",
+                "perspective": "all",
+                "search": "",
+                "status": "all"
+              },
+              "events": {
+                "family": "",
+                "federate": "",
+                "search": "",
+                "source": "",
+                "type": ""
+              },
+              "federate_declarations": {
+                "direction": "all",
+                "kind": "all",
+                "perspective": "all",
+                "search": "",
+                "status": "all"
+              },
+              "federate_events": {
+                "family": "",
+                "federate": "",
+                "search": "",
+                "source": "",
+                "type": ""
+              },
+              "federate_time": {
+                "grants_only": false,
+                "selected": null
+              },
+              "federate_views": [],
+              "federates": {
+                "basis": "all",
+                "search": ""
+              },
+              "federation": {
+                "distribution": "event_types"
+              },
+              "fom": {
+                "kind": "all",
+                "model": "all",
+                "search": "",
+                "selected": null,
+                "status": "all"
+              },
+              "interactions": {
+                "order": "all",
+                "search": "",
+                "status": "all"
+              },
+              "mom": {
+                "counter": null,
+                "scope": "all",
+                "search": "",
+                "service_status": "all"
+              },
+              "object_charts": [],
+              "objects": {
+                "scope": null,
+                "search": "",
+                "selected": "",
+                "status": "all"
+              },
+              "ownership": {
+                "owner_state": "all",
+                "request_status": "all",
+                "scope": "all",
+                "search": ""
+              },
+              "persistence": {
+                "kind": "all",
+                "phase": "all",
+                "scope": "all",
+                "search": "",
+                "selected": "all"
+              },
+              "regions": {
+                "evidence": "all",
+                "kind": "all",
+                "search": "",
+                "selected": null,
+                "status": "all"
+              },
+              "selected_federate": "",
+              "synchronization": {
+                "kind": "all",
+                "phase": "all",
+                "scope": "all",
+                "search": "",
+                "selected": "all"
+              },
+              "time": {
+                "grants_only": false,
+                "selected": null
+              },
+              "topology": {
+                "evidence": "all",
+                "focused": "all",
+                "kind": "all",
+                "search": "",
+                "source": "all",
+                "status": "all"
+              },
+              "view": "federation",
+              "window_seconds": 300
+            },
+            "workspace_version": "umbra-observer-workspace-v1"
+          }
+        ]
+      },
+      "valid": true
+    },
+    {
+      "input": {
+        "library_version": "umbra-observer-workspace-library-v1",
+        "saved": [
+          {
+            "name": "Miguel",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "Miguel",
+            "workspace_version": "umbra-observer-workspace-v1"
+          }
+        ]
+      },
+      "kind": "library",
+      "name": "duplicate saved names",
+      "valid": false
+    },
+    {
+      "input": {
+        "library_version": "umbra-observer-workspace-library-v1",
+        "saved": [
+          {
+            "name": "0",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "1",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "2",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "3",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "4",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "5",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "6",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "7",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "8",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "9",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "10",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "11",
+            "workspace_version": "umbra-observer-workspace-v1"
+          },
+          {
+            "name": "12",
+            "workspace_version": "umbra-observer-workspace-v1"
+          }
+        ]
+      },
+      "kind": "library",
+      "name": "too many saved documents",
+      "valid": false
+    }
+  ]
+}

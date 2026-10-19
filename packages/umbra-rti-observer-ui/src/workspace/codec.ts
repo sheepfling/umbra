@@ -28,6 +28,8 @@ function chartTargets(settings: WorkspaceSettings): void {
   bounded(settings, WORKSPACE_BYTES);
   const targets = settings.object_charts.map((row) => JSON.stringify([row.scope, row.object_key]));
   if (targets.length !== new Set(targets).size) throw new Error("Workspace numeric chart targets must be unique.");
+  const participants = settings.federate_views.map((row) => row.participant);
+  if (participants.length !== new Set(participants).size) throw new Error("Workspace federate perspectives must be unique.");
 }
 
 export function parseWorkspace(value: unknown): WorkspaceDocument {

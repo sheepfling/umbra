@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pytest
-
 from umbra_rti_observer.core import ObserverStore
 from umbra_rti_observer.models import JsonObject
 from umbra_rti_observer.schemas import ObjectObservationsResponse, StateResponse
@@ -97,7 +96,7 @@ def test_comparisons_are_scoped_and_distinguish_null_from_missing():
 def test_partial_updates_copy_values_and_keep_discovery_metadata():
     store = ObserverStore()
     original = {"nested": [1, 2]}
-    store.publish({"event_type": "object.discovered", "object_key": "shared", "federate": {"name": "Alice"},
+    store.publish({"event_type": "object.discovered", "source": "test", "object_key": "shared", "federate": {"name": "Alice"},
                    "object_name": "Shared sensor", "class_name": "Sensor", "attributes": {"data": original}})
     original["nested"].append(3)
     returned = update(store, "Alice", raw=b"\x00\xff", temperature=2.5)
@@ -119,11 +118,11 @@ def test_removal_is_attributed_and_rediscovery_starts_a_new_generation():
     store = ObserverStore()
     update(store, "Alice", old_value=1)
     update(store, "Bob", old_value=2)
-    store.publish({"event_type": "object.removed", "object_key": "shared", "federate": "Alice"})
+    store.publish({"event_type": "object.removed", "source": "test", "object_key": "shared", "federate": "Alice"})
     rows = {row.federate: row for row in observations(store).snapshots}
     assert rows["Alice"].object.status == "removed"
     assert rows["Bob"].object.status == "active"
-    store.publish({"event_type": "object.discovered", "object_key": "shared", "federate": "Alice", "attributes": {"new_value": 3}})
+    store.publish({"event_type": "object.discovered", "source": "test", "object_key": "shared", "federate": "Alice", "attributes": {"new_value": 3}})
     rows = {row.federate: row for row in observations(store).snapshots}
     assert rows["Alice"].generation == 4
     assert rows[None].generation == 4

@@ -739,6 +739,8 @@ export interface components {
             roster_storage?: components["schemas"]["StorageCollectionResponse"] | null;
             /** Scoped Federate */
             scoped_federate: string | null;
+            /** Scoped Perspective */
+            scoped_perspective?: string | null;
             /** Sources */
             sources: {
                 [key: string]: number;
@@ -761,6 +763,11 @@ export interface components {
             federate_roster: components["schemas"]["FederateInspectionResponse"][];
             /** Normalized Events */
             normalized_events: components["schemas"]["EventEnvelope-Input"][];
+            /**
+             * Participant Provenance
+             * @default false
+             */
+            participant_provenance: boolean;
             retention: components["schemas"]["RetentionResponse"];
             storage?: components["schemas"]["StorageCoverageResponse"] | null;
         };
@@ -1388,6 +1395,7 @@ export interface components {
             federate: string | null;
             /** Federation */
             federation: string | null;
+            perspective?: components["schemas"]["ParticipantPerspectiveResponse"] | null;
             /** Session Id */
             session_id: string | null;
             /** Source */
@@ -1621,6 +1629,8 @@ export interface components {
             } | null;
             /** Federate Name */
             federate_name?: string | null;
+            /** Federation */
+            federation?: string | null;
             /** Fom Observation */
             fom_observation?: (components["schemas"]["FomObjectObservation"] | components["schemas"]["FomInteractionObservation"] | components["schemas"]["FomDatatypeObservation"] | components["schemas"]["FomDimensionObservation"]) | null;
             interaction_flow?: components["schemas"]["InteractionFlowObservationInput"] | null;
@@ -1628,6 +1638,7 @@ export interface components {
             logical_time?: number | null;
             /** Mom Observation */
             mom_observation?: (components["schemas"]["MomMembersObservation"] | components["schemas"]["MomServiceObservation"] | components["schemas"]["MomCounterObservation"]) | null;
+            object_context?: components["schemas"]["ObjectContextInput"] | null;
             /** Object Key */
             object_key?: string | null;
             /** Observed At */
@@ -1640,6 +1651,7 @@ export interface components {
             participant?: string | {
                 [key: string]: components["schemas"]["JsonValue-Input"];
             } | null;
+            participant_attribution?: components["schemas"]["ParticipantAttributionInput"] | null;
             /** Participant Name */
             participant_name?: string | null;
             /** Region Observation */
@@ -1647,6 +1659,8 @@ export interface components {
             relationship?: components["schemas"]["RelationshipObservationInput"] | null;
             /** Sequence */
             sequence: number;
+            /** Session Id */
+            session_id?: string | null;
             /** Source */
             source: string;
             /** Time Observation */
@@ -1674,6 +1688,8 @@ export interface components {
             } | null;
             /** Federate Name */
             federate_name?: string | null;
+            /** Federation */
+            federation?: string | null;
             /** Fom Observation */
             fom_observation?: (components["schemas"]["FomObjectObservation"] | components["schemas"]["FomInteractionObservation"] | components["schemas"]["FomDatatypeObservation"] | components["schemas"]["FomDimensionObservation"]) | null;
             interaction_flow?: components["schemas"]["InteractionFlowObservationInput"] | null;
@@ -1681,6 +1697,7 @@ export interface components {
             logical_time?: number | null;
             /** Mom Observation */
             mom_observation?: (components["schemas"]["MomMembersObservation"] | components["schemas"]["MomServiceObservation"] | components["schemas"]["MomCounterObservation"]) | null;
+            object_context?: components["schemas"]["ObjectContextInput"] | null;
             /** Object Key */
             object_key?: string | null;
             /** Observed At */
@@ -1693,6 +1710,7 @@ export interface components {
             participant?: string | {
                 [key: string]: components["schemas"]["JsonValue-Output"];
             } | null;
+            participant_attribution?: components["schemas"]["ParticipantAttributionInput"] | null;
             /** Participant Name */
             participant_name?: string | null;
             /** Region Observation */
@@ -1700,6 +1718,8 @@ export interface components {
             relationship?: components["schemas"]["RelationshipObservationInput"] | null;
             /** Sequence */
             sequence: number;
+            /** Session Id */
+            session_id?: string | null;
             /** Source */
             source: string;
             /** Time Observation */
@@ -1770,6 +1790,7 @@ export interface components {
             logical_time?: number | null;
             /** Mom Observation */
             mom_observation?: (components["schemas"]["MomMembersObservation"] | components["schemas"]["MomServiceObservation"] | components["schemas"]["MomCounterObservation"]) | null;
+            object_context?: components["schemas"]["ObjectContextInput"] | null;
             /** Object Handle */
             object_handle?: string | null;
             /** Object Key */
@@ -1790,6 +1811,7 @@ export interface components {
             participant?: string | {
                 [key: string]: components["schemas"]["JsonValue-Input"];
             } | null;
+            participant_attribution?: components["schemas"]["ParticipantAttributionInput"] | null;
             /** Participant Handle */
             participant_handle?: string | null;
             /** Participant Name */
@@ -1801,6 +1823,8 @@ export interface components {
             role?: string | null;
             /** Sequence */
             sequence?: number | null;
+            /** Session Id */
+            session_id?: string | null;
             /** Source */
             source?: string | null;
             tag?: components["schemas"]["JsonValue-Input"];
@@ -1908,6 +1932,7 @@ export interface components {
             object_keys: string[];
             /** Object Updates */
             object_updates: number;
+            perspective?: components["schemas"]["ParticipantPerspectiveResponse"] | null;
             /** Role */
             role: string | null;
             /** Roster Retained */
@@ -1925,12 +1950,57 @@ export interface components {
             handle?: string | null;
             /** Last Seen */
             last_seen?: number | null;
+            perspective?: components["schemas"]["ParticipantPerspectiveResponse"] | null;
             /** Role */
             role?: string | null;
             /** Source */
             source: string;
             /** Status */
             status: string;
+        };
+        /** FederateListSettings */
+        "FederateListSettings-Input": {
+            /**
+             * Basis
+             * @default all
+             * @enum {string}
+             */
+            basis: "all" | "explicit-join" | "legacy-provenance" | "legacy-name";
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+        };
+        /** FederateListSettings */
+        "FederateListSettings-Output": {
+            /**
+             * Basis
+             * @default all
+             * @enum {string}
+             */
+            basis: "all" | "explicit-join" | "legacy-provenance" | "legacy-name";
+            /**
+             * Search
+             * @default
+             */
+            search: string;
+        };
+        /** FederateWorkspaceSettings */
+        "FederateWorkspaceSettings-Input": {
+            declarations?: components["schemas"]["DeclarationViewSettings-Input"];
+            events?: components["schemas"]["EventViewSettings-Input"];
+            /** Participant */
+            participant: string;
+            time?: components["schemas"]["TimeViewSettings-Input"];
+        };
+        /** FederateWorkspaceSettings */
+        "FederateWorkspaceSettings-Output": {
+            declarations: components["schemas"]["DeclarationViewSettings-Output"];
+            events: components["schemas"]["EventViewSettings-Output"];
+            /** Participant */
+            participant: string;
+            time: components["schemas"]["TimeViewSettings-Output"];
         };
         /** FederationViewSettings */
         "FederationViewSettings-Input": {
@@ -2612,6 +2682,7 @@ export interface components {
             parameters?: {
                 [key: string]: components["schemas"]["JsonValue-Input"];
             };
+            perspective?: components["schemas"]["ParticipantPerspectiveResponse"] | null;
             /** Sequence */
             sequence: number;
             /** Source */
@@ -2636,6 +2707,7 @@ export interface components {
             parameters?: {
                 [key: string]: components["schemas"]["JsonValue-Output"];
             };
+            perspective?: components["schemas"]["ParticipantPerspectiveResponse"] | null;
             /** Sequence */
             sequence: number;
             /** Source */
@@ -3039,10 +3111,14 @@ export interface components {
             federate: string | null;
             /** Generation */
             generation: number;
+            object_context?: components["schemas"]["ObjectContextInput"] | null;
             /** Object Key */
             object_key: string;
+            /** Observation Key */
+            observation_key?: string | null;
             /** Observed At */
             observed_at: number;
+            perspective?: components["schemas"]["ParticipantPerspectiveResponse"] | null;
             /** Previous Known */
             previous_known: boolean;
             previous_value: components["schemas"]["JsonValue-Input"];
@@ -3060,10 +3136,14 @@ export interface components {
             federate: string | null;
             /** Generation */
             generation: number;
+            object_context?: components["schemas"]["ObjectContextInput"] | null;
             /** Object Key */
             object_key: string;
+            /** Observation Key */
+            observation_key?: string | null;
             /** Observed At */
             observed_at: number;
+            perspective?: components["schemas"]["ParticipantPerspectiveResponse"] | null;
             /** Previous Known */
             previous_known: boolean;
             previous_value: components["schemas"]["JsonValue-Output"];
@@ -3090,6 +3170,13 @@ export interface components {
             object_key: string;
             /** Scope */
             scope: string | null;
+        };
+        /** ObjectContextInput */
+        ObjectContextInput: {
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
         };
         /** ObjectDeclarationObservation */
         ObjectDeclarationObservation: {
@@ -3141,12 +3228,15 @@ export interface components {
             family: string;
             /** Last Seen */
             last_seen?: number | null;
+            object_context?: components["schemas"]["ObjectContextInput"] | null;
             /** Object Handle */
             object_handle?: string | null;
             /** Object Key */
             object_key: string;
             /** Object Name */
             object_name: string;
+            /** Observation Key */
+            observation_key?: string | null;
             /** Sources */
             sources?: string[];
             /** Status */
@@ -3170,12 +3260,15 @@ export interface components {
             family: string;
             /** Last Seen */
             last_seen?: number | null;
+            object_context?: components["schemas"]["ObjectContextInput"] | null;
             /** Object Handle */
             object_handle?: string | null;
             /** Object Key */
             object_key: string;
             /** Object Name */
             object_name: string;
+            /** Observation Key */
+            observation_key?: string | null;
             /** Sources */
             sources?: string[];
             /** Status */
@@ -3237,6 +3330,7 @@ export interface components {
             /** Last Sequence */
             last_sequence: number;
             object: components["schemas"]["ObjectInspectionResponse-Input"];
+            perspective?: components["schemas"]["ParticipantPerspectiveResponse"] | null;
         };
         /**
          * ObjectPerspectiveResponse
@@ -3250,6 +3344,7 @@ export interface components {
             /** Last Sequence */
             last_sequence: number;
             object: components["schemas"]["ObjectInspectionResponse-Output"];
+            perspective?: components["schemas"]["ParticipantPerspectiveResponse"] | null;
         };
         /** ObjectViewSettings */
         "ObjectViewSettings-Input": {
@@ -3589,6 +3684,16 @@ export interface components {
              */
             search: string;
         };
+        /** ParticipantAttributionInput */
+        ParticipantAttributionInput: {
+            /** Federation Id */
+            federation_id: string;
+            /** Identity Namespace */
+            identity_namespace: string;
+            participant: components["schemas"]["ParticipantIdentityResponse"];
+            /** Session Id */
+            session_id: string;
+        };
         /**
          * ParticipantIdentityResponse
          * @description Opaque IDs identify a participant join; names and handles never do.
@@ -3602,6 +3707,25 @@ export interface components {
             membership_id: string;
             /** Participant Id */
             participant_id: string;
+        };
+        /** ParticipantPerspectiveResponse */
+        ParticipantPerspectiveResponse: {
+            attribution?: components["schemas"]["ParticipantAttributionInput"] | null;
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "explicit-join" | "legacy-provenance";
+            /** Federation */
+            federation?: string | null;
+            /** Key */
+            key: string;
+            /** Reported Name */
+            reported_name?: string | null;
+            /** Session Id */
+            session_id?: string | null;
+            /** Source */
+            source: string;
         };
         /** ParticipantReferenceResponse */
         ParticipantReferenceResponse: {
@@ -4696,6 +4820,7 @@ export interface components {
             observed_at: number;
             /** Operation */
             operation: string | null;
+            perspective?: components["schemas"]["ParticipantPerspectiveResponse"] | null;
             /** Sequence */
             sequence: number;
         };
@@ -4775,6 +4900,7 @@ export interface components {
             federate: string | null;
             /** Federation */
             federation: string | null;
+            perspective?: components["schemas"]["ParticipantPerspectiveResponse"] | null;
             /** Session Id */
             session_id: string | null;
             /** Source */
@@ -4977,6 +5103,12 @@ export interface components {
             federate_declarations?: components["schemas"]["DeclarationViewSettings-Input"];
             federate_events?: components["schemas"]["EventViewSettings-Input"];
             federate_time?: components["schemas"]["TimeViewSettings-Input"];
+            /**
+             * Federate Views
+             * @default []
+             */
+            federate_views: components["schemas"]["FederateWorkspaceSettings-Input"][];
+            federates?: components["schemas"]["FederateListSettings-Input"];
             federation?: components["schemas"]["FederationViewSettings-Input"];
             fom?: components["schemas"]["FomViewSettings-Input"];
             interactions?: components["schemas"]["InteractionViewSettings-Input"];
@@ -5019,6 +5151,12 @@ export interface components {
             federate_declarations: components["schemas"]["DeclarationViewSettings-Output"];
             federate_events: components["schemas"]["EventViewSettings-Output"];
             federate_time: components["schemas"]["TimeViewSettings-Output"];
+            /**
+             * Federate Views
+             * @default []
+             */
+            federate_views: components["schemas"]["FederateWorkspaceSettings-Output"][];
+            federates: components["schemas"]["FederateListSettings-Output"];
             federation: components["schemas"]["FederationViewSettings-Output"];
             fom: components["schemas"]["FomViewSettings-Output"];
             interactions: components["schemas"]["InteractionViewSettings-Output"];
@@ -5206,6 +5344,7 @@ export interface operations {
             query?: {
                 bucket_count?: number;
                 federate?: string | null;
+                perspective?: string | null;
                 window_seconds?: number;
             };
             header?: never;

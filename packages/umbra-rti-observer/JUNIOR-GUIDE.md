@@ -691,7 +691,7 @@ time slider and exact-state slider. The latter can inspect commits with equal
 clock offsets. An unavailable recording backend does not break other tabs.
 Recording files include actual federation/context data and may contain secrets
 in provider extensions: review them before sharing. They are not the data-free
-workspace configurations planned separately in the backlog.
+workspace configurations described in [WORKSPACES.md](WORKSPACES.md).
 
 The Alerts tab follows the same split: `alerting.py` evaluates typed rules over
 committed ingress without Pydantic/RTI dependencies; `alert_models.py` and
@@ -707,6 +707,32 @@ condition. Reset starts a baseline while old evidence keeps its rule version;
 it cannot unsee an explicit end for the same filter. Process-local rules can be
 downloaded/reimported without payloads; replay never fetches current evidence.
 See [ALERTS.md](ALERTS.md) before changing this flow or implementing Java.
+
+Saved workspaces are a different kind of persistence. A recording remembers
+reported evidence; an alert file remembers rule definitions; a workspace file
+remembers how the person wants to inspect evidence. Use **Saved workspaces** in
+the header to name/download a configuration. Import checks it and saves it;
+Apply explicitly restores the tab, participant, filters, exact chart choices
+and window. It does not replay RTI calls or bring captured observations along.
+Filter text can still identify a subject, so review it before sharing.
+
+`workspace_models.py` defines the named configuration models. OpenAPI generates
+the TypeScript types, and `workspace_schema.py` exports defaults/JSON Schema and
+the cross-language examples. Build-time compilation produces offline browser
+validators; `codec.ts` checks inputs, sizes and uniqueness. `WorkspaceProvider`
+owns the settings and screens use typed hooks. Keep form drafts and backend
+authority out of that owner. The optional normalization endpoints are useful
+for other clients, but React does not depend on them, so replacing Python with
+Java does not require a browser-storage implementation in Java.
+
+If a work RTI lacks MOM, a saved MOM selection stays dormant while Events still
+works. If Alice or a particular object/report is not present, the UI keeps that
+choice and an empty/unavailable result instead of borrowing Bob's values.
+Global filters and each federate's event/declaration/time preferences remain
+separate: switch Alice → Bob → Alice and Alice's own settings return. Storage errors keep the page
+usable, and an external-tab change or invalid old copy requires explicit
+reload/reset. Browser storage is not a durable backup; download the profile.
+See [WORKSPACES.md](WORKSPACES.md) for exact limits and recovery steps.
 
 The Actions tab talks to `useCommands` and `ObserverClient`, which send a named
 command request to FastAPI. `command_models.py` validates the action and its

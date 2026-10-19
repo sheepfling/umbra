@@ -9,6 +9,11 @@
   },
   "legacy_exemptions": [
     {
+      "path": "packages/umbra-rti-observer-ui/src/api/workspace-validator.cjs",
+      "max_lines": 6000,
+      "reason": "Generated standalone validators for the document/library workspace contracts stay together as one reproducible build artifact. Splitting generated function fragments manually would break regeneration and offline/CSP validation. The generator enforces this 6,000-line growth guard on both write and no-write CI checks; stale output and schema drift are regression-tested. Review shared schema ownership before growth beyond the guard; do not hand-edit or minify solely to reduce line count."
+    },
+    {
       "path": "CMakeLists.txt",
       "max_lines": 2063,
       "reason": "The root build graph is now 2,063 lines after Catch2 executable/test discovery declarations moved to cmake/catch2_executable_targets.cmake, CTest lane/JUnit orchestration moved to cmake/catch2_ctest_lanes.cmake, and six cohesive 2025 process-client service translation units were registered. Ratchet this measured size; preserve distinct 2010/2025 targets and extract only real build-graph responsibilities, not line-only fragments."

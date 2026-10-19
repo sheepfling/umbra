@@ -367,10 +367,11 @@ def create_app(
             window_seconds: int = Query(default=300, ge=30, le=3600),
             bucket_count: int = Query(default=30, ge=10, le=120),
             federate: str | None = Query(default=None, min_length=1, max_length=512),
+            perspective: str | None = Query(default=None, min_length=1, max_length=8192),
         ) -> AnalyticsResponse:
             return build_analytics(
                 AnalyticsWindow.model_validate(observer.analytics_window()),
-                window_seconds=window_seconds, bucket_count=bucket_count, federate=federate,
+                window_seconds=window_seconds, bucket_count=bucket_count, federate=federate, perspective=perspective,
             )
 
     @app.get("/api/inspectors/{kind}", response_model=InspectorResponse)

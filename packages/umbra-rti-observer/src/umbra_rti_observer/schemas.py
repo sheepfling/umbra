@@ -26,12 +26,14 @@ from pydantic import (
 )
 from typing_extensions import TypeAliasType
 
+from .attribution import ParticipantPerspective, participant_attribution
 from .coordination import coordination_data
 from .declarations import declaration_data
 from .fom import fom_data
 from .identities import decimal_bound, participant_reference
 from .interaction_flow import flow_number, interaction_flow_data
 from .mom import counter_number, mom_data
+from .object_views import ObjectContext, object_context
 from .ownership import ownership_data
 from .regions import region_data
 from .relationships import relationship_data
@@ -216,6 +218,48 @@ class ParticipantIdentityResponse(ObserverModel):
     membership_id: DeclarationId
     display_name: DeclarationId | None = None
     handle: DeclarationId | None = None
+
+
+class ParticipantAttributionInput(ObserverModel):
+    session_id: TimeId
+    identity_namespace: DeclarationId
+    federation_id: DeclarationId
+    participant: ParticipantIdentityResponse
+
+    @model_validator(mode="after")
+    def valid_identity(self) -> ParticipantAttributionInput:
+        participant_attribution({"participant_attribution": self.model_dump(mode="python", exclude_none=True)})
+        return self
+
+
+class ParticipantPerspectiveResponse(ObserverModel):
+    key: NonEmptyText
+    basis: Literal["explicit-join", "legacy-provenance"]
+    source: NonEmptyText
+    session_id: TimeId | None = None
+    federation: str | None = None
+    reported_name: str | None = None
+    attribution: ParticipantAttributionInput | None = None
+
+    @model_validator(mode="after")
+    def canonical_perspective(self) -> ParticipantPerspectiveResponse:
+        identity = participant_attribution({"participant_attribution": self.attribution.model_dump(mode="python", exclude_none=True)}) if self.attribution else None
+        if identity is None and not self.reported_name:
+            raise ValueError("legacy reporting perspectives require a reported name, not an invented join")
+        expected = ParticipantPerspective(self.source, self.session_id, self.federation, self.reported_name, identity)
+        if self.key != expected.key or self.basis != expected.basis or identity is not None and self.session_id != identity.session_id:
+            raise ValueError("participant perspective key, provenance and identity must agree")
+        return self
+
+
+class ObjectContextInput(ObserverModel):
+    identity_namespace: DeclarationId
+    federation_id: DeclarationId
+
+    @model_validator(mode="after")
+    def explicit_context(self) -> ObjectContextInput:
+        object_context({"object_context": self.model_dump(mode="python")})
+        return self
 
 
 class RelationshipObservationInput(ObserverModel):
@@ -575,15 +619,18 @@ class EventInput(ExtensibleObserverModel):
     source: Annotated[str | None, Field(default=None, min_length=1, max_length=512)]
     observed_at: float | None = None
     connection: str | None = None
+    session_id: TimeId | None = None
     federation: str | None = None
     federate: str | dict[str, JsonValue] | None = None
     participant: str | dict[str, JsonValue] | None = None
     federate_name: str | None = None
     participant_name: str | None = None
+    participant_attribution: ParticipantAttributionInput | None = None
     federate_handle: str | None = None
     participant_handle: str | None = None
     role: str | None = None
     object_key: str | None = None
+    object_context: ObjectContextInput | None = None
     object_name: str | None = None
     object_handle: str | None = None
     class_name: str | None = None
@@ -611,6 +658,9 @@ class EventInput(ExtensibleObserverModel):
 
     @model_validator(mode="after")
     def consistent_interaction_direction(self) -> EventInput:
+        participant_attribution({"participant_attribution": self.participant_attribution.model_dump(mode="python", exclude_none=True) if self.participant_attribution else None,
+            "session_id": self.session_id, "time_observation": {"session_id": self.time_observation.session_id} if self.time_observation else None,
+            "declaration": {"session_id": self.declaration.session_id} if self.declaration else None})
         if self.interaction_flow is not None:
             interaction_flow_data({"event_type": self.event_type or self.kind,
                                    "interaction_flow": self.interaction_flow.model_dump(mode="python", exclude_none=True)})
@@ -663,6 +713,8 @@ class CapabilityResponse(WireObserverModel):
 
 class ObjectInspectionResponse(ObserverModel):
     object_key: NonEmptyText
+    object_context: ObjectContextInput | None = None
+    observation_key: NonEmptyText | None = None
     object_name: NonEmptyText
     object_handle: str | None = None
     class_name: str | None = None
@@ -674,6 +726,15 @@ class ObjectInspectionResponse(ObserverModel):
     sources: Annotated[Sequence[str], Field(default_factory=tuple)]
     status: NonEmptyText
     last_seen: float | None = None
+
+    @model_validator(mode="after")
+    def scoped_object_key(self) -> ObjectInspectionResponse:
+        if self.object_context is None:
+            if self.observation_key is not None:
+                raise ValueError("an object observation key requires its explicit federation context")
+        elif self.observation_key != ObjectContext(self.object_context.identity_namespace, self.object_context.federation_id).key(self.object_key):
+            raise ValueError("object observation key and federation context must agree")
+        return self
 
 
 class InteractionInspectionResponse(ObserverModel):
@@ -687,6 +748,13 @@ class InteractionInspectionResponse(ObserverModel):
     parameters: Annotated[Mapping[JsonText, JsonValue], Field(default_factory=dict)]
     tag: Annotated[JsonValue, Field(default=None)]
     observed_at: float
+    perspective: ParticipantPerspectiveResponse | None = None
+
+    @model_validator(mode="after")
+    def reporting_source_matches(self) -> InteractionInspectionResponse:
+        if self.perspective is not None and self.source != self.perspective.source:
+            raise ValueError("interaction reporting source and participant perspective must agree")
+        return self
 
 
 class FederateInspectionResponse(ObserverModel):
@@ -696,6 +764,13 @@ class FederateInspectionResponse(ObserverModel):
     status: NonEmptyText
     source: NonEmptyText
     last_seen: float | None = None
+    perspective: ParticipantPerspectiveResponse | None = None
+
+    @model_validator(mode="after")
+    def consistent_reporting_source(self) -> FederateInspectionResponse:
+        if self.perspective is not None and self.source != self.perspective.source:
+            raise ValueError("roster reporting source must agree with its participant perspective")
+        return self
 
 
 class LiveMetricsResponse(ObserverModel):
@@ -743,6 +818,9 @@ class EventEnvelope(WireObserverModel):
     family: NonEmptyText
     source: NonEmptyText
     observed_at: float
+    federation: str | None = None
+    session_id: TimeId | None = None
+    participant_attribution: ParticipantAttributionInput | None = None
     federate: str | dict[str, JsonValue] | None = None
     participant: str | dict[str, JsonValue] | None = None
     federate_name: str | None = None
@@ -751,6 +829,7 @@ class EventEnvelope(WireObserverModel):
     operation: str | None = None
     details: Mapping[str, JsonValue] | None = None
     object_key: str | None = None
+    object_context: ObjectContextInput | None = None
     time_observation: TimeObservationInput | None = None
     declaration: DeclarationObservationInput | None = None
     relationship: RelationshipObservationInput | None = None
@@ -763,6 +842,9 @@ class EventEnvelope(WireObserverModel):
 
     @model_validator(mode="after")
     def consistent_interaction_direction(self) -> EventEnvelope:
+        participant_attribution({"participant_attribution": self.participant_attribution.model_dump(mode="python", exclude_none=True) if self.participant_attribution else None,
+            "session_id": self.session_id, "time_observation": {"session_id": self.time_observation.session_id} if self.time_observation else None,
+            "declaration": {"session_id": self.declaration.session_id} if self.declaration else None})
         if self.interaction_flow is not None:
             interaction_flow_data({"event_type": self.event_type,
                                    "interaction_flow": self.interaction_flow.model_dump(mode="python", exclude_none=True)})
@@ -776,6 +858,13 @@ class ObjectPerspectiveResponse(ObserverModel):
     generation: SequenceNumber
     last_sequence: SequenceNumber
     object: ObjectInspectionResponse
+    perspective: ParticipantPerspectiveResponse | None = None
+
+    @model_validator(mode="after")
+    def attributed_perspective(self) -> ObjectPerspectiveResponse:
+        if self.perspective is not None and self.federate is None:
+            raise ValueError("global objects must not claim a participant reporting perspective")
+        return self
 
     @model_serializer(mode="wrap")
     def preserve_scope(self, handler: SerializerFunctionWrapHandler):
@@ -798,6 +887,20 @@ class ObjectAttributeChangeResponse(ObserverModel):
     previous_value: JsonValue
     source: NonEmptyText
     observed_at: Annotated[float, Field(allow_inf_nan=False)]
+    perspective: ParticipantPerspectiveResponse | None = None
+    object_context: ObjectContextInput | None = None
+    observation_key: NonEmptyText | None = None
+
+    @model_validator(mode="after")
+    def scoped_change(self) -> ObjectAttributeChangeResponse:
+        if self.perspective is not None and (self.federate is None or self.source != self.perspective.source):
+            raise ValueError("attributed object changes require matching source/perspective metadata")
+        if self.object_context is None:
+            if self.observation_key is not None:
+                raise ValueError("scoped change keys require an explicit object context")
+        elif self.observation_key != ObjectContext(self.object_context.identity_namespace, self.object_context.federation_id).key(self.object_key):
+            raise ValueError("object change key and federation context must agree")
+        return self
 
     @model_serializer(mode="wrap")
     def preserve_null_values(self, handler: SerializerFunctionWrapHandler):
@@ -830,7 +933,7 @@ class ObjectObservationsResponse(ObserverModel):
             raise ValueError("object snapshot budget metadata must be complete or unreported")
         if self.snapshot_capacity is not None and len(self.snapshots) > self.snapshot_capacity:
             raise ValueError("object perspectives exceed their advertised snapshot capacity")
-        keys = {(row.federate, row.object.object_key) for row in self.snapshots}
+        keys = {(row.perspective.key if row.perspective else row.federate, row.object.observation_key or row.object.object_key) for row in self.snapshots}
         if len(keys) != len(self.snapshots):
             raise ValueError("object perspective keys must be unique")
         if (self.omitted_changes or self.dropped_history_batches) and not self.history_truncated:
@@ -843,6 +946,18 @@ class TimeScopeResponse(ObserverModel):
     session_id: TimeId | None
     federation: str | None
     federate: str | None
+    perspective: ParticipantPerspectiveResponse | None = None
+
+    @model_validator(mode="after")
+    def consistent_perspective(self) -> TimeScopeResponse:
+        if self.perspective is not None:
+            if self.source != self.perspective.source:
+                raise ValueError("time source must agree with its participant perspective")
+            if self.perspective.attribution is not None and self.session_id != self.perspective.session_id:
+                raise ValueError("explicit time correlation requires the same reporting session")
+            if self.perspective.attribution is None and self.federate != self.perspective.reported_name:
+                raise ValueError("legacy time attribution cannot borrow another name")
+        return self
 
     @model_serializer(mode="wrap")
     def preserve_scope(self, handler: SerializerFunctionWrapHandler):
@@ -908,8 +1023,8 @@ class TimeInspectionResponse(ObserverModel):
 
     @model_validator(mode="after")
     def consistent_inspection(self) -> TimeInspectionResponse:
-        def key(scope: TimeScopeResponse) -> tuple[str, str | None, str | None, str | None]:
-            return scope.source, scope.session_id, scope.federation, scope.federate
+        def key(scope: TimeScopeResponse) -> tuple[str | None, ...]:
+            return ("perspective", scope.perspective.key) if scope.perspective else ("legacy-scope", scope.source, scope.session_id, scope.federation, scope.federate)
 
         snapshots = {key(row.scope): row for row in self.snapshots}
         if (self.snapshot_capacity is None) != (self.dropped_snapshots is None):
@@ -928,7 +1043,7 @@ class TimeInspectionResponse(ObserverModel):
                 raise ValueError("reported time state cannot be newer than its snapshot")
         for row in self.requests:
             snapshot = snapshots.get(key(row.scope))
-            if row.scope.source == "unknown" or row.scope.session_id is None or row.scope.federate is None:
+            if row.scope.source == "unknown" or row.scope.session_id is None or row.scope.federate is None and not (row.scope.perspective and row.scope.perspective.attribution):
                 raise ValueError("correlated requests require a known source, session and federate snapshot")
             if row.snapshot_retained is False:
                 if snapshot is not None or not self.dropped_snapshots:
@@ -955,6 +1070,15 @@ class DeclarationScopeResponse(ObserverModel):
     session_id: TimeId | None
     federation: str | None
     federate: str | None
+    perspective: ParticipantPerspectiveResponse | None = None
+
+    @model_validator(mode="after")
+    def consistent_perspective(self) -> DeclarationScopeResponse:
+        if self.perspective is not None and (self.source != self.perspective.source
+            or self.perspective.attribution is not None and self.session_id != self.perspective.session_id
+            or self.perspective.attribution is None and self.federate != self.perspective.reported_name):
+            raise ValueError("declaration scope and reporting perspective must agree")
+        return self
 
     @model_serializer(mode="wrap")
     def preserve_scope(self, handler: SerializerFunctionWrapHandler):
@@ -996,7 +1120,8 @@ class DeclarationsResponse(ObserverModel):
 
     @model_validator(mode="after")
     def unique_bounded_snapshots(self) -> DeclarationsResponse:
-        keys = {(row.scope.source, row.scope.session_id, row.scope.federation, row.scope.federate,
+        keys = {(("perspective", row.scope.perspective.key) if row.scope.perspective else
+                 ("legacy-scope", row.scope.source, row.scope.session_id, row.scope.federation, row.scope.federate),
                  row.kind, row.direction, row.class_key) for row in self.snapshots}
         if len(keys) != len(self.snapshots) or len(keys) > self.capacity:
             raise ValueError("declaration snapshots must be unique and bounded by capacity")
@@ -1484,6 +1609,7 @@ class AnalyticsWindow(ObserverModel):
     federate_roster: Sequence[FederateInspectionResponse]
     normalized_events: Sequence[EventEnvelope]
     storage: StorageCoverageResponse | None = None
+    participant_provenance: bool = False
 
     @model_validator(mode="after")
     def consistent_window(self) -> AnalyticsWindow:
@@ -1498,7 +1624,7 @@ class AnalyticsWindow(ObserverModel):
             raise ValueError("analytics window must include its complete retained cursor range")
         if retention.next_sequence <= retention.last_sequence:
             raise ValueError("analytics next cursor must follow retained history")
-        if len({row.federate for row in self.federate_roster}) != len(self.federate_roster):
+        if len({row.perspective.key if row.perspective else row.federate for row in self.federate_roster}) != len(self.federate_roster):
             raise ValueError("analytics roster identities must be unique")
         if self.storage is not None:
             rows = {row.collection: row for row in self.storage.evidence.collections}
@@ -1529,6 +1655,7 @@ class ActivityBucket(ObserverModel):
 
 
 class FederateActivity(ObserverModel):
+    perspective: ParticipantPerspectiveResponse | None = None
     roster_retained: bool | None = None
     federate: NonEmptyText
     role: str | None
@@ -1545,6 +1672,7 @@ class FederateActivity(ObserverModel):
 
 
 class TimeObservation(ObserverModel):
+    perspective: ParticipantPerspectiveResponse | None = None
     sequence: SequenceNumber
     federate: str | None
     logical_time: Annotated[int | float, Field(allow_inf_nan=False)]
@@ -1555,6 +1683,7 @@ class TimeObservation(ObserverModel):
 
 
 class AnalyticsResponse(ObserverModel):
+    scoped_perspective: str | None = None
     contract_version: NonEmptyText
     basis: Literal["retained-observations"]
     generated_at: float

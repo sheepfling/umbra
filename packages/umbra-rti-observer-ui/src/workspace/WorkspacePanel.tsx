@@ -9,7 +9,7 @@ export function WorkspacePanel({ canApply, displayedParticipant }: { canApply: b
   const [name, setName] = useState("Workspace");
   const [selected, setSelected] = useState("");
   const [error, setError] = useState<string>();
-  const choice = selected || owner.saved[0]?.name || "";
+  const choice = owner.saved.some((row) => row.name === selected) ? selected : owner.saved[0]?.name ?? "";
   const saved = owner.saved.find((row) => row.name === choice);
   const act = (operation: () => void) => {
     try { operation(); setError(undefined); }
@@ -18,9 +18,10 @@ export function WorkspacePanel({ canApply, displayedParticipant }: { canApply: b
   const capture = () => workspaceDocument(name.trim(), { ...owner.settings,
     selected_federate: owner.settings.selected_federate || displayedParticipant || "" });
   const save = (document: WorkspaceDocument) => {
-    if (owner.saved.some((row) => row.name === document.name)
+    const existing = owner.saved.find((row) => row.name === document.name);
+    if (existing
       && !window.confirm(`Replace the saved workspace “${document.name}”? No federation data or backend settings will change.`)) return;
-    owner.save(document); setSelected(document.name);
+    owner.save(document, existing); setSelected(document.name);
   };
   return <section id="saved-workspaces" className="panel workspace-manager" aria-label="Saved workspaces">
     <div className="panel-heading"><div><p className="eyebrow">View configuration only</p><h2>Saved workspaces</h2></div><span className="panel-note">{owner.saved.length}/12 saved in this browser/origin</span></div>

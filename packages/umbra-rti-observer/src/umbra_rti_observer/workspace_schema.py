@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 from typing import cast
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from .workspace_models import (
     WORKSPACE_VERSION,
@@ -18,6 +18,61 @@ from .workspace_models import (
 )
 
 SCHEMA_PATH = Path(__file__).with_name("static") / "workspace-v1.schema.json"
+
+
+def workspace_cases() -> dict[str, object]:
+    """A shared policy/parity corpus; normalized expectations come from models."""
+    def document(**values: object) -> dict[str, object]:
+        return {"workspace_version": WORKSPACE_VERSION, "name": "Miguel", **values}
+
+    library: dict[str, object] = {"library_version": "umbra-observer-workspace-library-v1"}
+    charts = [{"object_key": "same", "attribute": "speed"},
+              {"scope": "Alice", "object_key": "same", "attribute": "height"}]
+    inputs: list[tuple[str, str, dict[str, object], bool]] = [
+        ("minimal workspace", "workspace", document(), True),
+        ("nested defaults", "workspace", document(settings={"events": {"search": "load"}}), True),
+        ("future filter stays dormant", "workspace", document(settings={"objects": {"status": "future-status"},
+            "mom": {"scope": "unreported", "counter": "unreported-series"}}), True),
+        ("exact numeric perspectives", "workspace", document(settings={"object_charts": charts}), True),
+        ("Unicode scalar length", "workspace", document(name="🔎" * 128), True),
+        ("overlong scalar length", "workspace", document(name="🔎" * 129), False),
+        ("BOM is not Unicode White_Space", "workspace", document(name="\ufeff"), True),
+        ("NEXT LINE is Unicode White_Space", "workspace", document(name="\u0085"), False),
+        ("Unicode whitespace only", "workspace", document(name="\t \u00a0\u1680\u2000\u2028\u202f\u205f\u3000"), False),
+        ("unpaired surrogate", "workspace", document(name="\ud800"), False),
+        ("numeric text is not a window", "workspace", document(settings={"window_seconds": "300"}), False),
+        ("boolean is not a window", "workspace", document(settings={"window_seconds": True}), False),
+        ("boolean text is not a flag", "workspace", document(settings={"time": {"grants_only": "false"}}), False),
+        ("unknown version", "workspace", document(workspace_version="future"), False),
+        ("captured state forbidden", "workspace", document(state={}), False),
+        ("captured URL forbidden", "workspace", document(api_paths={"state": "https://never-follow.invalid"}), False),
+        ("command draft forbidden", "workspace", document(settings={"commands": {"confirmed": True}}), False),
+        ("duplicate chart target", "workspace", document(settings={"object_charts": charts + [charts[0]]}), False),
+        ("separate federate settings", "workspace", document(settings={"federate_views": [
+            {"participant": "Alice", "events": {"source": "source-a"}, "time": {"selected": "alice-scope"}},
+            {"participant": "Bob", "events": {"source": "source-b"}, "time": {"selected": "bob-scope"}}]}), True),
+        ("duplicate federate settings", "workspace", document(settings={"federate_views": [{"participant": "Alice"}, {"participant": "Alice"}]}), False),
+        ("prototype property forbidden", "workspace", document(__proto__={"polluted": True}), False),
+        ("minimal library", "library", library, True),
+        ("saved document defaults", "library", {**library, "saved": [document()]}, True),
+        ("exact case-sensitive names", "library", {**library, "saved": [document(name="A"), document(name="a")]}, True),
+        ("no Unicode normalization", "library", {**library, "saved": [document(name="é"), document(name="e\u0301")]}, True),
+        ("duplicate saved names", "library", {**library, "saved": [document(), document()]}, False),
+        ("too many saved documents", "library", {**library, "saved": [document(name=str(index)) for index in range(13)]}, False),
+    ]
+    result: list[dict[str, object]] = []
+    for name, kind, value, valid in inputs:
+        try:
+            normalized = (WorkspaceDocument if kind == "workspace" else WorkspaceLibrary).model_validate(value).model_dump(mode="json")
+        except ValidationError:
+            if valid:
+                raise
+            result.append({"name": name, "kind": kind, "input": value, "valid": False})
+        else:
+            if not valid:
+                raise ValueError(f"workspace policy case unexpectedly accepted: {name}")
+            result.append({"name": name, "kind": kind, "input": value, "valid": True, "normalized": normalized})
+    return {"case_version": "umbra-observer-workspace-cases-v1", "cases": result}
 
 
 def workspace_contract() -> dict[str, object]:
@@ -79,9 +134,15 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write", action="store_true")
     parser.add_argument("--frontend", type=Path, help="optional frontend contract snapshot to write/check too")
+    parser.add_argument("--cases", type=Path, help="optional cross-language policy corpus to write/check too")
     args = parser.parse_args(argv)
     content = json.dumps(workspace_contract(), indent=2, sort_keys=True, ensure_ascii=False) + "\n"
-    for path in (SCHEMA_PATH, *((args.frontend,) if args.frontend else ())):
+    outputs = [(path, content) for path in (SCHEMA_PATH, *((args.frontend,) if args.frontend else ()))]
+    if args.cases:
+        # Escaping deliberately preserves invalid surrogate test inputs as JSON
+        # text; do not try to encode those inputs as literal UTF-8 characters.
+        outputs.append((args.cases, json.dumps(workspace_cases(), indent=2, sort_keys=True) + "\n"))
+    for path, content in outputs:
         if args.write:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8")

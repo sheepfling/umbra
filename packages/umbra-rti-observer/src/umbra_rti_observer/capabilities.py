@@ -29,6 +29,10 @@ CAPABILITY_STATES = (
 )
 
 CAPABILITY_DEFINITIONS: dict[str, dict[str, str]] = {
+    "participant_provenance": {
+        "label": "Participant perspective model",
+        "description": "Canonical reporter/session and optional explicit join attribution; legacy name-only data remains unresolved, never a membership census or authority.",
+    },
     "workspace_validation": {
         "label": "Workspace contract validation",
         "description": "Optional canonical view-configuration validation/defaults; browser workspaces remain local and do not depend on this endpoint.",
@@ -176,6 +180,10 @@ CAPABILITY_DEFINITIONS: dict[str, dict[str, str]] = {
 }
 
 OBSERVER_CAPABILITIES: dict[str, dict[str, JsonValue]] = {
+    "participant_provenance": {
+        "state": "available", "owner": "observer",
+        "reason": "The backend emits named participant perspectives; IDs exist only when supplied explicitly. This describes the observer codec, not RTI identity coverage.",
+    },
     "storage_inspection": {
         "state": "available", "owner": "observer",
         "reason": "Count/byte expiry coverage is explicit; remaining row-only collections are listed, never silently covered.",

@@ -29,6 +29,7 @@ export type Declarations = Generated["DeclarationsResponse"];
 export type DeclarationSnapshot = Generated["DeclarationSnapshotResponse"];
 export type RelationshipSnapshot = Generated["RelationshipSnapshotResponse"];
 export type ParticipantIdentity = Generated["ParticipantIdentityResponse"];
+export type ParticipantPerspective = Generated["ParticipantPerspectiveResponse"];
 export type CoordinationSnapshot = Generated["CoordinationSnapshotResponse"];
 export type InteractionFlowRecord = Generated["InteractionFlowRecordResponse"];
 export type InteractionFlowReport = Generated["InteractionFlowReportResponse"];

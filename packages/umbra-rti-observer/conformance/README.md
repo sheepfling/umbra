@@ -134,3 +134,10 @@ file. Its own tests prove that both changed schemas and stale output fail.
 CI runs the schema/corpus checks, Python/Java matrix and browser portability
 tests. If no JDK is installed locally, the seven Java HTTP tests explicitly
 skip; CI installs JDK 17 and runs them. Java browser cases require a JDK.
+
+Saved workspace configuration has a separate generated offline contract and
+shared Python/frontend policy corpus. CI checks those plus compiled validators
+without rewriting; see [WORKSPACES.md](../WORKSPACES.md). The HTTP checker reads
+advertised workspace defaults and checks normalization discovery only. Its
+`workspace-import-validation` unchecked marker explicitly excludes POST/file
+validation and application; Python/offline/browser tests cover those lanes.

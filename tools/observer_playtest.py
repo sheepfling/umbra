@@ -65,6 +65,7 @@ TRY THIS
 - FOM browser: navigate explicit classes, fields, datatypes and model revisions.
 - Recordings: start/stop/download a bounded capture, then replay and seek across screens.
 - Alerts: define observer thresholds, review bounded evidence and download configuration without captured payloads.
+- Saved workspaces (header): name/download your view choices, then import and explicitly apply them without captured observations or provider commands.
 - Logical time: inspect persistent grants, pending requests and observed grant delays.
 - Synchronization: follow explicit registration and achievement phase reports.
 - Save / restore: compare local completion with a federation-wide failure and its timeline.
@@ -421,7 +422,7 @@ def make_bundle(layout: Layout, output: Path) -> None:
     files.extend(path for path in (layout.observer / "benchmarks").glob("*.json") if path.is_file())
     files.extend(path for path in (layout.observer / "src").rglob("*")
                  if path.is_file() and (path.suffix in {".py", ".html"}
-                     or path.name in {"py.typed", "observer-wire-v1.schema.json"}))
+                     or path.name == "py.typed" or path.name.endswith(".schema.json")))
     files.extend(path for path in (layout.ui / "dist").rglob("*") if path.is_file())
     if output in (path.resolve() for path in files):
         raise PlaytestError("Choose a ZIP path outside the source and dashboard files.")

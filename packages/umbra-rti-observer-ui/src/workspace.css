@@ -213,3 +213,5 @@ pre { max-width: 100%; max-height: 340px; overflow: auto; padding: 14px; border:
 .replay-seek input { width: 100%; min-width: 0; accent-color: #bca4ff; }
 .connection-badge.replay { border-color: #bca4ff; color: #d8c9ff; }
 .recordings-workspace input[type="file"] { max-width: 100%; }
+.participant-provenance { overflow-wrap: anywhere; }
+.participant-links > button > span:first-child { min-width: 0; }

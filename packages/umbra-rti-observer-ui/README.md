@@ -6,7 +6,7 @@ Python, Java, or vendor-specific backend that implements that contract.
 
 The workspace includes Federation, Federates, Objects, Declarations, Topology,
 Interaction flow, Ownership, Regions / DDM, MOM reports, FOM browser, Logical time,
-Synchronization, Save / restore, Events, Inspectors, Recordings, Actions and Diagnostics.
+Synchronization, Save / restore, Events, Inspectors, Recordings, Alerts, Actions and Diagnostics.
 The optional `/api/analytics` resource supplies bounded
 time-window aggregates and explicit participant attribution. Backends that do
 not advertise analytics keep the events, inspectors, and basic metric charts.
@@ -79,6 +79,17 @@ contain the current filtered loaded rows; they are not full-session recordings.
 Paused or stale control views cannot submit new commands.
 
 ## Development
+
+The header's **Saved workspaces** panel restores named view configuration and
+downloads/imports it without capturing evidence or invoking provider commands.
+`WorkspaceProvider` owns typed settings; screens use its preference hooks.
+The strict Python models generate the offline contract, TypeScript and compiled
+validators. Validation does not require a Python endpoint or runtime code
+generation, including on limited/read-only Java backends. Browser storage is
+per-origin, bounded and recoverable explicitly on conflicts or invalid data.
+See [the workspace guide](../umbra-rti-observer/WORKSPACES.md) before adding a
+new setting or changing its defaults. It distinguishes settings, recordings and
+alert-rule configuration, including privacy and persistence limits.
 
 Alerts uses independently discovered read/control capabilities and generated
 discriminated rules. It provides a current-state chart, editable thresholds,

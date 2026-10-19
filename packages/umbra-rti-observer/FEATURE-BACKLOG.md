@@ -1,20 +1,27 @@
 # Observer feature backlog
 
-## Saved-workspace checkpoint (2026-10-19, in progress)
+## Saved-workspace increment (2026-10-19)
 
-OBS-126 now has bounded named Pydantic models, generated TypeScript and offline
-validators, optional normalization endpoints, and shared frontend settings.
-Browser-local draft/named configurations support explicit import/apply/export;
-filters, participant and numeric-chart choices remain separate from observations,
-credentials, backend authority, command drafts and alert-rule configuration.
-This is a resumable checkpoint, not completion of OBS-126 or the overall goal.
-Remaining integration includes CI drift checks for the offline contract,
-workspace documentation, playtest schema packaging and a full browser sweep.
+OBS-126 is delivered: bounded named Pydantic models, generated TypeScript and
+precompiled offline validators, optional normalization endpoints, browser-local
+draft/named configurations, and explicit import/apply/export. Global settings,
+each federate's event/declaration/time preferences, and exact object/perspective
+chart choices remain independent. Unsupported choices stay dormant; missing
+selections do not silently borrow another participant or report. Captured data,
+credentials, backend authority, command drafts and alert rules are excluded.
+See [WORKSPACES.md](WORKSPACES.md) for privacy, storage and recovery boundaries.
 
-Checkpoint verification: 706 backend/tool checks and 62 selected desktop/mobile
-checks pass, along with nine frontend unit checks, the production build, strict
-Python checks and generated-contract drift checks. The opt-in native-provider
-smoke remains skipped; the complete browser suite was not rerun for this checkpoint.
+Verification: the complete 710-check backend/tool suite and 340-check desktop/
+mobile suite pass. Thirteen frontend unit checks include 27 shared policy cases,
+complete size/uniqueness bounds and no-write schema/validator drift tests. Strict
+Python, the production build, Python/Java HTTP corpus, packaged schemas and a
+Python 3.11 wheel/core without web/model/RTI dependencies are verified. The full
+browser run exposed a cross-participant time-selection regression; per-federate
+settings fixed it and repeat runs cover Alice/Bob switching and reload. CI,
+the junior/contract guides and playtest packaging include this increment. Both
+rich and limited one-command startup checks pass with advancing synthetic events.
+The opt-in native-provider smoke remains skipped. OBS-127 through OBS-129 and
+the separate native-provider gate still belong to the active overall goal.
 
 ## Alert increment (2026-10-19)
 
@@ -56,8 +63,9 @@ reference loads pass. Wide/large-index remain outside that envelope, with usable
 bounded states and disclosed expiry, not relabeled full-retention passes.
 Historical reports retain their original source fingerprints. See SCALE.md for
 actual retained counts, sizes, costs and the limits of this evidence.
-The goal remains active: OBS-126 through OBS-129 and the separate native-provider
-gate are not completed by storage verification.
+Storage verification did not finish the overall goal. The later workspace
+increment above delivers OBS-126; OBS-127 through OBS-129 and the separate
+native-provider gate remain active.
 
 The observer has two related workflows: understand the federation that the
 adapter can see, and investigate the observations attributed to one federate.
@@ -165,18 +173,21 @@ defaults/files. An independent TypeScript worker expands only the current state;
 seek/loading/error behavior never substitutes live data or grants provider
 authority. See [RECORDING.md](RECORDING.md) and the richer comparison in SCALE.
 
-**Next concrete handoff: finish OBS-126 saved workspaces.** The bounded versioned
-models and shared settings owner are implemented in `workspace_models.py` and
-the frontend's `src/workspace/` directory, with model/offline/browser tests.
-Finish the CI, guide and bundle integration listed in the checkpoint above;
-verify every view's restored and unavailable selections in the full suite.
-Preserve explicit configuration restore/share without event
-payloads, snapshots, recording bodies, endpoints, credentials, command drafts or
-backend-instance authority. Unsupported features keep dormant selections and
-independent views; restoring settings must not execute provider actions or
-silently substitute another participant. Keep alert-rule configuration separate
-from frontend workspace restore. Then continue OBS-127 through OBS-129;
-real-provider commands and OBS-102's native smoke remain separate gates.
+**Next concrete handoff: OBS-127 identity/provenance migration.** Start with a
+named, optional event-attribution model and the ordinary roster/analytics path.
+Reuse `identities.py`'s explicit namespace/federation/participant/membership IDs;
+keep source/session reporting provenance distinct from participant identity.
+`core.py` currently keys `_federates` by name, and `analytics.py` merges roster/
+observations by that same name. Names/handles and nested MOM/topology subjects
+must never synthesize ordinary attribution or authorize commands. Prove same-name
+participants across producers/federations, alias changes within one join, reused
+membership IDs in different namespaces and a fresh membership on rejoin.
+Carry the migration through object/time keys, analytics, frontend selections,
+saved preferences, alerts and recording validation; keep missing-ID legacy
+coverage explicit and limited RTIs useful. Deliver models, generated schemas,
+Python/Java/browser evidence and guides together. Then continue OBS-128 transport
+negotiation/resumption and OBS-129 owned-session recovery; real-provider commands
+and OBS-102's native smoke remain separate gates.
 
 The storage visualization checkpoint verified 662 backend/tool checks and 292 desktop/mobile
 browser checks, including independent Java models, handle-only ownership,
@@ -272,7 +283,7 @@ profiles and a small prebuilt-dashboard ZIP. The ZIP needs Python 3.11+ and
 first-run downloads, not Node, native bindings or an RTI. Focused launcher tests
 cover setup recovery, paths with spaces, bundle contents, readiness and process
 cleanup. See [SHOWCASE.md](SHOWCASE.md) for the Miguel-facing flow. The next
-handoff is now OBS-126's saved frontend workspaces; startup
+handoff is now OBS-127's identity/provenance migration; startup
 checks do not replace UI regressions.
 
 OBS-123 is delivered with 16 browser scenarios in desktop and 390px mobile
@@ -327,8 +338,8 @@ they are not proof of RTI conformance.
 | OBS-123 | P1 | Frontend regression suite (done) | 32 desktop/mobile browser checks cover navigation, charts, perspective isolation, pause/resume, filters/export, empty and unavailable states, lifecycle/history, retention clearing, reconnect, and keyboard/mobile behavior. Run `pnpm test:e2e`; no native RTI required. |
 | OBS-124 | P1 | Analytics scale and retention — delivered | Explicit measured reference envelope; exact analytics/runtime projections, UI paging, compact recording and shared count/encoded-byte budgets for every observation collection. Whole-record loss, independent roster/object/time expiry, orphaned tickets and empty-window cursors have typed/generated coverage and limited-backend UI behavior. Six serial current profiles, four reference passes, two honest diagnostic cases with bounded delivery and disclosed shorter retention. Not RSS, arbitrary-input/full-duration retention or provider/SLA evidence. |
 | OBS-125 | P2 | User-defined alerts — delivered | Strict versioned rules for stale observations, bounded error windows, exact dropped-history baselines and cached pending-command ages/IDs; explicit unknown/partial/idle/ended states. Process-local configuration/evidence, original rule generations, acknowledgements and configuration-only export/import; conditional instance/revision guards, independent read/control capabilities, Python/Java/browser evidence and no replay/live substitution or provider calls. |
-| OBS-126 | P2 | Saved workspaces | Persist selected tabs, participant, filters, numeric charts, and time window; share configuration without embedding captured federation data or credentials. |
-| OBS-127 | P2 | Federate identity and provenance — topology foundation delivered | Explicit namespace/federation/participant/membership IDs, names, handles and viewpoint now isolate topology joins and reporter edges, with Python/Java migration tests. Legacy roster, object/time and analytics attribution are still name-based; additive migration of those consumers remains. |
+| OBS-126 | P2 | Saved workspaces — delivered | Versioned named models, generated/offline validation, bounded browser drafts/profiles and explicit files/apply. Global and per-federate settings, exact numeric charts and windows persist independently; unavailable choices stay dormant. Corrupt/quota/conflicting storage, safe reset, delayed imports, pause/replay, limited Java and privacy have Python/browser evidence; CI, guides, wheel and playtest schemas ship together. |
+| OBS-127 | P2 | Federate identity and provenance — migration in progress | The topology foundation is delivered. Additive identity-scoped roster, object, time, declaration and analytics models are implemented with focused backend checks; frontend consumers, generated artifacts and end-to-end migration are not yet complete. This checkpoint is not a release. |
 | OBS-128 | P2 | Streaming negotiation (partial) | Discovered REST/WS paths and unsupported-WS polling fallback are delivered. SSE selection, cursor resumption, refresh of cached discovery after capability/backend changes and dynamic transport transitions remain; test without duplicate or resurrected events. |
 | OBS-129 | P1 | Unknown-session recovery | Add an adapter-supported inspection/recovery path for unclassified provider failures. Reconcile actual connection/membership before enabling actions; preserve owner thread, target generation and previous command history. The current controller conservatively disables an unknown session until application/operator recovery. |
 
@@ -345,7 +356,29 @@ they are not proof of RTI conformance.
 - No new provider imports enter the standalone observer package. RTI-specific
   adapters own binding shapes and version differences.
 
-Continue with OBS-126 saved workspaces, then the remaining operational/portability rows.
+### Work-in-progress checkpoint: OBS-127
+
+The saved-workspace increment above is complete. The following identity migration
+is deliberately checkpointed before completion: exact source/session/namespace/
+federation/participant/membership keys isolate joins; aliases do not create new
+joins, and a reporting session ending does not prove participant resignation.
+Explicit object contexts remain separate from legacy unscoped observations.
+
+Current focused checks: 60 backend identity/workspace/object tests and eight
+offline workspace tests pass. The frontend type check currently fails at the
+two `participantLabel` call sites in `FederateView.tsx`: `TimeWorkspace` and
+`DeclarationsView` have not yet adopted the new props. This is not a new
+full-suite, browser, native-provider or performance validation result. The local
+playtest ZIP and wheel still represent the earlier verified OBS-126 build.
+
+Resume by completing identity-key selection/filtering across objects, time,
+declarations, federation charts, inspectors and alerts, preserving readable
+labels and explicit unresolved legacy choices. Then regenerate/check the wire
+schema, frontend types and shared Python/Java fixtures; add duplicate-name,
+alias, rejoin and older-backend browser evidence; rerun the relevant regression
+and scale checks before marking OBS-127 delivered or refreshing showcase builds.
+
+Continue with OBS-127 identity/provenance migration, then the remaining operational/portability rows.
 Complete the OBS-102
 native verification gate when its built provider is available; never substitute
 synthetic observations for real-provider verification.

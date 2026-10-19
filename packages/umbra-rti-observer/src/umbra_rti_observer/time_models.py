@@ -8,6 +8,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal, cast
 
+from .attribution import ParticipantPerspective
 from .models import JsonObject, to_json_object
 
 TimeKind = Literal["request", "grant", "state", "failed", "cancelled"]
@@ -28,20 +29,32 @@ class TimeData:
     reason: str | None = None
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, eq=False)
 class TimeScope:
     source: str
     session_id: str | None
     federation: str | None
     federate: str | None
+    perspective: ParticipantPerspective | None = None
+
+    @property
+    def key(self) -> tuple[str | None, ...]:
+        return ("perspective", self.perspective.key) if self.perspective else ("legacy-scope", self.source, self.session_id, self.federation, self.federate)
+
+    def __hash__(self) -> int:
+        return hash(self.key)
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, TimeScope) and self.key == other.key
 
     @property
     def correlatable(self) -> bool:
-        return self.source != "unknown" and self.session_id is not None and self.federate is not None
+        return self.source != "unknown" and self.session_id is not None and (self.federate is not None or self.perspective is not None and self.perspective.attribution is not None)
 
     def to_json(self) -> JsonObject:
         return {"source": self.source, "session_id": self.session_id,
-                "federation": self.federation, "federate": self.federate}
+                "federation": self.federation, "federate": self.federate,
+                **({"perspective": self.perspective.to_json()} if self.perspective else {})}
 
 
 @dataclass(frozen=True, slots=True)

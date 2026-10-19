@@ -7,6 +7,8 @@ type Section = { [K in keyof WorkspaceSettings]: WorkspaceSettings[K] extends ob
   ? WorkspaceSettings[K] extends readonly unknown[] ? never : K : never }[keyof WorkspaceSettings];
 type UpdateRoot = <K extends keyof WorkspaceSettings>(key: K, action: SetStateAction<WorkspaceSettings[K]>) => void;
 type UpdateField = <S extends Section, K extends keyof WorkspaceSettings[S]>(section: S, key: K, action: SetStateAction<WorkspaceSettings[S][K]>) => void;
+type PerspectiveSections = Pick<WorkspaceSettings, "events" | "declarations" | "time">;
+type UpdateFederateField = <S extends keyof PerspectiveSections, K extends keyof WorkspaceSettings[S]>(participant: string, section: S, key: K, action: SetStateAction<WorkspaceSettings[S][K]>) => void;
 
 interface WorkspaceOwner {
   settings: WorkspaceSettings;
@@ -17,8 +19,9 @@ interface WorkspaceOwner {
   blocked: boolean;
   update: UpdateRoot;
   updateField: UpdateField;
+  updateFederateField: UpdateFederateField;
   apply: (document: WorkspaceDocument) => void;
-  save: (document: WorkspaceDocument) => void;
+  save: (document: WorkspaceDocument, replace?: WorkspaceDocument) => void;
   remove: (name: string) => void;
   reload: () => void;
   reset: () => void;
@@ -38,6 +41,14 @@ function initialLibrary(): { library: WorkspaceLibrary; raw: string | null; bloc
 }
 
 const WorkspaceContext = createContext<WorkspaceOwner | null>(null);
+
+function settingsForParticipant(settings: WorkspaceSettings, participant?: string): WorkspaceSettings {
+  if (participant === undefined) return settings;
+  const entry = settings.federate_views.find((row) => row.participant === participant);
+  // A read-only overlay: never replace the global settings in the owner.
+  return { ...settings, events: entry?.events ?? settings.federate_events,
+    declarations: entry?.declarations ?? settings.federate_declarations, time: entry?.time ?? settings.federate_time };
+}
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [initial] = useState(initialLibrary);
@@ -61,6 +72,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       const old = previous[section][key];
       const value = typeof action === "function" ? (action as (value: typeof old) => typeof old)(old) : action;
       return { ...previous, [section]: { ...previous[section], [key]: value } };
+    });
+  }, []);
+  const updateFederateField: UpdateFederateField = useCallback((participant, section, key, action) => {
+    setSettings((previous) => {
+      const scoped = settingsForParticipant(previous, participant);
+      const current = previous.federate_views.find((row) => row.participant === participant) ?? {
+        participant, events: previous.federate_events, declarations: previous.federate_declarations, time: previous.federate_time,
+      };
+      const old = scoped[section][key];
+      const value = typeof action === "function" ? (action as (value: typeof old) => typeof old)(old) : action;
+      const next = { ...current, [section]: { ...scoped[section], [key]: value } };
+      return { ...previous, federate_views: [...previous.federate_views.filter((row) => row.participant !== participant), next].slice(-64) };
     });
   }, []);
 
@@ -103,9 +126,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setSettings(valid.settings); setGeneration((value) => value + 1);
     setNotice(`Applied workspace “${valid.name}”. No backend settings or provider actions were changed.`);
   };
-  const save = (document: WorkspaceDocument) => {
+  const save = (document: WorkspaceDocument, replace?: WorkspaceDocument) => {
     if (protectedCopy.current) throw new Error("Reload or reset the protected browser copy before modifying saved workspaces.");
     const valid = parseWorkspace(document);
+    const existing = latest.current.saved.find((row) => row.name === valid.name);
+    if (existing && (!replace || JSON.stringify(existing) !== JSON.stringify(replace))) {
+      throw new Error("This saved workspace changed before replacement was confirmed. Review it and try again.");
+    }
+    if (!existing && latest.current.saved.length >= 12) {
+      throw new Error("At most 12 named workspaces can be saved. Download or delete one before adding another.");
+    }
     const next = parseLibrary({ library_version: "umbra-observer-workspace-library-v1", current: latest.current.settings,
       saved: [...latest.current.saved.filter((row) => row.name !== valid.name), valid] });
     latest.current = { ...latest.current, saved: next.saved };
@@ -120,6 +150,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     const next = initialLibrary();
     if (next.error) throw new Error(next.error);
     knownRaw.current = next.raw; protectedCopy.current = false;
+    latest.current = { settings: next.library.current, saved: next.library.saved };
     setBlocked(false); setError(undefined); setSettings(next.library.current); setSaved(next.library.saved);
     setGeneration((value) => value + 1); setNotice("Reloaded browser workspaces. No backend actions were sent.");
   };
@@ -127,12 +158,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     // Only this app's exact key; never erase other application/browser storage.
     window.localStorage.removeItem(STORAGE_KEY);
     knownRaw.current = null; protectedCopy.current = false;
-    const next = freshLibrary(); setBlocked(false); setSettings(next.current); setSaved(next.saved);
+    const next = freshLibrary(); latest.current = { settings: next.current, saved: next.saved };
+    setBlocked(false); setSettings(next.current); setSaved(next.saved);
     setGeneration((value) => value + 1); setError(undefined); setNotice("Reset this browser's workspace settings only. Federation data and backend configuration were not changed.");
   };
 
   return <WorkspaceContext.Provider value={{ settings, saved, generation, error, notice, blocked, update, updateField,
-    apply, save, remove, reload, reset, announce: setNotice }}>{children}</WorkspaceContext.Provider>;
+    updateFederateField, apply, save, remove, reload, reset, announce: setNotice }}>{children}</WorkspaceContext.Provider>;
 }
 
 export function useWorkspaces(): WorkspaceOwner {
@@ -149,6 +181,26 @@ export function useWorkspaceRoot<K extends keyof WorkspaceSettings>(key: K): [Wo
 export function useWorkspaceField<S extends Section, K extends keyof WorkspaceSettings[S]>(section: S, key: K): [WorkspaceSettings[S][K], Dispatch<SetStateAction<WorkspaceSettings[S][K]>>] {
   const { settings, updateField } = useWorkspaces();
   return [settings[section][key], useCallback((action) => updateField(section, key, action), [section, key, updateField])];
+}
+
+export function useScopedWorkspaceField<S extends keyof PerspectiveSections, K extends keyof WorkspaceSettings[S]>(section: S, key: K, participant?: string): [WorkspaceSettings[S][K], Dispatch<SetStateAction<WorkspaceSettings[S][K]>>] {
+  const { settings, updateField, updateFederateField, announce } = useWorkspaces();
+  const entry = settings.federate_views.find((row) => row.participant === participant);
+  const value = settingsForParticipant(settings, participant)[section][key];
+  const capped = settings.federate_views.length === 64 && !entry;
+  const setter = useCallback((action: SetStateAction<WorkspaceSettings[S][K]>) => {
+    if (participant === undefined) updateField<S, K>(section, key, action);
+    else {
+      if (capped) announce("Federate preferences have a 64-perspective limit. The oldest saved perspective expired; no observations were removed.");
+      updateFederateField(participant, section, key, action);
+    }
+  }, [participant, section, key, updateField, updateFederateField, capped, announce]);
+  return [value, setter];
+}
+
+export function useScopedTimeChoice(participant?: string): [string | undefined, Dispatch<SetStateAction<string | undefined>>] {
+  const [selected, update] = useScopedWorkspaceField("time", "selected", participant);
+  return [selected ?? undefined, useCallback((action) => update((old) => (typeof action === "function" ? action(old ?? undefined) : action) ?? null), [update])];
 }
 
 type ChoiceSection = "time" | "federate_time" | "regions" | "fom" | "mom";

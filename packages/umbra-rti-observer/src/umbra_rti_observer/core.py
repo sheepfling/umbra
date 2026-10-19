@@ -22,6 +22,12 @@ from .alerting import (
     AlertScope,
     CommandWatch,
 )
+from .attribution import (
+    event_federate,
+    event_perspective,
+    participant_attribution,
+    perspective_ended,
+)
 from .capabilities import (
     OBSERVER_CAPABILITIES,
     merge_capabilities,
@@ -38,6 +44,7 @@ from .contract import OBSERVER_CONTRACT_VERSION, build_contract_document
 from .coordination import CoordinationViews, coordination_data
 from .declarations import DeclarationViews, declaration_data
 from .fom import FomViews, fom_data
+from .identities import identity_text
 from .interaction_flow import InteractionFlowViews, interaction_flow_data
 from .models import (
     AdapterStatus,
@@ -55,7 +62,7 @@ from .models import (
     to_json_value,
 )
 from .mom import MomViews, mom_data
-from .object_views import ObjectViews
+from .object_views import ObjectViews, object_context
 from .ownership import OwnershipViews, ownership_data
 from .recording_codec import StorageFormat
 from .regions import RegionViews, region_data
@@ -178,10 +185,7 @@ def _interaction_key(event: Mapping[str, object]) -> str | None:
 
 
 def _federate_name(event: Mapping[str, object]) -> str | None:
-    value = event.get("federate", event.get("participant"))
-    if isinstance(value, Mapping):
-        return _first_text(value, "name", "id", "handle")
-    return _text(value) or _first_text(event, "federate_name", "participant_name")
+    return event_federate(event)
 
 
 def _copy_mapping(value: object) -> JsonObject:
@@ -193,6 +197,10 @@ def _copy_mapping(value: object) -> JsonObject:
 def _normalise_event(event: Mapping[str, object], sequence: int) -> EventRecord:
     if not isinstance(event, Mapping):
         raise TypeError("observer events must be mappings")
+    if event.get("session_id") is not None:
+        identity_text(event.get("session_id"), limit=256)
+    participant_attribution(event)
+    object_context(event)
     time_data(event)  # Validate explicit observations before any batch mutation.
     declaration_data(event)
     relationship_data(event)
@@ -225,12 +233,13 @@ def _status_for_event(event_type: str) -> str:
 
 
 def _derive_objects(events: Iterable[Mapping[str, object]]) -> list[ObjectInspection]:
-    rows: dict[str, ObjectInspection] = {}
+    rows: dict[tuple[str | None, str | None, str], ObjectInspection] = {}
     for event in events:
         key = _object_key(event)
         if not key:
             continue
         event_type = _event_type(event)
+        context = object_context(event)
         if not (
             event_type.startswith("object.")
             or "object_key" in event
@@ -239,7 +248,7 @@ def _derive_objects(events: Iterable[Mapping[str, object]]) -> list[ObjectInspec
         ):
             continue
         row = rows.setdefault(
-            key,
+            (context.identity_namespace if context else None, context.federation_id if context else None, key),
             ObjectInspection(
                 object_key=key,
                 object_name=_first_text(event, "object_name") or key,
@@ -248,6 +257,7 @@ def _derive_objects(events: Iterable[Mapping[str, object]]) -> list[ObjectInspec
                 class_handle=_first_text(event, "class_handle"),
                 family=_event_family(event),
                 last_seen=_timestamp(event.get("observed_at")),
+                object_context=context,
             ),
         )
         row.object_name = _first_text(event, "object_name") or row.object_name
@@ -295,6 +305,7 @@ def _derive_interactions(events: Iterable[Mapping[str, object]]) -> list[Interac
                 parameters=_copy_mapping(event.get("parameters")),
                 tag=to_json_value(event.get("tag")),
                 observed_at=_timestamp(event.get("observed_at")) or 0.0,
+                perspective=event_perspective(event),
             )
         )
     return rows[-250:]
@@ -303,23 +314,26 @@ def _derive_interactions(events: Iterable[Mapping[str, object]]) -> list[Interac
 def _derive_federates(events: Iterable[Mapping[str, object]]) -> list[FederateInspection]:
     rows: dict[str, FederateInspection] = {}
     for event in events:
-        name = _federate_name(event)
+        perspective = event_perspective(event)
         event_type = _event_type(event)
-        if not name or not (event_type.startswith("federate.") or "federate" in event or "participant" in event):
+        if perspective is None:
             continue
         row = rows.setdefault(
-            name,
+            perspective.key,
             FederateInspection(
-                federate=name,
+                federate=perspective.label,
                 role=_first_text(event, "role"),
                 handle=_first_text(event, "federate_handle", "participant_handle"),
                 status="active",
                 source=_source_name(event),
                 last_seen=_timestamp(event.get("observed_at")),
+                perspective=perspective,
             ),
         )
+        row.federate = perspective.label
+        row.perspective = perspective
         row.role = _first_text(event, "role") or row.role
-        row.handle = _first_text(event, "federate_handle", "participant_handle") or row.handle
+        row.handle = (perspective.attribution.participant.handle if perspective.attribution else None) or _first_text(event, "federate_handle", "participant_handle") or row.handle
         row.source = _source_name(event)
         row.status = _status_for_event(event_type)
         row.last_seen = _timestamp(event.get("observed_at"))
@@ -496,7 +510,7 @@ class ObserverStore:
         # These indexes are intentionally independent from the bounded event
         # deque. A long-running observer must not forget a live object or
         # participant merely because its older event history was evicted.
-        self._objects = EvidenceIndex[str, ObjectInspection]("objects", max_objects, self._evidence, lambda _, row: row.to_json())
+        self._objects = EvidenceIndex[tuple[str | None, str | None, str], ObjectInspection]("objects", max_objects, self._evidence, lambda _, row: row.to_json())
         self._object_views = ObjectViews(max_events, max_object_perspectives, budget=self._evidence)
         self._time_views = TimeViews(max_time_requests, max_time_snapshots, budget=self._evidence)
         self._declarations = DeclarationViews(max_declarations, budget=self._evidence)
@@ -816,8 +830,10 @@ class ObserverStore:
         particular, this is not a sample and an idle roster entry is not lost.
         """
         with self._condition:
+            provenance = self._capabilities_locked().get("participant_provenance")
             return to_json_object({
                 "contract_version": OBSERVER_CONTRACT_VERSION,
+                "participant_provenance": provenance is not None and provenance.get("state") in {"available", "partial"},
                 "retention": self._retention_locked().to_json(),
                 "federate_roster": [row.to_json() for row in sorted(self._federates.values(), key=lambda row: row.federate)],
                 "normalized_events": [event.to_json() for event in self._events],
@@ -935,7 +951,7 @@ class ObserverStore:
         objects = _derive_objects([event])
         self._object_views.record(event, objects, _federate_name(event))
         for incoming in objects:
-            key = incoming.object_key
+            key = incoming.cache_key
             current = self._objects.get(key)
             if current is None or (current.status == "removed" and event.event_type == "object.discovered"):
                 self._objects[key] = incoming
@@ -963,17 +979,27 @@ class ObserverStore:
             self._objects.refresh(key)
 
         for incoming in _derive_federates([event]):
-            key = incoming.federate
+            key = incoming.perspective.key if incoming.perspective else incoming.federate
             current = self._federates.get(key)
             if current is None:
                 self._federates[key] = incoming
                 continue
             current.role = incoming.role or current.role
+            current.federate = incoming.federate
+            current.perspective = incoming.perspective
             current.handle = incoming.handle or current.handle
-            current.status = incoming.status
+            if not (current.status in {"resigned", "reporting-ended"} and current.perspective is not None and current.perspective.attribution is not None):
+                current.status = incoming.status
             current.source = incoming.source
             current.last_seen = incoming.last_seen
             self._federates.refresh(key)
+
+        if event.event_type == "session.disconnected":
+            for key, current in tuple(self._federates.items()):
+                if current.perspective is not None and perspective_ended(current.perspective, event):
+                    if current.status != "resigned":
+                        current.status = "reporting-ended"
+                    self._federates.refresh(key)
 
         self._interactions.extend(_derive_interactions([event]))
 

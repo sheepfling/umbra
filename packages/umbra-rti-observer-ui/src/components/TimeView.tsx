@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useWorkspaceField } from "../workspace/WorkspaceContext";
+import { useScopedWorkspaceField } from "../workspace/WorkspaceContext";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { AnalyticsResponse, CapabilityResponse } from "../api/types";
 import { formatTime } from "../app/observations";
@@ -8,7 +8,7 @@ import { ChartPanel, chartColors, chartTick, chartTooltip, EmptyPanel } from "./
 export function TimeView({ analytics, capability, federate }: {
   analytics: AnalyticsResponse; capability: CapabilityResponse | undefined; federate?: string;
 }) {
-  const [grantsOnly, setGrantsOnly] = useWorkspaceField(federate === undefined ? "time" : "federate_time", "grants_only");
+  const [grantsOnly, setGrantsOnly] = useScopedWorkspaceField("time", "grants_only", federate);
   const points = useMemo(() => analytics.logical_times.filter((point) =>
     (!federate || point.federate === federate) && (!grantsOnly || point.observation_kind === "grant"
       || (!point.observation_kind && point.event_type === "callback.invoked" && point.operation === "timeAdvanceGrant"))), [analytics, federate, grantsOnly]);

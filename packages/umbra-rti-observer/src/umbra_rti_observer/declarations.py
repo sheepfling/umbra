@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal, cast
 
+from .attribution import ParticipantPerspective, event_perspective
 from .models import EventRecord, JsonObject, to_json_object
 from .storage import EvidenceBudget, EvidenceIndex
 
@@ -29,16 +30,28 @@ class DeclarationData:
     reason: str | None
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, eq=False)
 class DeclarationScope:
     source: str
     session_id: str | None
     federation: str | None
     federate: str | None
+    perspective: ParticipantPerspective | None = None
+
+    @property
+    def key(self) -> tuple[str | None, ...]:
+        return ("perspective", self.perspective.key) if self.perspective else ("legacy-scope", self.source, self.session_id, self.federation, self.federate)
+
+    def __hash__(self) -> int:
+        return hash(self.key)
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, DeclarationScope) and self.key == other.key
 
     def to_json(self) -> JsonObject:
         return {"source": self.source, "session_id": self.session_id,
-                "federation": self.federation, "federate": self.federate}
+                "federation": self.federation, "federate": self.federate,
+                **({"perspective": self.perspective.to_json()} if self.perspective else {})}
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,7 +135,9 @@ class DeclarationViews:
         data = declaration_data(event)
         if data is None:
             return
-        scope = DeclarationScope(event.source, data.session_id, federation, federate)
+        perspective = event_perspective(event)
+        session = data.session_id or (perspective.attribution.session_id if perspective and perspective.attribution else None)
+        scope = DeclarationScope(event.source, session, federation, federate, perspective)
         key = scope, data.kind, data.direction, data.class_key
         self._rows[key] = DeclarationSnapshot(scope, data, event.sequence, event.observed_at)
 

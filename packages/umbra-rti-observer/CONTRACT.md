@@ -1056,6 +1056,41 @@ import explicitly keeps rules, not evidence/credentials. Pause freezes the view
 while evaluation continues. Recordings omit this separate resource; replay
 never fetches/mutates live alerts. See [ALERTS.md](ALERTS.md) for exact limits.
 
+## Saved frontend workspace configuration
+
+`WorkspaceDocument` is `umbra-observer-workspace-v1`, with a name and named
+`WorkspaceSettings`; `WorkspaceLibrary` is separately versioned and contains
+the current settings plus at most 12 uniquely named documents. Models reject
+unknown data/authority fields and type coercion; defaults are normalized into
+required response properties. Complete canonical UTF-8 document/library bounds
+are 64/512 KiB, independent of field, 64-chart-target and 64-federate-preference
+limits. `federate_views` contains uniquely keyed, named event/declaration/time
+settings for each selected participant. Switching participants does not inherit
+another participant's selected time scope or discard their filters; global
+views remain independent. Older `federate_*` fields remain default templates
+for participants without a saved entry, not a shared mutable view owner.
+
+The browser validates trusted generated schemas using precompiled offline
+validators, supplemented by exact-target/name uniqueness and full-document
+size checks. It never evaluates an imported schema or follows imported URLs.
+Python and frontend runtimes share a normalization/rejection corpus and drift
+checks. See [WORKSPACES.md](WORKSPACES.md) for the schema export/check commands.
+
+The optional `workspace_validation` capability independently discovers
+`workspace_defaults` (GET) and `workspace_validate` (POST). These return named
+`WorkspaceDefaultsResponse` and normalized `WorkspaceDocument` respectively;
+they neither persist settings nor apply actions, captures or alert rules. Omit
+this capability/routes on servers that do not implement them: frontend-local
+workspace storage and validation still work with Java/static/read-only servers.
+
+Browser storage holds configuration per-origin, not backend authority or a
+cross-device database. Invalid/unknown versions are protected from overwrite;
+observed cross-tab changes require explicit reload. Quota failures do not stop
+observation. Applying configuration is explicit and disabled while paused or
+replaying. Unsupported feature choices stay dormant, and missing exact choices
+do not fall back to other participants, reports or values. Legacy participant
+name filters still have the OBS-127 identity migration boundary.
+
 ## Backend replacement rules
 
 ### Optional observation analytics

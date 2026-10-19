@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useWorkspaceChoice } from "../workspace/WorkspaceContext";
+import { useScopedTimeChoice } from "../workspace/WorkspaceContext";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { StateResponse, TimeRequest, TimeScope } from "../api/types";
 import { formatTime } from "../app/observations";
@@ -19,7 +19,7 @@ function reportedFlag(value: boolean | null | undefined): string {
 }
 
 export function PersistentTimeView({ state, federate }: { state: StateResponse; federate?: string }) {
-  const [selected, setSelected] = useWorkspaceChoice(federate === undefined ? "time" : "federate_time");
+  const [selected, setSelected] = useScopedTimeChoice(federate);
   const [limit, setLimit] = useState(100);
   const capability = state.capabilities.time_inspection;
   const usable = capability?.state === "available" || capability?.state === "partial";

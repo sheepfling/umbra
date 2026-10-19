@@ -10,9 +10,11 @@
       "discovery_count": 0,
       "family": "generic",
       "last_seen": 1760000000.0,
+      "object_context": null,
       "object_handle": null,
       "object_key": "fixture-object",
       "object_name": "FixtureObject",
+      "observation_key": null,
       "sources": [
         "contract-fixture"
       ],

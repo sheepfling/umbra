@@ -7,6 +7,7 @@ import math
 from dataclasses import replace
 from time import monotonic
 
+from .attribution import event_perspective, perspective_ended
 from .models import EventRecord, JsonObject, to_json_object
 from .storage import EvidenceBudget, EvidenceIndex
 from .time_models import (
@@ -52,11 +53,14 @@ class TimeViews:
         self._changed_requests.clear()
 
     def _record(self, event: EventRecord, federate: str | None, federation: str | None) -> None:
+        perspective = event_perspective(event)
         data = time_data(event)
         if data is None:
-            session = event.get("session_id")
+            session = perspective.attribution.session_id if perspective and perspective.attribution else event.get("session_id")
             if event.event_type in {"session.disconnected", "federate.resigned"} and isinstance(session, str):
                 def affected(scope: TimeScope) -> bool:
+                    if scope.perspective is not None:
+                        return perspective_ended(scope.perspective, event)
                     return (scope.source == event.source and scope.session_id == session and scope.federation == federation
                             and (federate == scope.federate or (event.event_type == "session.disconnected" and federate is None)))
 
@@ -72,7 +76,8 @@ class TimeViews:
                     if affected(request.scope) and request.status == "pending":
                         self._finish(request, event, "session-ended", "Explicit session/federate end observed")
             return
-        scope = TimeScope(event.source, data.session_id, federation, federate)
+        session = data.session_id or (perspective.attribution.session_id if perspective and perspective.attribution else None)
+        scope = TimeScope(event.source, session, federation, federate, perspective)
         if any(request.scope == scope and request.status == "session-ended" for request in self._requests.values()):
             return  # Retained terminal evidence also protects an expired latest scope.
         row = self._snapshots.get(scope)
@@ -82,6 +87,7 @@ class TimeViews:
         if row.status == "ended":
             return  # Reconnection requires a fresh session ID, not resurrected pending work.
         self._changed_snapshots.add(scope)
+        row.scope = scope
         row.last_sequence = event.sequence
         row.observed_at = event.observed_at
         if data.kind == "state":

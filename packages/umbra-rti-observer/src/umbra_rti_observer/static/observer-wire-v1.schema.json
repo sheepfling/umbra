@@ -698,6 +698,18 @@
           ],
           "title": "Scoped Federate"
         },
+        "scoped_perspective": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scoped Perspective"
+        },
         "sources": {
           "additionalProperties": {
             "minimum": 0,
@@ -2104,6 +2116,17 @@
           ],
           "title": "Federation"
         },
+        "perspective": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantPerspectiveResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "session_id": {
           "anyOf": [
             {
@@ -2680,6 +2703,18 @@
           "default": null,
           "title": "Federate Name"
         },
+        "federation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federation"
+        },
         "fom_observation": {
           "anyOf": [
             {
@@ -2770,6 +2805,17 @@
           "default": null,
           "title": "Mom Observation"
         },
+        "object_context": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObjectContextInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "object_key": {
           "anyOf": [
             {
@@ -2846,6 +2892,17 @@
           "default": null,
           "title": "Participant"
         },
+        "participant_attribution": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantAttributionInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "participant_name": {
           "anyOf": [
             {
@@ -2903,6 +2960,21 @@
           "minimum": 1,
           "title": "Sequence",
           "type": "integer"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Id"
         },
         "source": {
           "minLength": 1,
@@ -3201,6 +3273,17 @@
           "title": "Object Updates",
           "type": "integer"
         },
+        "perspective": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantPerspectiveResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "role": {
           "anyOf": [
             {
@@ -3284,6 +3367,17 @@
           "default": null,
           "title": "Last Seen"
         },
+        "perspective": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantPerspectiveResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "role": {
           "anyOf": [
             {
@@ -3313,6 +3407,62 @@
         "source"
       ],
       "title": "FederateInspectionResponse",
+      "type": "object"
+    },
+    "FederateListSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "default": "all",
+          "enum": [
+            "all",
+            "explicit-join",
+            "legacy-provenance",
+            "legacy-name"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "search": {
+          "default": "",
+          "maxLength": 2048,
+          "title": "Search",
+          "type": "string"
+        }
+      },
+      "required": [
+        "search",
+        "basis"
+      ],
+      "title": "FederateListSettings",
+      "type": "object"
+    },
+    "FederateWorkspaceSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "declarations": {
+          "$ref": "#/$defs/DeclarationViewSettings"
+        },
+        "events": {
+          "$ref": "#/$defs/EventViewSettings"
+        },
+        "participant": {
+          "maxLength": 8192,
+          "minLength": 1,
+          "title": "Participant",
+          "type": "string"
+        },
+        "time": {
+          "$ref": "#/$defs/TimeViewSettings"
+        }
+      },
+      "required": [
+        "participant",
+        "events",
+        "declarations",
+        "time"
+      ],
+      "title": "FederateWorkspaceSettings",
       "type": "object"
     },
     "FederationViewSettings": {
@@ -5744,6 +5894,17 @@
           "title": "Parameters",
           "type": "object"
         },
+        "perspective": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantPerspectiveResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "sequence": {
           "minimum": 1,
           "title": "Sequence",
@@ -6934,14 +7095,49 @@
           "title": "Generation",
           "type": "integer"
         },
+        "object_context": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObjectContextInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "object_key": {
           "minLength": 1,
           "title": "Object Key",
           "type": "string"
         },
+        "observation_key": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observation Key"
+        },
         "observed_at": {
           "title": "Observed At",
           "type": "number"
+        },
+        "perspective": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantPerspectiveResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "previous_known": {
           "title": "Previous Known",
@@ -7014,6 +7210,31 @@
         "attribute"
       ],
       "title": "ObjectChartChoice",
+      "type": "object"
+    },
+    "ObjectContextInput": {
+      "additionalProperties": false,
+      "properties": {
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "identity_namespace",
+        "federation_id"
+      ],
+      "title": "ObjectContextInput",
       "type": "object"
     },
     "ObjectDeclarationObservation": {
@@ -7185,6 +7406,17 @@
           "default": null,
           "title": "Last Seen"
         },
+        "object_context": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObjectContextInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "object_handle": {
           "anyOf": [
             {
@@ -7206,6 +7438,19 @@
           "minLength": 1,
           "title": "Object Name",
           "type": "string"
+        },
+        "observation_key": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observation Key"
         },
         "sources": {
           "items": {
@@ -7358,6 +7603,17 @@
         },
         "object": {
           "$ref": "#/$defs/ObjectInspectionResponse"
+        },
+        "perspective": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantPerspectiveResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -8284,6 +8540,43 @@
       "title": "OwnershipViewSettings",
       "type": "object"
     },
+    "ParticipantAttributionInput": {
+      "additionalProperties": false,
+      "properties": {
+        "federation_id": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Federation Id",
+          "type": "string"
+        },
+        "identity_namespace": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Identity Namespace",
+          "type": "string"
+        },
+        "participant": {
+          "$ref": "#/$defs/ParticipantIdentityResponse"
+        },
+        "session_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Session Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "identity_namespace",
+        "federation_id",
+        "participant"
+      ],
+      "title": "ParticipantAttributionInput",
+      "type": "object"
+    },
     "ParticipantIdentityResponse": {
       "additionalProperties": false,
       "description": "Opaque IDs identify a participant join; names and handles never do.",
@@ -8338,6 +8631,86 @@
         "membership_id"
       ],
       "title": "ParticipantIdentityResponse",
+      "type": "object"
+    },
+    "ParticipantPerspectiveResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "attribution": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantAttributionInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "basis": {
+          "enum": [
+            "explicit-join",
+            "legacy-provenance"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "federation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federation"
+        },
+        "key": {
+          "minLength": 1,
+          "title": "Key",
+          "type": "string"
+        },
+        "reported_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reported Name"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Id"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "basis",
+        "source"
+      ],
+      "title": "ParticipantPerspectiveResponse",
       "type": "object"
     },
     "ParticipantReferenceResponse": {
@@ -11337,6 +11710,17 @@
           ],
           "title": "Operation"
         },
+        "perspective": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantPerspectiveResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "sequence": {
           "minimum": 1,
           "title": "Sequence",
@@ -11699,6 +12083,17 @@
           ],
           "title": "Federation"
         },
+        "perspective": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantPerspectiveResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "session_id": {
           "anyOf": [
             {
@@ -12039,7 +12434,7 @@
         "name": {
           "maxLength": 128,
           "minLength": 1,
-          "pattern": "\\S",
+          "pattern": "[^\\u0009-\\u000d\\u0020\\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]",
           "title": "Name",
           "type": "string"
         },
@@ -12109,6 +12504,18 @@
         },
         "federate_time": {
           "$ref": "#/$defs/TimeViewSettings"
+        },
+        "federate_views": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/FederateWorkspaceSettings"
+          },
+          "maxItems": 64,
+          "title": "Federate Views",
+          "type": "array"
+        },
+        "federates": {
+          "$ref": "#/$defs/FederateListSettings"
         },
         "federation": {
           "$ref": "#/$defs/FederationViewSettings"
@@ -12201,6 +12608,7 @@
         "window_seconds",
         "selected_federate",
         "federation",
+        "federates",
         "events",
         "federate_events",
         "objects",
@@ -12209,6 +12617,7 @@
         "federate_declarations",
         "time",
         "federate_time",
+        "federate_views",
         "topology",
         "interactions",
         "synchronization",

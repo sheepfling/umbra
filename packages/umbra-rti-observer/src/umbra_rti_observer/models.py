@@ -10,7 +10,11 @@ from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field
-from typing import Literal, TypeAlias
+from typing import TYPE_CHECKING, Literal, TypeAlias
+
+if TYPE_CHECKING:
+    from .attribution import ParticipantPerspective
+    from .object_views import ObjectContext
 
 JsonScalar: TypeAlias = None | bool | int | float | str
 JsonValue: TypeAlias = JsonScalar | list["JsonValue"] | dict[str, "JsonValue"]
@@ -150,6 +154,12 @@ class ObjectInspection:
     sources: list[str] = field(default_factory=list)
     status: str = "active"
     last_seen: float | None = None
+    object_context: ObjectContext | None = None
+
+    @property
+    def cache_key(self) -> tuple[str | None, str | None, str]:
+        context = self.object_context
+        return context.identity_namespace if context else None, context.federation_id if context else None, self.object_key
 
     def to_json(self) -> JsonObject:
         return {
@@ -165,6 +175,7 @@ class ObjectInspection:
             "sources": list(self.sources),
             "status": self.status,
             "last_seen": self.last_seen,
+            **({"object_context": self.object_context.to_json(), "observation_key": self.object_context.key(self.object_key)} if self.object_context else {}),
         }
 
 
@@ -180,6 +191,7 @@ class InteractionInspection:
     parameters: JsonObject
     tag: JsonValue
     observed_at: float
+    perspective: ParticipantPerspective | None = None
 
     def to_json(self) -> JsonObject:
         return {
@@ -193,6 +205,7 @@ class InteractionInspection:
             "parameters": dict(self.parameters),
             "tag": self.tag,
             "observed_at": self.observed_at,
+            **({"perspective": self.perspective.to_json()} if self.perspective else {}),
         }
 
 
@@ -204,6 +217,7 @@ class FederateInspection:
     status: str
     source: str
     last_seen: float | None
+    perspective: ParticipantPerspective | None = None
 
     def to_json(self) -> JsonObject:
         return {
@@ -213,6 +227,7 @@ class FederateInspection:
             "status": self.status,
             "source": self.source,
             "last_seen": self.last_seen,
+            **({"perspective": self.perspective.to_json()} if self.perspective else {}),
         }
 
 

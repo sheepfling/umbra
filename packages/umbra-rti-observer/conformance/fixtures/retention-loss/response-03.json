@@ -483,6 +483,26 @@
       ],
       "state": "unsupported"
     },
+    "participant_provenance": {
+      "description": "Canonical reporter/session and optional explicit join attribution; legacy name-only data remains unresolved, never a membership census or authority.",
+      "event_types": [],
+      "label": "Participant perspective model",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "The backend emits named participant perspectives; IDs exist only when supplied explicitly. This describes the observer codec, not RTI identity coverage.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "The backend emits named participant perspectives; IDs exist only when supplied explicitly. This describes the observer codec, not RTI identity coverage.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
     "persistence": {
       "description": "Federation save, restore, and related lifecycle observations.",
       "event_types": [],
@@ -812,6 +832,25 @@
     {
       "federate": "FixtureFederate",
       "last_seen": 1760000000.0,
+      "perspective": {
+        "basis": "legacy-provenance",
+        "key": "[\"legacy-provenance\",\"contract-fixture\",\"fixture-session\",null,\"FixtureFederate\"]",
+        "reported_name": "FixtureFederate",
+        "session_id": "fixture-session",
+        "source": "contract-fixture"
+      },
+      "source": "contract-fixture",
+      "status": "active"
+    },
+    {
+      "federate": "FixtureFederate",
+      "last_seen": 1760000000.0,
+      "perspective": {
+        "basis": "legacy-provenance",
+        "key": "[\"legacy-provenance\",\"contract-fixture\",null,null,\"FixtureFederate\"]",
+        "reported_name": "FixtureFederate",
+        "source": "contract-fixture"
+      },
       "source": "contract-fixture",
       "status": "active"
     }
@@ -906,6 +945,12 @@
           "generation": 2,
           "object_key": "fixture-object",
           "observed_at": 1760000000.0,
+          "perspective": {
+            "basis": "legacy-provenance",
+            "key": "[\"legacy-provenance\",\"contract-fixture\",null,null,\"FixtureFederate\"]",
+            "reported_name": "FixtureFederate",
+            "source": "contract-fixture"
+          },
           "previous_known": true,
           "previous_value": 4,
           "sequence": 7,
@@ -959,6 +1004,12 @@
             ],
             "status": "active",
             "update_count": 6
+          },
+          "perspective": {
+            "basis": "legacy-provenance",
+            "key": "[\"legacy-provenance\",\"contract-fixture\",null,null,\"FixtureFederate\"]",
+            "reported_name": "FixtureFederate",
+            "source": "contract-fixture"
           }
         }
       ]
@@ -1023,6 +1074,13 @@
           "scope": {
             "federate": "FixtureFederate",
             "federation": null,
+            "perspective": {
+              "basis": "legacy-provenance",
+              "key": "[\"legacy-provenance\",\"contract-fixture\",\"fixture-session\",null,\"FixtureFederate\"]",
+              "reported_name": "FixtureFederate",
+              "session_id": "fixture-session",
+              "source": "contract-fixture"
+            },
             "session_id": "fixture-session",
             "source": "contract-fixture"
           },
@@ -1045,6 +1103,13 @@
           "scope": {
             "federate": "FixtureFederate",
             "federation": null,
+            "perspective": {
+              "basis": "legacy-provenance",
+              "key": "[\"legacy-provenance\",\"contract-fixture\",\"fixture-session\",null,\"FixtureFederate\"]",
+              "reported_name": "FixtureFederate",
+              "session_id": "fixture-session",
+              "source": "contract-fixture"
+            },
             "session_id": "fixture-session",
             "source": "contract-fixture"
           },
@@ -1063,6 +1128,12 @@
           "scope": {
             "federate": "FixtureFederate",
             "federation": null,
+            "perspective": {
+              "basis": "legacy-provenance",
+              "key": "[\"legacy-provenance\",\"contract-fixture\",null,null,\"FixtureFederate\"]",
+              "reported_name": "FixtureFederate",
+              "source": "contract-fixture"
+            },
             "session_id": null,
             "source": "contract-fixture"
           },
@@ -1085,7 +1156,7 @@
     "families": {
       "generic": 3
     },
-    "federate_count": 1,
+    "federate_count": 2,
     "first_sequence": 7,
     "interaction_count": 1,
     "last_sequence": 9,
@@ -1133,7 +1204,7 @@
       "unbudgeted_collections": []
     },
     "evidence": {
-      "accounted_bytes": 5007,
+      "accounted_bytes": 6990,
       "basis": "encoded-json-plus-record-reserve",
       "collections": [
         {
@@ -1197,7 +1268,7 @@
           "window_drops": 0
         },
         {
-          "accounted_bytes": 191,
+          "accounted_bytes": 898,
           "byte_limit_drops": 0,
           "capacity": 2000,
           "collection": "federates",
@@ -1206,7 +1277,7 @@
           "dropped_records": 0,
           "encoding_drops": 0,
           "oversized_drops": 0,
-          "retained_records": 1,
+          "retained_records": 2,
           "soft_reservation_bytes": 65536,
           "unit": "records",
           "window_drops": 0
@@ -1302,12 +1373,12 @@
           "window_drops": 0
         },
         {
-          "accounted_bytes": 689,
+          "accounted_bytes": 933,
           "byte_limit_drops": 0,
           "capacity": 3,
           "collection": "object_changes",
           "count_limit_drops": 6,
-          "dropped_bytes": 2634,
+          "dropped_bytes": 3854,
           "dropped_records": 6,
           "encoding_drops": 0,
           "oversized_drops": 0,
@@ -1317,7 +1388,7 @@
           "window_drops": 0
         },
         {
-          "accounted_bytes": 811,
+          "accounted_bytes": 1055,
           "byte_limit_drops": 0,
           "capacity": 5000,
           "collection": "object_snapshots",
@@ -1437,7 +1508,7 @@
           "window_drops": 0
         },
         {
-          "accounted_bytes": 421,
+          "accounted_bytes": 693,
           "byte_limit_drops": 0,
           "capacity": 250,
           "collection": "time_requests",
@@ -1452,7 +1523,7 @@
           "window_drops": 0
         },
         {
-          "accounted_bytes": 901,
+          "accounted_bytes": 1417,
           "byte_limit_drops": 0,
           "capacity": 2000,
           "collection": "time_snapshots",
