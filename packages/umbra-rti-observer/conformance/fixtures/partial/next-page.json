@@ -1,0 +1,67 @@
+{
+  "cleared_events": 0,
+  "contract_version": "umbra-observer-contract-v1",
+  "dropped_events": 0,
+  "events": [
+    {
+      "attributes": {
+        "value": 2
+      },
+      "details": null,
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "logical_time": null,
+      "object_key": "fixture-object",
+      "object_name": "FixtureObject",
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 3,
+      "source": "contract-fixture",
+      "time_observation": null,
+      "vendor_extension": {
+        "nested": [
+          true,
+          null,
+          "retained"
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "value": 3
+      },
+      "details": null,
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "logical_time": null,
+      "object_key": "fixture-object",
+      "object_name": "FixtureObject",
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 4,
+      "source": "contract-fixture",
+      "time_observation": null,
+      "vendor_extension": {
+        "nested": [
+          true,
+          null,
+          "retained"
+        ]
+      }
+    }
+  ],
+  "first_retained_sequence": 1,
+  "gap": false,
+  "has_more": true,
+  "last_sequence": 5,
+  "next_after": 4,
+  "retained_events": 5
+}

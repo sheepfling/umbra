@@ -20,6 +20,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
+control = ["umbra-rti-observer[control]==0.1.0"]
 native = ["umbra-rti-native==0.1.0"]
 test = ["pytest>=8"]
 

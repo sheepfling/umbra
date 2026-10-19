@@ -1,0 +1,3437 @@
+{
+  "$defs": {
+    "ActivityBucket": {
+      "additionalProperties": false,
+      "properties": {
+        "callbacks": {
+          "minimum": 0,
+          "title": "Callbacks",
+          "type": "integer"
+        },
+        "errors": {
+          "minimum": 0,
+          "title": "Errors",
+          "type": "integer"
+        },
+        "events": {
+          "minimum": 0,
+          "title": "Events",
+          "type": "integer"
+        },
+        "interactions": {
+          "minimum": 0,
+          "title": "Interactions",
+          "type": "integer"
+        },
+        "object_updates": {
+          "minimum": 0,
+          "title": "Object Updates",
+          "type": "integer"
+        },
+        "started_at": {
+          "title": "Started At",
+          "type": "number"
+        }
+      },
+      "required": [
+        "started_at",
+        "events",
+        "object_updates",
+        "interactions",
+        "callbacks",
+        "errors"
+      ],
+      "title": "ActivityBucket",
+      "type": "object"
+    },
+    "AdapterResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "capabilities": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "status": {
+          "minLength": 1,
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "status"
+      ],
+      "title": "AdapterResponse",
+      "type": "object"
+    },
+    "AnalyticsResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "activity": {
+          "items": {
+            "$ref": "#/$defs/ActivityBucket"
+          },
+          "title": "Activity",
+          "type": "array"
+        },
+        "basis": {
+          "const": "retained-observations",
+          "title": "Basis",
+          "type": "string"
+        },
+        "bucket_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Bucket Seconds",
+          "type": "number"
+        },
+        "contract_version": {
+          "minLength": 1,
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "event_types": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Event Types",
+          "type": "object"
+        },
+        "events_in_window": {
+          "minimum": 0,
+          "title": "Events In Window",
+          "type": "integer"
+        },
+        "families": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Families",
+          "type": "object"
+        },
+        "generated_at": {
+          "title": "Generated At",
+          "type": "number"
+        },
+        "history_truncated": {
+          "title": "History Truncated",
+          "type": "boolean"
+        },
+        "logical_times": {
+          "items": {
+            "$ref": "#/$defs/TimeObservation"
+          },
+          "title": "Logical Times",
+          "type": "array"
+        },
+        "participants": {
+          "items": {
+            "$ref": "#/$defs/FederateActivity"
+          },
+          "title": "Participants",
+          "type": "array"
+        },
+        "retention": {
+          "$ref": "#/$defs/RetentionResponse"
+        },
+        "scoped_federate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Scoped Federate"
+        },
+        "sources": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Sources",
+          "type": "object"
+        },
+        "unattributed_events": {
+          "minimum": 0,
+          "title": "Unattributed Events",
+          "type": "integer"
+        },
+        "window_seconds": {
+          "minimum": 1,
+          "title": "Window Seconds",
+          "type": "integer"
+        },
+        "window_start": {
+          "title": "Window Start",
+          "type": "number"
+        }
+      },
+      "required": [
+        "contract_version",
+        "basis",
+        "generated_at",
+        "window_start",
+        "window_seconds",
+        "bucket_seconds",
+        "scoped_federate",
+        "events_in_window",
+        "unattributed_events",
+        "history_truncated",
+        "retention",
+        "participants",
+        "activity",
+        "logical_times",
+        "event_types",
+        "sources",
+        "families"
+      ],
+      "title": "AnalyticsResponse",
+      "type": "object"
+    },
+    "CapabilityResponse": {
+      "additionalProperties": true,
+      "properties": {
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "event_types": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Event Types",
+          "type": "array"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "observations": {
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/$defs/JsonValue"
+            },
+            "type": "object"
+          },
+          "title": "Observations",
+          "type": "array"
+        },
+        "owner": {
+          "minLength": 1,
+          "title": "Owner",
+          "type": "string"
+        },
+        "owners": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Owners",
+          "type": "array"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        },
+        "sources": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sources",
+          "type": "array"
+        },
+        "state": {
+          "enum": [
+            "available",
+            "partial",
+            "disabled",
+            "unsupported",
+            "unknown"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "state",
+        "label",
+        "description",
+        "owner"
+      ],
+      "title": "CapabilityResponse",
+      "type": "object"
+    },
+    "CapabilitySchemaResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "known": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Known",
+          "type": "array"
+        },
+        "state_meanings": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "propertyNames": {
+            "enum": [
+              "available",
+              "partial",
+              "disabled",
+              "unsupported",
+              "unknown"
+            ]
+          },
+          "title": "State Meanings",
+          "type": "object"
+        },
+        "states": {
+          "items": {
+            "enum": [
+              "available",
+              "partial",
+              "disabled",
+              "unsupported",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "title": "States",
+          "type": "array"
+        }
+      },
+      "required": [
+        "states",
+        "fields",
+        "known",
+        "state_meanings"
+      ],
+      "title": "CapabilitySchemaResponse",
+      "type": "object"
+    },
+    "CommandCatalog": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_version": {
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "history_limit": {
+          "title": "History Limit",
+          "type": "integer"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/CommandTarget"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
+        "timeout_seconds": {
+          "title": "Timeout Seconds",
+          "type": "number"
+        }
+      },
+      "required": [
+        "contract_version",
+        "enabled",
+        "history_limit",
+        "targets",
+        "timeout_seconds"
+      ],
+      "title": "CommandCatalog",
+      "type": "object"
+    },
+    "CommandDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "session.connect",
+            "federate.join",
+            "federate.resign",
+            "session.disconnect"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "completion": {
+          "const": "service-return",
+          "default": "service-return",
+          "title": "Completion",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "fields": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CommandField"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "parameter_model": {
+          "title": "Parameter Model",
+          "type": "string"
+        },
+        "parameter_schema": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Parameter Schema",
+          "type": "object"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "requires_confirmation": {
+          "default": false,
+          "title": "Requires Confirmation",
+          "type": "boolean"
+        },
+        "scope": {
+          "const": "controlled-session",
+          "default": "controlled-session",
+          "title": "Scope",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "available",
+            "partial",
+            "disabled",
+            "unsupported",
+            "unknown"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action",
+        "title",
+        "description",
+        "state",
+        "parameter_model",
+        "parameter_schema"
+      ],
+      "title": "CommandDefinition",
+      "type": "object"
+    },
+    "CommandError": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "effect": {
+          "enum": [
+            "none",
+            "unknown"
+          ],
+          "title": "Effect",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "effect"
+      ],
+      "title": "CommandError",
+      "type": "object"
+    },
+    "CommandField": {
+      "additionalProperties": false,
+      "properties": {
+        "choices": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Choices",
+          "type": "array"
+        },
+        "default_value": {
+          "default": "",
+          "title": "Default Value",
+          "type": "string"
+        },
+        "input": {
+          "enum": [
+            "text",
+            "select"
+          ],
+          "title": "Input",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "label",
+        "input",
+        "required"
+      ],
+      "title": "CommandField",
+      "type": "object"
+    },
+    "CommandHistory": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_version": {
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "evicted_records": {
+          "title": "Evicted Records",
+          "type": "integer"
+        },
+        "limit": {
+          "title": "Limit",
+          "type": "integer"
+        },
+        "persistence": {
+          "const": "server-process",
+          "default": "server-process",
+          "title": "Persistence",
+          "type": "string"
+        },
+        "records": {
+          "items": {
+            "$ref": "#/$defs/CommandRecord"
+          },
+          "title": "Records",
+          "type": "array"
+        }
+      },
+      "required": [
+        "contract_version",
+        "evicted_records",
+        "limit",
+        "records"
+      ],
+      "title": "CommandHistory",
+      "type": "object"
+    },
+    "CommandOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "federate_handle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federate Handle"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "summary"
+      ],
+      "title": "CommandOutcome",
+      "type": "object"
+    },
+    "CommandRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted_at": {
+          "title": "Accepted At",
+          "type": "number"
+        },
+        "command_id": {
+          "title": "Command Id",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CommandError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finished At"
+        },
+        "late_error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CommandError"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "late_finished_at": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Late Finished At"
+        },
+        "late_outcome": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CommandOutcome"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CommandOutcome"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "request": {
+          "discriminator": {
+            "mapping": {
+              "federate.join": "#/$defs/JoinCommand",
+              "federate.resign": "#/$defs/ResignCommand",
+              "session.connect": "#/$defs/ConnectCommand",
+              "session.disconnect": "#/$defs/DisconnectCommand"
+            },
+            "propertyName": "action"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ConnectCommand"
+            },
+            {
+              "$ref": "#/$defs/JoinCommand"
+            },
+            {
+              "$ref": "#/$defs/ResignCommand"
+            },
+            {
+              "$ref": "#/$defs/DisconnectCommand"
+            }
+          ],
+          "title": "Request"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Started At"
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "running",
+            "succeeded",
+            "failed",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "command_id",
+        "request",
+        "status",
+        "accepted_at"
+      ],
+      "title": "CommandRecord",
+      "type": "object"
+    },
+    "CommandTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter": {
+          "title": "Adapter",
+          "type": "string"
+        },
+        "busy": {
+          "default": false,
+          "title": "Busy",
+          "type": "boolean"
+        },
+        "commands": {
+          "items": {
+            "$ref": "#/$defs/CommandDefinition"
+          },
+          "title": "Commands",
+          "type": "array"
+        },
+        "fault": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fault"
+        },
+        "federate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federate"
+        },
+        "federation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federation"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "disconnected",
+            "connected",
+            "joined",
+            "unknown"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "synthetic": {
+          "default": false,
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target_id",
+        "label",
+        "adapter",
+        "state",
+        "commands"
+      ],
+      "title": "CommandTarget",
+      "type": "object"
+    },
+    "ConnectCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "session.connect",
+          "title": "Action",
+          "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "parameters": {
+          "$ref": "#/$defs/EmptyParameters"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "target_id",
+        "action",
+        "parameters"
+      ],
+      "title": "ConnectCommand",
+      "type": "object"
+    },
+    "ContractResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "api_paths": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Api Paths",
+          "type": "object"
+        },
+        "backend_rule": {
+          "minLength": 1,
+          "title": "Backend Rule",
+          "type": "string"
+        },
+        "capabilities": {
+          "additionalProperties": {
+            "$ref": "#/$defs/CapabilityResponse"
+          },
+          "title": "Capabilities",
+          "type": "object"
+        },
+        "capability_schema": {
+          "$ref": "#/$defs/CapabilitySchemaResponse"
+        },
+        "contract_version": {
+          "minLength": 1,
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "event_envelope": {
+          "$ref": "#/$defs/EventEnvelopeDescription"
+        },
+        "event_schema_version": {
+          "minLength": 1,
+          "title": "Event Schema Version",
+          "type": "string"
+        },
+        "event_types": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Event Types",
+          "type": "array"
+        },
+        "events": {
+          "$ref": "#/$defs/ResourceDescription"
+        },
+        "media_type": {
+          "minLength": 1,
+          "title": "Media Type",
+          "type": "string"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/ResourceDescription"
+        },
+        "stream": {
+          "$ref": "#/$defs/StreamDescription"
+        }
+      },
+      "required": [
+        "api_paths",
+        "backend_rule",
+        "capabilities",
+        "capability_schema",
+        "contract_version",
+        "event_envelope",
+        "event_schema_version",
+        "event_types",
+        "events",
+        "media_type",
+        "snapshot",
+        "stream"
+      ],
+      "title": "ContractResponse",
+      "type": "object"
+    },
+    "DisconnectCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "session.disconnect",
+          "title": "Action",
+          "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "parameters": {
+          "$ref": "#/$defs/EmptyParameters"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "target_id",
+        "action",
+        "parameters"
+      ],
+      "title": "DisconnectCommand",
+      "type": "object"
+    },
+    "EmptyParameters": {
+      "additionalProperties": false,
+      "description": "Connection configuration and credentials belong to the server.",
+      "properties": {},
+      "title": "EmptyParameters",
+      "type": "object"
+    },
+    "ErrorMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "type": {
+          "const": "error",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "message"
+      ],
+      "title": "ErrorMessage",
+      "type": "object"
+    },
+    "EventEnvelope": {
+      "additionalProperties": true,
+      "properties": {
+        "details": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Details"
+        },
+        "event_type": {
+          "minLength": 1,
+          "title": "Event Type",
+          "type": "string"
+        },
+        "family": {
+          "minLength": 1,
+          "title": "Family",
+          "type": "string"
+        },
+        "federate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federate"
+        },
+        "federate_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federate Name"
+        },
+        "logical_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Logical Time"
+        },
+        "object_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Object Key"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "operation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operation"
+        },
+        "participant": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Participant"
+        },
+        "participant_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Participant Name"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "time_observation": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "cancelled": "#/$defs/TimeOutcomeObservation",
+                  "failed": "#/$defs/TimeOutcomeObservation",
+                  "grant": "#/$defs/TimeGrantObservation",
+                  "request": "#/$defs/TimeRequestObservation",
+                  "state": "#/$defs/TimeStateObservation"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/TimeRequestObservation"
+                },
+                {
+                  "$ref": "#/$defs/TimeGrantObservation"
+                },
+                {
+                  "$ref": "#/$defs/TimeStateObservation"
+                },
+                {
+                  "$ref": "#/$defs/TimeOutcomeObservation"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Time Observation"
+        }
+      },
+      "required": [
+        "sequence",
+        "event_type",
+        "family",
+        "source",
+        "observed_at"
+      ],
+      "title": "EventEnvelope",
+      "type": "object"
+    },
+    "EventEnvelopeDescription": {
+      "additionalProperties": false,
+      "properties": {
+        "extension_rule": {
+          "minLength": 1,
+          "title": "Extension Rule",
+          "type": "string"
+        },
+        "required_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "required_fields",
+        "extension_rule"
+      ],
+      "title": "EventEnvelopeDescription",
+      "type": "object"
+    },
+    "EventPageResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "cleared_events": {
+          "minimum": 0,
+          "title": "Cleared Events",
+          "type": "integer"
+        },
+        "contract_version": {
+          "minLength": 1,
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "dropped_events": {
+          "minimum": 0,
+          "title": "Dropped Events",
+          "type": "integer"
+        },
+        "events": {
+          "items": {
+            "$ref": "#/$defs/EventEnvelope"
+          },
+          "title": "Events",
+          "type": "array"
+        },
+        "first_retained_sequence": {
+          "minimum": 0,
+          "title": "First Retained Sequence",
+          "type": "integer"
+        },
+        "gap": {
+          "title": "Gap",
+          "type": "boolean"
+        },
+        "has_more": {
+          "title": "Has More",
+          "type": "boolean"
+        },
+        "last_sequence": {
+          "minimum": 0,
+          "title": "Last Sequence",
+          "type": "integer"
+        },
+        "next_after": {
+          "minimum": 0,
+          "title": "Next After",
+          "type": "integer"
+        },
+        "retained_events": {
+          "minimum": 0,
+          "title": "Retained Events",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cleared_events",
+        "contract_version",
+        "dropped_events",
+        "events",
+        "first_retained_sequence",
+        "gap",
+        "has_more",
+        "last_sequence",
+        "next_after",
+        "retained_events"
+      ],
+      "title": "EventPageResponse",
+      "type": "object"
+    },
+    "EventsMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "events": {
+          "items": {
+            "$ref": "#/$defs/EventEnvelope"
+          },
+          "title": "Events",
+          "type": "array"
+        },
+        "state": {
+          "$ref": "#/$defs/StateResponse"
+        },
+        "type": {
+          "const": "events",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "state"
+      ],
+      "title": "EventsMessage",
+      "type": "object"
+    },
+    "FederateActivity": {
+      "additionalProperties": false,
+      "properties": {
+        "error_count": {
+          "minimum": 0,
+          "title": "Error Count",
+          "type": "integer"
+        },
+        "event_count": {
+          "minimum": 0,
+          "title": "Event Count",
+          "type": "integer"
+        },
+        "federate": {
+          "minLength": 1,
+          "title": "Federate",
+          "type": "string"
+        },
+        "handle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Handle"
+        },
+        "interaction_count": {
+          "minimum": 0,
+          "title": "Interaction Count",
+          "type": "integer"
+        },
+        "last_seen": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Seen"
+        },
+        "latest_logical_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Latest Logical Time"
+        },
+        "object_keys": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Object Keys",
+          "type": "array"
+        },
+        "object_updates": {
+          "minimum": 0,
+          "title": "Object Updates",
+          "type": "integer"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Role"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "minLength": 1,
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "federate",
+        "role",
+        "handle",
+        "status",
+        "source",
+        "last_seen",
+        "event_count",
+        "object_updates",
+        "interaction_count",
+        "error_count",
+        "object_keys",
+        "latest_logical_time"
+      ],
+      "title": "FederateActivity",
+      "type": "object"
+    },
+    "FederateInspectionResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "federate": {
+          "minLength": 1,
+          "title": "Federate",
+          "type": "string"
+        },
+        "handle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Handle"
+        },
+        "last_seen": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Seen"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "minLength": 1,
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "federate",
+        "status",
+        "source"
+      ],
+      "title": "FederateInspectionResponse",
+      "type": "object"
+    },
+    "GapMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "retention": {
+          "$ref": "#/$defs/RetentionGapResponse"
+        },
+        "type": {
+          "const": "gap",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "retention"
+      ],
+      "title": "GapMessage",
+      "type": "object"
+    },
+    "HealthResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "capabilities": {
+          "additionalProperties": {
+            "$ref": "#/$defs/CapabilityResponse"
+          },
+          "title": "Capabilities",
+          "type": "object"
+        },
+        "contract_version": {
+          "minLength": 1,
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "event_count": {
+          "minimum": 0,
+          "title": "Event Count",
+          "type": "integer"
+        },
+        "retention": {
+          "$ref": "#/$defs/RetentionResponse"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "service": {
+          "minLength": 1,
+          "title": "Service",
+          "type": "string"
+        },
+        "status": {
+          "minLength": 1,
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capabilities",
+        "contract_version",
+        "event_count",
+        "retention",
+        "schema_version",
+        "service",
+        "status"
+      ],
+      "title": "HealthResponse",
+      "type": "object"
+    },
+    "HeartbeatMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "heartbeat",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "HeartbeatMessage",
+      "type": "object"
+    },
+    "InspectorResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_version": {
+          "minLength": 1,
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ObjectInspectionResponse"
+              },
+              {
+                "$ref": "#/$defs/InteractionInspectionResponse"
+              },
+              {
+                "$ref": "#/$defs/FederateInspectionResponse"
+              }
+            ]
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "kind": {
+          "enum": [
+            "objects",
+            "interactions",
+            "federates"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_version",
+        "kind"
+      ],
+      "title": "InspectorResponse",
+      "type": "object"
+    },
+    "InspectorsResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "interactions": {
+          "items": {
+            "$ref": "#/$defs/InteractionInspectionResponse"
+          },
+          "title": "Interactions",
+          "type": "array"
+        },
+        "object_observations": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObjectObservationsResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "objects": {
+          "items": {
+            "$ref": "#/$defs/ObjectInspectionResponse"
+          },
+          "title": "Objects",
+          "type": "array"
+        },
+        "time": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeInspectionResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "interactions",
+        "objects"
+      ],
+      "title": "InspectorsResponse",
+      "type": "object"
+    },
+    "InteractionInspectionResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "class_handle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class Handle"
+        },
+        "family": {
+          "minLength": 1,
+          "title": "Family",
+          "type": "string"
+        },
+        "federate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federate"
+        },
+        "interaction_class": {
+          "minLength": 1,
+          "title": "Interaction Class",
+          "type": "string"
+        },
+        "interaction_key": {
+          "minLength": 1,
+          "title": "Interaction Key",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "tag": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null
+        }
+      },
+      "required": [
+        "sequence",
+        "interaction_key",
+        "interaction_class",
+        "family",
+        "source",
+        "observed_at"
+      ],
+      "title": "InteractionInspectionResponse",
+      "type": "object"
+    },
+    "JoinCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "federate.join",
+          "title": "Action",
+          "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "parameters": {
+          "$ref": "#/$defs/JoinParameters"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "target_id",
+        "action",
+        "parameters"
+      ],
+      "title": "JoinCommand",
+      "type": "object"
+    },
+    "JoinParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "federate_name": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Federate Name",
+          "type": "string"
+        },
+        "federate_type": {
+          "default": "Observer",
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Federate Type",
+          "type": "string"
+        },
+        "federation": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Federation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "federation",
+        "federate_name"
+      ],
+      "title": "JoinParameters",
+      "type": "object"
+    },
+    "JsonValue": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "LiveMetricsResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "error_count": {
+          "minimum": 0,
+          "title": "Error Count",
+          "type": "integer"
+        },
+        "event_count": {
+          "minimum": 0,
+          "title": "Event Count",
+          "type": "integer"
+        },
+        "event_rate_per_second": {
+          "minimum": 0,
+          "title": "Event Rate Per Second",
+          "type": "number"
+        },
+        "event_types": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Event Types",
+          "type": "object"
+        },
+        "families": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Families",
+          "type": "object"
+        },
+        "federate_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Federate Count",
+          "type": "integer"
+        },
+        "first_sequence": {
+          "minimum": 0,
+          "title": "First Sequence",
+          "type": "integer"
+        },
+        "interaction_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Interaction Count",
+          "type": "integer"
+        },
+        "last_sequence": {
+          "minimum": 0,
+          "title": "Last Sequence",
+          "type": "integer"
+        },
+        "object_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Object Count",
+          "type": "integer"
+        },
+        "sources": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Sources",
+          "type": "object"
+        }
+      },
+      "required": [
+        "event_count",
+        "event_rate_per_second",
+        "error_count",
+        "first_sequence",
+        "last_sequence"
+      ],
+      "title": "LiveMetricsResponse",
+      "type": "object"
+    },
+    "MetricsResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "adapters": {
+          "items": {
+            "$ref": "#/$defs/AdapterResponse"
+          },
+          "title": "Adapters",
+          "type": "array"
+        },
+        "contract_version": {
+          "minLength": 1,
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "live_metrics": {
+          "$ref": "#/$defs/LiveMetricsResponse"
+        },
+        "retention": {
+          "$ref": "#/$defs/RetentionResponse"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "minLength": 1,
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "adapters",
+        "contract_version",
+        "live_metrics",
+        "retention",
+        "schema_version",
+        "status"
+      ],
+      "title": "MetricsResponse",
+      "type": "object"
+    },
+    "ObjectAttributeChangeResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "attribute": {
+          "title": "Attribute",
+          "type": "string"
+        },
+        "federate": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Federate"
+        },
+        "generation": {
+          "minimum": 1,
+          "title": "Generation",
+          "type": "integer"
+        },
+        "object_key": {
+          "minLength": 1,
+          "title": "Object Key",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "previous_known": {
+          "title": "Previous Known",
+          "type": "boolean"
+        },
+        "previous_value": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue"
+        }
+      },
+      "required": [
+        "sequence",
+        "object_key",
+        "federate",
+        "generation",
+        "attribute",
+        "value",
+        "previous_known",
+        "previous_value",
+        "source",
+        "observed_at"
+      ],
+      "title": "ObjectAttributeChangeResponse",
+      "type": "object"
+    },
+    "ObjectInspectionResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "attributes": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Attributes",
+          "type": "object"
+        },
+        "class_handle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class Handle"
+        },
+        "class_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class Name"
+        },
+        "discovery_count": {
+          "minimum": 0,
+          "title": "Discovery Count",
+          "type": "integer"
+        },
+        "family": {
+          "minLength": 1,
+          "title": "Family",
+          "type": "string"
+        },
+        "last_seen": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Seen"
+        },
+        "object_handle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Object Handle"
+        },
+        "object_key": {
+          "minLength": 1,
+          "title": "Object Key",
+          "type": "string"
+        },
+        "object_name": {
+          "minLength": 1,
+          "title": "Object Name",
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sources",
+          "type": "array"
+        },
+        "status": {
+          "minLength": 1,
+          "title": "Status",
+          "type": "string"
+        },
+        "update_count": {
+          "minimum": 0,
+          "title": "Update Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "object_key",
+        "object_name",
+        "family",
+        "update_count",
+        "discovery_count",
+        "status"
+      ],
+      "title": "ObjectInspectionResponse",
+      "type": "object"
+    },
+    "ObjectObservationsResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "changes": {
+          "items": {
+            "$ref": "#/$defs/ObjectAttributeChangeResponse"
+          },
+          "title": "Changes",
+          "type": "array"
+        },
+        "history_first_sequence": {
+          "minimum": 0,
+          "title": "History First Sequence",
+          "type": "integer"
+        },
+        "history_last_sequence": {
+          "minimum": 0,
+          "title": "History Last Sequence",
+          "type": "integer"
+        },
+        "history_truncated": {
+          "title": "History Truncated",
+          "type": "boolean"
+        },
+        "snapshots": {
+          "items": {
+            "$ref": "#/$defs/ObjectPerspectiveResponse"
+          },
+          "title": "Snapshots",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshots",
+        "changes",
+        "history_truncated",
+        "history_first_sequence",
+        "history_last_sequence"
+      ],
+      "title": "ObjectObservationsResponse",
+      "type": "object"
+    },
+    "ObjectPerspectiveResponse": {
+      "additionalProperties": false,
+      "description": "Null federate is global; a name is explicit adapter attribution only.",
+      "properties": {
+        "federate": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Federate"
+        },
+        "generation": {
+          "minimum": 1,
+          "title": "Generation",
+          "type": "integer"
+        },
+        "last_sequence": {
+          "minimum": 1,
+          "title": "Last Sequence",
+          "type": "integer"
+        },
+        "object": {
+          "$ref": "#/$defs/ObjectInspectionResponse"
+        }
+      },
+      "required": [
+        "federate",
+        "generation",
+        "last_sequence",
+        "object"
+      ],
+      "title": "ObjectPerspectiveResponse",
+      "type": "object"
+    },
+    "ReportedTimeStateResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "constrained": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Constrained"
+        },
+        "galt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Galt"
+        },
+        "lbts": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lbts"
+        },
+        "logical_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Logical Time"
+        },
+        "lookahead": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lookahead"
+        },
+        "regulating": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Regulating"
+        }
+      },
+      "title": "ReportedTimeStateResponse",
+      "type": "object"
+    },
+    "ResignCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "federate.resign",
+          "title": "Action",
+          "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "parameters": {
+          "$ref": "#/$defs/ResignParameters"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "target_id",
+        "action",
+        "parameters"
+      ],
+      "title": "ResignCommand",
+      "type": "object"
+    },
+    "ResignParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "policy": {
+          "default": "no_action",
+          "enum": [
+            "no_action",
+            "unconditionally_divest_attributes",
+            "delete_objects",
+            "cancel_pending_ownership_acquisitions",
+            "delete_objects_then_divest",
+            "cancel_then_delete_then_divest"
+          ],
+          "title": "Policy",
+          "type": "string"
+        }
+      },
+      "title": "ResignParameters",
+      "type": "object"
+    },
+    "ResourceDescription": {
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE"
+          ],
+          "title": "Method",
+          "type": "string"
+        },
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "query": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Query",
+          "type": "object"
+        },
+        "required_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "method",
+        "path"
+      ],
+      "title": "ResourceDescription",
+      "type": "object"
+    },
+    "RetentionGapResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "cleared_events": {
+          "minimum": 0,
+          "title": "Cleared Events",
+          "type": "integer"
+        },
+        "dropped_events": {
+          "minimum": 0,
+          "title": "Dropped Events",
+          "type": "integer"
+        },
+        "first_retained_sequence": {
+          "minimum": 1,
+          "title": "First Retained Sequence",
+          "type": "integer"
+        },
+        "last_sequence": {
+          "minimum": 0,
+          "title": "Last Sequence",
+          "type": "integer"
+        },
+        "retained_events": {
+          "minimum": 0,
+          "title": "Retained Events",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "first_retained_sequence",
+        "last_sequence",
+        "retained_events",
+        "dropped_events",
+        "cleared_events"
+      ],
+      "title": "RetentionGapResponse",
+      "type": "object"
+    },
+    "RetentionResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "cleared_events": {
+          "minimum": 0,
+          "title": "Cleared Events",
+          "type": "integer"
+        },
+        "dropped_events": {
+          "minimum": 0,
+          "title": "Dropped Events",
+          "type": "integer"
+        },
+        "first_retained_sequence": {
+          "minimum": 0,
+          "title": "First Retained Sequence",
+          "type": "integer"
+        },
+        "last_sequence": {
+          "minimum": 0,
+          "title": "Last Sequence",
+          "type": "integer"
+        },
+        "max_events": {
+          "minimum": 1,
+          "title": "Max Events",
+          "type": "integer"
+        },
+        "next_sequence": {
+          "minimum": 1,
+          "title": "Next Sequence",
+          "type": "integer"
+        },
+        "retained_events": {
+          "minimum": 0,
+          "title": "Retained Events",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_events",
+        "retained_events",
+        "dropped_events",
+        "cleared_events",
+        "first_retained_sequence",
+        "last_sequence",
+        "next_sequence"
+      ],
+      "title": "RetentionResponse",
+      "type": "object"
+    },
+    "SnapshotMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/StateResponse"
+        },
+        "type": {
+          "const": "snapshot",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "state"
+      ],
+      "title": "SnapshotMessage",
+      "type": "object"
+    },
+    "StateResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "adapters": {
+          "items": {
+            "$ref": "#/$defs/AdapterResponse"
+          },
+          "title": "Adapters",
+          "type": "array"
+        },
+        "capabilities": {
+          "additionalProperties": {
+            "$ref": "#/$defs/CapabilityResponse"
+          },
+          "title": "Capabilities",
+          "type": "object"
+        },
+        "context": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Context",
+          "type": "object"
+        },
+        "contract_version": {
+          "minLength": 1,
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "federate_roster": {
+          "items": {
+            "$ref": "#/$defs/FederateInspectionResponse"
+          },
+          "title": "Federate Roster",
+          "type": "array"
+        },
+        "inspectors": {
+          "$ref": "#/$defs/InspectorsResponse"
+        },
+        "live_metrics": {
+          "$ref": "#/$defs/LiveMetricsResponse"
+        },
+        "normalized_events": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/EventEnvelope"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Normalized Events"
+        },
+        "retention": {
+          "$ref": "#/$defs/RetentionResponse"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "minLength": 1,
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "adapters",
+        "capabilities",
+        "context",
+        "contract_version",
+        "federate_roster",
+        "inspectors",
+        "live_metrics",
+        "retention",
+        "schema_version",
+        "status"
+      ],
+      "title": "StateResponse",
+      "type": "object"
+    },
+    "StreamDescription": {
+      "additionalProperties": false,
+      "properties": {
+        "message_types": {
+          "items": {
+            "enum": [
+              "snapshot",
+              "events",
+              "heartbeat",
+              "gap",
+              "error"
+            ],
+            "type": "string"
+          },
+          "title": "Message Types",
+          "type": "array"
+        },
+        "messages": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Messages",
+          "type": "object"
+        },
+        "sse_path": {
+          "minLength": 1,
+          "title": "Sse Path",
+          "type": "string"
+        },
+        "websocket_path": {
+          "minLength": 1,
+          "title": "Websocket Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "websocket_path",
+        "sse_path",
+        "message_types",
+        "messages"
+      ],
+      "title": "StreamDescription",
+      "type": "object"
+    },
+    "TimeGrantObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "grant",
+          "title": "Kind",
+          "type": "string"
+        },
+        "logical_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Logical Time"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Request Id"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Id"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "TimeGrantObservation",
+      "type": "object"
+    },
+    "TimeInspectionResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "dropped_requests": {
+          "minimum": 0,
+          "title": "Dropped Requests",
+          "type": "integer"
+        },
+        "duration_basis": {
+          "const": "observer-ingress-monotonic",
+          "title": "Duration Basis",
+          "type": "string"
+        },
+        "request_capacity": {
+          "minimum": 1,
+          "title": "Request Capacity",
+          "type": "integer"
+        },
+        "requests": {
+          "items": {
+            "$ref": "#/$defs/TimeRequestResponse"
+          },
+          "title": "Requests",
+          "type": "array"
+        },
+        "scope_basis": {
+          "const": "explicit-observations",
+          "title": "Scope Basis",
+          "type": "string"
+        },
+        "snapshots": {
+          "items": {
+            "$ref": "#/$defs/TimeSnapshotResponse"
+          },
+          "title": "Snapshots",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshots",
+        "requests",
+        "request_capacity",
+        "dropped_requests",
+        "duration_basis",
+        "scope_basis"
+      ],
+      "title": "TimeInspectionResponse",
+      "type": "object"
+    },
+    "TimeObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "event_type": {
+          "minLength": 1,
+          "title": "Event Type",
+          "type": "string"
+        },
+        "federate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Federate"
+        },
+        "logical_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Logical Time"
+        },
+        "observation_kind": {
+          "default": "timestamp",
+          "enum": [
+            "timestamp",
+            "request",
+            "grant",
+            "state"
+          ],
+          "title": "Observation Kind",
+          "type": "string"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "operation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Operation"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "sequence",
+        "federate",
+        "logical_time",
+        "observed_at",
+        "event_type",
+        "operation"
+      ],
+      "title": "TimeObservation",
+      "type": "object"
+    },
+    "TimeOutcomeObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "failed",
+            "cancelled"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Request Id"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Id"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "TimeOutcomeObservation",
+      "type": "object"
+    },
+    "TimeRequestObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "request",
+          "title": "Kind",
+          "type": "string"
+        },
+        "logical_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Logical Time"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Request Id"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Id"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "TimeRequestObservation",
+      "type": "object"
+    },
+    "TimeRequestResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "granted_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Granted Time"
+        },
+        "latency_seconds": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Latency Seconds"
+        },
+        "outcome_at": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Outcome At"
+        },
+        "outcome_sequence": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Outcome Sequence"
+        },
+        "pending_seconds": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pending Seconds"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "request_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "request_sequence": {
+          "minimum": 1,
+          "title": "Request Sequence",
+          "type": "integer"
+        },
+        "requested_at": {
+          "title": "Requested At",
+          "type": "number"
+        },
+        "requested_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requested Time"
+        },
+        "scope": {
+          "$ref": "#/$defs/TimeScopeResponse"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "granted",
+            "failed",
+            "cancelled",
+            "ambiguous",
+            "session-ended"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope",
+        "request_id",
+        "request_sequence",
+        "requested_at",
+        "status"
+      ],
+      "title": "TimeRequestResponse",
+      "type": "object"
+    },
+    "TimeSampleResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "logical_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Logical Time"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Request Id"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "sequence",
+        "observed_at"
+      ],
+      "title": "TimeSampleResponse",
+      "type": "object"
+    },
+    "TimeScopeResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "federate": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Federate"
+        },
+        "federation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Federation"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Session Id"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "session_id",
+        "federation",
+        "federate"
+      ],
+      "title": "TimeScopeResponse",
+      "type": "object"
+    },
+    "TimeSnapshotResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "last_grant": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeSampleResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "last_request": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeSampleResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "last_sequence": {
+          "minimum": 1,
+          "title": "Last Sequence",
+          "type": "integer"
+        },
+        "observed_at": {
+          "title": "Observed At",
+          "type": "number"
+        },
+        "reported_state": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReportedTimeStateResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scope": {
+          "$ref": "#/$defs/TimeScopeResponse"
+        },
+        "state_sequence": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "State Sequence"
+        },
+        "status": {
+          "enum": [
+            "observed",
+            "ended"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "uncorrelated_grants": {
+          "minimum": 0,
+          "title": "Uncorrelated Grants",
+          "type": "integer"
+        },
+        "uncorrelated_requests": {
+          "minimum": 0,
+          "title": "Uncorrelated Requests",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "scope",
+        "last_sequence",
+        "observed_at",
+        "status",
+        "uncorrelated_requests",
+        "uncorrelated_grants"
+      ],
+      "title": "TimeSnapshotResponse",
+      "type": "object"
+    },
+    "TimeStateObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "constrained": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Constrained"
+        },
+        "galt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Galt"
+        },
+        "kind": {
+          "const": "state",
+          "title": "Kind",
+          "type": "string"
+        },
+        "lbts": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lbts"
+        },
+        "logical_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Logical Time"
+        },
+        "lookahead": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lookahead"
+        },
+        "regulating": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Regulating"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Id"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "TimeStateObservation",
+      "type": "object"
+    }
+  },
+  "$id": "urn:umbra:observer:wire:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "contract_version": "umbra-observer-contract-v1"
+}

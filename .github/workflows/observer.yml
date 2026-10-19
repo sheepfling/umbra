@@ -1,0 +1,79 @@
+name: Observer dashboard
+
+on:
+  push:
+    paths:
+      - 'packages/umbra-rti-observer/**'
+      - 'packages/umbra-rti-observer-ui/**'
+      - 'packages/umbra-rti-observer-umbra/**'
+      - 'packages/umbra-rti-observer-java-fixture/**'
+      - 'packages/umbra-rti-api/**'
+      - 'tools/observer_playtest.py'
+      - 'tools/test_observer_playtest.py'
+      - 'Start-Observer*.cmd'
+      - '.github/workflows/observer.yml'
+  pull_request:
+    paths:
+      - 'packages/umbra-rti-observer/**'
+      - 'packages/umbra-rti-observer-ui/**'
+      - 'packages/umbra-rti-observer-umbra/**'
+      - 'packages/umbra-rti-observer-java-fixture/**'
+      - 'packages/umbra-rti-api/**'
+      - 'tools/observer_playtest.py'
+      - 'tools/test_observer_playtest.py'
+      - 'Start-Observer*.cmd'
+      - '.github/workflows/observer.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-observer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: packages/umbra-rti-observer-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install isolated observer test dependencies
+        run: python -m pip install -e '../umbra-rti-api' -e '../umbra-rti-observer[dev]' -e '../umbra-rti-observer-umbra[control]'
+      - name: Observer Python lint and type checks
+        run: |
+          ruff check ../umbra-rti-observer/src/umbra_rti_observer
+          pyright -p ../umbra-rti-observer/pyrightconfig.json
+      - name: Python observer and launcher regressions
+        run: python -m pytest ../umbra-rti-observer/tests ../umbra-rti-observer-umbra/tests ../../tools/test_observer_playtest.py -q
+      - name: Install the locked frontend dependencies
+        run: |
+          npm install --global pnpm@11.25.0
+          pnpm install --frozen-lockfile
+      - name: Portable wire schema and generated TypeScript drift
+        run: |
+          python -m umbra_rti_observer.conformance_schema --openapi ../../.cache/observer-openapi.json
+          pnpm generate:api --check --schema ../../.cache/observer-openapi.json
+          pnpm test:codegen
+      - name: Install headless Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Desktop and mobile browser regressions
+        run: pnpm test:e2e
+      - name: Retain browser report and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: observer-browser-report
+          path: |
+            packages/umbra-rti-observer-ui/playwright-report/
+            packages/umbra-rti-observer-ui/test-results/
+          retention-days: 7

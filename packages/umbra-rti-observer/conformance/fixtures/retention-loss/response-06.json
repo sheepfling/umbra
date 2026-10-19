@@ -1,0 +1,83 @@
+{
+  "cleared_events": 0,
+  "contract_version": "umbra-observer-contract-v1",
+  "dropped_events": 5,
+  "events": [
+    {
+      "attributes": {
+        "value": 4
+      },
+      "details": null,
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "logical_time": null,
+      "object_key": "fixture-object",
+      "object_name": "FixtureObject",
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 6,
+      "source": "contract-fixture",
+      "time_observation": null,
+      "vendor_extension": {
+        "nested": [
+          true,
+          null,
+          "retained"
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "value": 5
+      },
+      "details": null,
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "logical_time": null,
+      "object_key": "fixture-object",
+      "object_name": "FixtureObject",
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 7,
+      "source": "contract-fixture",
+      "time_observation": null,
+      "vendor_extension": {
+        "nested": [
+          true,
+          null,
+          "retained"
+        ]
+      }
+    },
+    {
+      "details": null,
+      "event_type": "callback.invoked",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "logical_time": 4,
+      "object_key": null,
+      "observed_at": 1760000000.0,
+      "operation": "timeAdvanceGrant",
+      "participant": null,
+      "participant_name": null,
+      "sequence": 8,
+      "source": "contract-fixture",
+      "time_observation": null
+    }
+  ],
+  "first_retained_sequence": 6,
+  "gap": true,
+  "has_more": false,
+  "last_sequence": 8,
+  "next_after": 8,
+  "retained_events": 3
+}

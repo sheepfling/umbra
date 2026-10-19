@@ -45,6 +45,10 @@ CAPABILITY_DEFINITIONS: dict[str, dict[str, str]] = {
         "label": "Attribute values",
         "description": "Decoded or opaque attribute update observations.",
     },
+    "object_observations": {
+        "label": "Object perspectives",
+        "description": "Persistent attributed object snapshots and retained attribute comparisons.",
+    },
     "interactions": {
         "label": "Interactions",
         "description": "Receive-order and directed interaction observations.",
@@ -52,6 +56,10 @@ CAPABILITY_DEFINITIONS: dict[str, dict[str, str]] = {
     "logical_time": {
         "label": "Logical time",
         "description": "Time regulation, constraints, grants, and timestamped delivery.",
+    },
+    "time_inspection": {
+        "label": "Persistent time inspection",
+        "description": "Last reported grants/state and bounded explicitly correlated requests, without MOM.",
     },
     "mom": {
         "label": "Management object model",
@@ -81,6 +89,14 @@ CAPABILITY_DEFINITIONS: dict[str, dict[str, str]] = {
         "label": "Observer metrics",
         "description": "Event counts, rates, retention, and adapter health metrics.",
     },
+    "analytics": {
+        "label": "Observation analytics",
+        "description": "Windowed activity, participant attribution, and logical timestamp observations.",
+    },
+    "commands": {
+        "label": "Session commands",
+        "description": "Explicitly registered adapter actions and correlated execution history.",
+    },
     "http_api": {
         "label": "HTTP API",
         "description": "HTTP resources for contract, state, metrics, and event pages.",
@@ -96,6 +112,16 @@ CAPABILITY_DEFINITIONS: dict[str, dict[str, str]] = {
 }
 
 OBSERVER_CAPABILITIES: dict[str, dict[str, JsonValue]] = {
+    "time_inspection": {
+        "state": "available",
+        "owner": "observer",
+        "reason": "Observer-side snapshots; missing IDs or session scope never imply correlated grants.",
+    },
+    "object_observations": {
+        "state": "available",
+        "owner": "observer",
+        "reason": "Built from explicit event attribution; no MOM or provider queries required.",
+    },
     "event_history": {
         "state": "available",
         "owner": "observer",

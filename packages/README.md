@@ -50,6 +50,11 @@ top-level factories through `ServiceLoader`.
 
 ## Develop from a checkout
 
+The observer's [backend interoperability lane](umbra-rti-observer/conformance/README.md)
+and [Java HTTP fixture](umbra-rti-observer-java-fixture/README.md) exercise the
+same frontend contract independently of RTI providers. The Java fixture is a
+read-only test artifact, not a provider or production observer implementation.
+
 All Python packages require Python 3.11 or newer. Start by installing the
 provider-neutral API package in an isolated environment:
 

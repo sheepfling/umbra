@@ -1,0 +1,5 @@
+{
+  "include": ["src/umbra_rti_observer_umbra/commands.py"],
+  "typeCheckingMode": "strict",
+  "extraPaths": ["../umbra-rti-observer/src", "../umbra-rti-api/src"]
+}

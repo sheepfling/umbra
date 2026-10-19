@@ -1,0 +1,29 @@
+{
+  "cleared_events": 0,
+  "contract_version": "umbra-observer-contract-v1",
+  "dropped_events": 5,
+  "events": [
+    {
+      "details": null,
+      "event_type": "callback.invoked",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "logical_time": 4,
+      "object_key": null,
+      "observed_at": 1760000000.0,
+      "operation": "timeAdvanceGrant",
+      "participant": null,
+      "participant_name": null,
+      "sequence": 8,
+      "source": "contract-fixture",
+      "time_observation": null
+    }
+  ],
+  "first_retained_sequence": 6,
+  "gap": false,
+  "has_more": false,
+  "last_sequence": 8,
+  "next_after": 8,
+  "retained_events": 3
+}

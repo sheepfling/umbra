@@ -1,0 +1,24 @@
+{
+  "contract_version": "umbra-observer-contract-v1",
+  "items": [
+    {
+      "attributes": {
+        "value": 3
+      },
+      "class_handle": null,
+      "class_name": null,
+      "discovery_count": 0,
+      "family": "generic",
+      "last_seen": 1760000000.0,
+      "object_handle": null,
+      "object_key": "fixture-object",
+      "object_name": "FixtureObject",
+      "sources": [
+        "contract-fixture"
+      ],
+      "status": "active",
+      "update_count": 4
+    }
+  ],
+  "kind": "objects"
+}

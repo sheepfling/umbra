@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Analytics */
+        get: operations["analytics_api_analytics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/catalog": {
         parameters: {
             query?: never;
@@ -30,6 +47,58 @@ export interface paths {
         };
         /** Catalog */
         get: operations["catalog_api_catalog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/commands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Command History */
+        get: operations["command_history_api_commands_get"];
+        put?: never;
+        /** Submit Command */
+        post: operations["submit_command_api_commands_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/commands/{command_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Command Result */
+        get: operations["command_result_api_commands__command_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/commands/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Command Catalog */
+        get: operations["command_catalog_api_commands_catalog_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -214,6 +283,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActivityBucket */
+        ActivityBucket: {
+            /** Callbacks */
+            callbacks: number;
+            /** Errors */
+            errors: number;
+            /** Events */
+            events: number;
+            /** Interactions */
+            interactions: number;
+            /** Object Updates */
+            object_updates: number;
+            /** Started At */
+            started_at: number;
+        };
         /** AdapterResponse */
         AdapterResponse: {
             /** Capabilities */
@@ -222,6 +306,51 @@ export interface components {
             name: string;
             /** Status */
             status: string;
+        };
+        /** AnalyticsResponse */
+        AnalyticsResponse: {
+            /** Activity */
+            activity: components["schemas"]["ActivityBucket"][];
+            /**
+             * Basis
+             * @constant
+             */
+            basis: "retained-observations";
+            /** Bucket Seconds */
+            bucket_seconds: number;
+            /** Contract Version */
+            contract_version: string;
+            /** Event Types */
+            event_types: {
+                [key: string]: number;
+            };
+            /** Events In Window */
+            events_in_window: number;
+            /** Families */
+            families: {
+                [key: string]: number;
+            };
+            /** Generated At */
+            generated_at: number;
+            /** History Truncated */
+            history_truncated: boolean;
+            /** Logical Times */
+            logical_times: components["schemas"]["TimeObservation"][];
+            /** Participants */
+            participants: components["schemas"]["FederateActivity"][];
+            retention: components["schemas"]["RetentionResponse"];
+            /** Scoped Federate */
+            scoped_federate: string | null;
+            /** Sources */
+            sources: {
+                [key: string]: number;
+            };
+            /** Unattributed Events */
+            unattributed_events: number;
+            /** Window Seconds */
+            window_seconds: number;
+            /** Window Start */
+            window_start: number;
         };
         /** CapabilityResponse */
         CapabilityResponse: {
@@ -286,6 +415,200 @@ export interface components {
             /** Schema Version */
             schema_version: string;
         };
+        /** CommandCatalog */
+        CommandCatalog: {
+            /** Contract Version */
+            contract_version: string;
+            /** Enabled */
+            enabled: boolean;
+            /** History Limit */
+            history_limit: number;
+            /** Targets */
+            targets: components["schemas"]["CommandTarget"][];
+            /** Timeout Seconds */
+            timeout_seconds: number;
+        };
+        /** CommandDefinition */
+        CommandDefinition: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "session.connect" | "federate.join" | "federate.resign" | "session.disconnect";
+            /**
+             * Completion
+             * @default service-return
+             * @constant
+             */
+            completion: "service-return";
+            /** Description */
+            description: string;
+            /**
+             * Fields
+             * @default []
+             */
+            fields: components["schemas"]["CommandField"][];
+            /** Parameter Model */
+            parameter_model: string;
+            /** Parameter Schema */
+            parameter_schema: {
+                [key: string]: components["schemas"]["JsonValue-Output"];
+            };
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Requires Confirmation
+             * @default false
+             */
+            requires_confirmation: boolean;
+            /**
+             * Scope
+             * @default controlled-session
+             * @constant
+             */
+            scope: "controlled-session";
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "available" | "partial" | "disabled" | "unsupported" | "unknown";
+            /** Title */
+            title: string;
+        };
+        /** CommandError */
+        CommandError: {
+            /** Code */
+            code: string;
+            /**
+             * Effect
+             * @enum {string}
+             */
+            effect: "none" | "unknown";
+            /** Message */
+            message: string;
+        };
+        /** CommandField */
+        CommandField: {
+            /**
+             * Choices
+             * @default []
+             */
+            choices: string[];
+            /**
+             * Default Value
+             * @default
+             */
+            default_value: string;
+            /**
+             * Input
+             * @enum {string}
+             */
+            input: "text" | "select";
+            /** Label */
+            label: string;
+            /** Name */
+            name: string;
+            /** Required */
+            required: boolean;
+        };
+        /** CommandHistory */
+        CommandHistory: {
+            /** Contract Version */
+            contract_version: string;
+            /** Evicted Records */
+            evicted_records: number;
+            /** Limit */
+            limit: number;
+            /**
+             * Persistence
+             * @default server-process
+             * @constant
+             */
+            persistence: "server-process";
+            /** Records */
+            records: components["schemas"]["CommandRecord"][];
+        };
+        /** CommandOutcome */
+        CommandOutcome: {
+            /** Federate Handle */
+            federate_handle?: string | null;
+            /** Summary */
+            summary: string;
+        };
+        /** CommandRecord */
+        CommandRecord: {
+            /** Accepted At */
+            accepted_at: number;
+            /** Command Id */
+            command_id: string;
+            error?: components["schemas"]["CommandError"] | null;
+            /** Finished At */
+            finished_at?: number | null;
+            late_error?: components["schemas"]["CommandError"] | null;
+            /** Late Finished At */
+            late_finished_at?: number | null;
+            late_outcome?: components["schemas"]["CommandOutcome"] | null;
+            outcome?: components["schemas"]["CommandOutcome"] | null;
+            /** Request */
+            request: components["schemas"]["ConnectCommand"] | components["schemas"]["JoinCommand"] | components["schemas"]["ResignCommand"] | components["schemas"]["DisconnectCommand"];
+            /** Started At */
+            started_at?: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "accepted" | "running" | "succeeded" | "failed" | "unavailable";
+        };
+        /** CommandTarget */
+        CommandTarget: {
+            /** Adapter */
+            adapter: string;
+            /**
+             * Busy
+             * @default false
+             */
+            busy: boolean;
+            /** Commands */
+            commands: components["schemas"]["CommandDefinition"][];
+            /** Fault */
+            fault?: string | null;
+            /** Federate */
+            federate?: string | null;
+            /** Federation */
+            federation?: string | null;
+            /** Label */
+            label: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "disconnected" | "connected" | "joined" | "unknown";
+            /**
+             * Synthetic
+             * @default false
+             */
+            synthetic: boolean;
+            /** Target Id */
+            target_id: string;
+        };
+        /** ConnectCommand */
+        ConnectCommand: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "session.connect";
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            parameters: components["schemas"]["EmptyParameters"];
+            /** Request Id */
+            request_id: string;
+            /** Target Id */
+            target_id: string;
+        };
         /**
          * ContextRequest
          * @description JSON object merged into the observer context.
@@ -326,6 +649,29 @@ export interface components {
             snapshot: components["schemas"]["ResourceDescription"];
             stream: components["schemas"]["StreamDescription"];
         };
+        /** DisconnectCommand */
+        DisconnectCommand: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "session.disconnect";
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            parameters: components["schemas"]["EmptyParameters"];
+            /** Request Id */
+            request_id: string;
+            /** Target Id */
+            target_id: string;
+        };
+        /**
+         * EmptyParameters
+         * @description Connection configuration and credentials belong to the server.
+         */
+        EmptyParameters: Record<string, never>;
         /**
          * EventBatchRequest
          * @description Atomic event batch request.
@@ -340,16 +686,40 @@ export interface components {
         };
         /** EventEnvelope */
         EventEnvelope: {
+            /** Details */
+            details?: {
+                [key: string]: components["schemas"]["JsonValue-Output"];
+            } | null;
             /** Event Type */
             event_type: string;
             /** Family */
             family: string;
+            /** Federate */
+            federate?: string | {
+                [key: string]: components["schemas"]["JsonValue-Output"];
+            } | null;
+            /** Federate Name */
+            federate_name?: string | null;
+            /** Logical Time */
+            logical_time?: number | null;
+            /** Object Key */
+            object_key?: string | null;
             /** Observed At */
             observed_at: number;
+            /** Operation */
+            operation?: string | null;
+            /** Participant */
+            participant?: string | {
+                [key: string]: components["schemas"]["JsonValue-Output"];
+            } | null;
+            /** Participant Name */
+            participant_name?: string | null;
             /** Sequence */
             sequence: number;
             /** Source */
             source: string;
+            /** Time Observation */
+            time_observation?: (components["schemas"]["TimeRequestObservation"] | components["schemas"]["TimeGrantObservation"] | components["schemas"]["TimeStateObservation"] | components["schemas"]["TimeOutcomeObservation"]) | null;
         } & {
             [key: string]: unknown;
         };
@@ -436,6 +806,8 @@ export interface components {
             /** Source */
             source?: string | null;
             tag?: components["schemas"]["JsonValue-Input"];
+            /** Time Observation */
+            time_observation?: (components["schemas"]["TimeRequestObservation"] | components["schemas"]["TimeGrantObservation"] | components["schemas"]["TimeStateObservation"] | components["schemas"]["TimeOutcomeObservation"]) | null;
         };
         /** EventPageResponse */
         EventPageResponse: {
@@ -459,6 +831,33 @@ export interface components {
             next_after: number;
             /** Retained Events */
             retained_events: number;
+        };
+        /** FederateActivity */
+        FederateActivity: {
+            /** Error Count */
+            error_count: number;
+            /** Event Count */
+            event_count: number;
+            /** Federate */
+            federate: string;
+            /** Handle */
+            handle: string | null;
+            /** Interaction Count */
+            interaction_count: number;
+            /** Last Seen */
+            last_seen: number | null;
+            /** Latest Logical Time */
+            latest_logical_time: number | null;
+            /** Object Keys */
+            object_keys: string[];
+            /** Object Updates */
+            object_updates: number;
+            /** Role */
+            role: string | null;
+            /** Source */
+            source: string;
+            /** Status */
+            status: string;
         };
         /** FederateInspectionResponse */
         FederateInspectionResponse: {
@@ -520,8 +919,10 @@ export interface components {
         InspectorsResponse: {
             /** Interactions */
             interactions?: components["schemas"]["InteractionInspectionResponse"][];
+            object_observations?: components["schemas"]["ObjectObservationsResponse"] | null;
             /** Objects */
             objects?: components["schemas"]["ObjectInspectionResponse"][];
+            time?: components["schemas"]["TimeInspectionResponse"] | null;
         };
         /** InteractionInspectionResponse */
         InteractionInspectionResponse: {
@@ -546,6 +947,36 @@ export interface components {
             /** Source */
             source: string;
             tag?: components["schemas"]["JsonValue-Output"];
+        };
+        /** JoinCommand */
+        JoinCommand: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "federate.join";
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            parameters: components["schemas"]["JoinParameters"];
+            /** Request Id */
+            request_id: string;
+            /** Target Id */
+            target_id: string;
+        };
+        /** JoinParameters */
+        JoinParameters: {
+            /** Federate Name */
+            federate_name: string;
+            /**
+             * Federate Type
+             * @default Observer
+             */
+            federate_type: string;
+            /** Federation */
+            federation: string;
         };
         /**
          * JsonObjectResponse
@@ -609,6 +1040,27 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** ObjectAttributeChangeResponse */
+        ObjectAttributeChangeResponse: {
+            /** Attribute */
+            attribute: string;
+            /** Federate */
+            federate: string | null;
+            /** Generation */
+            generation: number;
+            /** Object Key */
+            object_key: string;
+            /** Observed At */
+            observed_at: number;
+            /** Previous Known */
+            previous_known: boolean;
+            previous_value: components["schemas"]["JsonValue-Output"];
+            /** Sequence */
+            sequence: number;
+            /** Source */
+            source: string;
+            value: components["schemas"]["JsonValue-Output"];
+        };
         /** ObjectInspectionResponse */
         ObjectInspectionResponse: {
             /** Attributes */
@@ -637,6 +1089,74 @@ export interface components {
             status: string;
             /** Update Count */
             update_count: number;
+        };
+        /** ObjectObservationsResponse */
+        ObjectObservationsResponse: {
+            /** Changes */
+            changes: components["schemas"]["ObjectAttributeChangeResponse"][];
+            /** History First Sequence */
+            history_first_sequence: number;
+            /** History Last Sequence */
+            history_last_sequence: number;
+            /** History Truncated */
+            history_truncated: boolean;
+            /** Snapshots */
+            snapshots: components["schemas"]["ObjectPerspectiveResponse"][];
+        };
+        /**
+         * ObjectPerspectiveResponse
+         * @description Null federate is global; a name is explicit adapter attribution only.
+         */
+        ObjectPerspectiveResponse: {
+            /** Federate */
+            federate: string | null;
+            /** Generation */
+            generation: number;
+            /** Last Sequence */
+            last_sequence: number;
+            object: components["schemas"]["ObjectInspectionResponse"];
+        };
+        /** ReportedTimeStateResponse */
+        ReportedTimeStateResponse: {
+            /** Constrained */
+            constrained?: boolean | null;
+            /** Galt */
+            galt?: number | null;
+            /** Lbts */
+            lbts?: number | null;
+            /** Logical Time */
+            logical_time?: number | null;
+            /** Lookahead */
+            lookahead?: number | null;
+            /** Regulating */
+            regulating?: boolean | null;
+        };
+        /** ResignCommand */
+        ResignCommand: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "federate.resign";
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            parameters: components["schemas"]["ResignParameters"];
+            /** Request Id */
+            request_id: string;
+            /** Target Id */
+            target_id: string;
+        };
+        /** ResignParameters */
+        ResignParameters: {
+            /**
+             * Policy
+             * @default no_action
+             * @enum {string}
+             */
+            policy: "no_action" | "unconditionally_divest_attributes" | "delete_objects" | "cancel_pending_ownership_acquisitions" | "delete_objects_then_divest" | "cancel_then_delete_then_divest";
         };
         /** ResourceDescription */
         ResourceDescription: {
@@ -723,6 +1243,185 @@ export interface components {
             /** Websocket Path */
             websocket_path: string;
         };
+        /** TimeGrantObservation */
+        TimeGrantObservation: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "grant";
+            /** Logical Time */
+            logical_time?: number | null;
+            /** Request Id */
+            request_id?: string | null;
+            /** Session Id */
+            session_id?: string | null;
+        };
+        /** TimeInspectionResponse */
+        TimeInspectionResponse: {
+            /** Dropped Requests */
+            dropped_requests: number;
+            /**
+             * Duration Basis
+             * @constant
+             */
+            duration_basis: "observer-ingress-monotonic";
+            /** Request Capacity */
+            request_capacity: number;
+            /** Requests */
+            requests: components["schemas"]["TimeRequestResponse"][];
+            /**
+             * Scope Basis
+             * @constant
+             */
+            scope_basis: "explicit-observations";
+            /** Snapshots */
+            snapshots: components["schemas"]["TimeSnapshotResponse"][];
+        };
+        /** TimeObservation */
+        TimeObservation: {
+            /** Event Type */
+            event_type: string;
+            /** Federate */
+            federate: string | null;
+            /** Logical Time */
+            logical_time: number;
+            /**
+             * Observation Kind
+             * @default timestamp
+             * @enum {string}
+             */
+            observation_kind: "timestamp" | "request" | "grant" | "state";
+            /** Observed At */
+            observed_at: number;
+            /** Operation */
+            operation: string | null;
+            /** Sequence */
+            sequence: number;
+        };
+        /** TimeOutcomeObservation */
+        TimeOutcomeObservation: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "cancelled" | "failed";
+            /** Reason */
+            reason?: string | null;
+            /** Request Id */
+            request_id?: string | null;
+            /** Session Id */
+            session_id?: string | null;
+        };
+        /** TimeRequestObservation */
+        TimeRequestObservation: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "request";
+            /** Logical Time */
+            logical_time?: number | null;
+            /** Request Id */
+            request_id?: string | null;
+            /** Session Id */
+            session_id?: string | null;
+        };
+        /** TimeRequestResponse */
+        TimeRequestResponse: {
+            /** Granted Time */
+            granted_time?: number | null;
+            /** Latency Seconds */
+            latency_seconds?: number | null;
+            /** Outcome At */
+            outcome_at?: number | null;
+            /** Outcome Sequence */
+            outcome_sequence?: number | null;
+            /** Pending Seconds */
+            pending_seconds?: number | null;
+            /** Reason */
+            reason?: string | null;
+            /** Request Id */
+            request_id: string;
+            /** Request Sequence */
+            request_sequence: number;
+            /** Requested At */
+            requested_at: number;
+            /** Requested Time */
+            requested_time?: number | null;
+            scope: components["schemas"]["TimeScopeResponse"];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "granted" | "failed" | "cancelled" | "ambiguous" | "session-ended";
+        };
+        /** TimeSampleResponse */
+        TimeSampleResponse: {
+            /** Logical Time */
+            logical_time?: number | null;
+            /** Observed At */
+            observed_at: number;
+            /** Request Id */
+            request_id?: string | null;
+            /** Sequence */
+            sequence: number;
+        };
+        /** TimeScopeResponse */
+        TimeScopeResponse: {
+            /** Federate */
+            federate: string | null;
+            /** Federation */
+            federation: string | null;
+            /** Session Id */
+            session_id: string | null;
+            /** Source */
+            source: string;
+        };
+        /** TimeSnapshotResponse */
+        TimeSnapshotResponse: {
+            last_grant?: components["schemas"]["TimeSampleResponse"] | null;
+            last_request?: components["schemas"]["TimeSampleResponse"] | null;
+            /** Last Sequence */
+            last_sequence: number;
+            /** Observed At */
+            observed_at: number;
+            reported_state?: components["schemas"]["ReportedTimeStateResponse"] | null;
+            scope: components["schemas"]["TimeScopeResponse"];
+            /** State Sequence */
+            state_sequence?: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "observed" | "ended";
+            /** Uncorrelated Grants */
+            uncorrelated_grants: number;
+            /** Uncorrelated Requests */
+            uncorrelated_requests: number;
+        };
+        /** TimeStateObservation */
+        TimeStateObservation: {
+            /** Constrained */
+            constrained?: boolean | null;
+            /** Galt */
+            galt?: number | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "state";
+            /** Lbts */
+            lbts?: number | null;
+            /** Logical Time */
+            logical_time?: number | null;
+            /** Lookahead */
+            lookahead?: number | null;
+            /** Regulating */
+            regulating?: boolean | null;
+            /** Session Id */
+            session_id?: string | null;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -765,6 +1464,39 @@ export interface operations {
             };
         };
     };
+    analytics_api_analytics_get: {
+        parameters: {
+            query?: {
+                bucket_count?: number;
+                federate?: string | null;
+                window_seconds?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     catalog_api_catalog_get: {
         parameters: {
             query?: never;
@@ -781,6 +1513,110 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CatalogResponse"];
+                };
+            };
+        };
+    };
+    command_history_api_commands_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommandHistory"];
+                };
+            };
+        };
+    };
+    submit_command_api_commands_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectCommand"] | components["schemas"]["JoinCommand"] | components["schemas"]["ResignCommand"] | components["schemas"]["DisconnectCommand"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommandRecord"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    command_result_api_commands__command_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                command_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommandRecord"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    command_catalog_api_commands_catalog_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommandCatalog"];
                 };
             };
         };

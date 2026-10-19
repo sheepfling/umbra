@@ -14,9 +14,30 @@ frontend if it implements that contract.
 For a newcomer-friendly explanation of the layers and data flow, see
 [JUNIOR-GUIDE.md](JUNIOR-GUIDE.md).
 
+The [feature backlog](FEATURE-BACKLOG.md) tracks delivered federation/federate
+workspaces and the next command, object, time, and portability increments.
+
+The Objects workspace now separates global values from persistent per-federate
+attributed snapshots, with object/class search, retained comparisons, byte
+representation labels and selectable numeric charts. This optional model does
+not require MOM, analytics, or an Umbra-specific RTI adapter.
+
+Persistent time inspection keeps explicit grants, role state and pending
+requests beyond event eviction. Request/grant analysis uses scoped IDs and
+observer-monotonic durations, not timestamp guesses or remote clock differences.
+Grant-only and opaque-time RTIs retain useful views; numeric fields and advanced
+features can remain unknown. See CONTRACT.md for the optional model and limits.
+
 For a live walkthrough, use the [observer showcase](SHOWCASE.md). It includes
 rich and limited capability profiles so the same frontend can be demonstrated
 against both a mature and a smaller RTI surface.
+
+For a no-RTI playtest, double-click `Start-Observer.cmd` at the repository root,
+or run `python tools/observer_playtest.py`. It handles the dashboard build,
+private environment, synthetic traffic, controls, and browser for you. Use
+`--bundle` to make a ZIP Miguel can run without Node or a repository checkout.
+See the [showcase startup guide](SHOWCASE.md#easiest-start-including-first-time-setup)
+for prerequisites and stopping the demo.
 
 The package has no runtime dependencies for its core. The HTTP dashboard is an
 optional FastAPI/WebSocket layer:
@@ -43,6 +64,26 @@ at `../umbra-rti-observer-ui`. Build it with `pnpm build` and set
 The FastAPI root serves that build when present and falls back to the bundled
 zero-build dashboard when it is absent. Refresh the UI's generated client types
 from the backend with `pnpm generate:api`.
+
+Windowed analytics can be disabled with `--no-analytics`, or with
+`create_app(store, enable_analytics=False)`. The optional route is then absent
+and advertised as disabled; events and live inspectors continue to work.
+
+The optional Actions workspace uses an explicitly registered command
+dispatcher. Try its synthetic lifecycle without an RTI:
+
+```powershell
+python -m umbra_rti_observer --showcase --enable-controls
+```
+
+Connect, join, resign and disconnect affect only the labelled synthetic
+control session. The default service remains read-only. Real applications
+register owned sessions using the separate
+[Umbra control adapter](../umbra-rti-observer-umbra/README.md); other provider
+shapes implement `CommandSession`. The dispatcher and lifecycle controller use
+the optional `control` extra (Pydantic); the dependency-free event store does
+not import them. See [CONTRACT.md](CONTRACT.md) for command results, deduplication,
+timeouts, late effects and process-lifetime history.
 
 ## Provider integration
 
@@ -85,6 +126,11 @@ GET  /api/contract
 GET  /api/schema
 GET  /api/state
 GET  /api/metrics
+GET  /api/analytics
+GET  /api/commands/catalog
+GET  /api/commands
+POST /api/commands
+GET  /api/commands/{command_id}
 GET  /api/inspectors/{objects|interactions|federates}
 GET  /api/events
 POST /api/events
@@ -104,6 +150,13 @@ python -m umbra_rti_observer.probe http://127.0.0.1:8765
 The probe validates the advertised contract, capability states, required
 snapshot and metrics fields, and ordered event envelopes. It is useful when a
 Java or vendor-specific service replaces the Python backend.
+
+For strict acceptance checks, use the optional `conformance` extra and
+`python -m umbra_rti_observer.conformance http://127.0.0.1:8765`.
+The [backend interoperability matrix](conformance/README.md) covers nested
+models, version/media headers, discovered paths, optional features, retention
+and cursors, shared Python/Java fixtures, portable JSON Schema and generated
+TypeScript drift checks. It never invokes session commands or an RTI.
 
 `GET /api/events?after=42&limit=500` returns `events`, `next_after`,
 `has_more`, and retention fields. Optional comma-separated `event_type`,

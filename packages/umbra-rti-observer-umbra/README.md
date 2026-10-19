@@ -53,3 +53,60 @@ The callback translator emits only generic events such as
 `interaction.received`, `runtime.error`, and `callback.invoked`. Other RTI
 providers should get their own adapter package when their callback or session
 shape differs.
+
+## Optional owned-session controls
+
+The observation adapter above remains application-driven. To expose lifecycle
+commands, register a separate controller for a session the application owns:
+
+```python
+from umbra._native.rti1516_2025 import UmbraRtiFactory
+from umbra_rti_observer import ObserverStore
+from umbra_rti_observer.commands import CommandDispatcher
+from umbra_rti_observer.server import create_app
+from umbra_rti_observer_umbra.commands import create_umbra_command_session
+
+store = ObserverStore()
+commands = CommandDispatcher(sink=store.publish)
+commands.register(create_umbra_command_session(
+    lambda: UmbraRtiFactory().getRtiAmbassador(),
+    target_id="umbra-observer-session",
+    federations=("ExampleFederation",),
+    sink=store.publish,
+))
+app = create_app(store, commands=commands)
+```
+
+Install `umbra-rti-observer[web]` and `umbra-rti-observer-umbra[control]` for this
+path. Importing the ordinary observation adapter does not import Pydantic.
+`commands.py` is checked with the package's strict `pyrightconfig.json`.
+
+The controller lazily creates its RTI ambassador, connects with HLA_EVOKED,
+and pumps callbacks on the same dedicated execution thread. Connect, join,
+resign and disconnect all use that owner. Do not also attach the same RTI
+ambassador through `UmbraRtiAdapter` or call it from HTTP/browser threads.
+The application provides configuration and credentials server-side and chooses
+the allowed federation names. FOM loading and federation creation remain
+application setup; this command catalog does not expose arbitrary FOM URLs or
+create/destroy operations.
+
+The HTTP contract, command IDs, confirmations, timeout/late-result behavior
+and history belong to the generic observer package. A different RTI can supply
+its own `CommandSession` or `SessionDriver`, with explicit supported actions,
+instead of adapting its API shape in React. The existing read-only
+`UmbraRtiAdapter` does not automatically grant command authority.
+
+Strict fake-ambassador tests cover the lifecycle and owner thread. Real native
+verification is an opt-in internal smoke test; it requires the built 2025
+provider and a matching Python interpreter on the environment's import path:
+
+```powershell
+$env:UMBRA_OBSERVER_NATIVE_SMOKE = "1"
+python -m pytest packages/umbra-rti-observer-umbra/tests/test_native_control_smoke.py -q
+```
+
+That test creates an isolated source-checkout federation, executes the four
+lifecycle commands, and cleans it up. It is not normative IEEE test evidence.
+The normal observer regression run leaves this native-only test explicitly
+skipped. Server deployments exposing real commands must provide their normal
+session authorization around the HTTP app.

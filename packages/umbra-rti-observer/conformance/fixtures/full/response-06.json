@@ -1,0 +1,229 @@
+{
+  "cleared_events": 0,
+  "contract_version": "umbra-observer-contract-v1",
+  "dropped_events": 0,
+  "events": [
+    {
+      "attributes": {
+        "value": 0
+      },
+      "details": null,
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "logical_time": null,
+      "object_key": "fixture-object",
+      "object_name": "FixtureObject",
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 1,
+      "source": "contract-fixture",
+      "time_observation": null,
+      "vendor_extension": {
+        "nested": [
+          true,
+          null,
+          "retained"
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "value": 1
+      },
+      "details": null,
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "logical_time": null,
+      "object_key": "fixture-object",
+      "object_name": "FixtureObject",
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 2,
+      "source": "contract-fixture",
+      "time_observation": null,
+      "vendor_extension": {
+        "nested": [
+          true,
+          null,
+          "retained"
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "value": 2
+      },
+      "details": null,
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "logical_time": null,
+      "object_key": "fixture-object",
+      "object_name": "FixtureObject",
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 3,
+      "source": "contract-fixture",
+      "time_observation": null,
+      "vendor_extension": {
+        "nested": [
+          true,
+          null,
+          "retained"
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "value": 3
+      },
+      "details": null,
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "logical_time": null,
+      "object_key": "fixture-object",
+      "object_name": "FixtureObject",
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 4,
+      "source": "contract-fixture",
+      "time_observation": null,
+      "vendor_extension": {
+        "nested": [
+          true,
+          null,
+          "retained"
+        ]
+      }
+    },
+    {
+      "details": null,
+      "event_type": "callback.invoked",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "logical_time": 4,
+      "object_key": null,
+      "observed_at": 1760000000.0,
+      "operation": "timeAdvanceGrant",
+      "participant": null,
+      "participant_name": null,
+      "sequence": 5,
+      "source": "contract-fixture",
+      "time_observation": null
+    },
+    {
+      "details": null,
+      "event_type": "time.observed",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "federation": "ContractFixture",
+      "logical_time": null,
+      "object_key": null,
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 6,
+      "source": "contract-fixture",
+      "time_observation": {
+        "constrained": false,
+        "galt": 3,
+        "kind": "state",
+        "lbts": null,
+        "logical_time": null,
+        "lookahead": 0.5,
+        "regulating": true,
+        "session_id": "fixture-session"
+      }
+    },
+    {
+      "details": null,
+      "event_type": "time.observed",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "federation": "ContractFixture",
+      "logical_time": null,
+      "object_key": null,
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 7,
+      "source": "contract-fixture",
+      "time_observation": {
+        "kind": "request",
+        "logical_time": 5,
+        "request_id": "advance-1",
+        "session_id": "fixture-session"
+      }
+    },
+    {
+      "details": null,
+      "event_type": "time.observed",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "federation": "ContractFixture",
+      "logical_time": null,
+      "object_key": null,
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 8,
+      "source": "contract-fixture",
+      "time_observation": {
+        "kind": "grant",
+        "logical_time": 5,
+        "request_id": "advance-1",
+        "session_id": "fixture-session"
+      }
+    },
+    {
+      "details": null,
+      "event_type": "time.observed",
+      "family": "generic",
+      "federate": "FixtureFederate",
+      "federate_name": null,
+      "federation": "ContractFixture",
+      "logical_time": null,
+      "object_key": null,
+      "observed_at": 1760000000.0,
+      "operation": null,
+      "participant": null,
+      "participant_name": null,
+      "sequence": 9,
+      "source": "contract-fixture",
+      "time_observation": {
+        "kind": "request",
+        "logical_time": 6,
+        "request_id": "advance-2",
+        "session_id": "fixture-session"
+      }
+    }
+  ],
+  "first_retained_sequence": 1,
+  "gap": false,
+  "has_more": false,
+  "last_sequence": 9,
+  "next_after": 9,
+  "retained_events": 9
+}

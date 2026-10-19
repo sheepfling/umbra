@@ -1,0 +1,28 @@
+{
+  "adapters": [],
+  "contract_version": "umbra-observer-contract-v1",
+  "live_metrics": {
+    "error_count": 0,
+    "event_count": 0,
+    "event_rate_per_second": 0.0,
+    "event_types": {},
+    "families": {},
+    "federate_count": 0,
+    "first_sequence": 0,
+    "interaction_count": 0,
+    "last_sequence": 0,
+    "object_count": 0,
+    "sources": {}
+  },
+  "retention": {
+    "cleared_events": 0,
+    "dropped_events": 0,
+    "first_retained_sequence": 0,
+    "last_sequence": 0,
+    "max_events": 20,
+    "next_sequence": 1,
+    "retained_events": 0
+  },
+  "schema_version": "umbra-runtime-observer-v1",
+  "status": "idle"
+}

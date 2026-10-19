@@ -7,8 +7,8 @@ interface MetricCardProps {
 
 export function MetricCard({ label, value, tone = "teal", unavailable = false }: MetricCardProps) {
   return (
-    <article className={`metric-card tone-${tone}${unavailable ? " unavailable" : ""}`}>
-      <span>{label}</span>
+    <article aria-label={label} className={`metric-card tone-${tone}${unavailable ? " unavailable" : ""}`}>
+      <span title={label}>{label}</span>
       <strong>{unavailable ? "—" : value}</strong>
     </article>
   );

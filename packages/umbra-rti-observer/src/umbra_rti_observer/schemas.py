@@ -9,7 +9,7 @@ allowed only where the wire contract explicitly calls them extensions.
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Annotated, ClassVar, Literal, cast
+from typing import TYPE_CHECKING, Annotated, ClassVar, Literal, TypeAlias, cast
 
 from pydantic import (
     BaseModel,
@@ -17,16 +17,24 @@ from pydantic import (
     Field,
     RootModel,
     SerializerFunctionWrapHandler,
+    StringConstraints,
     TypeAdapter,
     model_serializer,
     model_validator,
 )
 from typing_extensions import TypeAliasType
 
-JsonValue = TypeAliasType(
-    "JsonValue",
-    None | bool | int | float | str | list["JsonValue"] | dict[str, "JsonValue"],
-)
+JsonText = Annotated[str, StringConstraints(strip_whitespace=False)]
+
+if TYPE_CHECKING:
+    JsonValue: TypeAlias = None | bool | int | float | str | list["JsonValue"] | dict[str, "JsonValue"]
+else:
+    # A named runtime alias gives OpenAPI a recursive schema; the static alias
+    # above also works with checkers that cannot resolve TypeAliasType recursion.
+    JsonValue = TypeAliasType(
+        "JsonValue",
+        None | bool | int | float | JsonText | list["JsonValue"] | dict[JsonText, "JsonValue"],
+    )
 JsonObject = dict[str, JsonValue]
 # Pyright cannot express the recursive TypeForm in the TypeAdapter constructor.
 _JSON_VALUE_ADAPTER = TypeAdapter(JsonValue)  # pyright: ignore[reportArgumentType]
@@ -67,7 +75,7 @@ class ExtensibleObserverModel(ObserverModel):
     """Strict model with one explicit provider-extension escape hatch."""
 
     _reject_batch_shape: ClassVar[bool] = False
-    extensions: Annotated[Mapping[str, JsonValue], Field(default_factory=dict)]
+    extensions: Annotated[Mapping[JsonText, JsonValue], Field(default_factory=dict)]
 
     @model_validator(mode="before")
     @classmethod
@@ -105,6 +113,48 @@ class ExtensibleObserverModel(ObserverModel):
         return {**dict(extensions), **serialized}
 
 
+TimeId = Annotated[str, StringConstraints(strip_whitespace=False, min_length=1, max_length=256, pattern=r"\S")]
+TimeNumber = Annotated[int | float, Field(allow_inf_nan=False)]
+
+
+class TimeRequestObservation(ObserverModel):
+    kind: Literal["request"]
+    logical_time: TimeNumber | None = None
+    session_id: TimeId | None = None
+    request_id: TimeId | None = None
+
+
+class TimeGrantObservation(ObserverModel):
+    kind: Literal["grant"]
+    logical_time: TimeNumber | None = None
+    session_id: TimeId | None = None
+    request_id: TimeId | None = None
+
+
+class TimeStateObservation(ObserverModel):
+    kind: Literal["state"]
+    session_id: TimeId | None = None
+    logical_time: TimeNumber | None = None
+    lookahead: TimeNumber | None = None
+    regulating: bool | None = None
+    constrained: bool | None = None
+    galt: TimeNumber | None = None
+    lbts: TimeNumber | None = None
+
+
+class TimeOutcomeObservation(ObserverModel):
+    kind: Literal["failed", "cancelled"]
+    session_id: TimeId | None = None
+    request_id: TimeId | None = None
+    reason: JsonText | None = None
+
+
+TimeObservationInput = Annotated[
+    TimeRequestObservation | TimeGrantObservation | TimeStateObservation | TimeOutcomeObservation,
+    Field(discriminator="kind"),
+]
+
+
 class EventInput(ExtensibleObserverModel):
     """Normalized event input plus JSON-compatible provider extensions."""
 
@@ -128,15 +178,16 @@ class EventInput(ExtensibleObserverModel):
     object_handle: str | None = None
     class_name: str | None = None
     class_handle: str | None = None
-    attributes: Annotated[Mapping[str, JsonValue] | None, Field(default=None)]
+    attributes: Annotated[Mapping[JsonText, JsonValue] | None, Field(default=None)]
     interaction_key: str | None = None
     interaction_class: str | None = None
     interaction_handle: str | None = None
-    parameters: Annotated[Mapping[str, JsonValue] | None, Field(default=None)]
+    parameters: Annotated[Mapping[JsonText, JsonValue] | None, Field(default=None)]
     tag: Annotated[JsonValue, Field(default=None)]
-    details: Annotated[Mapping[str, JsonValue] | None, Field(default=None)]
+    details: Annotated[Mapping[JsonText, JsonValue] | None, Field(default=None)]
     logical_time: int | float | None = None
     operation: str | None = None
+    time_observation: TimeObservationInput | None = None
 
     _reject_batch_shape: ClassVar[bool] = True
 
@@ -192,7 +243,7 @@ class ObjectInspectionResponse(ObserverModel):
     class_name: str | None = None
     class_handle: str | None = None
     family: NonEmptyText
-    attributes: Annotated[Mapping[str, JsonValue], Field(default_factory=dict)]
+    attributes: Annotated[Mapping[JsonText, JsonValue], Field(default_factory=dict)]
     update_count: NonNegativeInt
     discovery_count: NonNegativeInt
     sources: Annotated[Sequence[str], Field(default_factory=tuple)]
@@ -208,7 +259,7 @@ class InteractionInspectionResponse(ObserverModel):
     family: NonEmptyText
     source: NonEmptyText
     federate: str | None = None
-    parameters: Annotated[Mapping[str, JsonValue], Field(default_factory=dict)]
+    parameters: Annotated[Mapping[JsonText, JsonValue], Field(default_factory=dict)]
     tag: Annotated[JsonValue, Field(default=None)]
     observed_at: float
 
@@ -266,11 +317,172 @@ class EventEnvelope(WireObserverModel):
     family: NonEmptyText
     source: NonEmptyText
     observed_at: float
+    federate: str | dict[str, JsonValue] | None = None
+    participant: str | dict[str, JsonValue] | None = None
+    federate_name: str | None = None
+    participant_name: str | None = None
+    logical_time: Annotated[int | float | None, Field(default=None, allow_inf_nan=False)]
+    operation: str | None = None
+    details: Mapping[str, JsonValue] | None = None
+    object_key: str | None = None
+    time_observation: TimeObservationInput | None = None
+
+
+class ObjectPerspectiveResponse(ObserverModel):
+    """Null federate is global; a name is explicit adapter attribution only."""
+
+    federate: NonEmptyText | None
+    generation: SequenceNumber
+    last_sequence: SequenceNumber
+    object: ObjectInspectionResponse
+
+    @model_serializer(mode="wrap")
+    def preserve_scope(self, handler: SerializerFunctionWrapHandler):
+        # No return annotation: preserve the named model's serialization schema.
+        # State/stream transports omit optional nulls, but this null is required
+        # and means global scope, not missing attribution support.
+        serialized = cast(dict[str, object], handler(self))
+        serialized["federate"] = self.federate
+        return serialized
+
+
+class ObjectAttributeChangeResponse(ObserverModel):
+    sequence: SequenceNumber
+    object_key: NonEmptyText
+    federate: NonEmptyText | None
+    generation: SequenceNumber
+    attribute: JsonText
+    value: JsonValue
+    previous_known: bool
+    previous_value: JsonValue
+    source: NonEmptyText
+    observed_at: Annotated[float, Field(allow_inf_nan=False)]
+
+    @model_serializer(mode="wrap")
+    def preserve_null_values(self, handler: SerializerFunctionWrapHandler):
+        # Keep required nullable fields even under parent exclude_none=True.
+        # Leave the return unannotated so JSON Schema still describes this DTO.
+        serialized = cast(dict[str, object], handler(self))
+        serialized["federate"] = self.federate
+        if self.value is None:
+            serialized["value"] = None
+        if self.previous_value is None:
+            serialized["previous_value"] = None
+        return serialized
+
+
+class ObjectObservationsResponse(ObserverModel):
+    snapshots: Sequence[ObjectPerspectiveResponse]
+    changes: Sequence[ObjectAttributeChangeResponse]
+    history_truncated: bool
+    history_first_sequence: NonNegativeInt
+    history_last_sequence: NonNegativeInt
+
+
+class TimeScopeResponse(ObserverModel):
+    source: NonEmptyText
+    session_id: TimeId | None
+    federation: str | None
+    federate: str | None
+
+    @model_serializer(mode="wrap")
+    def preserve_scope(self, handler: SerializerFunctionWrapHandler):
+        serialized = cast(dict[str, object], handler(self))
+        serialized.update(session_id=self.session_id, federation=self.federation, federate=self.federate)
+        return serialized
+
+
+class TimeSampleResponse(ObserverModel):
+    sequence: SequenceNumber
+    logical_time: TimeNumber | None = None
+    observed_at: Annotated[float, Field(allow_inf_nan=False)]
+    request_id: TimeId | None = None
+
+
+class ReportedTimeStateResponse(ObserverModel):
+    logical_time: TimeNumber | None = None
+    lookahead: TimeNumber | None = None
+    regulating: bool | None = None
+    constrained: bool | None = None
+    galt: TimeNumber | None = None
+    lbts: TimeNumber | None = None
+
+
+class TimeSnapshotResponse(ObserverModel):
+    scope: TimeScopeResponse
+    last_sequence: SequenceNumber
+    observed_at: Annotated[float, Field(allow_inf_nan=False)]
+    status: Literal["observed", "ended"]
+    last_grant: TimeSampleResponse | None = None
+    last_request: TimeSampleResponse | None = None
+    reported_state: ReportedTimeStateResponse | None = None
+    state_sequence: SequenceNumber | None = None
+    uncorrelated_requests: NonNegativeInt
+    uncorrelated_grants: NonNegativeInt
+
+
+class TimeRequestResponse(ObserverModel):
+    scope: TimeScopeResponse
+    request_id: TimeId
+    request_sequence: SequenceNumber
+    requested_time: TimeNumber | None = None
+    requested_at: Annotated[float, Field(allow_inf_nan=False)]
+    status: Literal["pending", "granted", "failed", "cancelled", "ambiguous", "session-ended"]
+    outcome_sequence: SequenceNumber | None = None
+    outcome_at: Annotated[float | None, Field(default=None, allow_inf_nan=False)]
+    granted_time: TimeNumber | None = None
+    latency_seconds: Annotated[float | None, Field(default=None, ge=0, allow_inf_nan=False)]
+    pending_seconds: Annotated[float | None, Field(default=None, ge=0, allow_inf_nan=False)]
+    reason: JsonText | None = None
+
+
+class TimeInspectionResponse(ObserverModel):
+    snapshots: Sequence[TimeSnapshotResponse]
+    requests: Sequence[TimeRequestResponse]
+    request_capacity: PositiveInt
+    dropped_requests: NonNegativeInt
+    duration_basis: Literal["observer-ingress-monotonic"]
+    scope_basis: Literal["explicit-observations"]
+
+    @model_validator(mode="after")
+    def consistent_inspection(self) -> TimeInspectionResponse:
+        def key(scope: TimeScopeResponse) -> tuple[str, str | None, str | None, str | None]:
+            return scope.source, scope.session_id, scope.federation, scope.federate
+
+        snapshots = {key(row.scope): row for row in self.snapshots}
+        if len(snapshots) != len(self.snapshots) or len(self.requests) > self.request_capacity:
+            raise ValueError("time scopes must be unique and request capacity must be respected")
+        requests = {(key(row.scope), row.request_id) for row in self.requests}
+        if len(requests) != len(self.requests):
+            raise ValueError("duplicate scoped time request ID")
+        for snapshot in self.snapshots:
+            if any(sample.sequence > snapshot.last_sequence for sample in (snapshot.last_grant, snapshot.last_request) if sample):
+                raise ValueError("time samples cannot be newer than their snapshot")
+            if snapshot.state_sequence is not None and snapshot.state_sequence > snapshot.last_sequence:
+                raise ValueError("reported time state cannot be newer than its snapshot")
+        for row in self.requests:
+            snapshot = snapshots.get(key(row.scope))
+            if snapshot is None or row.scope.source == "unknown" or row.scope.session_id is None or row.scope.federate is None:
+                raise ValueError("correlated requests require a known source, session and federate snapshot")
+            if row.request_sequence > snapshot.last_sequence:
+                raise ValueError("request is newer than its snapshot")
+            if row.status == "pending":
+                if any(value is not None for value in (row.outcome_sequence, row.outcome_at, row.granted_time, row.latency_seconds)):
+                    raise ValueError("pending requests cannot claim an outcome")
+            else:
+                if (row.outcome_sequence is None or not row.request_sequence < row.outcome_sequence <= snapshot.last_sequence
+                        or row.outcome_at is None or row.pending_seconds is not None):
+                    raise ValueError("finished requests require ordered outcomes and no pending duration")
+                if row.status != "granted" and (row.granted_time is not None or row.latency_seconds is not None):
+                    raise ValueError("only matched grants can claim granted time or latency")
+        return self
 
 
 class InspectorsResponse(ObserverModel):
     objects: Annotated[Sequence[ObjectInspectionResponse], Field(default_factory=tuple)]
     interactions: Annotated[Sequence[InteractionInspectionResponse], Field(default_factory=tuple)]
+    object_observations: ObjectObservationsResponse | None = None
+    time: TimeInspectionResponse | None = None
 
 
 class StateResponse(ObserverModel):
@@ -285,6 +497,60 @@ class StateResponse(ObserverModel):
     federate_roster: Annotated[Sequence[FederateInspectionResponse], Field(default_factory=tuple)]
     inspectors: InspectorsResponse
     normalized_events: Annotated[Sequence[EventEnvelope] | None, Field(default=None)]
+
+
+class ActivityBucket(ObserverModel):
+    started_at: float
+    events: NonNegativeInt
+    object_updates: NonNegativeInt
+    interactions: NonNegativeInt
+    callbacks: NonNegativeInt
+    errors: NonNegativeInt
+
+
+class FederateActivity(ObserverModel):
+    federate: NonEmptyText
+    role: str | None
+    handle: str | None
+    status: NonEmptyText
+    source: NonEmptyText
+    last_seen: float | None
+    event_count: NonNegativeInt
+    object_updates: NonNegativeInt
+    interaction_count: NonNegativeInt
+    error_count: NonNegativeInt
+    object_keys: Sequence[str]
+    latest_logical_time: int | float | None
+
+
+class TimeObservation(ObserverModel):
+    sequence: SequenceNumber
+    federate: str | None
+    logical_time: Annotated[int | float, Field(allow_inf_nan=False)]
+    observed_at: float
+    event_type: NonEmptyText
+    operation: str | None
+    observation_kind: Literal["timestamp", "request", "grant", "state"] = "timestamp"
+
+
+class AnalyticsResponse(ObserverModel):
+    contract_version: NonEmptyText
+    basis: Literal["retained-observations"]
+    generated_at: float
+    window_start: float
+    window_seconds: PositiveInt
+    bucket_seconds: Annotated[float, Field(gt=0)]
+    scoped_federate: str | None
+    events_in_window: NonNegativeInt
+    unattributed_events: NonNegativeInt
+    history_truncated: bool
+    retention: RetentionResponse
+    participants: Sequence[FederateActivity]
+    activity: Sequence[ActivityBucket]
+    logical_times: Sequence[TimeObservation]
+    event_types: Mapping[str, NonNegativeInt]
+    sources: Mapping[str, NonNegativeInt]
+    families: Mapping[str, NonNegativeInt]
 
 
 class HealthResponse(ObserverModel):

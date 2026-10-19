@@ -8,6 +8,7 @@ RTI or pretending that the generated events came from one.
 from __future__ import annotations
 
 import threading
+from uuid import uuid4
 
 from .core import EventSink
 from .models import JsonValue
@@ -30,6 +31,7 @@ def _profile_capabilities(profile: ShowcaseProfile) -> dict[str, dict[str, JsonV
     if profile == "limited":
         return {
             **common,
+            "time_inspection": {"state": "partial", "reason": "Grants only; request IDs and time-role state are not reported."},
             "mom": {
                 "state": "unsupported",
                 "reason": "This profile represents an RTI without MOM callbacks.",
@@ -76,6 +78,7 @@ class ShowcaseAdapter:
         self._thread: threading.Thread | None = None
         self._lock = threading.RLock()
         self._tick = 0
+        self._session_id = uuid4().hex
 
         # Validate early so a typo cannot leave a dashboard that looks live but
         # has no meaningful capability declaration.
@@ -97,6 +100,7 @@ class ShowcaseAdapter:
             self._sink = sink
             self._stop.clear()
             self._tick = 0
+            self._session_id = uuid4().hex
             self._thread = threading.Thread(target=self._run, name="umbra-observer-showcase", daemon=True)
             thread = self._thread
             thread.start()
@@ -118,6 +122,7 @@ class ShowcaseAdapter:
             return
         event = {
             "event_type": event_type,
+            "family": event_type.partition(".")[0],
             "source": f"showcase-{self.profile}",
             "connection": f"showcase://{self.profile}",
             "federation": "ShowcaseFederation",
@@ -154,9 +159,19 @@ class ShowcaseAdapter:
             interaction_class="ExampleInteraction",
             parameters={"message": "showcase online", "priority": "normal"},
         )
+        if self.profile == "umbra":
+            self._emit("time.observed", federate="ShowcaseServer", time_observation={
+                "kind": "state", "session_id": self._session_id, "lookahead": 0.5,
+                "regulating": True, "constrained": True,
+            })
+            self._emit("time.observed", federate="ShowcaseServer", time_observation={
+                "kind": "request", "session_id": self._session_id, "request_id": "advance-1", "logical_time": 0.5,
+            })
 
         while not self._stop.wait(self.interval):
             self._tick += 1
+            if self._tick > 1 and self._tick % 17 == 1:
+                self._emit("runtime.started", details={"synthetic": True, "message": "Showcase adapter recovered"})
             logical_time = round(self._tick * 0.5, 3)
             self._emit(
                 "object.updated",
@@ -172,9 +187,17 @@ class ShowcaseAdapter:
             )
             self._emit(
                 "callback.invoked",
+                federate="ShowcaseServer",
                 operation="timeAdvanceGrant",
                 details={"logical_time": logical_time, "profile": self.profile},
+                **({"time_observation": {"kind": "grant", "session_id": self._session_id,
+                    "request_id": f"advance-{self._tick}", "logical_time": logical_time}} if self.profile == "umbra" else {}),
             )
+            if self.profile == "umbra":
+                self._emit("time.observed", federate="ShowcaseServer", time_observation={
+                    "kind": "request", "session_id": self._session_id,
+                    "request_id": f"advance-{self._tick + 1}", "logical_time": logical_time + 0.5,
+                })
             if self._tick % 3 == 0:
                 self._emit(
                     "interaction.received",
@@ -183,6 +206,25 @@ class ShowcaseAdapter:
                     interaction_class="ExampleInteraction",
                     parameters={"message": f"heartbeat-{self._tick}", "priority": "normal"},
                     logical_time=logical_time,
+                )
+            self._emit(
+                "callback.invoked",
+                federate="ShowcaseObserver",
+                operation="timeAdvanceGrant",
+                logical_time=round(max(0, logical_time - (self._tick % 4) * 0.15), 3),
+            )
+            if self._tick % 2 == 0:
+                self._emit(
+                    "object.updated", federate="ShowcaseObserver",
+                    object_key="object-1", object_name="ExampleObject", class_name="ExampleClass",
+                    attributes={"load": round(0.42 + ((self._tick % 5) * 0.07), 3)},
+                    details={"observation": "subscriber reflection"},
+                )
+            if self._tick % 17 == 0:
+                self._emit(
+                    "runtime.error", federate="ShowcaseServer",
+                    operation="publishTelemetry",
+                    details={"message": "Synthetic showcase warning: retry succeeded", "synthetic": True},
                 )
             if self.profile == "umbra" and self._tick % 5 == 0:
                 self._emit(

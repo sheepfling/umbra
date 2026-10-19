@@ -1,0 +1,14 @@
+{
+  "contract_version": "umbra-observer-contract-v1",
+  "items": [
+    {
+      "federate": "FixtureFederate",
+      "handle": null,
+      "last_seen": 1760000000.0,
+      "role": null,
+      "source": "contract-fixture",
+      "status": "active"
+    }
+  ],
+  "kind": "federates"
+}

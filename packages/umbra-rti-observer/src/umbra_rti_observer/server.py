@@ -6,6 +6,7 @@ import asyncio
 import json
 import os
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from .contract import (
@@ -35,7 +36,16 @@ try:  # The web extra is optional; only importing this transport requires it.
     from pydantic import BaseModel
     from starlette.responses import Response
 
+    from .analytics import build_analytics
+    from .command_models import (
+        CommandCatalog,
+        CommandHistory,
+        CommandRecord,
+        CommandRequest,
+    )
+    from .commands import CommandConflict, CommandDispatcher
     from .schemas import (
+        AnalyticsResponse,
         CapabilityResponse,
         CatalogResponse,
         ContextRequest,
@@ -118,7 +128,10 @@ def _validated_capabilities(observer: ObserverStore) -> dict[str, CapabilityResp
     }
 
 
-def create_app(store: ObserverStore | None = None) -> FastAPI:
+def create_app(
+    store: ObserverStore | None = None, *, enable_analytics: bool = True,
+    commands: CommandDispatcher | None = None,
+) -> FastAPI:
     """Create the optional FastAPI transport over an observer store."""
 
     observer = store or ObserverStore()
@@ -136,6 +149,16 @@ def create_app(store: ObserverStore | None = None) -> FastAPI:
                 "state": "available",
                 "reason": "Provided by the FastAPI backend.",
             },
+            "analytics": {
+                "state": "available" if enable_analytics else "disabled",
+                "reason": "Read-only analytics over retained normalized observations."
+                if enable_analytics else "Analytics is disabled by this backend's configuration.",
+            },
+            "commands": {
+                "state": "available" if commands is not None else "disabled",
+                "reason": "Explicitly registered adapter-controlled sessions."
+                if commands is not None else "No command dispatcher is configured; this backend is read-only.",
+            },
         },
         owner="backend",
         source="fastapi",
@@ -148,10 +171,19 @@ def create_app(store: ObserverStore | None = None) -> FastAPI:
             capabilities=observer.capabilities(),
         )
 
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        try:
+            yield
+        finally:
+            if commands is not None:
+                await asyncio.to_thread(commands.close)
+
     app = FastAPI(
         title="Umbra Runtime Observer",
         version=OBSERVER_CONTRACT_VERSION,
         description="Provider-neutral runtime event observer.",
+        lifespan=lifespan,
     )
 
     react_ui_dist = _react_ui_dist()
@@ -228,6 +260,51 @@ def create_app(store: ObserverStore | None = None) -> FastAPI:
             retention=state.retention,
             adapters=state.adapters,
         )
+
+    @app.get("/api/commands/catalog", response_model=CommandCatalog)
+    def command_catalog() -> CommandCatalog:
+        if commands is None:
+            return CommandCatalog(contract_version=OBSERVER_CONTRACT_VERSION, enabled=False,
+                                  timeout_seconds=0, history_limit=0, targets=())
+        return commands.catalog()
+
+    @app.get("/api/commands", response_model=CommandHistory)
+    def command_history() -> CommandHistory:
+        if commands is None:
+            return CommandHistory(contract_version=OBSERVER_CONTRACT_VERSION, records=(), limit=0, evicted_records=0)
+        return commands.history()
+
+    @app.get("/api/commands/{command_id}", response_model=CommandRecord)
+    def command_result(command_id: str) -> CommandRecord:
+        try:
+            if commands is None:
+                raise KeyError(command_id)
+            return commands.get(command_id)
+        except KeyError as error:
+            raise HTTPException(status_code=404, detail="command not found in retained history") from error
+
+    @app.post("/api/commands", status_code=202, response_model=CommandRecord)
+    def submit_command(payload: CommandRequest) -> CommandRecord:
+        if commands is None:
+            raise HTTPException(status_code=503, detail="command execution is disabled")
+        try:
+            return commands.submit(payload)
+        except KeyError as error:
+            raise HTTPException(status_code=404, detail="unknown controlled session") from error
+        except CommandConflict as error:
+            raise HTTPException(status_code=409, detail=str(error)) from error
+
+    if enable_analytics:
+        @app.get("/api/analytics", response_model=AnalyticsResponse)
+        def analytics(
+            window_seconds: int = Query(default=300, ge=30, le=3600),
+            bucket_count: int = Query(default=30, ge=10, le=120),
+            federate: str | None = Query(default=None, min_length=1, max_length=512),
+        ) -> AnalyticsResponse:
+            return build_analytics(
+                _validated_state(observer, include_events=True),
+                window_seconds=window_seconds, bucket_count=bucket_count, federate=federate,
+            )
 
     @app.get("/api/inspectors/{kind}", response_model=InspectorResponse)
     async def inspectors(kind: str) -> InspectorResponse:

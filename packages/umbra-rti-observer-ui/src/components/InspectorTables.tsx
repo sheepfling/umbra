@@ -7,7 +7,7 @@ interface InspectorTablesProps {
 export function InspectorTables({ state }: InspectorTablesProps) {
   return (
     <section className="inspector-grid">
-      <TablePanel title="Federates" note="participants observed by the backend">
+      <TablePanel title="Federates" note="participants observed by the backend" empty={!state.federate_roster.length}>
         <TableHead columns={["Federate", "Role", "Status", "Source"]} />
         {state.federate_roster.map((row) => (
           <div className="table-row" key={`${row.federate}-${row.source}`}>
@@ -15,15 +15,15 @@ export function InspectorTables({ state }: InspectorTablesProps) {
           </div>
         ))}
       </TablePanel>
-      <TablePanel title="Objects" note="derived from normalized object events">
+      <TablePanel title="Objects" note="derived from normalized object events" empty={!state.inspectors.objects.length}>
         <TableHead columns={["Object", "Class", "Family", "Updates", "Status"]} />
         {state.inspectors.objects.map((row) => (
-          <div className="table-row" key={row.object_key}>
+          <div className="table-row five-columns" key={row.object_key}>
             <span>{row.object_name}</span><span>{row.class_name ?? "—"}</span><span>{row.family}</span><span>{row.update_count}</span><span>{row.status}</span>
           </div>
         ))}
       </TablePanel>
-      <TablePanel title="Interactions" note="latest interaction observations">
+      <TablePanel title="Interactions" note="latest interaction observations" empty={!state.inspectors.interactions.length}>
         <TableHead columns={["Key", "Class", "Source", "Federate"]} />
         {state.inspectors.interactions.map((row) => (
           <div className="table-row" key={`${row.sequence}-${row.interaction_key}`}>
@@ -35,15 +35,16 @@ export function InspectorTables({ state }: InspectorTablesProps) {
   );
 }
 
-function TablePanel({ title, note, children }: { title: string; note: string; children: React.ReactNode }) {
+function TablePanel({ title, note, empty, children }: { title: string; note: string; empty: boolean; children: React.ReactNode }) {
   return (
-    <article className="panel table-panel">
+    <article aria-label={title} className="panel table-panel">
       <div className="panel-heading"><div><p className="eyebrow">Inspector</p><h2>{title}</h2></div><span className="panel-note">{note}</span></div>
       <div className="table-scroll"><div className="table-body">{children}</div></div>
+      {empty && <p className="empty">No {title.toLowerCase()} observed.</p>}
     </article>
   );
 }
 
 function TableHead({ columns }: { columns: string[] }) {
-  return <div className="table-row table-head">{columns.map((column) => <span key={column}>{column}</span>)}</div>;
+  return <div className={`table-row table-head ${columns.length === 5 ? "five-columns" : ""}`}>{columns.map((column) => <span key={column}>{column}</span>)}</div>;
 }

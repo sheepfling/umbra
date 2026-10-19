@@ -26,6 +26,9 @@ API_PATHS = {
     "contract": "/api/contract",
     "state": "/api/state",
     "metrics": "/api/metrics",
+    "analytics": "/api/analytics",
+    "command_catalog": "/api/commands/catalog",
+    "commands": "/api/commands",
     "events": "/api/events",
     "event_stream": "/api/events/stream",
     "websocket": "/ws/events",
@@ -45,11 +48,20 @@ def build_contract_document(
     frontend without importing this package.
     """
 
+    normalized_capabilities = normalize_capabilities(capabilities)
+    paths = dict(API_PATHS)
+    analytics = normalized_capabilities.get("analytics")
+    if analytics is None or analytics.state not in {"available", "partial"}:
+        paths.pop("analytics", None)
+    commands = normalized_capabilities.get("commands")
+    if commands is None or commands.state not in {"available", "partial"}:
+        paths.pop("commands", None)
+        paths.pop("command_catalog", None)
     return to_json_object({
         "contract_version": OBSERVER_CONTRACT_VERSION,
         "media_type": OBSERVER_JSON_MEDIA_TYPE,
         "event_schema_version": event_schema_version,
-        "api_paths": dict(API_PATHS),
+        "api_paths": paths,
         "capability_schema": {
             "states": list(CAPABILITY_STATES),
             "fields": [
@@ -76,7 +88,7 @@ def build_contract_document(
         },
         "capabilities": {
             name: capability.to_json()
-            for name, capability in normalize_capabilities(capabilities).items()
+            for name, capability in normalized_capabilities.items()
         },
         "snapshot": {
             "method": "GET",

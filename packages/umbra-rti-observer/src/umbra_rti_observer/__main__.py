@@ -87,6 +87,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--max-events", type=int, default=2_000)
+    parser.add_argument("--no-analytics", action="store_true", help="disable optional windowed analytics")
+    parser.add_argument("--enable-controls", action="store_true", help="enable synthetic session controls (requires --showcase)")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--demo", action="store_true", help="seed generic events before serving")
     mode.add_argument("--showcase", action="store_true", help="run the live observer showcase")
@@ -107,13 +109,27 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.enable_controls and not args.showcase:
+        raise SystemExit("--enable-controls requires --showcase; real sessions must be explicitly registered by the application")
     store = ObserverStore(max_events=args.max_events)
     if args.demo:
         _seed_demo(store)
     if args.showcase:
         store.attach_adapter(ShowcaseAdapter(profile=args.profile, interval=args.interval))
+    commands = None
     try:
-        app = create_app(store)
+        if args.enable_controls:
+            from .commands import CommandDispatcher
+            from .session_commands import SessionController
+            from .showcase_commands import ShowcaseSessionDriver
+
+            commands = CommandDispatcher(sink=store.publish)
+            commands.register(SessionController(
+                target_id="showcase-session", label="Showcase control session", adapter="showcase",
+                driver_factory=ShowcaseSessionDriver, federations=("ShowcaseFederation",),
+                sink=store.publish, synthetic=True,
+            ))
+        app = create_app(store, enable_analytics=not args.no_analytics, commands=commands)
         try:
             import uvicorn
         except ImportError as error:  # pragma: no cover - depends on optional extra
@@ -123,6 +139,8 @@ def main(argv: list[str] | None = None) -> int:
             ) from error
         uvicorn.run(app, host=args.host, port=args.port)
     finally:
+        if args.enable_controls and commands is not None:
+            commands.close()
         store.close()
     return 0
 

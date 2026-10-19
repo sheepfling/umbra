@@ -23,6 +23,7 @@ export interface ObserverViewModel {
   samples: MetricSample[];
   connection: ConnectionState;
   error: string | undefined;
+  notice: string | undefined;
   refresh: () => Promise<void>;
 }
 
@@ -36,11 +37,13 @@ export function useObserver(): ObserverViewModel {
   const [samples, setSamples] = useState<MetricSample[]>([]);
   const [connection, setConnection] = useState<ConnectionState>("connecting");
   const [error, setError] = useState<string>();
+  const [notice, setNotice] = useState<string>();
   const socketRef = useRef<WebSocket | undefined>(undefined);
 
   const applyState = useCallback((nextState: StateResponse) => {
     setState(nextState);
     setError(undefined);
+    if (!nextState.retention.dropped_events && !nextState.retention.cleared_events) setNotice(undefined);
     setSamples((previous) => [
       ...previous,
       {
@@ -50,17 +53,25 @@ export function useObserver(): ObserverViewModel {
         errorCount: nextState.live_metrics.error_count,
       },
     ].slice(-60));
-    if (nextState.normalized_events) {
-      setEventsBySequence((previous) => mergeEvents(previous, nextState.normalized_events ?? []));
-    }
+    setEventsBySequence((previous) => nextState.normalized_events
+      ? mergeEvents(new Map(), nextState.normalized_events)
+      : new Map([...previous].filter(([sequence]) => sequence >= nextState.retention.first_retained_sequence
+        && sequence <= nextState.retention.last_sequence && nextState.retention.retained_events > 0)));
   }, []);
 
   const applyMessage = useCallback((message: StreamMessage) => {
     if (message.type === "snapshot" || message.type === "events") {
       applyState(message.state);
       if (message.type === "events") {
-        setEventsBySequence((previous) => mergeEvents(previous, message.events));
+        const retention = message.state.retention;
+        const retained = message.events.filter((event) => retention.retained_events > 0
+          && event.sequence >= retention.first_retained_sequence && event.sequence <= retention.last_sequence);
+        setEventsBySequence((previous) => mergeEvents(previous, retained));
       }
+    } else if (message.type === "gap") {
+      setNotice("Some history was dropped or cleared. Charts and counts cover retained observations only.");
+    } else if (message.type === "error") {
+      setError(message.message);
     }
   }, [applyState]);
 
@@ -80,23 +91,44 @@ export function useObserver(): ObserverViewModel {
   }, [applyState, client]);
 
   useEffect(() => {
-    void refresh();
-    const poll = window.setInterval(() => {
-      if (socketRef.current?.readyState !== WebSocket.OPEN) void refresh();
-    }, 2_000);
-    const socket = client.openStream(
-      applyMessage,
-      (status) => {
-        if (status === "open") setConnection("live");
-        else if (status === "closed" || status === "error") {
-          setConnection((current) => current === "live" ? "polling" : current);
+    let disposed = false;
+    let reconnect: number | undefined;
+    let poll: number | undefined;
+    let retry = 1_000;
+    const connect = async () => {
+      if (disposed) return;
+      try {
+        const socket = await client.openStream(applyMessage, (status) => {
+          if (disposed) return;
+          if (status === "open") { retry = 1_000; setConnection("live"); }
+          if (status === "closed") {
+            setConnection((current) => current === "offline" ? "offline" : "polling");
+            reconnect = window.setTimeout(() => void connect(), retry);
+            retry = Math.min(retry * 2, 15_000);
+          }
+          if (status === "error") setConnection((current) => current === "offline" ? "offline" : "polling");
+        });
+        if (disposed) socket?.close();
+        else {
+          socketRef.current = socket;
+          if (!socket) setConnection((current) => current === "offline" ? current : "polling");
         }
-      },
-    );
-    socketRef.current = socket;
+      } catch {
+        if (!disposed) reconnect = window.setTimeout(() => void connect(), retry);
+        retry = Math.min(retry * 2, 15_000);
+      }
+    };
+    const pollState = async () => {
+      await refresh();
+      if (!disposed) poll = window.setTimeout(() => void pollState(), 5_000);
+    };
+    void pollState();
+    void connect();
     return () => {
-      window.clearInterval(poll);
-      socket.close();
+      disposed = true;
+      window.clearTimeout(poll);
+      window.clearTimeout(reconnect);
+      socketRef.current?.close();
       socketRef.current = undefined;
     };
   }, [applyMessage, client, refresh]);
@@ -106,7 +138,7 @@ export function useObserver(): ObserverViewModel {
     [eventsBySequence],
   );
 
-  return { contract, state, events, samples, connection, error, refresh };
+  return { contract, state, events, samples, connection, error, notice, refresh };
 }
 
 function mergeEvents(

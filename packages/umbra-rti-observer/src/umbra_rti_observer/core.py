@@ -34,6 +34,9 @@ from .models import (
     to_json_object,
     to_json_value,
 )
+from .object_views import ObjectViews
+from .time_models import time_data
+from .time_views import TimeViews
 
 OBSERVER_SCHEMA_VERSION = "umbra-runtime-observer-v1"
 
@@ -49,8 +52,17 @@ EVENT_TYPES = (
     "object.removed",
     "interaction.received",
     "callback.invoked",
+    "time.observed",
     "service.completed",
     "service.failed",
+    "session.connected",
+    "session.disconnected",
+    "command.accepted",
+    "command.running",
+    "command.succeeded",
+    "command.failed",
+    "command.unavailable",
+    "command.late_result",
     "event.raw",
 )
 
@@ -148,6 +160,7 @@ def _copy_mapping(value: object) -> JsonObject:
 def _normalise_event(event: Mapping[str, object], sequence: int) -> EventRecord:
     if not isinstance(event, Mapping):
         raise TypeError("observer events must be mappings")
+    time_data(event)  # Validate explicit observations before any batch mutation.
     normalized = _copy_mapping(event)
     event_type = _event_type(normalized)
     if len(event_type) > 256:
@@ -382,12 +395,15 @@ class ObserverStore:
         *,
         max_events: int = 2_000,
         max_batch_size: int = 10_000,
+        max_time_requests: int = 250,
         capabilities: Mapping[str, object] | None = None,
     ) -> None:
         if max_events < 1:
             raise ValueError("max_events must be at least 1")
         if max_batch_size < 1:
             raise ValueError("max_batch_size must be at least 1")
+        if isinstance(max_time_requests, bool) or not isinstance(max_time_requests, int) or max_time_requests < 1:
+            raise ValueError("max_time_requests must be a positive integer")
         self._events: deque[EventRecord] = deque(maxlen=max_events)
         self._max_events = max_events
         self._max_batch_size = max_batch_size
@@ -400,6 +416,8 @@ class ObserverStore:
         # deque. A long-running observer must not forget a live object or
         # participant merely because its older event history was evicted.
         self._objects: dict[str, ObjectInspection] = {}
+        self._object_views = ObjectViews(max_events)
+        self._time_views = TimeViews(max_time_requests)
         self._federates: dict[str, FederateInspection] = {}
         self._interactions: deque[InteractionInspection] = deque(maxlen=250)
         self._adapters: dict[int, tuple[ObserverAdapter, str, str]] = {}
@@ -619,6 +637,8 @@ class ObserverStore:
             self._cleared_events += len(self._events)
             self._events.clear()
             self._objects.clear()
+            self._object_views.clear()
+            self._time_views.clear()
             self._federates.clear()
             self._interactions.clear()
             self._condition.notify_all()
@@ -658,10 +678,13 @@ class ObserverStore:
                 self._status = "running"
 
     def _update_indexes_locked(self, event: EventRecord) -> None:
-        for incoming in _derive_objects([event]):
+        self._time_views.record(event, _federate_name(event), _first_text(event, "federation"))
+        objects = _derive_objects([event])
+        self._object_views.record(event, objects, _federate_name(event))
+        for incoming in objects:
             key = incoming.object_key
             current = self._objects.get(key)
-            if current is None:
+            if current is None or (current.status == "removed" and event.event_type == "object.discovered"):
                 self._objects[key] = incoming
                 continue
             object_name = _first_text(event, "object_name")
@@ -769,6 +792,8 @@ class ObserverStore:
             "inspectors": {
                 "objects": [row.to_json() for row in objects],
                 "interactions": [row.to_json() for row in interactions],
+                "object_observations": self._object_views.to_json(self._retention_locked()),
+                "time": self._time_views.to_json(),
             },
         })
         if include_events:

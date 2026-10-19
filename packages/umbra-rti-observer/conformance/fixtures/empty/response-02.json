@@ -1,0 +1,267 @@
+{
+  "adapters": [],
+  "capabilities": {
+    "analytics": {
+      "description": "Windowed activity, participant attribution, and logical timestamp observations.",
+      "event_types": [],
+      "label": "Observation analytics",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Read-only analytics over retained normalized observations.",
+          "source": "fastapi",
+          "state": "available"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Read-only analytics over retained normalized observations.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "available"
+    },
+    "commands": {
+      "description": "Explicitly registered adapter actions and correlated execution history.",
+      "event_types": [],
+      "label": "Session commands",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "No command dispatcher is configured; this backend is read-only.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "No command dispatcher is configured; this backend is read-only.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
+    "event_history": {
+      "description": "Bounded, sequence-numbered event retention and cursor pages.",
+      "event_types": [],
+      "label": "Event history",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Provided by the provider-neutral observer store.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Provided by the provider-neutral observer store.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "http_api": {
+      "description": "HTTP resources for contract, state, metrics, and event pages.",
+      "event_types": [],
+      "label": "HTTP API",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Provided by the FastAPI backend.",
+          "source": "fastapi",
+          "state": "available"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Provided by the FastAPI backend.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "available"
+    },
+    "live_inspectors": {
+      "description": "Derived object, interaction, and federate views.",
+      "event_types": [],
+      "label": "Live inspectors",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Derived from normalized events without requiring provider APIs.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Derived from normalized events without requiring provider APIs.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "metrics": {
+      "description": "Event counts, rates, retention, and adapter health metrics.",
+      "event_types": [],
+      "label": "Observer metrics",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Provided by the provider-neutral observer store.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Provided by the provider-neutral observer store.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "object_observations": {
+      "description": "Persistent attributed object snapshots and retained attribute comparisons.",
+      "event_types": [],
+      "label": "Object perspectives",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Built from explicit event attribution; no MOM or provider queries required.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Built from explicit event attribution; no MOM or provider queries required.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "sse": {
+      "description": "Live event delivery over an HTTP event stream.",
+      "event_types": [],
+      "label": "Server-sent events",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "This fixture uses HTTP polling.",
+          "source": "fastapi",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "This fixture uses HTTP polling.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "unsupported"
+    },
+    "time_inspection": {
+      "description": "Last reported grants/state and bounded explicitly correlated requests, without MOM.",
+      "event_types": [],
+      "label": "Persistent time inspection",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Observer-side snapshots; missing IDs or session scope never imply correlated grants.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Observer-side snapshots; missing IDs or session scope never imply correlated grants.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "websocket": {
+      "description": "Live event delivery over a WebSocket connection.",
+      "event_types": [],
+      "label": "WebSocket stream",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "This fixture uses HTTP polling.",
+          "source": "fastapi",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "This fixture uses HTTP polling.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "unsupported"
+    }
+  },
+  "context": {},
+  "contract_version": "umbra-observer-contract-v1",
+  "federate_roster": [],
+  "inspectors": {
+    "interactions": [],
+    "object_observations": {
+      "changes": [],
+      "history_first_sequence": 0,
+      "history_last_sequence": 0,
+      "history_truncated": false,
+      "snapshots": []
+    },
+    "objects": [],
+    "time": {
+      "dropped_requests": 0,
+      "duration_basis": "observer-ingress-monotonic",
+      "request_capacity": 250,
+      "requests": [],
+      "scope_basis": "explicit-observations",
+      "snapshots": []
+    }
+  },
+  "live_metrics": {
+    "error_count": 0,
+    "event_count": 0,
+    "event_rate_per_second": 0.0,
+    "event_types": {},
+    "families": {},
+    "federate_count": 0,
+    "first_sequence": 0,
+    "interaction_count": 0,
+    "last_sequence": 0,
+    "object_count": 0,
+    "sources": {}
+  },
+  "normalized_events": [],
+  "retention": {
+    "cleared_events": 0,
+    "dropped_events": 0,
+    "first_retained_sequence": 0,
+    "last_sequence": 0,
+    "max_events": 20,
+    "next_sequence": 1,
+    "retained_events": 0
+  },
+  "schema_version": "umbra-runtime-observer-v1",
+  "status": "idle"
+}

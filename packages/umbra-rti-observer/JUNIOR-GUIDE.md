@@ -389,6 +389,90 @@ Check all of the following:
 
 ## 8. Safe change checklist
 
+The React workspace now has eight views: Federation (traffic and composition),
+Federates (one participant's attributed observations), Objects (search, values,
+comparisons and numeric attribute charts), Logical time (timestamps
+and explicit grants), Events (search/filter/export), Inspectors (live snapshots),
+Actions (owned-session controls and results), and Diagnostics (adapters, errors,
+feature coverage, retention).
+
+`useAnalytics` asks the optional `/api/analytics` endpoint for a selected time
+window. `analytics.py` aggregates a validated snapshot into named Pydantic
+models. The frontend plots those models; it does not know how an RTI binding
+represents a callback. A Java backend can implement the same endpoint, or omit
+the analytics capability while retaining the existing events and inspectors.
+
+The time window applies to analytics and the federate timeline. The Events tab
+searches all events loaded by the browser (up to 2,000); live inspectors reflect
+the backend's latest snapshots and can outlive retained history. The optional
+`inspectors.object_observations` model gives Objects and Federates independent
+attributed snapshots. If Alice reports value 10, Bob reports 20 and an
+unattributed update reports 30, Alice still shows 10, Bob 20 and Global 30.
+Missing attributed data never falls back to global values.
+
+`object_views.py` maintains those snapshots without web or RTI dependencies.
+`schemas.py` validates the named snapshot/change models; the React components
+use generated TypeScript refinements only at the explicit JSON-value boundary.
+An older backend can omit the `object_observations` capability; useful events,
+metrics and global inspectors remain available. MOM is not needed.
+
+The Objects screen searches object names/classes/handles, selects a perspective
+and filters active/removed rows. Comparisons show the prior value from that
+same perspective; unknown is different from reported null. Bytes show their
+hex and byte count, not an invented decoded datatype. A selected numeric chart
+uses only retained finite numbers, not boolean/string conversions or a made-up
+history from the latest snapshot. It shows at most 500 recent observations;
+comparison tables initially render 100 rows with explicit load-more controls.
+These views use the retained event window, not the analytics chart-time menu.
+Removal followed by discovery starts a new local comparison generation.
+Clearing history clears snapshots too; restarting the backend resets the demo.
+
+The Logical time screen also has a persistent inspector, independent of the
+analytics time window. `time_models.py` parses explicit provider-neutral time
+observations without Pydantic or RTI imports; `time_views.py` maintains snapshots
+and a separate bounded request ledger. `schemas.py` validates named input and
+response models at the web boundary. `PersistentTimeView` consumes generated
+TypeScript models; `TimeView` remains the optional windowed timestamp chart.
+
+Think of a request ID as a ticket, not a timestamp. A request and grant match
+only when source, session, federation and federate scope agree and both report
+the same ticket. A timestamped object with value 100 does not mean the federate
+has been granted time 100. A grant-only RTI still gets a useful last-grant
+snapshot, with request analysis explicitly unavailable. If numeric time is
+opaque, an adapter can omit it while reporting explicit ticket correlation.
+Missing role flags and GALT/LBTS show Unknown, never guessed zeros or bounds.
+
+The optional `time_inspection` capability does not depend on MOM, analytics or
+commands. Older/disabled backends keep their other views. Request history has
+its own capacity (250 by default); an event disappearing does not erase a
+pending request, but ledger eviction can. Delay means the observer's measured
+request-to-grant arrival interval, not provider execution latency. Fresh session
+IDs on reconnect/rejoin prevent old tickets from closing new work. Duplicate
+retained IDs become ambiguous; an explicit failed/cancelled/session-ended
+outcome never becomes a successful grant. See CONTRACT.md for the exact wire
+rules and producer ID-uniqueness obligation.
+
+Pause view freezes the local screen only. Data collection continues; command
+submission is disabled until the view resumes. The separate `commands`
+capability enables only explicitly registered control sessions. Available MOM
+or time observations do not imply permission to send commands.
+
+The Actions tab talks to `useCommands` and `ObserverClient`, which send a named
+command request to FastAPI. `command_models.py` validates the action and its
+parameters. `commands.py` retains its ID/result and queues it on the target's
+owner thread. `session_commands.py` owns the common lifecycle policy. The
+provider-specific driver in `umbra-rti-observer-umbra/commands.py` translates
+the actual Umbra API and pumps evoked callbacks on that same owner thread.
+React never receives an RTI object or chooses a provider method to call.
+
+Accepted and succeeded are different states. After acceptance the browser polls
+backend history; navigating away or refreshing does not cancel the command.
+History survives for the backend process, independently of event retention.
+If a running call times out, its effect is unknown and the target stays busy.
+Never display a timeout as proof that the RTI did nothing. A late result is
+shown separately. Remaining command and investigation work is tracked in
+[FEATURE-BACKLOG.md](FEATURE-BACKLOG.md).
+
 Before changing the frontend or backend contract:
 
 1. Decide whether the change is additive or breaking.
@@ -401,3 +485,19 @@ Before changing the frontend or backend contract:
 7. Refresh the generated TypeScript API snapshot and run the React typecheck.
 8. If the change is breaking, create a new contract version instead of
    silently changing the old one.
+
+## 9. Checking a replacement backend
+
+Before wiring a Java or vendor-specific service into the frontend, use the
+[HTTP conformance walkthrough](conformance/README.md). It validates named wire
+models, capability discovery, cursor/retention rules and optional resources
+without sending commands. Limited, partial and empty services can pass; a
+service claiming an available feature but returning an invalid resource cannot.
+
+The frontend discovers REST and WebSocket paths from the contract. An HTTP-only
+service advertises WebSocket as unsupported and the browser polls snapshots
+instead; it does not need to imitate Python or supply MOM. The
+[Java fixture](../umbra-rti-observer-java-fixture/README.md) demonstrates this
+with the same production React build. It is a static test double, not a live
+Java RTI connection. Real session actions and streaming behavior require their
+own integration tests beyond a passing HTTP-read report.

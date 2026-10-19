@@ -2,6 +2,31 @@ import type { components } from "./generated";
 
 type Generated = components["schemas"];
 
+export type AnalyticsResponse = Generated["AnalyticsResponse"];
+// The generator deliberately maps recursive JSON to unknown. Refine only the
+// explicit JSON value boundary, retaining all generated named DTO fields.
+export type ObjectPerspective = Generated["ObjectPerspectiveResponse"] & {
+  object: Generated["ObjectInspectionResponse"] & { attributes: JsonObject };
+};
+export type ObjectAttributeChange = Generated["ObjectAttributeChangeResponse"] & {
+  value: JsonValue; previous_value: JsonValue;
+};
+export type ObjectObservations = Omit<Generated["ObjectObservationsResponse"], "snapshots" | "changes"> & {
+  snapshots: ObjectPerspective[]; changes: ObjectAttributeChange[];
+};
+export type FederateActivity = Generated["FederateActivity"];
+export type TimeObservation = Generated["TimeObservation"];
+export type TimeInspection = Generated["TimeInspectionResponse"];
+export type TimeScope = Generated["TimeScopeResponse"];
+export type TimeRequest = Generated["TimeRequestResponse"];
+export type CommandCatalog = Generated["CommandCatalog"];
+export type CommandHistory = Generated["CommandHistory"];
+export type CommandRecord = Generated["CommandRecord"];
+export type CommandTarget = Generated["CommandTarget"];
+export type CommandDefinition = Generated["CommandDefinition"];
+export type CommandRequest = CommandRecord["request"];
+export type ResignPolicy = NonNullable<Generated["ResignParameters"]["policy"]>;
+
 export type JsonValue =
   | null
   | boolean
@@ -37,13 +62,14 @@ export type EventEnvelope = Generated["EventEnvelope"] & {
 };
 
 type GeneratedInspectors = Generated["InspectorsResponse"];
-export type InspectorsResponse = GeneratedInspectors & {
+export type InspectorsResponse = Omit<GeneratedInspectors, "object_observations"> & {
   objects: NonNullable<GeneratedInspectors["objects"]>;
   interactions: NonNullable<GeneratedInspectors["interactions"]>;
+  object_observations?: ObjectObservations | null;
 };
 
 type GeneratedState = Generated["StateResponse"];
-export type StateResponse = GeneratedState & {
+export type StateResponse = Omit<GeneratedState, "inspectors"> & {
   context: JsonObject;
   adapters: NonNullable<GeneratedState["adapters"]>;
   capabilities: Record<string, CapabilityResponse>;

@@ -1,0 +1,679 @@
+{
+  "adapters": [],
+  "capabilities": {
+    "analytics": {
+      "description": "Windowed activity, participant attribution, and logical timestamp observations.",
+      "event_types": [],
+      "label": "Observation analytics",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Read-only analytics over retained normalized observations.",
+          "source": "fastapi",
+          "state": "available"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Read-only analytics over retained normalized observations.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "available"
+    },
+    "attributes": {
+      "description": "Decoded or opaque attribute update observations.",
+      "event_types": [],
+      "label": "Attribute values",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
+    "commands": {
+      "description": "Explicitly registered adapter actions and correlated execution history.",
+      "event_types": [],
+      "label": "Session commands",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "No command dispatcher is configured; this backend is read-only.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "No command dispatcher is configured; this backend is read-only.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
+    "event_history": {
+      "description": "Bounded, sequence-numbered event retention and cursor pages.",
+      "event_types": [],
+      "label": "Event history",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Provided by the provider-neutral observer store.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Provided by the provider-neutral observer store.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "federates": {
+      "description": "Participant join, update, and resignation observations.",
+      "event_types": [],
+      "label": "Federate roster",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
+    "http_api": {
+      "description": "HTTP resources for contract, state, metrics, and event pages.",
+      "event_types": [],
+      "label": "HTTP API",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Provided by the FastAPI backend.",
+          "source": "fastapi",
+          "state": "available"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Provided by the FastAPI backend.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "available"
+    },
+    "interactions": {
+      "description": "Receive-order and directed interaction observations.",
+      "event_types": [],
+      "label": "Interactions",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
+    "lifecycle": {
+      "description": "Connection, startup, shutdown, and runtime errors.",
+      "event_types": [],
+      "label": "Runtime lifecycle",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
+    "live_inspectors": {
+      "description": "Derived object, interaction, and federate views.",
+      "event_types": [],
+      "label": "Live inspectors",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Derived from normalized events without requiring provider APIs.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Derived from normalized events without requiring provider APIs.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "logical_time": {
+      "description": "Time regulation, constraints, grants, and timestamped delivery.",
+      "event_types": [],
+      "label": "Logical time",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Only grants are reported.",
+          "source": "contract-fixture",
+          "state": "partial"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Only grants are reported.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "partial"
+    },
+    "metrics": {
+      "description": "Event counts, rates, retention, and adapter health metrics.",
+      "event_types": [],
+      "label": "Observer metrics",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Provided by the provider-neutral observer store.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Provided by the provider-neutral observer store.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "mom": {
+      "description": "Standard management and federation-management observations.",
+      "event_types": [],
+      "label": "Management object model",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile represents an RTI without MOM callbacks.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile represents an RTI without MOM callbacks.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
+    "object_observations": {
+      "description": "Persistent attributed object snapshots and retained attribute comparisons.",
+      "event_types": [],
+      "label": "Object perspectives",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Built from explicit event attribution; no MOM or provider queries required.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Built from explicit event attribution; no MOM or provider queries required.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "objects": {
+      "description": "Object discovery, removal, and attribute updates.",
+      "event_types": [],
+      "label": "Object observations",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
+    "ownership": {
+      "description": "Ownership acquisition, divestiture, and query observations.",
+      "event_types": [],
+      "label": "Attribute ownership",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile does not expose ownership callbacks.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile does not expose ownership callbacks.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
+    "persistence": {
+      "description": "Federation save, restore, and related lifecycle observations.",
+      "event_types": [],
+      "label": "Save and restore",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Save and restore observation is disabled for this profile.",
+          "source": "contract-fixture",
+          "state": "disabled"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Save and restore observation is disabled for this profile.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "disabled"
+    },
+    "regions": {
+      "description": "Region creation and region-scoped publication or subscription.",
+      "event_types": [],
+      "label": "Regions and DDM",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile does not expose region callbacks.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile does not expose region callbacks.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
+    "sse": {
+      "description": "Live event delivery over an HTTP event stream.",
+      "event_types": [],
+      "label": "Server-sent events",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "This fixture uses HTTP polling.",
+          "source": "fastapi",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "This fixture uses HTTP polling.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "unsupported"
+    },
+    "time_inspection": {
+      "description": "Last reported grants/state and bounded explicitly correlated requests, without MOM.",
+      "event_types": [],
+      "label": "Persistent time inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Grants only; request IDs and time-role state are not reported.",
+          "source": "contract-fixture",
+          "state": "partial"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Grants only; request IDs and time-role state are not reported.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "partial"
+    },
+    "websocket": {
+      "description": "Live event delivery over a WebSocket connection.",
+      "event_types": [],
+      "label": "WebSocket stream",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "This fixture uses HTTP polling.",
+          "source": "fastapi",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "This fixture uses HTTP polling.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "unsupported"
+    }
+  },
+  "context": {
+    "federation": "ContractFixture",
+    "source": "contract-fixture"
+  },
+  "contract_version": "umbra-observer-contract-v1",
+  "federate_roster": [
+    {
+      "federate": "FixtureFederate",
+      "last_seen": 1760000000.0,
+      "source": "contract-fixture",
+      "status": "active"
+    }
+  ],
+  "inspectors": {
+    "interactions": [],
+    "object_observations": {
+      "changes": [
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 1,
+          "object_key": "fixture-object",
+          "observed_at": 1760000000.0,
+          "previous_known": false,
+          "previous_value": null,
+          "sequence": 1,
+          "source": "contract-fixture",
+          "value": 0
+        },
+        {
+          "attribute": "value",
+          "federate": "FixtureFederate",
+          "generation": 1,
+          "object_key": "fixture-object",
+          "observed_at": 1760000000.0,
+          "previous_known": false,
+          "previous_value": null,
+          "sequence": 1,
+          "source": "contract-fixture",
+          "value": 0
+        },
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 1,
+          "object_key": "fixture-object",
+          "observed_at": 1760000000.0,
+          "previous_known": true,
+          "previous_value": 0,
+          "sequence": 2,
+          "source": "contract-fixture",
+          "value": 1
+        },
+        {
+          "attribute": "value",
+          "federate": "FixtureFederate",
+          "generation": 1,
+          "object_key": "fixture-object",
+          "observed_at": 1760000000.0,
+          "previous_known": true,
+          "previous_value": 0,
+          "sequence": 2,
+          "source": "contract-fixture",
+          "value": 1
+        },
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 1,
+          "object_key": "fixture-object",
+          "observed_at": 1760000000.0,
+          "previous_known": true,
+          "previous_value": 1,
+          "sequence": 3,
+          "source": "contract-fixture",
+          "value": 2
+        },
+        {
+          "attribute": "value",
+          "federate": "FixtureFederate",
+          "generation": 1,
+          "object_key": "fixture-object",
+          "observed_at": 1760000000.0,
+          "previous_known": true,
+          "previous_value": 1,
+          "sequence": 3,
+          "source": "contract-fixture",
+          "value": 2
+        },
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 1,
+          "object_key": "fixture-object",
+          "observed_at": 1760000000.0,
+          "previous_known": true,
+          "previous_value": 2,
+          "sequence": 4,
+          "source": "contract-fixture",
+          "value": 3
+        },
+        {
+          "attribute": "value",
+          "federate": "FixtureFederate",
+          "generation": 1,
+          "object_key": "fixture-object",
+          "observed_at": 1760000000.0,
+          "previous_known": true,
+          "previous_value": 2,
+          "sequence": 4,
+          "source": "contract-fixture",
+          "value": 3
+        }
+      ],
+      "history_first_sequence": 1,
+      "history_last_sequence": 5,
+      "history_truncated": false,
+      "snapshots": [
+        {
+          "federate": null,
+          "generation": 1,
+          "last_sequence": 4,
+          "object": {
+            "attributes": {
+              "value": 3
+            },
+            "discovery_count": 0,
+            "family": "generic",
+            "last_seen": 1760000000.0,
+            "object_key": "fixture-object",
+            "object_name": "FixtureObject",
+            "sources": [
+              "contract-fixture"
+            ],
+            "status": "active",
+            "update_count": 4
+          }
+        },
+        {
+          "federate": "FixtureFederate",
+          "generation": 1,
+          "last_sequence": 4,
+          "object": {
+            "attributes": {
+              "value": 3
+            },
+            "discovery_count": 0,
+            "family": "generic",
+            "last_seen": 1760000000.0,
+            "object_key": "fixture-object",
+            "object_name": "FixtureObject",
+            "sources": [
+              "contract-fixture"
+            ],
+            "status": "active",
+            "update_count": 4
+          }
+        }
+      ]
+    },
+    "objects": [
+      {
+        "attributes": {
+          "value": 3
+        },
+        "discovery_count": 0,
+        "family": "generic",
+        "last_seen": 1760000000.0,
+        "object_key": "fixture-object",
+        "object_name": "FixtureObject",
+        "sources": [
+          "contract-fixture"
+        ],
+        "status": "active",
+        "update_count": 4
+      }
+    ],
+    "time": {
+      "dropped_requests": 0,
+      "duration_basis": "observer-ingress-monotonic",
+      "request_capacity": 250,
+      "requests": [],
+      "scope_basis": "explicit-observations",
+      "snapshots": [
+        {
+          "last_grant": {
+            "logical_time": 4,
+            "observed_at": 1760000000.0,
+            "sequence": 5
+          },
+          "last_sequence": 5,
+          "observed_at": 1760000000.0,
+          "scope": {
+            "federate": "FixtureFederate",
+            "federation": null,
+            "session_id": null,
+            "source": "contract-fixture"
+          },
+          "status": "observed",
+          "uncorrelated_grants": 1,
+          "uncorrelated_requests": 0
+        }
+      ]
+    }
+  },
+  "live_metrics": {
+    "error_count": 0,
+    "event_count": 5,
+    "event_rate_per_second": 0.0,
+    "event_types": {
+      "callback.invoked": 1,
+      "object.updated": 4
+    },
+    "families": {
+      "generic": 5
+    },
+    "federate_count": 1,
+    "first_sequence": 1,
+    "interaction_count": 0,
+    "last_sequence": 5,
+    "object_count": 1,
+    "sources": {
+      "contract-fixture": 5
+    }
+  },
+  "retention": {
+    "cleared_events": 0,
+    "dropped_events": 0,
+    "first_retained_sequence": 1,
+    "last_sequence": 5,
+    "max_events": 20,
+    "next_sequence": 6,
+    "retained_events": 5
+  },
+  "schema_version": "umbra-runtime-observer-v1",
+  "status": "running"
+}

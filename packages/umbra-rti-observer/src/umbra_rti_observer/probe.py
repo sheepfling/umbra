@@ -218,7 +218,14 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Check an observer backend against the language-neutral HTTP contract.")
     parser.add_argument("base_url", help="observer backend URL, for example http://127.0.0.1:8765")
     parser.add_argument("--timeout", type=float, default=5.0)
+    parser.add_argument("--strict", action="store_true", help="run model-validated HTTP conformance (requires the conformance extra)")
     args = parser.parse_args(argv)
+    if args.strict:
+        try:
+            from .conformance import main as strict_main
+        except ImportError:
+            parser.error("Strict checks require umbra-rti-observer[conformance].")
+        return strict_main([args.base_url, "--timeout", str(args.timeout)])
     result = ObserverContractProbe(args.base_url, timeout=args.timeout).run()
     print(json.dumps(result.as_dict(), indent=2, sort_keys=True))
     return 0 if result.passed else 1
