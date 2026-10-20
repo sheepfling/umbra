@@ -144,6 +144,21 @@ or reconfigure a real RTI. Stop this demo with Ctrl+C in its terminal.
 
 ## Suggested walkthrough
 
+Open **Demo walkthrough** near the header for links and concrete exercises for
+all 19 workspaces. The rich topology has ten joins and fifteen explicit edges,
+including cycles, parallel edges, a self-loop, repeated names and a disconnected
+group. Switch layouts, select an edge with the mouse or keyboard, and focus a
+join. Layout positions carry no timing or network meaning.
+
+Synchronization and Save / restore cycle through paced pending, successful,
+failed and unknown participant reports. Choose **Follow operation** for separate
+scope and participant cards. To drive an operation, use Actions after joining
+the synthetic session. Follow the [owned coordination sequence](COORDINATION-CONTROLS.md#try-the-synthetic-flow):
+register/achieve a label, request save, report begun/result, restore the exact
+successfully saved label and report its result.
+The [demo coverage map](DEMO-COVERAGE.md) includes replay, alerts, saved
+configuration and the limited profile.
+
 To demonstrate the Actions tab, start with `--showcase --enable-controls`.
 Select its labelled synthetic control session and connect, join as
 `ManagedObserver`, confirm resign, then confirm disconnect. Observe the session

@@ -53,11 +53,12 @@ copy the URL printed in the terminal. A busy default port is handled for you.
 Only this computer can access the server; it never connects to a real RTI.
 
 TRY THIS
+- Open Demo walkthrough for links and exercises for all 19 workspaces.
 - Federation: watch the charts and activity update automatically.
 - Federates: select ShowcaseServer to inspect its activity.
 - Objects: search ExampleClass, compare perspectives, and chart the load attribute.
 - Declarations: compare explicit publication/subscription snapshots, not inferred routes.
-- Topology: focus explicit participant joins and relationship evidence; names are not IDs.
+- Topology: switch three layouts across cycles, parallel links, a self-loop and disconnected group; inspect edges and focus joins.
 - Interaction flow: compare paired/uncorrelated observations and observer arrival intervals.
 - Ownership: compare explicit owner reports with acquisition/divestiture tickets.
 - Regions / DDM: inspect exact large bounds, scoped associations and routing evidence.
@@ -67,17 +68,21 @@ TRY THIS
 - Alerts: define observer thresholds, review bounded evidence and download configuration without captured payloads.
 - Saved workspaces (header): name/download your view choices, then import and explicitly apply them without captured observations or provider commands.
 - Logical time: inspect persistent grants, pending requests and observed grant delays.
-- Synchronization: follow explicit registration and achievement phase reports.
-- Save / restore: compare local completion with a federation-wide failure and its timeline.
+- Synchronization: follow paced registration/achievement and rejection reports; select an operation for scope/participant cards.
+- Save / restore: compare local completion with collective success/failure over paced cycles.
 - Events and Inspectors: explore the generated observations.
 - Actions: select the synthetic session, connect, join as ManagedObserver,
-  then confirm resign and disconnect. These controls affect only that dummy
+  register/achieve a synchronization label, request save, report begun/result,
+  then restore that exact saved label and report its result. Wait for explicit
+  collective reports between phases. Finally confirm resign and disconnect.
+  These controls affect only that dummy
   session; the showcase traffic continues independently.
 - Pause view, filter events and export a snapshot.
 - Diagnostics: inspect the supported and unavailable features.
 
 Stop the rich demo, then double-click Start-Observer-Limited.cmd to try an
-RTI-shaped profile without MOM, ownership or regions. The same frontend works.
+RTI-shaped profile without MOM, ownership, regions or coordination controls.
+Lifecycle, timing, attributes and other supported views remain usable.
 This is a synthetic observer demonstration, not a complete RTI simulation or
 an HLA conformance claim.
 

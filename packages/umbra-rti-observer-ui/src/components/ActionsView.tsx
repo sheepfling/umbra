@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ObserverApiError } from "../api/client";
 import type { CommandDefinition, CommandHistory, CommandRecord, CommandRequest, CommandTarget } from "../api/types";
-import { buildCommand } from "../app/commandRequests";
+import { buildCommand, isCoordinationAction } from "../app/commandRequests";
 import { formatTime } from "../app/observations";
 import { useCommands } from "../app/useCommands";
 import { EmptyPanel } from "./ChartPanel";
@@ -29,7 +29,7 @@ export function ActionsView({ enabled, paused, reason }: { enabled: boolean; pau
 
 function SessionActions({ target, paused, stale, submit }: { target: CommandTarget; paused: boolean; stale: boolean; submit: SubmitCommand }) {
   const [action, setAction] = useState<CommandDefinition["action"]>("session.connect");
-  const lifecycle = target.commands.filter((value) => value.action !== "session.inspect" && value.action !== "session.recover");
+  const lifecycle = target.commands.filter((value) => value.action !== "session.inspect" && value.action !== "session.recover" && !isCoordinationAction(value.action));
   const recovery = target.commands.filter((value) => value.action === "session.inspect" || value.action === "session.recover");
   const command = lifecycle.find((value) => value.action === action) ?? lifecycle[0];
   return <>
@@ -43,12 +43,28 @@ function SessionActions({ target, paused, stale, submit }: { target: CommandTarg
       <div className="action-choices">{lifecycle.map((value) => <button type="button" key={value.action} className={value.action === command?.action ? "selected" : ""} onClick={() => setAction(value.action)}><strong>{value.title}</strong><span className={`state-pill ${value.state}`}>{value.state}</span></button>)}</div>
       {command && <CommandForm key={`${target.target_id}-${command.action}`} target={target} command={command} paused={paused} stale={stale} submit={submit} />}
     </article>
+    <CoordinationActions target={target} paused={paused} stale={stale} submit={submit} />
     <article aria-label="Session recovery" className="panel"><div className="panel-heading"><div><p className="eyebrow">Inspect · review · reconcile</p><h2>Owned session recovery</h2></div></div>
       <p className="footnote">Inspection reads this owned driver. Reconciliation can restore controls only from complete current connection/membership facts and a healthy callback pump. It never retries a failed connect/join/resign/disconnect or uses the observed roster as authority.</p>
       {!recovery.length ? <p className="empty">This adapter does not offer session inspection/recovery. Existing lifecycle and observation features remain independent.</p> : recovery.map((definition) => <CommandForm key={definition.action} target={target} command={definition} paused={paused} stale={stale} submit={submit} />)}
       {target.inspection && <InspectionSummary target={target} />}
     </article>
   </>;
+}
+
+function CoordinationActions({ target, paused, stale, submit }: {
+  target: CommandTarget; paused: boolean; stale: boolean; submit: SubmitCommand;
+}) {
+  const [action, setAction] = useState<CommandDefinition["action"]>("sync.register");
+  const definitions = target.commands.filter((value) => isCoordinationAction(value.action));
+  const command = definitions.find((value) => value.action === action) ?? definitions[0];
+  return <article className="panel" aria-label="Coordination actions"><div className="panel-heading"><div><p className="eyebrow">Owned federate services</p><h2>Synchronization and persistence</h2></div></div>
+    <p className="coverage-note">These calls affect the registered session and may request federation coordination. A succeeded command means the local service returned. Follow explicit reports in <a href="#synchronization">Synchronization</a> or <a href="#persistence">Save / restore</a> for collective outcomes. Provider preconditions can still reject a call.</p>
+    {!definitions.length ? <p>This adapter has not enabled coordination controls. Read-only reports remain independent.</p> : <>
+      <div className="action-choices">{definitions.map((value) => <button type="button" key={value.action} className={command?.action === value.action ? "selected" : ""} onClick={() => setAction(value.action)}><strong>{value.title}</strong><span className={`state-pill ${value.state}`}>{value.state}</span></button>)}</div>
+      {command && <CommandForm key={`${target.target_id}-${command.action}`} target={target} command={command} paused={paused} stale={stale} submit={submit} />}
+    </>}
+  </article>;
 }
 
 function InspectionSummary({ target }: { target: CommandTarget }) {
@@ -73,7 +89,7 @@ function CommandForm({ target, command, paused, stale, submit }: {
   const [attempt, setAttempt] = useState<CommandRequest>();
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string>();
-  const needsVersion = command.action === "session.inspect" || command.action === "session.recover";
+  const needsVersion = command.action === "session.inspect" || command.action === "session.recover" || isCoordinationAction(command.action);
   const available = command.state === "available" && !target.busy && !paused && !stale && (!needsVersion || Boolean(target.version));
   const currentVersion = target.version ? `${target.version.instance_id}:${target.version.revision}` : "legacy";
   const confirmationValid = confirmed && confirmationVersion === currentVersion;
@@ -97,7 +113,7 @@ function CommandForm({ target, command, paused, stale, submit }: {
   return <form className="command-form" onSubmit={(event) => { event.preventDefault(); void onSubmit(); }}>
     <p className="footnote">{command.description}</p>
     {command.state !== "available" && <div className="notice-banner">{command.reason ?? `This action is ${command.state}.`}</div>}
-    {needsVersion && !target.version && <div className="notice-banner">Recovery is unavailable because the backend did not provide an owned target version.</div>}
+    {needsVersion && !target.version && <div className="notice-banner">This action is unavailable because the backend did not provide an owned target version.</div>}
     {command.fields.map((field) => <label key={field.name}>{field.label}{field.input === "select"
       ? <select aria-label={field.label} disabled={submitting || paused} value={fields[field.name] ?? ""} required={field.required} onChange={(event) => { setFields({ ...fields, [field.name]: event.target.value }); setAttempt(undefined); }}>{field.choices.map((choice) => <option key={choice}>{choice}</option>)}</select>
       : <input aria-label={field.label} value={fields[field.name] ?? ""} maxLength={256} required={field.required} disabled={submitting || paused} onChange={(event) => { setFields({ ...fields, [field.name]: event.target.value }); setAttempt(undefined); }} />}</label>)}

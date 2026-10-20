@@ -141,6 +141,7 @@ def main(argv: list[str] | None = None) -> int:
     commands = None
     try:
         if args.enable_controls:
+            from .command_models import COORDINATION_ACTIONS
             from .commands import CommandDispatcher
             from .session_commands import SessionController
             from .showcase_commands import ShowcaseSessionDriver
@@ -149,9 +150,10 @@ def main(argv: list[str] | None = None) -> int:
             commands.register(SessionController(
                 target_id="showcase-session", label="Showcase control session", adapter="showcase",
                 driver_factory=lambda: ShowcaseSessionDriver(fault_once=args.showcase_control_fault_once,
-                    inspection_complete=args.showcase_control_inspection == "complete"),
+                    inspection_complete=args.showcase_control_inspection == "complete", sink=store.publish),
                 federations=("ShowcaseFederation",), sink=store.publish, synthetic=True,
                 inspection_supported=args.showcase_control_inspection != "disabled",
+                coordination_actions=COORDINATION_ACTIONS if args.profile == "umbra" else (),
             ))
         app = create_app(store, enable_analytics=not args.no_analytics, commands=commands,
                          enable_recording=not args.no_recording, enable_alerts=not args.no_alerts,

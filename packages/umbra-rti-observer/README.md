@@ -90,6 +90,12 @@ the optional `control` extra (Pydantic); the dependency-free event store does
 not import them. See [CONTRACT.md](CONTRACT.md) for command results, deduplication,
 timeouts, late effects and process-lifetime history.
 
+The rich demo also offers synchronization registration/achievement, immediate
+save request/begun/result, and restore request/result for its owned synthetic
+session. The separate Umbra provider adapter still defaults to lifecycle only.
+See [coordination controls](COORDINATION-CONTROLS.md) for the optional driver
+seam and [demo coverage](DEMO-COVERAGE.md) for every workspace and mode.
+
 ## Provider integration
 
 Analytics now reads a named retained-window projection without traversing
@@ -183,7 +189,8 @@ latest reports, participant failures and retained phase counts. A local
 completion never becomes a federation-wide completion. These independently
 optional workspaces use explicit operation and join IDs, survive event-history
 expiry, disclose index/history loss and work with the unchanged Java fixture.
-No collective-management commands are implied or advertised.
+Observation grants no control authority. Optional owned coordination services
+are advertised separately by the command catalog.
 
 Interaction flow pairs explicit transmission and endpoint join IDs, retaining
 send/receive provenance and reported order. Missing identities stay counted but

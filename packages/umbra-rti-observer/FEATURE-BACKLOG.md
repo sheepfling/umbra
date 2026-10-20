@@ -1,5 +1,39 @@
 # Observer feature backlog
 
+## Coordination, topology and demo increment (2026-10-20)
+
+This extends the completed 2026-10-19 checkpoint. The dated native, browser and
+scale evidence below still describes that earlier source snapshot.
+
+| ID | Status | Feature | Delivered scope |
+| --- | --- | --- | --- |
+| OBS-130 | Done | Owned coordination and progress | Seven strict versioned/confirmed sync/save/restore requests, named service-return receipts, explicit driver opt-in, synthetic executor and paged scope/participant cards. Limited/lifecycle-only adapters omit the services. |
+| OBS-131 | Done | Complex topology | Stable directed-layer, connected-group and circle layouts; keyboard edge inspection; bounded evidence; cycles, parallel/reciprocal links, self-loop, rejoin and disconnected demo group. |
+| OBS-132 | Done | Demo modalities | All 19 workspaces linked with exercises; paced coordination success/failure/unknown states; nominal configuration, pause, capture/replay and alerts; limited and existing Java/failure profiles. |
+| OBS-133 | Next adapter increment | Native coordination opt-in | Map only supported services/callbacks in the separate Umbra adapter. Establish official-API/native evidence for local requests and collective results; preserve exact labels, owner execution, rejection and unknown effects. |
+
+Verification: full Python application/adapter/launcher/source-policy run **823
+passed, one optional native module skipped**; after final rejoin/checkpoint-scope
+hardening, 40 related checks passed. The final receipt/schema/conformance slice
+passed 123 checks. All 32 pure frontend checks, strict typing/lint and generated
+schema/type drift gates passed.
+
+The 392-case full browser run passed 390; two mobile cases loaded the fallback
+page during a concurrent local asset rebuild. With stable assets, all 60
+identity/topology/workspace/new-demo cases passed, including both failures.
+The final 30 coordination/demo checks passed after scope/participant paging
+was added, including two new paging cases. All 394 current browser cases are
+covered across the full run and focused reruns; no failure remains unresolved.
+Visual review covered topology, local/collective progress and coordination
+forms. These are internal observer checks, not normative RTI conformance evidence.
+
+The default real Umbra adapter remains lifecycle-only. New services run in the
+rich synthetic driver or an application driver implementing the typed seam.
+Read-only Java fixture success does not claim Java execution. Timed/subset
+services and application-state persistence remain separate adapter work.
+See [coordination controls](COORDINATION-CONTROLS.md) and
+[demo coverage](DEMO-COVERAGE.md) for the contract and junior walkthrough.
+
 ## Real-provider lifecycle gate (2026-10-19)
 
 OBS-102/103 now pass the opt-in test against an installed, real Umbra 2025
@@ -571,18 +605,16 @@ they are not proof of RTI conformance.
 - No new provider imports enter the standalone observer package. RTI-specific
   adapters own binding shapes and version differences.
 
-### Current handoff: observer backlog delivered; separate native-provider triage
+### Current handoff: optional native coordination adapter
 
-OBS-129's explicit owned-session inspection/recovery flow is verified at the
-application/adapter boundary. The separate actual-provider lifecycle gate now
-passes against the installed native extension; no synthetic or read-only Java
-result substitutes for it. Keep observer, reporter, participant and owned-command
-identities separate. The exact build evidence and broader native limitations
-are recorded above.
+Resume OBS-133 at `umbra-rti-observer-umbra/commands.py`: choose one supported
+coordination service, inspect its official 2025 binding/callback shape, then add
+explicit opt-in owner-thread mapping and actual provider evidence. Use
+`CoordinatingSessionDriver` and named requests/receipts; observation or MOM
+capabilities cannot enable controls. Publish scoped callback reports separately
+from local service return. The synthetic executor is a reference workflow.
 
-The current acceptance audit, source-matched reports and actual wheel/ZIP
-checks are complete above. Do not re-open delivered observer rows merely
-because optional native/Java functionality is absent. Any new provider query,
-Java execution or collective-management implementation needs its own explicit
-scope and evidence; broader native RTI triage starts at the exact failing test
-named in the handoff above.
+The earlier native lifecycle gate and twelve broader native failures remain
+documented above. This application increment creates no Requirements Lab
+revision or normative mapping. Broader native triage can independently resume
+the exact floating-time failure named in the earlier gate.

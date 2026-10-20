@@ -29,6 +29,7 @@ import type { MetricSample } from "./useObserver";
 import { formatTime } from "./observations";
 import { useWorkspaceRoot, useWorkspaces } from "../workspace/WorkspaceContext";
 import { WorkspacePanel } from "../workspace/WorkspacePanel";
+import { ShowcaseTour } from "../components/ShowcaseTour";
 import { participantChoices, supportsParticipantProvenance } from "./participants";
 import type { WorkspaceSettings } from "../api/types";
 
@@ -59,6 +60,7 @@ export function App() {
   const setWindowSeconds = (value: number) => { if ([30, 300, 900, 3600].includes(value)) updateWindowSeconds(value as WorkspaceSettings["window_seconds"]); };
   const [selectedFederate, setSelectedFederate] = useWorkspaceRoot("selected_federate");
   const [showWorkspaces, setShowWorkspaces] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const [frozen, setFrozen] = useState<FrozenView>();
   const sourceState = isReplay ? replay.frame?.state : observer.state;
   const displayContract = replay.document?.contract ?? observer.contract;
@@ -104,6 +106,8 @@ export function App() {
     {workspaces.error && <div className="notice-banner" role="status">{workspaces.error}</div>}
     {workspaces.notice && <div className="notice-banner" role="status">{workspaces.notice}<button type="button" className="secondary-button" onClick={() => workspaces.announce(undefined)}>Dismiss workspace notice</button></div>}
     {showWorkspaces && <WorkspacePanel canApply={!frozen && !isReplay} displayedParticipant={tab === "federates" ? federate : undefined} />}
+    {!isReplay && state?.adapters.some((adapter) => adapter.name === "showcase") && <div className="demo-tour-control"><button type="button" className="secondary-button" aria-expanded={showTour} onClick={() => setShowTour((value) => !value)}>Demo walkthrough</button></div>}
+    {showTour && !isReplay && state?.adapters.some((adapter) => adapter.name === "showcase") && <ShowcaseTour limited={state.capabilities.relationships?.state === "unsupported"} onNavigate={(view) => { navigate(view); setShowTour(false); }} />}
     <ReplayBanner replay={replay} onClose={closeReplay} />
 
     <section className="hero"><div><p className="eyebrow">Observe · investigate · understand</p><h2>{String(state?.context.federation ?? "Your federation, in focus.")}</h2><p>Follow activity across the federation, then step into an individual federate’s perspective.</p></div><div className="hero-meta"><div className="hero-stat"><label>Session</label><span>{state?.status ?? "Connecting"}</span></div><div className="hero-stat"><label>Retained history</label><span>{state?.retention.retained_events ?? 0} events</span></div><div className="hero-stat"><label>Perspective</label><span>Observer visibility</span></div><div className="hero-stat"><label>Chart window</label><select aria-label="Chart time window" value={windowSeconds} disabled={Boolean(frozen)} onChange={(event) => setWindowSeconds(Number(event.target.value))}><option value={30}>Last 30 seconds</option><option value={300}>Last 5 minutes</option><option value={900}>Last 15 minutes</option><option value={3600}>Last hour</option></select></div></div></section>
@@ -136,8 +140,8 @@ export function App() {
       {tab === "regions" && <RegionsView state={state} />}
       {tab === "mom" && <MomView state={state} />}
       {tab === "fom" && <FomView state={state} />}
-      {tab === "synchronization" && <CoordinationView key="synchronization" state={state} workspace="synchronization" />}
-      {tab === "persistence" && <CoordinationView key="persistence" state={state} workspace="persistence" />}
+      {tab === "synchronization" && <CoordinationView key="synchronization" state={state} workspace="synchronization" onActions={!frozen && !isReplay && usable(state, "commands") ? () => navigate("actions") : undefined} />}
+      {tab === "persistence" && <CoordinationView key="persistence" state={state} workspace="persistence" onActions={!frozen && !isReplay && usable(state, "commands") ? () => navigate("actions") : undefined} />}
       {tab === "time" && <TimeWorkspace state={state} analytics={analytics} />}
       {tab === "events" && <EventTable events={events} provenance={supportsParticipantProvenance(state, events)} />}
       {tab === "inspectors" && <InspectorTables state={state} />}

@@ -1,5 +1,10 @@
 # Observer scale and retention
 
+The dated reference measurements below apply to their recorded source
+fingerprints. The 2026-10-20 coordination-control, topology and demo increment
+has not repeated those scale measurements; it does not claim the earlier
+reports describe its new source fingerprint.
+
 OBS-124 is delivered within the explicit reference envelope below. Exact
 snapshot/analytics projections, lossless compact recording and shared count/
 encoded-byte evidence budgets have repeatable measurements. Wider loads now

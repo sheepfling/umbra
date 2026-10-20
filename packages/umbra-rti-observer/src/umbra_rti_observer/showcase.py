@@ -12,6 +12,7 @@ from uuid import uuid4
 
 from .core import EventSink
 from .models import JsonValue
+from .showcase_scenarios import coordination_scenario, topology_scenario
 
 ShowcaseProfile = str
 
@@ -255,6 +256,10 @@ class ShowcaseAdapter:
                     "kind": kind, "evidence": "declared", "status": "active", "viewpoint": "observer",
                     "class_key": class_key, "class_name": class_key, "reason": "Explicit synthetic adapter relationship, not a delivery receipt.",
                 })
+            for relationship in topology_scenario(self._session_id):
+                self._emit("relationship.observed", relationship=relationship)
+            for observation in coordination_scenario(self._session_id, 0):
+                self._emit("coordination.observed", coordination=observation)
             subject: dict[str, JsonValue] = {"participant_id": "server", "membership_id": "server-join-1", "display_name": "ShowcaseServer"}
             phases: tuple[tuple[str, str, str, str, str, dict[str, JsonValue]], ...] = (
                 ("synchronization", "startup-sync", "Ready to run", "requested", "local", {"subject": subject}),
@@ -286,6 +291,8 @@ class ShowcaseAdapter:
         while not self._stop.wait(self.interval):
             self._tick += 1
             if self.profile == "umbra":
+                for observation in coordination_scenario(self._session_id, self._tick):
+                    self._emit("coordination.observed", coordination=observation)
                 self._mom("counter", "traffic-counter", counter_key="observer-reports", semantics="cumulative", value=self._tick, unit="reports")
                 if self._tick % 8 == 0:
                     lower = (self._tick % 20) * 25

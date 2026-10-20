@@ -24,7 +24,7 @@ test.describe("explicit topology", () => {
     const table = page.getByRole("article", { name: "Reported relationships" });
     await expect(table.locator("tbody tr")).toHaveCount(3);
     await expect(graph.getByTestId("topology-edge")).toHaveCount(3);
-    await expect(graph.getByRole("button")).toHaveCount(3);
+    await expect(graph.getByRole("button", { name: /^Focus / })).toHaveCount(3);
     await graph.getByRole("button", { name: "Focus Same name · a / a2", exact: true }).press("Enter");
     await expect(table.locator("tbody tr")).toHaveCount(1);
     await expect(table).toContainText("route-2");

@@ -487,6 +487,25 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AchieveSynchronizationCommand */
+        AchieveSynchronizationCommand: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "sync.achieve";
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            expected_version: components["schemas"]["CommandTargetVersion"];
+            parameters: components["schemas"]["SynchronizationAchieveParameters"];
+            /** Request Id */
+            request_id: string;
+            /** Target Id */
+            target_id: string;
+        };
         /** ActivityBucket */
         ActivityBucket: {
             /** Callbacks */
@@ -919,7 +938,7 @@ export interface components {
              * Action
              * @enum {string}
              */
-            action: "session.connect" | "federate.join" | "federate.resign" | "session.disconnect" | "session.inspect" | "session.recover";
+            action: "session.connect" | "federate.join" | "federate.resign" | "session.disconnect" | "session.inspect" | "session.recover" | "sync.register" | "sync.achieve" | "save.request" | "save.begun" | "save.complete" | "restore.request" | "restore.complete";
             /**
              * Completion
              * @default service-return
@@ -1015,6 +1034,7 @@ export interface components {
         };
         /** CommandOutcome */
         CommandOutcome: {
+            coordination?: components["schemas"]["CoordinationCommandReceipt"] | null;
             /** Federate Handle */
             federate_handle?: string | null;
             inspection?: components["schemas"]["SessionInspectionResult"] | null;
@@ -1036,7 +1056,7 @@ export interface components {
             late_outcome?: components["schemas"]["CommandOutcome"] | null;
             outcome?: components["schemas"]["CommandOutcome"] | null;
             /** Request */
-            request: components["schemas"]["ConnectCommand"] | components["schemas"]["JoinCommand"] | components["schemas"]["ResignCommand"] | components["schemas"]["DisconnectCommand"] | components["schemas"]["InspectSessionCommand"] | components["schemas"]["RecoverSessionCommand"];
+            request: components["schemas"]["ConnectCommand"] | components["schemas"]["JoinCommand"] | components["schemas"]["ResignCommand"] | components["schemas"]["DisconnectCommand"] | components["schemas"]["InspectSessionCommand"] | components["schemas"]["RecoverSessionCommand"] | components["schemas"]["RegisterSynchronizationCommand"] | components["schemas"]["AchieveSynchronizationCommand"] | components["schemas"]["RequestSaveCommand"] | components["schemas"]["SaveBegunCommand"] | components["schemas"]["CompleteSaveCommand"] | components["schemas"]["RequestRestoreCommand"] | components["schemas"]["CompleteRestoreCommand"];
             /** Started At */
             started_at?: number | null;
             /**
@@ -1193,6 +1213,44 @@ export interface components {
             /** Stopped At */
             stopped_at: number;
         };
+        /** CompleteRestoreCommand */
+        CompleteRestoreCommand: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "restore.complete";
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            expected_version: components["schemas"]["CommandTargetVersion"];
+            parameters: components["schemas"]["CoordinationCompletionParameters"];
+            /** Request Id */
+            request_id: string;
+            /** Target Id */
+            target_id: string;
+        };
+        /** CompleteSaveCommand */
+        CompleteSaveCommand: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "save.complete";
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            expected_version: components["schemas"]["CommandTargetVersion"];
+            parameters: components["schemas"]["CoordinationCompletionParameters"];
+            /** Request Id */
+            request_id: string;
+            /** Target Id */
+            target_id: string;
+        };
         /** ConnectCommand */
         ConnectCommand: {
             /**
@@ -1277,6 +1335,41 @@ export interface components {
             media_type: string;
             snapshot: components["schemas"]["ResourceDescription"];
             stream: components["schemas"]["StreamDescription"];
+        };
+        /**
+         * CoordinationCommandReceipt
+         * @description Local service return, never a collective synchronization/save result.
+         */
+        CoordinationCommandReceipt: {
+            /**
+             * Basis
+             * @default service-return
+             * @constant
+             */
+            basis: "service-return";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "synchronization" | "save" | "restore";
+            /** Label */
+            label: string;
+            /** Operation Id */
+            operation_id?: string | null;
+        };
+        /** CoordinationCompletionParameters */
+        CoordinationCompletionParameters: {
+            /**
+             * Result
+             * @default completed
+             * @enum {string}
+             */
+            result: "completed" | "failed";
+        };
+        /** CoordinationLabelParameters */
+        CoordinationLabelParameters: {
+            /** Label */
+            label: string;
         };
         /** CoordinationParticipantResponse */
         CoordinationParticipantResponse: {
@@ -4507,6 +4600,25 @@ export interface components {
              */
             status: string;
         };
+        /** RegisterSynchronizationCommand */
+        RegisterSynchronizationCommand: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "sync.register";
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            expected_version: components["schemas"]["CommandTargetVersion"];
+            parameters: components["schemas"]["SynchronizationRegisterParameters"];
+            /** Request Id */
+            request_id: string;
+            /** Target Id */
+            target_id: string;
+        };
         /** RelationshipObservationInput */
         RelationshipObservationInput: {
             /** Class Key */
@@ -4620,6 +4732,44 @@ export interface components {
             /** Regulating */
             regulating?: boolean | null;
         };
+        /** RequestRestoreCommand */
+        RequestRestoreCommand: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "restore.request";
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            expected_version: components["schemas"]["CommandTargetVersion"];
+            parameters: components["schemas"]["CoordinationLabelParameters"];
+            /** Request Id */
+            request_id: string;
+            /** Target Id */
+            target_id: string;
+        };
+        /** RequestSaveCommand */
+        RequestSaveCommand: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "save.request";
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            expected_version: components["schemas"]["CommandTargetVersion"];
+            parameters: components["schemas"]["CoordinationLabelParameters"];
+            /** Request Id */
+            request_id: string;
+            /** Target Id */
+            target_id: string;
+        };
         /** ResignCommand */
         ResignCommand: {
             /**
@@ -4698,6 +4848,25 @@ export interface components {
             next_sequence: number;
             /** Retained Events */
             retained_events: number;
+        };
+        /** SaveBegunCommand */
+        SaveBegunCommand: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "save.begun";
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            expected_version: components["schemas"]["CommandTargetVersion"];
+            parameters: components["schemas"]["EmptyParameters"];
+            /** Request Id */
+            request_id: string;
+            /** Target Id */
+            target_id: string;
         };
         /** SessionInspectionResult */
         SessionInspectionResult: {
@@ -4936,6 +5105,17 @@ export interface components {
             /** Websocket Path */
             websocket_path: string;
         };
+        /** SynchronizationAchieveParameters */
+        SynchronizationAchieveParameters: {
+            /** Label */
+            label: string;
+            /**
+             * Result
+             * @default achieved
+             * @enum {string}
+             */
+            result: "achieved" | "failed";
+        };
         /** SynchronizationObservation */
         SynchronizationObservation: {
             /** Federation Id */
@@ -4968,6 +5148,16 @@ export interface components {
             /** Session Id */
             session_id: string;
             subject?: components["schemas"]["ParticipantIdentityResponse"] | null;
+        };
+        /** SynchronizationRegisterParameters */
+        SynchronizationRegisterParameters: {
+            /** Label */
+            label: string;
+            /**
+             * Tag Text
+             * @default
+             */
+            tag_text: string;
         };
         /** TimeGrantObservation */
         TimeGrantObservation: {
@@ -5628,7 +5818,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ConnectCommand"] | components["schemas"]["JoinCommand"] | components["schemas"]["ResignCommand"] | components["schemas"]["DisconnectCommand"] | components["schemas"]["InspectSessionCommand"] | components["schemas"]["RecoverSessionCommand"];
+                "application/json": components["schemas"]["ConnectCommand"] | components["schemas"]["JoinCommand"] | components["schemas"]["ResignCommand"] | components["schemas"]["DisconnectCommand"] | components["schemas"]["InspectSessionCommand"] | components["schemas"]["RecoverSessionCommand"] | components["schemas"]["RegisterSynchronizationCommand"] | components["schemas"]["AchieveSynchronizationCommand"] | components["schemas"]["RequestSaveCommand"] | components["schemas"]["SaveBegunCommand"] | components["schemas"]["CompleteSaveCommand"] | components["schemas"]["RequestRestoreCommand"] | components["schemas"]["CompleteRestoreCommand"];
             };
         };
         responses: {

@@ -1,5 +1,49 @@
 {
   "$defs": {
+    "AchieveSynchronizationCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "sync.achieve",
+          "title": "Action",
+          "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "expected_version": {
+          "$ref": "#/$defs/CommandTargetVersion"
+        },
+        "parameters": {
+          "$ref": "#/$defs/SynchronizationAchieveParameters"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "target_id",
+        "expected_version",
+        "action",
+        "parameters"
+      ],
+      "title": "AchieveSynchronizationCommand",
+      "type": "object"
+    },
     "ActivityBucket": {
       "additionalProperties": false,
       "properties": {
@@ -1127,7 +1171,14 @@
             "federate.resign",
             "session.disconnect",
             "session.inspect",
-            "session.recover"
+            "session.recover",
+            "sync.register",
+            "sync.achieve",
+            "save.request",
+            "save.begun",
+            "save.complete",
+            "restore.request",
+            "restore.complete"
           ],
           "title": "Action",
           "type": "string"
@@ -1329,6 +1380,17 @@
     "CommandOutcome": {
       "additionalProperties": false,
       "properties": {
+        "coordination": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CoordinationCommandReceipt"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "federate_handle": {
           "anyOf": [
             {
@@ -1447,10 +1509,17 @@
             "mapping": {
               "federate.join": "#/$defs/JoinCommand",
               "federate.resign": "#/$defs/ResignCommand",
+              "restore.complete": "#/$defs/CompleteRestoreCommand",
+              "restore.request": "#/$defs/RequestRestoreCommand",
+              "save.begun": "#/$defs/SaveBegunCommand",
+              "save.complete": "#/$defs/CompleteSaveCommand",
+              "save.request": "#/$defs/RequestSaveCommand",
               "session.connect": "#/$defs/ConnectCommand",
               "session.disconnect": "#/$defs/DisconnectCommand",
               "session.inspect": "#/$defs/InspectSessionCommand",
-              "session.recover": "#/$defs/RecoverSessionCommand"
+              "session.recover": "#/$defs/RecoverSessionCommand",
+              "sync.achieve": "#/$defs/AchieveSynchronizationCommand",
+              "sync.register": "#/$defs/RegisterSynchronizationCommand"
             },
             "propertyName": "action"
           },
@@ -1472,6 +1541,27 @@
             },
             {
               "$ref": "#/$defs/RecoverSessionCommand"
+            },
+            {
+              "$ref": "#/$defs/RegisterSynchronizationCommand"
+            },
+            {
+              "$ref": "#/$defs/AchieveSynchronizationCommand"
+            },
+            {
+              "$ref": "#/$defs/RequestSaveCommand"
+            },
+            {
+              "$ref": "#/$defs/SaveBegunCommand"
+            },
+            {
+              "$ref": "#/$defs/CompleteSaveCommand"
+            },
+            {
+              "$ref": "#/$defs/RequestRestoreCommand"
+            },
+            {
+              "$ref": "#/$defs/CompleteRestoreCommand"
             }
           ],
           "title": "Request"
@@ -1777,6 +1867,94 @@
       "title": "CompactRecordingDocument",
       "type": "object"
     },
+    "CompleteRestoreCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "restore.complete",
+          "title": "Action",
+          "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "expected_version": {
+          "$ref": "#/$defs/CommandTargetVersion"
+        },
+        "parameters": {
+          "$ref": "#/$defs/CoordinationCompletionParameters"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "target_id",
+        "expected_version",
+        "action",
+        "parameters"
+      ],
+      "title": "CompleteRestoreCommand",
+      "type": "object"
+    },
+    "CompleteSaveCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "save.complete",
+          "title": "Action",
+          "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "expected_version": {
+          "$ref": "#/$defs/CommandTargetVersion"
+        },
+        "parameters": {
+          "$ref": "#/$defs/CoordinationCompletionParameters"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "target_id",
+        "expected_version",
+        "action",
+        "parameters"
+      ],
+      "title": "CompleteSaveCommand",
+      "type": "object"
+    },
     "ConnectCommand": {
       "additionalProperties": false,
       "properties": {
@@ -1903,6 +2081,88 @@
         "stream"
       ],
       "title": "ContractResponse",
+      "type": "object"
+    },
+    "CoordinationCommandReceipt": {
+      "additionalProperties": false,
+      "description": "Local service return, never a collective synchronization/save result.",
+      "properties": {
+        "basis": {
+          "const": "service-return",
+          "default": "service-return",
+          "title": "Basis",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "synchronization",
+            "save",
+            "restore"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "operation_id": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operation Id"
+        }
+      },
+      "required": [
+        "kind",
+        "label"
+      ],
+      "title": "CoordinationCommandReceipt",
+      "type": "object"
+    },
+    "CoordinationCompletionParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "result": {
+          "default": "completed",
+          "enum": [
+            "completed",
+            "failed"
+          ],
+          "title": "Result",
+          "type": "string"
+        }
+      },
+      "title": "CoordinationCompletionParameters",
+      "type": "object"
+    },
+    "CoordinationLabelParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "title": "CoordinationLabelParameters",
       "type": "object"
     },
     "CoordinationParticipantResponse": {
@@ -10675,6 +10935,50 @@
       "title": "RegionsResponse",
       "type": "object"
     },
+    "RegisterSynchronizationCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "sync.register",
+          "title": "Action",
+          "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "expected_version": {
+          "$ref": "#/$defs/CommandTargetVersion"
+        },
+        "parameters": {
+          "$ref": "#/$defs/SynchronizationRegisterParameters"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "target_id",
+        "expected_version",
+        "action",
+        "parameters"
+      ],
+      "title": "RegisterSynchronizationCommand",
+      "type": "object"
+    },
     "RelationshipObservationInput": {
       "additionalProperties": false,
       "properties": {
@@ -11080,6 +11384,94 @@
       "title": "ReportedTimeStateResponse",
       "type": "object"
     },
+    "RequestRestoreCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "restore.request",
+          "title": "Action",
+          "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "expected_version": {
+          "$ref": "#/$defs/CommandTargetVersion"
+        },
+        "parameters": {
+          "$ref": "#/$defs/CoordinationLabelParameters"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "target_id",
+        "expected_version",
+        "action",
+        "parameters"
+      ],
+      "title": "RequestRestoreCommand",
+      "type": "object"
+    },
+    "RequestSaveCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "save.request",
+          "title": "Action",
+          "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "expected_version": {
+          "$ref": "#/$defs/CommandTargetVersion"
+        },
+        "parameters": {
+          "$ref": "#/$defs/CoordinationLabelParameters"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "target_id",
+        "expected_version",
+        "action",
+        "parameters"
+      ],
+      "title": "RequestSaveCommand",
+      "type": "object"
+    },
     "ResignCommand": {
       "additionalProperties": false,
       "properties": {
@@ -11292,6 +11684,50 @@
         "next_sequence"
       ],
       "title": "RetentionResponse",
+      "type": "object"
+    },
+    "SaveBegunCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "save.begun",
+          "title": "Action",
+          "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "expected_version": {
+          "$ref": "#/$defs/CommandTargetVersion"
+        },
+        "parameters": {
+          "$ref": "#/$defs/EmptyParameters"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "target_id",
+        "expected_version",
+        "action",
+        "parameters"
+      ],
+      "title": "SaveBegunCommand",
       "type": "object"
     },
     "SessionInspectionResult": {
@@ -11883,6 +12319,32 @@
       "title": "StreamDescription",
       "type": "object"
     },
+    "SynchronizationAchieveParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "result": {
+          "default": "achieved",
+          "enum": [
+            "achieved",
+            "failed"
+          ],
+          "title": "Result",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "title": "SynchronizationAchieveParameters",
+      "type": "object"
+    },
     "SynchronizationObservation": {
       "additionalProperties": false,
       "properties": {
@@ -11999,6 +12461,29 @@
         "phase"
       ],
       "title": "SynchronizationObservation",
+      "type": "object"
+    },
+    "SynchronizationRegisterParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "tag_text": {
+          "default": "",
+          "maxLength": 256,
+          "title": "Tag Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "title": "SynchronizationRegisterParameters",
       "type": "object"
     },
     "TimeGrantObservation": {

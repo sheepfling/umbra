@@ -34,3 +34,23 @@ test("lifecycle fields are whitelisted and resign policy is explicit", () => {
   assert.deepEqual(buildCommand("federate.resign", target, {}, true).parameters, { policy: "no_action" });
   assert.throws(() => buildCommand("federate.resign", target, { policy: "destroy_everything" }, true), /supported resign policy/);
 });
+
+test("coordination requires owned versions, preserves exact labels, and whitelists named fields", () => {
+  const specs = [
+    ["sync.register", {label:"  exact  ",tag_text:"tag"}, {label:"  exact  ",tag_text:"tag"}],
+    ["sync.achieve", {label:"  exact  ",result:"failed"}, {label:"  exact  ",result:"failed"}],
+    ["save.request", {label:"  exact  "}, {label:"  exact  "}],
+    ["save.begun", {}, {}],
+    ["save.complete", {result:"completed"}, {result:"completed"}],
+    ["restore.request", {label:"  exact  "}, {label:"  exact  "}],
+    ["restore.complete", {result:"failed"}, {result:"failed"}],
+  ];
+  for (const [action, fields, expected] of specs) {
+    assert.throws(() => buildCommand(action, legacy, fields, true), /owned target version/);
+    const request = buildCommand(action, target, {...fields, provider_path:"never-send", method:"never-run"}, true);
+    assert.deepEqual(request.parameters, expected);
+    assert.deepEqual(request.expected_version, target.version);
+  }
+  assert.throws(() => buildCommand("sync.achieve", target, {label:"x",result:"maybe"}, true), /explicit synchronization/);
+  assert.throws(() => buildCommand("save.complete", target, {result:"success-ish"}, true), /explicit local result/);
+});

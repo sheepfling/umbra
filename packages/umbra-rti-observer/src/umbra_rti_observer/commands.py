@@ -27,7 +27,7 @@ from .command_models import (
     CommandRequest,
     CommandTarget,
     CommandTargetVersion,
-    validate_inspection_outcome,
+    validate_command_outcome,
 )
 from .contract import OBSERVER_CONTRACT_VERSION
 from .core import EventSink
@@ -402,7 +402,7 @@ class CommandDispatcher:
                     outcome = CommandOutcome.model_validate(
                         worker.session.execute(record.request).model_dump(mode="python")
                     )
-                    validate_inspection_outcome(record.request, outcome)
+                    validate_command_outcome(record.request, outcome)
                 except CommandUnavailable as error:
                     outcome = None
                     failure = CommandError(

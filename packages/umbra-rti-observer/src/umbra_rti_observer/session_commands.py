@@ -10,12 +10,15 @@ from collections.abc import Callable
 from typing import Literal, Protocol, runtime_checkable
 
 from .command_models import (
+    COORDINATION_REQUEST_TYPES,
     CommandAction,
     CommandDefinition,
     CommandField,
     CommandOutcome,
     CommandRequest,
     CommandTarget,
+    CoordinationAction,
+    CoordinationCommandRequest,
     EmptyParameters,
     JoinParameters,
     ResignParameters,
@@ -23,6 +26,7 @@ from .command_models import (
     SessionStateObservation,
 )
 from .commands import CommandUnavailable
+from .coordination_commands import coordination_definitions
 from .core import EventSink
 from .schemas import JsonObjectResponse, ObserverModel
 
@@ -54,6 +58,13 @@ class InspectableSessionDriver(SessionDriver, Protocol):
     def inspect(self) -> SessionStateObservation: ...
 
 
+@runtime_checkable
+class CoordinatingSessionDriver(SessionDriver, Protocol):
+    """Optional owned service seam. No RTI method names or binding shapes leak out."""
+
+    def coordinate(self, request: CoordinationCommandRequest) -> CommandOutcome: ...
+
+
 class SessionController:
     def __init__(
         self,
@@ -67,6 +78,7 @@ class SessionController:
         synthetic: bool = False,
         supported_actions: tuple[CommandAction, ...] = _ACTIONS,
         inspection_supported: bool = False,
+        coordination_actions: tuple[CoordinationAction, ...] = (),
     ) -> None:
         if not federations or any(not value.strip() for value in federations):
             raise ValueError("configure at least one allowed federation")
@@ -77,7 +89,8 @@ class SessionController:
         self._federations = tuple(dict.fromkeys(federations))
         self._sink = sink
         self._synthetic = synthetic
-        self._supported = frozenset(supported_actions)
+        self._supported = frozenset((*supported_actions, *coordination_actions))
+        self._coordination_actions = coordination_actions
         self._inspection_supported = inspection_supported
         self._driver: SessionDriver | None = None
         self._lock = threading.RLock()
@@ -193,14 +206,14 @@ class SessionController:
             )
             for action, title, description, model, confirmation, fields in specs
             if self._inspection_supported or action not in {"session.inspect", "session.recover"}
-        )
+        ) + coordination_definitions(self._coordination_actions)
 
     def describe(self) -> CommandTarget:
         with self._lock:
             allowed: dict[SessionState, set[CommandAction]] = {
                 "disconnected": {"session.connect"},
                 "connected": {"federate.join", "session.disconnect"},
-                "joined": {"federate.resign"},
+                "joined": {"federate.resign", *self._coordination_actions},
                 "unknown": set(),
             }
             definitions: list[CommandDefinition] = []
@@ -241,8 +254,10 @@ class SessionController:
 
     def execute(self, request: CommandRequest) -> CommandOutcome:
         descriptor = next(
-            item for item in self.describe().commands if item.action == request.action
+            (item for item in self.describe().commands if item.action == request.action), None
         )
+        if descriptor is None:
+            raise CommandUnavailable("This owned session does not offer the requested action.")
         if request.target_id != self._target_id or descriptor.state != "available":
             raise CommandUnavailable(
                 descriptor.reason or "Command target does not match this session."
@@ -266,6 +281,10 @@ class SessionController:
             driver = self._driver
             if driver is None:
                 raise CommandUnavailable("Session has no driver.")
+            if isinstance(request, COORDINATION_REQUEST_TYPES):
+                if not isinstance(driver, CoordinatingSessionDriver):
+                    raise CommandUnavailable("This owned driver does not implement coordination services.")
+                return driver.coordinate(request)
             if request.action in {"session.inspect", "session.recover"}:
                 return self._inspect(driver, reconcile=request.action == "session.recover")
             if request.action == "federate.join":

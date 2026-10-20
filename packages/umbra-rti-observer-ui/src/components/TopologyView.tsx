@@ -5,6 +5,7 @@ import type { ParticipantIdentity, RelationshipSnapshot, StateResponse } from ".
 import { formatTime } from "../app/observations";
 import { EmptyPanel } from "./ChartPanel";
 import { MetricCard } from "./MetricCard";
+import { layoutTopology, type TopologyLayout } from "../app/topologyLayout";
 
 export function topologyNodeKey(row: RelationshipSnapshot, endpoint: ParticipantIdentity): string {
   return JSON.stringify([row.identity_namespace, row.federation_id, endpoint.participant_id, endpoint.membership_id]);
@@ -24,6 +25,8 @@ function Endpoint({ value }: { value: ParticipantIdentity }) {
 
 function RelationshipGraph({ rows, selected, onSelect }: { rows: RelationshipSnapshot[]; selected: string; onSelect: (key: string) => void }) {
   const marker = useId().replace(/:/g, "");
+  const [layout, setLayout] = useState<TopologyLayout>("layered");
+  const [selectedEdge, setSelectedEdge] = useState("");
   // A bounded view, not a downsampled claim about the federation. The table
   // retains every filtered record and explicitly reports the drawing limit.
   const drawn = rows.slice(0, 40);
@@ -32,31 +35,44 @@ function RelationshipGraph({ rows, selected, onSelect }: { rows: RelationshipSna
     const key = topologyNodeKey(row, endpoint);
     if (!nodes.has(key)) nodes.set(key, endpoint);
   }
-  const positions = new Map([...nodes].sort(([a], [b]) => a.localeCompare(b)).map(([key, endpoint], index, all) => {
-    const angle = index * Math.PI * 2 / all.length - Math.PI / 2;
-    return [key, { endpoint, x: 450 + 290 * Math.cos(angle), y: 240 + 165 * Math.sin(angle) }] as const;
-  }));
+  const geometry = layoutTopology([...nodes.keys()], drawn.map((row) => ({
+    producer: topologyNodeKey(row, row.producer), recipient: topologyNodeKey(row, row.recipient),
+  })), layout);
+  const positions = new Map([...nodes].map(([key, endpoint]) => [key, { endpoint, ...geometry.positions.get(key)! }]));
+  const detail = rows.find((row) => edgeKey(row) === selectedEdge);
+  const pairTotals = new Map<string, number>();
+  for (const row of drawn) {
+    const pair = JSON.stringify([topologyNodeKey(row, row.producer), topologyNodeKey(row, row.recipient)]);
+    pairTotals.set(pair, (pairTotals.get(pair) ?? 0) + 1);
+  }
+  const pairIndexes = new Map<string, number>();
 
   return <article className="panel topology-panel" aria-label="Explicit relationship graph">
     <div className="panel-heading"><div><p className="eyebrow">Directed · adapter supplied</p><h2>Explicit relationship graph</h2></div><span className="panel-note">{drawn.length} of {rows.length} filtered edges · select a node to focus</span></div>
+    <label>Display layout<select aria-label="Topology layout" value={layout} onChange={(event) => setLayout(event.target.value as TopologyLayout)}><option value="layered">Directed layers</option><option value="components">Connected groups</option><option value="circle">Circle</option></select></label>
     {rows.length > 40 && <p className="coverage-note">Drawing limited to the newest 40 matching relationships. Narrow the filters or use the complete paged table below; no unshown edge is implied absent.</p>}
-    {!drawn.length ? <p className="empty">No explicit relationships match this view. Publications, subscriptions and receive events are never paired into guessed edges.</p> : <div className="topology-scroll"><svg className="topology-graph" viewBox="0 0 900 490" role="group" aria-label="Producer to recipient relationships">
+    {!drawn.length ? <p className="empty">No explicit relationships match this view. Publications, subscriptions and receive events are never paired into guessed edges.</p> : <div className="topology-scroll"><svg className="topology-graph" viewBox={`0 0 ${geometry.width} ${geometry.height}`} role="group" aria-label="Producer to recipient relationships">
       <defs><marker id={marker} markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 Z" fill="context-stroke" /></marker></defs>
-      {drawn.map((row, index) => {
+      {drawn.map((row) => {
         const a = positions.get(topologyNodeKey(row, row.producer))!;
         const b = positions.get(topologyNodeKey(row, row.recipient))!;
         const dx = b.x - a.x, dy = b.y - a.y;
         const length = Math.hypot(dx, dy);
-        const offset = 24 + (index % 4) * 18;
-        const path = length < 1 ? `M ${a.x - 18} ${a.y - 20} C ${a.x - 100} ${a.y - 120}, ${a.x + 100} ${a.y - 120}, ${a.x + 18} ${a.y - 20}`
+        const pair = JSON.stringify([topologyNodeKey(row, row.producer), topologyNodeKey(row, row.recipient)]);
+        const lane = pairIndexes.get(pair) ?? 0;
+        pairIndexes.set(pair, lane + 1);
+        const offset = 24 + lane / Math.max(1, (pairTotals.get(pair) ?? 1) - 1) * 120;
+        const loopDirection = a.y < 130 ? 1 : -1;
+        const path = length < 1 ? `M ${a.x - 18} ${a.y + loopDirection * 20} C ${Math.max(20, a.x - 100)} ${a.y + loopDirection * 120}, ${Math.min(geometry.width - 20, a.x + 100)} ${a.y + loopDirection * 120}, ${a.x + 18} ${a.y + loopDirection * 20}`
           : `M ${a.x + dx / length * 29} ${a.y + dy / length * 29} Q ${(a.x + b.x) / 2 - dy / length * offset} ${(a.y + b.y) / 2 + dx / length * offset}, ${b.x - dx / length * 32} ${b.y - dy / length * 32}`;
-        return <path key={edgeKey(row)} d={path} className={`topology-edge ${row.evidence} ${row.status}`} markerEnd={`url(#${marker})`} data-testid="topology-edge"><title>{row.relationship_id}: {identityLabel(row.producer)} → {identityLabel(row.recipient)} · {row.kind} · {row.evidence} · {row.status} · {row.source}</title></path>;
+        return <path key={edgeKey(row)} d={path} className={`topology-edge ${row.evidence} ${row.status} ${selectedEdge === edgeKey(row) ? "selected" : ""}`} markerEnd={`url(#${marker})`} data-testid="topology-edge" role="button" tabIndex={0} aria-label={`Inspect relationship ${row.relationship_id} from ${row.source}`} aria-pressed={selectedEdge === edgeKey(row)} onClick={() => setSelectedEdge(edgeKey(row))} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedEdge(edgeKey(row)); } }}><title>{row.relationship_id}: {identityLabel(row.producer)} → {identityLabel(row.recipient)} · {row.kind} · {row.evidence} · {row.status} · {row.source}</title></path>;
       })}
       {[...positions].map(([key, point]) => <g key={key} transform={`translate(${point.x} ${point.y})`} role="button" tabIndex={0} aria-label={`Focus ${identityLabel(point.endpoint)}`} aria-pressed={selected === key} className={`topology-node ${selected === key ? "selected" : ""}`} onClick={() => onSelect(selected === key ? "all" : key)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect(selected === key ? "all" : key); } }}>
         <title>{identityLabel(point.endpoint)} · {key}</title><circle r="25" /><text y="5" textAnchor="middle" aria-hidden="true">{(point.endpoint.display_name ?? point.endpoint.participant_id).slice(0, 2).toUpperCase()}</text>
         <text y="48" textAnchor="middle" className="topology-label">{(point.endpoint.display_name ?? point.endpoint.participant_id).slice(0, 24)}</text><text y="65" textAnchor="middle" className="topology-join">{point.endpoint.membership_id.slice(0, 24)}</text>
       </g>)}
     </svg></div>}
+    {selectedEdge && <section className="topology-detail" aria-label="Selected relationship"><h3>Selected relationship</h3>{detail ? <><strong>{detail.relationship_id}</strong><p>{identityLabel(detail.producer)} → {identityLabel(detail.recipient)}</p><p>{detail.kind} · {detail.evidence} · {detail.status} · {detail.class_name ?? detail.class_key ?? "Class unreported"}</p><p>Reporter {detail.source} / {detail.session_id} · namespace {detail.identity_namespace} / federation {detail.federation_id} · report #{detail.sequence}</p>{detail.reason && <p>{detail.reason}</p>}</> : <p>The selected relationship is no longer in the filtered retained evidence.</p>}<button type="button" className="secondary-button" onClick={() => setSelectedEdge("")}>Close relationship details</button></section>}
     <p className="coverage-note">Arrow = reported producer → recipient. Teal = declared; blue = observed relationship, not a delivery receipt. Dashed = ended or unknown reported status. Positions have no timing, distance or network meaning.</p>
   </article>;
 }

@@ -591,7 +591,9 @@ GET  /api/commands/{command_id}  # CommandRecord: current execution result
 
 `CommandRequest` is a discriminated union of `ConnectCommand`, `JoinCommand`,
 `ResignCommand`, `DisconnectCommand`, and optional `InspectSessionCommand` /
-`RecoverSessionCommand`. Unknown actions, extra parameters,
+`RecoverSessionCommand`, plus seven optional synchronization/save/restore
+requests described in [owned coordination controls](COORDINATION-CONTROLS.md).
+Unknown actions, extra parameters,
 coerced booleans, credentials and arbitrary provider calls are rejected before
 dispatch. Each action has named, strict parameter models. For example:
 
@@ -632,7 +634,7 @@ request ID is a conflict. After reviewing refreshed state, use a new request ID.
 
 Older command services may omit target versions. The maintained React client
 then keeps the original four lifecycle request shapes, without extra version
-fields. It never invents a version to enable inspection/recovery. Modern reference
+fields. It never invents a version to enable inspection/recovery or coordination. Modern reference
 targets require the guard even for the original lifecycle actions; this is an
 authorization/precondition check, not proof that an observation identifies an
 owned session. Applications still supply authentication/authorization for real
@@ -640,8 +642,12 @@ deployments.
 
 HTTP 202 means a command resource exists, not that execution succeeded. Results
 move through accepted/running to succeeded/failed/unavailable. Succeeded means
-the local service returned; future collective actions must track their own
-callback completion. Results include the request, timestamps, typed outcome
+the local service returned. Coordination outcomes retain a named
+`CoordinationCommandReceipt` with kind, exact label, optional operation ID and
+`basis: service-return`. Collective completion requires explicit coordination
+reports. The seven services require confirmation and an owned target version;
+they are omitted unless the adapter opts in.
+Results include the request, timestamps, typed outcome
 or error, and its effect classification (`none` or `unknown`).
 
 Request IDs deduplicate only within retained command history. Reusing a retained
@@ -839,13 +845,17 @@ Only an explicit federation-scoped completed report displays that outcome.
 Raw callbacks with similar names do not create normalized phases automatically.
 
 The UI has operation selection, label/source/identity/reason search, latest
-phase/scope filters, participant failures and a retained phase sequence with
-report counts. The sequence shows all scopes/phases for the selected operation
+phase/scope filters and a selected operation drill-down, initially drawing
+20 scopes and 25 supplied participants per scope with separate load-more controls.
+The retained phase sequence includes report counts and participant failures.
+It shows all scopes/phases for the selected operation
 independently of the latest-report table filters. Tables and sequences initially
 render 100 records with explicit load-more controls. Pause freezes them; clear
 preserves a missing selection instead of silently choosing another operation.
-The Java fixture supplies the same models unchanged. No register, achieve,
-save or restore command is advertised; observation does not grant authority.
+The Java fixture supplies the same read models unchanged. Observation does not
+grant authority. Optional register/achieve/save/restore services are advertised
+separately by an owned adapter's command catalog; the Java read fixture does
+not execute them.
 
 Optional inspector infrastructure support does not upgrade an adapter's
 unsupported/disabled feature to partial. Actual adapter reports aggregate with

@@ -15,7 +15,30 @@ export function buildCommand(action: CommandDefinition["action"], target: Comman
     case "session.recover":
       if (!target.version) throw new Error("This backend did not provide the owned target version required for inspection/recovery.");
       return { ...base, action, expected_version: target.version, parameters: {} };
+    case "sync.register":
+      return { ...base, action, expected_version: requireVersion(target), parameters: { label: fields.label ?? "", tag_text: fields.tag_text ?? "" } };
+    case "sync.achieve":
+      if (fields.result !== "achieved" && fields.result !== "failed") throw new Error("Select an explicit synchronization result.");
+      return { ...base, action, expected_version: requireVersion(target), parameters: { label: fields.label ?? "", result: fields.result } };
+    case "save.request":
+    case "restore.request":
+      return { ...base, action, expected_version: requireVersion(target), parameters: { label: fields.label ?? "" } };
+    case "save.begun":
+      return { ...base, action, expected_version: requireVersion(target), parameters: {} };
+    case "save.complete":
+    case "restore.complete":
+      if (fields.result !== "completed" && fields.result !== "failed") throw new Error("Select an explicit local result.");
+      return { ...base, action, expected_version: requireVersion(target), parameters: { result: fields.result } };
   }
+}
+
+function requireVersion(target: CommandTarget) {
+  if (!target.version) throw new Error("Refresh the owned target version before sending a coordination command.");
+  return target.version;
+}
+
+export function isCoordinationAction(action: CommandDefinition["action"]): boolean {
+  return action.startsWith("sync.") || action.startsWith("save.") || action.startsWith("restore.");
 }
 
 function resignPolicy(value: string): ResignPolicy {

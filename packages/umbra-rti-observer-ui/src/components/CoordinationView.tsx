@@ -5,6 +5,7 @@ import type { CoordinationSnapshot, StateResponse } from "../api/types";
 import { formatTime } from "../app/observations";
 import { EmptyPanel } from "./ChartPanel";
 import { MetricCard } from "./MetricCard";
+import { CoordinationProgress } from "./CoordinationProgress";
 
 export function coordinationOperationKey(row: CoordinationSnapshot): string {
   return JSON.stringify([row.source, row.session_id, row.identity_namespace, row.federation_id, row.kind, row.operation_id]);
@@ -25,7 +26,7 @@ function Participants({ row }: { row: CoordinationSnapshot }) {
   return <details><summary>Reported participants ({row.participants.length})</summary>{row.participants.length ? <ul className="coordination-participants">{row.participants.map((participant) => <li key={JSON.stringify([participant.identity.participant_id, participant.identity.membership_id])}><strong>{participant.identity.display_name ?? participant.identity.participant_id}</strong> · {participant.status}<small>{participant.identity.participant_id} / {participant.identity.membership_id}</small>{participant.reason && <small>{participant.reason}</small>}</li>)}</ul> : <p>Explicit empty participant report — not a complete membership census.</p>}</details>;
 }
 
-export function CoordinationView({ state, workspace }: { state: StateResponse; workspace: "synchronization" | "persistence" }) {
+export function CoordinationView({ state, workspace, onActions }: { state: StateResponse; workspace: "synchronization" | "persistence"; onActions?: () => void }) {
   const [search, setSearch] = useWorkspaceField(workspace, "search");
   const [kind, setKind] = useWorkspaceField(workspace, "kind");
   const [scope, setScope] = useWorkspaceField(workspace, "scope");
@@ -57,6 +58,7 @@ export function CoordinationView({ state, workspace }: { state: StateResponse; w
   return <section className="coordination-workspace" aria-label={`${title} workspace`}>
     <div className="section-intro"><div><p className="eyebrow">Read-only · explicit coordination reports</p><h2>{title}</h2><p>{workspace === "synchronization" ? "Follow registration, announcement and achievement evidence by operation and reporting scope." : "Follow requested, begun and terminal phases. Local completion never establishes federation-wide completion."}</p></div><span className="state-pill">{capability?.state}</span></div>
     {capability?.state === "partial" && <p className="coverage-note">Partial {workspace} coverage: {capability.reason ?? (capability.reasons.join("; ") || "Some phases or participants are not reported.")}</p>}
+    {onActions && <p className="coverage-note"><button type="button" className="secondary-button" onClick={onActions}>Open owned-session actions</button> Coordination controls depend on the owned adapter's command catalog, independently of these observation reports.</p>}
     {(data.dropped_operations > 0 || data.dropped_transitions > 0) && <p className="coverage-note" role="status">Coordination coverage is incomplete: {data.dropped_operations} scoped snapshots and {data.dropped_transitions} transitions expired. Shared capacities: {data.capacity} snapshots / {data.history_capacity} transitions.</p>}
     <div className="panel object-controls coordination-controls">
       <label>Search latest reports<input aria-label="Search coordination reports" value={search} placeholder="Label, ID, source, subject or reason" onChange={(event) => { setSearch(event.target.value); setLimit(100); }} /></label>
@@ -66,6 +68,7 @@ export function CoordinationView({ state, workspace }: { state: StateResponse; w
       <label>Latest reported phase<RetainedSelect aria-label="Coordination phase" value={phase} onChange={(event) => { setPhase(event.target.value); setLimit(100); }}><option value="all">All phases</option>{(workspace === "synchronization" ? ["requested", "registered", "registration-failed", "announced", "achieved", "completed", "failed"] : ["requested", "begun", "completed", "failed"]).map((value) => <option key={value}>{value}</option>)}</RetainedSelect></label>
     </div>
     <section className="metrics declaration-metrics" aria-label="Coordination metrics"><MetricCard label="Matching scoped reports" value={filtered.length} /><MetricCard label="Latest failures" value={filtered.filter((row) => row.phase === "failed" || row.phase === "registration-failed").length} tone="red" /><MetricCard label="Retained phase reports" value={history.length} tone="blue" /></section>
+    {selected !== "all" && <CoordinationProgress key={selected} rows={snapshots.filter((row) => coordinationOperationKey(row) === selected)} />}
     <article className="panel" aria-label="Latest coordination reports"><div className="panel-heading"><div><p className="eyebrow">Separate local / federation scopes</p><h2>Latest coordination reports</h2></div><span className="panel-note">{filtered.length} matching scoped snapshots · newest first</span></div>
       {!filtered.length ? <p className="empty">No explicit reports match this view. Unknown coverage is not success, failure or absence of coordination.</p> : <><div className="table-scroll"><table className="events-table coordination-table"><thead><tr><th>Operation / label</th><th>Reported phase / scope</th><th>Participants / reason</th><th>Provenance</th></tr></thead><tbody>{filtered.slice(0, limit).map((row) => <tr key={scopeKey(row)}>
         <td><strong>{row.label}</strong><code>{row.operation_id}</code><small>{row.kind}</small><button className="secondary-button" type="button" onClick={() => focus(coordinationOperationKey(row))}>Follow operation</button></td>

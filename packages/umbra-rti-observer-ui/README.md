@@ -68,6 +68,14 @@ scopes separate, with missing/cyclic references and unknown field lists visible.
 No screen parses provider FOMs or decodes runtime bytes. The limited profile
 deliberately supplies partial FOM metadata without MOM.
 
+Topology adds deterministic directed-layer, connected-group and circle display
+layouts, keyboard edge inspection and distinct repeated-name joins. Selected
+coordination operations show separate local/federation cards and explicit
+participant progress. The Actions panel exposes seven optional owned-session
+coordination commands through generated named requests; only the rich synthetic
+driver opts in today. See [coordination controls](../umbra-rti-observer/COORDINATION-CONTROLS.md).
+The **Demo walkthrough** guide links every workspace and its modalities.
+
 Recordings uses a separate optional backend capability and named capture/file/
 analysis models. It preserves atomic event batches, all inspector state, context,
 capability provenance and clear boundaries; limits stop capture, not observation.

@@ -76,6 +76,7 @@ jobs:
           pnpm test:participants
           pnpm test:streaming
           pnpm test:commands
+          pnpm test:topology
       - name: Install headless Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Desktop and mobile browser regressions

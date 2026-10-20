@@ -32,6 +32,10 @@ test.describe("explicit coordination inspection", () => {
     await expect(table.locator("tbody tr")).toHaveCount(1);
     await expect(table).toContainText("local");
     await table.getByRole("button", { name: "Follow operation" }).click();
+    const progress = page.getByRole("article", { name: "Selected coordination operation" });
+    await expect(progress).toContainText("Alice / j1");
+    await expect(progress).toContainText("Federation report");
+    await expect(progress).toContainText("Peer storage failed");
     await expect(sequence.locator(".coordination-timeline > li")).toHaveCount(4);
     await expect(sequence).toContainText("Peer storage failed");
     await page.getByLabel("Coordination scope").selectOption("federation");
@@ -92,6 +96,22 @@ test.describe("explicit coordination inspection", () => {
     await page.getByRole("button", { name: "Show 100 earlier phase reports" }).click();
     await expect(rows).toHaveCount(200);
     await expect(page.locator(".coordination-timeline > li")).toHaveCount(200);
+  });
+
+  test("operation drill-down pages scopes and participant reports independently", async ({ page, request }) => {
+    const participants = Array.from({ length: 40 }, (_, index) => ({ identity: { participant_id: `peer-${index}`, membership_id: `join-${index}` }, status: "unknown" as const }));
+    await seedEvents(request, Array.from({ length: 25 }, (_, index) => report({ ...base, kind: "save", phase: "begun",
+      scope: "local", subject: { participant_id: `local-${index}`, membership_id: `scope-${index}` }, participants })));
+    await page.goto("/#persistence");
+    await page.getByRole("article", { name: "Latest coordination reports" }).getByRole("button", { name: "Follow operation" }).first().click();
+    const progress = page.getByRole("article", { name: "Selected coordination operation" });
+    await expect(progress.locator(".coordination-scope-card")).toHaveCount(20);
+    await expect(progress.locator(".coordination-participant-grid li")).toHaveCount(500);
+    await progress.getByRole("button", { name: "Show 25 more participant reports" }).first().click();
+    await expect(progress.locator(".coordination-participant-grid li")).toHaveCount(515);
+    await progress.getByRole("button", { name: "Show 20 more scopes" }).click();
+    await expect(progress.locator(".coordination-scope-card")).toHaveCount(25);
+    await expect(progress.locator(".coordination-participant-grid li")).toHaveCount(640);
   });
 });
 
