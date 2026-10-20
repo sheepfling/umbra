@@ -1,6 +1,6 @@
 import type { StateResponse } from "../src/api/types";
 import { test, expect } from "./fixtures";
-import { navigate, seedEvents } from "./support";
+import { legacyPerspective, navigate, seedEvents } from "./support";
 
 test.describe("persistent object perspectives", () => {
   test.use({ backendVariant: "empty" });
@@ -16,13 +16,13 @@ test.describe("persistent object perspectives", () => {
     const selected = page.getByRole("article", { name: "Selected object" });
     const reading = selected.locator("tbody tr").filter({ has: page.getByText("reading", { exact: true }) });
     await expect(reading.locator("td").nth(1)).toHaveText("900");
-    await page.getByLabel("Object perspective").selectOption("f:Alice");
+    await page.getByLabel("Object perspective").selectOption(`f:${legacyPerspective("Alice")}`);
     await expect(reading.locator("td").nth(1)).toHaveText("120");
     await expect(reading.locator("td").nth(3)).toHaveText("100");
     await expect(selected).toContainText("alice-only");
     await expect(selected).not.toContainText("bob-only");
     await expect(page.getByRole("heading", { name: "Numeric attribute observations" })).toBeVisible();
-    await page.getByLabel("Object perspective").selectOption("f:Bob");
+    await page.getByLabel("Object perspective").selectOption(`f:${legacyPerspective("Bob")}`);
     await expect(reading.locator("td").nth(1)).toHaveText("200");
     await expect(selected).toContainText("bob-only");
     await expect(selected).not.toContainText("alice-only");
@@ -39,7 +39,7 @@ test.describe("persistent object perspectives", () => {
       ...Array.from({ length: 2001 }, () => ({ event_type: "callback.invoked", source: "e2e" })),
     ]);
     await page.goto("/#objects");
-    await page.getByLabel("Object perspective").selectOption("f:Alice");
+    await page.getByLabel("Object perspective").selectOption(`f:${legacyPerspective("Alice")}`);
     await expect(page.getByRole("article", { name: "Selected object" })).toContainText("7");
     await expect(page.getByText(/History is incomplete:/)).toBeVisible();
     await expect(page.getByText("No retained comparison", { exact: true })).toBeVisible();
@@ -49,10 +49,10 @@ test.describe("persistent object perspectives", () => {
     await page.locator(".object-cards summary").click();
     await expect(page.locator(".object-cards pre")).toContainText('"reading": 7');
     await navigate(page, "Objects");
-    await page.getByLabel("Object perspective").selectOption("f:Alice");
+    await page.getByLabel("Object perspective").selectOption(`f:${legacyPerspective("Alice")}`);
     await request.delete("/api/events");
     await page.getByRole("button", { name: "Sync now" }).click();
-    await expect(page.getByLabel("Object perspective")).toHaveValue("f:Alice");
+    await expect(page.getByLabel("Object perspective")).toHaveValue(`f:${legacyPerspective("Alice")}`);
     await expect(page.getByRole("heading", { name: "No object selected" })).toBeVisible();
   });
 
@@ -62,7 +62,7 @@ test.describe("persistent object perspectives", () => {
       { event_type: "object.updated", source: "e2e", federate: "Alice", object_key: "values", attributes: { reading: 83, nullable: 1 } },
     ]);
     await page.goto("/#objects");
-    await page.getByLabel("Object perspective").selectOption("f:Alice");
+    await page.getByLabel("Object perspective").selectOption(`f:${legacyPerspective("Alice")}`);
     await expect(page.getByText("Undecoded bytes · 2 B · hex")).toBeVisible();
     const options = page.getByLabel("Numeric attribute").locator("option");
     await expect(options).toHaveText(["nullable", "reading"]);
@@ -104,7 +104,7 @@ test.describe("portable object contract", () => {
   test.use({ backendVariant: "java-limited" });
   test("Java supplies the same object models without MOM or a stream", async ({ page }) => {
     await page.goto("/#objects");
-    await page.getByLabel("Object perspective").selectOption("f:FixtureFederate");
+    await page.getByLabel("Object perspective").selectOption(`f:${legacyPerspective("FixtureFederate", "contract-fixture")}`);
     await expect(page.getByRole("article", { name: "Selected object" })).toContainText("FixtureObject");
     await expect(page.getByRole("heading", { name: "Numeric attribute observations" })).toBeVisible();
     await expect(page.locator(".connection-badge")).toHaveText("polling");

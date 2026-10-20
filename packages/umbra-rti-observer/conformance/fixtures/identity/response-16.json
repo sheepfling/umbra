@@ -1,0 +1,158 @@
+{
+  "contract_version": "umbra-observer-contract-v1",
+  "items": [
+    {
+      "federate": "Renamed Twin",
+      "handle": "99",
+      "last_seen": 1760000000.0,
+      "perspective": {
+        "attribution": {
+          "federation_id": "federation-a",
+          "identity_namespace": "namespace-a",
+          "participant": {
+            "display_name": "Renamed Twin",
+            "handle": "99",
+            "membership_id": "join-1",
+            "participant_id": "same-participant"
+          },
+          "session_id": "reporting-session"
+        },
+        "basis": "explicit-join",
+        "federation": "Shared display name",
+        "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+        "reported_name": "Renamed Twin",
+        "session_id": "reporting-session",
+        "source": "identity-reporter"
+      },
+      "role": null,
+      "source": "identity-reporter",
+      "status": "active"
+    },
+    {
+      "federate": "Twin",
+      "handle": "7",
+      "last_seen": 1760000000.0,
+      "perspective": {
+        "attribution": {
+          "federation_id": "federation-a",
+          "identity_namespace": "namespace-a",
+          "participant": {
+            "display_name": "Twin",
+            "handle": "7",
+            "membership_id": "join-2",
+            "participant_id": "same-participant"
+          },
+          "session_id": "reporting-session"
+        },
+        "basis": "explicit-join",
+        "federation": "Shared display name",
+        "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-2\"]",
+        "reported_name": "Twin",
+        "session_id": "reporting-session",
+        "source": "identity-reporter"
+      },
+      "role": null,
+      "source": "identity-reporter",
+      "status": "active"
+    },
+    {
+      "federate": "Twin",
+      "handle": "7",
+      "last_seen": 1760000000.0,
+      "perspective": {
+        "attribution": {
+          "federation_id": "federation-a",
+          "identity_namespace": "namespace-b",
+          "participant": {
+            "display_name": "Twin",
+            "handle": "7",
+            "membership_id": "join-1",
+            "participant_id": "same-participant"
+          },
+          "session_id": "reporting-session"
+        },
+        "basis": "explicit-join",
+        "federation": "Shared display name",
+        "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-b\",\"federation-a\",\"same-participant\",\"join-1\"]",
+        "reported_name": "Twin",
+        "session_id": "reporting-session",
+        "source": "identity-reporter"
+      },
+      "role": null,
+      "source": "identity-reporter",
+      "status": "active"
+    },
+    {
+      "federate": "Twin",
+      "handle": "7",
+      "last_seen": 1760000000.0,
+      "perspective": {
+        "attribution": {
+          "federation_id": "federation-b",
+          "identity_namespace": "namespace-a",
+          "participant": {
+            "display_name": "Twin",
+            "handle": "7",
+            "membership_id": "join-1",
+            "participant_id": "same-participant"
+          },
+          "session_id": "reporting-session"
+        },
+        "basis": "explicit-join",
+        "federation": "Shared display name",
+        "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-b\",\"same-participant\",\"join-1\"]",
+        "reported_name": "Twin",
+        "session_id": "reporting-session",
+        "source": "identity-reporter"
+      },
+      "role": null,
+      "source": "identity-reporter",
+      "status": "active"
+    },
+    {
+      "federate": "Twin",
+      "handle": "7",
+      "last_seen": 1760000000.0,
+      "perspective": {
+        "attribution": {
+          "federation_id": "federation-a",
+          "identity_namespace": "namespace-a",
+          "participant": {
+            "display_name": "Twin",
+            "handle": "7",
+            "membership_id": "join-1",
+            "participant_id": "same-participant"
+          },
+          "session_id": "reporting-session"
+        },
+        "basis": "explicit-join",
+        "federation": "Shared display name",
+        "key": "[\"explicit-join\",\"other-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+        "reported_name": "Twin",
+        "session_id": "reporting-session",
+        "source": "other-reporter"
+      },
+      "role": null,
+      "source": "other-reporter",
+      "status": "active"
+    },
+    {
+      "federate": "Twin",
+      "handle": null,
+      "last_seen": 1760000000.0,
+      "perspective": {
+        "attribution": null,
+        "basis": "legacy-provenance",
+        "federation": null,
+        "key": "[\"legacy-provenance\",\"legacy-reporter\",null,null,\"Twin\"]",
+        "reported_name": "Twin",
+        "session_id": null,
+        "source": "legacy-reporter"
+      },
+      "role": null,
+      "source": "legacy-reporter",
+      "status": "active"
+    }
+  ],
+  "kind": "federates"
+}

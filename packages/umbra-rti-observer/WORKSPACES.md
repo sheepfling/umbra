@@ -27,12 +27,23 @@ configuration fields. Choosing Actions only opens that screen; applying a
 workspace never submits a provider command or changes alert rules.
 
 Selection/search text itself can identify a participant, object or operation;
-anything you type into a filter is included. Review files before sharing them.
+chosen perspective keys include reporter/session/namespace/federation/join IDs,
+even when you did not type them yourself. Anything typed into a filter is also
+included. Review files before sharing them.
 Browser storage is not a secret store. These profiles do not preserve evidence:
 use [recordings](RECORDING.md) when you intentionally need captured data, and
 the [alert configuration file](ALERTS.md) for rule definitions.
 
 ## Restore and limited RTIs
+
+Participant preferences and attributed charts now use exact reporting keys,
+not display names. An older profile containing a bare name is not automatically
+rebound to a same-name participant; explicitly choose the desired reported
+perspective and save the profile again. Alias changes preserve the exact key;
+rejoins and other namespaces do not inherit that join's investigation settings.
+Object-selection/chart keys distinguish explicit contexts from legacy raw
+handles even if a handle looks like serialized JSON. Older untagged object
+choices stay dormant until the object is explicitly selected again.
 
 Import validates and saves a named configuration; it does not apply it. Select
 **Apply saved workspace** to restore it. Replacement of an existing exact name

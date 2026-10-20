@@ -9,5 +9,10 @@
   "last_sequence": 0,
   "next_after": 0,
   "next_sequence": 1,
+  "observer_lifetime": {
+    "instance_id": "00000000000000000000000000000001",
+    "revision": 2
+  },
+  "reset": false,
   "retained_events": 0
 }

@@ -50,6 +50,7 @@ WIRE_MODELS: tuple[type[BaseModel], ...] = (
     CaptureStatus, RecordingStatusResponse, RecordingDocument, CompactRecordingDocument,
 )
 SCHEMA_PATH = Path(__file__).with_name("static") / "observer-wire-v1.schema.json"
+MAX_WIRE_SCHEMA_LINES = 15_000
 
 
 def wire_schema_text() -> str:
@@ -66,12 +67,15 @@ def wire_schema_text() -> str:
         definition = cast(dict[str, object], definitions[name])
         existing = cast(list[str], definition.get("required", []))
         definition["required"] = sorted(set(existing) | required)
-    return json.dumps({
+    text = json.dumps({
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "urn:umbra:observer:wire:v1",
         "contract_version": OBSERVER_CONTRACT_VERSION,
         "$defs": definitions,
     }, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+    if text.count("\n") > MAX_WIRE_SCHEMA_LINES:
+        raise ValueError(f"Portable wire schema exceeds its {MAX_WIRE_SCHEMA_LINES:,}-line growth guard; review model ownership without hand-splitting or minifying the canonical artifact.")
+    return text
 
 
 def main(argv: list[str] | None = None) -> int:

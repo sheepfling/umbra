@@ -15,7 +15,9 @@ import type {
   RecordingStatusResponse,
 } from "./types";
 import { parseStreamMessage } from "./stream";
-import type { StreamMessage } from "./stream";
+import type { StreamCursor, StreamMessage, StreamTransport } from "./stream";
+
+export interface ObserverStream { transport: StreamTransport; close: () => void }
 
 export class ObserverApiError extends Error {
   readonly status: number;
@@ -30,22 +32,27 @@ export class ObserverApiError extends Error {
 export class ObserverClient {
   private readonly apiBase: string;
   private contractPromise: Promise<ContractResponse> | undefined;
+  private contractAt = 0;
 
   constructor(apiBase = "/api") {
     this.apiBase = apiBase.replace(/\/$/, "");
   }
 
-  async getContract(): Promise<ContractResponse> {
-    this.contractPromise ??= this.request<ContractResponse>(`${this.apiBase}/contract`).then((contract) => {
+  async getContract(refresh = false): Promise<ContractResponse> {
+    if (refresh || Date.now() - this.contractAt >= 5_000) this.contractPromise = undefined;
+    if (this.contractPromise) return this.contractPromise;
+    this.contractAt = Date.now();
+    const pending = this.request<ContractResponse>(`${this.apiBase}/contract`).then((contract) => {
       if (contract?.contract_version !== "umbra-observer-contract-v1") {
         throw new ObserverApiError(409, "Incompatible observer contract; expected umbra-observer-contract-v1.");
       }
       return contract;
     }).catch((error: unknown) => {
-      this.contractPromise = undefined;
+      if (this.contractPromise === pending) this.contractPromise = undefined;
       throw error;
     });
-    return this.contractPromise;
+    this.contractPromise = pending;
+    return pending;
   }
 
   async getAlerts(signal?: AbortSignal): Promise<AlertReport> {
@@ -169,29 +176,48 @@ export class ObserverClient {
   }
 
   async openStream(
+    transport: StreamTransport,
     onMessage: (message: StreamMessage) => void,
     onStatus: (status: "open" | "closed" | "error") => void,
-  ): Promise<WebSocket | undefined> {
+    cursor?: StreamCursor,
+  ): Promise<ObserverStream> {
     const contract = await this.getContract();
-    const state = contract.capabilities.websocket?.state;
-    if (state !== "available" && state !== "partial") return undefined;
-    const configuredPath = await this.resource("websocket");
-    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const url = `${protocol}://${window.location.host}${configuredPath}`;
-    const socket = new WebSocket(url);
-    socket.addEventListener("open", () => onStatus("open"));
-    socket.addEventListener("close", () => onStatus("closed"));
-    socket.addEventListener("error", () => onStatus("error"));
-    socket.addEventListener("message", (event) => {
+    const configuredPath = await this.resource(transport === "websocket" ? "websocket" : "event_stream");
+    const url = new URL(configuredPath, window.location.origin);
+    if (cursor && contract.stream.resumption) {
+      url.searchParams.set("after", String(cursor.after));
+      url.searchParams.set("instance_id", cursor.instance_id);
+    }
+    if (transport === "websocket") url.protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const stream = transport === "websocket" ? new WebSocket(url) : new EventSource(url);
+    let closed = false;
+    let watchdog: ReturnType<typeof setTimeout>;
+    const close = () => { closed = true; clearTimeout(watchdog); stream.close(); };
+    const failed = () => {
+      if (closed) return;
+      close();
+      onStatus("error");
+      onStatus("closed");
+    };
+    const alive = () => { clearTimeout(watchdog); watchdog = setTimeout(failed, 45_000); };
+    watchdog = setTimeout(failed, 8_000);
+    stream.addEventListener("open", () => { if (!closed) { alive(); onStatus("open"); } });
+    stream.addEventListener("error", failed);
+    if (stream instanceof WebSocket) stream.addEventListener("close", () => {
+      if (!closed) { close(); onStatus("closed"); }
+    });
+    stream.addEventListener("message", (event) => {
+      if (closed) return;
+      if (!(event instanceof MessageEvent)) { failed(); return; }
       try {
         const parsed = parseStreamMessage(JSON.parse(String(event.data)));
-        if (parsed) onMessage(parsed);
-        else onStatus("error");
+        if (parsed) { alive(); onMessage(parsed); }
+        else failed();
       } catch {
-        onStatus("error");
+        failed();
       }
     });
-    return socket;
+    return { transport, close };
   }
 
   private async resource(name: string): Promise<string> {

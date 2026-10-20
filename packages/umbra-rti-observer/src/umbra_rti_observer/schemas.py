@@ -60,6 +60,7 @@ CapabilityState = Literal[
     "unknown",
 ]
 NonEmptyText = Annotated[str, Field(min_length=1)]
+NonEmptyJsonText = Annotated[JsonText, Field(min_length=1)]
 EventTypeText = Annotated[str, Field(min_length=1, max_length=256)]
 SequenceNumber = Annotated[int, Field(ge=1)]
 NonNegativeInt = Annotated[int, Field(ge=0)]
@@ -241,12 +242,20 @@ class ParticipantPerspectiveResponse(ObserverModel):
     reported_name: str | None = None
     attribution: ParticipantAttributionInput | None = None
 
+    @property
+    def label(self) -> str:
+        return (self.attribution.participant.display_name if self.attribution else None) or self.reported_name or "Unnamed participant"
+
+    def spec(self) -> ParticipantPerspective:
+        identity = participant_attribution({"participant_attribution": self.attribution.model_dump(mode="python", exclude_none=True)}) if self.attribution else None
+        return ParticipantPerspective(self.source, self.session_id, self.federation, self.reported_name, identity)
+
     @model_validator(mode="after")
     def canonical_perspective(self) -> ParticipantPerspectiveResponse:
-        identity = participant_attribution({"participant_attribution": self.attribution.model_dump(mode="python", exclude_none=True)}) if self.attribution else None
+        expected = self.spec()
+        identity = expected.attribution
         if identity is None and not self.reported_name:
             raise ValueError("legacy reporting perspectives require a reported name, not an invented join")
-        expected = ParticipantPerspective(self.source, self.session_id, self.federation, self.reported_name, identity)
         if self.key != expected.key or self.basis != expected.basis or identity is not None and self.session_id != identity.session_id:
             raise ValueError("participant perspective key, provenance and identity must agree")
         return self
@@ -260,6 +269,14 @@ class ObjectContextInput(ObserverModel):
     def explicit_context(self) -> ObjectContextInput:
         object_context({"object_context": self.model_dump(mode="python")})
         return self
+
+
+def _object_scope_key(key: str, context: ObjectContextInput | None) -> tuple[str | None, str | None, str]:
+    return (context.identity_namespace if context else None, context.federation_id if context else None, key)
+
+
+def _participant_scope_key(perspective: ParticipantPerspectiveResponse | None, name: str | None) -> tuple[str, str | None]:
+    return ("perspective", perspective.key) if perspective else ("legacy-name", name)
 
 
 class RelationshipObservationInput(ObserverModel):
@@ -629,7 +646,7 @@ class EventInput(ExtensibleObserverModel):
     federate_handle: str | None = None
     participant_handle: str | None = None
     role: str | None = None
-    object_key: str | None = None
+    object_key: JsonText | None = None
     object_context: ObjectContextInput | None = None
     object_name: str | None = None
     object_handle: str | None = None
@@ -712,7 +729,7 @@ class CapabilityResponse(WireObserverModel):
 
 
 class ObjectInspectionResponse(ObserverModel):
-    object_key: NonEmptyText
+    object_key: NonEmptyJsonText
     object_context: ObjectContextInput | None = None
     observation_key: NonEmptyText | None = None
     object_name: NonEmptyText
@@ -744,7 +761,7 @@ class InteractionInspectionResponse(ObserverModel):
     class_handle: str | None = None
     family: NonEmptyText
     source: NonEmptyText
-    federate: str | None = None
+    federate: JsonText | None = None
     parameters: Annotated[Mapping[JsonText, JsonValue], Field(default_factory=dict)]
     tag: Annotated[JsonValue, Field(default=None)]
     observed_at: float
@@ -752,13 +769,13 @@ class InteractionInspectionResponse(ObserverModel):
 
     @model_validator(mode="after")
     def reporting_source_matches(self) -> InteractionInspectionResponse:
-        if self.perspective is not None and self.source != self.perspective.source:
+        if self.perspective is not None and (self.source != self.perspective.source or self.federate != self.perspective.label):
             raise ValueError("interaction reporting source and participant perspective must agree")
         return self
 
 
 class FederateInspectionResponse(ObserverModel):
-    federate: NonEmptyText
+    federate: NonEmptyJsonText
     role: str | None = None
     handle: str | None = None
     status: NonEmptyText
@@ -768,7 +785,7 @@ class FederateInspectionResponse(ObserverModel):
 
     @model_validator(mode="after")
     def consistent_reporting_source(self) -> FederateInspectionResponse:
-        if self.perspective is not None and self.source != self.perspective.source:
+        if self.perspective is not None and (self.source != self.perspective.source or self.federate != self.perspective.label):
             raise ValueError("roster reporting source must agree with its participant perspective")
         return self
 
@@ -828,7 +845,7 @@ class EventEnvelope(WireObserverModel):
     logical_time: Annotated[int | float | None, Field(default=None, allow_inf_nan=False)]
     operation: str | None = None
     details: Mapping[str, JsonValue] | None = None
-    object_key: str | None = None
+    object_key: JsonText | None = None
     object_context: ObjectContextInput | None = None
     time_observation: TimeObservationInput | None = None
     declaration: DeclarationObservationInput | None = None
@@ -854,15 +871,19 @@ class EventEnvelope(WireObserverModel):
 class ObjectPerspectiveResponse(ObserverModel):
     """Null federate is global; a name is explicit adapter attribution only."""
 
-    federate: NonEmptyText | None
+    federate: NonEmptyJsonText | None
     generation: SequenceNumber
     last_sequence: SequenceNumber
     object: ObjectInspectionResponse
     perspective: ParticipantPerspectiveResponse | None = None
 
+    @property
+    def cache_key(self) -> tuple[tuple[str, str | None], tuple[str | None, str | None, str]]:
+        return _participant_scope_key(self.perspective, self.federate), _object_scope_key(self.object.object_key, self.object.object_context)
+
     @model_validator(mode="after")
     def attributed_perspective(self) -> ObjectPerspectiveResponse:
-        if self.perspective is not None and self.federate is None:
+        if self.perspective is not None and self.federate != self.perspective.label:
             raise ValueError("global objects must not claim a participant reporting perspective")
         return self
 
@@ -878,8 +899,8 @@ class ObjectPerspectiveResponse(ObserverModel):
 
 class ObjectAttributeChangeResponse(ObserverModel):
     sequence: SequenceNumber
-    object_key: NonEmptyText
-    federate: NonEmptyText | None
+    object_key: NonEmptyJsonText
+    federate: NonEmptyJsonText | None
     generation: SequenceNumber
     attribute: JsonText
     value: JsonValue
@@ -891,9 +912,13 @@ class ObjectAttributeChangeResponse(ObserverModel):
     object_context: ObjectContextInput | None = None
     observation_key: NonEmptyText | None = None
 
+    @property
+    def cache_key(self) -> tuple[tuple[str, str | None], tuple[str | None, str | None, str]]:
+        return _participant_scope_key(self.perspective, self.federate), _object_scope_key(self.object_key, self.object_context)
+
     @model_validator(mode="after")
     def scoped_change(self) -> ObjectAttributeChangeResponse:
-        if self.perspective is not None and (self.federate is None or self.source != self.perspective.source):
+        if self.perspective is not None and (self.federate != self.perspective.label or self.source != self.perspective.source):
             raise ValueError("attributed object changes require matching source/perspective metadata")
         if self.object_context is None:
             if self.observation_key is not None:
@@ -933,7 +958,7 @@ class ObjectObservationsResponse(ObserverModel):
             raise ValueError("object snapshot budget metadata must be complete or unreported")
         if self.snapshot_capacity is not None and len(self.snapshots) > self.snapshot_capacity:
             raise ValueError("object perspectives exceed their advertised snapshot capacity")
-        keys = {(row.perspective.key if row.perspective else row.federate, row.object.observation_key or row.object.object_key) for row in self.snapshots}
+        keys = {row.cache_key for row in self.snapshots}
         if len(keys) != len(self.snapshots):
             raise ValueError("object perspective keys must be unique")
         if (self.omitted_changes or self.dropped_history_batches) and not self.history_truncated:
@@ -945,7 +970,7 @@ class TimeScopeResponse(ObserverModel):
     source: NonEmptyText
     session_id: TimeId | None
     federation: str | None
-    federate: str | None
+    federate: JsonText | None
     perspective: ParticipantPerspectiveResponse | None = None
 
     @model_validator(mode="after")
@@ -955,8 +980,10 @@ class TimeScopeResponse(ObserverModel):
                 raise ValueError("time source must agree with its participant perspective")
             if self.perspective.attribution is not None and self.session_id != self.perspective.session_id:
                 raise ValueError("explicit time correlation requires the same reporting session")
-            if self.perspective.attribution is None and self.federate != self.perspective.reported_name:
-                raise ValueError("legacy time attribution cannot borrow another name")
+            if self.session_id is not None and self.session_id != self.perspective.session_id:
+                raise ValueError("reported time session and participant provenance must agree")
+            if self.federate != self.perspective.label:
+                raise ValueError("time attribution cannot borrow another participant label")
         return self
 
     @model_serializer(mode="wrap")
@@ -1069,14 +1096,15 @@ class DeclarationScopeResponse(ObserverModel):
     source: NonEmptyText
     session_id: TimeId | None
     federation: str | None
-    federate: str | None
+    federate: JsonText | None
     perspective: ParticipantPerspectiveResponse | None = None
 
     @model_validator(mode="after")
     def consistent_perspective(self) -> DeclarationScopeResponse:
         if self.perspective is not None and (self.source != self.perspective.source
             or self.perspective.attribution is not None and self.session_id != self.perspective.session_id
-            or self.perspective.attribution is None and self.federate != self.perspective.reported_name):
+            or self.session_id is not None and self.session_id != self.perspective.session_id
+            or self.federate != self.perspective.label):
             raise ValueError("declaration scope and reporting perspective must agree")
         return self
 
@@ -1546,7 +1574,19 @@ class StorageCoverageResponse(ObserverModel):
     context: StorageBudgetResponse
 
 
+class ObserverLifetimeResponse(ObserverModel):
+    """Storage incarnation and atomic mutation cut; not provider authority."""
+
+    instance_id: Annotated[JsonText, Field(min_length=1, max_length=128)]
+    revision: NonNegativeInt
+
+
+class StreamCursorResponse(ObserverLifetimeResponse):
+    after: NonNegativeInt
+
+
 class StateResponse(ObserverModel):
+    observer_lifetime: ObserverLifetimeResponse | None = None
     contract_version: NonEmptyText
     schema_version: NonEmptyText
     status: NonEmptyText
@@ -1562,6 +1602,10 @@ class StateResponse(ObserverModel):
 
     @model_validator(mode="after")
     def consistent_storage(self) -> StateResponse:
+        roster = [("perspective", row.perspective.key) if row.perspective else ("legacy-reporter", row.source, row.federate) for row in self.federate_roster]
+        objects = [_object_scope_key(row.object_key, row.object_context) for row in self.inspectors.objects]
+        if len(set(roster)) != len(roster) or len(set(objects)) != len(objects):
+            raise ValueError("observed roster joins and object contexts must be unique")
         feature = self.capabilities.get("storage_inspection")
         if self.storage is None:
             if feature is not None and feature.state in {"available", "partial"}:
@@ -1624,7 +1668,7 @@ class AnalyticsWindow(ObserverModel):
             raise ValueError("analytics window must include its complete retained cursor range")
         if retention.next_sequence <= retention.last_sequence:
             raise ValueError("analytics next cursor must follow retained history")
-        if len({row.perspective.key if row.perspective else row.federate for row in self.federate_roster}) != len(self.federate_roster):
+        if len({_participant_scope_key(row.perspective, row.federate) for row in self.federate_roster}) != len(self.federate_roster):
             raise ValueError("analytics roster identities must be unique")
         if self.storage is not None:
             rows = {row.collection: row for row in self.storage.evidence.collections}
@@ -1657,7 +1701,7 @@ class ActivityBucket(ObserverModel):
 class FederateActivity(ObserverModel):
     perspective: ParticipantPerspectiveResponse | None = None
     roster_retained: bool | None = None
-    federate: NonEmptyText
+    federate: NonEmptyJsonText
     role: str | None
     handle: str | None
     status: NonEmptyText
@@ -1667,19 +1711,31 @@ class FederateActivity(ObserverModel):
     object_updates: NonNegativeInt
     interaction_count: NonNegativeInt
     error_count: NonNegativeInt
-    object_keys: Sequence[str]
+    object_keys: Sequence[JsonText]
     latest_logical_time: int | float | None
+
+    @model_validator(mode="after")
+    def consistent_perspective(self) -> FederateActivity:
+        if self.perspective is not None and (self.federate != self.perspective.label or self.source != self.perspective.source):
+            raise ValueError("participant activity and reporting provenance must agree")
+        return self
 
 
 class TimeObservation(ObserverModel):
     perspective: ParticipantPerspectiveResponse | None = None
     sequence: SequenceNumber
-    federate: str | None
+    federate: JsonText | None
     logical_time: Annotated[int | float, Field(allow_inf_nan=False)]
     observed_at: float
     event_type: NonEmptyText
     operation: str | None
     observation_kind: Literal["timestamp", "request", "grant", "state"] = "timestamp"
+
+    @model_validator(mode="after")
+    def consistent_perspective(self) -> TimeObservation:
+        if self.perspective is not None and self.federate != self.perspective.label:
+            raise ValueError("logical-time label must agree with its reporting perspective")
+        return self
 
 
 class AnalyticsResponse(ObserverModel):
@@ -1703,6 +1759,18 @@ class AnalyticsResponse(ObserverModel):
     families: Mapping[str, NonNegativeInt]
     roster_storage: StorageCollectionResponse | None = None
 
+    @model_validator(mode="after")
+    def unique_perspectives(self) -> AnalyticsResponse:
+        keys = {_participant_scope_key(row.perspective, row.federate) for row in self.participants}
+        if len(keys) != len(self.participants):
+            raise ValueError("analytics reporting perspectives must be unique")
+        if sum(row.event_count for row in self.participants) + self.unattributed_events != self.events_in_window:
+            raise ValueError("participant activity must account for the exact observation window")
+        if self.scoped_perspective is not None and (any(row.perspective is None or row.perspective.key != self.scoped_perspective for row in self.participants)
+                or any(row.perspective is None or row.perspective.key != self.scoped_perspective for row in self.logical_times)):
+            raise ValueError("exact analytics filters cannot borrow another reporting perspective")
+        return self
+
 
 class HealthResponse(ObserverModel):
     service: NonEmptyText
@@ -1724,6 +1792,8 @@ class MetricsResponse(ObserverModel):
 
 
 class EventPageResponse(ObserverModel):
+    observer_lifetime: ObserverLifetimeResponse | None = None
+    reset: bool = False
     contract_version: NonEmptyText
     events: Annotated[Sequence[EventEnvelope], Field(default_factory=tuple)]
     next_after: NonNegativeInt
@@ -1779,6 +1849,7 @@ class EventEnvelopeDescription(ObserverModel):
 
 
 class StreamDescription(ObserverModel):
+    resumption: bool = False
     websocket_path: NonEmptyText
     sse_path: NonEmptyText
     message_types: Sequence[Literal["snapshot", "events", "heartbeat", "gap", "error"]]
@@ -1813,24 +1884,52 @@ class JsonObjectResponse(RootModel[JsonObject]):
     """Validated object response for the JSON schema endpoint."""
 
 
-class SnapshotMessage(ObserverModel):
-    type: Literal["snapshot"]
+class StateStreamMessage(ObserverModel):
     state: StateResponse
+    cursor: StreamCursorResponse | None = None
+
+    @model_validator(mode="after")
+    def consistent_cursor(self) -> StateStreamMessage:
+        if self.cursor is not None:
+            lifetime = self.state.observer_lifetime
+            if (lifetime is None or self.cursor.instance_id != lifetime.instance_id
+                    or self.cursor.revision != lifetime.revision
+                    or self.cursor.after >= self.state.retention.next_sequence):
+                raise ValueError("stream cursor must describe this exact observer state cut")
+            if self.state.normalized_events is not None and self.cursor.after != self.state.retention.next_sequence - 1:
+                raise ValueError("complete snapshots must advance through their delivered window")
+        return self
 
 
-class EventsMessage(ObserverModel):
+class SnapshotMessage(StateStreamMessage):
+    type: Literal["snapshot"]
+    resume: Literal["fresh", "resumed", "reset", "gap"] | None = None
+
+
+class EventsMessage(StateStreamMessage):
     type: Literal["events"]
     events: Annotated[Sequence[EventEnvelope], Field(default_factory=tuple)]
-    state: StateResponse
+
+    @model_validator(mode="after")
+    def consistent_events(self) -> EventsMessage:
+        sequences = [row.sequence for row in self.events]
+        retention = self.state.retention
+        if sequences != sorted(set(sequences)) or any(not retention.retained_events
+                or sequence < retention.first_retained_sequence or sequence > retention.last_sequence
+                or self.cursor is not None and sequence > self.cursor.after for sequence in sequences):
+            raise ValueError("stream envelopes must be ordered unique records inside this retained state cut")
+        return self
 
 
 class HeartbeatMessage(ObserverModel):
     type: Literal["heartbeat"]
+    cursor: StreamCursorResponse | None = None
 
 
 class GapMessage(ObserverModel):
     type: Literal["gap"]
     retention: RetentionGapResponse
+    observer_lifetime: ObserverLifetimeResponse | None = None
 
 
 class ErrorMessage(ObserverModel):
@@ -1890,12 +1989,14 @@ __all__ = [
     "LiveMetricsResponse",
     "MetricsResponse",
     "ObjectInspectionResponse",
+    "ObserverLifetimeResponse",
     "ResourceDescription",
     "RetentionGapResponse",
     "RetentionResponse",
     "SnapshotMessage",
     "StateResponse",
     "StatusRequest",
+    "StreamCursorResponse",
     "StreamDescription",
     "StreamMessage",
     "event_input_mapping",

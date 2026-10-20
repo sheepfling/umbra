@@ -62,6 +62,10 @@ def build_contract_document(
 
     normalized_capabilities = normalize_capabilities(capabilities)
     paths = dict(API_PATHS)
+    for capability, resource in (("websocket", "websocket"), ("sse", "event_stream")):
+        transport = normalized_capabilities.get(capability)
+        if transport is None or transport.state not in {"available", "partial"}:
+            paths.pop(resource, None)
     workspaces = normalized_capabilities.get("workspace_validation")
     if workspaces is None or workspaces.state not in {"available", "partial"}:
         paths.pop("workspace_defaults", None)
@@ -143,6 +147,7 @@ def build_contract_document(
             "path": API_PATHS["events"],
             "query": {
                 "after": "non-negative sequence cursor",
+                "instance_id": "optional observer lifetime; foreign/future cursors reset with explicit reset=true",
                 "limit": "1..2000",
                 "event_type": "optional comma-separated filter",
                 "family": "optional comma-separated filter",
@@ -169,10 +174,10 @@ def build_contract_document(
             "sse_path": API_PATHS["event_stream"],
             "message_types": list(STREAM_MESSAGE_TYPES),
             "messages": {
-                "snapshot": "{type, state}",
-                "events": "{type, events, state}",
-                "heartbeat": "{type}",
-                "gap": "{type, retention}",
+                "snapshot": "{type, state, cursor?, resume?}",
+                "events": "{type, events, state, cursor?}",
+                "heartbeat": "{type, cursor?}",
+                "gap": "{type, retention, observer_lifetime?}",
                 "error": "{type, message}",
             },
         },

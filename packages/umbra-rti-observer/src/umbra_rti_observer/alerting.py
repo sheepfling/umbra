@@ -17,6 +17,7 @@ from time import monotonic
 from typing import Literal
 from uuid import uuid4
 
+from .attribution import ParticipantPerspective, event_perspective, perspective_ended
 from .models import JsonObject, to_json_object
 
 RuleKind = Literal["stale-observations", "errors", "dropped-history", "pending-commands"]
@@ -47,9 +48,37 @@ class AlertScope:
     federation: str | None = None
     federate: str | None = None
     session_id: str | None = None
+    perspective: ParticipantPerspective | None = None
+
+    def validate_filter(self) -> None:
+        for value in (self.source, self.federation, self.federate, self.session_id):
+            _text(value)
+        perspective = self.perspective
+        if perspective is None:
+            return
+        if type(perspective) is not ParticipantPerspective:
+            raise TypeError("alert perspective filters require a named participant perspective")
+        if perspective.attribution is None:
+            raise ValueError("exact alert perspective filters require explicit join IDs; use legacy text filters otherwise")
+        if any(value is not None for value in (self.source, self.federation, self.federate, self.session_id)):
+            raise ValueError("choose an exact perspective or legacy text filters, not both")
+        for value in (perspective.source, perspective.federation, perspective.reported_name):
+            _text(value)
+        normalized = event_perspective({"source": perspective.source, "session_id": perspective.session_id,
+            "federation": perspective.federation, "federate": perspective.reported_name,
+            "participant_attribution": perspective.attribution.to_json() if perspective.attribution else None})
+        if normalized is None or normalized.key != perspective.key:
+            raise ValueError("alert perspective must have canonical reporting provenance")
+
+    def to_json(self) -> JsonObject:
+        result: JsonObject = {"source": self.source, "federation": self.federation,
+            "federate": self.federate, "session_id": self.session_id}
+        if self.perspective is not None:
+            result["perspective"] = self.perspective.to_json()
+        return result
 
     def matches(self, other: AlertScope, *, session_end: bool = False) -> bool:
-        return all(expected is None or expected == actual for expected, actual in (
+        return (self.perspective is None or self.perspective == other.perspective) and all(expected is None or expected == actual for expected, actual in (
             (self.source, other.source), (self.federation, other.federation),
             (None if session_end else self.federate, other.federate), (self.session_id, other.session_id)))
 
@@ -73,8 +102,7 @@ class AlertRuleSpec:
         _text(self.rule_id, 128)
         _text(self.name, 128)
         _text(self.target_id, 128)
-        for value in (self.scope.source, self.scope.federation, self.scope.federate, self.scope.session_id):
-            _text(value)
+        self.scope.validate_filter()
         if self.kind not in {"stale-observations", "errors", "dropped-history", "pending-commands"} or self.severity not in {"info", "warning", "critical"} or type(self.enabled) is not bool:
             raise ValueError("invalid alert kind, severity or enabled flag")
         if self.kind in {"stale-observations", "pending-commands"}:
@@ -95,7 +123,7 @@ class AlertRuleSpec:
         result = to_json_object({"rule_id": self.rule_id, "name": self.name, "kind": self.kind,
                                 "severity": self.severity, "enabled": self.enabled})
         if self.kind in {"stale-observations", "errors"}:
-            result["scope"] = to_json_object(asdict(self.scope))
+            result["scope"] = self.scope.to_json()
         if self.threshold_seconds is not None:
             result["threshold_seconds"] = float(self.threshold_seconds)
         if self.threshold_count is not None:
@@ -177,6 +205,7 @@ class RuleRun:
     last_at: float | None = None
     last_sequence: int | None = None
     ended: AlertReason | None = None
+    identified_observations: bool = False
     marks: deque[ErrorMark] = field(default_factory=lambda: deque[ErrorMark]())
     retained_error_count: int = 0
     overflow_first: float | None = None
@@ -219,9 +248,12 @@ class AlertEngine:
                 updated[spec.rule_id] = previous
                 continue
             run = RuleRun(spec, revision, now, dropped)
-            if previous is not None and spec.kind == previous.spec.kind == "stale-observations" and spec.scope == previous.spec.scope and previous.ended:
-                # A threshold/name/reset edit cannot unsee an explicit end.
-                run.ended, run.last_at, run.last_sequence = previous.ended, previous.last_at, previous.last_sequence
+            if previous is not None and spec.kind == previous.spec.kind == "stale-observations" and spec.scope == previous.spec.scope:
+                # A threshold/name/reset edit cannot unsee an explicit end or
+                # restore name-only lifecycle certainty after identified joins.
+                run.identified_observations = previous.identified_observations
+                if previous.ended:
+                    run.ended, run.last_at, run.last_sequence = previous.ended, previous.last_at, previous.last_sequence
             updated[spec.rule_id] = run
         self.runs = updated
         self.revision = revision
@@ -242,8 +274,17 @@ class AlertEngine:
             if not spec.enabled or spec.kind not in {"stale-observations", "errors"}:
                 continue
             exact_session = spec.scope.source is not None and spec.scope.session_id is not None
-            ended = exact_session and ((event_type == "session.disconnected" and spec.scope.matches(scope, session_end=True))
-                or (event_type == "federate.resigned" and spec.scope.federate is not None and spec.scope.matches(scope)))
+            # A legacy name filter can aggregate several identified joins. An
+            # individual lifecycle report cannot end that aggregate monitor.
+            if spec.scope.matches(scope) and scope.perspective is not None and scope.perspective.attribution is not None:
+                run.identified_observations = True
+            if spec.scope.perspective is not None:
+                ended = perspective_ended(spec.scope.perspective, {"event_type": event_type, "source": scope.source,
+                    "session_id": scope.session_id, "federation": scope.federation, "federate": scope.federate,
+                    "participant_attribution": scope.perspective.attribution.to_json() if scope.perspective and scope.perspective.attribution else None})
+            else:
+                ended = not run.identified_observations and exact_session and ((event_type == "session.disconnected" and spec.scope.matches(scope, session_end=True))
+                    or (event_type == "federate.resigned" and spec.scope.federate is not None and spec.scope.matches(scope)))
             if spec.kind == "stale-observations" and ended:
                 run.ended = "explicit-disconnect" if event_type == "session.disconnected" else "explicit-resignation"
                 run.last_sequence, run.last_at = sequence, now

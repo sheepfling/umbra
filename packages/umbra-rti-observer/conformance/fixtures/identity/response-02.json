@@ -1,0 +1,4273 @@
+{
+  "adapters": [],
+  "capabilities": {
+    "alert_controls": {
+      "description": "Observer-only rule edits, baseline resets and evidence acknowledgements; independent of provider commands.",
+      "event_types": [],
+      "label": "Alert configuration controls",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Alert configuration is read-only or alerts are disabled.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Alert configuration is read-only or alerts are disabled.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
+    "alerts": {
+      "description": "Typed thresholds and bounded process-local evidence for ingress, history loss and optional cached commands; no provider authority.",
+      "event_types": [],
+      "label": "Observer alerts",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Typed thresholds with bounded process-local configuration/evidence; no RTI service dependency.",
+          "source": "fastapi",
+          "state": "available"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Typed thresholds with bounded process-local configuration/evidence; no RTI service dependency.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "available"
+    },
+    "analytics": {
+      "description": "Windowed activity, participant attribution, and logical timestamp observations.",
+      "event_types": [],
+      "label": "Observation analytics",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Read-only analytics over retained normalized observations.",
+          "source": "fastapi",
+          "state": "available"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Read-only analytics over retained normalized observations.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "available"
+    },
+    "attributes": {
+      "description": "Decoded or opaque attribute update observations.",
+      "event_types": [],
+      "label": "Attribute values",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
+    "command_versions": {
+      "description": "Conditional commands bound to a dispatcher registration and revision, separate from observer and participant identity.",
+      "event_types": [],
+      "label": "Owned command target versions",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Commands require the current owned target incarnation/revision; unknown or stale expectations have no provider effect.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Commands require the current owned target incarnation/revision; unknown or stale expectations have no provider effect.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
+    "commands": {
+      "description": "Explicitly registered adapter actions and correlated execution history.",
+      "event_types": [],
+      "label": "Session commands",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "No command dispatcher is configured; this backend is read-only.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "No command dispatcher is configured; this backend is read-only.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
+    "declarations": {
+      "description": "Explicit scoped class/attribute declarations, not inferred routing or ownership.",
+      "event_types": [],
+      "label": "Publication and subscription declarations",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Only selected fixture publications are reported; federation-wide declaration coverage is unknown.",
+          "source": "identity-reporter",
+          "state": "partial"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Only selected fixture publications are reported; federation-wide declaration coverage is unknown.",
+      "reasons": [],
+      "sources": [
+        "identity-reporter"
+      ],
+      "state": "partial"
+    },
+    "event_history": {
+      "description": "Bounded, sequence-numbered event retention and cursor pages.",
+      "event_types": [],
+      "label": "Event history",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Provided by the provider-neutral observer store.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Provided by the provider-neutral observer store.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "federates": {
+      "description": "Participant join, update, and resignation observations.",
+      "event_types": [],
+      "label": "Federate roster",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
+    "fom_inspection": {
+      "description": "Adapter-supplied class, field, datatype and dimension metadata with explicit revision and references.",
+      "event_types": [],
+      "label": "FOM metadata inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Only object-class metadata is supplied; ancestry and datatype references may be unresolved.",
+          "source": "contract-fixture",
+          "state": "partial"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Only object-class metadata is supplied; ancestry and datatype references may be unresolved.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "partial"
+    },
+    "http_api": {
+      "description": "HTTP resources for contract, state, metrics, and event pages.",
+      "event_types": [],
+      "label": "HTTP API",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Provided by the FastAPI backend.",
+          "source": "fastapi",
+          "state": "available"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Provided by the FastAPI backend.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "available"
+    },
+    "interaction_flow": {
+      "description": "Explicit send/receive transmission pairing, scoped endpoints and observer arrival intervals.",
+      "event_types": [],
+      "label": "Interaction flow inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Receive observations only; transmission and endpoint IDs are not reported.",
+          "source": "contract-fixture",
+          "state": "partial"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Receive observations only; transmission and endpoint IDs are not reported.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "partial"
+    },
+    "interactions": {
+      "description": "Receive-order and directed interaction observations.",
+      "event_types": [],
+      "label": "Interactions",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
+    "lifecycle": {
+      "description": "Connection, startup, shutdown, and runtime errors.",
+      "event_types": [],
+      "label": "Runtime lifecycle",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
+    "live_inspectors": {
+      "description": "Derived object, interaction, and federate views.",
+      "event_types": [],
+      "label": "Live inspectors",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Derived from normalized events without requiring provider APIs.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Derived from normalized events without requiring provider APIs.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "logical_time": {
+      "description": "Time regulation, constraints, grants, and timestamped delivery.",
+      "event_types": [],
+      "label": "Logical time",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Only explicit fixture time observations.",
+          "source": "identity-reporter",
+          "state": "partial"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Only explicit fixture time observations.",
+      "reasons": [],
+      "sources": [
+        "identity-reporter"
+      ],
+      "state": "partial"
+    },
+    "metrics": {
+      "description": "Event counts, rates, retention, and adapter health metrics.",
+      "event_types": [],
+      "label": "Observer metrics",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Provided by the provider-neutral observer store.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Provided by the provider-neutral observer store.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "mom": {
+      "description": "Standard management and federation-management observations.",
+      "event_types": [],
+      "label": "Management object model",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile represents an RTI without MOM callbacks.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile represents an RTI without MOM callbacks.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
+    "mom_inspection": {
+      "description": "Typed roster coverage, service invocation/error reports and explicit numeric or opaque counters.",
+      "event_types": [],
+      "label": "Management report inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile reports no typed management reports; ordinary observation and join controls remain available.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile reports no typed management reports; ordinary observation and join controls remain available.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
+    "object_observations": {
+      "description": "Persistent attributed object snapshots and retained attribute comparisons.",
+      "event_types": [],
+      "label": "Object perspectives",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Built from explicit event attribution; no MOM or provider queries required.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Built from explicit event attribution; no MOM or provider queries required.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "objects": {
+      "description": "Object discovery, removal, and attribute updates.",
+      "event_types": [],
+      "label": "Object observations",
+      "observations": [
+        {
+          "owner": "adapter",
+          "source": "contract-fixture",
+          "state": "available"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "available"
+    },
+    "ownership": {
+      "description": "Ownership acquisition, divestiture, and query observations.",
+      "event_types": [],
+      "label": "Attribute ownership",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile does not expose ownership callbacks.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile does not expose ownership callbacks.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
+    "ownership_inspection": {
+      "description": "Explicit owner state, acquisition/divestiture reports and scoped request/outcome evidence.",
+      "event_types": [],
+      "label": "Attribute ownership inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile reports no explicit owner or ownership request evidence.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile reports no explicit owner or ownership request evidence.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
+    "participant_provenance": {
+      "description": "Canonical reporter/session and optional explicit join attribution; legacy name-only data remains unresolved, never a membership census or authority.",
+      "event_types": [],
+      "label": "Participant perspective model",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "The backend emits named participant perspectives; IDs exist only when supplied explicitly. This describes the observer codec, not RTI identity coverage.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "The backend emits named participant perspectives; IDs exist only when supplied explicitly. This describes the observer codec, not RTI identity coverage.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "persistence": {
+      "description": "Federation save, restore, and related lifecycle observations.",
+      "event_types": [],
+      "label": "Save and restore",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Save and restore observation is disabled for this profile.",
+          "source": "contract-fixture",
+          "state": "disabled"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Save and restore observation is disabled for this profile.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "disabled"
+    },
+    "persistence_inspection": {
+      "description": "Named local/federation save/restore phase snapshots and retained transition reports.",
+      "event_types": [],
+      "label": "Save and restore inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Save/restore inspection is disabled for this profile.",
+          "source": "contract-fixture",
+          "state": "disabled"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Save/restore inspection is disabled for this profile.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "disabled"
+    },
+    "recording": {
+      "description": "Bounded state/envelope journals and validated portable replay files; never provider command execution.",
+      "event_types": [],
+      "label": "Recording and replay",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Recording/import resources are disabled by this backend.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Recording/import resources are disabled by this backend.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
+    "recording_analytics_window": {
+      "description": "Accepts the named retained-window request instead of uploading unrelated recorded inspectors.",
+      "event_types": [],
+      "label": "Lightweight recorded analytics",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Named validated retained-window requests; legacy complete-frame requests remain accepted.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Named validated retained-window requests; legacy complete-frame requests remain accepted.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
+    "recording_compact": {
+      "description": "Explicitly negotiated v2 baseline/edit capture/import/export, bounded reconstruction and unchanged evidence.",
+      "event_types": [],
+      "label": "Compact recording files",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Negotiated v2 baseline/edit files with bounded reconstructed state/work; v1 remains supported.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Negotiated v2 baseline/edit files with bounded reconstructed state/work; v1 remains supported.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
+    "regions": {
+      "description": "Region creation and region-scoped publication or subscription.",
+      "event_types": [],
+      "label": "Regions and DDM",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile does not expose region callbacks.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile does not expose region callbacks.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
+    "regions_inspection": {
+      "description": "Explicit extents, exact dimension ranges, associations and declared/observed routing evidence.",
+      "event_types": [],
+      "label": "Region and DDM inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile reports no region extents, associations or routing evidence.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile reports no region extents, associations or routing evidence.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
+    "relationships": {
+      "description": "Adapter-reported producer/recipient edges with stable scoped join identities, not inferred routing.",
+      "event_types": [],
+      "label": "Explicit federation relationships",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile reports no explicit producer/recipient relationships or stable join IDs.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile reports no explicit producer/recipient relationships or stable join IDs.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
+    "session_recovery": {
+      "description": "Explicit adapter-supported inspection/reconciliation on the owner thread; incomplete facts never restore provider authority.",
+      "event_types": [],
+      "label": "Owned session inspection and recovery",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "No owned adapter inspection is configured; observation views remain independent.",
+          "source": "fastapi",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "No owned adapter inspection is configured; observation views remain independent.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "unsupported"
+    },
+    "sse": {
+      "description": "Live event delivery over an HTTP event stream.",
+      "event_types": [],
+      "label": "Server-sent events",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "This fixture uses HTTP polling.",
+          "source": "fastapi",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "This fixture uses HTTP polling.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "unsupported"
+    },
+    "storage_inspection": {
+      "description": "Explicit count/byte budgets, whole-record expiry and unbudgeted collection coverage; not federation lifecycle evidence.",
+      "event_types": [],
+      "label": "Observation storage coverage",
+      "observations": [
+        {
+          "owner": "observer",
+          "reason": "Count/byte expiry coverage is explicit; remaining row-only collections are listed, never silently covered.",
+          "state": "available"
+        }
+      ],
+      "owner": "observer",
+      "owners": [
+        "observer"
+      ],
+      "reason": "Count/byte expiry coverage is explicit; remaining row-only collections are listed, never silently covered.",
+      "reasons": [],
+      "sources": [],
+      "state": "available"
+    },
+    "synchronization": {
+      "description": "Explicit labels, registration outcomes, announcements and participant achievement reports.",
+      "event_types": [],
+      "label": "Synchronization observations",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "This profile does not report synchronization phases.",
+          "source": "contract-fixture",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "This profile does not report synchronization phases.",
+      "reasons": [],
+      "sources": [
+        "contract-fixture"
+      ],
+      "state": "unsupported"
+    },
+    "time_inspection": {
+      "description": "Last reported grants/state and bounded explicitly correlated requests, without MOM.",
+      "event_types": [],
+      "label": "Persistent time inspection",
+      "observations": [
+        {
+          "owner": "adapter",
+          "reason": "Explicit synthetic requests/grants are reported; unobserved roles and bounds remain unknown.",
+          "source": "identity-reporter",
+          "state": "partial"
+        }
+      ],
+      "owner": "adapter",
+      "owners": [
+        "adapter"
+      ],
+      "reason": "Explicit synthetic requests/grants are reported; unobserved roles and bounds remain unknown.",
+      "reasons": [],
+      "sources": [
+        "identity-reporter"
+      ],
+      "state": "partial"
+    },
+    "websocket": {
+      "description": "Live event delivery over a WebSocket connection.",
+      "event_types": [],
+      "label": "WebSocket stream",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "This fixture uses HTTP polling.",
+          "source": "fastapi",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "This fixture uses HTTP polling.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "unsupported"
+    },
+    "workspace_validation": {
+      "description": "Optional canonical view-configuration validation/defaults; browser workspaces remain local and do not depend on this endpoint.",
+      "event_types": [],
+      "label": "Workspace contract validation",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Optional named workspace configuration validation; local browser settings do not require an RTI or this resource.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Optional named workspace configuration validation; local browser settings do not require an RTI or this resource.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    }
+  },
+  "context": {
+    "federation": "Shared display name",
+    "source": "legacy-reporter"
+  },
+  "contract_version": "umbra-observer-contract-v1",
+  "federate_roster": [
+    {
+      "federate": "Renamed Twin",
+      "handle": "99",
+      "last_seen": 1760000000.0,
+      "perspective": {
+        "attribution": {
+          "federation_id": "federation-a",
+          "identity_namespace": "namespace-a",
+          "participant": {
+            "display_name": "Renamed Twin",
+            "handle": "99",
+            "membership_id": "join-1",
+            "participant_id": "same-participant"
+          },
+          "session_id": "reporting-session"
+        },
+        "basis": "explicit-join",
+        "federation": "Shared display name",
+        "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+        "reported_name": "Renamed Twin",
+        "session_id": "reporting-session",
+        "source": "identity-reporter"
+      },
+      "source": "identity-reporter",
+      "status": "active"
+    },
+    {
+      "federate": "Twin",
+      "handle": "7",
+      "last_seen": 1760000000.0,
+      "perspective": {
+        "attribution": {
+          "federation_id": "federation-a",
+          "identity_namespace": "namespace-a",
+          "participant": {
+            "display_name": "Twin",
+            "handle": "7",
+            "membership_id": "join-2",
+            "participant_id": "same-participant"
+          },
+          "session_id": "reporting-session"
+        },
+        "basis": "explicit-join",
+        "federation": "Shared display name",
+        "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-2\"]",
+        "reported_name": "Twin",
+        "session_id": "reporting-session",
+        "source": "identity-reporter"
+      },
+      "source": "identity-reporter",
+      "status": "active"
+    },
+    {
+      "federate": "Twin",
+      "handle": "7",
+      "last_seen": 1760000000.0,
+      "perspective": {
+        "attribution": {
+          "federation_id": "federation-a",
+          "identity_namespace": "namespace-b",
+          "participant": {
+            "display_name": "Twin",
+            "handle": "7",
+            "membership_id": "join-1",
+            "participant_id": "same-participant"
+          },
+          "session_id": "reporting-session"
+        },
+        "basis": "explicit-join",
+        "federation": "Shared display name",
+        "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-b\",\"federation-a\",\"same-participant\",\"join-1\"]",
+        "reported_name": "Twin",
+        "session_id": "reporting-session",
+        "source": "identity-reporter"
+      },
+      "source": "identity-reporter",
+      "status": "active"
+    },
+    {
+      "federate": "Twin",
+      "handle": "7",
+      "last_seen": 1760000000.0,
+      "perspective": {
+        "attribution": {
+          "federation_id": "federation-b",
+          "identity_namespace": "namespace-a",
+          "participant": {
+            "display_name": "Twin",
+            "handle": "7",
+            "membership_id": "join-1",
+            "participant_id": "same-participant"
+          },
+          "session_id": "reporting-session"
+        },
+        "basis": "explicit-join",
+        "federation": "Shared display name",
+        "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-b\",\"same-participant\",\"join-1\"]",
+        "reported_name": "Twin",
+        "session_id": "reporting-session",
+        "source": "identity-reporter"
+      },
+      "source": "identity-reporter",
+      "status": "active"
+    },
+    {
+      "federate": "Twin",
+      "handle": "7",
+      "last_seen": 1760000000.0,
+      "perspective": {
+        "attribution": {
+          "federation_id": "federation-a",
+          "identity_namespace": "namespace-a",
+          "participant": {
+            "display_name": "Twin",
+            "handle": "7",
+            "membership_id": "join-1",
+            "participant_id": "same-participant"
+          },
+          "session_id": "reporting-session"
+        },
+        "basis": "explicit-join",
+        "federation": "Shared display name",
+        "key": "[\"explicit-join\",\"other-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+        "reported_name": "Twin",
+        "session_id": "reporting-session",
+        "source": "other-reporter"
+      },
+      "source": "other-reporter",
+      "status": "active"
+    },
+    {
+      "federate": "Twin",
+      "last_seen": 1760000000.0,
+      "perspective": {
+        "basis": "legacy-provenance",
+        "key": "[\"legacy-provenance\",\"legacy-reporter\",null,null,\"Twin\"]",
+        "reported_name": "Twin",
+        "source": "legacy-reporter"
+      },
+      "source": "legacy-reporter",
+      "status": "active"
+    }
+  ],
+  "inspectors": {
+    "coordination": {
+      "basis": "explicit-coordination-observations",
+      "capacity": 1000,
+      "dropped_operations": 0,
+      "dropped_transitions": 0,
+      "history_capacity": 2000,
+      "snapshots": [],
+      "transitions": []
+    },
+    "declarations": {
+      "basis": "last-reported-declarations",
+      "capacity": 1000,
+      "dropped_declarations": 0,
+      "snapshots": [
+        {
+          "attribute_scope": "selected",
+          "attributes": [
+            "value"
+          ],
+          "class_key": "Class-0",
+          "direction": "publication",
+          "kind": "object",
+          "observed_at": 1760000000.0,
+          "scope": {
+            "federate": "Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-a",
+                "identity_namespace": "namespace-a",
+                "participant": {
+                  "display_name": "Twin",
+                  "handle": "7",
+                  "membership_id": "join-1",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+              "reported_name": "Twin",
+              "session_id": "reporting-session",
+              "source": "identity-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "sequence": 5,
+          "status": "declared"
+        },
+        {
+          "attribute_scope": "selected",
+          "attributes": [
+            "value"
+          ],
+          "class_key": "Class-1",
+          "direction": "publication",
+          "kind": "object",
+          "observed_at": 1760000000.0,
+          "scope": {
+            "federate": "Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-a",
+                "identity_namespace": "namespace-a",
+                "participant": {
+                  "display_name": "Twin",
+                  "handle": "7",
+                  "membership_id": "join-2",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-2\"]",
+              "reported_name": "Twin",
+              "session_id": "reporting-session",
+              "source": "identity-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "sequence": 12,
+          "status": "declared"
+        },
+        {
+          "attribute_scope": "selected",
+          "attributes": [
+            "value"
+          ],
+          "class_key": "Class-2",
+          "direction": "publication",
+          "kind": "object",
+          "observed_at": 1760000000.0,
+          "scope": {
+            "federate": "Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-a",
+                "identity_namespace": "namespace-b",
+                "participant": {
+                  "display_name": "Twin",
+                  "handle": "7",
+                  "membership_id": "join-1",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-b\",\"federation-a\",\"same-participant\",\"join-1\"]",
+              "reported_name": "Twin",
+              "session_id": "reporting-session",
+              "source": "identity-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "sequence": 19,
+          "status": "declared"
+        },
+        {
+          "attribute_scope": "selected",
+          "attributes": [
+            "value"
+          ],
+          "class_key": "Class-3",
+          "direction": "publication",
+          "kind": "object",
+          "observed_at": 1760000000.0,
+          "scope": {
+            "federate": "Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-b",
+                "identity_namespace": "namespace-a",
+                "participant": {
+                  "display_name": "Twin",
+                  "handle": "7",
+                  "membership_id": "join-1",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-b\",\"same-participant\",\"join-1\"]",
+              "reported_name": "Twin",
+              "session_id": "reporting-session",
+              "source": "identity-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "sequence": 26,
+          "status": "declared"
+        },
+        {
+          "attribute_scope": "selected",
+          "attributes": [
+            "value"
+          ],
+          "class_key": "Class-4",
+          "direction": "publication",
+          "kind": "object",
+          "observed_at": 1760000000.0,
+          "scope": {
+            "federate": "Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-a",
+                "identity_namespace": "namespace-a",
+                "participant": {
+                  "display_name": "Twin",
+                  "handle": "7",
+                  "membership_id": "join-1",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"other-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+              "reported_name": "Twin",
+              "session_id": "reporting-session",
+              "source": "other-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "other-reporter"
+          },
+          "sequence": 32,
+          "status": "declared"
+        }
+      ]
+    },
+    "fom": {
+      "basis": "adapter-supplied-fom-metadata",
+      "capacity": 1000,
+      "dropped_snapshots": 0,
+      "dropped_transitions": 0,
+      "history_capacity": 2000,
+      "snapshots": [],
+      "transitions": []
+    },
+    "interaction_flow": {
+      "basis": "explicit-interaction-observations",
+      "capacity": 500,
+      "dropped_records": 0,
+      "receive_observations": 5,
+      "records": [
+        {
+          "last_sequence": 6,
+          "receive": {
+            "class_key": "SharedInteraction",
+            "kind": "receive",
+            "observed_at": 1760000000.0,
+            "order": "unknown",
+            "sequence": 6,
+            "source": "identity-reporter"
+          },
+          "receive_count": 1,
+          "record_id": 6,
+          "send_count": 0,
+          "status": "uncorrelated"
+        },
+        {
+          "last_sequence": 13,
+          "receive": {
+            "class_key": "SharedInteraction",
+            "kind": "receive",
+            "observed_at": 1760000000.0,
+            "order": "unknown",
+            "sequence": 13,
+            "source": "identity-reporter"
+          },
+          "receive_count": 1,
+          "record_id": 13,
+          "send_count": 0,
+          "status": "uncorrelated"
+        },
+        {
+          "last_sequence": 20,
+          "receive": {
+            "class_key": "SharedInteraction",
+            "kind": "receive",
+            "observed_at": 1760000000.0,
+            "order": "unknown",
+            "sequence": 20,
+            "source": "identity-reporter"
+          },
+          "receive_count": 1,
+          "record_id": 20,
+          "send_count": 0,
+          "status": "uncorrelated"
+        },
+        {
+          "last_sequence": 27,
+          "receive": {
+            "class_key": "SharedInteraction",
+            "kind": "receive",
+            "observed_at": 1760000000.0,
+            "order": "unknown",
+            "sequence": 27,
+            "source": "identity-reporter"
+          },
+          "receive_count": 1,
+          "record_id": 27,
+          "send_count": 0,
+          "status": "uncorrelated"
+        },
+        {
+          "last_sequence": 33,
+          "receive": {
+            "class_key": "SharedInteraction",
+            "kind": "receive",
+            "observed_at": 1760000000.0,
+            "order": "unknown",
+            "sequence": 33,
+            "source": "other-reporter"
+          },
+          "receive_count": 1,
+          "record_id": 33,
+          "send_count": 0,
+          "status": "uncorrelated"
+        }
+      ],
+      "send_observations": 0
+    },
+    "interactions": [
+      {
+        "family": "generic",
+        "federate": "Twin",
+        "interaction_class": "SharedInteraction",
+        "interaction_key": "SharedInteraction",
+        "observed_at": 1760000000.0,
+        "parameters": {},
+        "perspective": {
+          "attribution": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a",
+            "participant": {
+              "display_name": "Twin",
+              "handle": "7",
+              "membership_id": "join-1",
+              "participant_id": "same-participant"
+            },
+            "session_id": "reporting-session"
+          },
+          "basis": "explicit-join",
+          "federation": "Shared display name",
+          "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+          "reported_name": "Twin",
+          "session_id": "reporting-session",
+          "source": "identity-reporter"
+        },
+        "sequence": 6,
+        "source": "identity-reporter"
+      },
+      {
+        "family": "generic",
+        "federate": "Twin",
+        "interaction_class": "SharedInteraction",
+        "interaction_key": "SharedInteraction",
+        "observed_at": 1760000000.0,
+        "parameters": {},
+        "perspective": {
+          "attribution": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a",
+            "participant": {
+              "display_name": "Twin",
+              "handle": "7",
+              "membership_id": "join-2",
+              "participant_id": "same-participant"
+            },
+            "session_id": "reporting-session"
+          },
+          "basis": "explicit-join",
+          "federation": "Shared display name",
+          "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-2\"]",
+          "reported_name": "Twin",
+          "session_id": "reporting-session",
+          "source": "identity-reporter"
+        },
+        "sequence": 13,
+        "source": "identity-reporter"
+      },
+      {
+        "family": "generic",
+        "federate": "Twin",
+        "interaction_class": "SharedInteraction",
+        "interaction_key": "SharedInteraction",
+        "observed_at": 1760000000.0,
+        "parameters": {},
+        "perspective": {
+          "attribution": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-b",
+            "participant": {
+              "display_name": "Twin",
+              "handle": "7",
+              "membership_id": "join-1",
+              "participant_id": "same-participant"
+            },
+            "session_id": "reporting-session"
+          },
+          "basis": "explicit-join",
+          "federation": "Shared display name",
+          "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-b\",\"federation-a\",\"same-participant\",\"join-1\"]",
+          "reported_name": "Twin",
+          "session_id": "reporting-session",
+          "source": "identity-reporter"
+        },
+        "sequence": 20,
+        "source": "identity-reporter"
+      },
+      {
+        "family": "generic",
+        "federate": "Twin",
+        "interaction_class": "SharedInteraction",
+        "interaction_key": "SharedInteraction",
+        "observed_at": 1760000000.0,
+        "parameters": {},
+        "perspective": {
+          "attribution": {
+            "federation_id": "federation-b",
+            "identity_namespace": "namespace-a",
+            "participant": {
+              "display_name": "Twin",
+              "handle": "7",
+              "membership_id": "join-1",
+              "participant_id": "same-participant"
+            },
+            "session_id": "reporting-session"
+          },
+          "basis": "explicit-join",
+          "federation": "Shared display name",
+          "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-b\",\"same-participant\",\"join-1\"]",
+          "reported_name": "Twin",
+          "session_id": "reporting-session",
+          "source": "identity-reporter"
+        },
+        "sequence": 27,
+        "source": "identity-reporter"
+      },
+      {
+        "family": "generic",
+        "federate": "Twin",
+        "interaction_class": "SharedInteraction",
+        "interaction_key": "SharedInteraction",
+        "observed_at": 1760000000.0,
+        "parameters": {},
+        "perspective": {
+          "attribution": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a",
+            "participant": {
+              "display_name": "Twin",
+              "handle": "7",
+              "membership_id": "join-1",
+              "participant_id": "same-participant"
+            },
+            "session_id": "reporting-session"
+          },
+          "basis": "explicit-join",
+          "federation": "Shared display name",
+          "key": "[\"explicit-join\",\"other-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+          "reported_name": "Twin",
+          "session_id": "reporting-session",
+          "source": "other-reporter"
+        },
+        "sequence": 33,
+        "source": "other-reporter"
+      }
+    ],
+    "mom": {
+      "basis": "explicit-management-reports",
+      "capacity": 500,
+      "dropped_snapshots": 0,
+      "dropped_transitions": 0,
+      "history_capacity": 2000,
+      "snapshots": [],
+      "transitions": []
+    },
+    "object_observations": {
+      "changes": [
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 2,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "previous_known": false,
+          "previous_value": null,
+          "sequence": 2,
+          "source": "identity-reporter",
+          "value": 10
+        },
+        {
+          "attribute": "value",
+          "federate": "Twin",
+          "generation": 2,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-a",
+              "participant": {
+                "display_name": "Twin",
+                "handle": "7",
+                "membership_id": "join-1",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+            "reported_name": "Twin",
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "previous_known": false,
+          "previous_value": null,
+          "sequence": 2,
+          "source": "identity-reporter",
+          "value": 10
+        },
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 2,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "previous_known": true,
+          "previous_value": 10,
+          "sequence": 3,
+          "source": "identity-reporter",
+          "value": 20
+        },
+        {
+          "attribute": "value",
+          "federate": "Twin",
+          "generation": 2,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-a",
+              "participant": {
+                "display_name": "Twin",
+                "handle": "7",
+                "membership_id": "join-1",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+            "reported_name": "Twin",
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "previous_known": true,
+          "previous_value": 10,
+          "sequence": 3,
+          "source": "identity-reporter",
+          "value": 20
+        },
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 2,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "previous_known": true,
+          "previous_value": 20,
+          "sequence": 8,
+          "source": "identity-reporter",
+          "value": 110
+        },
+        {
+          "attribute": "value",
+          "federate": "Twin",
+          "generation": 8,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-a",
+              "participant": {
+                "display_name": "Twin",
+                "handle": "7",
+                "membership_id": "join-2",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-2\"]",
+            "reported_name": "Twin",
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "previous_known": false,
+          "previous_value": null,
+          "sequence": 8,
+          "source": "identity-reporter",
+          "value": 110
+        },
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 2,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "previous_known": true,
+          "previous_value": 110,
+          "sequence": 9,
+          "source": "identity-reporter",
+          "value": 120
+        },
+        {
+          "attribute": "value",
+          "federate": "Twin",
+          "generation": 8,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-a",
+              "participant": {
+                "display_name": "Twin",
+                "handle": "7",
+                "membership_id": "join-2",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-2\"]",
+            "reported_name": "Twin",
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "previous_known": true,
+          "previous_value": 110,
+          "sequence": 9,
+          "source": "identity-reporter",
+          "value": 120
+        },
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 15,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-b"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-b\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "previous_known": false,
+          "previous_value": null,
+          "sequence": 15,
+          "source": "identity-reporter",
+          "value": 210
+        },
+        {
+          "attribute": "value",
+          "federate": "Twin",
+          "generation": 15,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-b"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-b\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-b",
+              "participant": {
+                "display_name": "Twin",
+                "handle": "7",
+                "membership_id": "join-1",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-b\",\"federation-a\",\"same-participant\",\"join-1\"]",
+            "reported_name": "Twin",
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "previous_known": false,
+          "previous_value": null,
+          "sequence": 15,
+          "source": "identity-reporter",
+          "value": 210
+        },
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 15,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-b"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-b\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "previous_known": true,
+          "previous_value": 210,
+          "sequence": 16,
+          "source": "identity-reporter",
+          "value": 220
+        },
+        {
+          "attribute": "value",
+          "federate": "Twin",
+          "generation": 15,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-b"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-b\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-b",
+              "participant": {
+                "display_name": "Twin",
+                "handle": "7",
+                "membership_id": "join-1",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-b\",\"federation-a\",\"same-participant\",\"join-1\"]",
+            "reported_name": "Twin",
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "previous_known": true,
+          "previous_value": 210,
+          "sequence": 16,
+          "source": "identity-reporter",
+          "value": 220
+        },
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 22,
+          "object_context": {
+            "federation_id": "federation-b",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-b\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "previous_known": false,
+          "previous_value": null,
+          "sequence": 22,
+          "source": "identity-reporter",
+          "value": 310
+        },
+        {
+          "attribute": "value",
+          "federate": "Twin",
+          "generation": 22,
+          "object_context": {
+            "federation_id": "federation-b",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-b\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-b",
+              "identity_namespace": "namespace-a",
+              "participant": {
+                "display_name": "Twin",
+                "handle": "7",
+                "membership_id": "join-1",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-b\",\"same-participant\",\"join-1\"]",
+            "reported_name": "Twin",
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "previous_known": false,
+          "previous_value": null,
+          "sequence": 22,
+          "source": "identity-reporter",
+          "value": 310
+        },
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 22,
+          "object_context": {
+            "federation_id": "federation-b",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-b\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "previous_known": true,
+          "previous_value": 310,
+          "sequence": 23,
+          "source": "identity-reporter",
+          "value": 320
+        },
+        {
+          "attribute": "value",
+          "federate": "Twin",
+          "generation": 22,
+          "object_context": {
+            "federation_id": "federation-b",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-b\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-b",
+              "identity_namespace": "namespace-a",
+              "participant": {
+                "display_name": "Twin",
+                "handle": "7",
+                "membership_id": "join-1",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-b\",\"same-participant\",\"join-1\"]",
+            "reported_name": "Twin",
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "previous_known": true,
+          "previous_value": 310,
+          "sequence": 23,
+          "source": "identity-reporter",
+          "value": 320
+        },
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 2,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "previous_known": true,
+          "previous_value": 120,
+          "sequence": 29,
+          "source": "other-reporter",
+          "value": 410
+        },
+        {
+          "attribute": "value",
+          "federate": "Twin",
+          "generation": 29,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-a",
+              "participant": {
+                "display_name": "Twin",
+                "handle": "7",
+                "membership_id": "join-1",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"other-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+            "reported_name": "Twin",
+            "session_id": "reporting-session",
+            "source": "other-reporter"
+          },
+          "previous_known": false,
+          "previous_value": null,
+          "sequence": 29,
+          "source": "other-reporter",
+          "value": 410
+        },
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 2,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "previous_known": true,
+          "previous_value": 410,
+          "sequence": 30,
+          "source": "other-reporter",
+          "value": 420
+        },
+        {
+          "attribute": "value",
+          "federate": "Twin",
+          "generation": 29,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-a",
+              "participant": {
+                "display_name": "Twin",
+                "handle": "7",
+                "membership_id": "join-1",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"other-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+            "reported_name": "Twin",
+            "session_id": "reporting-session",
+            "source": "other-reporter"
+          },
+          "previous_known": true,
+          "previous_value": 410,
+          "sequence": 30,
+          "source": "other-reporter",
+          "value": 420
+        },
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 2,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "previous_known": true,
+          "previous_value": 420,
+          "sequence": 35,
+          "source": "identity-reporter",
+          "value": 25
+        },
+        {
+          "attribute": "value",
+          "federate": "Renamed Twin",
+          "generation": 2,
+          "object_context": {
+            "federation_id": "federation-a",
+            "identity_namespace": "namespace-a"
+          },
+          "object_key": "shared-object",
+          "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+          "observed_at": 1760000000.0,
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-a",
+              "participant": {
+                "display_name": "Renamed Twin",
+                "handle": "99",
+                "membership_id": "join-1",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+            "reported_name": "Renamed Twin",
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "previous_known": true,
+          "previous_value": 20,
+          "sequence": 35,
+          "source": "identity-reporter",
+          "value": 25
+        },
+        {
+          "attribute": "value",
+          "federate": null,
+          "generation": 36,
+          "object_key": "shared-object",
+          "observed_at": 1760000000.0,
+          "previous_known": false,
+          "previous_value": null,
+          "sequence": 36,
+          "source": "legacy-reporter",
+          "value": 999
+        },
+        {
+          "attribute": "value",
+          "federate": "Twin",
+          "generation": 36,
+          "object_key": "shared-object",
+          "observed_at": 1760000000.0,
+          "perspective": {
+            "basis": "legacy-provenance",
+            "key": "[\"legacy-provenance\",\"legacy-reporter\",null,null,\"Twin\"]",
+            "reported_name": "Twin",
+            "source": "legacy-reporter"
+          },
+          "previous_known": false,
+          "previous_value": null,
+          "sequence": 36,
+          "source": "legacy-reporter",
+          "value": 999
+        }
+      ],
+      "dropped_history_batches": 0,
+      "dropped_snapshots": 0,
+      "history_first_sequence": 1,
+      "history_last_sequence": 36,
+      "history_truncated": false,
+      "omitted_changes": 0,
+      "snapshot_capacity": 5000,
+      "snapshots": [
+        {
+          "federate": null,
+          "generation": 36,
+          "last_sequence": 36,
+          "object": {
+            "attributes": {
+              "value": 999
+            },
+            "discovery_count": 0,
+            "family": "generic",
+            "last_seen": 1760000000.0,
+            "object_key": "shared-object",
+            "object_name": "shared-object",
+            "sources": [
+              "legacy-reporter"
+            ],
+            "status": "active",
+            "update_count": 1
+          }
+        },
+        {
+          "federate": null,
+          "generation": 2,
+          "last_sequence": 35,
+          "object": {
+            "attributes": {
+              "value": 25
+            },
+            "discovery_count": 0,
+            "family": "generic",
+            "last_seen": 1760000000.0,
+            "object_context": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-a"
+            },
+            "object_key": "shared-object",
+            "object_name": "Shared sensor",
+            "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+            "sources": [
+              "identity-reporter",
+              "other-reporter"
+            ],
+            "status": "active",
+            "update_count": 7
+          }
+        },
+        {
+          "federate": null,
+          "generation": 22,
+          "last_sequence": 23,
+          "object": {
+            "attributes": {
+              "value": 320
+            },
+            "discovery_count": 0,
+            "family": "generic",
+            "last_seen": 1760000000.0,
+            "object_context": {
+              "federation_id": "federation-b",
+              "identity_namespace": "namespace-a"
+            },
+            "object_key": "shared-object",
+            "object_name": "Shared sensor",
+            "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-b\",\"shared-object\"]",
+            "sources": [
+              "identity-reporter"
+            ],
+            "status": "active",
+            "update_count": 2
+          }
+        },
+        {
+          "federate": null,
+          "generation": 15,
+          "last_sequence": 16,
+          "object": {
+            "attributes": {
+              "value": 220
+            },
+            "discovery_count": 0,
+            "family": "generic",
+            "last_seen": 1760000000.0,
+            "object_context": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-b"
+            },
+            "object_key": "shared-object",
+            "object_name": "Shared sensor",
+            "observation_key": "[\"federation-object\",\"namespace-b\",\"federation-a\",\"shared-object\"]",
+            "sources": [
+              "identity-reporter"
+            ],
+            "status": "active",
+            "update_count": 2
+          }
+        },
+        {
+          "federate": "Renamed Twin",
+          "generation": 2,
+          "last_sequence": 35,
+          "object": {
+            "attributes": {
+              "value": 25
+            },
+            "discovery_count": 0,
+            "family": "generic",
+            "last_seen": 1760000000.0,
+            "object_context": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-a"
+            },
+            "object_key": "shared-object",
+            "object_name": "Shared sensor",
+            "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+            "sources": [
+              "identity-reporter"
+            ],
+            "status": "active",
+            "update_count": 3
+          },
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-a",
+              "participant": {
+                "display_name": "Renamed Twin",
+                "handle": "99",
+                "membership_id": "join-1",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+            "reported_name": "Renamed Twin",
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          }
+        },
+        {
+          "federate": "Twin",
+          "generation": 8,
+          "last_sequence": 9,
+          "object": {
+            "attributes": {
+              "value": 120
+            },
+            "discovery_count": 0,
+            "family": "generic",
+            "last_seen": 1760000000.0,
+            "object_context": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-a"
+            },
+            "object_key": "shared-object",
+            "object_name": "Shared sensor",
+            "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+            "sources": [
+              "identity-reporter"
+            ],
+            "status": "active",
+            "update_count": 2
+          },
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-a",
+              "participant": {
+                "display_name": "Twin",
+                "handle": "7",
+                "membership_id": "join-2",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-2\"]",
+            "reported_name": "Twin",
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          }
+        },
+        {
+          "federate": "Twin",
+          "generation": 22,
+          "last_sequence": 23,
+          "object": {
+            "attributes": {
+              "value": 320
+            },
+            "discovery_count": 0,
+            "family": "generic",
+            "last_seen": 1760000000.0,
+            "object_context": {
+              "federation_id": "federation-b",
+              "identity_namespace": "namespace-a"
+            },
+            "object_key": "shared-object",
+            "object_name": "Shared sensor",
+            "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-b\",\"shared-object\"]",
+            "sources": [
+              "identity-reporter"
+            ],
+            "status": "active",
+            "update_count": 2
+          },
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-b",
+              "identity_namespace": "namespace-a",
+              "participant": {
+                "display_name": "Twin",
+                "handle": "7",
+                "membership_id": "join-1",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-b\",\"same-participant\",\"join-1\"]",
+            "reported_name": "Twin",
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          }
+        },
+        {
+          "federate": "Twin",
+          "generation": 15,
+          "last_sequence": 16,
+          "object": {
+            "attributes": {
+              "value": 220
+            },
+            "discovery_count": 0,
+            "family": "generic",
+            "last_seen": 1760000000.0,
+            "object_context": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-b"
+            },
+            "object_key": "shared-object",
+            "object_name": "Shared sensor",
+            "observation_key": "[\"federation-object\",\"namespace-b\",\"federation-a\",\"shared-object\"]",
+            "sources": [
+              "identity-reporter"
+            ],
+            "status": "active",
+            "update_count": 2
+          },
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-b",
+              "participant": {
+                "display_name": "Twin",
+                "handle": "7",
+                "membership_id": "join-1",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-b\",\"federation-a\",\"same-participant\",\"join-1\"]",
+            "reported_name": "Twin",
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          }
+        },
+        {
+          "federate": "Twin",
+          "generation": 29,
+          "last_sequence": 30,
+          "object": {
+            "attributes": {
+              "value": 420
+            },
+            "discovery_count": 0,
+            "family": "generic",
+            "last_seen": 1760000000.0,
+            "object_context": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-a"
+            },
+            "object_key": "shared-object",
+            "object_name": "Shared sensor",
+            "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+            "sources": [
+              "other-reporter"
+            ],
+            "status": "active",
+            "update_count": 2
+          },
+          "perspective": {
+            "attribution": {
+              "federation_id": "federation-a",
+              "identity_namespace": "namespace-a",
+              "participant": {
+                "display_name": "Twin",
+                "handle": "7",
+                "membership_id": "join-1",
+                "participant_id": "same-participant"
+              },
+              "session_id": "reporting-session"
+            },
+            "basis": "explicit-join",
+            "federation": "Shared display name",
+            "key": "[\"explicit-join\",\"other-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+            "reported_name": "Twin",
+            "session_id": "reporting-session",
+            "source": "other-reporter"
+          }
+        },
+        {
+          "federate": "Twin",
+          "generation": 36,
+          "last_sequence": 36,
+          "object": {
+            "attributes": {
+              "value": 999
+            },
+            "discovery_count": 0,
+            "family": "generic",
+            "last_seen": 1760000000.0,
+            "object_key": "shared-object",
+            "object_name": "shared-object",
+            "sources": [
+              "legacy-reporter"
+            ],
+            "status": "active",
+            "update_count": 1
+          },
+          "perspective": {
+            "basis": "legacy-provenance",
+            "key": "[\"legacy-provenance\",\"legacy-reporter\",null,null,\"Twin\"]",
+            "reported_name": "Twin",
+            "source": "legacy-reporter"
+          }
+        }
+      ]
+    },
+    "objects": [
+      {
+        "attributes": {
+          "value": 220
+        },
+        "discovery_count": 0,
+        "family": "generic",
+        "last_seen": 1760000000.0,
+        "object_context": {
+          "federation_id": "federation-a",
+          "identity_namespace": "namespace-b"
+        },
+        "object_key": "shared-object",
+        "object_name": "Shared sensor",
+        "observation_key": "[\"federation-object\",\"namespace-b\",\"federation-a\",\"shared-object\"]",
+        "sources": [
+          "identity-reporter"
+        ],
+        "status": "active",
+        "update_count": 2
+      },
+      {
+        "attributes": {
+          "value": 320
+        },
+        "discovery_count": 0,
+        "family": "generic",
+        "last_seen": 1760000000.0,
+        "object_context": {
+          "federation_id": "federation-b",
+          "identity_namespace": "namespace-a"
+        },
+        "object_key": "shared-object",
+        "object_name": "Shared sensor",
+        "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-b\",\"shared-object\"]",
+        "sources": [
+          "identity-reporter"
+        ],
+        "status": "active",
+        "update_count": 2
+      },
+      {
+        "attributes": {
+          "value": 25
+        },
+        "discovery_count": 0,
+        "family": "generic",
+        "last_seen": 1760000000.0,
+        "object_context": {
+          "federation_id": "federation-a",
+          "identity_namespace": "namespace-a"
+        },
+        "object_key": "shared-object",
+        "object_name": "Shared sensor",
+        "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+        "sources": [
+          "identity-reporter",
+          "other-reporter"
+        ],
+        "status": "active",
+        "update_count": 7
+      },
+      {
+        "attributes": {
+          "value": 999
+        },
+        "discovery_count": 0,
+        "family": "generic",
+        "last_seen": 1760000000.0,
+        "object_key": "shared-object",
+        "object_name": "shared-object",
+        "sources": [
+          "legacy-reporter"
+        ],
+        "status": "active",
+        "update_count": 1
+      }
+    ],
+    "ownership": {
+      "basis": "explicit-ownership-observations",
+      "capacity": 500,
+      "dropped_requests": 0,
+      "dropped_states": 0,
+      "dropped_transitions": 0,
+      "history_capacity": 1000,
+      "request_capacity": 500,
+      "requests": [],
+      "states": [],
+      "transitions": [],
+      "unmatched_outcomes": 0
+    },
+    "regions": {
+      "basis": "explicit-region-observations",
+      "capacity": 500,
+      "dropped_snapshots": 0,
+      "dropped_transitions": 0,
+      "history_capacity": 1000,
+      "snapshots": [],
+      "transitions": []
+    },
+    "relationships": {
+      "basis": "last-reported-explicit-relationships",
+      "capacity": 1000,
+      "dropped_relationships": 0,
+      "snapshots": []
+    },
+    "time": {
+      "dropped_requests": 0,
+      "dropped_snapshots": 0,
+      "duration_basis": "observer-ingress-monotonic",
+      "request_capacity": 250,
+      "requests": [
+        {
+          "pending_seconds": 0.0,
+          "request_id": "shared-request",
+          "request_sequence": 4,
+          "requested_at": 1760000000.0,
+          "requested_time": 5,
+          "scope": {
+            "federate": "Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-a",
+                "identity_namespace": "namespace-a",
+                "participant": {
+                  "display_name": "Twin",
+                  "handle": "7",
+                  "membership_id": "join-1",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+              "reported_name": "Twin",
+              "session_id": "reporting-session",
+              "source": "identity-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "snapshot_retained": true,
+          "status": "pending"
+        },
+        {
+          "granted_time": 6,
+          "latency_seconds": 0.0,
+          "outcome_at": 1760000000.0,
+          "outcome_sequence": 11,
+          "request_id": "shared-request",
+          "request_sequence": 10,
+          "requested_at": 1760000000.0,
+          "requested_time": 6,
+          "scope": {
+            "federate": "Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-a",
+                "identity_namespace": "namespace-a",
+                "participant": {
+                  "display_name": "Twin",
+                  "handle": "7",
+                  "membership_id": "join-2",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-2\"]",
+              "reported_name": "Twin",
+              "session_id": "reporting-session",
+              "source": "identity-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "snapshot_retained": true,
+          "status": "granted"
+        },
+        {
+          "granted_time": 7,
+          "latency_seconds": 0.0,
+          "outcome_at": 1760000000.0,
+          "outcome_sequence": 18,
+          "request_id": "shared-request",
+          "request_sequence": 17,
+          "requested_at": 1760000000.0,
+          "requested_time": 7,
+          "scope": {
+            "federate": "Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-a",
+                "identity_namespace": "namespace-b",
+                "participant": {
+                  "display_name": "Twin",
+                  "handle": "7",
+                  "membership_id": "join-1",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-b\",\"federation-a\",\"same-participant\",\"join-1\"]",
+              "reported_name": "Twin",
+              "session_id": "reporting-session",
+              "source": "identity-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "snapshot_retained": true,
+          "status": "granted"
+        },
+        {
+          "granted_time": 8,
+          "latency_seconds": 0.0,
+          "outcome_at": 1760000000.0,
+          "outcome_sequence": 25,
+          "request_id": "shared-request",
+          "request_sequence": 24,
+          "requested_at": 1760000000.0,
+          "requested_time": 8,
+          "scope": {
+            "federate": "Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-b",
+                "identity_namespace": "namespace-a",
+                "participant": {
+                  "display_name": "Twin",
+                  "handle": "7",
+                  "membership_id": "join-1",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-b\",\"same-participant\",\"join-1\"]",
+              "reported_name": "Twin",
+              "session_id": "reporting-session",
+              "source": "identity-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "snapshot_retained": true,
+          "status": "granted"
+        },
+        {
+          "pending_seconds": 0.0,
+          "request_id": "shared-request",
+          "request_sequence": 31,
+          "requested_at": 1760000000.0,
+          "requested_time": 9,
+          "scope": {
+            "federate": "Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-a",
+                "identity_namespace": "namespace-a",
+                "participant": {
+                  "display_name": "Twin",
+                  "handle": "7",
+                  "membership_id": "join-1",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"other-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+              "reported_name": "Twin",
+              "session_id": "reporting-session",
+              "source": "other-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "other-reporter"
+          },
+          "snapshot_retained": true,
+          "status": "pending"
+        }
+      ],
+      "scope_basis": "explicit-observations",
+      "snapshot_capacity": 2000,
+      "snapshots": [
+        {
+          "last_grant": {
+            "logical_time": 6,
+            "observed_at": 1760000000.0,
+            "request_id": "shared-request",
+            "sequence": 11
+          },
+          "last_request": {
+            "logical_time": 6,
+            "observed_at": 1760000000.0,
+            "request_id": "shared-request",
+            "sequence": 10
+          },
+          "last_sequence": 11,
+          "observed_at": 1760000000.0,
+          "scope": {
+            "federate": "Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-a",
+                "identity_namespace": "namespace-a",
+                "participant": {
+                  "display_name": "Twin",
+                  "handle": "7",
+                  "membership_id": "join-2",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-2\"]",
+              "reported_name": "Twin",
+              "session_id": "reporting-session",
+              "source": "identity-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "status": "observed",
+          "uncorrelated_grants": 0,
+          "uncorrelated_requests": 0
+        },
+        {
+          "last_grant": {
+            "logical_time": 7,
+            "observed_at": 1760000000.0,
+            "request_id": "shared-request",
+            "sequence": 18
+          },
+          "last_request": {
+            "logical_time": 7,
+            "observed_at": 1760000000.0,
+            "request_id": "shared-request",
+            "sequence": 17
+          },
+          "last_sequence": 18,
+          "observed_at": 1760000000.0,
+          "scope": {
+            "federate": "Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-a",
+                "identity_namespace": "namespace-b",
+                "participant": {
+                  "display_name": "Twin",
+                  "handle": "7",
+                  "membership_id": "join-1",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-b\",\"federation-a\",\"same-participant\",\"join-1\"]",
+              "reported_name": "Twin",
+              "session_id": "reporting-session",
+              "source": "identity-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "status": "observed",
+          "uncorrelated_grants": 0,
+          "uncorrelated_requests": 0
+        },
+        {
+          "last_grant": {
+            "logical_time": 8,
+            "observed_at": 1760000000.0,
+            "request_id": "shared-request",
+            "sequence": 25
+          },
+          "last_request": {
+            "logical_time": 8,
+            "observed_at": 1760000000.0,
+            "request_id": "shared-request",
+            "sequence": 24
+          },
+          "last_sequence": 25,
+          "observed_at": 1760000000.0,
+          "scope": {
+            "federate": "Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-b",
+                "identity_namespace": "namespace-a",
+                "participant": {
+                  "display_name": "Twin",
+                  "handle": "7",
+                  "membership_id": "join-1",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-b\",\"same-participant\",\"join-1\"]",
+              "reported_name": "Twin",
+              "session_id": "reporting-session",
+              "source": "identity-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "status": "observed",
+          "uncorrelated_grants": 0,
+          "uncorrelated_requests": 0
+        },
+        {
+          "last_request": {
+            "logical_time": 9,
+            "observed_at": 1760000000.0,
+            "request_id": "shared-request",
+            "sequence": 31
+          },
+          "last_sequence": 31,
+          "observed_at": 1760000000.0,
+          "scope": {
+            "federate": "Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-a",
+                "identity_namespace": "namespace-a",
+                "participant": {
+                  "display_name": "Twin",
+                  "handle": "7",
+                  "membership_id": "join-1",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"other-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+              "reported_name": "Twin",
+              "session_id": "reporting-session",
+              "source": "other-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "other-reporter"
+          },
+          "status": "observed",
+          "uncorrelated_grants": 0,
+          "uncorrelated_requests": 0
+        },
+        {
+          "last_request": {
+            "logical_time": 5,
+            "observed_at": 1760000000.0,
+            "request_id": "shared-request",
+            "sequence": 4
+          },
+          "last_sequence": 34,
+          "observed_at": 1760000000.0,
+          "reported_state": {
+            "logical_time": 25
+          },
+          "scope": {
+            "federate": "Renamed Twin",
+            "federation": "Shared display name",
+            "perspective": {
+              "attribution": {
+                "federation_id": "federation-a",
+                "identity_namespace": "namespace-a",
+                "participant": {
+                  "display_name": "Renamed Twin",
+                  "handle": "99",
+                  "membership_id": "join-1",
+                  "participant_id": "same-participant"
+                },
+                "session_id": "reporting-session"
+              },
+              "basis": "explicit-join",
+              "federation": "Shared display name",
+              "key": "[\"explicit-join\",\"identity-reporter\",\"reporting-session\",\"namespace-a\",\"federation-a\",\"same-participant\",\"join-1\"]",
+              "reported_name": "Renamed Twin",
+              "session_id": "reporting-session",
+              "source": "identity-reporter"
+            },
+            "session_id": "reporting-session",
+            "source": "identity-reporter"
+          },
+          "state_sequence": 34,
+          "status": "observed",
+          "uncorrelated_grants": 0,
+          "uncorrelated_requests": 0
+        }
+      ]
+    }
+  },
+  "live_metrics": {
+    "error_count": 0,
+    "event_count": 36,
+    "event_rate_per_second": 0.0,
+    "event_types": {
+      "declaration.observed": 5,
+      "federate.joined": 5,
+      "interaction.received": 5,
+      "object.updated": 12,
+      "time.observed": 9
+    },
+    "families": {
+      "generic": 36
+    },
+    "federate_count": 6,
+    "first_sequence": 1,
+    "interaction_count": 5,
+    "last_sequence": 36,
+    "object_count": 4,
+    "sources": {
+      "identity-reporter": 29,
+      "legacy-reporter": 1,
+      "other-reporter": 6
+    }
+  },
+  "normalized_events": [
+    {
+      "event_type": "federate.joined",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 1,
+      "source": "identity-reporter"
+    },
+    {
+      "attributes": {
+        "value": 10
+      },
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "object_context": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a"
+      },
+      "object_key": "shared-object",
+      "object_name": "Shared sensor",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 2,
+      "source": "identity-reporter"
+    },
+    {
+      "attributes": {
+        "value": 20
+      },
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "object_context": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a"
+      },
+      "object_key": "shared-object",
+      "object_name": "Shared sensor",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 3,
+      "source": "identity-reporter"
+    },
+    {
+      "event_type": "time.observed",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 4,
+      "source": "identity-reporter",
+      "time_observation": {
+        "kind": "request",
+        "logical_time": 5,
+        "request_id": "shared-request"
+      }
+    },
+    {
+      "declaration": {
+        "attribute_scope": "selected",
+        "attributes": [
+          "value"
+        ],
+        "class_key": "Class-0",
+        "direction": "publication",
+        "kind": "object",
+        "status": "declared"
+      },
+      "event_type": "declaration.observed",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 5,
+      "source": "identity-reporter"
+    },
+    {
+      "event_type": "interaction.received",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "interaction_class": "SharedInteraction",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 6,
+      "source": "identity-reporter"
+    },
+    {
+      "event_type": "federate.joined",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-2",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 7,
+      "source": "identity-reporter"
+    },
+    {
+      "attributes": {
+        "value": 110
+      },
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "object_context": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a"
+      },
+      "object_key": "shared-object",
+      "object_name": "Shared sensor",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-2",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 8,
+      "source": "identity-reporter"
+    },
+    {
+      "attributes": {
+        "value": 120
+      },
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "object_context": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a"
+      },
+      "object_key": "shared-object",
+      "object_name": "Shared sensor",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-2",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 9,
+      "source": "identity-reporter"
+    },
+    {
+      "event_type": "time.observed",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-2",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 10,
+      "source": "identity-reporter",
+      "time_observation": {
+        "kind": "request",
+        "logical_time": 6,
+        "request_id": "shared-request"
+      }
+    },
+    {
+      "event_type": "time.observed",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-2",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 11,
+      "source": "identity-reporter",
+      "time_observation": {
+        "kind": "grant",
+        "logical_time": 6,
+        "request_id": "shared-request"
+      }
+    },
+    {
+      "declaration": {
+        "attribute_scope": "selected",
+        "attributes": [
+          "value"
+        ],
+        "class_key": "Class-1",
+        "direction": "publication",
+        "kind": "object",
+        "status": "declared"
+      },
+      "event_type": "declaration.observed",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-2",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 12,
+      "source": "identity-reporter"
+    },
+    {
+      "event_type": "interaction.received",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "interaction_class": "SharedInteraction",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-2",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 13,
+      "source": "identity-reporter"
+    },
+    {
+      "event_type": "federate.joined",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-b",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 14,
+      "source": "identity-reporter"
+    },
+    {
+      "attributes": {
+        "value": 210
+      },
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "object_context": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-b"
+      },
+      "object_key": "shared-object",
+      "object_name": "Shared sensor",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-b",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 15,
+      "source": "identity-reporter"
+    },
+    {
+      "attributes": {
+        "value": 220
+      },
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "object_context": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-b"
+      },
+      "object_key": "shared-object",
+      "object_name": "Shared sensor",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-b",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 16,
+      "source": "identity-reporter"
+    },
+    {
+      "event_type": "time.observed",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-b",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 17,
+      "source": "identity-reporter",
+      "time_observation": {
+        "kind": "request",
+        "logical_time": 7,
+        "request_id": "shared-request"
+      }
+    },
+    {
+      "event_type": "time.observed",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-b",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 18,
+      "source": "identity-reporter",
+      "time_observation": {
+        "kind": "grant",
+        "logical_time": 7,
+        "request_id": "shared-request"
+      }
+    },
+    {
+      "declaration": {
+        "attribute_scope": "selected",
+        "attributes": [
+          "value"
+        ],
+        "class_key": "Class-2",
+        "direction": "publication",
+        "kind": "object",
+        "status": "declared"
+      },
+      "event_type": "declaration.observed",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-b",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 19,
+      "source": "identity-reporter"
+    },
+    {
+      "event_type": "interaction.received",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "interaction_class": "SharedInteraction",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-b",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 20,
+      "source": "identity-reporter"
+    },
+    {
+      "event_type": "federate.joined",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-b",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 21,
+      "source": "identity-reporter"
+    },
+    {
+      "attributes": {
+        "value": 310
+      },
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "object_context": {
+        "federation_id": "federation-b",
+        "identity_namespace": "namespace-a"
+      },
+      "object_key": "shared-object",
+      "object_name": "Shared sensor",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-b",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 22,
+      "source": "identity-reporter"
+    },
+    {
+      "attributes": {
+        "value": 320
+      },
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "object_context": {
+        "federation_id": "federation-b",
+        "identity_namespace": "namespace-a"
+      },
+      "object_key": "shared-object",
+      "object_name": "Shared sensor",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-b",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 23,
+      "source": "identity-reporter"
+    },
+    {
+      "event_type": "time.observed",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-b",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 24,
+      "source": "identity-reporter",
+      "time_observation": {
+        "kind": "request",
+        "logical_time": 8,
+        "request_id": "shared-request"
+      }
+    },
+    {
+      "event_type": "time.observed",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-b",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 25,
+      "source": "identity-reporter",
+      "time_observation": {
+        "kind": "grant",
+        "logical_time": 8,
+        "request_id": "shared-request"
+      }
+    },
+    {
+      "declaration": {
+        "attribute_scope": "selected",
+        "attributes": [
+          "value"
+        ],
+        "class_key": "Class-3",
+        "direction": "publication",
+        "kind": "object",
+        "status": "declared"
+      },
+      "event_type": "declaration.observed",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-b",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 26,
+      "source": "identity-reporter"
+    },
+    {
+      "event_type": "interaction.received",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "interaction_class": "SharedInteraction",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-b",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 27,
+      "source": "identity-reporter"
+    },
+    {
+      "event_type": "federate.joined",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 28,
+      "source": "other-reporter"
+    },
+    {
+      "attributes": {
+        "value": 410
+      },
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "object_context": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a"
+      },
+      "object_key": "shared-object",
+      "object_name": "Shared sensor",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 29,
+      "source": "other-reporter"
+    },
+    {
+      "attributes": {
+        "value": 420
+      },
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "object_context": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a"
+      },
+      "object_key": "shared-object",
+      "object_name": "Shared sensor",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 30,
+      "source": "other-reporter"
+    },
+    {
+      "event_type": "time.observed",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 31,
+      "source": "other-reporter",
+      "time_observation": {
+        "kind": "request",
+        "logical_time": 9,
+        "request_id": "shared-request"
+      }
+    },
+    {
+      "declaration": {
+        "attribute_scope": "selected",
+        "attributes": [
+          "value"
+        ],
+        "class_key": "Class-4",
+        "direction": "publication",
+        "kind": "object",
+        "status": "declared"
+      },
+      "event_type": "declaration.observed",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 32,
+      "source": "other-reporter"
+    },
+    {
+      "event_type": "interaction.received",
+      "family": "generic",
+      "federate": "Twin",
+      "federation": "Shared display name",
+      "interaction_class": "SharedInteraction",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Twin",
+          "handle": "7",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 33,
+      "source": "other-reporter"
+    },
+    {
+      "event_type": "time.observed",
+      "family": "generic",
+      "federate": "Renamed Twin",
+      "federation": "Shared display name",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Renamed Twin",
+          "handle": "99",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 34,
+      "source": "identity-reporter",
+      "time_observation": {
+        "kind": "state",
+        "logical_time": 25
+      }
+    },
+    {
+      "attributes": {
+        "value": 25
+      },
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "Renamed Twin",
+      "federation": "Shared display name",
+      "object_context": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a"
+      },
+      "object_key": "shared-object",
+      "object_name": "Shared sensor",
+      "observed_at": 1760000000.0,
+      "participant_attribution": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a",
+        "participant": {
+          "display_name": "Renamed Twin",
+          "handle": "99",
+          "membership_id": "join-1",
+          "participant_id": "same-participant"
+        },
+        "session_id": "reporting-session"
+      },
+      "sequence": 35,
+      "source": "identity-reporter"
+    },
+    {
+      "attributes": {
+        "value": 999
+      },
+      "event_type": "object.updated",
+      "family": "generic",
+      "federate": "Twin",
+      "object_key": "shared-object",
+      "observed_at": 1760000000.0,
+      "sequence": 36,
+      "source": "legacy-reporter"
+    }
+  ],
+  "observer_lifetime": {
+    "instance_id": "00000000000000000000000000000001",
+    "revision": 41
+  },
+  "retention": {
+    "cleared_events": 0,
+    "dropped_events": 0,
+    "first_retained_sequence": 1,
+    "last_sequence": 36,
+    "max_events": 64,
+    "next_sequence": 37,
+    "retained_events": 36
+  },
+  "schema_version": "umbra-runtime-observer-v1",
+  "status": "running",
+  "storage": {
+    "context": {
+      "accounted_bytes": 192,
+      "basis": "encoded-json-plus-record-reserve",
+      "collections": [
+        {
+          "accounted_bytes": 192,
+          "byte_limit_drops": 0,
+          "capacity": 128,
+          "collection": "context",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 2,
+          "soft_reservation_bytes": 0,
+          "unit": "keys",
+          "window_drops": 0
+        }
+      ],
+      "max_bytes": 262144,
+      "max_record_bytes": 131072,
+      "policy": "shared-evidence-lru-with-soft-reservations",
+      "record_reserve_bytes": 64,
+      "unbudgeted_collections": []
+    },
+    "evidence": {
+      "accounted_bytes": 74196,
+      "basis": "encoded-json-plus-record-reserve",
+      "collections": [
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 2000,
+          "collection": "coordination_history",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 0,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 1000,
+          "collection": "coordination_snapshots",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 131072,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 4605,
+          "byte_limit_drops": 0,
+          "capacity": 1000,
+          "collection": "declarations",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 5,
+          "soft_reservation_bytes": 131072,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 20545,
+          "byte_limit_drops": 0,
+          "capacity": 64,
+          "collection": "events",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 36,
+          "soft_reservation_bytes": 524288,
+          "unit": "envelopes",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 3936,
+          "byte_limit_drops": 0,
+          "capacity": 2000,
+          "collection": "federates",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 6,
+          "soft_reservation_bytes": 65536,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 2000,
+          "collection": "fom_history",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 0,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 1000,
+          "collection": "fom_snapshots",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 262144,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 2404,
+          "byte_limit_drops": 0,
+          "capacity": 500,
+          "collection": "interaction_flow",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 5,
+          "soft_reservation_bytes": 131072,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 4095,
+          "byte_limit_drops": 0,
+          "capacity": 250,
+          "collection": "interactions",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 5,
+          "soft_reservation_bytes": 65536,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 2000,
+          "collection": "mom_history",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 0,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 500,
+          "collection": "mom_snapshots",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 131072,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 18238,
+          "byte_limit_drops": 0,
+          "capacity": 64,
+          "collection": "object_changes",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 36,
+          "soft_reservation_bytes": 262144,
+          "unit": "event-batches",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 8345,
+          "byte_limit_drops": 0,
+          "capacity": 5000,
+          "collection": "object_snapshots",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 10,
+          "soft_reservation_bytes": 393216,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 1918,
+          "byte_limit_drops": 0,
+          "capacity": 5000,
+          "collection": "objects",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 4,
+          "soft_reservation_bytes": 262144,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 1000,
+          "collection": "ownership_history",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 0,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 500,
+          "collection": "ownership_requests",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 65536,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 500,
+          "collection": "ownership_states",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 131072,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 1000,
+          "collection": "regions_history",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 0,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 500,
+          "collection": "regions_snapshots",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 131072,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 0,
+          "byte_limit_drops": 0,
+          "capacity": 1000,
+          "collection": "relationships",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 0,
+          "soft_reservation_bytes": 131072,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 4764,
+          "byte_limit_drops": 0,
+          "capacity": 250,
+          "collection": "time_requests",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 5,
+          "soft_reservation_bytes": 65536,
+          "unit": "records",
+          "window_drops": 0
+        },
+        {
+          "accounted_bytes": 5346,
+          "byte_limit_drops": 0,
+          "capacity": 2000,
+          "collection": "time_snapshots",
+          "count_limit_drops": 0,
+          "dropped_bytes": 0,
+          "dropped_records": 0,
+          "encoding_drops": 0,
+          "oversized_drops": 0,
+          "retained_records": 5,
+          "soft_reservation_bytes": 65536,
+          "unit": "records",
+          "window_drops": 0
+        }
+      ],
+      "max_bytes": 6291456,
+      "max_record_bytes": 1048576,
+      "policy": "shared-evidence-lru-with-soft-reservations",
+      "record_reserve_bytes": 64,
+      "unbudgeted_collections": []
+    }
+  }
+}

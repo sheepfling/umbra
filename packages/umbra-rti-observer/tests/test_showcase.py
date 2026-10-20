@@ -3,8 +3,14 @@ from __future__ import annotations
 import threading
 
 import pytest
-
 from umbra_rti_observer import ShowcaseAdapter
+
+
+@pytest.mark.parametrize("arguments", [["--showcase-control-fault-once", "connect"], ["--showcase-control-inspection", "partial"]])
+def test_recovery_demo_options_require_explicit_synthetic_controls(arguments: list[str]) -> None:
+    from umbra_rti_observer.__main__ import main
+    with pytest.raises(SystemExit, match="requires --showcase --enable-controls"):
+        main(arguments)
 
 
 def test_showcase_profiles_report_different_feature_surfaces() -> None:

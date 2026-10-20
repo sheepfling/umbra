@@ -110,3 +110,28 @@ lifecycle commands, and cleans it up. It is not normative IEEE test evidence.
 The normal observer regression run leaves this native-only test explicitly
 skipped. Server deployments exposing real commands must provide their normal
 session authorization around the HTTP app.
+
+## Optional inspection/recovery
+
+The pinned HLA interface has no universal connection/membership query. A binding
+or deployment that can authoritatively inspect its owned ambassador may pass
+`inspection: Callable[[LifecycleAmbassador], SessionStateObservation]` to
+`create_umbra_command_session`. The callable is server-owned and runs on that
+same execution thread; the browser cannot choose it or supply provider options.
+Return explicit connection/membership facts and, for a joined federation,
+its actual federation name. Unknown/incomplete facts remain unresolved. Do not
+echo the controller cache, adopt an observed peer or infer membership from MOM.
+
+This opts into `session.inspect` and confirmed `session.recover`. Inspection
+alone never restores permissions. Connected recovery probes a healthy callback
+pump and reads again before reconciling; it does not replay the failed operation.
+Commands bind to the current owned registration/revision, and previous command
+results and late-result uncertainty stay retained. Normal shutdown does not
+guess a destructive cleanup policy for a still-unknown session.
+
+Omitting the inspector leaves recovery unsupported and preserves the four
+ordinary lifecycle actions. Strict fake tests verify the hook against the
+specific ambassador and owner thread, including a join that took effect before
+raising. This is not proof of a native provider inspection API. The opt-in native
+lifecycle smoke above and any deployment-specific real query require their own
+actual-provider evidence.

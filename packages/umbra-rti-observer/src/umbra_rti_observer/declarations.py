@@ -136,7 +136,8 @@ class DeclarationViews:
         if data is None:
             return
         perspective = event_perspective(event)
-        session = data.session_id or (perspective.attribution.session_id if perspective and perspective.attribution else None)
+        root_session = event.get("session_id")
+        session = data.session_id or (perspective.session_id if perspective else root_session if isinstance(root_session, str) else None)
         scope = DeclarationScope(event.source, session, federation, federate, perspective)
         key = scope, data.kind, data.direction, data.class_key
         self._rows[key] = DeclarationSnapshot(scope, data, event.sequence, event.observed_at)

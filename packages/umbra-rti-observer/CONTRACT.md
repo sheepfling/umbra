@@ -106,6 +106,69 @@ The reference event vocabulary is returned by `/api/contract` and is
 extensible. A backend may publish additional event types without requiring a
 frontend change as long as the envelope remains valid.
 
+### Participant attribution and object context
+
+Optional root `participant_attribution` identifies the ordinary event actor:
+
+```json
+{
+  "session_id": "reporting-session-1",
+  "identity_namespace": "provider-domain",
+  "federation_id": "federation-1",
+  "participant": {
+    "participant_id": "participant-17",
+    "membership_id": "join-3",
+    "display_name": "Worker",
+    "handle": "0x12"
+  }
+}
+```
+
+The five IDs are nonblank opaque strings (session at most 256 characters;
+namespace, federation, participant and membership at most 512). They preserve
+whitespace, Unicode and case. Root `session_id`, `time_observation.session_id`
+and `declaration.session_id`, when supplied, must agree with each other and
+the attribution session. Conflicting input rejects the whole batch.
+When a named observation omits its own session, the backend can use that same
+event's explicitly supplied reporting session. It never borrows a session from
+another event or guesses one from a name. Opaque object keys and reported
+participant aliases also remain unchanged through the named boundary models.
+
+`ParticipantPerspectiveResponse` exposes a canonical opaque `key`, `basis`,
+source/session/federation display metadata, original reported name and optional
+named attribution. An `explicit-join` key includes source, reporting session,
+namespace, federation ID, participant ID and membership ID. Names, handles and
+federation display labels do not identify that join. A fresh membership ID is
+required for each rejoin and a fresh reporting session after reconnect. Known
+joins without display names remain usable as unnamed participants.
+
+Missing join IDs produce a `legacy-provenance` bucket scoped by source,
+explicitly reported session, federation display label and reported name. This
+does not prove stable participant identity. Older backends/files without the
+codec or perspective metadata keep the clearly labelled legacy name-only
+projection; no reporter or join ID is invented. The observer-owned
+`participant_provenance` capability describes codec support, not RTI maturity
+or the completeness of the supplied identities. MOM is not required. Nested
+MOM subjects, topology endpoints, source names or handles alone never create
+ordinary roster actors.
+
+Roster, attributed object snapshots/history, declarations, time scopes,
+interactions and analytics carry the optional named perspective. Repeated
+aliases update metadata in one join; request history retains its original
+reported metadata. Exact time correlation requires the same perspective and
+request ID. `federate.resigned` concerns the exact subject; a reporting session
+ending is not proof that all observed participants resigned. Identified-domain
+session-end handling requires explicit namespace/federation evidence. Terminal
+facts are retained only within the disclosed bounded caches, not forever.
+
+An independent root `object_context` may supply `identity_namespace` and
+`federation_id`. Its `observation_key` isolates the raw `object_key` by that
+explicit context, including global object projections. It is not inferred from
+the event actor or topology. Without it, global objects keep legacy unscoped
+aggregation, explicitly labelled in the UI; attributed baselines still use
+the exact participant perspective. No raw object handle is promoted into a
+verified cross-federation object identity.
+
 ## Snapshot resource
 
 `GET /api/state?include_events=true` returns the complete dashboard snapshot:
@@ -153,7 +216,8 @@ objects or provider-specific handle types.
   or backend restart. A generation starts at the first observed sequence in
   that retained scope, after scoped-index expiry, or on discovery after an
   observed removal. This is not a stable RTI identity or proof of incarnation
-  across federates. Multi-producer/name-reuse identity is tracked in OBS-127.
+  across federates. Explicit participant/object context above is independent
+  of this local generation cursor.
 - `changes` contains retained attribute observations for retained scopes,
   including repeated values, for global and explicitly attributed scopes. Each
   row has sequence, object key, scope, generation, attribute name, value,
@@ -345,8 +409,9 @@ observer inferred from the source name or a recipient inferred from delivery.
 Source, optional session/federation/federate, kind, direction and class key form
 the snapshot identity. A class name alone never merges participants or RTIs.
 IDs/attribute keys preserve supplied text; sessions should use fresh IDs after
-rejoin. Without session identity, name reuse cannot be resolved automatically
-(OBS-127); the UI labels missing provenance rather than manufacturing it.
+rejoin. Named participant attribution above, when supplied, replaces the legacy
+name component with its exact reporting perspective. Missing join/session
+identity remains unresolved; the UI never manufactures it from a class name.
 
 Direction is explicitly publication/subscription. Status is explicitly
 declared/withdrawn/unknown; omitted status is invalid. A declaration observation
@@ -439,8 +504,73 @@ Both streaming transports use the same message vocabulary:
 
 The WebSocket endpoint is `/ws/events`; the Server-Sent Events endpoint is
 `/api/events/stream`. SSE `data` payloads are JSON versions of the same
-messages. A client that receives `gap` should refresh the snapshot before
-continuing from the advertised retained cursor.
+messages. A client that receives `gap` reconciles an authoritative snapshot
+before continuing from the advertised retained cursor. The reference stream
+delivers that snapshot; an older service may require a fresh HTTP read.
+
+### Observer lifetime and negotiated resumption
+
+`ObserverLifetimeResponse` is optional additive metadata on states and event
+pages: `{ "instance_id": "opaque-storage-incarnation", "revision": 12 }`.
+The instance changes when an observer store is replaced. Its nonnegative
+revision advances once per atomic event batch, clear (including an empty
+clear), or metadata change. Reads and recording timer checkpoints do not
+advance it. This is **not** an RTI reporting session, participant membership,
+provider connection or command permission. Revisions from different instances
+cannot be ordered; wall clocks do not establish ordering either.
+
+When `contract.stream.resumption` is true, both discovered stream endpoints
+accept `after` (exclusive sequence) and `instance_id` (at most 128 characters).
+`StreamCursorResponse` contains `instance_id`, `revision` and `after`, meaning
+the last delivered envelope position, not merely a server high-water mark.
+Snapshot, event and heartbeat messages may carry this named `cursor`.
+Snapshot `resume` explains the handshake:
+
+| Result | Meaning |
+| --- | --- |
+| `fresh` | No previous cursor; the snapshot includes the complete retained event array. |
+| `resumed` | Same observer and retained cursor; a summary snapshot keeps the requested cursor, then any missing retained envelopes are delivered from that exact same state cut. |
+| `reset` | Unknown/foreign instance or future position; the complete retained snapshot replaces previous live data. |
+| `gap` | Same observer, but some requested history was lost or cleared; a complete retained snapshot and gap notice disclose the loss, without reconstructing missing records. |
+
+Every state and its envelope batch come from one atomic store snapshot. A
+metadata change or clear can deliver an empty `events` batch immediately;
+clients still apply its state and prune expired rows. A heartbeat means the
+stream is responsive, not that the federation is advancing. The reference
+backend sends an idle heartbeat after 15 seconds. SSE uses JSON `data` frames;
+resumption uses the query parameters above, not `Last-Event-ID`.
+
+HTTP event pages also carry optional lifetime metadata and `reset`. Supplying
+an `instance_id` from another store, or a future cursor for that store, resets
+the page to its retained beginning with `reset=true`. Existing requests without
+that parameter keep their original exclusive sequence semantics.
+
+The React client refreshes discovery during its five-second snapshot
+reconciliation and on Sync now. It follows advertised safe same-origin paths,
+prefers usable WebSocket, falls back to usable SSE, then keeps HTTP polling.
+Unavailable transports are not repeatedly opened. Failed advertised transports
+retry with bounded backoff (1–15 seconds); an opening timeout and a 45-second
+silent-stream watchdog prevent an unresponsive stream appearing live forever.
+The client closes SSE before its own reconnect so browser retries do not race
+the negotiated cursor. Browser offline/online signals suspend and resume live
+transport explicitly. Disabling/changing transport discovery closes the old
+connection; late callbacks from it cannot update the new view.
+
+Same-instance older revisions and HTTP replies overtaken by a stream cut are
+ignored. Complete snapshots replace their retained event window, with sequence
+deduplication for backfill. A new instance replaces old live inspectors/history
+and resets metric samples. Older services can omit resumption/lifetime fields;
+they remain usable through complete snapshot reconciliation, with lifetime
+explicitly unknown rather than inferred from names or sequence reuse.
+Paused/replayed display data is not replaced by live transport updates.
+
+`create_app(..., enable_websocket=False, enable_sse=False)` can independently
+disable these transports. Discovery omits unusable transport paths. HTTP reads
+and RTI capabilities remain independent. `/openapi.json` includes all five
+named stream DTOs and `x-observer-stream-messages` references so generated
+TypeScript shares the Pydantic model shapes; SSE itself remains a text stream,
+not a finite JSON response. HTTP-read conformance does not prove streaming or
+provider lifecycle behavior, including for the independent Java read fixture.
 
 ## Optional session commands
 
@@ -460,7 +590,8 @@ GET  /api/commands/{command_id}  # CommandRecord: current execution result
 ```
 
 `CommandRequest` is a discriminated union of `ConnectCommand`, `JoinCommand`,
-`ResignCommand`, and `DisconnectCommand`. Unknown actions, extra parameters,
+`ResignCommand`, `DisconnectCommand`, and optional `InspectSessionCommand` /
+`RecoverSessionCommand`. Unknown actions, extra parameters,
 coerced booleans, credentials and arbitrary provider calls are rejected before
 dispatch. Each action has named, strict parameter models. For example:
 
@@ -470,6 +601,7 @@ dispatch. Each action has named, strict parameter models. For example:
   "target_id": "my-owned-session",
   "action": "federate.join",
   "confirmed": false,
+  "expected_version": {"instance_id": "copy-the-owned-registration-from-the-catalog", "revision": 0},
   "parameters": {
     "federation": "ExampleFederation",
     "federate_name": "Observer",
@@ -484,6 +616,27 @@ per action. The reference lifecycle controller restricts joins to an application
 allowlist and keeps RTI factories, connection configuration and credentials on
 the server. Resign and disconnect require `confirmed: true`. Unsupported or
 disabled actions return a typed unavailable result with no provider effect.
+
+`command_versions` advertises conditional dispatch. Each catalog target has a
+named `CommandTargetVersion` (`instance_id`, nonnegative `revision`). Copy the
+actual current version, not the illustrative values above, into
+`expected_version`. Every reference-dispatcher operation checks that exact
+registration/revision both at acceptance and before owner execution. A missing,
+foreign or stale version gives an unavailable result with `effect: none` and
+does not call the provider. A registration gets a new opaque instance ID; its
+revision advances on execution start/return and callback-pump faults. Observer
+store lifetime, source/reporting session and participant membership are separate
+identities and cannot satisfy this guard. A retained exact request retry still
+returns its original result; changing its version/content under the same retained
+request ID is a conflict. After reviewing refreshed state, use a new request ID.
+
+Older command services may omit target versions. The maintained React client
+then keeps the original four lifecycle request shapes, without extra version
+fields. It never invents a version to enable inspection/recovery. Modern reference
+targets require the guard even for the original lifecycle actions; this is an
+authorization/precondition check, not proof that an observation identifies an
+owned session. Applications still supply authentication/authorization for real
+deployments.
 
 HTTP 202 means a command resource exists, not that execution succeeded. Results
 move through accepted/running to succeeded/failed/unavailable. Succeeded means
@@ -512,6 +665,71 @@ evoked callback pump belong to the execution owner. A Java replacement can use
 its own executor while preserving these wire semantics. Applications own
 session authorization at the HTTP boundary when exposing real controls.
 
+### Optional owned-session inspection and recovery
+
+`session_recovery` is independent of MOM, analytics, observer streaming and
+participant provenance. A configured owned adapter can offer two additional
+catalog actions using the same queue/history endpoint:
+
+| Action | Provider operation | Control-state effect |
+| --- | --- | --- |
+| `session.inspect` | Read the owned driver's actual connection/membership. | Retain named evidence; do not restore permissions or clear faults. |
+| `session.recover` | Inspect, fence connected-driver recovery with a healthy owner-thread callback pump, then inspect again. | With explicit confirmation, reconcile only complete facts within the configured federation allowlist. |
+
+Both requests use `parameters: {}` and a required named `expected_version`.
+Recovery additionally requires `confirmed: true`. Neither accepts a factory,
+credentials, FOM URLs, a participant name to adopt, provider options or an
+operation to retry. Pending/timed-out provider work keeps the target busy; an
+inspection cannot run around a blocked owner thread or forcibly cancel it.
+
+`SessionStateObservation` has independent `connection`
+(`connected`/`disconnected`/`unknown`) and `membership`
+(`joined`/`not-joined`/`unknown`), optional federation/federate/own-handle metadata
+and a bounded reason. Contradictory disconnected+joined facts and stale member
+metadata with not-joined status are invalid.
+Provider-reported names and handles preserve whitespace, Unicode and case;
+the federation allowlist compares the exact reported name, never a trimmed alias.
+A missing name is not a guessed peer: an explicit joined state may have an
+unreported name. A joined federation must
+be known and in the controller's allowlist before control is restored. Unknown
+connection/membership or a missing/out-of-allowlist federation stays unknown,
+with lifecycle actions disabled. This optional control limitation never blanks
+ordinary observation views.
+
+`SessionInspectionResult` retains `basis: owned-driver-query`, server
+`checked_at`, the named observation, `reconciled` and a resolution. The target's
+latest `inspection` and the command outcome/late outcome carry this model.
+The wall-clock timestamp describes when the observer checked; target revision,
+not that timestamp, guards ordering. A valid query can succeed with
+`reconciled: false`: service return is not proof that permissions were restored.
+Inspection-only results cannot claim reconciliation. Malformed proof becomes a
+typed failure, leaves control uncertain and does not terminate the owner worker.
+Old successful inspection evidence is historical; a later fault takes precedence.
+
+Recovery never edits a previous failed/timeout result, replays its operation,
+creates a replacement driver, or promotes roster/topology data into authority.
+`session.inspected` / `session.reconciled` are observer audit events, not invented
+join/resign callbacks. Late proof can be recorded after timeout once the same
+owner returns; the original timeout remains, and no new work runs while busy.
+History remains process-local and count-bounded with explicit expiry.
+
+`SessionController(..., inspection_supported=True)` opts into the optional
+`InspectableSessionDriver.inspect()` protocol. Drivers without this capability
+keep their existing lifecycle behavior. The Umbra adapter accepts an explicit
+server-owned `inspection(ambassador) -> SessionStateObservation` callable and
+does not assume universal HLA `isConnected`/`isJoined` methods. Other Python RTI
+shapes normalize their own authoritative queries in their adapter. Without a
+usable query, keep recovery unsupported/unresolved rather than reading the
+controller's own cached state as proof.
+
+React builds these generated DTOs in `app/commandRequests.ts`, keeps separate
+inspection/reconciliation controls, and invalidates confirmation on target
+incarnation/revision change. Pause, stale catalog and replay prevent submission;
+overtaken catalog replies cannot undo a newer local mutation. HTTP-read
+conformance checks discovery/version/proof shapes but explicitly leaves
+`owned-session-recovery` unchecked: the independent Java fixture is read-only,
+not a Java executor or provider-recovery implementation.
+
 ## Explicit federation topology (optional)
 
 The independent `relationships` capability enables `inspectors.relationships`:
@@ -539,8 +757,9 @@ a fresh reporting session ID on reconnect, and coordinate an identity namespace
 only when they can guarantee shared identifiers. A name or handle reused in
 another join must not reuse the old identity. Reporters that cannot provide
 this evidence should advertise unsupported/partial, not invent identities
-from display names. This additive model does not silently change the legacy
-name-based roster, object/time perspectives or analytics attribution.
+from display names. Nested relationship subjects do not automatically identify
+ordinary event actors: adapters separately supply root `participant_attribution`
+for the roster/object/time/analytics consumers described above.
 
 A relationship snapshot is identified by `(event.source, session_id,
 identity_namespace, federation_id, relationship_id)`. Repeated reports are
@@ -1155,11 +1374,17 @@ in `/openapi.json` and generated into the frontend API snapshot.
   cached roster metadata has `roster_retained: false`, status `observed`, no
   inferred role/handle/membership, and last-seen/source from actual observations.
   Optional `roster_storage` carries projected roster coverage; missing coverage
-  on an older backend is unknown, not zero loss. This is still legacy
-  name-based attribution pending OBS-127, not a federation membership census.
-- Identity uses `federate` or `participant`, including a structured
+  on an older backend is unknown, not zero loss. With participant provenance,
+  union/grouping uses the exact reporting perspective rather than a name.
+  Optional `scoped_perspective` echoes the exact `perspective` query filter;
+  it never substitutes a name match. The older `federate` query intentionally
+  remains a display-name filter and can include several reporting perspectives.
+  A row's current alias may differ from the older matching event label; its
+  attributed count still accounts for those retained observations exactly.
+- Legacy label lookup uses `federate` or `participant`, including a structured
   `name`/`id`/`handle`, then explicit `federate_name`/`participant_name` fields.
-  Source names never imply participant identity. Attributed object observations
+  Root named attribution takes precedence when present. Source names never
+  imply participant identity. Attributed object observations
   do not establish object ownership or subscriptions.
 - Logical timestamps come from finite numeric `logical_time` or
   `details.logical_time`; boolean/string values are not numeric timestamps.

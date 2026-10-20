@@ -142,9 +142,9 @@ export function App() {
       {tab === "events" && <EventTable events={events} provenance={supportsParticipantProvenance(state, events)} />}
       {tab === "inspectors" && <InspectorTables state={state} />}
       {tab === "recordings" && <RecordingsView enabled={Boolean(observer.state && usable(observer.state, "recording"))} reason={observer.state?.capabilities.recording?.reason} onReplay={openReplay} />}
-      {tab === "alerts" && <AlertsView enabled={usable(state, "alerts")} controls={usable(state, "alert_controls")} paused={Boolean(frozen)} replay={isReplay} reason={state.capabilities.alerts?.reason} />}
+      {tab === "alerts" && <AlertsView enabled={usable(state, "alerts")} controls={usable(state, "alert_controls")} paused={Boolean(frozen)} replay={isReplay} reason={state.capabilities.alerts?.reason} perspectives={participants} identityFilters={usable(state, "participant_provenance")} />}
       {tab === "actions" && <ActionsView enabled={!isReplay && usable(state, "commands")} reason={isReplay ? "Replay is read-only. Captured capabilities do not grant command authority." : state.capabilities.commands?.reason} paused={Boolean(frozen) || isReplay} />}
-      {tab === "diagnostics" && <DiagnosticsView state={state} events={events} known={displayContract?.capability_schema.known ?? []} connection={isReplay ? "replay" : observer.connection} />}
+      {tab === "diagnostics" && <DiagnosticsView state={state} events={events} known={displayContract?.capability_schema.known ?? []} connection={isReplay ? "replay" : observer.connection} transport={isReplay ? "recording" : observer.transport} />}
     </Fragment>}
     <footer className="app-footer">Observation coverage may be partial. Actions affect only registered sessions owned by this backend.</footer>
   </main>;

@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 export type BackendVariant = "rich" | "limited" | "read-only" | "no-analytics" | "empty"
-  | "java-full" | "java-retention-loss" | "java-limited" | "java-empty" | "java-partial" | "java-no-analytics";
+  | "java-full" | "java-retention-loss" | "java-limited" | "java-empty" | "java-partial" | "java-no-analytics" | "java-identity";
 
 interface ObserverFixtures {
   backendVariant: BackendVariant;

@@ -76,7 +76,8 @@ class TimeViews:
                     if affected(request.scope) and request.status == "pending":
                         self._finish(request, event, "session-ended", "Explicit session/federate end observed")
             return
-        session = data.session_id or (perspective.attribution.session_id if perspective and perspective.attribution else None)
+        root_session = event.get("session_id")
+        session = data.session_id or (perspective.session_id if perspective else root_session if isinstance(root_session, str) else None)
         scope = TimeScope(event.source, session, federation, federate, perspective)
         if any(request.scope == scope and request.status == "session-ended" for request in self._requests.values()):
             return  # Retained terminal evidence also protects an expired latest scope.

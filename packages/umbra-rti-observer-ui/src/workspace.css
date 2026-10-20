@@ -30,6 +30,10 @@ select { max-width: 100%; min-height: 34px; padding: 6px 9px; border: 1px solid 
 .federate-layout { display: grid; grid-template-columns: minmax(225px, .23fr) minmax(0, 1fr); gap: 18px; margin-top: 20px; }
 .federate-sidebar { align-self: start; position: sticky; top: 16px; }
 .federate-sidebar .participant-links button { align-items: flex-start; flex-direction: column; }
+.federate-sidebar > label { display: grid; gap: 6px; min-width: 0; margin: 12px 0; color: #8ea5b8; font-size: 12px; }
+.federate-sidebar input { width: 100%; min-width: 0; min-height: 38px; padding: 8px 11px; border: 1px solid #2a4b68; border-radius: 8px; color: #e8f1f7; background: #0a1a2c; }
+.federate-sidebar select { width: 100%; min-width: 0; }
+.context-item .participant-provenance { display: block; margin-top: 6px; }
 .federate-content { min-width: 0; }
 .federate-content .section-intro:first-child { margin-top: 0; }
 .metrics.focus-metrics { grid-template-columns: repeat(4,minmax(0, 1fr)); }
@@ -176,6 +180,8 @@ pre { max-width: 100%; max-height: 340px; overflow: auto; padding: 14px; border:
 .command-form input:not([type=checkbox]) { min-height: 38px; padding: 8px 11px; border: 1px solid #2a4b68; border-radius: 8px; color: #e8f1f7; background: #0a1a2c; }
 .command-form .primary-button { justify-self: start; min-width: 130px; }
 .command-form .notice-banner, .command-form .footnote { margin: 0; }
+.owned-target-version, .session-inspection { overflow-wrap: anywhere; white-space: normal; }
+.session-inspection { margin-top: 20px; padding-top: 14px; border-top: 1px solid #23415b; }
 .check-control.command-confirmation { white-space: normal; }
 .command-status.succeeded { border-color: #5eead4; color: #5eead4; }
 .command-status.accepted, .command-status.running { border-color: #7dd3fc; color: #7dd3fc; }

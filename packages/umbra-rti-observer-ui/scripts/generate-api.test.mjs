@@ -34,4 +34,10 @@ test("API drift checking detects schema/output changes and never rewrites in che
   await writeFile(schema, JSON.stringify(document));
   await assert.rejects(run("--check"), { code: 1 });
   assert.equal(await readFile(output, "utf8"), original);
+  document.components.schemas.Sample.properties = Object.fromEntries(Array.from({ length: 8000 }, (_, index) => [`field_${index}`, { type: "string" }]));
+  await writeFile(schema, JSON.stringify(document));
+  for (const args of [[], ["--check"]]) {
+    await assert.rejects(run(...args), (error) => error.code === 1 && /7000-line growth guard/.test(error.stderr));
+    assert.equal(await readFile(output, "utf8"), original);
+  }
 });

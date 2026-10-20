@@ -9,6 +9,7 @@
       "interaction_key": "FixtureInteraction",
       "observed_at": 1760000000.0,
       "parameters": {},
+      "perspective": null,
       "sequence": 19,
       "source": "contract-fixture",
       "tag": null
@@ -21,6 +22,7 @@
       "interaction_key": "FixtureInteraction",
       "observed_at": 1760000000.0,
       "parameters": {},
+      "perspective": null,
       "sequence": 20,
       "source": "contract-fixture",
       "tag": null

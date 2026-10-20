@@ -160,12 +160,19 @@ def _scan(
     present = set()
 
     for path in tracked_paths:
+        if not path.is_file():
+            continue
+        relative = path.relative_to(REPOSITORY_ROOT).as_posix()
         classified = _classify(path)
+        if classified is None and relative in baseline:
+            # Explicit artifact ratchets also cover generated TS/CJS/JSON.
+            # Do not enroll every unsupported format or call an existing,
+            # registered artifact "missing" merely because it is not C++.
+            classified = "explicit_artifact", Policy(soft=3000, hard=int(baseline[relative]["max_lines"]))
         if classified is None:
             continue
         kind, default_policy = classified
         policy = policies.get(kind, default_policy)
-        relative = path.relative_to(REPOSITORY_ROOT).as_posix()
         present.add(relative)
         physical_lines = _line_count(path)
         lines = physical_lines

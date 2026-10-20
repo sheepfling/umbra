@@ -673,6 +673,7 @@ export interface components {
             federate?: string | null;
             /** Federation */
             federation?: string | null;
+            perspective?: components["schemas"]["ParticipantPerspectiveResponse"] | null;
             /** Session Id */
             session_id?: string | null;
             /** Source */
@@ -918,13 +919,13 @@ export interface components {
              * Action
              * @enum {string}
              */
-            action: "session.connect" | "federate.join" | "federate.resign" | "session.disconnect";
+            action: "session.connect" | "federate.join" | "federate.resign" | "session.disconnect" | "session.inspect" | "session.recover";
             /**
              * Completion
              * @default service-return
-             * @constant
+             * @enum {string}
              */
-            completion: "service-return";
+            completion: "service-return" | "inspection-result";
             /** Description */
             description: string;
             /**
@@ -1016,6 +1017,7 @@ export interface components {
         CommandOutcome: {
             /** Federate Handle */
             federate_handle?: string | null;
+            inspection?: components["schemas"]["SessionInspectionResult"] | null;
             /** Summary */
             summary: string;
         };
@@ -1034,7 +1036,7 @@ export interface components {
             late_outcome?: components["schemas"]["CommandOutcome"] | null;
             outcome?: components["schemas"]["CommandOutcome"] | null;
             /** Request */
-            request: components["schemas"]["ConnectCommand"] | components["schemas"]["JoinCommand"] | components["schemas"]["ResignCommand"] | components["schemas"]["DisconnectCommand"];
+            request: components["schemas"]["ConnectCommand"] | components["schemas"]["JoinCommand"] | components["schemas"]["ResignCommand"] | components["schemas"]["DisconnectCommand"] | components["schemas"]["InspectSessionCommand"] | components["schemas"]["RecoverSessionCommand"];
             /** Started At */
             started_at?: number | null;
             /**
@@ -1060,6 +1062,7 @@ export interface components {
             federate?: string | null;
             /** Federation */
             federation?: string | null;
+            inspection?: components["schemas"]["SessionInspectionResult"] | null;
             /** Label */
             label: string;
             /**
@@ -1074,6 +1077,17 @@ export interface components {
             synthetic: boolean;
             /** Target Id */
             target_id: string;
+            version?: components["schemas"]["CommandTargetVersion"] | null;
+        };
+        /**
+         * CommandTargetVersion
+         * @description Owned dispatcher registration and revision, never observation identity.
+         */
+        CommandTargetVersion: {
+            /** Instance Id */
+            instance_id: string;
+            /** Revision */
+            revision: number;
         };
         /** CompactRecordingDocument */
         "CompactRecordingDocument-Input": {
@@ -1191,6 +1205,7 @@ export interface components {
              * @default false
              */
             confirmed: boolean;
+            expected_version?: components["schemas"]["CommandTargetVersion"] | null;
             parameters: components["schemas"]["EmptyParameters"];
             /** Request Id */
             request_id: string;
@@ -1530,6 +1545,7 @@ export interface components {
              * @default false
              */
             confirmed: boolean;
+            expected_version?: components["schemas"]["CommandTargetVersion"] | null;
             parameters: components["schemas"]["EmptyParameters"];
             /** Request Id */
             request_id: string;
@@ -1596,6 +1612,16 @@ export interface components {
              * @default 300
              */
             window_seconds: number;
+        };
+        /** ErrorMessage */
+        ErrorMessage: {
+            /** Message */
+            message: string;
+            /**
+             * Type
+             * @constant
+             */
+            type: "error";
         };
         /**
          * EventBatchRequest
@@ -1853,8 +1879,27 @@ export interface components {
             next_after: number;
             /** Next Sequence */
             next_sequence?: number | null;
+            observer_lifetime?: components["schemas"]["ObserverLifetimeResponse"] | null;
+            /**
+             * Reset
+             * @default false
+             */
+            reset: boolean;
             /** Retained Events */
             retained_events: number;
+        };
+        /** EventsMessage */
+        EventsMessage: {
+            /** @default null */
+            cursor: components["schemas"]["StreamCursorResponse"] | null;
+            /** Events */
+            events?: components["schemas"]["EventEnvelope-Output"][];
+            state: components["schemas"]["StateResponse-Output"];
+            /**
+             * Type
+             * @constant
+             */
+            type: "events";
         };
         /** EventViewSettings */
         "EventViewSettings-Input": {
@@ -2458,6 +2503,17 @@ export interface components {
              */
             status: string;
         };
+        /** GapMessage */
+        GapMessage: {
+            /** @default null */
+            observer_lifetime: components["schemas"]["ObserverLifetimeResponse"] | null;
+            retention: components["schemas"]["RetentionGapResponse"];
+            /**
+             * Type
+             * @constant
+             */
+            type: "gap";
+        };
         /** HealthResponse */
         HealthResponse: {
             /** Capabilities */
@@ -2475,6 +2531,16 @@ export interface components {
             service: string;
             /** Status */
             status: string;
+        };
+        /** HeartbeatMessage */
+        HeartbeatMessage: {
+            /** @default null */
+            cursor: components["schemas"]["StreamCursorResponse"] | null;
+            /**
+             * Type
+             * @constant
+             */
+            type: "heartbeat";
         };
         /** HistoryLossProof */
         HistoryLossProof: {
@@ -2539,6 +2605,25 @@ export interface components {
             regions?: components["schemas"]["RegionsResponse"] | null;
             relationships?: components["schemas"]["RelationshipsResponse"] | null;
             time?: components["schemas"]["TimeInspectionResponse"] | null;
+        };
+        /** InspectSessionCommand */
+        InspectSessionCommand: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "session.inspect";
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            expected_version: components["schemas"]["CommandTargetVersion"];
+            parameters: components["schemas"]["EmptyParameters"];
+            /** Request Id */
+            request_id: string;
+            /** Target Id */
+            target_id: string;
         };
         /** InteractionDeclarationObservation */
         InteractionDeclarationObservation: {
@@ -2762,6 +2847,7 @@ export interface components {
              * @default false
              */
             confirmed: boolean;
+            expected_version?: components["schemas"]["CommandTargetVersion"] | null;
             parameters: components["schemas"]["JoinParameters"];
             /** Request Id */
             request_id: string;
@@ -3385,6 +3471,16 @@ export interface components {
              * @default all
              */
             status: string;
+        };
+        /**
+         * ObserverLifetimeResponse
+         * @description Storage incarnation and atomic mutation cut; not provider authority.
+         */
+        ObserverLifetimeResponse: {
+            /** Instance Id */
+            instance_id: string;
+            /** Revision */
+            revision: number;
         };
         /** OwnershipOutcomeObservation */
         OwnershipOutcomeObservation: {
@@ -4071,6 +4167,25 @@ export interface components {
             /** Recording Id */
             recording_id: string;
         };
+        /** RecoverSessionCommand */
+        RecoverSessionCommand: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            action: "session.recover";
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            expected_version: components["schemas"]["CommandTargetVersion"];
+            parameters: components["schemas"]["EmptyParameters"];
+            /** Request Id */
+            request_id: string;
+            /** Target Id */
+            target_id: string;
+        };
         /** RegionAssociationObservation */
         RegionAssociationObservation: {
             /** Association Id */
@@ -4517,6 +4632,7 @@ export interface components {
              * @default false
              */
             confirmed: boolean;
+            expected_version?: components["schemas"]["CommandTargetVersion"] | null;
             parameters: components["schemas"]["ResignParameters"];
             /** Request Id */
             request_id: string;
@@ -4548,6 +4664,24 @@ export interface components {
             /** Required Fields */
             required_fields?: string[];
         };
+        /** RetentionGapResponse */
+        RetentionGapResponse: {
+            /** Cleared Events */
+            cleared_events: number;
+            /** Dropped Events */
+            dropped_events: number;
+            /** First Retained Sequence */
+            first_retained_sequence: number;
+            /** Last Sequence */
+            last_sequence: number;
+            /**
+             * Next Sequence
+             * @default null
+             */
+            next_sequence: number | null;
+            /** Retained Events */
+            retained_events: number;
+        };
         /** RetentionResponse */
         RetentionResponse: {
             /** Cleared Events */
@@ -4564,6 +4698,62 @@ export interface components {
             next_sequence: number;
             /** Retained Events */
             retained_events: number;
+        };
+        /** SessionInspectionResult */
+        SessionInspectionResult: {
+            /**
+             * Basis
+             * @default owned-driver-query
+             * @constant
+             */
+            basis: "owned-driver-query";
+            /** Checked At */
+            checked_at: number;
+            observation: components["schemas"]["SessionStateObservation"];
+            /** Reconciled */
+            reconciled: boolean;
+            /** Resolution */
+            resolution: string;
+        };
+        /**
+         * SessionStateObservation
+         * @description Explicit provider facts about this driver's own connection/membership.
+         */
+        SessionStateObservation: {
+            /**
+             * Connection
+             * @enum {string}
+             */
+            connection: "connected" | "disconnected" | "unknown";
+            /** Federate */
+            federate?: string | null;
+            /** Federate Handle */
+            federate_handle?: string | null;
+            /** Federation */
+            federation?: string | null;
+            /**
+             * Membership
+             * @enum {string}
+             */
+            membership: "joined" | "not-joined" | "unknown";
+            /** Reason */
+            reason?: string | null;
+        };
+        /** SnapshotMessage */
+        SnapshotMessage: {
+            /** @default null */
+            cursor: components["schemas"]["StreamCursorResponse"] | null;
+            /**
+             * Resume
+             * @default null
+             */
+            resume: ("fresh" | "resumed" | "reset" | "gap") | null;
+            state: components["schemas"]["StateResponse-Output"];
+            /**
+             * Type
+             * @constant
+             */
+            type: "snapshot";
         };
         /** StaleObservationRule */
         StaleObservationRule: {
@@ -4611,6 +4801,7 @@ export interface components {
             live_metrics: components["schemas"]["LiveMetricsResponse"];
             /** Normalized Events */
             normalized_events?: components["schemas"]["EventEnvelope-Input"][] | null;
+            observer_lifetime?: components["schemas"]["ObserverLifetimeResponse"] | null;
             retention: components["schemas"]["RetentionResponse"];
             /** Schema Version */
             schema_version: string;
@@ -4638,6 +4829,7 @@ export interface components {
             live_metrics: components["schemas"]["LiveMetricsResponse"];
             /** Normalized Events */
             normalized_events?: components["schemas"]["EventEnvelope-Output"][] | null;
+            observer_lifetime?: components["schemas"]["ObserverLifetimeResponse"] | null;
             retention: components["schemas"]["RetentionResponse"];
             /** Schema Version */
             schema_version: string;
@@ -4717,6 +4909,15 @@ export interface components {
             context: components["schemas"]["StorageBudgetResponse"];
             evidence: components["schemas"]["StorageBudgetResponse"];
         };
+        /** StreamCursorResponse */
+        StreamCursorResponse: {
+            /** After */
+            after: number;
+            /** Instance Id */
+            instance_id: string;
+            /** Revision */
+            revision: number;
+        };
         /** StreamDescription */
         StreamDescription: {
             /** Message Types */
@@ -4725,6 +4926,11 @@ export interface components {
             messages: {
                 [key: string]: string;
             };
+            /**
+             * Resumption
+             * @default false
+             */
+            resumption: boolean;
             /** Sse Path */
             sse_path: string;
             /** Websocket Path */
@@ -5422,7 +5628,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ConnectCommand"] | components["schemas"]["JoinCommand"] | components["schemas"]["ResignCommand"] | components["schemas"]["DisconnectCommand"];
+                "application/json": components["schemas"]["ConnectCommand"] | components["schemas"]["JoinCommand"] | components["schemas"]["ResignCommand"] | components["schemas"]["DisconnectCommand"] | components["schemas"]["InspectSessionCommand"] | components["schemas"]["RecoverSessionCommand"];
             };
         };
         responses: {
@@ -5589,6 +5795,7 @@ export interface operations {
                 after?: number;
                 event_type?: string | null;
                 family?: string | null;
+                instance_id?: string | null;
                 limit?: number;
                 source?: string | null;
             };
@@ -5675,6 +5882,7 @@ export interface operations {
         parameters: {
             query?: {
                 after?: number;
+                instance_id?: string | null;
             };
             header?: never;
             path?: never;

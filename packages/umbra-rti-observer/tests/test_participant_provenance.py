@@ -11,6 +11,8 @@ from umbra_rti_observer.analytics import build_analytics
 from umbra_rti_observer.attribution import event_perspective
 from umbra_rti_observer.core import ObserverStore
 from umbra_rti_observer.schemas import (
+    AnalyticsResponse,
+    AnalyticsWindow,
     EventInput,
     ParticipantPerspectiveResponse,
     StateResponse,
@@ -25,6 +27,140 @@ def attribution(*, namespace="ns", federation="fed", participant="p", membership
 
 def event(*, source="producer", identity=None, **values):
     return {"event_type": "federate.joined", "source": source, "participant_attribution": identity or attribution(), **values}
+
+
+@pytest.mark.parametrize("fields", [
+    {"session_id": " session "},
+    {"time_observation": {"kind": "grant", "session_id": " session ", "logical_time": 1}},
+    {"declaration": {"kind": "interaction", "direction": "publication", "status": "declared", "class_key": "Signal", "session_id": " session "}},
+])
+def test_compact_analytics_metadata_does_not_invent_a_second_unreported_session(fields):
+    store = ObserverStore()
+    store.publish({"event_type": "callback.invoked", "source": "reporter", "federate": "Twin", "observed_at": 100, **fields})
+    state = StateResponse.model_validate(store.state(include_events=True))
+    now = state.normalized_events[0].observed_at
+    expected = state.federate_roster[0].perspective.key
+    for snapshot in (state, AnalyticsWindow.model_validate(store.analytics_window())):
+        report = build_analytics(snapshot, now=now)
+        assert len(report.participants) == 1
+        assert report.participants[0].perspective.key == expected
+        assert report.participants[0].event_count == 1
+        assert build_analytics(snapshot, now=now, perspective=expected).events_in_window == 1
+
+
+def test_legacy_name_filter_keeps_event_counts_when_the_same_explicit_join_has_been_renamed():
+    store = ObserverStore()
+    store.publish(event(event_type="callback.invoked", identity=attribution(name="Old name")))
+    store.publish(event(event_type="callback.invoked", identity=attribution(name="New name")))
+    snapshot = StateResponse.model_validate(store.state(include_events=True))
+    for name in ("Old name", "New name"):
+        report = build_analytics(snapshot, federate=name)
+        assert report.events_in_window == 1
+        assert len(report.participants) == 1 and report.participants[0].event_count == 1
+        assert report.participants[0].federate == "New name"
+
+
+def test_a_legacy_raw_handle_that_looks_like_a_scoped_object_key_cannot_alias_it():
+    store = ObserverStore()
+    scoped = json.dumps(["federation-object", "ns", "fed", "raw"], separators=(",", ":"))
+    store.publish_many([
+        event(event_type="object.updated", object_key="raw", object_context={"identity_namespace": "ns", "federation_id": "fed"}, attributes={"value": 1}),
+        event(event_type="object.updated", object_key=scoped, attributes={"value": 2}),
+    ])
+    snapshot = StateResponse.model_validate(store.state())
+    assert len(snapshot.inspectors.objects) == 2
+    assert len(snapshot.inspectors.object_observations.snapshots) == 4
+    assert len({row.cache_key for row in snapshot.inspectors.object_observations.snapshots}) == 4
+
+
+def test_wire_models_reject_duplicate_identified_roster_objects_and_analytics_even_without_storage_metadata():
+    store = ObserverStore()
+    store.publish(event(event_type="object.updated", object_key="one"))
+    snapshot = StateResponse.model_validate(store.state(include_events=True))
+    for collection in ("roster", "objects"):
+        body = snapshot.model_dump(mode="json")
+        body["storage"] = None
+        body["capabilities"].pop("storage_inspection", None)
+        rows = body["federate_roster"] if collection == "roster" else body["inspectors"]["objects"]
+        rows.append(copy.deepcopy(rows[0]))
+        with pytest.raises(ValidationError, match="must be unique"):
+            StateResponse.model_validate(body)
+    analytics = build_analytics(snapshot).model_dump(mode="json")
+    analytics["participants"].append(copy.deepcopy(analytics["participants"][0]))
+    with pytest.raises(ValidationError, match="must be unique"):
+        AnalyticsResponse.model_validate(analytics)
+
+
+@pytest.mark.parametrize("invalid", [{"federate": 7}, {"participant": True}, {"federation": 17},
+    {"federate_name": ["not a label"]}, {"participant_name": {"name": "not a string"}}, {"object_key": 7}])
+def test_core_and_http_reject_invalid_known_actor_shapes_atomically_before_bad_wire_state(invalid):
+    store = ObserverStore()
+    with pytest.raises(TypeError):
+        store.publish_many([event(), {"event_type": "callback.invoked", **invalid}])
+    assert store.state()["retention"]["next_sequence"] == 1
+    assert store.state()["federate_roster"] == []
+    with TestClient(create_app(store)) as client:
+        assert client.post("/api/events", json={"events": [event(), {"event_type": "callback.invoked", **invalid}]}).status_code == 422
+    assert store.state()["retention"]["next_sequence"] == 1
+
+
+def test_opaque_object_keys_are_not_trimmed_into_another_objects_baseline():
+    store = ObserverStore()
+    for key, value in ((" raw ", 1), ("raw", 2)):
+        store.publish(event(event_type="object.updated", object_key=key,
+            object_context={"identity_namespace": "ns", "federation_id": "fed"}, attributes={"value": value}))
+    snapshot = StateResponse.model_validate(store.state())
+    assert {row.object_key for row in snapshot.inspectors.objects} == {" raw ", "raw"}
+    assert len(snapshot.inspectors.object_observations.snapshots) == 4
+    assert all(not change.previous_known for change in snapshot.inspectors.object_observations.changes)
+
+
+def test_http_preserves_opaque_object_keys_and_explicit_reported_aliases_through_all_consumers():
+    store = ObserverStore()
+    subject = attribution(name=" Twin ")
+    events = [
+        event(identity=subject, event_type="object.updated", object_key=" raw ",
+            object_context={"identity_namespace": "ns", "federation_id": "fed"}, attributes={"value": 1}),
+        event(identity=subject, event_type="time.observed", time_observation={"kind": "grant", "logical_time": 1}),
+        event(identity=subject, event_type="declaration.observed", declaration={"kind": "interaction", "direction": "publication", "status": "declared", "class_key": "Signal"}),
+        event(identity=subject, event_type="interaction.received", interaction_class="Signal"),
+    ]
+    with TestClient(create_app(store)) as client:
+        assert client.post("/api/events", json={"events": events}).status_code == 200
+        response = client.get("/api/state?include_events=true")
+        assert response.status_code == 200
+        snapshot = StateResponse.model_validate(response.json())
+        assert snapshot.federate_roster[0].federate == " Twin "
+        assert snapshot.inspectors.objects[0].object_key == " raw "
+        assert snapshot.inspectors.time.snapshots[0].scope.federate == " Twin "
+        assert snapshot.inspectors.declarations.snapshots[0].scope.federate == " Twin "
+        assert snapshot.inspectors.interactions[0].federate == " Twin "
+        analytics = AnalyticsResponse.model_validate(client.get("/api/analytics").json())
+        assert analytics.participants[0].federate == " Twin "
+        assert analytics.participants[0].object_keys == [" raw "]
+        assert analytics.logical_times[0].federate == " Twin "
+
+
+@pytest.mark.parametrize("identified", [False, True])
+def test_explicit_root_reporting_sessions_are_shared_by_objects_time_and_declarations_without_join_id_inference(identified):
+    store = ObserverStore()
+    actor = {"source": "reporter", "federate": "Twin", "session_id": " session "}
+    if identified:
+        actor["participant_attribution"] = attribution(session=" session ")
+    store.publish_many([
+        {**actor, "event_type": "object.updated", "object_key": "one"},
+        {**actor, "event_type": "time.observed", "time_observation": {"kind": "request", "request_id": "r1", "logical_time": 1}},
+        {**actor, "event_type": "time.observed", "time_observation": {"kind": "grant", "request_id": "r1", "logical_time": 1}},
+        {**actor, "event_type": "declaration.observed", "declaration": {"kind": "interaction", "direction": "publication", "status": "declared", "class_key": "Signal"}},
+    ])
+    snapshot = StateResponse.model_validate(store.state(include_events=True))
+    assert len(snapshot.federate_roster) == 1
+    key = snapshot.federate_roster[0].perspective.key
+    assert snapshot.inspectors.time.requests[0].status == "granted"
+    for scope in (snapshot.inspectors.time.snapshots[0].scope, snapshot.inspectors.declarations.snapshots[0].scope):
+        assert scope.session_id == " session " and scope.perspective.key == key
+        assert (scope.perspective.attribution is not None) is identified
+    assert len(build_analytics(snapshot).participants) == 1
 
 
 def test_key_uses_opaque_join_ids_and_reporting_provenance_not_names_handles_or_federation_labels():

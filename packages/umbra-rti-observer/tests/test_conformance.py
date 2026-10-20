@@ -130,7 +130,8 @@ def test_existing_probe_exposes_the_strict_checker(monkeypatch: pytest.MonkeyPat
     assert report["passed"] is True
 
 
-def test_registered_commands_are_validated_but_never_executed() -> None:
+@pytest.mark.parametrize("inspection_supported", [False, True])
+def test_registered_commands_are_validated_but_never_executed(inspection_supported: bool) -> None:
     from umbra_rti_observer.commands import CommandDispatcher
     from umbra_rti_observer.core import ObserverStore
     from umbra_rti_observer.server import create_app
@@ -139,7 +140,7 @@ def test_registered_commands_are_validated_but_never_executed() -> None:
     commands = CommandDispatcher(sink=store.publish)
     commands.register(SessionController(target_id="test-session", label="Owned synthetic session", adapter="test",
         driver_factory=lambda: pytest.fail("Read-only conformance must never create an RTI driver"),
-        federations=("FixtureFederation",), sink=store.publish, synthetic=True))
+        federations=("FixtureFederation",), sink=store.publish, synthetic=True, inspection_supported=inspection_supported))
     try:
         with TestClient(create_app(store, commands=commands)) as client:
             def fetch(path: str) -> HttpReply:
@@ -149,9 +150,18 @@ def test_registered_commands_are_validated_but_never_executed() -> None:
             assert report.passed, report.model_dump_json(indent=2)
             assert "commands" not in report.omitted_features
             assert not commands.history().records
+            assert "owned-session-recovery" in report.unchecked_features
+            assert any(check.name == "command_catalog.recovery" for check in report.checks) is inspection_supported
     finally:
         commands.close()
         store.close()
+
+
+def test_wire_schema_growth_guard_fails_before_writing(monkeypatch: pytest.MonkeyPatch) -> None:
+    from umbra_rti_observer import conformance_schema
+    monkeypatch.setattr(conformance_schema, "MAX_WIRE_SCHEMA_LINES", 1)
+    with pytest.raises(ValueError, match="growth guard"):
+        conformance_schema.wire_schema_text()
 
 
 @pytest.mark.parametrize("profile", PROFILES)

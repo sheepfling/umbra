@@ -112,6 +112,36 @@ attributes, and interactions continue to work. MOM, ownership, and regions are
 clearly labelled as unsupported, while persistence is shown as disabled. No
 fake data is generated for those unavailable features.
 
+## Optional recovery walkthrough
+
+The current dashboard offers **Inspect session** and confirmed **Reconcile
+session** for its separate synthetic control session. Inspection alone never
+restores permissions. This is newer than the historical checkpoint tag above;
+use the current source/current playtest ZIP for this walkthrough.
+
+To demonstrate an uncertain effect, after installing the web extra or preparing
+the launcher environment, run with a Python 3.11+ interpreter:
+
+```powershell
+python -m umbra_rti_observer --showcase --enable-controls --showcase-control-fault-once connect --port 0
+```
+
+On Windows, the prepared interpreter is
+`.cache/observer-playtest/venv/Scripts/python.exe`; substitute it for `python`
+if your default interpreter/environment is different. Open the printed URL.
+Connect deliberately takes effect in the synthetic driver, then reports a
+failure. In Actions, inspect its actual connected/not-joined facts, review the
+original failed record, then explicitly reconcile. The original failure stays
+in history and no second connect is issued. Use `--showcase-control-fault-once
+join` to demonstrate a join taking effect before its error, or add `--profile
+limited` to keep MOM/ownership/DDM unavailable throughout.
+
+`--showcase-control-inspection partial` makes membership inspection unavailable:
+a query can return successfully while control remains unknown. `disabled` omits
+recovery entirely while preserving normal known-state lifecycle commands. These
+flags configure only the synthetic owned driver; they never inject faults into
+or reconfigure a real RTI. Stop this demo with Ctrl+C in its terminal.
+
 ## Suggested walkthrough
 
 To demonstrate the Actions tab, start with `--showcase --enable-controls`.

@@ -13,6 +13,7 @@ from umbra_rti_observer.command_models import (
     CommandAction,
     JoinParameters,
     ResignParameters,
+    SessionStateObservation,
 )
 from umbra_rti_observer.commands import CommandUnavailable
 from umbra_rti_observer.session_commands import SessionController
@@ -55,12 +56,14 @@ class _UmbraSessionDriver:
         sink: EventSink,
         configuration: object | None,
         credentials: object | None,
+        inspection: Callable[[LifecycleAmbassador], SessionStateObservation] | None,
     ) -> None:
         # This constructor is called by SessionController on its owner thread.
         self._rti = factory()
         self._callback = UmbraFederateAmbassador(source=target_id, sink=sink)
         self._configuration = configuration
         self._credentials = credentials
+        self._inspection = inspection
 
     def connect(self) -> None:
         # A single owner pumps evoked callbacks; no browser/HTTP thread calls RTI.
@@ -110,6 +113,11 @@ class _UmbraSessionDriver:
     def poll(self) -> None:
         self._rti.evokeMultipleCallbacks(0.0, 0.01)
 
+    def inspect(self) -> SessionStateObservation:
+        if self._inspection is None:
+            raise CommandUnavailable("No authoritative inspection is configured for this Umbra binding.")
+        return SessionStateObservation.model_validate(self._inspection(self._rti).model_dump(mode="python"))
+
 
 def create_umbra_command_session(
     factory: Callable[[], LifecycleAmbassador],
@@ -120,11 +128,14 @@ def create_umbra_command_session(
     label: str = "Umbra observer session",
     configuration: object | None = None,
     credentials: object | None = None,
+    inspection: Callable[[LifecycleAmbassador], SessionStateObservation] | None = None,
     supported_actions: tuple[CommandAction, ...] = (
         "session.connect",
         "federate.join",
         "federate.resign",
         "session.disconnect",
+        "session.inspect",
+        "session.recover",
     ),
 ) -> SessionController:
     """Register only factories for sessions this application explicitly owns.
@@ -144,7 +155,9 @@ def create_umbra_command_session(
             sink=sink,
             configuration=configuration,
             credentials=credentials,
+            inspection=inspection,
         ),
         sink=sink,
         supported_actions=supported_actions,
+        inspection_supported=inspection is not None,
     )

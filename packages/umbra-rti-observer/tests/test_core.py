@@ -111,7 +111,8 @@ def test_contract_is_language_neutral_and_declares_stream_messages() -> None:
     )
     assert contract["contract_version"] == OBSERVER_CONTRACT_VERSION
     assert contract["event_types"] == ["custom.event"]
-    assert contract["api_paths"]["websocket"] == "/ws/events"
+    assert contract["stream"]["websocket_path"] == "/ws/events"
+    assert "websocket" not in contract["api_paths"]  # Unknown is not usable support.
     assert "snapshot" in contract["stream"]["message_types"]
     assert "unsupported" in contract["capability_schema"]["states"]
     assert contract["capabilities"]["logical_time"]["state"] == "available"

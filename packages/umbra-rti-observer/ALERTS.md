@@ -62,6 +62,19 @@ coverage are separate typed values. `clear` means the particular upper bound
 is below its threshold, not that a provider is healthy. Known zero, unknown,
 missing and unavailable are not interchangeable.
 
+## Exact participant filters
+
+On a backend advertising `participant_provenance`, errors and stale-observation
+rules can instead select a named exact `scope.perspective` with explicit join
+IDs. The server validates its canonical key and full metadata. Choose that or
+the legacy text filters, not both. Matching ignores mutable display names and
+handles. Other namespaces, reporting sources and memberships never contribute
+or close the exact monitor. Root-only disconnects cannot close an identified
+domain without its namespace/federation evidence. A name-filtered rule that
+has observed identified joins is not ended by a single join's lifecycle event;
+threshold/name/reset edits cannot erase that uncertainty. Legacy RTIs still
+support ordinary text/error/history rules without inventing join IDs.
+
 ## Bounded error windows and history
 
 At most 64 rules and 64 KiB of canonical configuration are admitted. Each error
@@ -96,8 +109,9 @@ acknowledge a provider callback.
 Configuration/evidence are shared **for the server process**, surviving browser
 refresh/navigation, not restart. Download configuration to keep it and
 explicitly import it into a later process. Downloads contain only versioned
-rules, including operator-entered identifying filters—not captured federation
-data, evidence, backend IDs/URLs or server credentials. Review filter text
+rules, including chosen participant identity metadata and operator-entered
+filters—not event payloads, evidence, backend-instance IDs/URLs or server
+credentials. Review identifying configuration
 before sharing. There is no hidden database, credential scrubber or filesystem
 durability claim.
 

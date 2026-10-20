@@ -9,6 +9,16 @@
   },
   "legacy_exemptions": [
     {
+      "path": "packages/umbra-rti-observer-ui/src/api/generated.ts",
+      "max_lines": 7000,
+      "reason": "One reproducible OpenAPI-generated component map keeps HTTP/stream/command DTO references consistent. Manual fragments or minification would impair regeneration and cross-model references; review generator/model ownership if it outgrows this boundary. generate-api.mjs enforces the 7,000-line guard in write and no-write modes, with regression tests proving oversized output is never written."
+    },
+    {
+      "path": "packages/umbra-rti-observer/src/umbra_rti_observer/static/observer-wire-v1.schema.json",
+      "max_lines": 15000,
+      "reason": "The canonical portable v1 contract is one generated JSON Schema with local definitions, usable offline without fetching external references. Hand-splitting would change that portability boundary; review cohesive model/schema ownership before expansion. conformance_schema.py enforces the 15,000-line growth guard before either writing or checking, with a rejection regression."
+    },
+    {
       "path": "packages/umbra-rti-observer-ui/src/api/workspace-validator.cjs",
       "max_lines": 6000,
       "reason": "Generated standalone validators for the document/library workspace contracts stay together as one reproducible build artifact. Splitting generated function fragments manually would break regeneration and offline/CSP validation. The generator enforces this 6,000-line growth guard on both write and no-write CI checks; stale output and schema drift are regression-tested. Review shared schema ownership before growth beyond the guard; do not hand-edit or minify solely to reduce line count."

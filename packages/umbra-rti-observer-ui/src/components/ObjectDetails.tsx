@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { JsonValue, ObjectAttributeChange, ObjectPerspective } from "../api/types";
 import { formatTime } from "../app/observations";
+import { objectKey, objectPerspectiveKey, perspectiveDescription } from "../app/participants";
 import { ChartPanel, chartColors, chartTick, chartTooltip, EmptyPanel } from "./ChartPanel";
 import { useObjectChart } from "../workspace/WorkspaceContext";
 import { RetainedSelect } from "../workspace/RetainedSelect";
@@ -23,11 +24,11 @@ function Value({ value }: { value: JsonValue }) {
 }
 
 export function ObjectDetails({ snapshot, changes }: { snapshot: ObjectPerspective; changes: ObjectAttributeChange[] }) {
-  const [attribute, setAttribute] = useObjectChart(snapshot.federate, snapshot.object.object_key);
+  const [attribute, setAttribute] = useObjectChart(objectPerspectiveKey(snapshot), objectKey(snapshot.object));
   const [limit, setLimit] = useState(100);
   const row = snapshot.object;
-  const history = useMemo(() => changes.filter((change) => change.object_key === row.object_key
-    && change.federate === snapshot.federate && change.generation === snapshot.generation), [changes, row.object_key, snapshot]);
+  const history = useMemo(() => changes.filter((change) => objectKey(change) === objectKey(row)
+    && objectPerspectiveKey(change) === objectPerspectiveKey(snapshot) && change.generation === snapshot.generation), [changes, row, snapshot]);
   const latest = useMemo(() => new Map(history.map((change) => [change.attribute, change])), [history]);
   const numericAttributes = useMemo(() => [...new Set([
     ...Object.entries(row.attributes ?? {}).filter(([, value]) => numeric(value)).map(([name]) => name),
@@ -44,6 +45,7 @@ export function ObjectDetails({ snapshot, changes }: { snapshot: ObjectPerspecti
     <article className="panel object-detail" aria-label="Selected object">
       <div className="panel-heading"><div><p className="eyebrow">{snapshot.federate === null ? "Latest global values" : `Attributed to ${snapshot.federate}`}</p><h2>{row.object_name}</h2></div><span className="state-pill">{row.status}</span></div>
       <p className="panel-note">{row.class_name ?? "Class not reported"} · key {row.object_key} · last observed {formatTime(row.last_seen)} · sequence #{snapshot.last_sequence}</p>
+      <p className="coverage-note participant-provenance">{row.object_context ? `Object context: ${row.object_context.identity_namespace} / ${row.object_context.federation_id}` : "Object federation context unreported — legacy unscoped object aggregation"}. {snapshot.federate === null ? "Global observer projection, not a participant's local view." : perspectiveDescription(snapshot.perspective)}</p>
       <p className="footnote">Sources: {row.sources?.join(", ") || "Not reported"}. Observation generation #{snapshot.generation}; rediscovery after removal starts a new comparison baseline.</p>
       {attributes.length ? <div className="table-scroll"><table className="events-table attribute-table"><caption>Latest observed attributes</caption><thead><tr><th>Attribute</th><th>Latest value</th><th>Representation</th><th>Previous observed value</th></tr></thead><tbody>{attributes.map(([name, value]) => {
         const change = latest.get(name);

@@ -25,7 +25,7 @@ export function WorkspacePanel({ canApply, displayedParticipant }: { canApply: b
   };
   return <section id="saved-workspaces" className="panel workspace-manager" aria-label="Saved workspaces">
     <div className="panel-heading"><div><p className="eyebrow">View configuration only</p><h2>Saved workspaces</h2></div><span className="panel-note">{owner.saved.length}/12 saved in this browser/origin</span></div>
-    <p>Remember views, participants, filters, numeric-chart choices and time windows. Files contain selections, not observations, credentials, endpoints, command drafts or authority. Identifying filter/selection text is included; review it before sharing.</p>
+    <p>Remember views, participants, filters, numeric-chart choices and time windows. Files contain selections, not event payloads, credentials, endpoints, command drafts or authority. Chosen reporter/join IDs and identifying filter text are included; review them before sharing.</p>
     <p className="footnote">Current choices are saved automatically when browser storage permits. Named configurations are portable backups, not recordings. Unsupported feature choices stay dormant. Browser storage is not a durable database or a secret store.</p>
     {!canApply && <div className="notice-banner">Resume live or return from replay before applying/reloading/resetting settings. Saving or downloading configuration does not change the paused/recorded view.</div>}
     {error && <div className="error-banner" role="alert">{error}</div>}

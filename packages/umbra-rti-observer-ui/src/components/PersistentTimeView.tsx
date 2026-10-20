@@ -3,10 +3,11 @@ import { useScopedTimeChoice } from "../workspace/WorkspaceContext";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { StateResponse, TimeRequest, TimeScope } from "../api/types";
 import { formatTime } from "../app/observations";
+import { participantKey, perspectiveDescription, reportingScopeKey } from "../app/participants";
 import { ChartPanel, chartColors, chartTick, chartTooltip, EmptyPanel } from "./ChartPanel";
 
 function scopeKey(scope: TimeScope): string {
-  return JSON.stringify([scope.source, scope.session_id, scope.federation, scope.federate]);
+  return reportingScopeKey(scope);
 }
 
 function duration(request: TimeRequest): string {
@@ -24,11 +25,11 @@ export function PersistentTimeView({ state, federate }: { state: StateResponse; 
   const capability = state.capabilities.time_inspection;
   const usable = capability?.state === "available" || capability?.state === "partial";
   const data = usable ? state.inspectors.time : undefined;
-  const snapshots = useMemo(() => data?.snapshots.filter((row) => federate === undefined || row.scope.federate === federate)
+  const snapshots = useMemo(() => data?.snapshots.filter((row) => federate === undefined || participantKey(row.scope) === federate)
     .sort((left, right) => Number(right.scope.session_id !== null) - Number(left.scope.session_id !== null)) ?? [], [data, federate]);
   const perspectives = useMemo(() => {
     const scopes = new Map(snapshots.map((row) => [scopeKey(row.scope), row.scope]));
-    for (const row of data?.requests ?? []) if (federate === undefined || row.scope.federate === federate) scopes.set(scopeKey(row.scope), row.scope);
+    for (const row of data?.requests ?? []) if (federate === undefined || participantKey(row.scope) === federate) scopes.set(scopeKey(row.scope), row.scope);
     return [...scopes.values()];
   }, [data, snapshots, federate]);
   const selectedKey = selected ?? (perspectives[0] ? scopeKey(perspectives[0]) : "");
@@ -36,7 +37,8 @@ export function PersistentTimeView({ state, federate }: { state: StateResponse; 
   useEffect(() => {
     if (selected === undefined && perspectives[0]) setSelected(scopeKey(perspectives[0]));
   }, [selected, perspectives]);
-  const requests = useMemo(() => data?.requests.filter((row) => scopeKey(row.scope) === selectedKey) ?? [], [data, selectedKey]);
+  const requests = useMemo(() => data?.requests.filter((row) => scopeKey(row.scope) === selectedKey
+    && (federate === undefined || participantKey(row.scope) === federate)) ?? [], [data, selectedKey, federate]);
   const pending = requests.filter((row) => row.status === "pending");
   const grants = requests.filter((row) => row.status === "granted");
   const points = grants.filter((row) => row.latency_seconds != null).sort((left, right) => (left.outcome_sequence ?? 0) - (right.outcome_sequence ?? 0)).slice(-250).map((row) => ({
@@ -52,12 +54,13 @@ export function PersistentTimeView({ state, federate }: { state: StateResponse; 
     {(data.dropped_snapshots ?? 0) > 0 && <p className="coverage-note" role="status">Time snapshot coverage is incomplete: {data.dropped_snapshots} latest-state records expired independently of the request ledger. This is not a session end or a new RTI incarnation. Retained requests keep their explicit scope below.</p>}
     <div className="panel time-perspective"><label>Time perspective<select aria-label="Time perspective" value={selectedKey} disabled={!perspectives.length && !selected} onChange={(event) => { setSelected(event.target.value); setLimit(100); }}>
       {!perspectives.some((scope) => scopeKey(scope) === selectedKey) && <option value={selectedKey}>{selected ? "Selected perspective no longer reported" : "No time perspective reported"}</option>}
-      {perspectives.map((scope) => <option value={scopeKey(scope)} key={scopeKey(scope)}>{scope.federate ?? "Unattributed"} · {scope.source} · {scope.session_id ?? "session unknown"} · {scope.federation ?? "federation unreported"}{snapshots.some((row) => scopeKey(row.scope) === scopeKey(scope)) ? "" : " · snapshot expired"}</option>)}
+      {perspectives.map((scope) => <option value={scopeKey(scope)} key={scopeKey(scope)}>{scope.federate ?? "Unattributed"} · {scope.perspective?.attribution ? perspectiveDescription(scope.perspective) : `${scope.source} · ${scope.session_id ?? "session unknown"} · ${scope.federation ?? "federation unreported"}`}{snapshots.some((row) => scopeKey(row.scope) === scopeKey(scope)) ? "" : " · snapshot expired"}</option>)}
     </select></label></div>
     {!snapshot ? <EmptyPanel title="No persistent time observations">{selected ? "The chosen perspective has no retained latest-state snapshot. Retained requests remain inspectable below; global values are not substituted." : "Grants, explicit time-role state or time requests appear when reported. Timestamped objects/interactions alone do not establish granted time."}</EmptyPanel> : <>
       <article className="panel" aria-label="Reported time state">
         <div className="panel-heading"><div><p className="eyebrow">{snapshot.scope.federate ?? "Unattributed"} · {snapshot.scope.source}</p><h2>Last reported time state</h2></div><span className="state-pill">{snapshot.status}</span></div>
         <p className="panel-note">Session {snapshot.scope.session_id ?? "not reported"} · {snapshot.scope.federation ?? "Federation not reported"} · observed {formatTime(snapshot.observed_at)} · sequence #{snapshot.last_sequence}</p>
+        <p className="coverage-note participant-provenance">{perspectiveDescription(snapshot.scope.perspective)}</p>
         <div className="time-cards">
           <div className="context-item"><label>Last granted time</label><strong>{snapshot.last_grant?.logical_time ?? "Unknown"}</strong><small>{snapshot.last_grant ? `Grant #${snapshot.last_grant.sequence} · ${formatTime(snapshot.last_grant.observed_at)}` : "No explicit grant reported"}</small></div>
           <div className="context-item"><label>Last requested target</label><strong>{snapshot.last_request?.logical_time ?? "Unknown"}</strong><small>Not necessarily the last granted time</small></div>

@@ -91,6 +91,29 @@
       ],
       "state": "available"
     },
+    "command_versions": {
+      "description": "Conditional commands bound to a dispatcher registration and revision, separate from observer and participant identity.",
+      "event_types": [],
+      "label": "Owned command target versions",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Commands require the current owned target incarnation/revision; unknown or stale expectations have no provider effect.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Commands require the current owned target incarnation/revision; unknown or stale expectations have no provider effect.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
     "commands": {
       "description": "Explicitly registered adapter actions and correlated execution history.",
       "event_types": [],
@@ -663,6 +686,29 @@
         "contract-fixture"
       ],
       "state": "available"
+    },
+    "session_recovery": {
+      "description": "Explicit adapter-supported inspection/reconciliation on the owner thread; incomplete facts never restore provider authority.",
+      "event_types": [],
+      "label": "Owned session inspection and recovery",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "No owned adapter inspection is configured; observation views remain independent.",
+          "source": "fastapi",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "No owned adapter inspection is configured; observation views remain independent.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "unsupported"
     },
     "sse": {
       "description": "Live event delivery over an HTTP event stream.",
@@ -3216,6 +3262,10 @@
       "source": "contract-fixture"
     }
   ],
+  "observer_lifetime": {
+    "instance_id": "00000000000000000000000000000001",
+    "revision": 45
+  },
   "retention": {
     "cleared_events": 0,
     "dropped_events": 0,

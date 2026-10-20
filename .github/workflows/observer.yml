@@ -10,6 +10,8 @@ on:
       - 'packages/umbra-rti-api/**'
       - 'tools/observer_playtest.py'
       - 'tools/test_observer_playtest.py'
+      - 'tools/check_source_file_sizes.py'
+      - 'tools/test_check_source_file_sizes.py'
       - 'Start-Observer*.cmd'
       - '.github/workflows/observer.yml'
   pull_request:
@@ -21,6 +23,8 @@ on:
       - 'packages/umbra-rti-api/**'
       - 'tools/observer_playtest.py'
       - 'tools/test_observer_playtest.py'
+      - 'tools/check_source_file_sizes.py'
+      - 'tools/test_check_source_file_sizes.py'
       - 'Start-Observer*.cmd'
       - '.github/workflows/observer.yml'
   workflow_dispatch:
@@ -54,7 +58,8 @@ jobs:
           ruff check ../umbra-rti-observer/src/umbra_rti_observer
           pyright -p ../umbra-rti-observer/pyrightconfig.json
       - name: Python observer and launcher regressions
-        run: python -m pytest ../umbra-rti-observer/tests ../umbra-rti-observer-umbra/tests ../../tools/test_observer_playtest.py -q
+        working-directory: .
+        run: python -m pytest packages/umbra-rti-observer/tests packages/umbra-rti-observer-umbra/tests tools/test_observer_playtest.py tools/test_check_source_file_sizes.py -q
       - name: Install the locked frontend dependencies
         run: |
           npm install --global pnpm@11.25.0
@@ -68,6 +73,9 @@ jobs:
           pnpm test:workspaces
           pnpm test:codegen
           pnpm test:replay
+          pnpm test:participants
+          pnpm test:streaming
+          pnpm test:commands
       - name: Install headless Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Desktop and mobile browser regressions

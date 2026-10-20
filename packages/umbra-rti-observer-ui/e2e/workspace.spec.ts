@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import type { WebSocketRoute } from "@playwright/test";
 import type { AnalyticsResponse, EventEnvelope } from "../src/api/types";
 import { test, expect } from "./fixtures";
-import { navigate, seedEvents } from "./support";
+import { legacyPerspective, navigate, seedEvents } from "./support";
 
 test("all main screens render without a page-wide mobile overflow", async ({ page }) => {
   await page.goto("/");
@@ -70,9 +70,14 @@ test("keyboard navigation and browser history keep the selected screen clear", a
 });
 
 test("a dropped stream reconnects and resumes observations without duplicate rows", async ({ page, request }) => {
+  await page.route("**/api/contract", async (route) => {
+    const response = await route.fetch();
+    const contract = await response.json();
+    await route.fulfill({ json: { ...contract, capabilities: { ...contract.capabilities, sse: { state: "unsupported" } } } });
+  });
   let stream: WebSocketRoute | undefined;
   let connections = 0;
-  await page.routeWebSocket("**/ws/events", (route) => {
+  await page.routeWebSocket("**/ws/events**", (route) => {
     stream = route;
     connections++;
     route.connectToServer();
@@ -131,7 +136,7 @@ test.describe("deterministic observations", () => {
     await page.getByLabel("Filter by family").selectOption("object");
     await page.getByLabel("Filter by type").selectOption("object.updated");
     await page.getByLabel("Filter by source").selectOption("source-A");
-    await page.getByLabel("Filter by federate").selectOption("Alice");
+    await page.getByLabel("Filter by federate").selectOption(legacyPerspective("Alice", "source-A"));
     await page.getByLabel("Search events").fill("needle-alpha");
     await expect(explorer.locator("tbody tr")).toHaveCount(1);
     await explorer.getByText("View payload", { exact: true }).click();

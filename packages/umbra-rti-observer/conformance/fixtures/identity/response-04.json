@@ -1,0 +1,40 @@
+{
+  "adapters": [],
+  "contract_version": "umbra-observer-contract-v1",
+  "live_metrics": {
+    "error_count": 0,
+    "event_count": 36,
+    "event_rate_per_second": 0.0,
+    "event_types": {
+      "declaration.observed": 5,
+      "federate.joined": 5,
+      "interaction.received": 5,
+      "object.updated": 12,
+      "time.observed": 9
+    },
+    "families": {
+      "generic": 36
+    },
+    "federate_count": 6,
+    "first_sequence": 1,
+    "interaction_count": 5,
+    "last_sequence": 36,
+    "object_count": 4,
+    "sources": {
+      "identity-reporter": 29,
+      "legacy-reporter": 1,
+      "other-reporter": 6
+    }
+  },
+  "retention": {
+    "cleared_events": 0,
+    "dropped_events": 0,
+    "first_retained_sequence": 1,
+    "last_sequence": 36,
+    "max_events": 64,
+    "next_sequence": 37,
+    "retained_events": 36
+  },
+  "schema_version": "umbra-runtime-observer-v1",
+  "status": "running"
+}

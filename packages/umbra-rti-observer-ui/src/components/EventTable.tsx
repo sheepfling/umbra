@@ -3,7 +3,7 @@ import type { EventEnvelope } from "../api/types";
 import { eventFederate, exportEvents, formatTime } from "../app/observations";
 import { useScopedWorkspaceField } from "../workspace/WorkspaceContext";
 import { RetainedSelect } from "../workspace/RetainedSelect";
-import { eventParticipantKey } from "../app/participants";
+import { eventParticipantKey, eventParticipantPerspective, perspectiveDescription } from "../app/participants";
 
 export function EventTable({ events, title = "Event explorer", participant, provenance = false }: { events: EventEnvelope[]; title?: string; participant?: string; provenance?: boolean }) {
   const [search, setSearch] = useScopedWorkspaceField("events", "search", participant);
@@ -17,7 +17,7 @@ export function EventTable({ events, title = "Event explorer", participant, prov
   const sources = useMemo(() => [...new Set(events.map((event) => event.source))].sort(), [events]);
   const federates = useMemo(() => [...new Map(events.flatMap((event) => {
     const key = eventParticipantKey(event, provenance), name = eventFederate(event);
-    return key && name ? [[key, name] as const] : [];
+    return key && name ? [[key, `${name} · ${perspectiveDescription(eventParticipantPerspective(event, provenance))}`] as const] : [];
   })).entries()].sort(([, a], [, b]) => a.localeCompare(b)), [events, provenance]);
   const rows = useMemo(() => {
     const needle = search.trim().toLowerCase();

@@ -60,6 +60,7 @@ def test_command_api_validation_idempotency_and_pollable_history() -> None:
             "action": "session.connect",
             "target_id": "test",
             "request_id": "connect",
+            "expected_version": catalog["targets"][0]["version"],
             "parameters": {},
         }
         accepted = client.post("/api/commands", json=payload)
@@ -110,3 +111,31 @@ def test_command_api_validation_idempotency_and_pollable_history() -> None:
         assert {"JoinParameters", "ResignParameters", "CommandRecord"} <= schema[
             "components"
         ]["schemas"].keys()
+
+
+def test_recovery_discovery_is_dynamic_without_churning_unchanged_store_revisions_and_requests_are_strict() -> None:
+    commands = CommandDispatcher()
+    store = ObserverStore()
+    with TestClient(create_app(store, commands=commands)) as client:
+        assert client.get("/api/contract").json()["capabilities"]["session_recovery"]["state"] == "unsupported"
+        commands.register(SessionController(target_id="owned", label="Owned", adapter="test", federations=("Allowed",),
+            driver_factory=lambda: ShowcaseSessionDriver(fault_once="connect"), inspection_supported=True))
+        assert client.get("/api/contract").json()["capabilities"]["session_recovery"]["state"] == "available"
+        cut = store.state()["observer_lifetime"]
+        client.get("/api/contract")
+        assert store.state()["observer_lifetime"] == cut
+        catalog = client.get("/api/commands/catalog").json()
+        version = catalog["targets"][0]["version"]
+        payload = {"action": "session.recover", "target_id": "owned", "request_id": "invalid",
+            "parameters": {}, "expected_version": version, "confirmed": True}
+        for invalid in ({**payload, "parameters": {"credentials": "not accepted"}},
+                {**payload, "expected_version": None}, {key: value for key, value in payload.items() if key != "expected_version"},
+                {**payload, "expected_version": {**version, "revision": True}}, {**payload, "driver_factory": "not a wire field"}):
+            assert client.post("/api/commands", json=invalid).status_code == 422
+        for invalid in ({**payload, "expected_version": {**version, "instance_id": " " + version["instance_id"] + " "}},
+                {**payload, "target_id": " owned "}, {**payload, "request_id": " padded "}):
+            assert client.post("/api/commands", json=invalid).status_code == 422
+        assert client.get("/api/commands").json()["records"] == []
+        missing_guard = client.post("/api/commands", json={"action": "session.connect", "target_id": "owned",
+            "request_id": "missing-version", "parameters": {}}).json()
+        assert missing_guard["status"] == "unavailable" and missing_guard["error"]["effect"] == "none"

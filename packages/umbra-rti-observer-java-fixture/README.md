@@ -5,6 +5,14 @@ checker do not depend on Python. This is **not a Java RTI adapter**, a productio
 observer, or HLA conformance evidence. It serves deterministic, read-only JSON
 fixtures; it does not collect callbacks, implement commands, or fake WebSockets.
 
+The corpus can include named observer-lifetime metadata captured from its
+synthetic scenario. Those fixed fixture IDs/revisions are not live Java process
+incarnations or provider membership. Both streaming capabilities remain
+unsupported and resumption is false. The same UI also has browser coverage for
+older HTTP services omitting lifetime/resumption metadata completely; neither
+shape requires MOM. Passing these read fixtures does not verify Java SSE/WS
+reconnection, recovery commands or RTI behavior.
+
 Alert fixtures expose the same named read report with configuration controls
 disabled. They demonstrate loss/unknown-command states and UI portability, not
 a Java alert evaluator, mutation implementation or provider behavior.
@@ -36,9 +44,11 @@ python -m umbra_rti_observer.conformance http://127.0.0.1:PORT
 ```
 
 The Python tests compile this source with `--release 17` and run the same checks
-against seven Java profiles and the live Python reference. Browser tests also
+against eight Java profiles and the live Python reference. Browser tests also
 serve the production React build directly from Java for limited, partial,
-empty, no-analytics, full and retention-loss profiles. Full demonstrates the
+empty, no-analytics, full, retention-loss and identity profiles. Identity keeps
+same-name/handle joins and explicit object contexts separate without MOM;
+its time capability is partial. Full demonstrates the
 same named persistent time models with matched and pending requests; grant-only
 profiles need no request-ID support. No provider-specific library is involved.
 

@@ -72,6 +72,30 @@
       ],
       "state": "available"
     },
+    "command_versions": {
+      "description": "Conditional commands bound to a dispatcher registration and revision, separate from observer and participant identity.",
+      "event_types": [],
+      "label": "Owned command target versions",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Commands require the current owned target incarnation/revision; unknown or stale expectations have no provider effect.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Commands require the current owned target incarnation/revision; unknown or stale expectations have no provider effect.",
+      "reasons": [],
+      "source": null,
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
     "commands": {
       "description": "Explicitly registered adapter actions and correlated execution history.",
       "event_types": [],
@@ -464,6 +488,30 @@
       "source": null,
       "sources": [],
       "state": "available"
+    },
+    "session_recovery": {
+      "description": "Explicit adapter-supported inspection/reconciliation on the owner thread; incomplete facts never restore provider authority.",
+      "event_types": [],
+      "label": "Owned session inspection and recovery",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "No owned adapter inspection is configured; observation views remain independent.",
+          "source": "fastapi",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "No owned adapter inspection is configured; observation views remain independent.",
+      "reasons": [],
+      "source": null,
+      "sources": [
+        "fastapi"
+      ],
+      "state": "unsupported"
     },
     "sse": {
       "description": "Live event delivery over an HTTP event stream.",

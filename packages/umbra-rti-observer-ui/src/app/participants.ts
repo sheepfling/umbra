@@ -1,13 +1,15 @@
 import type { AnalyticsResponse, EventEnvelope, JsonValue, ParticipantPerspective, StateResponse } from "../api/types";
 
 function label(value: unknown): string | undefined {
-  if (typeof value === "string") return value.trim() || undefined;
+  // Match Python's display-label whitespace policy, including NEXT LINE but
+  // excluding BOM. Opaque IDs/session keys never pass through this function.
+  if (typeof value === "string") return value.replace(/^[\u0009-\u000d\u001c-\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+|[\u0009-\u000d\u001c-\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+$/gu, "") || undefined;
   return typeof value === "number" && Number.isSafeInteger(value) ? String(value) : undefined;
 }
 
 export function reportedFederate(event: EventEnvelope): string | undefined {
   const value = event.federate ?? event.participant;
-  if (typeof value === "string") return label(value);
+  if (typeof value === "string" || typeof value === "number") return label(value);
   if (value && typeof value === "object" && !Array.isArray(value)) {
     for (const field of ["name", "id", "handle"]) {
       const item: JsonValue | undefined = value[field] as JsonValue | undefined;
@@ -56,8 +58,11 @@ export function objectPerspectiveKey(row: { federate: string | null; perspective
   return row.federate === null ? null : participantKey(row) ?? legacyParticipantKey(row.federate);
 }
 
-export function objectKey(row: { object_key: string; observation_key?: string | null }): string {
-  return row.observation_key ?? row.object_key;
+export function objectKey(row: { object_key: string; observation_key?: string | null; object_context?: { identity_namespace: string; federation_id: string } | null }): string {
+  // Tag legacy keys too: a raw handle is allowed to look exactly like the
+  // serialized key of a different, explicitly scoped object.
+  return row.object_context ? JSON.stringify(["federation-object", row.object_context.identity_namespace,
+    row.object_context.federation_id, row.object_key]) : JSON.stringify(["legacy-object", row.object_key]);
 }
 
 export function reportingScopeKey(scope: { source: string; session_id: string | null; federation: string | null; federate: string | null; perspective?: ParticipantPerspective | null }): string {

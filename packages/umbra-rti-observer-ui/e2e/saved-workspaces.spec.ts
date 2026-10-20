@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { test, expect } from "./fixtures";
-import { navigate, seedEvents } from "./support";
+import { legacyPerspective, navigate, seedEvents } from "./support";
 
 const storageKey = "umbra.observer.workspace-library.v1";
 const document = (name: string, settings: object = {}) => ({ workspace_version: "umbra-observer-workspace-v1", name, settings });
@@ -41,7 +41,7 @@ test.describe("saved view configurations", () => {
     await seedEvents(request, [{ event_type: "object.updated", source: "test-source", federate: "Alice", object_key: "one", attributes: { a: 1, b: 2 } }]);
     await page.goto("/#objects");
     await page.getByLabel("Numeric attribute", { exact: true }).selectOption("b");
-    await page.getByLabel("Object perspective", { exact: true }).selectOption("f:Alice");
+    await page.getByLabel("Object perspective", { exact: true }).selectOption(`f:${legacyPerspective("Alice", "test-source")}`);
     await expect(page.getByLabel("Numeric attribute", { exact: true })).toHaveValue("a");
     await page.getByLabel("Object perspective", { exact: true }).selectOption("global");
     await expect(page.getByLabel("Numeric attribute", { exact: true })).toHaveValue("b");
@@ -49,31 +49,34 @@ test.describe("saved view configurations", () => {
     await expect(page.getByLabel("Numeric attribute", { exact: true })).toHaveValue("b");
   });
 
-  test("Alice and Bob retain independent time selections and filters across switches and reload without altering global views", async ({ page, request }) => {
+  test("Legacy reporting sessions retain independent selections and filters across switches and reload without altering global views", async ({ page, request }) => {
     await seedEvents(request, [
       { event_type: "time.observed", source: "e2e", federate: "Alice", time_observation: { kind: "grant", session_id: "a1", logical_time: 1 } },
       { event_type: "time.observed", source: "e2e", federate: "Alice", time_observation: { kind: "grant", session_id: "a2", logical_time: 2 } },
       { event_type: "time.observed", source: "e2e", federate: "Bob", time_observation: { kind: "grant", session_id: "b1", logical_time: 3 } },
       { event_type: "time.observed", source: "e2e", federate: "Bob", time_observation: { kind: "grant", session_id: "b2", logical_time: 4 } },
     ]);
-    await page.goto("/#federates");
+    await page.goto("/#time");
+    const globalTime = JSON.stringify(["e2e", "b2", null, "Bob"]);
+    await page.getByLabel("Time perspective", { exact: true }).selectOption(globalTime);
+    await navigate(page, "Federates");
     const people = page.getByRole("complementary", { name: "Observed federates" });
-    await people.getByRole("button", { name: /^Alice / }).click();
-    await page.getByLabel("Time perspective", { exact: true }).selectOption({ index: 1 });
+    await people.getByRole("button", { name: /^Alice .*a1/ }).click();
+    await page.getByLabel("Time perspective", { exact: true }).selectOption({ index: 0 });
     const alice = await page.getByLabel("Time perspective", { exact: true }).inputValue();
     await page.getByLabel("Search events", { exact: true }).fill("alice-only");
     await page.getByLabel("Search declarations", { exact: true }).fill("alice-classes");
-    await people.getByRole("button", { name: /^Bob / }).click();
+    await people.getByRole("button", { name: /^Bob .*b1/ }).click();
     await expect(page.getByLabel("Search events", { exact: true })).toHaveValue("");
     await expect(page.getByLabel("Search declarations", { exact: true })).toHaveValue("");
-    await page.getByLabel("Time perspective", { exact: true }).selectOption({ index: 1 });
+    await page.getByLabel("Time perspective", { exact: true }).selectOption({ index: 0 });
     const bob = await page.getByLabel("Time perspective", { exact: true }).inputValue();
     expect(bob).not.toBe(alice);
     await page.getByLabel("Search events", { exact: true }).fill("bob-only");
     await page.reload();
     await expect(page.getByLabel("Search events", { exact: true })).toHaveValue("bob-only");
     await expect(page.getByLabel("Time perspective", { exact: true })).toHaveValue(bob);
-    await people.getByRole("button", { name: /^Alice / }).click();
+    await people.getByRole("button", { name: /^Alice .*a1/ }).click();
     await expect(page.getByLabel("Search events", { exact: true })).toHaveValue("alice-only");
     await expect(page.getByLabel("Search declarations", { exact: true })).toHaveValue("alice-classes");
     await expect(page.getByLabel("Time perspective", { exact: true })).toHaveValue(alice);
@@ -82,7 +85,7 @@ test.describe("saved view configurations", () => {
     await navigate(page, "Declarations");
     await expect(page.getByLabel("Search declarations", { exact: true })).toHaveValue("");
     await navigate(page, "Logical time");
-    await expect(page.getByLabel("Time perspective", { exact: true })).not.toHaveValue(alice);
+    await expect(page.getByLabel("Time perspective", { exact: true })).toHaveValue(globalTime);
   });
 
   test("unavailable saved participants and filters stay selected instead of borrowing another participant", async ({ page, request }) => {

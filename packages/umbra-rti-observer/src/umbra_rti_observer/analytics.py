@@ -40,6 +40,7 @@ def event_perspective(event: EventEnvelope) -> ParticipantPerspective | None:
         "session_id": event.session_id, "federate": event.federate,
         "participant": event.participant, "federate_name": event.federate_name, "participant_name": event.participant_name,
         "time_observation": {"session_id": event.time_observation.session_id} if event.time_observation else None,
+        "declaration": {"session_id": event.declaration.session_id} if event.declaration else None,
         "participant_attribution": event.participant_attribution.model_dump(mode="python", exclude_none=True) if event.participant_attribution else None})
 
 
@@ -126,7 +127,7 @@ def build_analytics(
                 perspective=ParticipantPerspectiveResponse.model_validate(subject.to_json()) if scoped else None)
     for row in sorted(roster.values(), key=lambda item: item.federate):
         subject = _roster_perspective(row)
-        if federate is not None and row.federate != federate:
+        if federate is not None and row.federate != federate and (subject.key if scoped else row.federate) not in by_federate:
             continue
         if perspective is not None and subject.key != perspective:
             continue

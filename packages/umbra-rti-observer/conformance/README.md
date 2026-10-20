@@ -15,12 +15,19 @@ manifest says so; missing or malformed **advertised** resources are failures.
 | `retention-loss` | Bounded history, expired sequences, a gap flag and exclusive ordered cursors. |
 | `no-analytics` | Analytics is disabled and its path omitted; core observations still validate. |
 | `reconnect` | First contract request fails with 503; the next run recovers without changing clients. |
+| `identity` | Same-name/handle joins across sources, namespaces and federations; aliases, object contexts, independent time requests and a legacy bucket, without MOM evidence. |
 
 These fixtures are synthetic and use a fixed wall clock. They are not session
 recordings or a replay engine. A profile directory contains JSON responses and
 an ordered `routes.tsv` manifest. The Java fixture reads those files directly;
 it neither calls Python nor imports HLA APIs. Its intentionally finite query
 table is not a production implementation of arbitrary event filtering.
+
+`participant-keys-v1.json` is a separate shared codec corpus, not an HTTP
+response fixture. Python and `pnpm test:participants` compare exact canonical
+keys across opaque/Unicode IDs, aliases, label whitespace, safe numeric labels
+and older name-only grouping. The browser also exercises the `identity` profile
+directly from Java. This does not claim Java RTI or alert-evaluator behavior.
 
 ## Check a backend without changing it
 
@@ -42,6 +49,16 @@ pagination/gaps, and aggregate consistency. A usable analytics/commands feature
 must advertise an endpoint that returns its validated response model. Disabled,
 unsupported or unknown features need not provide their optional endpoints.
 Optional command catalogs/history are read, but no command is executed.
+
+Usable `command_versions` requires each advertised owned target's named
+incarnation/revision. Usable `session_recovery` requires commands, conditional
+versions and versioned inspection/reconciliation definitions. Their proof models
+reject contradictory connection/membership facts and unproven reconciliation.
+The HTTP checker never creates a driver, inspects a provider or restores control;
+its report explicitly leaves `owned-session-recovery` unchecked. Dedicated owner-
+thread, failure/timeout and browser tests provide separate application evidence.
+The independent Java fixtures remain read-only and do not claim Java execution
+or recovery behavior.
 
 Usable `alerts` requires its named report and discovered read resource.
 Configuration/results/evidence must agree on rule IDs, generations, thresholds,

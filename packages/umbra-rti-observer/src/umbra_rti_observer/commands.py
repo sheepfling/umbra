@@ -26,6 +26,8 @@ from .command_models import (
     CommandRecord,
     CommandRequest,
     CommandTarget,
+    CommandTargetVersion,
+    validate_inspection_outcome,
 )
 from .contract import OBSERVER_CONTRACT_VERSION
 from .core import EventSink
@@ -56,6 +58,8 @@ class _Worker:
         self.queue: queue.Queue[str] = queue.Queue(maxsize=1)
         self.inflight: str | None = None
         self.fault: str | None = None
+        self.instance_id = uuid.uuid4().hex
+        self.revision = 0
         self.stop = threading.Event()
         self.thread = threading.Thread(
             target=run,
@@ -129,7 +133,9 @@ class CommandDispatcher:
                             or "A previous command is still running or this dispatcher is closed.",
                         }
                     )
-                    if blocked and command.state == "available"
+                    if blocked and command.state == "available" and not (
+                        worker.fault is not None and not self._closed and worker.inflight is None
+                        and command.action in {"session.inspect", "session.recover"})
                     else command
                     for command in target.commands
                 )
@@ -143,6 +149,7 @@ class CommandDispatcher:
                             if uncertain or worker.fault
                             else target.state,
                             "commands": commands,
+                            "version": self._version(worker),
                         }
                     )
                 )
@@ -270,7 +277,9 @@ class CommandDispatcher:
             worker.thread.join(timeout=max(0, deadline - time.monotonic()))
 
     def _unavailable(self, worker: _Worker, request: CommandRequest) -> str | None:
-        if worker.fault:
+        if request.expected_version != self._version(worker):
+            return "Owned target incarnation/revision changed or was not supplied. Refresh the catalog and review before submitting a new request."
+        if worker.fault and request.action not in {"session.inspect", "session.recover"}:
             return worker.fault
         descriptor = next(
             (
@@ -287,6 +296,10 @@ class CommandDispatcher:
         if descriptor.requires_confirmation and not request.confirmed:
             return "Confirm the selected action before submitting it."
         return None
+
+    @staticmethod
+    def _version(worker: _Worker) -> CommandTargetVersion:
+        return CommandTargetVersion(instance_id=worker.instance_id, revision=worker.revision)
 
     def _change(self, command_id: str, **changes: object) -> CommandRecord:
         # Revalidate every state transition; model_copy(update=...) skips validation.
@@ -358,6 +371,7 @@ class CommandDispatcher:
                             worker.fault = (
                                 f"Callback pump failed: {type(error).__name__}: {error}"
                             )
+                            worker.revision += 1
                     continue
                 with self._lock:
                     record = self._records[command_id]
@@ -380,24 +394,33 @@ class CommandDispatcher:
                         worker.inflight = None
                         self._timers.pop(command_id).cancel()
                         continue
+                    worker.revision += 1
                     self._change(command_id, status="running", started_at=time.time())
                 outcome: CommandOutcome | None = None
                 failure: CommandError | None = None
                 try:
                     outcome = CommandOutcome.model_validate(
-                        worker.session.execute(record.request)
+                        worker.session.execute(record.request).model_dump(mode="python")
                     )
+                    validate_inspection_outcome(record.request, outcome)
                 except CommandUnavailable as error:
+                    outcome = None
                     failure = CommandError(
                         code="unavailable", message=str(error), effect="none"
                     )
                 except Exception as error:  # noqa: BLE001 - provider-defined failures become typed results
+                    outcome = None
                     failure = CommandError(
                         code="provider_error",
                         message=f"{type(error).__name__}: {error}",
                         effect="unknown",
                     )
                 with self._lock:
+                    if failure is not None and failure.effect == "unknown":
+                        worker.fault = f"Provider effect is unknown: {failure.message}"
+                    if (failure is None and outcome is not None and outcome.inspection is not None
+                            and outcome.inspection.reconciled and record.request.action == "session.recover"):
+                        worker.fault = None
                     current = self._records[command_id]
                     if current.status in _TERMINAL:
                         self._change(
@@ -425,6 +448,7 @@ class CommandDispatcher:
                     if timer is not None:
                         timer.cancel()
                     worker.inflight = None
+                    worker.revision += 1
         finally:
             try:
                 worker.session.close()

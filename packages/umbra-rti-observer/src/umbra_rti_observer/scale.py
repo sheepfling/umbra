@@ -161,7 +161,7 @@ def profile(workload: Workload, *, repeats: int = 7, memory_probe: bool = True,
     started_fingerprint = source_fingerprint()
     store = ObserverStore(max_events=workload.retained_events, max_object_perspectives=workload.perspective_capacity)
     try:
-        seed_count = seed_inspectors(store, workload.inspector_rows, workload.participants)
+        seed_count = seed_inspectors(store, workload.inspector_rows, workload.participants, explicit_identity=workload.explicit_identity)
         seed_tail = {row["sequence"]: EventEnvelope.model_validate(row) for row in store.events()}
         started = time.perf_counter()
         for first in range(0, workload.events, workload.batch_size):

@@ -134,12 +134,14 @@ class ShowcaseAdapter:
     def _emit(self, event_type: str, **fields: JsonValue) -> None:
         with self._lock:
             sink = self._sink
+            session = self._session_id
         if sink is None:
             return
         event = {
             "event_type": event_type,
             "family": event_type.partition(".")[0],
             "source": f"showcase-{self.profile}",
+            "session_id": session,
             "connection": f"showcase://{self.profile}",
             "federation": "ShowcaseFederation",
             **fields,

@@ -9,6 +9,15 @@
       "interaction_key": "FixtureInteraction",
       "observed_at": 1760000000.0,
       "parameters": {},
+      "perspective": {
+        "attribution": null,
+        "basis": "legacy-provenance",
+        "federation": null,
+        "key": "[\"legacy-provenance\",\"contract-fixture\",null,null,\"FixtureFederate\"]",
+        "reported_name": "FixtureFederate",
+        "session_id": null,
+        "source": "contract-fixture"
+      },
       "sequence": 6,
       "source": "contract-fixture",
       "tag": null

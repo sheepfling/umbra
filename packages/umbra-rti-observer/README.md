@@ -142,6 +142,14 @@ needs no Python settings service. Unsupported choices stay dormant and missing
 selections are not replaced. See [WORKSPACES.md](WORKSPACES.md) for limits,
 conflict recovery and the frontend/backend ownership split.
 
+Federates now uses exact reporting perspectives when the adapter supplies
+join IDs. Same-name participants remain separate across sessions, namespaces,
+federations and rejoins; renaming keeps the same selection/preferences. Objects,
+time requests, declarations, analytics and exact alert filters follow that
+identity. Older backends retain explicitly labelled name-only views. Search
+the participant list by name, handle, join ID or reporter; missing saved choices
+stay dormant. See CONTRACT.md before translating another RTI's identity shape.
+
 MOM reports and the FOM browser are independently optional, read-only screens.
 Management member reports retain coverage/provenance without replacing the
 ordinary roster; service/error evidence never becomes an observer command.

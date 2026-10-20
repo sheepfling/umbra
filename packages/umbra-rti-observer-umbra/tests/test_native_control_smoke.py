@@ -86,7 +86,9 @@ def test_native_controlled_session_connect_join_resign_disconnect() -> None:
             ),
         )
         for request in requests:
-            result = commands.submit(request)
+            current = type(request).model_validate({**dict(request),
+                "expected_version": commands.catalog().targets[0].version})
+            result = commands.submit(current)
             deadline = time.monotonic() + 6
             while (
                 result.status in {"accepted", "running"} and time.monotonic() < deadline

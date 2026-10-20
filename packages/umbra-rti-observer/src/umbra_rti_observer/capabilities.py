@@ -29,6 +29,14 @@ CAPABILITY_STATES = (
 )
 
 CAPABILITY_DEFINITIONS: dict[str, dict[str, str]] = {
+    "command_versions": {
+        "label": "Owned command target versions",
+        "description": "Conditional commands bound to a dispatcher registration and revision, separate from observer and participant identity.",
+    },
+    "session_recovery": {
+        "label": "Owned session inspection and recovery",
+        "description": "Explicit adapter-supported inspection/reconciliation on the owner thread; incomplete facts never restore provider authority.",
+    },
     "participant_provenance": {
         "label": "Participant perspective model",
         "description": "Canonical reporter/session and optional explicit join attribution; legacy name-only data remains unresolved, never a membership census or authority.",

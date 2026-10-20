@@ -17,7 +17,7 @@ python -m umbra_rti_observer.scale --profile rich --repeats 7 --output .cache/ob
 python -m umbra_rti_observer.scale_reference --enforce .cache/observer-scale/rich.json
 ```
 
-Profiles are `standard`, `sustained`, `rich`, `many-perspectives`, `large-index`,
+Profiles are `standard`, `sustained`, `rich`, `identity`, `many-perspectives`, `large-index`,
 `wide` and `recording-rich` (100 attempted recording commits). The tool now uses
 `--recording-format compact-v2` by default; select `full-v1` for a controlled
 legacy comparison. Reports record the actual format, including failed starts.
@@ -43,6 +43,15 @@ across declarations, relationships, coordination, flow, ownership, DDM, MOM, FOM
 and pending time requests. The main workload uses numeric `value` and a bounded
 text `payload` attribute. A source name is never participant attribution.
 
+Current workloads explicitly supply the same synthetic reporting session on
+ordinary and seeded observations; the fixture knows that session, rather than
+assuming a missing session matches a reported one. The `identity` profile adds
+named participant/membership IDs and object federation contexts to the rich
+workload, exercising their actual validation, serialization and storage costs.
+Other profiles remain legacy-provenance workloads. Do not relabel their results
+as measurements of explicit-join payloads. The reference assessment now checks
+actual retained roster/object counts as well as configured workload dimensions.
+
 ## Explicit reference envelope
 
 The opt-in `scale_reference` checker assesses saved measurements against:
@@ -67,11 +76,109 @@ are explicitly diagnostic rather than promoted into the reference envelope.
 
 Current dated reports and assessments live in [benchmarks](benchmarks/). Check
 their exact source/runtime metadata rather than comparing machines as though
-they were equivalent. The standard/sustained/rich/many-perspectives assessment
+they were equivalent. The standard/sustained/rich/identity/many-perspectives assessment
 must pass; large-index and wide intentionally expose limits and are assessed
 separately. The `--enforce` exit code is opt-in, never part of default CI timings.
 
+## Recovery-source verification: 19 October 2026 (historical checkpoint)
+
+Five serial seven-sample reference loads use source fingerprint
+`b393aab312bfaa5476dbde2b33f5c9d20053054c87caa58f29ee6383f24e77e1`,
+unchanged across the runs on the same Windows/CPython 3.14.6/Pydantic 2.14.1
+host. This run launched no other build/test jobs or allocation tracing while
+measuring. All five pass the unchanged
+[reference assessment](benchmarks/2026-10-19-recovery-reference.json).
+Subsequent exact provider-name and command-ID validation changes are not in
+that fingerprint. These reports remain evidence for the named checkpoint,
+not source-matched measurements of the final commit.
+These remain in-process observer snapshot/analytics/recording workloads, not
+recovery-call/command-history memory, native/Java RTI, stream/network/browser,
+RSS or arbitrary-federation/SLA measurements.
+
+| Profile | Timed events / retained | Scoped baselines | Full response MiB | Full pipeline p95 ms | Projected analytics p95 ms |
+| --- | --- | --- | --- | --- | --- |
+| standard | 20,000 / 2000 | 400 | 4.07 | 246.19 | 31.00 |
+| sustained | 100,000 / 1750 | 1977 | 5.37 | 275.86 | 27.11 |
+| rich | 20,000 / 1599 | 1964 | 5.31 | 326.43 | 86.63 |
+| explicit identity | 20,000 / 913 | 1743 | 5.48 | 398.60 | 34.82 |
+| many-perspectives | 20,000 / 2000 | 2435 | 5.33 | 327.28 | 30.95 |
+
+Measured ingress ranges from 3367 to 5501 events/second. The shared 6 MiB
+encoded-evidence budget and whole-record loss policy are unchanged. Identity
+retains 914 classic objects and 913 envelopes, not all configured slots;
+rich/identity each seed 576 inspector events outside timed ingress. Smaller
+retained windows and independent cache expiry remain explicit, not sampled or
+interpreted as federation removal/resignation. Wide/large-index remain diagnostic
+on their earlier source versions. Every earlier report below keeps its original
+fingerprint and measurement; no historical evidence is relabelled current.
+
+## Historical transport-source verification: 19 October 2026
+
+Five serial seven-sample reference loads use source fingerprint
+`78b436e80ffbc584bda436b6860bcf7690af7acd973da605997475afe4b334d2`,
+unchanged across the runs, on the same Windows/CPython 3.14.6/Pydantic 2.14.1
+host. No other tests/builds or allocation tracing ran during these measurements.
+All five pass the unchanged [reference assessment](benchmarks/2026-10-19-streaming-reference.json).
+These are in-process snapshot/analytics/recording checks of the transport-source
+revision, **not** measurements of SSE/WebSocket delivery, HTTP/browser latency,
+native/Java RTI behavior, RSS or an arbitrary federation/SLA.
+
+| Profile | Timed events / retained | Scoped baselines | Full response MiB | Full pipeline p95 ms | Projected analytics p95 ms |
+| --- | --- | --- | --- | --- | --- |
+| standard | 20,000 / 2000 | 400 | 4.07 | 239.78 | 44.07 |
+| sustained | 100,000 / 1750 | 1977 | 5.37 | 325.70 | 29.35 |
+| rich | 20,000 / 1599 | 1964 | 5.31 | 302.13 | 82.52 |
+| explicit identity | 20,000 / 913 | 1743 | 5.48 | 431.51 | 34.46 |
+| many-perspectives | 20,000 / 2000 | 2435 | 5.33 | 331.74 | 31.41 |
+
+Ingress ranges from 3291 to 5427 events/second across these measured profiles.
+The 6 MiB encoded-evidence budget and whole-record loss policy remain unchanged.
+The identity case retains 914 classic objects and 913 envelopes, not its full
+configured 1000/2000 slots. Rich/identity each seed 576 inspector observations
+outside timed ingress. A small count difference between runs is not a guarantee
+of extra history: actual JSON byte sizes still determine bounded retention.
+Wide/large-index are not promoted into the reference envelope; their historical
+diagnostic evidence and all earlier source fingerprints remain below.
+
+## Historical identity/provenance verification: 19 October 2026
+
+Seven serial seven-sample runs on the same Windows/CPython 3.14.6/Pydantic 2.14.1
+host share source fingerprint `fef6ffafe6c1…`, with no source changes or tracing
+during measurement. Allocation/RSS was not measured. The explicit-identity case
+exercises the real named attribution/object-context payloads, not just a legacy
+workload relabelled as identified. The first five profiles pass the
+[identity checkpoint assessment](benchmarks/2026-10-19-provenance-reference.json).
+Ingress ranged from 3364 to 5421 events/second across those five runs.
+
+| Profile | Timed events / retained | Scoped baselines | Full response MiB | Full pipeline p95 ms | Projected analytics p95 ms |
+| --- | --- | --- | --- | --- | --- |
+| standard | 20,000 / 2000 | 400 | 4.07 | 224.70 | 29.57 |
+| sustained | 100,000 / 1749 | 1977 | 5.37 | 276.68 | 27.04 |
+| rich | 20,000 / 1599 | 1964 | 5.31 | 348.63 | 86.67 |
+| explicit identity | 20,000 / 913 | 1743 | 5.48 | 409.05 | 42.66 |
+| many-perspectives | 20,000 / 2000 | 2436 | 5.33 | 325.72 | 31.37 |
+| large-index, diagnostic | 20,000 / 2000 | 2435 | 5.33 | 367.84 | 31.00 |
+| wide, diagnostic | 20,000 / 663 | 1266 | 5.67 | 134.94 | 14.99 |
+
+The 6 MiB encoded-evidence budget is unchanged. Richer metadata costs storage:
+the identity profile retained 913 envelopes and 914 classic objects, not all
+2000/1000 configured slots. Loss and independent cache expiry remain explicit;
+neither missing objects nor roster expiry imply RTI removal/resignation. Rich
+and sustained also retain shorter windows. These are measured retained suffixes,
+not sampled events or promises of full-duration retention. The rich/identity
+profiles each seed 576 additional inspector observations outside timed ingress.
+
+The wider cases still [fail the reference shape](benchmarks/2026-10-19-provenance-diagnostic.json)
+despite bounded response sizes and timing: their configured capacities/payloads
+remain outside the envelope. Their apparent speed must not be promoted into a
+full-retention guarantee. Raw reports preserve exact counts, timing summaries,
+recording outcomes and environment/source metadata. Existing historical reports
+below keep their original source fingerprints and measurements. These remain
+in-process synthetic checks, not browser/network, Java RTI or native-provider
+performance/conformance evidence.
+
 ## Historical snapshot checkpoint: 19 October 2026
+
 
 These serial runs used Windows 11, CPython 3.14.6, Pydantic 2.14.1 and the
 32-logical-CPU AMD host identified in each report. All six have the same source

@@ -5,16 +5,16 @@ from unittest.mock import patch
 
 import pytest
 from pydantic import ValidationError
-
 from umbra_rti_observer.scale import ScaleReport, profile
-from umbra_rti_observer.scale_workload import Workload
 from umbra_rti_observer.scale_reference import ReferenceBudget, assess
+from umbra_rti_observer.scale_workload import Workload
 
 
 @pytest.mark.parametrize("rich", [False, True])
-def test_scale_profile_checks_retention_projection_and_capture_without_an_rti(rich: bool) -> None:
+@pytest.mark.parametrize("explicit_identity", [False, True])
+def test_scale_profile_checks_retention_projection_and_capture_without_an_rti(rich: bool, explicit_identity: bool) -> None:
     result = profile(Workload(events=25, retained_events=10, participants=3, objects=4, payload_bytes=4,
-                              batch_size=5, inspector_rows=1 if rich else 0, recording_commits=2), repeats=1, memory_probe=False)
+                              batch_size=5, inspector_rows=1 if rich else 0, recording_commits=2, explicit_identity=explicit_identity), repeats=1, memory_probe=False)
     assert result.retained_count_and_attribution_verified and result.clear_verified
     assert result.snapshot.retained_events == 10
     assert result.snapshot.dropped_events == 15 + result.seed_events
@@ -23,6 +23,7 @@ def test_scale_profile_checks_retention_projection_and_capture_without_an_rti(ri
     assert result.snapshot.python_allocation_peak_bytes is None
     assert result.recording.started and result.recording.frames == 4 and result.recording.stop_reason == "user"
     assert ScaleReport.model_validate_json(result.model_dump_json()) == result
+    assert result.snapshot.roster_rows <= 3
 
 
 @pytest.mark.parametrize("fields", [{"events": True}, {"events": 200001}, {"retained_events": 0}, {"participants": -1}, {"payload_bytes": 4097}, {"recording_commits": 101}, {"objects": "5"}, {"perspective_capacity": 50001}])

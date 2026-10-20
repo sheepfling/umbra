@@ -1,0 +1,96 @@
+{
+  "contract_version": "umbra-observer-contract-v1",
+  "items": [
+    {
+      "attributes": {
+        "value": 220
+      },
+      "class_handle": null,
+      "class_name": null,
+      "discovery_count": 0,
+      "family": "generic",
+      "last_seen": 1760000000.0,
+      "object_context": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-b"
+      },
+      "object_handle": null,
+      "object_key": "shared-object",
+      "object_name": "Shared sensor",
+      "observation_key": "[\"federation-object\",\"namespace-b\",\"federation-a\",\"shared-object\"]",
+      "sources": [
+        "identity-reporter"
+      ],
+      "status": "active",
+      "update_count": 2
+    },
+    {
+      "attributes": {
+        "value": 320
+      },
+      "class_handle": null,
+      "class_name": null,
+      "discovery_count": 0,
+      "family": "generic",
+      "last_seen": 1760000000.0,
+      "object_context": {
+        "federation_id": "federation-b",
+        "identity_namespace": "namespace-a"
+      },
+      "object_handle": null,
+      "object_key": "shared-object",
+      "object_name": "Shared sensor",
+      "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-b\",\"shared-object\"]",
+      "sources": [
+        "identity-reporter"
+      ],
+      "status": "active",
+      "update_count": 2
+    },
+    {
+      "attributes": {
+        "value": 25
+      },
+      "class_handle": null,
+      "class_name": null,
+      "discovery_count": 0,
+      "family": "generic",
+      "last_seen": 1760000000.0,
+      "object_context": {
+        "federation_id": "federation-a",
+        "identity_namespace": "namespace-a"
+      },
+      "object_handle": null,
+      "object_key": "shared-object",
+      "object_name": "Shared sensor",
+      "observation_key": "[\"federation-object\",\"namespace-a\",\"federation-a\",\"shared-object\"]",
+      "sources": [
+        "identity-reporter",
+        "other-reporter"
+      ],
+      "status": "active",
+      "update_count": 7
+    },
+    {
+      "attributes": {
+        "value": 999
+      },
+      "class_handle": null,
+      "class_name": null,
+      "discovery_count": 0,
+      "family": "generic",
+      "last_seen": 1760000000.0,
+      "object_context": null,
+      "object_handle": null,
+      "object_key": "shared-object",
+      "object_name": "shared-object",
+      "observation_key": null,
+      "sources": [
+        "legacy-reporter"
+      ],
+      "status": "active",
+      "update_count": 1
+    }
+  ],
+  "kind": "objects"
+}

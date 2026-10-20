@@ -32,6 +32,15 @@ install(TARGETS _native LIBRARY DESTINATION umbra/_native/rti1516_2025 RUNTIME D
 # unsupported until their stateful 2010 implementations are added.
 pybind11_add_module(_native_2010 MODULE src/native_module_2010.cpp)
 target_compile_features(_native_2010 PRIVATE cxx_std_14)
+# The official 2010 headers retain dynamic exception specifications. A minimum
+# compile feature alone lets a newer compiler default select C++17 or later,
+# where those declarations are ill-formed. Keep this ABI boundary on C++14;
+# the separate 2025 extension above remains on C++20.
+set_target_properties(_native_2010 PROPERTIES
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS OFF
+)
 target_link_libraries(_native_2010 PRIVATE umbra::rti_2010)
 target_include_directories(_native_2010 PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/ieee1516.1-2010/include"

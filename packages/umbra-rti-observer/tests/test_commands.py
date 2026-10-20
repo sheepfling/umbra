@@ -59,6 +59,7 @@ def connect(
             action="session.connect",
             target_id="test",
             request_id=request_id,
+            expected_version=dispatcher.catalog().targets[0].version,
             parameters=EmptyParameters(),
         )
     )
@@ -73,6 +74,7 @@ def test_lifecycle_scope_confirmation_and_window_independent_history(
             action="federate.join",
             target_id="test",
             request_id="outside",
+            expected_version=dispatcher.catalog().targets[0].version,
             parameters=JoinParameters(federation="Other", federate_name="A"),
         )
     )
@@ -83,6 +85,7 @@ def test_lifecycle_scope_confirmation_and_window_independent_history(
             action="federate.join",
             target_id="test",
             request_id="join",
+            expected_version=dispatcher.catalog().targets[0].version,
             parameters=JoinParameters(federation="Allowed", federate_name="A"),
         )
     )
@@ -95,6 +98,7 @@ def test_lifecycle_scope_confirmation_and_window_independent_history(
             action="session.disconnect",
             target_id="test",
             request_id="disconnect-joined",
+            expected_version=dispatcher.catalog().targets[0].version,
             parameters=EmptyParameters(),
             confirmed=True,
         )
@@ -105,6 +109,7 @@ def test_lifecycle_scope_confirmation_and_window_independent_history(
             action="federate.resign",
             target_id="test",
             request_id="unconfirmed",
+            expected_version=dispatcher.catalog().targets[0].version,
             parameters=ResignParameters(),
         )
     )
@@ -115,6 +120,7 @@ def test_lifecycle_scope_confirmation_and_window_independent_history(
             action="federate.resign",
             target_id="test",
             request_id="resign",
+            expected_version=dispatcher.catalog().targets[0].version,
             parameters=ResignParameters(),
             confirmed=True,
         )
@@ -125,6 +131,7 @@ def test_lifecycle_scope_confirmation_and_window_independent_history(
             action="session.disconnect",
             target_id="test",
             request_id="disconnect",
+            expected_version=dispatcher.catalog().targets[0].version,
             parameters=EmptyParameters(),
             confirmed=True,
         )
@@ -139,7 +146,7 @@ def test_idempotency_conflicts_and_unknown_targets(
 ) -> None:
     first = connect(dispatcher)
     completed(dispatcher, first.command_id)
-    assert connect(dispatcher).command_id == first.command_id
+    assert dispatcher.submit(first.request).command_id == first.command_id
     with pytest.raises(CommandConflict, match="different command"):
         dispatcher.submit(
             ConnectCommand(
@@ -324,6 +331,7 @@ def test_blocked_session_does_not_block_other_targets_and_retains_late_failure()
                 action="session.connect",
                 target_id="slow",
                 request_id="slow",
+                expected_version=dispatcher.catalog().targets[0].version,
                 parameters=EmptyParameters(),
             )
         )
@@ -333,6 +341,7 @@ def test_blocked_session_does_not_block_other_targets_and_retains_late_failure()
                 action="session.connect",
                 target_id="fast",
                 request_id="fast",
+                expected_version=dispatcher.catalog().targets[1].version,
                 parameters=EmptyParameters(),
             )
         )

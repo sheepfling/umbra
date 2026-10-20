@@ -15,6 +15,22 @@ features and the next increments. The Actions tab consumes the optional command
 catalog, builds typed lifecycle requests and polls execution history. A backend
 without session commands leaves the observation views usable.
 
+Actions also offers optional owned-session inspection/reconciliation. Named
+generated target versions guard dispatch and stale confirmation; inspection
+alone never restores authority. Complete adapter proof, not MOM/roster names,
+can reconcile a failed session, while partial/unsupported inspection stays
+explicitly unresolved. History retains original failures and late results.
+`pnpm test:commands` checks current/legacy request shapes and field whitelisting.
+
+Live delivery negotiates discovered WebSocket, SSE, then HTTP polling.
+Discovery refreshes during periodic reconciliation and Sync now, allowing
+transport/path changes without reload. Optional observer-lifetime revisions
+and confirmed cursors keep restarts, clear, retention loss and delayed replies
+from mixing live windows. Older HTTP-only services remain usable without MOM
+or fabricated incarnation IDs. Diagnostics displays the transport and lifetime;
+`pnpm test:streaming` checks pure cursor/reconciliation rules alongside browser
+coverage. Stream DTOs come from the same generated OpenAPI types as HTTP reads.
+
 Objects adds name/class/handle search, active/removed filters, global versus
 explicitly attributed snapshots, previous-value comparisons, byte/representation
 inspection and selectable finite-number charts. The optional
@@ -178,13 +194,21 @@ browser projects in Chromium. These are internal application regressions, not
 IEEE RTI conformance evidence. Cross-browser accessibility audits, large-scale
 performance and real-provider Java integration remain separate backlog items.
 
+`pnpm test:participants` checks the shared Python/TypeScript attribution-key
+corpus. React keys, filters and per-federate preferences use exact reporting
+perspectives rather than names; aliases do not create new joins. Older backends
+retain clearly labelled name-only choices. The identity browser scenarios cover
+duplicate joins, namespaces, saved-choice expiry/rejoin, exact alerts, bounded
+rosters, replay isolation and the independent Java identity fixture.
+
 ## Backend portability checks
 
 JDK 17+ is now needed for the Java fixture cases in the full browser suite; it
 is not a prerequisite for the ordinary Python playtest or Miguel's ZIP.
-`UMBRA_OBSERVER_TEST_JAVA` can select the Java executable. Twelve additional
-desktop/mobile checks cover Java's limited/partial/empty/no-analytics shapes,
-relocated REST paths and incompatible-version rejection (44 checks total).
+`UMBRA_OBSERVER_TEST_JAVA` can select the Java executable. Desktop/mobile checks
+cover Java's limited/partial/empty/no-analytics and identity shapes, relocated
+REST paths and incompatible-version rejection; the current regression totals
+are recorded in FEATURE-BACKLOG.md in the observer package.
 The Java fixture serves the identical production build without a Python server.
 
 The client follows the contract's REST/WebSocket paths, rejects foreign or

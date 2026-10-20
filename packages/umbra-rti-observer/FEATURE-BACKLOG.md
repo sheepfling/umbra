@@ -1,5 +1,102 @@
 # Observer feature backlog
 
+## Owned-session recovery increment (2026-10-19)
+
+OBS-129 is delivered for explicitly configured owned adapters: named target
+incarnation/revision guards, inspection-only and confirmed fresh reconciliation,
+typed provider facts, healthy owner-pump fencing and unchanged original history.
+Incomplete/missing/out-of-allowlist facts never restore authority. A blocked
+provider call remains busy, including after timeout; late proof stays attached
+to that original result. Recovery neither replaces a driver nor retries a failed
+operation. Observation identities, MOM and topology do not grant control.
+
+The Umbra boundary accepts a server-owned typed inspector for bindings that
+actually provide a suitable query. No universal HLA connection/membership API
+is invented. Unsupported inspection preserves existing lifecycle/observation
+features; partial queries remain explicitly unresolved. The showcase supports
+complete/partial/disabled inspection and one-shot synthetic after-effect failures.
+The Actions panel separates inspect/review/reconcile, invalidates stale
+confirmation and preserves pause/replay isolation and historical evidence.
+
+Verification: the current complete 814-check backend/adapter/launcher/source-
+policy run passes with one opt-in native smoke skipped. The earlier full
+384-case desktop/mobile run passed; after exact provider-name and command-ID
+hardening, all 22 focused lifecycle/recovery browser checks pass again.
+Twenty-seven frontend unit checks include exact current/legacy request shapes.
+The seven source-policy utility checks are included in the 814 total;
+generated DTO/schema growth guards reject
+oversized writes and registered artifacts are no longer misreported missing.
+The repository-wide size audit still has 44 unrelated RTI/planning findings;
+observer artifact guards pass and those unrelated files were left unchanged.
+Strict typing/lint, generated schema/type drift, all eight recorded/live-Python/
+independent-Java HTTP profiles, and dependency-free Python 3.11 core behavior are
+covered. Java remains read-only; native lifecycle/query behavior is not inferred
+from synthetic or strict-fake tests. See CONTRACT.md and JUNIOR-GUIDE.md.
+Five serial seven-sample reference profiles passed against historical source
+`b393aab312bf…`, with unchanged budgets and explicit shorter retained windows;
+see [SCALE.md](SCALE.md). These do not measure recovery/provider calls or command
+history memory. They predate subsequent exact provider-name and command-ID
+validation hardening and are not measurements of this final checkpoint.
+
+The overall goal remains active for the OBS-102/103 actual-provider gate.
+
+## Transport/resumption increment (2026-10-19)
+
+OBS-128 is delivered: discovered WebSocket/SSE/HTTP negotiation, refreshed
+discovery, optional named observer-lifetime revisions and confirmed cursors,
+same-cut resumption/backfill, explicit foreign/future resets and retained-history
+gaps. Clears and metadata changes wake both streams even without new events.
+Older lifetime-free HTTP backends remain useful; observer storage identity never
+becomes a reporting session, participant join or command permission. Closed
+connection callbacks and overtaken HTTP replies cannot resurrect older rows.
+Offline/online signals, bounded opening/idle timeouts and retry backoff keep
+interruption states explicit. Diagnostics displays transport/lifetime separately.
+All stream DTOs are exposed in OpenAPI and generated TypeScript; core use still
+has no web/model/RTI dependencies.
+
+Verification: 785 backend/adapter/launcher checks pass, with the opt-in native
+provider smoke still skipped. The full 370-case desktop/mobile run passes.
+A focused 12-case follow-up adds two older lifetime-free backend cases and
+strengthens SSE clear and live REST/SSE path migration checks: 372 unique browser
+cases across those runs, not 382. Twenty-three frontend unit checks, strict
+typing/lint, production build, no-write schema/type/workspace checks and eight
+recorded/live-Python/independent-Java HTTP profiles are covered. Java remains a
+read-only HTTP fixture, not a verified Java streaming or RTI implementation.
+Python 3.11 still uses lifetime/clear behavior without optional dependencies.
+Five fresh serial seven-sample reference workloads pass against source
+`78b436e80ffb…`, with unchanged budgets and honest shorter retained windows;
+see [SCALE.md](SCALE.md). These timings do not measure stream/network delivery.
+These are internal application checks, not normative IEEE RTI evidence.
+
+The recovery increment above delivers OBS-129; the separate real-provider gate
+remains active.
+
+## Identity/provenance increment (2026-10-19)
+
+OBS-127 is delivered for explicit observer data: named optional actor attribution,
+canonical source/session/namespace/federation/participant/membership keys, alias-
+stable roster and selections, independent object contexts/comparisons/charts,
+time/declaration/interaction/analytics consumers, and exact alert filters. Nested
+MOM/topology subjects never create ordinary actors or command authority. Missing
+IDs remain labelled legacy reporting/name-only views; limited RTIs stay useful.
+Opaque keys and session IDs survive validation unchanged; malformed known actor
+shapes reject atomically. A reporting session end is not participant resignation.
+
+Verification: 772 backend/tool checks pass (one opt-in native smoke skipped).
+All 360 desktop/mobile cases are verified: 359 passed in the full run, and the
+remaining case passed in a serial retry after a host `ERR_NO_BUFFER_SPACE`
+navigation failure before any app assertion. The original failure artifacts
+remain available; no test or assertion was relaxed. Rich/limited showcase tests
+also prove one reporting view combines ordinary objects, time and declarations
+without fabricating join IDs. Sixteen frontend unit checks include the shared
+Python/TypeScript key corpus. Eight Python/Java HTTP profiles, strict typing,
+generated-contract drift, dependency-free Python 3.11 and packaged schemas are
+covered. Seven serial source-matched scale reports retain honest count/byte loss;
+five reference profiles pass, including explicit identities, while wide and
+large-index remain diagnostic. See [SCALE.md](SCALE.md) for exact retained counts.
+The transport increment above delivers OBS-128; OBS-129 and the separate native
+gate remain active.
+
 ## Saved-workspace increment (2026-10-19)
 
 OBS-126 is delivered: bounded named Pydantic models, generated TypeScript and
@@ -20,7 +117,7 @@ browser run exposed a cross-participant time-selection regression; per-federate
 settings fixed it and repeat runs cover Alice/Bob switching and reload. CI,
 the junior/contract guides and playtest packaging include this increment. Both
 rich and limited one-command startup checks pass with advancing synthetic events.
-The opt-in native-provider smoke remains skipped. OBS-127 through OBS-129 and
+The opt-in native-provider smoke remains skipped. OBS-128 through OBS-129 and
 the separate native-provider gate still belong to the active overall goal.
 
 ## Alert increment (2026-10-19)
@@ -64,7 +161,7 @@ bounded states and disclosed expiry, not relabeled full-retention passes.
 Historical reports retain their original source fingerprints. See SCALE.md for
 actual retained counts, sizes, costs and the limits of this evidence.
 Storage verification did not finish the overall goal. The later workspace
-increment above delivers OBS-126; OBS-127 through OBS-129 and the separate
+increments above deliver OBS-126/127; OBS-128 through OBS-129 and the separate
 native-provider gate remain active.
 
 The observer has two related workflows: understand the federation that the
@@ -173,21 +270,26 @@ defaults/files. An independent TypeScript worker expands only the current state;
 seek/loading/error behavior never substitutes live data or grants provider
 authority. See [RECORDING.md](RECORDING.md) and the richer comparison in SCALE.
 
-**Next concrete handoff: OBS-127 identity/provenance migration.** Start with a
-named, optional event-attribution model and the ordinary roster/analytics path.
-Reuse `identities.py`'s explicit namespace/federation/participant/membership IDs;
-keep source/session reporting provenance distinct from participant identity.
-`core.py` currently keys `_federates` by name, and `analytics.py` merges roster/
-observations by that same name. Names/handles and nested MOM/topology subjects
-must never synthesize ordinary attribution or authorize commands. Prove same-name
-participants across producers/federations, alias changes within one join, reused
-membership IDs in different namespaces and a fresh membership on rejoin.
-Carry the migration through object/time keys, analytics, frontend selections,
-saved preferences, alerts and recording validation; keep missing-ID legacy
-coverage explicit and limited RTIs useful. Deliver models, generated schemas,
-Python/Java/browser evidence and guides together. Then continue OBS-128 transport
-negotiation/resumption and OBS-129 owned-session recovery; real-provider commands
-and OBS-102's native smoke remain separate gates.
+**Next concrete handoff: OBS-102/103 actual native lifecycle verification.** The
+reference visualization/portability rows through OBS-129 now have application
+evidence. Start at the existing
+[opt-in native smoke](../umbra-rti-observer-umbra/tests/test_native_control_smoke.py),
+[native build project](../umbra-rti-native/CMakeLists.txt) and
+[native package build metadata](../umbra-rti-native/pyproject.toml). An isolated
+Windows/CPython 3.14.6/GCC 15.2/Ninja build exposed the 2010 extension inheriting
+a newer default language standard; its target now explicitly requires C++14,
+separate from the C++20 2025 extension. The retry stopped compiling the 2025
+binding because `internal/attribute_handle.hpp` could not be found. No native
+wheel was installed and the real-provider smoke has not run. Resume at that
+binding's internal-header dependency; do not change pinned official headers or
+infer native behavior from successful configuration. Build/install a matching
+2025 provider in the isolated verification environment, then run that smoke
+with `UMBRA_OBSERVER_NATIVE_SMOKE=1`. It creates/cleans a unique owned
+federation and exercises connect/join/resign/disconnect; preserve all unrelated
+RTI/C++ work and do not synchronize the Requirements Lab. Record actual binary/
+interpreter/build evidence and failures honestly before closing those rows.
+Recovery's injected inspector remains optional and needs its own real query
+evidence; fake state cannot satisfy a native or normative RTI gate.
 
 The storage visualization checkpoint verified 662 backend/tool checks and 292 desktop/mobile
 browser checks, including independent Java models, handle-only ownership,
@@ -339,9 +441,9 @@ they are not proof of RTI conformance.
 | OBS-124 | P1 | Analytics scale and retention — delivered | Explicit measured reference envelope; exact analytics/runtime projections, UI paging, compact recording and shared count/encoded-byte budgets for every observation collection. Whole-record loss, independent roster/object/time expiry, orphaned tickets and empty-window cursors have typed/generated coverage and limited-backend UI behavior. Six serial current profiles, four reference passes, two honest diagnostic cases with bounded delivery and disclosed shorter retention. Not RSS, arbitrary-input/full-duration retention or provider/SLA evidence. |
 | OBS-125 | P2 | User-defined alerts — delivered | Strict versioned rules for stale observations, bounded error windows, exact dropped-history baselines and cached pending-command ages/IDs; explicit unknown/partial/idle/ended states. Process-local configuration/evidence, original rule generations, acknowledgements and configuration-only export/import; conditional instance/revision guards, independent read/control capabilities, Python/Java/browser evidence and no replay/live substitution or provider calls. |
 | OBS-126 | P2 | Saved workspaces — delivered | Versioned named models, generated/offline validation, bounded browser drafts/profiles and explicit files/apply. Global and per-federate settings, exact numeric charts and windows persist independently; unavailable choices stay dormant. Corrupt/quota/conflicting storage, safe reset, delayed imports, pause/replay, limited Java and privacy have Python/browser evidence; CI, guides, wheel and playtest schemas ship together. |
-| OBS-127 | P2 | Federate identity and provenance — migration in progress | The topology foundation is delivered. Additive identity-scoped roster, object, time, declaration and analytics models are implemented with focused backend checks; frontend consumers, generated artifacts and end-to-end migration are not yet complete. This checkpoint is not a release. |
-| OBS-128 | P2 | Streaming negotiation (partial) | Discovered REST/WS paths and unsupported-WS polling fallback are delivered. SSE selection, cursor resumption, refresh of cached discovery after capability/backend changes and dynamic transport transitions remain; test without duplicate or resurrected events. |
-| OBS-129 | P1 | Unknown-session recovery | Add an adapter-supported inspection/recovery path for unclassified provider failures. Reconcile actual connection/membership before enabling actions; preserve owner thread, target generation and previous command history. The current controller conservatively disables an unknown session until application/operator recovery. |
+| OBS-127 | P2 | Federate identity and provenance — delivered | Named reporting/join models reach roster, object contexts/comparisons, time, declarations, interactions, analytics, UI keys/preferences and exact alerts. Same-name joins, aliases, opaque keys/handles, legacy fallback, paused/replay views, bounded lists and independent Java fixtures have Python/browser evidence. Source-matched scale reports disclose shorter retained windows; no MOM or native identity guarantee is implied. |
+| OBS-128 | P2 | Streaming negotiation — delivered | Discovered WebSocket/SSE/HTTP fallback, refreshed discovery, named observer lifetime and delivered cursors, atomic resumption/backfill, clear/loss/reset handling and old-backend fallback. Bounded retry/watchdogs, offline/online recovery, stale-reply rejection, diagnostics, generated DTOs and desktop/mobile/Java HTTP evidence preserve independent RTI capabilities and authority. |
+| OBS-129 | P1 | Unknown-session recovery — delivered | Optional typed owned-driver inspection and confirmed fresh reconciliation, conditional target incarnation/revision, healthy pump fence, explicit incomplete/unsupported states and retained failures/late results. Owner-thread, malformed-proof, timeout and desktop/mobile complete/partial/disabled workflows are verified; no automatic retry, replacement driver, MOM/roster authority or fabricated universal/native query. |
 
 ## Delivery rules
 
@@ -356,29 +458,14 @@ they are not proof of RTI conformance.
 - No new provider imports enter the standalone observer package. RTI-specific
   adapters own binding shapes and version differences.
 
-### Work-in-progress checkpoint: OBS-127
+### Current handoff: OBS-102/103 native verification
 
-The saved-workspace increment above is complete. The following identity migration
-is deliberately checkpointed before completion: exact source/session/namespace/
-federation/participant/membership keys isolate joins; aliases do not create new
-joins, and a reporting session ending does not prove participant resignation.
-Explicit object contexts remain separate from legacy unscoped observations.
+OBS-129's explicit owned-session inspection/recovery flow is verified at the
+application/adapter boundary. The separate actual-provider gate is still open;
+no synthetic or read-only Java result is native verification. Keep observer,
+reporter, participant and owned-command identities separate. The exact build,
+test and safety handoff is recorded above.
 
-Current focused checks: 60 backend identity/workspace/object tests and eight
-offline workspace tests pass. The frontend type check currently fails at the
-two `participantLabel` call sites in `FederateView.tsx`: `TimeWorkspace` and
-`DeclarationsView` have not yet adopted the new props. This is not a new
-full-suite, browser, native-provider or performance validation result. The local
-playtest ZIP and wheel still represent the earlier verified OBS-126 build.
-
-Resume by completing identity-key selection/filtering across objects, time,
-declarations, federation charts, inspectors and alerts, preserving readable
-labels and explicit unresolved legacy choices. Then regenerate/check the wire
-schema, frontend types and shared Python/Java fixtures; add duplicate-name,
-alias, rejoin and older-backend browser evidence; rerun the relevant regression
-and scale checks before marking OBS-127 delivered or refreshing showcase builds.
-
-Continue with OBS-127 identity/provenance migration, then the remaining operational/portability rows.
-Complete the OBS-102
-native verification gate when its built provider is available; never substitute
-synthetic observations for real-provider verification.
+Continue with the actual native provider build/verification for OBS-102/103.
+The overall goal is not complete until its remaining gates have authoritative
+evidence or a genuine external blocker is explicitly established.

@@ -1,4 +1,5 @@
 import type { StateResponse } from "../api/types";
+import { objectKey, participantKey, perspectiveDescription } from "../app/participants";
 
 interface InspectorTablesProps {
   state: StateResponse;
@@ -10,16 +11,16 @@ export function InspectorTables({ state }: InspectorTablesProps) {
       <TablePanel title="Federates" note="participants observed by the backend" empty={!state.federate_roster.length}>
         <TableHead columns={["Federate", "Role", "Status", "Source"]} />
         {state.federate_roster.map((row) => (
-          <div className="table-row" key={`${row.federate}-${row.source}`}>
-            <span>{row.federate}</span><span>{row.role ?? "—"}</span><span>{row.status}</span><span>{row.source}</span>
+          <div className="table-row" key={participantKey(row)}>
+            <span>{row.federate}<small className="participant-provenance">{perspectiveDescription(row.perspective)}</small></span><span>{row.role ?? "—"}</span><span>{row.status}</span><span>{row.source}</span>
           </div>
         ))}
       </TablePanel>
       <TablePanel title="Objects" note="derived from normalized object events" empty={!state.inspectors.objects.length}>
         <TableHead columns={["Object", "Class", "Family", "Updates", "Status"]} />
         {state.inspectors.objects.map((row) => (
-          <div className="table-row five-columns" key={row.object_key}>
-            <span>{row.object_name}</span><span>{row.class_name ?? "—"}</span><span>{row.family}</span><span>{row.update_count}</span><span>{row.status}</span>
+          <div className="table-row five-columns" key={objectKey(row)}>
+            <span>{row.object_name}<small className="participant-provenance">{row.object_context ? `${row.object_context.identity_namespace} / ${row.object_context.federation_id}` : "Object context unreported"}</small></span><span>{row.class_name ?? "—"}</span><span>{row.family}</span><span>{row.update_count}</span><span>{row.status}</span>
           </div>
         ))}
       </TablePanel>
@@ -27,7 +28,7 @@ export function InspectorTables({ state }: InspectorTablesProps) {
         <TableHead columns={["Key", "Class", "Source", "Federate"]} />
         {state.inspectors.interactions.map((row) => (
           <div className="table-row" key={`${row.sequence}-${row.interaction_key}`}>
-            <span>{row.interaction_key}</span><span>{row.interaction_class}</span><span>{row.source}</span><span>{row.federate ?? "—"}</span>
+            <span>{row.interaction_key}</span><span>{row.interaction_class}</span><span>{row.source}</span><span>{row.federate ?? "—"}<small className="participant-provenance">{perspectiveDescription(row.perspective)}</small></span>
           </div>
         ))}
       </TablePanel>

@@ -91,6 +91,29 @@
       ],
       "state": "available"
     },
+    "command_versions": {
+      "description": "Conditional commands bound to a dispatcher registration and revision, separate from observer and participant identity.",
+      "event_types": [],
+      "label": "Owned command target versions",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "Commands require the current owned target incarnation/revision; unknown or stale expectations have no provider effect.",
+          "source": "fastapi",
+          "state": "disabled"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "Commands require the current owned target incarnation/revision; unknown or stale expectations have no provider effect.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "disabled"
+    },
     "commands": {
       "description": "Explicitly registered adapter actions and correlated execution history.",
       "event_types": [],
@@ -687,6 +710,29 @@
       ],
       "state": "unsupported"
     },
+    "session_recovery": {
+      "description": "Explicit adapter-supported inspection/reconciliation on the owner thread; incomplete facts never restore provider authority.",
+      "event_types": [],
+      "label": "Owned session inspection and recovery",
+      "observations": [
+        {
+          "owner": "backend",
+          "reason": "No owned adapter inspection is configured; observation views remain independent.",
+          "source": "fastapi",
+          "state": "unsupported"
+        }
+      ],
+      "owner": "backend",
+      "owners": [
+        "backend"
+      ],
+      "reason": "No owned adapter inspection is configured; observation views remain independent.",
+      "reasons": [],
+      "sources": [
+        "fastapi"
+      ],
+      "state": "unsupported"
+    },
     "sse": {
       "description": "Live event delivery over an HTTP event stream.",
       "event_types": [],
@@ -899,6 +945,12 @@
         "interaction_key": "FixtureInteraction",
         "observed_at": 1760000000.0,
         "parameters": {},
+        "perspective": {
+          "basis": "legacy-provenance",
+          "key": "[\"legacy-provenance\",\"contract-fixture\",null,null,\"FixtureFederate\"]",
+          "reported_name": "FixtureFederate",
+          "source": "contract-fixture"
+        },
         "sequence": 6,
         "source": "contract-fixture"
       }
@@ -1193,6 +1245,10 @@
       "contract-fixture": 6
     }
   },
+  "observer_lifetime": {
+    "instance_id": "00000000000000000000000000000001",
+    "revision": 10
+  },
   "retention": {
     "cleared_events": 0,
     "dropped_events": 0,
@@ -1232,7 +1288,7 @@
       "unbudgeted_collections": []
     },
     "evidence": {
-      "accounted_bytes": 8406,
+      "accounted_bytes": 8650,
       "basis": "encoded-json-plus-record-reserve",
       "collections": [
         {
@@ -1356,7 +1412,7 @@
           "window_drops": 0
         },
         {
-          "accounted_bytes": 308,
+          "accounted_bytes": 552,
           "byte_limit_drops": 0,
           "capacity": 250,
           "collection": "interactions",

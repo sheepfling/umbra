@@ -88,5 +88,10 @@
   "last_sequence": 6,
   "next_after": 2,
   "next_sequence": 7,
+  "observer_lifetime": {
+    "instance_id": "00000000000000000000000000000001",
+    "revision": 10
+  },
+  "reset": false,
   "retained_events": 6
 }

@@ -548,6 +548,17 @@
           "default": null,
           "title": "Federation"
         },
+        "perspective": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantPerspectiveResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "session_id": {
           "anyOf": [
             {
@@ -1114,14 +1125,19 @@
             "session.connect",
             "federate.join",
             "federate.resign",
-            "session.disconnect"
+            "session.disconnect",
+            "session.inspect",
+            "session.recover"
           ],
           "title": "Action",
           "type": "string"
         },
         "completion": {
-          "const": "service-return",
           "default": "service-return",
+          "enum": [
+            "service-return",
+            "inspection-result"
+          ],
           "title": "Completion",
           "type": "string"
         },
@@ -1325,6 +1341,17 @@
           "default": null,
           "title": "Federate Handle"
         },
+        "inspection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SessionInspectionResult"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "summary": {
           "title": "Summary",
           "type": "string"
@@ -1421,7 +1448,9 @@
               "federate.join": "#/$defs/JoinCommand",
               "federate.resign": "#/$defs/ResignCommand",
               "session.connect": "#/$defs/ConnectCommand",
-              "session.disconnect": "#/$defs/DisconnectCommand"
+              "session.disconnect": "#/$defs/DisconnectCommand",
+              "session.inspect": "#/$defs/InspectSessionCommand",
+              "session.recover": "#/$defs/RecoverSessionCommand"
             },
             "propertyName": "action"
           },
@@ -1437,6 +1466,12 @@
             },
             {
               "$ref": "#/$defs/DisconnectCommand"
+            },
+            {
+              "$ref": "#/$defs/InspectSessionCommand"
+            },
+            {
+              "$ref": "#/$defs/RecoverSessionCommand"
             }
           ],
           "title": "Request"
@@ -1529,6 +1564,17 @@
           "default": null,
           "title": "Federation"
         },
+        "inspection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SessionInspectionResult"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "label": {
           "title": "Label",
           "type": "string"
@@ -1554,6 +1600,17 @@
           "pattern": "^[A-Za-z0-9_.:-]+$",
           "title": "Target Id",
           "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CommandTargetVersion"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -1564,6 +1621,30 @@
         "commands"
       ],
       "title": "CommandTarget",
+      "type": "object"
+    },
+    "CommandTargetVersion": {
+      "additionalProperties": false,
+      "description": "Owned dispatcher registration and revision, never observation identity.",
+      "properties": {
+        "instance_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Instance Id",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "instance_id",
+        "revision"
+      ],
+      "title": "CommandTargetVersion",
       "type": "object"
     },
     "CompactRecordingDocument": {
@@ -1708,6 +1789,17 @@
           "default": false,
           "title": "Confirmed",
           "type": "boolean"
+        },
+        "expected_version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CommandTargetVersion"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "parameters": {
           "$ref": "#/$defs/EmptyParameters"
@@ -2422,6 +2514,17 @@
           "title": "Confirmed",
           "type": "boolean"
         },
+        "expected_version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CommandTargetVersion"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "parameters": {
           "$ref": "#/$defs/EmptyParameters"
         },
@@ -3111,6 +3214,22 @@
           "default": null,
           "title": "Next Sequence"
         },
+        "observer_lifetime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObserverLifetimeResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "reset": {
+          "default": false,
+          "title": "Reset",
+          "type": "boolean"
+        },
         "retained_events": {
           "minimum": 0,
           "title": "Retained Events",
@@ -3179,6 +3298,17 @@
     "EventsMessage": {
       "additionalProperties": false,
       "properties": {
+        "cursor": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StreamCursorResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "events": {
           "items": {
             "$ref": "#/$defs/EventEnvelope"
@@ -3196,8 +3326,8 @@
         }
       },
       "required": [
-        "type",
-        "state"
+        "state",
+        "type"
       ],
       "title": "EventsMessage",
       "type": "object"
@@ -5053,6 +5183,17 @@
     "GapMessage": {
       "additionalProperties": false,
       "properties": {
+        "observer_lifetime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObserverLifetimeResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "retention": {
           "$ref": "#/$defs/RetentionGapResponse"
         },
@@ -5123,6 +5264,17 @@
     "HeartbeatMessage": {
       "additionalProperties": false,
       "properties": {
+        "cursor": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StreamCursorResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "type": {
           "const": "heartbeat",
           "title": "Type",
@@ -5154,6 +5306,50 @@
         "current"
       ],
       "title": "HistoryLossProof",
+      "type": "object"
+    },
+    "InspectSessionCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "session.inspect",
+          "title": "Action",
+          "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "expected_version": {
+          "$ref": "#/$defs/CommandTargetVersion"
+        },
+        "parameters": {
+          "$ref": "#/$defs/EmptyParameters"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "target_id",
+        "expected_version",
+        "action",
+        "parameters"
+      ],
+      "title": "InspectSessionCommand",
       "type": "object"
     },
     "InspectorResponse": {
@@ -5973,6 +6169,17 @@
           "default": false,
           "title": "Confirmed",
           "type": "boolean"
+        },
+        "expected_version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CommandTargetVersion"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "parameters": {
           "$ref": "#/$defs/JoinParameters"
@@ -7669,6 +7876,29 @@
       "title": "ObjectViewSettings",
       "type": "object"
     },
+    "ObserverLifetimeResponse": {
+      "additionalProperties": false,
+      "description": "Storage incarnation and atomic mutation cut; not provider authority.",
+      "properties": {
+        "instance_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Instance Id",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "instance_id",
+        "revision"
+      ],
+      "title": "ObserverLifetimeResponse",
+      "type": "object"
+    },
     "OwnershipOutcomeObservation": {
       "additionalProperties": false,
       "properties": {
@@ -9326,6 +9556,50 @@
       "title": "RecordingStatusResponse",
       "type": "object"
     },
+    "RecoverSessionCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "session.recover",
+          "title": "Action",
+          "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "expected_version": {
+          "$ref": "#/$defs/CommandTargetVersion"
+        },
+        "parameters": {
+          "$ref": "#/$defs/EmptyParameters"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "target_id",
+        "expected_version",
+        "action",
+        "parameters"
+      ],
+      "title": "RecoverSessionCommand",
+      "type": "object"
+    },
     "RegionAssociationObservation": {
       "additionalProperties": false,
       "properties": {
@@ -10819,6 +11093,17 @@
           "title": "Confirmed",
           "type": "boolean"
         },
+        "expected_version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CommandTargetVersion"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "parameters": {
           "$ref": "#/$defs/ResignParameters"
         },
@@ -11009,9 +11294,162 @@
       "title": "RetentionResponse",
       "type": "object"
     },
+    "SessionInspectionResult": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "const": "owned-driver-query",
+          "default": "owned-driver-query",
+          "title": "Basis",
+          "type": "string"
+        },
+        "checked_at": {
+          "minimum": 0,
+          "title": "Checked At",
+          "type": "number"
+        },
+        "observation": {
+          "$ref": "#/$defs/SessionStateObservation"
+        },
+        "reconciled": {
+          "title": "Reconciled",
+          "type": "boolean"
+        },
+        "resolution": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Resolution",
+          "type": "string"
+        }
+      },
+      "required": [
+        "checked_at",
+        "observation",
+        "reconciled",
+        "resolution"
+      ],
+      "title": "SessionInspectionResult",
+      "type": "object"
+    },
+    "SessionStateObservation": {
+      "additionalProperties": false,
+      "description": "Explicit provider facts about this driver's own connection/membership.",
+      "properties": {
+        "connection": {
+          "enum": [
+            "connected",
+            "disconnected",
+            "unknown"
+          ],
+          "title": "Connection",
+          "type": "string"
+        },
+        "federate": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federate"
+        },
+        "federate_handle": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federate Handle"
+        },
+        "federation": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Federation"
+        },
+        "membership": {
+          "enum": [
+            "joined",
+            "not-joined",
+            "unknown"
+          ],
+          "title": "Membership",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "connection",
+        "membership"
+      ],
+      "title": "SessionStateObservation",
+      "type": "object"
+    },
     "SnapshotMessage": {
       "additionalProperties": false,
       "properties": {
+        "cursor": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StreamCursorResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "resume": {
+          "anyOf": [
+            {
+              "enum": [
+                "fresh",
+                "resumed",
+                "reset",
+                "gap"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resume"
+        },
         "state": {
           "$ref": "#/$defs/StateResponse"
         },
@@ -11022,8 +11460,8 @@
         }
       },
       "required": [
-        "type",
-        "state"
+        "state",
+        "type"
       ],
       "title": "SnapshotMessage",
       "type": "object"
@@ -11140,6 +11578,17 @@
           ],
           "default": null,
           "title": "Normalized Events"
+        },
+        "observer_lifetime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObserverLifetimeResponse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "retention": {
           "$ref": "#/$defs/RetentionResponse"
@@ -11357,6 +11806,34 @@
       "title": "StorageCoverageResponse",
       "type": "object"
     },
+    "StreamCursorResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "after": {
+          "minimum": 0,
+          "title": "After",
+          "type": "integer"
+        },
+        "instance_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Instance Id",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "instance_id",
+        "revision",
+        "after"
+      ],
+      "title": "StreamCursorResponse",
+      "type": "object"
+    },
     "StreamDescription": {
       "additionalProperties": false,
       "properties": {
@@ -11380,6 +11857,11 @@
           },
           "title": "Messages",
           "type": "object"
+        },
+        "resumption": {
+          "default": false,
+          "title": "Resumption",
+          "type": "boolean"
         },
         "sse_path": {
           "minLength": 1,

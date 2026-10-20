@@ -20,6 +20,10 @@ for (const name of Object.keys(document.components?.schemas ?? {})) {
 const ast = await openapiTS(document, { alphabetize: true });
 const output = astToString(ast, { fileName: "src/api/generated.ts" });
 const generated = `/**\n * This file is generated from the FastAPI /openapi.json document.\n * Do not edit it directly; run pnpm generate:api.\n */\n\n${output}`;
+const maxLines = 7000;
+if (generated.split("\n").length - 1 > maxLines) {
+  throw new Error(`Generated API exceeds its ${maxLines}-line growth guard. Review contract ownership/code generation before expanding it; do not hand-split or minify the artifact.`);
+}
 if (values.check) {
   const existing = await readFile("src/api/generated.ts", "utf8");
   if (existing.replaceAll("\r\n", "\n") !== generated.replaceAll("\r\n", "\n")) {

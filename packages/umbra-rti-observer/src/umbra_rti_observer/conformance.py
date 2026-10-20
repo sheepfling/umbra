@@ -54,7 +54,7 @@ class ConformanceReport(ObserverModel):
     scope: str = "observer-http-read-v1"
     checks: tuple[ConformanceCheck, ...]
     omitted_features: tuple[str, ...]
-    unchecked_features: tuple[str, ...] = ("stream-delivery", "command-execution", "recording-capture-import-replay", "storage-eviction", "alert-rule-evaluation", "alert-configuration-mutation", "workspace-import-validation", "rti-semantics")
+    unchecked_features: tuple[str, ...] = ("stream-delivery", "command-execution", "owned-session-recovery", "recording-capture-import-replay", "storage-eviction", "alert-rule-evaluation", "alert-configuration-mutation", "workspace-import-validation", "rti-semantics")
 
     @computed_field
     @property
@@ -217,13 +217,13 @@ class ObserverConformance:
                     check(name + ".object_observations.advertised", not usable or observations is not None,
                           "usable object perspectives include their named snapshot/history model")
                     if observations is not None:
-                        keys = [(row.federate, row.object.object_key) for row in observations.snapshots]
+                        keys = [row.cache_key for row in observations.snapshots]
                         snapshot_keys = set(keys)
                         check(name + ".object_observations.snapshots", len(keys) == len(snapshot_keys)
                               and all(row.generation <= row.last_sequence < value.retention.next_sequence
                                       for row in observations.snapshots), "unique scopes and valid snapshot cursors")
                         changes = observations.changes
-                        ids = [(row.sequence, row.federate, row.object_key, row.attribute) for row in changes]
+                        ids = [(row.sequence, row.cache_key, row.attribute) for row in changes]
                         check(name + ".object_observations.history", len(ids) == len(set(ids))
                               and [row.sequence for row in changes] == sorted(row.sequence for row in changes)
                               and observations.history_first_sequence == value.retention.first_retained_sequence
@@ -232,7 +232,7 @@ class ObserverConformance:
                               and all(observations.history_first_sequence <= row.sequence <= observations.history_last_sequence
                                       and row.generation <= row.sequence
                                       and (row.previous_known or row.previous_value is None)
-                                      and (row.federate, row.object_key) in snapshot_keys for row in changes),
+                                      and row.cache_key in snapshot_keys for row in changes),
                               "attribute history is bounded by the event window and references known scopes")
                 return value
             except (ValidationError, ValueError, TypeError, OSError, RecursionError) as error:
@@ -347,6 +347,15 @@ class ObserverConformance:
                         version(resource, payload.contract_version)
                         if isinstance(payload, CommandCatalog):
                             check("command_catalog.enabled", payload.enabled, "advertised command service is enabled")
+                            conditional = contract.capabilities.get("command_versions")
+                            if conditional is not None and conditional.state in {"available", "partial"}:
+                                check("command_catalog.versions", all(target.version is not None for target in payload.targets),
+                                      "conditional commands identify each owned target incarnation/revision")
+                            recovery = contract.capabilities.get("session_recovery")
+                            if recovery is not None and recovery.state in {"available", "partial"}:
+                                check("command_catalog.recovery", any(target.version is not None
+                                    and {"session.inspect", "session.recover"}.issubset({row.action for row in target.commands if row.state != "unsupported"})
+                                    for target in payload.targets), "recovery advertises versioned owned inspection/reconciliation; no action is executed")
                         if isinstance(payload, AnalyticsResponse):
                             check("analytics.counts", payload.window_start <= payload.generated_at
                                   and sum(row.events for row in payload.activity) == payload.events_in_window
@@ -354,6 +363,11 @@ class ObserverConformance:
                                   and sum(payload.sources.values()) == payload.events_in_window
                                   and sum(payload.families.values()) == payload.events_in_window,
                                   "window and disjoint activity/type/source/family counts agree")
+        recovery_capability = contract.capabilities.get("session_recovery")
+        if recovery_capability is not None and recovery_capability.state in {"available", "partial"}:
+            check("session_recovery.dependencies", all(contract.capabilities.get(name) is not None
+                and contract.capabilities[name].state in {"available", "partial"} for name in ("commands", "command_versions")),
+                "owned recovery depends on command dispatch and explicit target versions, never observation identity")
         workspace_capability = contract.capabilities.get("workspace_validation")
         if workspace_capability is not None and workspace_capability.state in {"available", "partial"}:
             check("workspace_validation.discovery", bool(contract.api_paths.get("workspace_validate")),

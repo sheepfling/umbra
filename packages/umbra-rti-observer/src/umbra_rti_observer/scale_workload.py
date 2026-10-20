@@ -22,6 +22,7 @@ class Workload(ObserverModel):
     inspector_rows: Annotated[int, Field(ge=0, le=500)] = 0
     perspective_capacity: Annotated[int, Field(ge=1, le=50000)] = 5000
     rotate_perspectives: bool = False
+    explicit_identity: bool = False
     recording_commits: Annotated[int, Field(ge=0, le=100)] = 12
 
 
@@ -29,6 +30,7 @@ PROFILES = {
     "standard": Workload(),
     "sustained": Workload(events=100000, participants=100, objects=1000, payload_bytes=128),
     "rich": Workload(events=20000, participants=100, objects=1000, payload_bytes=128, inspector_rows=64),
+    "identity": Workload(events=20000, participants=100, objects=1000, payload_bytes=128, inspector_rows=64, explicit_identity=True),
     "recording-rich": Workload(events=20000, participants=100, objects=1000, payload_bytes=128, inspector_rows=64, recording_commits=100),
     "wide": Workload(events=20000, retained_events=10000, participants=200, objects=2000, payload_bytes=1024),
     "many-perspectives": Workload(events=20000, participants=100, objects=200, rotate_perspectives=True),
@@ -36,15 +38,25 @@ PROFILES = {
 }
 
 
+def _participant_attribution(participant: int) -> JsonObject:
+    return {"session_id": "scale-session", "identity_namespace": "scale-provider", "federation_id": "scale-federation",
+        "participant": {"participant_id": f"participant-{participant}", "membership_id": f"join-{participant}", "display_name": f"Participant-{participant}"}}
+
+
 def observation(index: int, workload: Workload) -> JsonObject:
     participant = (index + (index // workload.objects if workload.rotate_perspectives else 0)) % workload.participants
-    return {"event_type": "object.updated", "source": "scale-fixture", "federation": "SyntheticScaleFederation",
+    result: JsonObject = {"event_type": "object.updated", "source": "scale-fixture", "session_id": "scale-session", "federation": "SyntheticScaleFederation",
             "federate": f"Participant-{participant}" if index % 11 else None,
             "object_key": f"object-{index % workload.objects}", "class_name": "SyntheticClass",
             "attributes": {"value": index, "payload": "x" * workload.payload_bytes}}
+    if workload.explicit_identity:
+        result["object_context"] = {"identity_namespace": "scale-provider", "federation_id": "scale-federation"}
+        if result["federate"] is not None:
+            result["participant_attribution"] = _participant_attribution(participant)
+    return result
 
 
-def seed_inspectors(store: ObserverStore, count: int, participants: int) -> int:
+def seed_inspectors(store: ObserverStore, count: int, participants: int, *, explicit_identity: bool = False) -> int:
     """Populate every optional family independently, outside the timed ingress lane."""
     for index in range(count):
         common: JsonObject = {"session_id": "scale-session", "identity_namespace": "scale-provider", "federation_id": "scale-federation"}
@@ -62,6 +74,8 @@ def seed_inspectors(store: ObserverStore, count: int, participants: int) -> int:
             {"event_type": "time.requested", "time_observation": {"kind": "request", "session_id": "scale-session", "request_id": f"request-{index}", "logical_time": index}},
         ]
         for event in events:
-            event.update(source="scale-fixture", federation="SyntheticScaleFederation", federate=f"Participant-{index % participants}")
+            event.update(source="scale-fixture", session_id="scale-session", federation="SyntheticScaleFederation", federate=f"Participant-{index % participants}")
+            if explicit_identity:
+                event["participant_attribution"] = _participant_attribution(index % participants)
         store.publish_many(events)
     return count * 9

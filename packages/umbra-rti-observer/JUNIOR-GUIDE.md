@@ -257,6 +257,36 @@ If a client is too slow and history has already been evicted, the backend
 sends `gap`. The client should request a fresh snapshot and continue from the
 retained sequence window.
 
+Think of resuming a stream as a bookmark in **one observer's notebook**.
+The optional `observer_lifetime.instance_id` identifies that notebook;
+`revision` orders its atomic updates. Neither value identifies an RTI
+connection or a federate join. After a backend restart, sequence 1 can be a new
+observation: discard the previous notebook rather than merging those rows.
+
+A backend advertising `stream.resumption: true` accepts `instance_id` and
+exclusive `after` query parameters on either stream. It reports `fresh`,
+`resumed`, `reset` or `gap` in the initial snapshot. Its cursor advances only
+through delivered data. A resumed summary cannot skip its subsequent backfill;
+a gap cannot be repaired by inventing events. A complete retained snapshot,
+including an empty array after clear, is authoritative for that observer cut.
+
+The maintained React client tries advertised WebSocket, then SSE, then HTTP
+polling. It refreshes discovery every five seconds and on Sync now, so a
+backend can change capabilities or resource paths without a page reload.
+Offline/online signals, bounded retries and an idle-stream watchdog handle
+interruptions. Slow old HTTP replies and callbacks from a closed connection
+cannot undo a newer streamed clear. Diagnostics shows the actual delivery
+transport and separately labels the displayed observer lifetime.
+
+Older services can omit these additions. Full snapshots still work, but the
+UI does not pretend to know their observer incarnation. MOM, analytics,
+commands and stable participant IDs are not prerequisites for streaming.
+Use `schemas.py` for the named wire models, `streaming.py` for the shared
+Python flow, `src/api/client.ts` in the UI for transport/discovery, and
+`src/app/liveState.ts` for retained-window reconciliation. The stream DTOs are
+included in OpenAPI and generated TypeScript; do not redefine their fields in
+individual components.
+
 ## 4. Running the reference backend
 
 From the repository root:
@@ -750,6 +780,46 @@ Never display a timeout as proof that the RTI did nothing. A late result is
 shown separately. Remaining command and investigation work is tracked in
 [FEATURE-BACKLOG.md](FEATURE-BACKLOG.md).
 
+### Recovering an uncertain owned session
+
+An error after joining might mean "the join happened but reporting failed."
+Sending join again is not a safe diagnosis. The Actions screen therefore keeps
+normal lifecycle actions disabled when control state is unknown.
+
+If the adapter offers it, use this sequence:
+
+1. Choose **Inspect session**. It reads the owned driver on its existing owner
+   thread and displays connection/membership facts. This does not restore control.
+2. Review those facts and the original failed/timeout record. Unreported values
+   remain unknown; the ordinary federation roster is not proof about this owner.
+3. Confirm **Reconcile session**. The backend makes a fresh inspection, verifies
+   a healthy callback pump for connected recovery, and reads again. Only complete
+   current facts within the session's federation allowlist restore appropriate
+   actions. An unresolved query can return successfully without enabling controls.
+
+No step retries the failed operation, constructs a substitute driver, resigns a
+peer or clears its history. A still-running timed-out call blocks inspection too.
+Once it returns, a late result remains attached to the original timeout record.
+If no owned driver survived construction, or the RTI has no suitable inspection
+query, the application/operator must resolve it; the frontend cannot manufacture
+this capability. Missing recovery does not disable ordinary observations or
+known-state lifecycle operations.
+
+Each modern command copies the selected target's `version` into
+`expected_version`. This identifies an owned dispatcher registration and revision,
+not the observer notebook, reporter session or participant join. Stale expectations
+do nothing at the provider. Changing target revision invalidates confirmation;
+review again instead of silently applying an old intent to a new state. Older
+backends omitting versions still receive their original lifecycle request shape.
+
+The named Pydantic types are `CommandTargetVersion`, `SessionStateObservation`
+and `SessionInspectionResult`. They generate the frontend DTOs. The generic
+controller uses an optional typed driver protocol; the Umbra-specific package
+accepts a server-owned inspector that knows its binding's real query shape.
+That inspector must query its actual owned ambassador, not echo the controller's
+cache or search MOM for a matching name. Python/Java implementations share these
+meanings without sharing provider objects.
+
 Before changing the frontend or backend contract:
 
 1. Decide whether the change is additive or breaking.
@@ -765,14 +835,41 @@ Before changing the frontend or backend contract:
 
 ## 9. Checking a replacement backend
 
+Keep a participant's label separate from the key used by React, filters and
+saved settings. Two rows named “Worker” can be different joins, reporting
+sessions, namespaces or federations. A renamed row can still be the same join.
+The backend's named `perspective` carries those facts; `participants.ts` shares
+the exact event-key codec, and a common Python/TypeScript corpus tests Unicode,
+opaque sessions, aliases and unsafe numeric labels. Never use a display name
+as an identified participant's React key or saved-preference owner.
+
+For example, Worker/join-1 asks for time request `r1`; Worker/join-2 reporting
+a grant for `r1` does not complete join-1's request. Their objects, comparisons,
+declarations and timeline stay separate too. Explicit object federation context
+is another independent dimension; missing context remains a labelled legacy
+bucket, not a guessed domain. MOM reports and topology endpoints do not fill
+missing ordinary actor identities. Without the new codec an older backend
+still has a useful, explicitly name-only view, not fabricated join IDs.
+
+If an adapter knows its own reporting-session lifetime, stamp that session
+consistently at the root of its ordinary events too. This is reporter metadata,
+not a participant membership ID. It keeps objects, time and declarations in one
+legacy reporting view without inventing RTI join evidence. Both synthetic
+playtest profiles do this; a work RTI does not need MOM to do the same.
+
+The federate list supports ID/reporter/name search and bounded paging. A saved
+exact selection remains dormant after clear/rejoin instead of attaching to
+the reused name. Files therefore include chosen identifying keys even when
+the user did not type those IDs; review configuration before sharing it.
+
 Before wiring a Java or vendor-specific service into the frontend, use the
 [HTTP conformance walkthrough](conformance/README.md). It validates named wire
 models, capability discovery, cursor/retention rules and optional resources
 without sending commands. Limited, partial and empty services can pass; a
 service claiming an available feature but returning an invalid resource cannot.
 
-The frontend discovers REST and WebSocket paths from the contract. An HTTP-only
-service advertises WebSocket as unsupported and the browser polls snapshots
+The frontend discovers REST, WebSocket and SSE paths from the contract. An HTTP-only
+service advertises both streams as unsupported and the browser polls snapshots
 instead; it does not need to imitate Python or supply MOM. The
 [Java fixture](../umbra-rti-observer-java-fixture/README.md) demonstrates this
 with the same production React build. It is a static test double, not a live

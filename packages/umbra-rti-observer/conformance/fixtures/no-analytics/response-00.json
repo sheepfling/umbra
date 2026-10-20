@@ -2,11 +2,9 @@
   "api_paths": {
     "alerts": "/api/alerts",
     "contract": "/api/contract",
-    "event_stream": "/api/events/stream",
     "events": "/api/events",
     "metrics": "/api/metrics",
-    "state": "/api/state",
-    "websocket": "/ws/events"
+    "state": "/api/state"
   },
   "backend_rule": "Provider and language-specific code ends at normalized events; the frontend consumes only this contract.",
   "capabilities": {
@@ -61,6 +59,19 @@
       "source": null,
       "sources": [],
       "state": "available"
+    },
+    "command_versions": {
+      "description": "Conditional commands bound to a dispatcher registration and revision, separate from observer and participant identity.",
+      "event_types": [],
+      "label": "Owned command target versions",
+      "observations": [],
+      "owner": "backend",
+      "owners": [],
+      "reason": "Commands require the current owned target incarnation/revision; unknown or stale expectations have no provider effect.",
+      "reasons": [],
+      "source": null,
+      "sources": [],
+      "state": "disabled"
     },
     "commands": {
       "description": "Explicitly registered adapter actions and correlated execution history.",
@@ -413,6 +424,19 @@
       "sources": [],
       "state": "unsupported"
     },
+    "session_recovery": {
+      "description": "Explicit adapter-supported inspection/reconciliation on the owner thread; incomplete facts never restore provider authority.",
+      "event_types": [],
+      "label": "Owned session inspection and recovery",
+      "observations": [],
+      "owner": "backend",
+      "owners": [],
+      "reason": "No owned adapter inspection is configured; observation views remain independent.",
+      "reasons": [],
+      "source": null,
+      "sources": [],
+      "state": "unsupported"
+    },
     "sse": {
       "description": "Live event delivery over an HTTP event stream.",
       "event_types": [],
@@ -511,6 +535,7 @@
       "alerts",
       "analytics",
       "attributes",
+      "command_versions",
       "commands",
       "declarations",
       "event_history",
@@ -538,6 +563,7 @@
       "regions",
       "regions_inspection",
       "relationships",
+      "session_recovery",
       "sse",
       "storage_inspection",
       "synchronization",
@@ -596,6 +622,8 @@
     "service.failed",
     "session.connected",
     "session.disconnected",
+    "session.inspected",
+    "session.reconciled",
     "command.accepted",
     "command.running",
     "command.succeeded",
@@ -611,6 +639,7 @@
       "after": "non-negative sequence cursor",
       "event_type": "optional comma-separated filter",
       "family": "optional comma-separated filter",
+      "instance_id": "optional observer lifetime; foreign/future cursors reset with explicit reset=true",
       "limit": "1..2000",
       "source": "optional comma-separated filter"
     },
@@ -656,11 +685,12 @@
     ],
     "messages": {
       "error": "{type, message}",
-      "events": "{type, events, state}",
-      "gap": "{type, retention}",
-      "heartbeat": "{type}",
-      "snapshot": "{type, state}"
+      "events": "{type, events, state, cursor?}",
+      "gap": "{type, retention, observer_lifetime?}",
+      "heartbeat": "{type, cursor?}",
+      "snapshot": "{type, state, cursor?, resume?}"
     },
+    "resumption": false,
     "sse_path": "/api/events/stream",
     "websocket_path": "/ws/events"
   }

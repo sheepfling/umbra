@@ -1,0 +1,81 @@
+{
+  "assessment_version": "umbra-observer-scale-reference-v1",
+  "scope": "Saved in-process synthetic snapshot/analytics measurements only; not recording, HTTP/browser, provider or portable SLA coverage.",
+  "budget": {
+    "minimum_published_events": 20000,
+    "minimum_pipeline_samples": 7,
+    "retained_events": 2000,
+    "participants": 100,
+    "objects": 1000,
+    "perspectives": 5000,
+    "payload_bytes": 128,
+    "inspector_rows": 64,
+    "minimum_ingress_events_per_second": 1000.0,
+    "maximum_full_pipeline_p95_ms": 500.0,
+    "maximum_analytics_pipeline_p95_ms": 100.0,
+    "maximum_full_response_bytes": 8388608
+  },
+  "cases": [
+    {
+      "report_file": "2026-10-19-streaming-standard.json",
+      "source_fingerprint": "78b436e80ffbc584bda436b6860bcf7690af7acd973da605997475afe4b334d2",
+      "workload_within_reference": true,
+      "measurement_coverage_sufficient": true,
+      "ingress_budget_met": true,
+      "full_pipeline_budget_met": true,
+      "analytics_pipeline_budget_met": true,
+      "response_size_budget_met": true,
+      "semantic_checks_passed": true,
+      "passed": true
+    },
+    {
+      "report_file": "2026-10-19-streaming-sustained.json",
+      "source_fingerprint": "78b436e80ffbc584bda436b6860bcf7690af7acd973da605997475afe4b334d2",
+      "workload_within_reference": true,
+      "measurement_coverage_sufficient": true,
+      "ingress_budget_met": true,
+      "full_pipeline_budget_met": true,
+      "analytics_pipeline_budget_met": true,
+      "response_size_budget_met": true,
+      "semantic_checks_passed": true,
+      "passed": true
+    },
+    {
+      "report_file": "2026-10-19-streaming-rich.json",
+      "source_fingerprint": "78b436e80ffbc584bda436b6860bcf7690af7acd973da605997475afe4b334d2",
+      "workload_within_reference": true,
+      "measurement_coverage_sufficient": true,
+      "ingress_budget_met": true,
+      "full_pipeline_budget_met": true,
+      "analytics_pipeline_budget_met": true,
+      "response_size_budget_met": true,
+      "semantic_checks_passed": true,
+      "passed": true
+    },
+    {
+      "report_file": "2026-10-19-streaming-identity.json",
+      "source_fingerprint": "78b436e80ffbc584bda436b6860bcf7690af7acd973da605997475afe4b334d2",
+      "workload_within_reference": true,
+      "measurement_coverage_sufficient": true,
+      "ingress_budget_met": true,
+      "full_pipeline_budget_met": true,
+      "analytics_pipeline_budget_met": true,
+      "response_size_budget_met": true,
+      "semantic_checks_passed": true,
+      "passed": true
+    },
+    {
+      "report_file": "2026-10-19-streaming-many-perspectives.json",
+      "source_fingerprint": "78b436e80ffbc584bda436b6860bcf7690af7acd973da605997475afe4b334d2",
+      "workload_within_reference": true,
+      "measurement_coverage_sufficient": true,
+      "ingress_budget_met": true,
+      "full_pipeline_budget_met": true,
+      "analytics_pipeline_budget_met": true,
+      "response_size_budget_met": true,
+      "semantic_checks_passed": true,
+      "passed": true
+    }
+  ],
+  "passed": true
+}

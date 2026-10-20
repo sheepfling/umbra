@@ -98,6 +98,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--read-only-alerts", action="store_true", help="show alert evidence without editing/reset/acknowledgement endpoints")
     parser.add_argument("--no-recording", action="store_true", help="disable optional capture/import/replay-analysis resources")
     parser.add_argument("--enable-controls", action="store_true", help="enable synthetic session controls (requires --showcase)")
+    parser.add_argument("--showcase-control-fault-once", choices=("connect", "join"),
+                        help="synthetic recovery walkthrough: fail once after the chosen operation takes effect")
+    parser.add_argument("--showcase-control-inspection", choices=("complete", "partial", "disabled"), default="complete",
+                        help="synthetic control-inspection maturity; independent of the observation profile")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--demo", action="store_true", help="seed generic events before serving")
     mode.add_argument("--showcase", action="store_true", help="run the live observer showcase")
@@ -120,6 +124,10 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.enable_controls and not args.showcase:
         raise SystemExit("--enable-controls requires --showcase; real sessions must be explicitly registered by the application")
+    if args.showcase_control_fault_once and not (args.showcase and args.enable_controls):
+        raise SystemExit("--showcase-control-fault-once requires --showcase --enable-controls and never applies to a real RTI")
+    if args.showcase_control_inspection != "complete" and not (args.showcase and args.enable_controls):
+        raise SystemExit("--showcase-control-inspection requires --showcase --enable-controls")
     try:
         store = ObserverStore(max_events=args.max_events, max_objects=args.max_objects, max_federates=args.max_federates,
                               max_time_snapshots=args.max_time_snapshots, max_evidence_bytes=args.max_evidence_bytes,
@@ -140,8 +148,10 @@ def main(argv: list[str] | None = None) -> int:
             commands = CommandDispatcher(sink=store.publish)
             commands.register(SessionController(
                 target_id="showcase-session", label="Showcase control session", adapter="showcase",
-                driver_factory=ShowcaseSessionDriver, federations=("ShowcaseFederation",),
-                sink=store.publish, synthetic=True,
+                driver_factory=lambda: ShowcaseSessionDriver(fault_once=args.showcase_control_fault_once,
+                    inspection_complete=args.showcase_control_inspection == "complete"),
+                federations=("ShowcaseFederation",), sink=store.publish, synthetic=True,
+                inspection_supported=args.showcase_control_inspection != "disabled",
             ))
         app = create_app(store, enable_analytics=not args.no_analytics, commands=commands,
                          enable_recording=not args.no_recording, enable_alerts=not args.no_alerts,

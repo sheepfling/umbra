@@ -17,7 +17,13 @@ from .alerting import (
     AlertState,
     Severity,
 )
-from .schemas import NonNegativeInt, ObserverModel, PositiveInt
+from .schemas import (
+    JsonText,
+    NonNegativeInt,
+    ObserverModel,
+    ParticipantPerspectiveResponse,
+    PositiveInt,
+)
 
 AlertText = Annotated[str, StringConstraints(min_length=1, max_length=512, pattern=r"\S")]
 RuleText = Annotated[str, StringConstraints(min_length=1, max_length=128, pattern=r"\S")]
@@ -30,10 +36,17 @@ class AlertScopeModel(ObserverModel):
     source: AlertText | None = None
     federation: AlertText | None = None
     federate: AlertText | None = None
-    session_id: AlertText | None = None
+    session_id: Annotated[JsonText, StringConstraints(min_length=1, max_length=512, pattern=r"\S")] | None = None
+    perspective: ParticipantPerspectiveResponse | None = None
+
+    @model_validator(mode="after")
+    def valid_scope(self) -> AlertScopeModel:
+        # Use the same bounded runtime filter validation before accepting input.
+        self.spec().validate_filter()
+        return self
 
     def spec(self) -> AlertScope:
-        return AlertScope(self.source, self.federation, self.federate, self.session_id)
+        return AlertScope(self.source, self.federation, self.federate, self.session_id, self.perspective.spec() if self.perspective else None)
 
 
 class RuleBase(ObserverModel):
@@ -170,7 +183,7 @@ def _check_rule_result(rule: AlertRule, row: AlertResultModel) -> None:
     threshold = rule.threshold_seconds if age_rule else rule.threshold_count
     if rule.rule_id != row.rule_id or row.threshold != threshold or row.unit != ("seconds" if age_rule else "observations") or (not rule.enabled) != (row.state == "disabled"):
         raise ValueError("alert evaluation must use its actual rule, threshold, unit and enabled state")
-    if row.state == "ended" and (not isinstance(rule, StaleObservationRule) or rule.scope.source is None or rule.scope.session_id is None):
+    if row.state == "ended" and (not isinstance(rule, StaleObservationRule) or rule.scope.perspective is None and (rule.scope.source is None or rule.scope.session_id is None)):
         raise ValueError("a reported end requires an exact source/session filter")
     measured = row.state in {"clear", "firing"}
     if measured and isinstance(rule, DroppedHistoryRule) and row.history_loss is None:

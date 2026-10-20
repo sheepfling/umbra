@@ -56,6 +56,7 @@ def assess(report: ScaleReport, name: str, budget: ReferenceBudget) -> Reference
              and load.objects <= budget.objects and snapshot.object_perspectives <= budget.perspectives
              and load.perspective_capacity <= budget.perspectives
              and load.payload_bytes <= budget.payload_bytes and load.inspector_rows <= budget.inspector_rows
+             and snapshot.roster_rows <= budget.participants and snapshot.objects <= budget.objects
              and load.batch_size == 100)
     ingress = report.ingress_events_per_second >= budget.minimum_ingress_events_per_second
     full = snapshot.full_response_pipeline.p95_ms <= budget.maximum_full_pipeline_p95_ms

@@ -14,6 +14,7 @@ from collections import Counter
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import replace
 from typing import Protocol
+from uuid import uuid4
 
 from .alerting import (
     NO_COMMAND_WATCH,
@@ -97,6 +98,8 @@ EVENT_TYPES = (
     "service.failed",
     "session.connected",
     "session.disconnected",
+    "session.inspected",
+    "session.reconciled",
     "command.accepted",
     "command.running",
     "command.succeeded",
@@ -177,6 +180,9 @@ def _event_type(event: Mapping[str, object]) -> str:
 
 
 def _object_key(event: Mapping[str, object]) -> str | None:
+    supplied = event.get("object_key")
+    if isinstance(supplied, str) and supplied.strip():
+        return supplied  # An explicit opaque key is not a display label.
     return _first_text(event, "object_key", "object_handle", "object_name")
 
 
@@ -197,6 +203,14 @@ def _copy_mapping(value: object) -> JsonObject:
 def _normalise_event(event: Mapping[str, object], sequence: int) -> EventRecord:
     if not isinstance(event, Mapping):
         raise TypeError("observer events must be mappings")
+    for field in ("federate", "participant"):
+        value = event.get(field)
+        if value is not None and not isinstance(value, (str, Mapping)):
+            raise TypeError(f"{field} must be a label or a named JSON metadata record")
+    for field in ("federation", "federate_name", "participant_name", "object_key"):
+        value = event.get(field)
+        if value is not None and not isinstance(value, str):
+            raise TypeError(f"{field} must be a string")
     if event.get("session_id") is not None:
         identity_text(event.get("session_id"), limit=256)
     participant_attribution(event)
@@ -503,6 +517,9 @@ class ObserverStore:
         self._max_events = max_events
         self._max_batch_size = max_batch_size
         self._next_sequence = 1
+        # Observer storage lifetime, never an RTI connection or membership ID.
+        self._instance_id = uuid4().hex
+        self._revision = 0
         self._dropped_events = 0
         self._cleared_events = 0
         self._status = "idle"
@@ -744,6 +761,7 @@ class ObserverStore:
         event_types: Iterable[str] | None = None,
         families: Iterable[str] | None = None,
         sources: Iterable[str] | None = None,
+        instance_id: str | None = None,
     ) -> JsonObject:
         """Return a cursor page plus retention metadata for API consumers."""
 
@@ -757,6 +775,9 @@ class ObserverStore:
         family_filter = {str(value) for value in families} if families else None
         source_filter = {str(value) for value in sources} if sources else None
         with self._condition:
+            reset = instance_id is not None and (instance_id != self._instance_id or after_sequence >= self._next_sequence)
+            if reset:
+                after_sequence = 0
             retained = list(self._events)
             candidates = [
                 event
@@ -773,7 +794,7 @@ class ObserverStore:
             next_after = rows[-1].sequence if rows else after_sequence
             if gap and not rows:
                 next_after = first_sequence - 1 if retained else self._next_sequence - 1
-            return to_json_object(EventPage(
+            document = to_json_object(EventPage(
                 events=rows,
                 next_after=next_after,
                 has_more=len(candidates) > len(rows),
@@ -785,6 +806,9 @@ class ObserverStore:
                 cleared_events=self._cleared_events,
                 next_sequence=self._next_sequence,
             ).to_json(OBSERVER_CONTRACT_VERSION))
+            document["observer_lifetime"] = {"instance_id": self._instance_id, "revision": self._revision}
+            document["reset"] = reset
+            return document
 
     def wait_for_events(self, *, after_sequence: int = 0, timeout: float = 15.0) -> list[JsonObject]:
         deadline = time.monotonic() + max(timeout, 0.0)
@@ -797,6 +821,11 @@ class ObserverStore:
                     break
                 self._condition.wait(remaining)
             return self._events_locked(after_sequence=after_sequence, limit=None)
+
+    def wait_for_change(self, revision: int, *, timeout: float = 15.0) -> None:
+        """Wait for any observable mutation, including an empty clear/metadata."""
+        with self._condition:
+            self._condition.wait_for(lambda: self._revision != revision, timeout=max(0.0, timeout))
 
     def clear(self) -> None:
         with self._condition:
@@ -900,6 +929,11 @@ class ObserverStore:
         return self._capture
 
     def _capture_locked(self, change: CaptureChange, arrivals: list[EventRecord] | None = None) -> None:
+        # Commit a mutation cut even when optional recording is not enabled.
+        # Timer/stop journal frames capture a cut; they do not mutate live data.
+        if change not in {"checkpoint", "stop"}:
+            self._revision += 1
+            self._condition.notify_all()
         if self._capture is not None and self._capture.info().active:
             self._capture.append(self._state_locked(include_events=True), change,
                                  [event.to_json() for event in arrivals] if arrivals else None)
@@ -916,8 +950,11 @@ class ObserverStore:
             self._next_sequence += 1
             self._update_indexes_locked(event)
             if self._alerts.runs:
+                perspective = event_perspective(event)
+                session = event.get("session_id")
                 self._alerts.observe(AlertScope(event.source, _first_text(event, "federation"),
-                    _federate_name(event), _first_text(event, "session_id")), event.event_type, event.sequence)
+                    _federate_name(event), perspective.session_id if perspective else session if isinstance(session, str) else None,
+                    perspective), event.event_type, event.sequence)
             self._context.update(
                 {
                     key: value
@@ -1087,6 +1124,7 @@ class ObserverStore:
         metrics = self._metrics_locked()
         state = to_json_object({
             "contract_version": OBSERVER_CONTRACT_VERSION,
+            "observer_lifetime": {"instance_id": self._instance_id, "revision": self._revision},
             "schema_version": OBSERVER_SCHEMA_VERSION,
             "status": self._status,
             "context": dict(self._context),

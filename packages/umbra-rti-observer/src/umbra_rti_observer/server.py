@@ -20,7 +20,7 @@ from .core import (
     ObserverStore,
     build_event_schema,
 )
-from .models import JsonObject
+from .models import JsonObject, to_json_object
 
 try:  # The web extra is optional; only importing this transport requires it.
     from fastapi import (
@@ -55,17 +55,12 @@ try:  # The web extra is optional; only importing this transport requires it.
         EventBatchRequest,
         EventIngestRequest,
         EventPageResponse,
-        EventsMessage,
-        GapMessage,
         HealthResponse,
-        HeartbeatMessage,
         IngestResponse,
         InspectorResponse,
         JsonObjectResponse,
         MetricsResponse,
-        RetentionGapResponse,
         RuntimeSummaryResponse,
-        SnapshotMessage,
         StateResponse,
         StatusRequest,
         event_input_mapping,
@@ -136,12 +131,26 @@ def create_app(
     enable_alerts: bool = True,
     enable_alert_controls: bool = True,
     enable_workspace_validation: bool = True,
+    enable_websocket: bool = True,
+    enable_sse: bool = True,
 ) -> FastAPI:
     """Create the optional FastAPI transport over an observer store."""
 
     observer = store or ObserverStore()
+    recovery_supported = commands is not None and any(
+        definition.action == "session.recover" and definition.state != "unsupported"
+        for target in commands.catalog().targets for definition in target.commands)
     observer.set_capabilities(
         {
+            "command_versions": {
+                "state": "available" if commands is not None else "disabled",
+                "reason": "Commands require the current owned target incarnation/revision; unknown or stale expectations have no provider effect.",
+            },
+            "session_recovery": {
+                "state": "available" if recovery_supported else "unsupported",
+                "reason": "One or more explicitly owned adapters offer typed inspection/reconciliation."
+                if recovery_supported else "No owned adapter inspection is configured; observation views remain independent.",
+            },
             "workspace_validation": {
                 "state": "available" if enable_workspace_validation else "disabled",
                 "reason": "Optional named workspace configuration validation; local browser settings do not require an RTI or this resource.",
@@ -174,11 +183,11 @@ def create_app(
                 "reason": "Provided by the FastAPI backend.",
             },
             "websocket": {
-                "state": "available",
+                "state": "available" if enable_websocket else "disabled",
                 "reason": "Provided by the FastAPI backend.",
             },
             "sse": {
-                "state": "available",
+                "state": "available" if enable_sse else "disabled",
                 "reason": "Provided by the FastAPI backend.",
             },
             "analytics": {
@@ -197,11 +206,27 @@ def create_app(
     )
 
     def contract_document() -> JsonObject:
-        return build_contract_document(
+        nonlocal recovery_supported
+        current_recovery = commands is not None and any(
+            definition.action == "session.recover" and definition.state != "unsupported"
+            for target in commands.catalog().targets for definition in target.commands)
+        if current_recovery != recovery_supported:
+            recovery_supported = current_recovery
+            observer.set_capabilities({"session_recovery": {
+                "state": "available" if current_recovery else "unsupported",
+                "reason": "One or more explicitly owned adapters offer typed inspection/reconciliation."
+                if current_recovery else "No owned adapter inspection is configured; observation views remain independent.",
+            }}, owner="backend", source="fastapi")
+        document = build_contract_document(
             EVENT_TYPES,
             event_schema_version=OBSERVER_SCHEMA_VERSION,
             capabilities=observer.capabilities(),
         )
+        stream = document.get("stream")
+        if isinstance(stream, dict):
+            paths = document.get("api_paths")
+            stream["resumption"] = isinstance(paths, dict) and ("websocket" in paths or "event_stream" in paths)
+        return document
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
@@ -397,6 +422,7 @@ def create_app(
         event_type: str | None = None,
         family: str | None = None,
         source: str | None = None,
+        instance_id: str | None = Query(default=None, min_length=1, max_length=128),
     ) -> JsonObject:
         try:
             return observer.event_page(
@@ -405,6 +431,7 @@ def create_app(
                 event_types=_csv_filter(event_type),
                 families=_csv_filter(family),
                 sources=_csv_filter(source),
+                instance_id=instance_id,
             )
         except ValueError as error:
             raise HTTPException(status_code=400, detail=str(error)) from error
@@ -445,51 +472,14 @@ def create_app(
         return observer.state(include_events=False)
 
     @app.get("/api/events/stream", response_model=None)
-    async def event_stream(after: int = Query(default=0, ge=0)) -> StreamingResponse:
-
+    async def event_stream(after: int = Query(default=0, ge=0),
+                           instance_id: str | None = Query(default=None, min_length=1, max_length=128)) -> StreamingResponse:
+        from .streaming import stream_messages
+        if not enable_sse:
+            raise HTTPException(status_code=501, detail="SSE is disabled; use another advertised transport.")
         async def generate() -> AsyncIterator[str]:
-            cursor = max(after, 0)
-            snapshot = SnapshotMessage(
-                type="snapshot",
-                state=_validated_state(observer, include_events=False),
-            )
-            yield f"data: {_stream_json(snapshot)}\n\n"
-            while True:
-                page = EventPageResponse.model_validate(observer.event_page(after_sequence=cursor, limit=500))
-                if page.gap:
-                    retention = RetentionGapResponse(
-                        first_retained_sequence=page.first_retained_sequence,
-                        last_sequence=page.last_sequence,
-                        retained_events=page.retained_events,
-                        dropped_events=page.dropped_events,
-                        cleared_events=page.cleared_events,
-                        next_sequence=page.next_sequence,
-                    )
-                    yield f"data: {_stream_json(GapMessage(type='gap', retention=retention))}\n\n"
-                    cursor = max(cursor, page.first_retained_sequence - 1 if page.retained_events else page.next_after)
-                    continue
-                rows = page.events
-                if not rows:
-                    await asyncio.to_thread(
-                        observer.wait_for_events,
-                        after_sequence=cursor,
-                        timeout=15.0,
-                    )
-                    fresh = EventPageResponse.model_validate(observer.event_page(after_sequence=cursor, limit=500))
-                    if fresh.gap:
-                        continue
-                    rows = fresh.events
-                if not rows:
-                    yield f"data: {_stream_json(HeartbeatMessage(type='heartbeat'))}\n\n"
-                    continue
-                cursor = max(cursor, rows[-1].sequence)
-                message = EventsMessage(
-                    type="events",
-                    events=rows,
-                    state=_validated_state(observer, include_events=False),
-                )
+            async for message in stream_messages(observer, after=after, instance_id=instance_id):
                 yield f"data: {_stream_json(message)}\n\n"
-
         return StreamingResponse(
             generate(),
             media_type="text/event-stream",
@@ -497,49 +487,26 @@ def create_app(
         )
 
     @app.websocket("/ws/events")
-    async def websocket_events(socket: WebSocket) -> None:
+    async def websocket_events(socket: WebSocket, after: int = Query(default=0, ge=0),
+                               instance_id: str | None = Query(default=None, min_length=1, max_length=128)) -> None:
+        from .streaming import stream_messages
+        if not enable_websocket:
+            await socket.close(code=1008, reason="WebSocket disabled; use another advertised transport.")
+            return
         await socket.accept()
-        initial_state = _validated_state(observer, include_events=False)
-        cursor = 0
         try:
-            await socket.send_json(json_model(SnapshotMessage(type="snapshot", state=initial_state)))
-            while True:
-                page = EventPageResponse.model_validate(observer.event_page(after_sequence=cursor, limit=500))
-                if page.gap:
-                    retention = RetentionGapResponse(
-                        first_retained_sequence=page.first_retained_sequence,
-                        last_sequence=page.last_sequence,
-                        retained_events=page.retained_events,
-                        dropped_events=page.dropped_events,
-                        cleared_events=page.cleared_events,
-                        next_sequence=page.next_sequence,
-                    )
-                    await socket.send_json(json_model(GapMessage(type="gap", retention=retention)))
-                    cursor = max(cursor, page.first_retained_sequence - 1 if page.retained_events else page.next_after)
-                    continue
-                rows = page.events
-                if not rows:
-                    await asyncio.to_thread(
-                        observer.wait_for_events,
-                        after_sequence=cursor,
-                        timeout=15.0,
-                    )
-                    fresh = EventPageResponse.model_validate(observer.event_page(after_sequence=cursor, limit=500))
-                    if fresh.gap:
-                        continue
-                    rows = fresh.events
-                if rows:
-                    cursor = max(cursor, rows[-1].sequence)
-                    await socket.send_json(json_model(EventsMessage(
-                        type="events",
-                        events=rows,
-                        state=_validated_state(observer, include_events=False),
-                    )))
-                else:
-                    await socket.send_json(json_model(HeartbeatMessage(type="heartbeat")))
+            async for message in stream_messages(observer, after=after, instance_id=instance_id):
+                await socket.send_json(json_model(message))
         except WebSocketDisconnect:
             return
 
+    from .stream_schema import add_stream_schemas
+    default_openapi = app.openapi
+
+    def observer_openapi() -> JsonObject:
+        return add_stream_schemas(to_json_object(default_openapi()))
+
+    app.openapi = observer_openapi
     app.state.observer_store = observer
     return app
 

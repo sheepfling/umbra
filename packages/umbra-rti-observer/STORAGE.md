@@ -112,9 +112,11 @@ events in the selected analytics window even without a retained roster row,
 with `roster_retained=false`, status
 `observed`, and no invented role/handle/membership. `roster_storage` separately
 reports the supplied coverage, or remains unknown on an older request/backend.
-Federates includes explicit event-attributed names, preserves a missing user
-selection and marks missing metadata; it does not silently select somebody else.
-These are still legacy name-based consumers pending OBS-127 identity migration.
+Federates includes exact event/inspector-attributed reporting perspectives,
+preserves a missing user selection and marks missing metadata; it does not
+silently select somebody else. Same-name joins/sources/namespaces remain
+separate, aliases retain one key, and older name-only views are labelled as
+unresolved legacy identity. See the attribution section of CONTRACT.md.
 
 Object snapshots have independent capacity/byte expiry. Re-observing an expired
 perspective starts a fresh local comparison baseline, not an RTI incarnation or
