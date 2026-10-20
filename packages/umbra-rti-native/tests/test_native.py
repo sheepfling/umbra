@@ -3531,8 +3531,8 @@ class NativeProviderTest(unittest.TestCase):
 
         with self.assertRaises(AlreadyConnected) as raised:
             ambassador.connect(callback, CallbackModel.HLA_IMMEDIATE)
-        self.assertIsNotNone(raised.exception.cause)
-        self.assertIs(raised.exception.__cause__, raised.exception.cause)
+        self.assertIsInstance(raised.exception.__cause__, _native.NativeRtiError)
+        self.assertIn("AlreadyConnected", str(raised.exception.__cause__))
 
         ambassador.disconnect()
 

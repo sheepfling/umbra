@@ -80,6 +80,39 @@ they were equivalent. The standard/sustained/rich/identity/many-perspectives ass
 must pass; large-index and wide intentionally expose limits and are assessed
 separately. The `--enforce` exit code is opt-in, never part of default CI timings.
 
+## Final observer-source verification: 19 October 2026
+
+Five serial seven-sample reference profiles use unchanged source fingerprint
+`29b6942a5b92f094defe25cb1ce26790b99f1b95d686fae5188ec5716db28cdd`.
+They include the final exact provider-name/command-ID validation changes on
+Windows/CPython 3.14.6/Pydantic 2.14.1. This run launched no concurrent build/test
+jobs or allocation tracing during measurements; it does not establish machine
+isolation. All five pass the unchanged
+[reference assessment](benchmarks/2026-10-19-final-reference.json).
+
+| Profile | Timed events / actual retained | Objects / scoped baselines | Full response MiB | Full pipeline p95 ms | Projected analytics p95 ms |
+| --- | --- | --- | --- | --- | --- |
+| standard | 20,000 / 2000 | 200 / 400 | 4.07 | 247.01 | 31.21 |
+| sustained | 100,000 / 1749 | 1000 / 1977 | 5.37 | 299.12 | 29.62 |
+| rich | 20,000 / 1599 | 1000 / 1964 | 5.31 | 312.35 | 96.45 |
+| explicit identity | 20,000 / 913 | 914 / 1743 | 5.48 | 428.94 | 35.48 |
+| many-perspectives | 20,000 / 2000 | 200 / 2436 | 5.33 | 337.63 | 31.04 |
+
+Ingress spans 3267–5533 events/second on this host. Rich's 96.45 ms empirical
+analytics p95 is close to the 100 ms reference budget; seven samples are not a
+portable latency guarantee. Rich and identity seed 576 inspector events outside
+the timed ingress. Shared count/encoded-byte budgets disclose shorter retained
+windows; requested counts are ceilings, not promises that all 2000 envelopes,
+1000 objects or 5000 scoped baselines survive together. Whole records expire;
+the generator checks exact retained envelopes, attribution and clear semantics.
+
+These remain in-process synthetic snapshot/analytics/recording checks, not
+native lifecycle/recovery-call or command-history memory, HTTP/SSE/WebSocket/
+browser timing, process RSS, arbitrary federation scale or SLA evidence. No
+allocation probe was run. Historical recovery/streaming and diagnostic reports
+below retain their original fingerprints and are not relabeled as final-source
+measurements.
+
 ## Recovery-source verification: 19 October 2026 (historical checkpoint)
 
 Five serial seven-sample reference loads use source fingerprint

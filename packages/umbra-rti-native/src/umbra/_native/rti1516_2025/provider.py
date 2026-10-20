@@ -166,9 +166,9 @@ def _call_native(
         name, separator, message = str(error).partition(": ")
         if name == "EncoderException" and encoding_error is not None:
             raise encoding_error(message if separator else name) from error
-        raise exceptionForName(
-            name, message if separator else name, error
-        ) from error
+        # The 2025 API accepts name/message; retain the native cause through
+        # Python exception chaining, not the separate 2010 factory signature.
+        raise exceptionForName(name, message if separator else name) from error
 
 
 def _encoded_handle(value: object, expected_type: type[_Handle]) -> bytes:
@@ -2871,26 +2871,14 @@ class _UmbraRTIambassador(RTIambassador):
 
     @staticmethod
     def _call(function: Callable[..., _Result], *args: object) -> _Result:
-        try:
-            return function(*args)
-        except _native.NativeRtiError as error:
-            name, separator, message = str(error).partition(": ")
-            raise exceptionForName(
-                name, message if separator else name, error
-            ) from error
+        return _call_native(function, *args)
 
 
 class UmbraRtiFactory(RtiFactory):
     """The discovered Umbra provider for ``hla.rti1516_2025``."""
 
     def getRtiAmbassador(self) -> RTIambassador:
-        try:
-            return _UmbraRTIambassador(_native.NativeAmbassador())
-        except _native.NativeRtiError as error:
-            name, separator, message = str(error).partition(": ")
-            raise exceptionForName(
-                name, message if separator else name, error
-            ) from error
+        return _UmbraRTIambassador(_call_native(_native.NativeAmbassador))
 
     def getEncoderFactory(self) -> EncoderFactory:
         return _NativeEncoderFactory()

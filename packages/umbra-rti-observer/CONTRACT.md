@@ -1268,7 +1268,9 @@ session filter and explicit lifecycle evidence; resignation also requires a
 federate filter. Late ordinary observations cannot reopen that watch. Root
 filters do not silently combine nested protocol identities. Pending checks use
 dispatcher caches only; unsupported commands do not disable other rule kinds.
-These are legacy textual filters pending OBS-127.
+Exact legacy textual scope fields remain supported. Optional `scope.perspective`
+uses the same named perspective model as the inspectors; missing actor/join
+attribution is not inferred from display names or nested MOM subjects.
 
 Configuration/evidence last for this process, not a backend restart. Download/
 import explicitly keeps rules, not evidence/credentials. Pause freezes the view

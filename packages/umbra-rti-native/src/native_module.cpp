@@ -18,16 +18,16 @@
 #include <RTI/time/HLAinteger64TimeFactory.h>
 #include <RTI/time/LogicalTimeFactory.h>
 
-#include "internal/attribute_handle.hpp"
-#include "internal/dimension_handle.hpp"
-#include "internal/federate_handle.hpp"
-#include "internal/interaction_class_handle.hpp"
-#include "internal/message_retraction_handle.hpp"
-#include "internal/object_class_handle.hpp"
-#include "internal/object_instance_handle.hpp"
-#include "internal/parameter_handle.hpp"
-#include "internal/region_handle.hpp"
-#include "internal/transportation_type_handle.hpp"
+#include "internal/handles/attribute_handle.hpp"
+#include "internal/handles/dimension_handle.hpp"
+#include "internal/handles/federate_handle.hpp"
+#include "internal/handles/interaction_class_handle.hpp"
+#include "internal/handles/message_retraction_handle.hpp"
+#include "internal/handles/object_class_handle.hpp"
+#include "internal/handles/object_instance_handle.hpp"
+#include "internal/handles/parameter_handle.hpp"
+#include "internal/handles/region_handle.hpp"
+#include "internal/handles/transportation_type_handle.hpp"
 
 #include <pybind11/pybind11.h>
 

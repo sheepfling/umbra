@@ -105,8 +105,17 @@ $env:UMBRA_OBSERVER_NATIVE_SMOKE = "1"
 python -m pytest packages/umbra-rti-observer-umbra/tests/test_native_control_smoke.py -q
 ```
 
-That test creates an isolated source-checkout federation, executes the four
-lifecycle commands, and cleans it up. It is not normative IEEE test evidence.
+For a GCC-built Windows extension, register its GCC runtime directory with
+`os.add_dll_directory(...)` before import and keep the returned handle alive
+through the test run.
+
+That test creates an isolated source-checkout federation, checks owned state
+transitions and a rejected nonexistent-federation join, executes the four
+lifecycle commands, verifies factory/call/pump thread ownership, and cleans up.
+Default native inspection is not advertised. The current actual-provider build
+evidence and separate broader native-suite failures are recorded in the
+[observer backlog audit](../umbra-rti-observer/FEATURE-BACKLOG.md).
+It is not normative IEEE test evidence.
 The normal observer regression run leaves this native-only test explicitly
 skipped. Server deployments exposing real commands must provide their normal
 session authorization around the HTTP app.
