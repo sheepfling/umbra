@@ -270,4 +270,136 @@ void scenarioDirectedInteractionReceivedClassProjection(
   publisher.disconnect();
 }
 
+void scenarioDirectedKnownObjectClassFallback(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Directed known-class fallback requires an adapter-supplied directed hierarchy FOM");
+
+  Session publisher(options, model, "directed-known-class-publisher");
+  Session receiver(options, model, "directed-known-class-receiver");
+  auto const federation = federationName(options, "directed-known-object-class-fallback");
+  connectAndJoin(publisher, receiver, options, federation, options.modelFom);
+
+  auto& sender = publisher.rtiAmbassador();
+  auto& targetMember = receiver.rtiAmbassador();
+  auto const publishedObjectClass = sender.getObjectClassHandle(
+      options.typedDerivedObjectClassName);
+  auto const knownBaseClass = targetMember.getObjectClassHandle(
+      options.typedObjectClassName);
+  auto const inapplicableChildClass = targetMember.getObjectClassHandle(
+      options.typedDerivedObjectClassName);
+  auto const sentInteraction = sender.getInteractionClassHandle(
+      options.typedDerivedInteractionClassName);
+  auto const receivedBaseInteraction = targetMember.getInteractionClassHandle(
+      options.typedInteractionClassName);
+  auto const childInteraction = targetMember.getInteractionClassHandle(
+      options.typedDerivedInteractionClassName);
+  require(
+      publishedObjectClass.isValid() && knownBaseClass.isValid() &&
+          inapplicableChildClass.isValid() && knownBaseClass != inapplicableChildClass &&
+          sentInteraction.isValid() && receivedBaseInteraction.isValid() &&
+          childInteraction == sentInteraction && receivedBaseInteraction != childInteraction,
+      "adapter FOM did not provide the directed object/interaction hierarchies");
+
+  auto const publisherMarker = sender.getAttributeHandle(
+      publishedObjectClass, options.typedIdentityAttributeName);
+  auto const receiverMarker = targetMember.getAttributeHandle(
+      knownBaseClass, options.typedIdentityAttributeName);
+  auto const sentBaseParameter = sender.getParameterHandle(
+      sentInteraction, options.typedIntegerParameterName);
+  auto const sentChildParameter = sender.getParameterHandle(
+      sentInteraction, options.typedDerivedParameterName);
+  auto const receivedBaseParameter = targetMember.getParameterHandle(
+      receivedBaseInteraction, options.typedIntegerParameterName);
+  require(
+      publisherMarker.isValid() && receiverMarker == publisherMarker &&
+          sentBaseParameter.isValid() && sentChildParameter.isValid() &&
+          receivedBaseParameter == sentBaseParameter,
+      "directed known-class fixture member handles were invalid or unstable");
+
+  rti::AttributeHandleSet const senderAttributes{publisherMarker};
+  rti::AttributeHandleSet const receiverAttributes{receiverMarker};
+  rti::InteractionClassHandleSet const sentClasses{sentInteraction};
+  rti::InteractionClassHandleSet const baseSubscription{receivedBaseInteraction};
+  rti::InteractionClassHandleSet const childSubscription{childInteraction};
+  sender.publishObjectClassAttributes(publishedObjectClass, senderAttributes);
+  targetMember.subscribeObjectClassAttributes(
+      knownBaseClass, receiverAttributes, true, L"");
+  sender.publishObjectClassDirectedInteractions(publishedObjectClass, sentClasses);
+  targetMember.subscribeObjectClassDirectedInteractions(
+      knownBaseClass, baseSubscription, true);
+  targetMember.subscribeObjectClassDirectedInteractions(
+      inapplicableChildClass, childSubscription, true);
+
+  auto const object = sender.registerObjectInstance(publishedObjectClass);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(object); },
+      options,
+      "base-class discovery of the directed target");
+  auto const discovery = receiver.recorder().discovery();
+  require(
+      receiver.recorder().discoveryCount() == 1U && discovery.object == object &&
+          discovery.objectClass == knownBaseClass &&
+          targetMember.getKnownObjectClassHandle(object) == knownBaseClass,
+      "receiver did not know the derived target at only its base object class");
+
+  std::vector<std::uint8_t> const baseValue{0x42U};
+  std::vector<std::uint8_t> const childValue{0x43U};
+  std::vector<std::uint8_t> const tagBytes{0x44U, 0x4BU, 0x43U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      sentBaseParameter,
+      rti::VariableLengthData(baseValue.data(), baseValue.size()));
+  parameters.emplace(
+      sentChildParameter,
+      rti::VariableLengthData(childValue.data(), childValue.size()));
+  sender.sendDirectedInteraction(
+      sentInteraction,
+      object,
+      parameters,
+      rti::VariableLengthData(tagBytes.data(), tagBytes.size()));
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().directedInteractions().size() >= 1U; },
+      options,
+      "receive-order directed fallback to the known object class");
+  for (int pass = 0; pass != 8; ++pass) {
+    receiver.pump();
+  }
+  auto const deliveries = receiver.recorder().directedInteractions();
+  require(
+      deliveries.size() == 1U &&
+          deliveries.front().interaction == receivedBaseInteraction &&
+          deliveries.front().object == object &&
+          deliveries.front().producer == publisher.federateHandle() &&
+          deliveries.front().parameters.size() == 1U &&
+          deliveries.front().parameters.count(receivedBaseParameter) == 1U &&
+          deliveries.front().parameters.count(sentChildParameter) == 0U &&
+          copyBytes(deliveries.front().parameters.at(receivedBaseParameter)) == baseValue &&
+          deliveries.front().tag == tagBytes,
+      "directed receipt did not select the base known-class subscription and parameter projection");
+
+  targetMember.unsubscribeObjectClassDirectedInteractions(
+      inapplicableChildClass, childSubscription);
+  targetMember.unsubscribeObjectClassDirectedInteractions(
+      knownBaseClass, baseSubscription);
+  sender.unpublishObjectClassDirectedInteractions(publishedObjectClass, sentClasses);
+  targetMember.unsubscribeObjectClassAttributes(knownBaseClass, receiverAttributes);
+  sender.unpublishObjectClassAttributes(publishedObjectClass, senderAttributes);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  sender.destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioDirectedKnownObjectClassFallbackContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDirectedKnownObjectClassFallback(options, model);
+}
+
 }  // namespace hla_rti_cpp_tck::detail

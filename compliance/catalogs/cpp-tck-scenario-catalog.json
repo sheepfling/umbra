@@ -65071,6 +65071,63 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.directed-known-object-class-fallback",
+      "category": "interaction-management",
+      "title": "Select receive-order directed interaction by the target's known object class",
+      "api_methods": [
+        "RTIambassador.connect", "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle", "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle", "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.registerObjectInstance", "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.sendDirectedInteraction", "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.receiveDirectedInteraction",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": ["requirement-candidate-content-clauses-06-object-management-page-109-l88-26"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-06-object-management-page-109-l88-26"],
+      "standard_sections": ["hla-1516.1-2025:clause-6.1.9"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l88-26", "standard_section": "hla-1516.1-2025:clause-6.1.9"}
+      ],
+      "mapping_note": "A child-registered target is discovered only as its subscribed base object class. The receiver also holds an inapplicable child-object/child-interaction subscription; one receive-order child send must nevertheless arrive exactly once at the base interaction with only its available base parameter. The direct requirement mapping covers the known-object-class candidate choice, not timestamped delivery. Native RO case passed 39 assertions; installed-package C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests across both callback models (out/mgw/directed-known-class-20261021-candidate.json). Java provider runtime remains unverified.",
+      "native_equivalent_runner_ids": ["umbra-cpp-directed-known-class-receive-order-integration"],
+      "contract_refs": ["directed-interaction-api-contract.json", "standard-directed-interaction-contract.json"],
+      "cpp_test": "src/tck_directed_interaction_received_class_projection.cpp#scenarioDirectedKnownObjectClassFallback",
+      "runner_id": "cpp-tck.directed-known-object-class-fallback",
+      "parity": "java-tck.directed-known-object-class-fallback",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.directed-known-object-class-fallback-contract",
+      "category": "interaction-management",
+      "title": "Cross-model contract for directed known-object-class fallback",
+      "api_methods": ["RTIambassador.sendDirectedInteraction", "FederateAmbassador.receiveDirectedInteraction"],
+      "requirement_ids": ["requirement-candidate-content-clauses-06-object-management-page-109-l88-26"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-06-object-management-page-109-l88-26"],
+      "standard_sections": ["hla-1516.1-2025:clause-6.1.9"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l88-26", "standard_section": "hla-1516.1-2025:clause-6.1.9"}
+      ],
+      "mapping_note": "The contract executes the same receive-order public-API assertions under the adapter callback model; it does not cover the separate red timestamped continuation.",
+      "native_equivalent_runner_ids": ["umbra-cpp-directed-known-class-receive-order-integration"],
+      "contract_refs": ["directed-interaction-api-contract.json", "standard-directed-interaction-contract.json"],
+      "cpp_test": "src/tck_directed_interaction_received_class_projection.cpp#scenarioDirectedKnownObjectClassFallbackContract",
+      "runner_id": "cpp-tck.directed-known-object-class-fallback-contract",
+      "parity": "java-tck.directed-known-object-class-fallback",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.directed-interaction-no-applicable-subscription",
       "category": "interaction-management",
       "title": "Do not deliver a directed interaction to a known target without an applicable class subscription",

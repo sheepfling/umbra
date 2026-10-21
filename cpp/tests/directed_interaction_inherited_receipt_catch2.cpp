@@ -126,19 +126,7 @@ void drain(RTIambassador& ambassador) {
   }
 }
 
-}  // namespace
-
-TEST_CASE(
-    "Embedded directed receipt selects an ancestor subscription at the known target class",
-    "[integration][development-profile][interaction-management][directed]"
-    "[interaction-receipt-inheritance][timestamped-directed-interaction][2025]"
-    "[rti.service.publish-object-class-attributes]"
-    "[rti.service.subscribe-object-class-attributes]"
-    "[rti.service.publish-object-class-directed-interactions]"
-    "[rti.service.subscribe-object-class-directed-interactions]"
-    "[rti.service.register-object-instance][rti.service.send-directed-interaction]"
-    "[federate.callback.discover-object-instance]"
-    "[federate.callback.receive-directed-interaction]") {
+void runDirectedKnownClassReceipt(bool includeTimestampedContinuation) {
   ReceiptFederateAmbassador publisherCallbacks;
   ReceiptFederateAmbassador receiverCallbacks;
   auto publisher = makeRti();
@@ -255,30 +243,32 @@ TEST_CASE(
   REQUIRE(receiverCallbacks.directedReceipts.front().parameterHandles ==
           std::vector<ParameterHandle>{receiverBaseParameter});
 
-  REQUIRE_NOTHROW(publisher->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(0)));
-  drain(*publisher);
-  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
-  drain(*receiver);
-  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
-  drain(*receiver);
-  std::array<std::uint8_t, 3U> const timestampedTagBytes{0x44U, 0x54U, 0x53U};
-  REQUIRE_NOTHROW(publisher->sendDirectedInteraction(
-      publisherChildInteraction,
-      target,
-      sentParameterValues,
-      VariableLengthData(timestampedTagBytes.data(), timestampedTagBytes.size()),
-      rti1516_2025::HLAinteger64Time(5)));
-  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
-  drain(*publisher);
-  drain(*receiver);
-  REQUIRE(receiverCallbacks.timestampedDirectedReceipts.size() == 1U);
-  REQUIRE(receiverCallbacks.timestampedDirectedReceipts.front().interactionClass ==
-          receiverBaseInteraction);
-  REQUIRE(receiverCallbacks.timestampedDirectedReceipts.front().objectInstance == target);
-  REQUIRE(receiverCallbacks.timestampedDirectedReceipts.front().producingFederate.isValid());
-  REQUIRE(receiverCallbacks.timestampedDirectedReceipts.front().parameterHandles ==
-          std::vector<ParameterHandle>{receiverBaseParameter});
-  REQUIRE(receiverCallbacks.timestampedReceiptTime == 5);
+  if (includeTimestampedContinuation) {
+    REQUIRE_NOTHROW(publisher->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(0)));
+    drain(*publisher);
+    REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+    drain(*receiver);
+    REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+    drain(*receiver);
+    std::array<std::uint8_t, 3U> const timestampedTagBytes{0x44U, 0x54U, 0x53U};
+    REQUIRE_NOTHROW(publisher->sendDirectedInteraction(
+        publisherChildInteraction,
+        target,
+        sentParameterValues,
+        VariableLengthData(timestampedTagBytes.data(), timestampedTagBytes.size()),
+        rti1516_2025::HLAinteger64Time(5)));
+    REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+    drain(*publisher);
+    drain(*receiver);
+    REQUIRE(receiverCallbacks.timestampedDirectedReceipts.size() == 1U);
+    REQUIRE(receiverCallbacks.timestampedDirectedReceipts.front().interactionClass ==
+            receiverBaseInteraction);
+    REQUIRE(receiverCallbacks.timestampedDirectedReceipts.front().objectInstance == target);
+    REQUIRE(receiverCallbacks.timestampedDirectedReceipts.front().producingFederate.isValid());
+    REQUIRE(receiverCallbacks.timestampedDirectedReceipts.front().parameterHandles ==
+            std::vector<ParameterHandle>{receiverBaseParameter});
+    REQUIRE(receiverCallbacks.timestampedReceiptTime == 5);
+  }
 
   REQUIRE_NOTHROW(receiver->unsubscribeObjectClassDirectedInteractions(
       receiverKnownTargetClass));
@@ -295,4 +285,34 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(receiver->disconnect());
   REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+}  // namespace
+
+TEST_CASE(
+    "Embedded receive-order directed receipt selects ancestor at known target class",
+    "[integration][development-profile][interaction-management][directed]"
+    "[directed-known-class-receive-order][2025]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.publish-object-class-directed-interactions]"
+    "[rti.service.subscribe-object-class-directed-interactions]"
+    "[rti.service.register-object-instance][rti.service.send-directed-interaction]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.receive-directed-interaction]") {
+  runDirectedKnownClassReceipt(false);
+}
+
+TEST_CASE(
+    "Embedded directed receipt selects an ancestor subscription at the known target class",
+    "[integration][development-profile][interaction-management][directed]"
+    "[interaction-receipt-inheritance][timestamped-directed-interaction][2025]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.publish-object-class-directed-interactions]"
+    "[rti.service.subscribe-object-class-directed-interactions]"
+    "[rti.service.register-object-instance][rti.service.send-directed-interaction]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.receive-directed-interaction]") {
+  runDirectedKnownClassReceipt(true);
 }

@@ -19363,6 +19363,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-inherited-interaction-class-delivery-contract",
       "cpp-tck.directed-interaction-derived-object-target",
       "cpp-tck.directed-interaction-received-class-projection",
+      "cpp-tck.directed-known-object-class-fallback",
+      "cpp-tck.directed-known-object-class-fallback-contract",
       "cpp-tck.directed-interaction-no-applicable-subscription",
       "cpp-tck.directed-interaction-subscription-accumulation",
       "cpp-tck.directed-interaction-derived-object-target-contract",
@@ -22782,6 +22784,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.directed-interaction-received-class-projection") {
     return scenarioDirectedInteractionReceivedClassProjection;
   }
+  if (id == "cpp-tck.directed-known-object-class-fallback") {
+    return scenarioDirectedKnownObjectClassFallback;
+  }
+  if (id == "cpp-tck.directed-known-object-class-fallback-contract") {
+    return scenarioDirectedKnownObjectClassFallbackContract;
+  }
   if (id == "cpp-tck.directed-interaction-no-applicable-subscription") {
     return scenarioDirectedInteractionNoApplicableSubscription;
   }
@@ -23109,6 +23117,8 @@ int run(Options const& options) {
                    scenario == "cpp-tck.timestamped-inherited-interaction-class-delivery-contract" ||
                     scenario == "cpp-tck.directed-interaction-derived-object-target" ||
                     scenario == "cpp-tck.directed-interaction-received-class-projection" ||
+                    scenario == "cpp-tck.directed-known-object-class-fallback" ||
+                    scenario == "cpp-tck.directed-known-object-class-fallback-contract" ||
                     scenario == "cpp-tck.directed-interaction-no-applicable-subscription" ||
                     scenario == "cpp-tck.directed-interaction-subscription-accumulation" ||
                     scenario == "cpp-tck.directed-interaction-derived-object-target-contract" ||

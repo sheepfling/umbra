@@ -1748,6 +1748,12 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-06-object-management-page-127-l52-16"
             },
             false), RtiTckMain::directedInteractionReceivedClassProjection);
+      run(new Scenario("java-tck.directed-known-object-class-fallback",
+            "select the directed receive class at the target's known object class",
+            "directed-interaction",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractions(set);RTIambassador.registerObjectInstance;RTIambassador.getKnownObjectClassHandle;RTIambassador.sendDirectedInteraction;RTIambassador.evokeCallback;RTIambassador.unsubscribeObjectClassDirectedInteractions(set);RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassDirectedInteractions(set);RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction",
+            new String[] {"requirement-candidate-content-clauses-06-object-management-page-109-l88-26"},
+            false), RtiTckMain::directedKnownObjectClassFallback);
       run(new Scenario("java-tck.directed-interaction-no-applicable-subscription",
             "do not deliver a directed interaction to a known target with no matching class subscription",
             "directed-interaction",
@@ -11086,6 +11092,8 @@ public final class RtiTckMain {
             method = "directedInteractionSubscriptionAccumulation"; break;
          case "java-tck.directed-interaction-received-class-projection":
             method = "directedInteractionReceivedClassProjection"; break;
+         case "java-tck.directed-known-object-class-fallback":
+            method = "directedKnownObjectClassFallback"; break;
          case "java-tck.directed-interaction-no-applicable-subscription":
             method = "directedInteractionNoApplicableSubscription"; break;
          case "java-tck.delay-subscription-evaluation-interaction":
@@ -12680,6 +12688,13 @@ public final class RtiTckMain {
    private static void directedInteractionReceivedClassProjection() throws Exception {
       DirectedInteractionReceivedClassProjectionTck.run(factory(), requireFom(),
          timeImplementation(), typedDerivedObjectClassName(), typedIdentityAttributeName(),
+         typedInteractionClassName(), typedDerivedInteractionClassName(),
+         typedIntegerParameterName(), typedDerivedParameterName(), callbackModel());
+   }
+
+   private static void directedKnownObjectClassFallback() throws Exception {
+      DirectedKnownObjectClassFallbackTck.run(factory(), requireFom(), timeImplementation(),
+         typedObjectClassName(), typedDerivedObjectClassName(), typedIdentityAttributeName(),
          typedInteractionClassName(), typedDerivedInteractionClassName(),
          typedIntegerParameterName(), typedDerivedParameterName(), callbackModel());
    }

@@ -86438,6 +86438,61 @@
       "next_action": "Keep superclass receipt and candidate-class reporting distinct from directed interactions and DDM. Add a child-only negative receipt case only if it is selected as a separate exact 2025 requirement boundary."
     },
     {
+      "id": "umbra-cpp-directed-known-class-receive-order-integration",
+      "primary_lane": "directed-known-class-receive-order",
+      "focus_lane": "directed-known-class-receive-order",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.connect.027cac2b3705",
+        "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
+        "api.2025.cpp.rtiambassador.joinfederationexecution.9e7e3b227992",
+        "api.2025.cpp.rtiambassador.getobjectclasshandle.36d1b269a059",
+        "api.2025.cpp.rtiambassador.getattributehandle.aa05f6c28dcb",
+        "api.2025.cpp.rtiambassador.getparameterhandle.396bff598c35",
+        "api.2025.cpp.rtiambassador.getinteractionclasshandle.99bb9271fea0",
+        "api.2025.cpp.rtiambassador.publishobjectclassattributes.f9f6fdeb6157",
+        "api.2025.cpp.rtiambassador.subscribeobjectclassattributes.048ff2ba5bba",
+        "api.2025.cpp.rtiambassador.publishobjectclassdirectedinteractions.39b5cf61292d",
+        "api.2025.cpp.rtiambassador.subscribeobjectclassdirectedinteractions.4c460a3c84d8",
+        "api.2025.cpp.rtiambassador.registerobjectinstance.dfc149295a7d",
+        "api.2025.cpp.rtiambassador.senddirectedinteraction.87506244c238",
+        "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891",
+        "api.2025.cpp.federateambassador.discoverobjectinstance.e121e4541b5d",
+        "api.2025.cpp.federateambassador.receivedirectedinteraction.4ad3f71941e8",
+        "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e",
+        "api.2025.cpp.rtiambassador.destroyfederationexecution.f403cac5930f",
+        "api.2025.cpp.rtiambassador.disconnect.72028b809529"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-109-l88-26"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-6.1.9"],
+      "test_case": "Embedded receive-order directed receipt selects ancestor at known target class",
+      "source_location": "cpp/tests/directed_interaction_inherited_receipt_catch2.cpp:292",
+      "assertions": 39,
+      "callback_models": ["HLA_EVOKED"],
+      "tags": [
+        "integration",
+        "development-profile",
+        "interaction-management",
+        "directed",
+        "directed-known-class-receive-order",
+        "rti.service.publish-object-class-attributes",
+        "rti.service.subscribe-object-class-attributes",
+        "rti.service.publish-object-class-directed-interactions",
+        "rti.service.subscribe-object-class-directed-interactions",
+        "rti.service.register-object-instance",
+        "rti.service.send-directed-interaction",
+        "federate.callback.discover-object-instance",
+        "federate.callback.receive-directed-interaction",
+        "2025"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "Independent public 2025 C++ receive-order case: the receiver discovers a child-registered target only at its subscribed base object class, also holds a deeper child-object/child-interaction subscription that must not apply, and receives exactly one directed callback at the base interaction class with only its available base parameter. Direct mapping is page-109-l88-26 -> canonical §6.1.9 for known-object-class candidate receipt. Parameter filtering is checked but not separately mapped. The timestamped continuation remains in a distinct currently red test; this green case makes no TSO, process, interoperability, validation, or conformance claim.",
+      "ctest_target": "umbra_directed_interaction_inherited_receipt_catch2",
+      "ctest_filter": "^umbra\\.directed_interaction_inherited_receipt\\.catch2\\.Embedded receive-order directed receipt selects ancestor at known target class$",
+      "next_action": "Receive-order behavior is independently green and translated to portable C++/Java IDs; the installed-package C++ primary/contract passed both callback models. Keep the separate timestamped continuation red and unpromoted until its time-advance failure is resolved."
+    },
+    {
       "id": "umbra-cpp-directed-interaction-inherited-receipt-known-object-class-integration",
       "primary_lane": "directed-interaction-inherited-receipt",
       "focus_lane": "directed-interaction-inherited-receipt",
@@ -86476,7 +86531,7 @@
         "hla-1516.1-2025:clause-8"
       ],
       "test_case": "Embedded directed receipt selects an ancestor subscription at the known target class",
-      "source_location": "cpp/tests/directed_interaction_inherited_receipt_catch2.cpp:131",
+      "source_location": "cpp/tests/directed_interaction_inherited_receipt_catch2.cpp:306",
       "assertions": 50,
       "callback_models": [
         "HLA_EVOKED"
@@ -86500,10 +86555,10 @@
         "2025"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "requirements_lab_api_surface_status": "This public two-federate C++ API case publishes a target object at a child class while the receiver discovers and knows it only at the base class. The receiver subscribes to the base directed interaction at that known class and adds a deeper child-object/child-interaction subscription that must not match. It sends the child interaction in both receive-order and timestamped order; each path yields exactly one callback reporting the base interaction class. Both callbacks include the base-class parameter and omit the descendant-only parameter, confirming the selected received-class projection; the timestamped callback also reports logical time 5, matching the sent time. It directly maps requirement-candidate-content-clauses-06-object-management-page-109-l88-26 to canonical IEEE 1516.1-2025 §6.1.9 and requirement-candidate-content-clauses-07-ownership-management-page-175-l86-26 to canonical clause 8. No separate normative requirement mapping is claimed for parameter filtering. Local embedded delivery, FOM fixtures, setup/cleanup, time-management scaffolding, and callback pumping are development-profile evidence, not Requirements Lab validation, interoperability, or conformance.",
+      "requirements_lab_api_surface_status": "This public two-federate C++ case continues the separately green receive-order known-object-class receipt into timestamped delivery. The receive-order assertions pass, but the current exact test is red at timeAdvanceRequest(5), before its timestamped callback assertions. The mapped §6.1.9 receive-order behavior is independently covered by the focused green case; clause-8 timestamped behavior remains unverified. No separate normative mapping is claimed for parameter filtering. Local embedded delivery, fixture, setup, and callback pumping are development-profile evidence, not Requirements Lab validation, interoperability, or conformance.",
       "ctest_target": "umbra_directed_interaction_inherited_receipt_catch2",
       "ctest_filter": "^umbra\\.directed_interaction_inherited_receipt\\.catch2\\.Embedded directed receipt selects an ancestor subscription at the known target class$",
-      "next_action": "Current exact MinGW CTest is red (2026-10-21): the receive-order discovery and projected directed callback pass, but timeAdvanceRequest(HLAinteger64Time(5)) throws at source line 262, before the timestamped assertions run. Do not treat this combined native case as green or promote its timestamped behavior to portable TCK coverage. Diagnose the time-advance sequencing or split a separately green receive-order native case first; keep the §6.1.9 page-109-l88-26 portable gap open until its exact public-API behavior is independently verified."
+      "next_action": "Current full MinGW CTest remains red at timeAdvanceRequest(HLAinteger64Time(5)), before timestamped assertions. The receive-order behavior was split into its own green case and portable C++/Java coverage; diagnose time-advance sequencing before claiming or translating the timestamped portion."
     },
     {
       "id": "umbra-cpp-standard-service-exception-precedence-unit",
