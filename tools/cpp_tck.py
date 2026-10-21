@@ -171,6 +171,8 @@ LOCAL_TCK_HEADERS = {
     "tck_restore_live_tso_retraction_record.hpp",
     "tck_restore_live_tso_directed_interaction.hpp",
     "tck_restore_live_tso_interaction_multi_recipient.hpp",
+    "tck_restore_live_tso_attribute_multi_recipient.hpp",
+    "tck_restore_default_region_attribute_multi_recipient.hpp",
     "tck_restore_live_tso_object_deletion.hpp",  # Draft source; not catalog-promoted.
     "tck_joined_federate_mom_reflections_received_counts.hpp",
     "tck_main_scenarios.hpp",

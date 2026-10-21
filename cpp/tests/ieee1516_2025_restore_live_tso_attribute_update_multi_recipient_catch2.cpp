@@ -6,6 +6,7 @@ TEST_CASE(
     "[integration][development-profile][federation-management][save-restore]"
     "[object-management][time-management][tso][timestamped-attribute-update]"
     "[mixed-fanout][multi-federate-callback-ordering]"
+    "[restore-live-tso-attribute-multi-recipient]"
     "[rti.service.request-federation-save][rti.service.request-federation-restore]"
     "[rti.service.federate-save-begun][rti.service.federate-save-complete]"
     "[rti.service.federate-restore-complete][rti.service.update-attribute-values]"

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "A public-API translation of the native-green 99-assertion HLA_EVOKED three-member timestamped attribute-update restore case. One ordinary object-attribute update is queued for two constrained recipients when all members complete an untimed save. Post-save Retract terminalizes the saved designator. Restore reconstructs both pending reflection copies and the live retraction record. Separate Flush Queue Requests deliver the original object, attribute value, tag, producer, timestamp, designator, and callback ordering. Retract invokes Request Retraction at both recipients and terminalizes the record again. This differs from the ordinary-interaction and directed-interaction fanout cases. Isolated C++ primary/contract passed using only installed 2026-10-20 package libraries with integer64 and float64 time. The adapter supplies provider libraries, endpoint, IEEE 1516.2-2025 object FOM and attribute, logical-time implementation, and HLA_EVOKED callback model. Java parity compiles against the official API-only JAR; Java provider runtime, HLA_IMMEDIATE, durable/process-boundary restore, interoperability, and conformance are unverified.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-live-tso-attribute-multi-recipient",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador publishObjectClassAttributes, subscribeObjectClassAttributes, changeDefaultAttributeOrderType, registerObjectInstance, updateAttributeValues, timeAdvanceRequest, requestFederationSave, federateSaveBegun, federateSaveComplete, retract, requestFederationRestore, federateRestoreComplete, flushQueueRequest; FederateAmbassador federationSaved, federationRestored, reflectAttributeValues, flushQueueGrant, requestRetraction",
+      "source": "official IEEE 1516.1-2025 C++ headers and hla.rti1516_2025 Java API; adapter-selected IEEE 1516.2-2025 object FOM",
+      "source_symbol": "IEEE 1516.1-2025 evoked timestamped attribute update fanout and federation save/restore interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "packages/hla-rti-cpp-tck/src/tck_restore_live_tso_attribute_multi_recipient.cpp::scenarioRestoreLiveTsoAttributeMultiRecipient",
+        "packages/hla-rti-cpp-tck/src/tck_restore_live_tso_attribute_multi_recipient.cpp::scenarioRestoreLiveTsoAttributeMultiRecipientContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestoreLiveTsoAttributeMultiRecipientTck.java::run"
+      ]
+    }
+  ]
+}

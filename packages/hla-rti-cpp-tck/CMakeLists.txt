@@ -74,6 +74,8 @@ add_executable(hla_rti_cpp_tck
   src/tck_restore_live_tso_retraction_record.cpp
   src/tck_restore_live_tso_directed_interaction.cpp
   src/tck_restore_live_tso_interaction_multi_recipient.cpp
+  src/tck_restore_live_tso_attribute_multi_recipient.cpp
+  src/tck_restore_default_region_attribute_multi_recipient.cpp
   src/tck_timestamped_directed_interaction_subscription_kind.cpp
   src/tck_timestamped_directed_zero_lookahead_tar_boundary.cpp
   src/tck_directed_interaction_received_class_projection.cpp
@@ -324,6 +326,10 @@ if(BUILD_TESTING)
          _tck_scenario STREQUAL "cpp-tck.restore-live-tso-directed-interaction-contract" OR
          _tck_scenario STREQUAL "cpp-tck.restore-live-tso-interaction-multi-recipient" OR
          _tck_scenario STREQUAL "cpp-tck.restore-live-tso-interaction-multi-recipient-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-live-tso-attribute-multi-recipient" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-live-tso-attribute-multi-recipient-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-default-region-attribute-multi-recipient" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-default-region-attribute-multi-recipient-contract" OR
          _tck_scenario STREQUAL "cpp-tck.restore-time-window-state" OR
          _tck_scenario STREQUAL "cpp-tck.restore-time-window-state-contract" OR
          _tck_scenario STREQUAL "cpp-tck.restore-deferred-lookahead" OR

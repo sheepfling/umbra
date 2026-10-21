@@ -89,6 +89,8 @@ void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
 #include "tck_restore_live_tso_retraction_record.hpp"
 #include "tck_restore_live_tso_directed_interaction.hpp"
 #include "tck_restore_live_tso_interaction_multi_recipient.hpp"
+#include "tck_restore_live_tso_attribute_multi_recipient.hpp"
+#include "tck_restore_default_region_attribute_multi_recipient.hpp"
 #include "tck_joined_federate_mom_updates_sent_mim_attribute.hpp"
 #include "tck_joined_federate_mom_object_instances_updated_mim_attribute.hpp"
 #include "tck_joined_federate_mom_object_instances_reflected_mim_attribute.hpp"
@@ -1426,6 +1428,14 @@ constexpr char restoreLiveTsoInteractionMultiRecipientScenario[] =
     "cpp-tck.restore-live-tso-interaction-multi-recipient";
 constexpr char restoreLiveTsoInteractionMultiRecipientContractId[] =
     "cpp-tck.restore-live-tso-interaction-multi-recipient-contract";
+constexpr char restoreLiveTsoAttributeMultiRecipientScenario[] =
+    "cpp-tck.restore-live-tso-attribute-multi-recipient";
+constexpr char restoreLiveTsoAttributeMultiRecipientContractId[] =
+    "cpp-tck.restore-live-tso-attribute-multi-recipient-contract";
+constexpr char restoreDefaultRegionAttributeMultiRecipientScenario[] =
+    "cpp-tck.restore-default-region-attribute-multi-recipient";
+constexpr char restoreDefaultRegionAttributeMultiRecipientContractId[] =
+    "cpp-tck.restore-default-region-attribute-multi-recipient-contract";
 constexpr char restoreTimeWindowStateScenario[] =
     "cpp-tck.restore-time-window-state";
 constexpr char restoreTimeWindowStateContractId[] =
@@ -17392,6 +17402,22 @@ int runRestoreLiveTsoInteractionMultiRecipientScenarios(int argc, char** argv) {
       scenarioRestoreLiveTsoInteractionMultiRecipientContract, true);
 }
 
+int runRestoreLiveTsoAttributeMultiRecipientScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreLiveTsoAttributeMultiRecipientScenario,
+      restoreLiveTsoAttributeMultiRecipientContractId,
+      scenarioRestoreLiveTsoAttributeMultiRecipient,
+      scenarioRestoreLiveTsoAttributeMultiRecipientContract, true);
+}
+
+int runRestoreDefaultRegionAttributeMultiRecipientScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreDefaultRegionAttributeMultiRecipientScenario,
+      restoreDefaultRegionAttributeMultiRecipientContractId,
+      scenarioRestoreDefaultRegionAttributeMultiRecipient,
+      scenarioRestoreDefaultRegionAttributeMultiRecipientContract, true);
+}
+
 int runRestoreTimeWindowStateScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc, argv, restoreTimeWindowStateScenario,
@@ -21337,6 +21363,26 @@ bool hasRestoreLiveTsoInteractionMultiRecipientScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == restoreLiveTsoInteractionMultiRecipientScenario ||
         scenario == restoreLiveTsoInteractionMultiRecipientContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreLiveTsoAttributeMultiRecipientScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreLiveTsoAttributeMultiRecipientScenario ||
+        scenario == restoreLiveTsoAttributeMultiRecipientContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreDefaultRegionAttributeMultiRecipientScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreDefaultRegionAttributeMultiRecipientScenario ||
+        scenario == restoreDefaultRegionAttributeMultiRecipientContractId) return true;
   }
   return false;
 }
@@ -25896,6 +25942,12 @@ int main(int argc, char** argv) {
     }
     if (hasRestoreLiveTsoInteractionMultiRecipientScenario(argc, argv)) {
       return runRestoreLiveTsoInteractionMultiRecipientScenarios(argc, argv);
+    }
+    if (hasRestoreLiveTsoAttributeMultiRecipientScenario(argc, argv)) {
+      return runRestoreLiveTsoAttributeMultiRecipientScenarios(argc, argv);
+    }
+    if (hasRestoreDefaultRegionAttributeMultiRecipientScenario(argc, argv)) {
+      return runRestoreDefaultRegionAttributeMultiRecipientScenarios(argc, argv);
     }
     if (hasRestoreTimeWindowStateScenario(argc, argv)) {
       return runRestoreTimeWindowStateScenarios(argc, argv);

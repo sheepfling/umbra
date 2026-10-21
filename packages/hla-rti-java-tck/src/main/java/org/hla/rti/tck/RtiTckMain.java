@@ -3904,6 +3904,54 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
                "requirement-candidate-content-clauses-08-time-management-page-211-l86-22"
             }, false), RtiTckMain::restoreLiveTsoInteractionMultiRecipient);
+      run(new Scenario("java-tck.restore-live-tso-attribute-multi-recipient",
+            "Restore one saved timestamped attribute update to two recipients",
+            "federation-save-restore",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.changeDefaultAttributeOrderType;RTIambassador.registerObjectInstance;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.updateAttributeValues;RTIambassador.timeAdvanceRequest;RTIambassador.requestFederationSave;RTIambassador.federateSaveBegun;RTIambassador.federateSaveComplete;RTIambassador.retract;RTIambassador.requestFederationRestore;RTIambassador.federateRestoreComplete;RTIambassador.flushQueueRequest;RTIambassador.evokeCallback;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;FederateAmbassador.flushQueueGrant;FederateAmbassador.requestRetraction",
+            new String[] {
+               "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24",
+               "requirement-candidate-content-clauses-04-federation-management-page-067-l142-36",
+               "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17",
+               "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+               "requirement-candidate-content-clauses-04-federation-management-page-074-l124-32",
+               "requirement-candidate-content-clauses-04-federation-management-page-075-l44-7",
+               "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+               "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+               "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
+               "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
+               "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+               "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+               "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+               "requirement-candidate-content-clauses-08-time-management-page-211-l89-23"
+            }, false), RtiTckMain::restoreLiveTsoAttributeMultiRecipient);
+      run(new Scenario("java-tck.restore-default-region-attribute-multi-recipient",
+            "Restore one default-source timestamped attribute update to two regional subscribers",
+            "federation-save-restore",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getDimensionHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.changeDefaultAttributeOrderType;RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.commitRegionModifications;RTIambassador.subscribeObjectClassAttributesWithRegions;RTIambassador.setConveyRegionDesignatorSetsSwitch;RTIambassador.registerObjectInstance;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.updateAttributeValues;RTIambassador.timeAdvanceRequest;RTIambassador.requestFederationSave;RTIambassador.federateSaveBegun;RTIambassador.federateSaveComplete;RTIambassador.retract;RTIambassador.requestFederationRestore;RTIambassador.federateRestoreComplete;RTIambassador.flushQueueRequest;RTIambassador.evokeCallback;RTIambassador.unsubscribeObjectClassAttributesWithRegions;RTIambassador.deleteRegion;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;FederateAmbassador.flushQueueGrant;FederateAmbassador.requestRetraction",
+            new String[] {
+               "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24",
+               "requirement-candidate-content-clauses-04-federation-management-page-067-l142-36",
+               "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17",
+               "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+               "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+               "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
+               "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
+               "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+               "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+               "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+               "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
+               "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l98-32",
+               "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l63-19",
+               "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43"
+            }, false), RtiTckMain::restoreDefaultRegionAttributeMultiRecipient);
       run(new Scenario("java-tck.restore-time-window-state",
             "Restore saved logical time and actual lookahead after post-save changes",
             "federation-save-restore",
@@ -9888,6 +9936,20 @@ public final class RtiTckMain {
          timeImplementation(), interactionClassName(), parameterName(), callbackModel());
    }
 
+   private static void restoreLiveTsoAttributeMultiRecipient() throws Exception {
+      RestoreLiveTsoAttributeMultiRecipientTck.run(factory(), requireFom(),
+         timeImplementation(), objectClassName(), attributeName(), callbackModel());
+   }
+
+   private static void restoreDefaultRegionAttributeMultiRecipient() throws Exception {
+      RestoreDefaultRegionAttributeMultiRecipientTck.run(factory(),
+         requireAdapterFile(DDM_FOM_PROPERTY), timeImplementation(),
+         requireAdapterValue(DDM_OBJECT_CLASS_PROPERTY),
+         requireAdapterValue(DDM_ATTRIBUTE_PROPERTY),
+         requireAdapterValue(DIMENSION_PROPERTY),
+         requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY), callbackModel());
+   }
+
    private static void restoreTimeWindowState() throws Exception {
       RestoreTimeWindowStateTck.run(factory(), requireFom(),
          timeImplementation(), callbackModel());
@@ -11247,6 +11309,10 @@ public final class RtiTckMain {
             method = "restoreLiveTsoDirectedInteraction"; break;
          case "java-tck.restore-live-tso-interaction-multi-recipient":
             method = "restoreLiveTsoInteractionMultiRecipient"; break;
+         case "java-tck.restore-live-tso-attribute-multi-recipient":
+            method = "restoreLiveTsoAttributeMultiRecipient"; break;
+         case "java-tck.restore-default-region-attribute-multi-recipient":
+            method = "restoreDefaultRegionAttributeMultiRecipient"; break;
          case "java-tck.restore-time-window-state":
             method = "restoreTimeWindowState"; break;
          case "java-tck.restore-deferred-lookahead":
