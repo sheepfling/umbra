@@ -3311,6 +3311,12 @@ public final class RtiTckMain {
                "java-1516.1-attribute-value-update-reflection",
                "java-1516.1-time-advance-and-grant"
             }, false), RtiTckMain::mixedOrderAttributePasselRetraction);
+      run(new Scenario("java-tck.mixed-order-attribute-passels-separate-messages",
+            "deliver each mixed-order attribute passel as a distinct message", "time",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.changeDefaultAttributeOrderType;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues(time);RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.enableAsynchronousDelivery;RTIambassador.timeAdvanceRequest;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues(time);FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeAdvanceGrant",
+            new String[] {
+               "requirement-candidate-content-clauses-08-time-management-page-180-l27-7"
+            }, false), RtiTckMain::mixedOrderAttributePasselsSeparateMessages);
       run(new Scenario("java-tck.timestamped-attribute-sender-regulation-transition",
             "classify a timestamped attribute update by the sender's time-regulating role", "time",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.changeDefaultAttributeOrderType;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues(time);RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.enableAsynchronousDelivery;RTIambassador.timeAdvanceRequest;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues(time);FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeAdvanceGrant",
@@ -8718,6 +8724,13 @@ public final class RtiTckMain {
          multiAttributeSecondName(), callbackModel());
    }
 
+   private static void mixedOrderAttributePasselsSeparateMessages() throws Exception {
+      TimestampedAttributeQueuedPasselRetractionTck.runMixedOrderSeparateMessages(
+         factory(), requireAdapterFile(MULTI_ATTRIBUTE_FOM_PROPERTY),
+         timeImplementation(), multiAttributeObjectClassName(), multiAttributeFirstName(),
+         multiAttributeSecondName(), callbackModel());
+   }
+
    private static void timestampedAttributeSenderRegulationTransition() throws Exception {
       TimestampedAttributeQueuedPasselRetractionTck.runSenderRegulationTransition(
          factory(), requireFom(), timeImplementation(), objectClassName(), attributeName(),
@@ -11337,6 +11350,8 @@ public final class RtiTckMain {
             method = "timestampedAttributeImmediateRecipientMultiTransportRetraction"; break;
          case "java-tck.mixed-order-attribute-passel-retraction":
             method = "mixedOrderAttributePasselRetraction"; break;
+         case "java-tck.mixed-order-attribute-passels-separate-messages":
+            method = "mixedOrderAttributePasselsSeparateMessages"; break;
          case "java-tck.timestamped-attribute-sender-regulation-transition":
             method = "timestampedAttributeSenderRegulationTransition"; break;
          case "java-tck.timestamped-attribute-update-reenable":

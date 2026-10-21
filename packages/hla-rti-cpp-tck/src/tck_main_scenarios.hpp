@@ -295,6 +295,8 @@ void scenarioTimestampedAttributeUpdateOwnershipTransferContract(Options const&,
 void scenarioTimestampedAttributeUpdateQueuedPasselRetraction(Options const&, rti::CallbackModel);
 void scenarioMixedOrderAttributePasselRetraction(Options const&, rti::CallbackModel);
 void scenarioMixedOrderAttributePasselRetractionContract(Options const&, rti::CallbackModel);
+void scenarioMixedOrderAttributePasselsSeparateMessages(Options const&, rti::CallbackModel);
+void scenarioMixedOrderAttributePasselsSeparateMessagesContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedAttributeImmediateRecipientMultiTransportRetraction(
     Options const&, rti::CallbackModel);
 void scenarioTimestampedAttributeImmediateRecipientMultiTransportRetractionContract(

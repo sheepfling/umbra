@@ -1260,6 +1260,10 @@ constexpr char mixedOrderAttributePasselRetractionScenario[] =
     "cpp-tck.mixed-order-attribute-passel-retraction";
 constexpr char mixedOrderAttributePasselRetractionContractId[] =
     "cpp-tck.mixed-order-attribute-passel-retraction-contract";
+constexpr char mixedOrderAttributePasselsSeparateMessagesScenario[] =
+    "cpp-tck.mixed-order-attribute-passels-separate-messages";
+constexpr char mixedOrderAttributePasselsSeparateMessagesContractId[] =
+    "cpp-tck.mixed-order-attribute-passels-separate-messages-contract";
 constexpr char timestampedAttributeImmediateRecipientMultiTransportRetractionScenario[] =
     "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction";
 constexpr char timestampedAttributeImmediateRecipientMultiTransportRetractionContractId[] =
@@ -3820,6 +3824,18 @@ void scenarioMixedOrderAttributePasselRetractionContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioMixedOrderAttributePasselRetractionContract(options, model);
+}
+
+void scenarioMixedOrderAttributePasselsSeparateMessagesPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioMixedOrderAttributePasselsSeparateMessages(options, model);
+}
+
+void scenarioMixedOrderAttributePasselsSeparateMessagesContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioMixedOrderAttributePasselsSeparateMessagesContract(options, model);
 }
 
 void scenarioTimestampedAttributeImmediateRecipientMultiTransportRetractionPortable(
@@ -17057,6 +17073,18 @@ int runMixedOrderAttributePasselRetractionScenarios(int argc, char** argv) {
       scenarioMixedOrderAttributePasselRetractionContractPortable);
 }
 
+int runMixedOrderAttributePasselsSeparateMessagesScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      mixedOrderAttributePasselsSeparateMessagesScenario,
+      mixedOrderAttributePasselsSeparateMessagesContractId,
+      scenarioMixedOrderAttributePasselsSeparateMessagesPortable,
+      scenarioMixedOrderAttributePasselsSeparateMessagesContractPortable);
+}
+
 int runTimestampedAttributeImmediateRecipientMultiTransportRetractionScenarios(
     int argc,
     char** argv) {
@@ -20962,6 +20990,22 @@ bool hasMixedOrderAttributePasselRetractionScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == mixedOrderAttributePasselRetractionScenario ||
         scenario == mixedOrderAttributePasselRetractionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasMixedOrderAttributePasselsSeparateMessagesScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == mixedOrderAttributePasselsSeparateMessagesScenario ||
+        scenario == mixedOrderAttributePasselsSeparateMessagesContractId) {
       return true;
     }
   }
@@ -25923,6 +25967,9 @@ int main(int argc, char** argv) {
     }
     if (hasMixedOrderAttributePasselRetractionScenario(argc, argv)) {
       return runMixedOrderAttributePasselRetractionScenarios(argc, argv);
+    }
+    if (hasMixedOrderAttributePasselsSeparateMessagesScenario(argc, argv)) {
+      return runMixedOrderAttributePasselsSeparateMessagesScenarios(argc, argv);
     }
     if (hasTimestampedAttributeImmediateRecipientMultiTransportRetractionScenario(
             argc,

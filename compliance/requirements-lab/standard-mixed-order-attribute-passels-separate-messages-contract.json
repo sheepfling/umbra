@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records a portable IEEE 1516.1 TCK scenario for one timestamped Update Attribute Values invocation containing one timestamp-order attribute and one receive-order attribute. The receiver must observe distinct attribute-only callback messages for the two passels, with the corresponding receive-order and timestamp-order metadata. The provider, multi-attribute FOM, endpoint, callback model, and logical-time implementation are adapter supplied. This is an API-level behavior check, not a provider-conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-mixed-order-attribute-passels-separate-messages",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped UpdateAttributeValues and separate receive-order/timestamp-order FederateAmbassador reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador attribute-order and update declarations; FederateAmbassador reflection declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_mixed_order_attribute_passel_retraction.cpp::scenarioMixedOrderAttributePasselsSeparateMessages"
+      ]
+    },
+    {
+      "id": "standard-java-mixed-order-attribute-passels-separate-messages",
+      "owner": "IEEE 1516.1 Java API",
+      "language": "java",
+      "signature": "RTIambassador.updateAttributeValues(LogicalTime) with mixed default attribute orders; FederateAmbassador.reflectAttributeValues with distinct attribute-only passels",
+      "source": "official IEEE 1516.1-2025 Java API; adapter-supplied multi-attribute FOM, callback model, and logical-time implementation",
+      "source_symbol": "IEEE 1516.1-2025 clause 8.1.3 separate-message passel rule",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/TimestampedAttributeQueuedPasselRetractionTck.java::runMixedOrderSeparateMessages"
+      ]
+    }
+  ]
+}

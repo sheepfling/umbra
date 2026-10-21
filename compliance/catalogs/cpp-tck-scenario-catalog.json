@@ -18031,6 +18031,91 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.mixed-order-attribute-passels-separate-messages",
+      "category": "mixed-order-attribute-passels-separate-messages",
+      "title": "Deliver each mixed-order attribute passel as a distinct message",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableAsynchronousDelivery",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-1516.1-object-registration-discovery",
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l27-7"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.1.3"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l27-7", "standard_section": "hla-1516.1-2025:clause-8.1.3" }
+      ],
+      "mapping_note": "Direct mapping is limited to the Clause 8.1.3 requirement that each passel produced by one multi-attribute update invocation is a separate message. The scenario requires two distinct attribute-only callbacks and checks receive-order versus timestamp-order delivery metadata and timestamp. Multi-attribute setup and time-management coordination are supplemental. The installed-package primary/contract repeat passed 4/4 across evoked/immediate callbacks at out/mgw/cpp-tck-passels-separated-20261021/passel-repeat-20261021.json; the shared retraction path also passed its 4/4 regression. Java parity compiles against the official API JAR but has no provider-runtime evidence. Experimental public-API evidence, not provider conformance evidence.",
+      "contract_refs": [
+        "standard-mixed-order-attribute-passels-separate-messages-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioMixedOrderAttributePasselsSeparateMessagesPortable",
+      "runner_id": "cpp-tck.mixed-order-attribute-passels-separate-messages",
+      "parity": "java-tck.mixed-order-attribute-passels-separate-messages",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.mixed-order-attribute-passels-separate-messages-contract",
+      "category": "mixed-order-attribute-passels-separate-messages",
+      "title": "Portable contract twin for separate mixed-order attribute passel messages",
+      "api_methods": [
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "cpp-1516.1-time-advance-request"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l27-7"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.1.3"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l27-7", "standard_section": "hla-1516.1-2025:clause-8.1.3" }
+      ],
+      "mapping_note": "The contract twin applies the same narrow Clause 8.1.3 assertion: the one timestamped update produces two distinct attribute-only callback messages, with the respective receive-order and timestamp-order metadata. Installed-package evoked/immediate repeat evidence is out/mgw/cpp-tck-passels-separated-20261021/passel-repeat-20261021.json; Java parity is API-only and provider-unverified. Experimental public-API evidence, not provider conformance evidence.",
+      "contract_refs": [
+        "standard-mixed-order-attribute-passels-separate-messages-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioMixedOrderAttributePasselsSeparateMessagesContractPortable",
+      "runner_id": "cpp-tck.mixed-order-attribute-passels-separate-messages-contract",
+      "parity": "java-tck.mixed-order-attribute-passels-separate-messages",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction",
       "category": "timestamped-attribute-immediate-recipient-multi-transport-retraction",
       "title": "Deliver and retract a timestamped attribute update split across reliable and best-effort passels",

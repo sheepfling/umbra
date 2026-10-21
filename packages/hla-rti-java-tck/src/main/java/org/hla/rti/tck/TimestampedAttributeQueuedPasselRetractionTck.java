@@ -423,11 +423,29 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
    static void runMixedOrder(RtiFactory factory, String fom, String timeImplementation,
          String objectClassName, String timestampedAttributeName,
          String receiveOrderAttributeName, CallbackModel callbackModel) throws Exception {
+      runMixedOrderCase(factory, fom, timeImplementation, objectClassName,
+         timestampedAttributeName, receiveOrderAttributeName, callbackModel, true);
+   }
+
+   static void runMixedOrderSeparateMessages(RtiFactory factory, String fom,
+         String timeImplementation, String objectClassName,
+         String timestampedAttributeName, String receiveOrderAttributeName,
+         CallbackModel callbackModel) throws Exception {
+      runMixedOrderCase(factory, fom, timeImplementation, objectClassName,
+         timestampedAttributeName, receiveOrderAttributeName, callbackModel, false);
+   }
+
+   private static void runMixedOrderCase(RtiFactory factory, String fom,
+         String timeImplementation, String objectClassName,
+         String timestampedAttributeName, String receiveOrderAttributeName,
+         CallbackModel callbackModel, boolean retractTimestamped) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador receiver = factory.getRtiAmbassador();
       Recorder publisherRecorder = new Recorder();
       Recorder receiverRecorder = new Recorder();
-      String federation = "java-tck-mixed-order-passel-" + UUID.randomUUID();
+      String federation = (retractTimestamped
+         ? "java-tck-mixed-order-passel-retraction-"
+         : "java-tck-mixed-order-passels-separate-messages-") + UUID.randomUUID();
       boolean publisherConnected = false;
       boolean receiverConnected = false;
       boolean publisherJoined = false;
@@ -525,20 +543,43 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
          JavaTckSupport.check(object.equals(receiveOrder.object)
                && receiveOrder.values != null && receiveOrder.values.size() == 1
                && Arrays.equals(receiveOrderValue, receiveOrder.values.get(receiverReceiveOrder))
+               && receiveOrder.sentOrder == OrderType.RECEIVE
                && receiveOrder.receivedOrder == OrderType.RECEIVE
+               && Arrays.equals(tag, receiveOrder.tag)
                && receiveOrder.retraction == null,
-            "mixed-order passel did not report only its receive-order attribute with receive-order metadata before retraction");
+            "mixed-order passel did not report only its receive-order attribute with receive-order metadata before time advance");
 
-         publisher.retract(retraction.handle);
+         if (retractTimestamped) publisher.retract(retraction.handle);
          receiver.timeAdvanceRequest(receiverTarget);
          publisher.timeAdvanceRequest(publisherTarget);
          awaitBoth(publisher, receiver, callbackModel,
             () -> receiverRecorder.timeAdvanceGrantTimes.size() == 1
-                  && publisherRecorder.timeAdvanceGrantTimes.size() == 1,
-            "grants after retracting queued timestamped part");
-         JavaTckSupport.check(receiverRecorder.reflections.size() == 1
-               && receiverRecorder.timeAdvanceGrantTimes.size() == 1,
-            "mixed-order retraction changed the delivered receive-order result or released the queued timestamped attribute");
+                  && publisherRecorder.timeAdvanceGrantTimes.size() == 1
+                  && (retractTimestamped || receiverRecorder.reflections.size() >= 2),
+            retractTimestamped ? "grants after retracting queued timestamped part"
+               : "separate mixed-order passel messages and grants");
+         if (retractTimestamped) {
+            JavaTckSupport.check(receiverRecorder.reflections.size() == 1
+                  && receiverRecorder.timeAdvanceGrantTimes.size() == 1,
+               "mixed-order retraction changed the delivered receive-order result or released the queued timestamped attribute");
+         } else {
+            JavaTckSupport.check(receiverRecorder.reflections.size() == 2,
+               "one mixed-order update did not produce exactly two reflection messages");
+            Reflection timestamped = receiverRecorder.reflections.get(1);
+            JavaTckSupport.check(timestamped != receiveOrder
+                  && object.equals(timestamped.object)
+                  && timestamped.values != null && timestamped.values.size() == 1
+                  && Arrays.equals(timestampedValue,
+                     timestamped.values.get(receiverTimestamped))
+                  && timestamped.sentOrder == OrderType.TIMESTAMP
+                  && timestamped.receivedOrder == OrderType.TIMESTAMP
+                  && updateTime.equals(timestamped.time)
+                  && Arrays.equals(tag, timestamped.tag)
+                  && timestamped.retraction != null
+                  && receiverTarget.equals(receiverRecorder.timeAdvanceGrantTimes.get(0))
+                  && publisherTarget.equals(publisherRecorder.timeAdvanceGrantTimes.get(0)),
+               "mixed-order update passels did not remain separate attribute-only messages with their expected order and time");
+         }
       } finally {
          if (constrained && receiverJoined) {
             try { receiver.disableTimeConstrained(); } catch (Exception ignored) { }

@@ -19634,6 +19634,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-attribute-order-cohort-contract",
       "cpp-tck.timestamped-attribute-update-queued-passel-retraction-contract",
       "cpp-tck.mixed-order-attribute-passel-retraction-contract",
+      "cpp-tck.mixed-order-attribute-passels-separate-messages-contract",
       "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction-contract",
       "cpp-tck.timestamped-attribute-sender-regulation-transition-contract",
       "cpp-tck.timestamped-attribute-update-no-fanout-contract",
@@ -19681,6 +19682,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-attribute-update-ownership-transfer-contract",
       "cpp-tck.timestamped-attribute-update-queued-passel-retraction",
       "cpp-tck.mixed-order-attribute-passel-retraction",
+      "cpp-tck.mixed-order-attribute-passels-separate-messages",
       "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction",
       "cpp-tck.timestamped-attribute-sender-regulation-transition",
       "cpp-tck.timestamped-attribute-source-resignation",
@@ -21540,6 +21542,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.mixed-order-attribute-passel-retraction-contract") {
     return scenarioMixedOrderAttributePasselRetractionContract;
   }
+  if (id == "cpp-tck.mixed-order-attribute-passels-separate-messages-contract") {
+    return scenarioMixedOrderAttributePasselsSeparateMessagesContract;
+  }
   if (id == "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction-contract") {
     return scenarioTimestampedAttributeImmediateRecipientMultiTransportRetractionContract;
   }
@@ -21683,6 +21688,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.mixed-order-attribute-passel-retraction") {
     return scenarioMixedOrderAttributePasselRetraction;
+  }
+  if (id == "cpp-tck.mixed-order-attribute-passels-separate-messages") {
+    return scenarioMixedOrderAttributePasselsSeparateMessages;
   }
   if (id == "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction") {
     return scenarioTimestampedAttributeImmediateRecipientMultiTransportRetraction;
@@ -23220,6 +23228,8 @@ int run(Options const& options) {
             "requires an adapter-supplied logical-time implementation";
        } else if ((scenario == "cpp-tck.mixed-order-attribute-passel-retraction" ||
                   scenario == "cpp-tck.mixed-order-attribute-passel-retraction-contract" ||
+                  scenario == "cpp-tck.mixed-order-attribute-passels-separate-messages" ||
+                  scenario == "cpp-tck.mixed-order-attribute-passels-separate-messages-contract" ||
                    scenario == "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction" ||
                    scenario == "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-queued-passel-retraction" ||
@@ -23458,6 +23468,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-attribute-update-queued-passel-retraction" ||
                     scenario == "cpp-tck.mixed-order-attribute-passel-retraction" ||
                     scenario == "cpp-tck.mixed-order-attribute-passel-retraction-contract" ||
+                    scenario == "cpp-tck.mixed-order-attribute-passels-separate-messages" ||
+                    scenario == "cpp-tck.mixed-order-attribute-passels-separate-messages-contract" ||
                     scenario == "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction" ||
                     scenario == "cpp-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction-contract" ||
                    scenario == "cpp-tck.timestamped-attribute-sender-regulation-transition" ||

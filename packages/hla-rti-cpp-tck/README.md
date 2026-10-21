@@ -934,6 +934,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-attribute-update-queued-passel-retraction-contract` | Standard adapter-backed timestamped multi-attribute passel retraction contract |
 | `cpp-tck.mixed-order-attribute-passel-retraction` | From one mixed-order timestamped update, preserve the already-delivered receive-order attribute and retract only the queued timestamp-order attribute |
 | `cpp-tck.mixed-order-attribute-passel-retraction-contract` | Focused standard contract twin for mixed-order attribute passel retraction |
+| `cpp-tck.mixed-order-attribute-passels-separate-messages` | One mixed-order timestamped update produces separate attribute-only RECEIVE and TIMESTAMP reflection messages; direct mapping: IEEE 1516.1-2025 §8.1.3; Java parity: `java-tck.mixed-order-attribute-passels-separate-messages` |
+| `cpp-tck.mixed-order-attribute-passels-separate-messages-contract` | Focused standard contract twin for separate mixed-order attribute passel messages; Java parity: `java-tck.mixed-order-attribute-passels-separate-messages` (API-only compile passed; provider runtime unverified) |
 | `cpp-tck.timestamped-attribute-sender-regulation-transition` | With the timestamp and preferred order fixed, verify receive-order delivery before sender regulation and queued timestamp-order delivery after regulation |
 | `cpp-tck.timestamped-attribute-sender-regulation-transition-contract` | Focused standard contract twin for sender-role order classification |
 | `cpp-tck.timestamped-attribute-update-no-fanout-contract` | Standard adapter-backed timestamped attribute no-fan-out and terminal-retraction contract |

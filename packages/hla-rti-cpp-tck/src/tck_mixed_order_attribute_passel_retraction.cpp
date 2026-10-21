@@ -2,21 +2,26 @@
 
 namespace hla_rti_cpp_tck::detail {
 
-void scenarioMixedOrderAttributePasselRetraction(
+namespace {
+
+void runMixedOrderAttributePasselScenario(
     Options const& options,
-    rti::CallbackModel model) {
+    rti::CallbackModel model,
+    bool retractTimestampedAttribute) {
   require(
       !options.multiAttributeFom.empty(),
-      "Mixed-order passel retraction requires an adapter-supplied multi-attribute FOM");
+      "Mixed-order passel scenarios require an adapter-supplied multi-attribute FOM");
   require(
       !options.logicalTimeImplementationName.empty(),
-      "Mixed-order passel retraction requires an adapter-supplied logical-time implementation");
+      "Mixed-order passel scenarios require an adapter-supplied logical-time implementation");
 
   Session publisher(options, model, "mixed-order-passel-publisher");
   Session receiver(options, model, "mixed-order-passel-receiver");
   auto const federation = federationName(
       options,
-      "mixed-order-attribute-passel-retraction");
+      retractTimestampedAttribute
+          ? "mixed-order-attribute-passel-retraction"
+          : "mixed-order-attribute-passels-separate-messages");
   connectAndJoin(
       publisher,
       receiver,
@@ -162,7 +167,9 @@ void scenarioMixedOrderAttributePasselRetraction(
           !receivedBeforeRetraction.front().retractionPresent,
       "Mixed-order passel did not report only the receive-order attribute with receive-order metadata before retraction");
 
-  publisher.rtiAmbassador().retract(retraction);
+  if (retractTimestampedAttribute) {
+    publisher.rtiAmbassador().retract(retraction);
+  }
   receiver.rtiAmbassador().timeAdvanceRequest(*receiverTarget);
   publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
   waitForSessions(
@@ -172,12 +179,54 @@ void scenarioMixedOrderAttributePasselRetraction(
             receiver.recorder().timeAdvanceGrants().size() >= 1U;
       },
       options,
-      "Mixed-order passel post-retraction grants");
-  require(
-      receiver.recorder().timedReflections().size() == 1U &&
-          receiver.recorder().reflections().empty() &&
-          receiver.recorder().timeAdvanceGrants().size() == 1U,
-      "Mixed-order passel retraction changed the delivered receive-order result or released the queued timestamped attribute");
+      retractTimestampedAttribute
+          ? "Mixed-order passel post-retraction grants"
+          : "Mixed-order separate-message grants");
+  if (retractTimestampedAttribute) {
+    require(
+        receiver.recorder().timedReflections().size() == 1U &&
+            receiver.recorder().reflections().empty() &&
+            receiver.recorder().timeAdvanceGrants().size() == 1U,
+        "Mixed-order passel retraction changed the delivered receive-order result or released the queued timestamped attribute");
+  } else {
+    auto const deliveries = receiver.recorder().timedReflections();
+    auto const receiveOrder = std::find_if(
+        deliveries.begin(),
+        deliveries.end(),
+        [&](TimedReflectionRecord const& delivery) {
+          return delivery.values.size() == 1U &&
+              delivery.values.count(receiverReceiveOrder) == 1U;
+        });
+    auto const timestampOrder = std::find_if(
+        deliveries.begin(),
+        deliveries.end(),
+        [&](TimedReflectionRecord const& delivery) {
+          return delivery.values.size() == 1U &&
+              delivery.values.count(receiverTimestamped) == 1U;
+        });
+    require(
+        deliveries.size() == 2U && receiveOrder != deliveries.end() &&
+            timestampOrder != deliveries.end() &&
+            receiveOrder != timestampOrder &&
+            receiveOrder->object == object &&
+            copyBytes(receiveOrder->values.at(receiverReceiveOrder)) ==
+                receiveOrderBytes &&
+            receiveOrder->sentOrder == rti::RECEIVE &&
+            receiveOrder->receivedOrder == rti::RECEIVE &&
+            receiveOrder->tag == tagBytes &&
+            !receiveOrder->retractionPresent &&
+            timestampOrder->object == object &&
+            copyBytes(timestampOrder->values.at(receiverTimestamped)) ==
+                timestampedBytes &&
+            timestampOrder->sentOrder == rti::TIMESTAMP &&
+            timestampOrder->receivedOrder == rti::TIMESTAMP &&
+            timestampOrder->time == encodeTime(*updateTime) &&
+            timestampOrder->tag == tagBytes &&
+            timestampOrder->retractionPresent &&
+            receiver.recorder().reflections().empty() &&
+            receiver.recorder().timeAdvanceGrants().size() == 1U,
+        "A mixed-order timestamped update was not delivered as two distinct attribute-only passel messages");
+  }
 
   receiver.resign(rti::NO_ACTION);
   publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
@@ -186,10 +235,30 @@ void scenarioMixedOrderAttributePasselRetraction(
   publisher.disconnect();
 }
 
+}  // namespace
+
+void scenarioMixedOrderAttributePasselRetraction(
+    Options const& options,
+    rti::CallbackModel model) {
+  runMixedOrderAttributePasselScenario(options, model, true);
+}
+
 void scenarioMixedOrderAttributePasselRetractionContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioMixedOrderAttributePasselRetraction(options, model);
+}
+
+void scenarioMixedOrderAttributePasselsSeparateMessages(
+    Options const& options,
+    rti::CallbackModel model) {
+  runMixedOrderAttributePasselScenario(options, model, false);
+}
+
+void scenarioMixedOrderAttributePasselsSeparateMessagesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioMixedOrderAttributePasselsSeparateMessages(options, model);
 }
 
 }  // namespace hla_rti_cpp_tck::detail
