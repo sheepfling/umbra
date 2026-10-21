@@ -14463,7 +14463,7 @@
     {
       "id": "java-tck.modify-lookahead-contract",
       "category": "time-management",
-      "title": "Query and modify lookahead across immediate, deferred, and pending-advance boundaries",
+      "title": "Query and modify lookahead across immediate, gradual-decrease, and pending-advance boundaries",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.enableTimeRegulation",
@@ -14479,8 +14479,8 @@
         "FederateAmbassador.timeAdvanceGrant"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-204-l38-9",
         "requirement-candidate-content-clauses-08-time-management-page-208-l66-15",
-        "requirement-candidate-content-clauses-08-time-management-page-208-l72-17",
         "requirement-candidate-content-clauses-08-time-management-page-208-l75-18",
         "requirement-candidate-content-clauses-08-time-management-page-208-l78-19",
         "requirement-candidate-content-clauses-08-time-management-page-208-l84-21",
@@ -14490,16 +14490,16 @@
         "standard-time-advance-contract.json",
         "standard-modify-lookahead-contract.json"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.20.4"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.15.3", "hla-1516.1-2025:clause-8.20.4"],
       "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l38-9", "standard_section": "hla-1516.1-2025:clause-8.15.3"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l66-15", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
-        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l72-17", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l75-18", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l78-19", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l84-21", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l162-43", "standard_section": "hla-1516.1-2025:clause-8.20.4"}
       ],
-      "mapping_note": "The Java surface covers the direct Modify Lookahead request, zero-interval rejection without changing the active value, immediate increase, deferred decrease, decrease as logical time advances, and requested-value assertions. It also checks the pre-regulation Modify Lookahead error, duplicate Time Regulation/Time Constrained enable and disable errors, pending-advance state, and logical-time queries before and after grants. A time-advance request behind the granted time must fail with LogicalTimeAlreadyPassed. These role and advance-boundary assertions supplement, but are not added to, the direct Clause 8.20.4 mappings. Query Lookahead preconditions and negative-interval construction remain supplemental; the standard factory API has no negative-interval constructor, and this portable TCK does not assume a particular encoding or that subtraction yields a representable negative value. Callback delivery and cleanup are scenario mechanics. Java provider execution is unsupported pending an adapter/provider and is not conformance evidence.",
+      "mapping_note": "The §8.15.3 assertion checks the pending-lookahead formula across two grants: from six epsilon to three after advancing three, then to the requested one epsilon after advancing three more. The Java surface also covers the direct §8.20.4 Modify Lookahead request, immediate increase, deferred decrease, and requested-value assertions. The earlier zero-lookahead rejection probe was removed because zero is a permitted nonnegative request; this Java case does not yet exercise zero acceptance, so page 208 l72 is not directly mapped here. It checks pre-regulation and duplicate-role errors, pending-advance state, logical-time queries, and a request behind the granted time as supplemental behavior. Query Lookahead preconditions and negative-interval construction remain supplemental; the standard factory API has no negative-interval constructor, and this portable TCK does not assume a particular encoding or that subtraction yields a representable negative value. Callback delivery and cleanup are scenario mechanics. Java provider execution is unsupported pending an adapter/provider and is not conformance evidence.",
       "java_test": "org.hla.rti.tck.RtiTckMain#modifyLookaheadContract",
       "parity": "cpp-tck.modify-lookahead",
       "default_status": "unsupported",

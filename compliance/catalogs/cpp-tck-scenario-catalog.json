@@ -30897,6 +30897,7 @@
         "cpp-1516.1-time-advance-and-grant",
         "cpp-1516.1-time-role-callbacks",
         "cpp-1516.1-time-management-negative-boundaries",
+        "requirement-candidate-content-clauses-08-time-management-page-204-l38-9",
         "requirement-candidate-content-clauses-08-time-management-page-208-l168-45",
         "requirement-candidate-content-clauses-08-time-management-page-209-l75-19"
       ],
@@ -30906,8 +30907,9 @@
         "standard-modify-lookahead-requirements-contract.json",
         "time-role-requirements-contract.json"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.20.4", "hla-1516.1-2025:clause-8.21.5"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.15.3", "hla-1516.1-2025:clause-8.20.4", "hla-1516.1-2025:clause-8.21.5"],
       "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l38-9", "standard_section": "hla-1516.1-2025:clause-8.15.3"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l66-15", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l72-17", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l75-18", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
@@ -30917,7 +30919,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l168-45", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-209-l75-19", "standard_section": "hla-1516.1-2025:clause-8.21.5"}
       ],
-      "mapping_note": "Direct mappings to §8.20.4 cover the Modify Lookahead request, zero acceptance, immediate increase, deferred decrease, decrease as logical time advances, and reaching the requested value. Page 208 l168 specifically covers RTI retention of the requested lower value: Query Lookahead continues to report the old actual value while the decrease is pending, then reports the stepwise decrease on later grants. The §8.21.5 mapping directly covers Query Lookahead returning current actual lookahead before and after increases, while a decrease is pending, and as grants gradually apply it. Query/modify precondition and invalid-input exception probes are supplemental; grant setup, callback delivery, and cleanup are not separately mapped. This is experimental test evidence, not provider conformance.",
+      "mapping_note": "The §8.15.3 mapping covers the pending-decrease formula: after a one-epsilon advance, actual lookahead falls from three epsilon to two, then reaches the requested one epsilon after the next grant. Direct mappings to §8.20.4 cover the Modify Lookahead request, zero acceptance, immediate increase, deferred decrease, decrease as logical time advances, and reaching the requested value. Page 208 l168 specifically covers RTI retention of the requested lower value: Query Lookahead continues to report the old actual value while the decrease is pending, then reports the stepwise decrease on later grants. The §8.21.5 mapping directly covers Query Lookahead returning current actual lookahead before and after increases, while a decrease is pending, and as grants gradually apply it. Query/modify precondition and invalid-input exception probes are supplemental; callback delivery and cleanup are not separately mapped. This is experimental test evidence, not provider conformance.",
       "native_equivalent_runner_ids": [
         "cpp-tck.modify-lookahead"
       ],
@@ -30947,6 +30949,7 @@
         "FederateAmbassador.timeAdvanceGrant"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-204-l38-9",
         "requirement-candidate-content-clauses-08-time-management-page-208-l66-15",
         "requirement-candidate-content-clauses-08-time-management-page-208-l72-17",
         "requirement-candidate-content-clauses-08-time-management-page-208-l75-18",
@@ -30961,8 +30964,9 @@
         "standard-modify-lookahead-requirements-contract.json",
         "time-role-requirements-contract.json"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.20.4", "hla-1516.1-2025:clause-8.21.5"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.15.3", "hla-1516.1-2025:clause-8.20.4", "hla-1516.1-2025:clause-8.21.5"],
       "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l38-9", "standard_section": "hla-1516.1-2025:clause-8.15.3"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l66-15", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l72-17", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l75-18", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
@@ -30972,7 +30976,7 @@
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l168-45", "standard_section": "hla-1516.1-2025:clause-8.20.4"},
         {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-209-l75-19", "standard_section": "hla-1516.1-2025:clause-8.21.5"}
       ],
-      "mapping_note": "Direct mappings to §8.20.4 cover the Modify Lookahead request, zero acceptance, immediate increase, deferred decrease, decrease as logical time advances, and reaching the requested value. Page 208 l168 specifically covers RTI retention of the requested lower value: Query Lookahead continues to report the old actual value while the decrease is pending, then reports the stepwise decrease on later grants. The §8.21.5 mapping directly covers Query Lookahead returning current actual lookahead before and after increases, while a decrease is pending, and as grants gradually apply it. Query/modify precondition and invalid-input exception probes are supplemental; grant setup, callback delivery, and cleanup are not separately mapped. This is experimental test evidence, not provider conformance.",
+      "mapping_note": "Contract twin of the primary scenario. The §8.15.3 mapping covers its two-grant pending-lookahead formula; §8.20.4 covers the Modify Lookahead behavior and §8.21.5 covers Query Lookahead's actual values. Query/modify precondition and invalid-input exception probes are supplemental; callback delivery and cleanup are not separately mapped. This is experimental test evidence, not provider conformance.",
       "cpp_test": "src/portable_tck.cpp#scenarioModifyLookaheadContract",
       "runner_id": "cpp-tck.modify-lookahead-contract",
       "parity": "cpp-tck.modify-lookahead",

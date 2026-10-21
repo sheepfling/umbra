@@ -69,21 +69,15 @@ final class ModifyLookaheadTck {
          JavaTckSupport.check(increasedLookahead.equals(regulator.queryLookahead()),
             "Query Lookahead did not expose an increased lookahead immediately");
 
-         LogicalTimeInterval zero = (LogicalTimeInterval) timeFactory.makeZero();
-         JavaTckSupport.expectFailure(() -> regulator.modifyLookahead(zero),
-            "InvalidLookahead", "zero Modify Lookahead");
-         JavaTckSupport.check(increasedLookahead.equals(regulator.queryLookahead()),
-            "a rejected Modify Lookahead changed the active interval");
-
          regulator.modifyLookahead(epsilon);
          JavaTckSupport.check(increasedLookahead.equals(regulator.queryLookahead()),
             "a lower requested lookahead was applied before a grant");
 
          LogicalTime initialRegulatorTime = regulator.queryLogicalTime();
          LogicalTime initialConstrainedTime = constrained.queryLogicalTime();
-         LogicalTime target = add(initialRegulatorTime, intervalOffset(epsilon, 12));
+         LogicalTime target = add(initialRegulatorTime, intervalOffset(epsilon, 3));
          LogicalTime constrainedTarget = add(
-            initialConstrainedTime, intervalOffset(epsilon, 12));
+            initialConstrainedTime, intervalOffset(epsilon, 3));
          JavaTckSupport.check(target.equals(constrainedTarget),
             "federates did not derive a common advance target");
          regulator.timeAdvanceRequest(target);
@@ -109,8 +103,24 @@ final class ModifyLookaheadTck {
             "the regulator logical time did not advance to the requested target");
          JavaTckSupport.check(constrainedTarget.equals(constrained.queryLogicalTime()),
             "the constrained logical time did not advance to the requested target");
+         JavaTckSupport.check(intervalOffset(epsilon, 3).equals(regulator.queryLookahead()),
+            "the pending lookahead did not decrease by the first grant's time advance");
+
+         LogicalTime finalTarget = add(initialRegulatorTime, intervalOffset(epsilon, 6));
+         LogicalTime constrainedFinalTarget = add(
+            initialConstrainedTime, intervalOffset(epsilon, 6));
+         regulator.timeAdvanceRequest(finalTarget);
+         constrained.timeAdvanceRequest(constrainedFinalTarget);
+         JavaTckSupport.drain(regulator);
+         JavaTckSupport.drain(constrained);
+         JavaTckSupport.check(regulatorRecorder.timeAdvanceGrants == 2
+               && constrainedRecorder.timeAdvanceGrants == 2,
+            "the second gradual-decrease TAR did not complete for both federates");
+         JavaTckSupport.check(finalTarget.equals(regulator.queryLogicalTime())
+               && constrainedFinalTarget.equals(constrained.queryLogicalTime()),
+            "the second grant did not reach the requested logical times");
          JavaTckSupport.check(epsilon.equals(regulator.queryLookahead()),
-            "the deferred lower lookahead was not applied by the grant");
+            "the pending lookahead did not reach its requested value after the second grant");
          LogicalTime earlierTarget = add(initialRegulatorTime, intervalOffset(epsilon, 3));
          JavaTckSupport.expectFailure(() -> regulator.timeAdvanceRequest(earlierTarget),
             "LogicalTimeAlreadyPassed", "time advance request behind granted logical time");
