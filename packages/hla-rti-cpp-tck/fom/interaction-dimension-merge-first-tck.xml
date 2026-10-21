@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <modelIdentification><name>TCK Interaction Dimension Merge First</name><type>FOM</type></modelIdentification>
+  <interactions><interactionClass><name>HLAinteractionRoot</name>
+    <interactionClass><name>TckDimensionMergeInteraction</name><sharing>PublishSubscribe</sharing>
+      <dimensions><dimension>TckInteractionMergeFirstDimension</dimension></dimensions>
+      <transportation>HLAreliable</transportation><order>Receive</order>
+    </interactionClass>
+  </interactionClass></interactions>
+  <dimensions><dimension>
+    <name>TckInteractionMergeFirstDimension</name>
+    <inputDataTypes><dataType>HLAcount</dataType></inputDataTypes>
+    <inputDataDescription>NA</inputDataDescription><upperBound>100</upperBound>
+    <normalization>Fixture normalization.</normalization>
+    <outputDataSemantics>Fixture normalized coordinate.</outputDataSemantics>
+    <value>[0..100)</value>
+  </dimension></dimensions>
+</objectModel>

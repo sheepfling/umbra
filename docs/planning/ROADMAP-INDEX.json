@@ -1,4 +1,13 @@
 {
+  "portable_tck_fom_class_dimension_merge_handoff_2026_10_21": {
+    "status": "verified-installed-package",
+    "scope": "Translate two native-green 2025 Clause 7 available-dimension union cases into independent pure public-API object-class and interaction-class portable C++ primary/contract IDs with Java parity, without region services.",
+    "sources": "cpp/tests/annex_c_available_class_dimensions_catch2.cpp; cpp/tests/annex_c_available_interaction_class_dimensions_catch2.cpp; packages/hla-rti-cpp-tck/src/tck_fom_class_dimension_merge.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomClassDimensionMergeTck.java",
+    "direct_mapping": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l30-7 -> IEEE 1516.2-2025 Clause 7",
+    "evidence": "Native focused CTest passed 2/2. Installed-package MinGW/Ninja CTest passed 8/8 and direct runner passed 8/8 under HLA_EVOKED and HLA_IMMEDIATE (out/mgw/class-dimension-merge-20261021.json). C++ and Java catalogs validate, parity audit passes, and Java compiles against the API-only JAR. Java provider runtime remains unverified.",
+    "scope_boundary": "Object and interaction classes use distinct pairs of adapter-owned, schema-valid FOMs. Public joined-member queries establish exactly two available dimensions on each merged class. No region services, conflicting-dimension branch, Java provider runtime, interoperability, or conformance is claimed.",
+    "next": "Check the pinned page-110/page-111 Annex C.3 extendable-variant wording and RL-319 before translating the native named-alternative union. Keep a clipped candidate out of promoted normative claims and do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_matching_data_types_handoff_2026_10_21": {
     "status": "verified-installed-package",
     "scope": "Translate the native-green IEEE 1516.2-2025 Annex C.3 matching named data-type declarations across eight categories into portable C++ primary/contract IDs with Java API parity.",

@@ -8430,6 +8430,38 @@
       "exclusion": "Configure hla.rti.tck.matchingDataTypesFirstFom and matchingDataTypesSecondFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-object-class-dimension-merge",
+      "category": "fom-composition",
+      "title": "Merge available dimensions on one named object class",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.joinFederationExecution", "RTIambassador.getDimensionHandle", "RTIambassador.getObjectClassHandle", "RTIambassador.getAvailableDimensionsForObjectClass", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l30-7"],
+      "standard_sections": ["hla-1516.2-2025:clause-7"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l30-7", "standard_section": "hla-1516.2-2025:clause-7"}],
+      "mapping_note": "Standard Java API parity for independent module acceptance and same-named object-class available-dimension union. No region operation; Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-class-dimension-merge-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomObjectClassDimensionMerge",
+      "parity": "cpp-tck.fom-object-class-dimension-merge",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.objectDimensionMergeFirstFom and objectDimensionMergeSecondFom for a 2025 Java provider; runtime unverified."
+    },
+    {
+      "id": "java-tck.fom-interaction-class-dimension-merge",
+      "category": "fom-composition",
+      "title": "Merge available dimensions on one named interaction class",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.joinFederationExecution", "RTIambassador.getDimensionHandle", "RTIambassador.getInteractionClassHandle", "RTIambassador.getAvailableDimensionsForInteractionClass", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l30-7"],
+      "standard_sections": ["hla-1516.2-2025:clause-7"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l30-7", "standard_section": "hla-1516.2-2025:clause-7"}],
+      "mapping_note": "Standard Java API parity for independent module acceptance and same-named interaction-class available-dimension union. No region operation; Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-class-dimension-merge-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomInteractionClassDimensionMerge",
+      "parity": "cpp-tck.fom-interaction-class-dimension-merge",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.interactionDimensionMergeFirstFom and interactionDimensionMergeSecondFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-standard-invalid-input-corpus",
       "category": "fom-lifecycle",
       "title": "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",

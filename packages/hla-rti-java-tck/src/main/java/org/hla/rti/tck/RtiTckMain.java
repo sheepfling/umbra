@@ -80,6 +80,14 @@ public final class RtiTckMain {
       "hla.rti.tck.matchingDataTypesFirstFom";
    private static final String MATCHING_DATA_TYPES_SECOND_FOM_PROPERTY =
       "hla.rti.tck.matchingDataTypesSecondFom";
+   private static final String OBJECT_DIMENSION_MERGE_FIRST_FOM_PROPERTY =
+      "hla.rti.tck.objectDimensionMergeFirstFom";
+   private static final String OBJECT_DIMENSION_MERGE_SECOND_FOM_PROPERTY =
+      "hla.rti.tck.objectDimensionMergeSecondFom";
+   private static final String INTERACTION_DIMENSION_MERGE_FIRST_FOM_PROPERTY =
+      "hla.rti.tck.interactionDimensionMergeFirstFom";
+   private static final String INTERACTION_DIMENSION_MERGE_SECOND_FOM_PROPERTY =
+      "hla.rti.tck.interactionDimensionMergeSecondFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1622,6 +1630,18 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomMatchingDataTypes);
+      run(new Scenario("java-tck.fom-object-class-dimension-merge",
+            "Merge disjoint available dimensions on one named object class",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;RTIambassador.getObjectClassHandle;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomObjectClassDimensionMerge);
+      run(new Scenario("java-tck.fom-interaction-class-dimension-merge",
+            "Merge disjoint available dimensions on one named interaction class",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getAvailableDimensionsForInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomInteractionClassDimensionMerge);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11306,6 +11326,10 @@ public final class RtiTckMain {
             method = "fomObjectClassSemanticsConflict"; break;
          case "java-tck.fom-matching-data-types":
             method = "fomMatchingDataTypes"; break;
+         case "java-tck.fom-object-class-dimension-merge":
+            method = "fomObjectClassDimensionMerge"; break;
+         case "java-tck.fom-interaction-class-dimension-merge":
+            method = "fomInteractionClassDimensionMerge"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -12832,6 +12856,20 @@ public final class RtiTckMain {
          requireAdapterFile(MATCHING_DATA_TYPES_FIRST_FOM_PROPERTY),
          requireAdapterFile(MATCHING_DATA_TYPES_SECOND_FOM_PROPERTY),
          timeImplementation(), callbackModel());
+   }
+
+   private static void fomObjectClassDimensionMerge() throws Exception {
+      FomClassDimensionMergeTck.run(factory(),
+         requireAdapterFile(OBJECT_DIMENSION_MERGE_FIRST_FOM_PROPERTY),
+         requireAdapterFile(OBJECT_DIMENSION_MERGE_SECOND_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), false);
+   }
+
+   private static void fomInteractionClassDimensionMerge() throws Exception {
+      FomClassDimensionMergeTck.run(factory(),
+         requireAdapterFile(INTERACTION_DIMENSION_MERGE_FIRST_FOM_PROPERTY),
+         requireAdapterFile(INTERACTION_DIMENSION_MERGE_SECOND_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), true);
    }
 
    private static void fomStandardInvalidInputCorpus() throws Exception {

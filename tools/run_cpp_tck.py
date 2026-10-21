@@ -696,6 +696,14 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/matching-data-types-first-tck.xml")),
             "matching-data-types-second="
             + str(default_path("packages/hla-rti-cpp-tck/fom/matching-data-types-second-tck.xml")),
+            "object-dimension-merge-first="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/object-dimension-merge-first-tck.xml")),
+            "object-dimension-merge-second="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/object-dimension-merge-second-tck.xml")),
+            "interaction-dimension-merge-first="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/interaction-dimension-merge-first-tck.xml")),
+            "interaction-dimension-merge-second="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/interaction-dimension-merge-second-tck.xml")),
         ]
     scenario_foms: list[str] = []
     seen_scenario_foms: set[str] = set()
