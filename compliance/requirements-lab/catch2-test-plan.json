@@ -34260,7 +34260,7 @@
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
       "requirements_lab_api_surface_status": "Two joined candidates request the same unowned attribute through the official 2025 C++ If Available service over a configured process endpoint. The bounded HLA_EVOKED case requires one acquisition notification, one unavailable callback, and a public ownership query naming the actual winner, without assuming which candidate wins. It does not establish all regular-acquisition arbitration, timing, transport interoperability, or conformance.",
-      "next_action": "Keep evoked and pushed competing outcomes and the queried winner green. Add a distinct regular-acquisition pending/release-denied competition, package/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
+      "next_action": "Native evoked and pushed competing outcomes passed 2/2 focused CTests. The pure C++ TCK primary/contract pair passed 4/4 direct installed-package runs and 4/4 focused CTests in both callback models (out/mgw/ownership-competing-if-available-candidate-20261021.json), and Java parity compiles against the official 2025 API JAR without provider-runtime execution. Keep regular-acquisition pending/release-denied competition, interoperability, Lab validation, and conformance evidence separate."
     },
     {
       "id": "umbra-cpp-process-competing-ownership-if-available-push",

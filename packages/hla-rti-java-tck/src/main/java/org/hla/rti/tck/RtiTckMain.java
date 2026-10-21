@@ -4367,6 +4367,12 @@ public final class RtiTckMain {
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.queryAttributeOwnership;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.attributeOwnershipAcquisition;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.informAttributeOwnership;FederateAmbassador.attributeIsNotOwned;FederateAmbassador.attributeOwnershipAcquisitionNotification",
              new String[] {"cpp-1516.1-ownership-management"}, false),
           RtiTckMain::ownershipReacquisitionQuery);
+       run(new Scenario("java-tck.ownership-competing-if-available-query",
+             "resolve two If Available contenders and query the actual winning owner",
+             "ownership",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.queryAttributeOwnership;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.attributeIsNotOwned;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.attributeOwnershipUnavailable;FederateAmbassador.informAttributeOwnership",
+             new String[] {"cpp-1516.1-ownership-management"}, false),
+          RtiTckMain::ownershipCompetingIfAvailableQuery);
        run(new Scenario("java-tck.attribute-ownership-query-owner-report",
              "query a published object's attribute owner and verify the standard ownership report",
              "ownership",
@@ -8147,6 +8153,11 @@ public final class RtiTckMain {
 
    private static void ownershipReacquisitionQuery() throws Exception {
       OwnershipReacquisitionQueryTck.run(factory(), requireFom(), objectClassName(),
+         attributeName(), callbackModel());
+   }
+
+   private static void ownershipCompetingIfAvailableQuery() throws Exception {
+      OwnershipCompetingIfAvailableTck.run(factory(), requireFom(), objectClassName(),
          attributeName(), callbackModel());
    }
 
@@ -11994,6 +12005,8 @@ public final class RtiTckMain {
              method = "ownershipTransitionQuery"; break;
           case "java-tck.ownership-reacquisition-query":
              method = "ownershipReacquisitionQuery"; break;
+          case "java-tck.ownership-competing-if-available-query":
+             method = "ownershipCompetingIfAvailableQuery"; break;
           case "java-tck.attribute-ownership-query-owner-report":
              method = "attributeOwnershipQueryOwnerReport"; break;
          case "java-tck.ownership-acquisition-if-available":

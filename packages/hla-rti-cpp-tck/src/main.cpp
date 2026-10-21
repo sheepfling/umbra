@@ -141,6 +141,7 @@ void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
 #include "tck_ownership_denial_query.hpp"
 #include "tck_ownership_transition_query.hpp"
 #include "tck_ownership_reacquisition_query.hpp"
+#include "tck_ownership_competing_if_available.hpp"
 #include "tck_timestamped_interaction_boundary_scenarios.hpp"
 #include "tck_region_lifecycle_scenarios.hpp"
 #include "tck_data_encoding.hpp"
@@ -19385,6 +19386,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.ownership-transition-query-contract",
       "cpp-tck.ownership-reacquisition-query",
       "cpp-tck.ownership-reacquisition-query-contract",
+      "cpp-tck.ownership-competing-if-available-query",
+      "cpp-tck.ownership-competing-if-available-query-contract",
       "cpp-tck.directed-interaction-no-applicable-subscription",
       "cpp-tck.directed-interaction-subscription-accumulation",
       "cpp-tck.directed-interaction-derived-object-target-contract",
@@ -22851,6 +22854,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.ownership-reacquisition-query-contract") {
     return scenarioOwnershipReacquisitionQueryContract;
+  }
+  if (id == "cpp-tck.ownership-competing-if-available-query") {
+    return scenarioOwnershipCompetingIfAvailable;
+  }
+  if (id == "cpp-tck.ownership-competing-if-available-query-contract") {
+    return scenarioOwnershipCompetingIfAvailableContract;
   }
   if (id == "cpp-tck.directed-interaction-no-applicable-subscription") {
     return scenarioDirectedInteractionNoApplicableSubscription;

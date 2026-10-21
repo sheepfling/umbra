@@ -38823,6 +38823,34 @@
       "default_status": "unsupported",
       "promotion": "candidate",
       "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, endpoint, and callback model; provider runtime has not been executed."
+    },
+    {
+      "id": "java-tck.ownership-competing-if-available-query",
+      "category": "ownership",
+      "title": "Resolve two If Available contenders and query the actual winning owner",
+      "api_methods": ["RTIambassador.connect(callback model supplied by adapter)", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.publishObjectClassAttributes", "RTIambassador.registerObjectInstance", "RTIambassador.unconditionalAttributeOwnershipDivestiture", "RTIambassador.queryAttributeOwnership", "RTIambassador.attributeOwnershipAcquisitionIfAvailable", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.discoverObjectInstance", "FederateAmbassador.attributeIsNotOwned", "FederateAmbassador.attributeOwnershipAcquisitionNotification", "FederateAmbassador.attributeOwnershipUnavailable", "FederateAmbassador.informAttributeOwnership"],
+      "requirement_ids": ["cpp-1516.1-ownership-management"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36", "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27", "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31", "requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34", "requirement-candidate-content-clauses-07-ownership-management-page-163-l147-43", "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1", "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.2", "hla-1516.1-2025:clause-7.7.3", "hla-1516.1-2025:clause-7.9.1", "hla-1516.1-2025:clause-7.10", "hla-1516.1-2025:clause-7.17.5", "hla-1516.1-2025:clause-7.18.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36", "standard_section": "hla-1516.1-2025:clause-7.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27", "standard_section": "hla-1516.1-2025:clause-7.7.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31", "standard_section": "hla-1516.1-2025:clause-7.9.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34", "standard_section": "hla-1516.1-2025:clause-7.9.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l147-43", "standard_section": "hla-1516.1-2025:clause-7.9.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1", "standard_section": "hla-1516.1-2025:clause-7.10"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
+      ],
+      "mapping_note": "Standard-API Java parity for the native-green competing If Available public ownership-query outcome. The source compiles against the official 2025 API JAR; no Java provider runtime or conformance is claimed.",
+      "contract_refs": ["standard-ownership-competing-if-available-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#ownershipCompetingIfAvailableQuery",
+      "parity": "cpp-tck.ownership-competing-if-available-query",
+      "default_status": "unsupported",
+      "promotion": "candidate",
+      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, endpoint, and callback model; provider runtime has not been executed."
     }
   ],
   "exclusions": [
