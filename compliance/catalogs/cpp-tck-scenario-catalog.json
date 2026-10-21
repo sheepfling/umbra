@@ -25377,21 +25377,41 @@
         "FederateAmbassador.timeConstrainedEnabled"
       ],
       "requirement_ids": [
-        "cpp-1516.1-time-role-callbacks"
+        "cpp-1516.1-time-role-callbacks",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l66-18",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l69-19",
+        "requirement-candidate-content-clauses-08-time-management-page-182-l100-31"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-08-time-management-page-192-l78-22"
+        "requirement-candidate-content-clauses-08-time-management-page-192-l66-18",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l69-19",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l78-22",
+        "requirement-candidate-content-clauses-08-time-management-page-182-l100-31"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-8.6"
+        "hla-1516.1-2025:clause-8.6.3",
+        "hla-1516.1-2025:clause-8.6",
+        "hla-1516.1-2025:clause-8.1.6"
       ],
       "requirement_mappings": [
         {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l66-18",
+          "standard_section": "hla-1516.1-2025:clause-8.6.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l69-19",
+          "standard_section": "hla-1516.1-2025:clause-8.6.3"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l78-22",
           "standard_section": "hla-1516.1-2025:clause-8.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l100-31",
+          "standard_section": "hla-1516.1-2025:clause-8.1.6"
         }
       ],
-      "mapping_note": "Direct mapping: page-192 l78-80 -> canonical §8.6, using the source-backed RL-342 crosswalk. The case enables Time Regulation, records the federate's current logical time, then enables Time Constrained and checks the Time Constrained Enabled argument equals that current time. This is a focused witness for the regulating-federate condition only; it does not assert a prescribed GALT formula, the complete service algorithm, or conformance.",
+      "mapping_note": "Direct §8.6.3 mappings page-192 l66 and l69 cover the Time Constrained Enabled callback argument: after the federate becomes time-regulating at time five, its callback reports that same new/current logical time. The l69 extraction fragment is read with its page-level continuation (RL-333); RL-354 corrects a prior TAG-test link. Page-192 l78-80 maps to canonical §8.6 via RL-342, and page-182 l100-103 to §8.1.6 via RL-352. This does not assert a prescribed GALT formula, every enablement branch, complete service algorithm, or conformance.",
       "contract_refs": [
         "time-role-api-contract.json",
         "time-role-requirements-contract.json"
@@ -25416,21 +25436,41 @@
         "FederateAmbassador.timeConstrainedEnabled"
       ],
       "requirement_ids": [
-        "cpp-1516.1-time-role-callbacks"
+        "cpp-1516.1-time-role-callbacks",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l66-18",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l69-19",
+        "requirement-candidate-content-clauses-08-time-management-page-182-l100-31"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-08-time-management-page-192-l78-22"
+        "requirement-candidate-content-clauses-08-time-management-page-192-l66-18",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l69-19",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l78-22",
+        "requirement-candidate-content-clauses-08-time-management-page-182-l100-31"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-8.6"
+        "hla-1516.1-2025:clause-8.6.3",
+        "hla-1516.1-2025:clause-8.6",
+        "hla-1516.1-2025:clause-8.1.6"
       ],
       "requirement_mappings": [
         {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l66-18",
+          "standard_section": "hla-1516.1-2025:clause-8.6.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l69-19",
+          "standard_section": "hla-1516.1-2025:clause-8.6.3"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l78-22",
           "standard_section": "hla-1516.1-2025:clause-8.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l100-31",
+          "standard_section": "hla-1516.1-2025:clause-8.1.6"
         }
       ],
-      "mapping_note": "Contract twin direct mapping: page-192 l78-80 -> canonical §8.6 via RL-342. It establishes the regulating role before constrained enablement and compares the callback argument with Query Logical Time. This narrow API-level witness does not define GALT or claim complete-service coverage/conformance.",
+      "mapping_note": "Contract twin: §8.6.3 page-192 l66/l69 covers the Time Constrained Enabled argument equaling the already-regulating federate's new/current logical time; l69 uses the page-level continuation tracked as RL-333, and RL-354 corrects the prior TAG-test link. Page-192 l78-80 maps to canonical §8.6 via RL-342; page-182 l100-103 maps to §8.1.6 via RL-352. This narrow API-level witness does not define GALT or claim every enablement branch, complete-service coverage, or conformance.",
       "contract_refs": [
         "time-role-api-contract.json",
         "time-role-requirements-contract.json"

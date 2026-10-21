@@ -863,3 +863,21 @@ before using that contract as evidence. This is a local traceability defect,
 not IEEE errata or a provider-conformance finding. No Requirements Lab resync
 was performed. Sources: `cpp/tests/order_type_control_catch2.cpp` and
 `cpp/tests/ieee1516_2025_connection_object_registration_catch2.cpp`.
+
+### RL-354 — Time Advance Grant case claimed a Time Constrained Enabled argument rule
+
+The Catch2 row `umbra-cpp-time-advance-grant-requested-logical-time` selected
+`requirement-candidate-content-clauses-08-time-management-page-192-l66-18`
+under §8.6.3, but its assertions inspect a Time Advance Grant and a
+Query Logical Time result, not the Time Constrained Enabled argument. The
+page-192 requirement concerns the new logical time conveyed by Time
+Constrained Enabled. The adjacent regulating-federate case does inspect that
+callback argument after advancing to time five and compares it with Query
+Logical Time; it also covers the page-192-l69-19 continuation tracked by
+RL-333.
+
+Impact: move the §8.6.3 candidate to the regulating-federate Catch2 row and
+its already-green portable C++/Java parity, leaving the grant case mapped
+only to its §8.14 result rule. This is a local traceability correction, not
+IEEE errata or a new provider-conformance claim. No Requirements Lab resync
+was performed. Source: `cpp/tests/available_time_advance_inclusive_galt_catch2.cpp`.

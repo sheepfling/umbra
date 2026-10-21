@@ -12948,18 +12948,32 @@
         "FederateAmbassador.timeAdvanceGrant",
         "FederateAmbassador.timeConstrainedEnabled"
       ],
-      "requirement_ids": ["cpp-1516.1-time-role-callbacks"],
+      "requirement_ids": [
+        "cpp-1516.1-time-role-callbacks",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l66-18",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l69-19"
+      ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-192-l66-18",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l69-19",
         "requirement-candidate-content-clauses-08-time-management-page-192-l78-22"
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.6"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.6", "hla-1516.1-2025:clause-8.6.3"],
       "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l66-18",
+          "standard_section": "hla-1516.1-2025:clause-8.6.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l69-19",
+          "standard_section": "hla-1516.1-2025:clause-8.6.3"
+        },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l78-22",
           "standard_section": "hla-1516.1-2025:clause-8.6"
         }
       ],
-      "mapping_note": "Direct mapping is limited to the regulating-federate branch of §8.6: after enabling Time Regulation and advancing to time five, the Time Constrained Enabled callback argument equals Query Logical Time before and after the enablement. This does not prescribe a GALT formula or establish the complete service algorithm.",
+      "mapping_note": "Direct §8.6.3 mappings page-192 l66/l69 cover the Time Constrained Enabled argument equaling the already-regulating federate's new/current logical time after it advances to five. The l69 fragment uses its page-level continuation (RL-333); RL-354 records removal of a prior false TAG-test link. The §8.6 mapping remains limited to this regulating-federate branch. No GALT formula or complete service algorithm is claimed. Java provider runtime remains unverified.",
       "contract_refs": [
         "time-role-api-contract.json",
         "time-role-requirements-contract.json"
