@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "A public-API translation of the native-green 123-assertion HLA_EVOKED three-member default-source regional attribute restore case. An ordinary object registration yields a default source region; two adapter-configured regional subscribers each receive the saved timestamped update after independent Flush Queue Requests. Post-save Retract terminalizes the original designator; restore recovers both pending copies and live retraction state. The callbacks preserve value, tag, producer, timestamp, empty but supplied region designator set, designator, grant times, and ordering; later Retract notifies both recipients. Isolated C++ primary/contract passed using only installed 2026-10-20 package libraries with integer64 and float64 time. The adapter supplies provider libraries, endpoint, IEEE 1516.2-2025 DDM FOM, object class, attribute, two dimensions, logical-time implementation, and HLA_EVOKED callback model. Java parity compiles against the official API-only JAR; Java provider runtime, HLA_IMMEDIATE, durable/process-boundary restore, interoperability, and conformance are unverified.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-default-region-attribute-multi-recipient",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador createRegion, setRangeBounds, commitRegionModifications, subscribeObjectClassAttributesWithRegions, setConveyRegionDesignatorSetsSwitch, registerObjectInstance, updateAttributeValues, timeAdvanceRequest, requestFederationSave, federateSaveBegun, federateSaveComplete, retract, requestFederationRestore, federateRestoreComplete, flushQueueRequest; FederateAmbassador federationSaved, federationRestored, reflectAttributeValues, flushQueueGrant, requestRetraction",
+      "source": "official IEEE 1516.1-2025 C++ headers and hla.rti1516_2025 Java API; adapter-selected IEEE 1516.2-2025 DDM FOM",
+      "source_symbol": "IEEE 1516.1-2025 evoked default-source regional timestamped attribute fanout and federation save/restore interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_default_region_attribute_restore_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped default-region attribute update to multiple recipients",
+        "packages/hla-rti-cpp-tck/src/tck_restore_default_region_attribute_multi_recipient.cpp::scenarioRestoreDefaultRegionAttributeMultiRecipient",
+        "packages/hla-rti-cpp-tck/src/tck_restore_default_region_attribute_multi_recipient.cpp::scenarioRestoreDefaultRegionAttributeMultiRecipientContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestoreDefaultRegionAttributeMultiRecipientTck.java::run"
+      ]
+    }
+  ]
+}
