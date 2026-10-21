@@ -740,6 +740,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/synchronization-duplicate-equal-tck.xml")),
             "synchronization-duplicate-note-conflict="
             + str(default_path("packages/hla-rti-cpp-tck/fom/synchronization-duplicate-note-conflict-tck.xml")),
+            "transportation-duplicate-base="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-duplicate-base-tck.xml")),
+            "transportation-duplicate-equal="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-duplicate-equal-tck.xml")),
+            "transportation-duplicate-note-conflict="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-duplicate-note-conflict-tck.xml")),
         ]
     scenario_foms: list[str] = []
     seen_scenario_foms: set[str] = set()

@@ -124,6 +124,12 @@ public final class RtiTckMain {
       "hla.rti.tck.synchronizationDuplicateEqualFom";
    private static final String SYNCHRONIZATION_DUPLICATE_NOTE_CONFLICT_FOM_PROPERTY =
       "hla.rti.tck.synchronizationDuplicateNoteConflictFom";
+   private static final String TRANSPORTATION_DUPLICATE_BASE_FOM_PROPERTY =
+      "hla.rti.tck.transportationDuplicateBaseFom";
+   private static final String TRANSPORTATION_DUPLICATE_EQUAL_FOM_PROPERTY =
+      "hla.rti.tck.transportationDuplicateEqualFom";
+   private static final String TRANSPORTATION_DUPLICATE_NOTE_CONFLICT_FOM_PROPERTY =
+      "hla.rti.tck.transportationDuplicateNoteConflictFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1738,6 +1744,18 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomSynchronizationDuplicateNoteConflict);
+      run(new Scenario("java-tck.fom-transportation-duplicate-equal",
+            "Accept identical same-name transportation declarations",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomTransportationDuplicateEqual);
+      run(new Scenario("java-tck.fom-transportation-duplicate-note-conflict",
+            "Reject a changed note reference on one transportation declaration",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomTransportationDuplicateNoteConflict);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11446,6 +11464,10 @@ public final class RtiTckMain {
             method = "fomSynchronizationDuplicateEqual"; break;
          case "java-tck.fom-synchronization-duplicate-note-conflict":
             method = "fomSynchronizationDuplicateNoteConflict"; break;
+         case "java-tck.fom-transportation-duplicate-equal":
+            method = "fomTransportationDuplicateEqual"; break;
+         case "java-tck.fom-transportation-duplicate-note-conflict":
+            method = "fomTransportationDuplicateNoteConflict"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -13057,6 +13079,20 @@ public final class RtiTckMain {
       FomSynchronizationDuplicateTck.run(factory(),
          requireAdapterFile(SYNCHRONIZATION_DUPLICATE_BASE_FOM_PROPERTY),
          requireAdapterFile(SYNCHRONIZATION_DUPLICATE_NOTE_CONFLICT_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), true);
+   }
+
+   private static void fomTransportationDuplicateEqual() throws Exception {
+      FomTransportationDuplicateTck.run(factory(),
+         requireAdapterFile(TRANSPORTATION_DUPLICATE_BASE_FOM_PROPERTY),
+         requireAdapterFile(TRANSPORTATION_DUPLICATE_EQUAL_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), false);
+   }
+
+   private static void fomTransportationDuplicateNoteConflict() throws Exception {
+      FomTransportationDuplicateTck.run(factory(),
+         requireAdapterFile(TRANSPORTATION_DUPLICATE_BASE_FOM_PROPERTY),
+         requireAdapterFile(TRANSPORTATION_DUPLICATE_NOTE_CONFLICT_FOM_PROPERTY),
          timeImplementation(), callbackModel(), true);
    }
 

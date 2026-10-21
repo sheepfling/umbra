@@ -70,5 +70,9 @@ void scenarioFomSynchronizationDuplicateEqual(Options const&, rti::CallbackModel
 void scenarioFomSynchronizationDuplicateEqualContract(Options const&, rti::CallbackModel);
 void scenarioFomSynchronizationDuplicateNoteConflict(Options const&, rti::CallbackModel);
 void scenarioFomSynchronizationDuplicateNoteConflictContract(Options const&, rti::CallbackModel);
+void scenarioFomTransportationDuplicateEqual(Options const&, rti::CallbackModel);
+void scenarioFomTransportationDuplicateEqualContract(Options const&, rti::CallbackModel);
+void scenarioFomTransportationDuplicateNoteConflict(Options const&, rti::CallbackModel);
+void scenarioFomTransportationDuplicateNoteConflictContract(Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

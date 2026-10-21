@@ -8622,6 +8622,38 @@
       "exclusion": "Configure hla.rti.tck.synchronizationDuplicateBaseFom and synchronizationDuplicateNoteConflictFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-transportation-duplicate-equal",
+      "category": "fom-composition",
+      "title": "Accept identical same-name transportation declarations",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.joinFederationExecution", "RTIambassador.getTransportationTypeHandle", "RTIambassador.getTransportationTypeName", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l34-3"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.6"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l34-3", "standard_section": "hla-1516.2-2025:clause-C.6"}],
+      "mapping_note": "Standard Java API parity for equal user-defined transportation declarations and joined handle lookup. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-transportation-duplicate-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomTransportationDuplicateEqual",
+      "parity": "cpp-tck.fom-transportation-duplicate-equal",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.transportationDuplicateBaseFom and transportationDuplicateEqualFom for a 2025 Java provider; runtime unverified."
+    },
+    {
+      "id": "java-tck.fom-transportation-duplicate-note-conflict",
+      "category": "fom-composition",
+      "title": "Reject a changed note reference on one transportation declaration",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l38-4"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.6"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l38-4", "standard_section": "hla-1516.2-2025:clause-C.6"}],
+      "mapping_note": "Standard Java API parity for a referenced-note transportation conflict and valid federation-name retry. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-transportation-duplicate-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomTransportationDuplicateNoteConflict",
+      "parity": "cpp-tck.fom-transportation-duplicate-note-conflict",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.transportationDuplicateBaseFom and transportationDuplicateNoteConflictFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-standard-invalid-input-corpus",
       "category": "fom-lifecycle",
       "title": "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",

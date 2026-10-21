@@ -1,4 +1,16 @@
 {
+  "portable_tck_fom_transportation_duplicate_handoff_2026_10_21": {
+    "status": "verified-installed-package",
+    "scope": "Translate IEEE 1516.2-2025 Annex C.6 equal transportation duplicate and referenced-note conflict into separate pure official-API C++ primary/contract cases with Java scenario parity, using FOM-supplied user-defined transportation declarations rather than private MIM injection.",
+    "sources": "cpp/tests/libxml2_fom_composer_catch2.cpp:578 (native generic rule, MIM setup); packages/hla-rti-cpp-tck/src/tck_fom_transportation_duplicate.cpp (public FOM witness); packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomTransportationDuplicateTck.java",
+    "direct_mappings": [
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l34-3 -> IEEE 1516.2-2025 Annex C.6 equal duplicate ignore",
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-112-l38-4 -> IEEE 1516.2-2025 Annex C.6 duplicate identity"
+    ],
+    "evidence": "Native generic-rule focused CTest passed 1/1 with MIM modules and its stale plan pointer was corrected. Three adapter-owned FOM modules passed the official pinned DIF XSD. The FOM-supplied portable witness independently passed installed-package MinGW/Ninja CTest 8/8 and direct runner 8/8 across HLA_EVOKED and HLA_IMMEDIATE (out/mgw/transportation-duplicate-20261021.json). C++ and Java catalogs validate, parity audit passes, and Java compiles against the API-only JAR. Java provider runtime remains unverified.",
+    "scope_boundary": "Public Create accepts an equal user-defined transportation duplicate, joined lookup resolves its name, and a note-reference mismatch raises InconsistentFOM with valid name reuse. Private MIM replacement, private catalog row count, transport delivery, other element conflicts, Java provider runtime, interoperability, and conformance are not claimed. Provider library, FOMs, endpoint, logical time, and callback model remain adapter-owned.",
+    "next": "Inspect the native-green Annex C.7 update-rate duplicate rule and exact pinned mappings; use schema-valid FOM-supplied public Create and joined lookup where available, then gate against the installed package with Java API-only parity. Do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_synchronization_duplicate_handoff_2026_10_21": {
     "status": "verified-installed-package",
     "scope": "Translate native-green IEEE 1516.2-2025 Annex C.5 equal synchronization-point duplication and referenced-note conflict into separate pure official-API C++ primary/contract cases with Java scenario parity.",
