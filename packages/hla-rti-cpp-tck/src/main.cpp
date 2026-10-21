@@ -19548,6 +19548,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.attribute-value-update-request-baseline-contract",
       "cpp-tck.object-class-attribute-value-update-request-baseline",
       "cpp-tck.object-class-attribute-value-update-request-baseline-contract",
+      "cpp-tck.object-class-timestamped-provider-response",
+      "cpp-tck.object-class-timestamped-provider-response-contract",
       "cpp-tck.attribute-value-update-response",
       "cpp-tck.attribute-value-update-response-contract",
       "cpp-tck.attribute-value-update-request-multi-requester",
@@ -21225,6 +21227,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.object-class-attribute-value-update-request-baseline-contract") {
     return scenarioObjectClassAttributeValueUpdateRequestBaselineContract;
+  }
+  if (id == "cpp-tck.object-class-timestamped-provider-response") {
+    return scenarioObjectClassTimestampedProviderResponse;
+  }
+  if (id == "cpp-tck.object-class-timestamped-provider-response-contract") {
+    return scenarioObjectClassTimestampedProviderResponseContract;
   }
   if (id == "cpp-tck.attribute-value-update-response") {
     return scenarioAttributeValueUpdateResponse;
@@ -23334,7 +23342,9 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied standard MIM";
       } else if ((scenario == "cpp-tck.auto-provide" ||
-                  scenario == "cpp-tck.auto-provide-contract") &&
+                  scenario == "cpp-tck.auto-provide-contract" ||
+                  scenario == "cpp-tck.object-class-timestamped-provider-response" ||
+                  scenario == "cpp-tck.object-class-timestamped-provider-response-contract") &&
                  options.autoProvideFom.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied Auto Provide FOM";

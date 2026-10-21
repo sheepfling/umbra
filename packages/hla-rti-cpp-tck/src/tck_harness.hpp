@@ -734,9 +734,18 @@ class Recorder final : public rti::FederateAmbassador {
       rti::ObjectInstanceHandle const& object,
       rti::AttributeHandleSet const& attributes,
       rti::VariableLengthData const& tag) override {
-    std::lock_guard<std::mutex> lock(mutex_);
-    providedUpdates_.push_back(
-        AttributeValueRequestRecord{object, attributes, copyBytes(tag)});
+    std::function<void(rti::ObjectInstanceHandle const&,
+                       rti::AttributeHandleSet const&,
+                       rti::VariableLengthData const&)> hook;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      providedUpdates_.push_back(
+          AttributeValueRequestRecord{object, attributes, copyBytes(tag)});
+      hook = provideAttributeValueUpdateHook_;
+    }
+    if (hook) {
+      hook(object, attributes, tag);
+    }
   }
 
   void turnUpdatesOnForObjectInstance(
@@ -1345,6 +1354,14 @@ class Recorder final : public rti::FederateAmbassador {
     ownershipReleaseHook_ = std::move(hook);
   }
 
+  void setProvideAttributeValueUpdateHook(
+      std::function<void(rti::ObjectInstanceHandle const&,
+                         rti::AttributeHandleSet const&,
+                         rti::VariableLengthData const&)> hook) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    provideAttributeValueUpdateHook_ = std::move(hook);
+  }
+
   void setTimedReflectionHook(
       std::function<void(rti::RegionHandleSet const*)> hook) {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -1579,6 +1596,9 @@ class Recorder final : public rti::FederateAmbassador {
   std::vector<FlushQueueGrantRecord> flushQueueGrants_;
   std::vector<std::string> callbackOrder_;
   std::vector<AttributeValueRequestRecord> providedUpdates_;
+  std::function<void(rti::ObjectInstanceHandle const&,
+                     rti::AttributeHandleSet const&,
+                     rti::VariableLengthData const&)> provideAttributeValueUpdateHook_;
   std::optional<OwnershipInformationRecord> ownershipInformation_;
   std::vector<OwnershipInformationRecord> ownershipInformationEvents_;
   std::optional<OwnershipEventRecord> ownershipAssumption_;

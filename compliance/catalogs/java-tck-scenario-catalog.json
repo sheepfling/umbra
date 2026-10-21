@@ -3507,6 +3507,32 @@
       "exclusion": "Requires an adapter-supplied typed base/derived FOM and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider."
     },
     {
+      "id": "java-tck.object-class-timestamped-provider-response",
+      "category": "object-management",
+      "title": "Deliver a timestamped response to an object-class attribute-value request",
+      "api_methods": ["RTIambassador.requestAttributeValueUpdate(class)", "FederateAmbassador.provideAttributeValueUpdate", "RTIambassador.updateAttributeValues(time)", "FederateAmbassador.reflectAttributeValues(time)", "RTIambassador.timeAdvanceRequest", "FederateAmbassador.timeAdvanceGrant", "RTIambassador.retract"],
+      "requirement_ids": ["cpp-1516.1-attribute-value-update-request", "cpp-1516.1-timestamped-attribute-update", "cpp-1516.1-timestamped-attribute-reflect"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-06-object-management-page-135-l140-37", "requirement-candidate-content-clauses-06-object-management-page-135-l143-38", "requirement-candidate-content-clauses-06-object-management-page-135-l146-39", "requirement-candidate-content-clauses-06-object-management-page-135-l152-41", "requirement-candidate-content-clauses-06-object-management-page-136-l12-2", "requirement-candidate-content-clauses-06-object-management-page-136-l21-5", "requirement-candidate-content-clauses-06-object-management-page-137-l43-9", "requirement-candidate-content-clauses-08-time-management-page-184-l91-26", "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "requirement-candidate-content-clauses-08-time-management-page-210-l21-3"],
+      "standard_sections": ["hla-1516.1-2025:clause-6.21", "hla-1516.1-2025:clause-6.21.5", "hla-1516.1-2025:clause-6.22", "hla-1516.1-2025:clause-8.1.5", "hla-1516.1-2025:clause-8.1.6", "hla-1516.1-2025:clause-8.22.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l140-37", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l143-38", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l146-39", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l152-41", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l12-2", "standard_section": "hla-1516.1-2025:clause-6.21.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5", "standard_section": "hla-1516.1-2025:clause-6.21.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9", "standard_section": "hla-1516.1-2025:clause-6.22" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26", "standard_section": "hla-1516.1-2025:clause-8.1.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "standard_section": "hla-1516.1-2025:clause-8.1.6" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3", "standard_section": "hla-1516.1-2025:clause-8.22.3" }
+      ],
+      "mapping_note": "Java parity uses only the official API and adapter-supplied Auto Provide FOM. API-only compilation is required; Java provider runtime is not yet verified. No provider-internal scheduling claim.",
+      "contract_refs": ["standard-object-class-timestamped-provider-response-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#objectClassTimestampedProviderResponse",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied Auto Provide FOM and IEEE 1516.1-2025 Java provider; provider-runtime result remains unverified."
+    },
+    {
       "id": "java-tck.attribute-value-update-response",
       "category": "object-management",
       "title": "Complete an ordinary instance-scoped value request with provider update and reflection",

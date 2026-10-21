@@ -8788,6 +8788,95 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.object-class-timestamped-provider-response",
+      "category": "object-management",
+      "title": "Deliver a timestamped response to an object-class attribute-value request",
+      "api_methods": [
+        "RTIambassador.requestAttributeValueUpdate(class)",
+        "FederateAmbassador.provideAttributeValueUpdate",
+        "RTIambassador.updateAttributeValues(time)",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.timeAdvanceRequest",
+        "FederateAmbassador.timeAdvanceGrant",
+        "RTIambassador.retract"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-attribute-value-update-request",
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-135-l140-37",
+        "requirement-candidate-content-clauses-06-object-management-page-135-l143-38",
+        "requirement-candidate-content-clauses-06-object-management-page-135-l146-39",
+        "requirement-candidate-content-clauses-06-object-management-page-135-l152-41",
+        "requirement-candidate-content-clauses-06-object-management-page-136-l12-2",
+        "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
+        "requirement-candidate-content-clauses-06-object-management-page-137-l43-9",
+        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+        "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+        "requirement-candidate-content-clauses-08-time-management-page-210-l21-3"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.21",
+        "hla-1516.1-2025:clause-6.21.5",
+        "hla-1516.1-2025:clause-6.22",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.22.3"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l140-37", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l143-38", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l146-39", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l152-41", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l12-2", "standard_section": "hla-1516.1-2025:clause-6.21.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5", "standard_section": "hla-1516.1-2025:clause-6.21.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9", "standard_section": "hla-1516.1-2025:clause-6.22" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26", "standard_section": "hla-1516.1-2025:clause-8.1.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "standard_section": "hla-1516.1-2025:clause-8.1.6" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3", "standard_section": "hla-1516.1-2025:clause-8.22.3" }
+      ],
+      "mapping_note": "Official-API class request followed by a timestamped provider response, reflection before grant, and post-delivery retraction boundary. Native focused CTest passed 1/1; installed-package primary/contract passed 4/4 direct runs and 4/4 focused CTests across evoked/immediate callback models (out/mgw/object-class-timestamped-response-20261021.json). The adapter supplies the Auto Provide FOM and logical time; internal scheduling and Java provider runtime are not claimed.",
+      "contract_refs": ["standard-object-class-timestamped-provider-response-contract.json"],
+      "cpp_test": "src/tck_object_class_timestamped_provider_response.cpp#scenarioObjectClassTimestampedProviderResponse",
+      "runner_id": "cpp-tck.object-class-timestamped-provider-response",
+      "parity": "java-tck.object-class-timestamped-provider-response",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.object-class-timestamped-provider-response-contract",
+      "category": "object-management",
+      "title": "Portable contract for timestamped object-class request response",
+      "api_methods": ["RTIambassador.requestAttributeValueUpdate(class)", "FederateAmbassador.provideAttributeValueUpdate", "RTIambassador.updateAttributeValues(time)", "FederateAmbassador.reflectAttributeValues(time)", "RTIambassador.timeAdvanceRequest", "RTIambassador.retract"],
+      "requirement_ids": ["cpp-1516.1-attribute-value-update-request", "cpp-1516.1-timestamped-attribute-update", "cpp-1516.1-timestamped-attribute-reflect"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-06-object-management-page-135-l140-37", "requirement-candidate-content-clauses-06-object-management-page-135-l143-38", "requirement-candidate-content-clauses-06-object-management-page-135-l146-39", "requirement-candidate-content-clauses-06-object-management-page-135-l152-41", "requirement-candidate-content-clauses-06-object-management-page-136-l12-2", "requirement-candidate-content-clauses-06-object-management-page-136-l21-5", "requirement-candidate-content-clauses-06-object-management-page-137-l43-9", "requirement-candidate-content-clauses-08-time-management-page-184-l91-26", "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "requirement-candidate-content-clauses-08-time-management-page-210-l21-3"],
+      "standard_sections": ["hla-1516.1-2025:clause-6.21", "hla-1516.1-2025:clause-6.21.5", "hla-1516.1-2025:clause-6.22", "hla-1516.1-2025:clause-8.1.5", "hla-1516.1-2025:clause-8.1.6", "hla-1516.1-2025:clause-8.22.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l140-37", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l143-38", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l146-39", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l152-41", "standard_section": "hla-1516.1-2025:clause-6.21" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l12-2", "standard_section": "hla-1516.1-2025:clause-6.21.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5", "standard_section": "hla-1516.1-2025:clause-6.21.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9", "standard_section": "hla-1516.1-2025:clause-6.22" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26", "standard_section": "hla-1516.1-2025:clause-8.1.5" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "standard_section": "hla-1516.1-2025:clause-8.1.6" },
+        { "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3", "standard_section": "hla-1516.1-2025:clause-8.22.3" }
+      ],
+      "mapping_note": "Runs the same public API assertions as the primary scenario. Installed-package primary/contract passed 4/4 direct runs and 4/4 focused CTests across evoked/immediate callback models (out/mgw/object-class-timestamped-response-20261021.json).",
+      "contract_refs": ["standard-object-class-timestamped-provider-response-contract.json"],
+      "cpp_test": "src/tck_object_class_timestamped_provider_response.cpp#scenarioObjectClassTimestampedProviderResponseContract",
+      "runner_id": "cpp-tck.object-class-timestamped-provider-response-contract",
+      "parity": "cpp-tck.object-class-timestamped-provider-response",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.attribute-value-update-response",
       "category": "object-management",
       "title": "Complete ordinary attribute-value request, provider response, and reflection metadata",

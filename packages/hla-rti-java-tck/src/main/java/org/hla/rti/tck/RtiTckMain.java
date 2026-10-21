@@ -867,6 +867,15 @@ public final class RtiTckMain {
                "cpp-1516.1-object-registration-discovery",
                "cpp-1516.1-attribute-value-update-request"
             }, false), RtiTckMain::objectClassAttributeValueUpdateRequestBaseline);
+      run(new Scenario("java-tck.object-class-timestamped-provider-response",
+            "timestamped response to an object-class attribute-value request",
+            "object-management",
+            "RTIambassador.requestAttributeValueUpdate(class);FederateAmbassador.provideAttributeValueUpdate;RTIambassador.updateAttributeValues(time);FederateAmbassador.reflectAttributeValues(time);RTIambassador.timeAdvanceRequest;FederateAmbassador.timeAdvanceGrant;RTIambassador.retract",
+            new String[] {
+               "cpp-1516.1-attribute-value-update-request",
+               "cpp-1516.1-timestamped-attribute-update",
+               "cpp-1516.1-timestamped-attribute-reflect"
+            }, false), RtiTckMain::objectClassTimestampedProviderResponse);
       run(new Scenario("java-tck.attribute-value-update-response",
             "answer an instance-scoped value request and verify receive-order reflection metadata",
             "object-management",
@@ -11019,6 +11028,8 @@ public final class RtiTckMain {
             method = "attributeValueUpdateRequestBaseline"; break;
          case "java-tck.object-class-attribute-value-update-request-baseline":
             method = "objectClassAttributeValueUpdateRequestBaseline"; break;
+         case "java-tck.object-class-timestamped-provider-response":
+            method = "objectClassTimestampedProviderResponse"; break;
          case "java-tck.attribute-value-update-response":
             method = "attributeValueUpdateResponse"; break;
          case "java-tck.attribute-value-request-service-boundaries":
@@ -13196,6 +13207,12 @@ public final class RtiTckMain {
           timeImplementation(), typedObjectClassName(), typedDerivedObjectClassName(),
           typedIdentityAttributeName(), typedIntegerAttributeName(), typedDerivedAttributeName(),
           callbackModel());
+    }
+
+    private static void objectClassTimestampedProviderResponse() throws Exception {
+       ObjectClassTimestampedProviderResponseTck.run(factory(), requireAutoProvideFom(),
+          timeImplementation(), requireAdapterValue(AUTO_PROVIDE_OBJECT_CLASS_PROPERTY),
+          requireAdapterValue(AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY), callbackModel());
     }
 
     private static void attributeValueUpdateResponse() throws Exception {

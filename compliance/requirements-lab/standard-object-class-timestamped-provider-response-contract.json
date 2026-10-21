@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ object-class Request Attribute Value Update followed by a timestamped provider response. The provider library, endpoint, Auto Provide FOM, logical-time implementation, and callback model are adapter-owned. Only official IEEE 1516.1-2025 C++ RTIambassador and FederateAmbassador interfaces are used. The focused native case passed 1/1; installed-package primary/contract passed 4/4 direct runs and 4/4 focused CTests across both callback models (out/mgw/object-class-timestamped-response-20261021.json). Java parity compiles against the API-only JAR; Java provider runtime remains unverified. No general interoperability or conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-object-class-timestamped-provider-response",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador requestAttributeValueUpdate(class), updateAttributeValues(time), timeAdvanceRequest, retract; FederateAmbassador provideAttributeValueUpdate, reflectAttributeValues(time), timeAdvanceGrant",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador and FederateAmbassador declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_object_class_timestamped_provider_response.cpp::scenarioObjectClassTimestampedProviderResponseContract"
+      ]
+    }
+  ]
+}

@@ -31,6 +31,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_auto_provide_scenarios.cpp
   src/tck_receive_order_callback_cancellation.cpp
   src/tck_attribute_value_update_request_response.cpp
+  src/tck_object_class_timestamped_provider_response.cpp
   src/tck_update_rate_scenarios.cpp
   src/tck_federation_mom_content_scenarios.cpp
   src/tck_federation_synchronization_mom_queries.cpp

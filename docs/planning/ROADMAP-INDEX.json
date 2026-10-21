@@ -1,4 +1,17 @@
 {
+  "portable_tck_object_class_timestamped_provider_response_handoff_2026_10_21": {
+    "status": "verified-installed-package",
+    "scope": "Translate the native object-class Request Attribute Value Update and timestamped provider response case into official-API portable C++ primary/contract cases and Java scenario-ID parity.",
+    "source": "packages/hla-rti-cpp-tck/src/tck_object_class_timestamped_provider_response.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/ObjectClassTimestampedProviderResponseTck.java",
+    "direct_mappings": [
+      "object-class request and provider callback -> IEEE 1516.1-2025 §§6.21, 6.21.5, 6.22",
+      "time roles and advance -> IEEE 1516.1-2025 §§8.1.5, 8.1.6",
+      "post-delivery retraction boundary -> IEEE 1516.1-2025 §8.22.3"
+    ],
+    "evidence": "Native focused CTest passed 1/1; installed-package MinGW/Ninja C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/object-class-timestamped-response-20261021.json). C++ and Java catalogs validate, parity audit passes, and Java compiles against the API-only JAR.",
+    "scope_boundary": "The adapter owns the package, endpoint, Auto Provide FOM, logical-time implementation, and callback model. Java provider runtime remains unverified. No provider-internal scheduling assertion.",
+    "next": "Select the next bounded native-green object-management lane; a process-endpoint companion for timestamped provider responses remains separate. Keep Java provider-runtime validation and general conformance claims outside this slice."
+  },
   "portable_tck_time_regulation_actual_lookahead_handoff": "Verified 2026-10-21: translated the native-green Enable Time Regulation actual-lookahead interaction-send boundary into portable official-API C++ primary/contract scenarios and standard-API-only Java parity. Direct mappings are pinned page-190 l64 and l67 to canonical IEEE 1516.1-2025 §8.3.4 using the existing time-role crosswalk; no other producer family is claimed. The native baseline passed its focused CTest. The isolated installed-package TCK build passed 4/4 focused CTests and 4/4 direct scenarios under both callback models with HLAinteger64Time; the same binary passed 4/4 direct with HLAfloat64Time. Package-binding and focused result validation passed. Evidence: out/mgw/tck-regulation-enable-20261021/results.json and float-results.json. Java compiles against the official 2025 API JAR and catalog/parity validate, but no Java provider runtime is installed, so no Java runtime or conformance claim. Next: use an adapter-supplied 2025 Java provider to execute this focused parity scenario under both callback models; separately select the next native-green §8.3.4 timestamped producer family or another directly mapped portable gap before further promotion.",
   "github_issues_resolution_2026_10_20_handoff": {
     "status": "complete",

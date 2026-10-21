@@ -532,6 +532,8 @@ void scenarioObjectAttributeSubscriptionLifecycle(Options const&, rti::CallbackM
 void scenarioObjectAttributeSubscriptionLifecycleContract(Options const&, rti::CallbackModel);
 void scenarioObjectClassAttributeValueUpdateRequestBaseline(Options const&, rti::CallbackModel);
 void scenarioObjectClassAttributeValueUpdateRequestBaselineContract(Options const&, rti::CallbackModel);
+void scenarioObjectClassTimestampedProviderResponse(Options const&, rti::CallbackModel);
+void scenarioObjectClassTimestampedProviderResponseContract(Options const&, rti::CallbackModel);
 void scenarioObjectManagement(Options const&, rti::CallbackModel);
 void scenarioObjectManagementContract(Options const&, rti::CallbackModel);
 void scenarioObjectNameReservationLifecycle(Options const&, rti::CallbackModel);
