@@ -12391,11 +12391,13 @@
         "FederateAmbassador.receiveInteraction(time)"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-212-l42-7",
         "requirement-candidate-content-clauses-08-time-management-page-212-l48-9",
         "requirement-candidate-content-clauses-08-time-management-page-213-l94-26",
         "requirement-candidate-content-clauses-08-time-management-page-214-l87-22"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-212-l42-7",
         "requirement-candidate-content-clauses-08-time-management-page-212-l48-9",
         "requirement-candidate-content-clauses-08-time-management-page-213-l94-26",
         "requirement-candidate-content-clauses-08-time-management-page-214-l87-22"
@@ -12406,6 +12408,10 @@
         "hla-1516.1-2025:clause-8.26.4"
       ],
       "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-212-l42-7",
+          "standard_section": "hla-1516.1-2025:clause-8.24.4"
+        },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-212-l48-9",
           "standard_section": "hla-1516.1-2025:clause-8.24.4"
@@ -12419,7 +12425,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.26.4"
         }
       ],
-      "mapping_note": "Maps only the standard OrderType behaviors intended by parity: prospective class defaults, per-instance attribute order effect on later updates, and interaction order effect on the later send (§§8.24.4, 8.25.3, 8.26.4). Time-management setup/grant callbacks and delivery mechanics are not mapped. Java remains unsupported pending provider execution; Java OrderType is an enum and has no equivalent to a C++ invalid-enum cast, and no conformance claim is made.",
+      "mapping_note": "Maps only the standard OrderType behaviors intended by parity: registration captures the then-current class attribute-order default (§8.24.4 page-212-l42-7), class-default changes affect later registrations, a per-instance override affects later updates, and an interaction-order change affects the later publisher send (§§8.24.4, 8.25.3, 8.26.4). Time-management setup/grant callbacks and delivery mechanics are not mapped. Java remains unsupported pending provider execution; Java OrderType is an enum and has no equivalent to a C++ invalid-enum cast, and no conformance claim is made.",
       "contract_refs": [
         "order-type-api-contract.json",
         "order-type-requirements-contract.json",

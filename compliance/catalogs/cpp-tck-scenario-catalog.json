@@ -11736,6 +11736,24 @@
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-interaction-parameter-delivery"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-212-l42-7",
+        "requirement-candidate-content-clauses-08-time-management-page-212-l48-9",
+        "requirement-candidate-content-clauses-08-time-management-page-213-l94-26",
+        "requirement-candidate-content-clauses-08-time-management-page-214-l87-22"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.24.4",
+        "hla-1516.1-2025:clause-8.25.3",
+        "hla-1516.1-2025:clause-8.26.4"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-212-l42-7", "standard_section": "hla-1516.1-2025:clause-8.24.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-212-l48-9", "standard_section": "hla-1516.1-2025:clause-8.24.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-213-l94-26", "standard_section": "hla-1516.1-2025:clause-8.25.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-214-l87-22", "standard_section": "hla-1516.1-2025:clause-8.26.4"}
+      ],
+      "mapping_note": "Direct witnesses: registering an object after each class-default change captures the then-current Receive/TimeStamp attribute order (§8.24.4 page-212-l42-7; §8.25.3 page-213-l94-26); an explicit per-instance change affects a later attribute update (§8.24.4 page-212-l48-9); and a publisher interaction-order change affects a later send (§8.26.4 page-214-l87-22). One publisher and one receiver are used. No FOM-initial order, ownership-transfer reset, second-publisher default, invalid-argument validation, or complete order matrix is claimed.",
       "contract_refs": [
         "order-type-api-contract.json",
         "order-type-requirements-contract.json",
@@ -11791,6 +11809,24 @@
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-interaction-parameter-delivery"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-212-l42-7",
+        "requirement-candidate-content-clauses-08-time-management-page-212-l48-9",
+        "requirement-candidate-content-clauses-08-time-management-page-213-l94-26",
+        "requirement-candidate-content-clauses-08-time-management-page-214-l87-22"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.24.4",
+        "hla-1516.1-2025:clause-8.25.3",
+        "hla-1516.1-2025:clause-8.26.4"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-212-l42-7", "standard_section": "hla-1516.1-2025:clause-8.24.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-212-l48-9", "standard_section": "hla-1516.1-2025:clause-8.24.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-213-l94-26", "standard_section": "hla-1516.1-2025:clause-8.25.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-214-l87-22", "standard_section": "hla-1516.1-2025:clause-8.26.4"}
+      ],
+      "mapping_note": "Contract twin executes the same standard-API order-control scenario and the same scoped direct witnesses as the primary. Inheritance from the current class default, later per-instance update order, and later publisher interaction-send order are checked; ownership-transfer, per-federate isolation, FOM-initial defaults, invalid arguments, and complete conformance are not claimed.",
       "contract_refs": [
         "standard-order-type-controls-contract.json"
       ],
