@@ -1,7 +1,107 @@
 #include "tck_federation_mom_content_scenarios.hpp"
 #include "tck_main_scenarios.hpp"
+#include <regex>
 
 namespace hla_rti_cpp_tck::detail {
+
+namespace {
+
+bool disconnectServiceUsed(std::wstring const& fdd) {
+  // HLAcurrentFDD is a standard FDD, but XML whitespace, quote style, attribute
+  // order, and namespace-prefix choice are not part of this test's contract.
+  std::wregex const element(
+      LR"(<(?:[A-Za-z_][A-Za-z_0-9.-]*:)?disconnect\b[^>]*>)");
+  std::wregex const attribute(
+      LR"((section|isCallback|isUsed)\s*=\s*(['"])([^'"]*)\2)");
+  bool found = false;
+  bool used = false;
+  for (std::wsregex_iterator tag(fdd.begin(), fdd.end(), element), end;
+       tag != end; ++tag) {
+    std::wstring const xml = tag->str();
+    std::map<std::wstring, std::wstring> values;
+    for (std::wsregex_iterator field(xml.begin(), xml.end(), attribute);
+         field != end; ++field) {
+      values[(*field)[1].str()] = (*field)[3].str();
+    }
+    if (values[L"section"] == L"4.3" && values[L"isCallback"] == L"false") {
+      require(!found, "current FDD duplicated the disconnect service row");
+      require(values.count(L"isUsed") == 1U,
+              "current FDD omitted disconnect service usage");
+      found = true;
+      used = values[L"isUsed"] == L"true";
+      require(used || values[L"isUsed"] == L"false",
+              "current FDD returned a non-Boolean disconnect usage value");
+    }
+  }
+  require(found, "current FDD omitted the adapter's disconnect service row");
+  return used;
+}
+
+}  // namespace
+
+void scenarioFomServiceUsageMerge(Options const& options,
+                                  rti::CallbackModel model) {
+  require(!options.mimFom.empty(),
+          "service-usage merge requires an adapter-supplied standard MIM");
+  auto const first = options.scenarioFoms.find("service-usage-first");
+  auto const second = options.scenarioFoms.find("service-usage-second");
+  require(first != options.scenarioFoms.end() &&
+              second != options.scenarioFoms.end(),
+          "service-usage merge requires two adapter-supplied FOM modules");
+
+  Session creator(options, model, "service-usage-creator");
+  Session observer(options, model, "service-usage-observer");
+  auto const federation = federationName(options, "fom-service-usage-merge");
+  creator.connect();
+  observer.connect();
+  auto const readUsage = [&](std::vector<std::wstring> const& modules,
+                             bool expected) {
+    creator.rtiAmbassador().createFederationExecutionWithMIM(
+        federation, modules, options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+    observer.recorder().clearDiscovery();
+    observer.recorder().clearReflection();
+    observer.join(options.memberFederateName, options.federateType, federation);
+    auto const federationClass = observer.rtiAmbassador().getObjectClassHandle(
+        L"HLAobjectRoot.HLAmanager.HLAfederation");
+    auto const currentFdd = observer.rtiAmbassador().getAttributeHandle(
+        federationClass, L"HLAcurrentFDD");
+    rti::AttributeHandleSet const attributes{currentFdd};
+    observer.rtiAmbassador().subscribeObjectClassAttributes(
+        federationClass, attributes, true, L"");
+    waitFor(observer, [&] {
+      auto const discovery = observer.recorder().discovery();
+      return discovery.present && discovery.objectClass == federationClass &&
+          discovery.name == L"HLAfederation";
+    }, options, "the federation MOM object for service usage");
+    auto const object = observer.recorder().discovery().object;
+    observer.recorder().clearReflection();
+    observer.rtiAmbassador().requestAttributeValueUpdate(
+        object, attributes, rti::VariableLengthData{});
+    waitFor(observer, [&] {
+      auto const reflection = observer.recorder().reflection();
+      return reflection.present && reflection.object == object &&
+          reflection.values.count(currentFdd) == 1U;
+    }, options, "the composed current FDD for service usage");
+    rti::HLAunicodeString decoded;
+    decoded.decode(observer.recorder().reflection().values.at(currentFdd));
+    require(disconnectServiceUsed(decoded.get()) == expected,
+            "current FDD did not logically OR the disconnect service usage");
+    observer.resign(rti::NO_ACTION);
+    creator.rtiAmbassador().destroyFederationExecution(federation);
+  };
+  readUsage({first->second.wstring()}, false);
+  readUsage({second->second.wstring()}, true);
+  readUsage({first->second.wstring(), second->second.wstring()}, true);
+  readUsage({second->second.wstring(), first->second.wstring()}, true);
+  observer.disconnect();
+  creator.disconnect();
+}
+
+void scenarioFomServiceUsageMergeContract(Options const& options,
+                                          rti::CallbackModel model) {
+  scenarioFomServiceUsageMerge(options, model);
+}
 
 void scenarioFederationMomCurrentFdd(
     Options const& options,

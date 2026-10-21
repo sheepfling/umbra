@@ -67302,6 +67302,42 @@
       "native_equivalent_runner_ids": ["umbra-cpp-ownership-unpublish-owned-immediate-unowned"],
       "default_status": "adapter-required",
       "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-service-usage-merge",
+      "category": "fom-composition",
+      "title": "Current FDD logically ORs service utilization across FOM modules",
+      "api_methods": ["RTIambassador.createFederationExecutionWithMIM", "RTIambassador.joinFederationExecution", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.requestAttributeValueUpdate", "FederateAmbassador.reflectAttributeValues"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.10"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12", "standard_section": "hla-1516.2-2025:clause-C.10"}],
+      "mapping_note": "Native C.10 branch passed 16 assertions. Installed-package focused CTest and direct runs passed 4/4 each across both callback models (out/mgw/service-usage-merge-20261021.json). XML quote style, whitespace, namespace prefix, and attribute order are not asserted. C.9 note-label remapping is separate.",
+      "contract_refs": ["standard-fom-service-usage-merge-contract.json"],
+      "cpp_test": "src/tck_federation_mom_content_scenarios.cpp#scenarioFomServiceUsageMerge",
+      "runner_id": "cpp-tck.fom-service-usage-merge",
+      "parity": "java-tck.fom-service-usage-merge",
+      "native_equivalent_runner_ids": ["umbra-cpp-fom-notes-service-usage-merge"],
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-service-usage-merge-contract",
+      "category": "fom-composition",
+      "title": "Contract twin for FOM service-utilization OR merge",
+      "api_methods": ["RTIambassador.createFederationExecutionWithMIM", "RTIambassador.joinFederationExecution", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.requestAttributeValueUpdate", "FederateAmbassador.reflectAttributeValues"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.10"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12", "standard_section": "hla-1516.2-2025:clause-C.10"}],
+      "mapping_note": "Same public current-FDD assertion as the primary case; focused installed-package CTest and direct runs passed 4/4 each across both callback models.",
+      "contract_refs": ["standard-fom-service-usage-merge-contract.json"],
+      "cpp_test": "src/tck_federation_mom_content_scenarios.cpp#scenarioFomServiceUsageMergeContract",
+      "runner_id": "cpp-tck.fom-service-usage-merge-contract",
+      "parity": "cpp-tck.fom-service-usage-merge",
+      "native_equivalent_runner_ids": ["umbra-cpp-fom-notes-service-usage-merge"],
+      "default_status": "adapter-required",
+      "promotion": "promoted"
     }
   ]
 }

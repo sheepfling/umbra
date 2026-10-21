@@ -6,6 +6,8 @@ namespace hla_rti_cpp_tck::detail {
 
 void scenarioFederationMomCurrentFdd(Options const&, rti::CallbackModel);
 void scenarioFederationMomCurrentFddContract(Options const&, rti::CallbackModel);
+void scenarioFomServiceUsageMerge(Options const&, rti::CallbackModel);
+void scenarioFomServiceUsageMergeContract(Options const&, rti::CallbackModel);
 void scenarioFederationMomFomModuleDesignatorList(Options const&, rti::CallbackModel);
 void scenarioFederationMomFomModuleDesignatorListContract(
     Options const&, rti::CallbackModel);

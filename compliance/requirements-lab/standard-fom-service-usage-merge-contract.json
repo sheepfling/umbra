@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "verified-focused-installed-package-not-conformance-evidence",
+  "notes": "Portable official-API service-utilization OR witness. The adapter supplies the provider package, standard MIM, two FOM modules, endpoint, logical time, and callback model. The public HLAcurrentFDD federation MOM attribute exposes the composed FDD. C.9 note-label remapping, provider-specific labels, Java provider runtime, and interoperability are not claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-service-usage-merge",
+      "language": "cpp",
+      "signature": "RTIambassador Create/Join, federation MOM HLAcurrentFDD subscription and request; FederateAmbassador discovery and reflection",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_mom_content_scenarios.cpp::scenarioFomServiceUsageMerge",
+        "packages/hla-rti-cpp-tck/src/tck_federation_mom_content_scenarios.cpp::scenarioFomServiceUsageMergeContract"
+      ]
+    }
+  ],
+  "requirement_mappings": [
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12",
+      "standard_section": "hla-1516.2-2025:clause-C.10"
+    }
+  ]
+}

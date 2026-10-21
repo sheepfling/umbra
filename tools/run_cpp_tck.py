@@ -768,6 +768,10 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-enabled-tck.xml")),
             "advisory-switch-duplicate-omitted="
             + str(default_path("packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-omitted-tck.xml")),
+            "service-usage-first="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/service-usage-first-tck.xml")),
+            "service-usage-second="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/service-usage-second-tck.xml")),
         ]
     scenario_foms: list[str] = []
     seen_scenario_foms: set[str] = set()

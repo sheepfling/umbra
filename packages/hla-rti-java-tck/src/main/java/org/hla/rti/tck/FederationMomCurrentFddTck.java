@@ -20,6 +20,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
+import java.io.StringReader;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 final class FederationMomCurrentFddTck {
    private static final long CALLBACK_TIMEOUT_NANOS = 10_000_000_000L;
@@ -30,6 +36,25 @@ final class FederationMomCurrentFddTck {
    static void run(RtiFactory factory, String fom, String mim, String additionalFom,
          String timeImplementation, CallbackModel callbackModel, String federateType,
          String baseDeclaration, String extensionDeclaration) throws Exception {
+      runImpl(factory, fom, mim, additionalFom, timeImplementation, callbackModel,
+         federateType, baseDeclaration, extensionDeclaration, null);
+   }
+
+   static void runServiceUsageMerge(RtiFactory factory, String first, String second,
+         String mim, String timeImplementation, CallbackModel callbackModel,
+         String federateType) throws Exception {
+      runImpl(factory, first, mim, second, timeImplementation, callbackModel,
+         federateType, "TCK first service usage note.",
+         "TCK second service usage note.", Boolean.FALSE);
+      runImpl(factory, second, mim, first, timeImplementation, callbackModel,
+         federateType, "TCK second service usage note.",
+         "TCK first service usage note.", Boolean.TRUE);
+   }
+
+   private static void runImpl(RtiFactory factory, String fom, String mim,
+         String additionalFom, String timeImplementation, CallbackModel callbackModel,
+         String federateType, String baseDeclaration, String extensionDeclaration,
+         Boolean expectedBaseUsage) throws Exception {
       check(baseDeclaration != null && !baseDeclaration.isEmpty()
             && extensionDeclaration != null && !extensionDeclaration.isEmpty(),
          "current-FDD declaration markers must be adapter-configured and non-empty");
@@ -104,6 +129,10 @@ final class FederationMomCurrentFddTck {
             "base current-FDD value omitted the adapter FOM declaration");
          check(!baseFdd.contains(extensionDeclaration),
             "base current-FDD value already contained the extension declaration");
+         if (expectedBaseUsage != null) {
+            check(disconnectServiceUsed(baseFdd) == expectedBaseUsage.booleanValue(),
+               "base current FDD reported the wrong disconnect service usage");
+         }
 
          observerRecorder.clearReflection();
          extension.joinFederationExecution("java-tck-fdd-extension", federateType, federation,
@@ -118,6 +147,10 @@ final class FederationMomCurrentFddTck {
                && refreshedFdd.contains(extensionDeclaration)
                && refreshedFdd.length() > baseFdd.length(),
             "refreshed current-FDD value omitted the composed extension declaration");
+         if (expectedBaseUsage != null) {
+            check(disconnectServiceUsed(refreshedFdd),
+               "composed current FDD did not logically OR disconnect service usage");
+         }
 
          String requestedFdd = requestCurrentFdd(observer, observerRecorder, encoder,
             callbackModel, federationObject, currentFddAttribute, currentFddAttributes,
@@ -138,6 +171,30 @@ final class FederationMomCurrentFddTck {
          if (observerConnected) disconnect(observer);
          if (ownerConnected) disconnect(owner);
       }
+   }
+
+   private static boolean disconnectServiceUsed(String fdd) throws Exception {
+      DocumentBuilderFactory builder = DocumentBuilderFactory.newInstance();
+      builder.setNamespaceAware(true);
+      builder.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+      builder.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+      builder.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+      NodeList rows = builder.newDocumentBuilder()
+         .parse(new InputSource(new StringReader(fdd)))
+         .getElementsByTagNameNS("*", "disconnect");
+      Boolean found = null;
+      for (int index = 0; index < rows.getLength(); index++) {
+         Element row = (Element) rows.item(index);
+         if (!"4.3".equals(row.getAttribute("section"))
+               || !"false".equals(row.getAttribute("isCallback"))) continue;
+         check(found == null, "current FDD duplicated the disconnect service row");
+         String value = row.getAttribute("isUsed");
+         check("true".equals(value) || "false".equals(value),
+            "current FDD returned a non-Boolean disconnect usage value");
+         found = Boolean.valueOf(value);
+      }
+      check(found != null, "current FDD omitted the adapter disconnect service row");
+      return found.booleanValue();
    }
 
    private static String requestCurrentFdd(RTIambassador observer, Recorder recorder,

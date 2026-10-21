@@ -14353,6 +14353,7 @@
         "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12"
       ],
       "test_case": "The FDD materializer remaps referenced notes and logically ORs service usage",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:2217",
       "tags": [
         "unit",
         "fom",

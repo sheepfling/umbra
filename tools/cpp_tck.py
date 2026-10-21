@@ -60,6 +60,7 @@ STANDARD_HEADERS = {
     "memory",
     "mutex",
     "optional",
+    "regex",
     "set",
     "sstream",
     "stdexcept",

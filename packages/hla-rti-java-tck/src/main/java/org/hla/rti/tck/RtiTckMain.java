@@ -152,6 +152,10 @@ public final class RtiTckMain {
       "hla.rti.tck.advisorySwitchDuplicateEnabledFom";
    private static final String ADVISORY_SWITCH_DUPLICATE_OMITTED_FOM_PROPERTY =
       "hla.rti.tck.advisorySwitchDuplicateOmittedFom";
+   private static final String SERVICE_USAGE_FIRST_FOM_PROPERTY =
+      "hla.rti.tck.serviceUsageFirstFom";
+   private static final String SERVICE_USAGE_SECOND_FOM_PROPERTY =
+      "hla.rti.tck.serviceUsageSecondFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1826,6 +1830,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getAdvisoriesUseKnownClassSwitch;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomAdvisorySwitchDuplicateOmitted);
+      run(new Scenario("java-tck.fom-service-usage-merge",
+            "Logically OR service usage in the public composed current FDD",
+            "fom-composition",
+            "RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.subscribeObjectClassAttributes;RTIambassador.requestAttributeValueUpdate;FederateAmbassador.reflectAttributeValues",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomServiceUsageMerge);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11554,6 +11564,8 @@ public final class RtiTckMain {
             method = "fomAdvisorySwitchDuplicateOrder"; break;
          case "java-tck.fom-advisory-switch-duplicate-omitted":
             method = "fomAdvisorySwitchDuplicateOmitted"; break;
+         case "java-tck.fom-service-usage-merge":
+            method = "fomServiceUsageMerge"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -13236,6 +13248,14 @@ public final class RtiTckMain {
          requireAdapterFile(ADVISORY_SWITCH_DUPLICATE_DISABLED_FOM_PROPERTY),
          requireAdapterFile(ADVISORY_SWITCH_DUPLICATE_OMITTED_FOM_PROPERTY),
          timeImplementation(), callbackModel(), false, true);
+   }
+
+   private static void fomServiceUsageMerge() throws Exception {
+      FederationMomCurrentFddTck.runServiceUsageMerge(factory(),
+         requireAdapterFile(SERVICE_USAGE_FIRST_FOM_PROPERTY),
+         requireAdapterFile(SERVICE_USAGE_SECOND_FOM_PROPERTY), requireMim(),
+         timeImplementation(), callbackModel(),
+         System.getProperty("hla.rti.tck.federateType", "tck-type"));
    }
 
    private static void fomStandardInvalidInputCorpus() throws Exception {

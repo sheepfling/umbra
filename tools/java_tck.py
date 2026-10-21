@@ -194,7 +194,7 @@ def validate_sources() -> list[str]:
                 continue
             imported = match.group(1)
             if not (
-                imported.startswith(("java.", "javax."))
+                imported.startswith(("java.", "javax.", "org.w3c.dom.", "org.xml.sax."))
                 or imported == "hla.rti1516_2025"
                 or imported.startswith("hla.rti1516_2025.")
             ):

@@ -8782,6 +8782,22 @@
       "exclusion": "Configure hla.rti.tck.advisorySwitchDuplicateDisabledFom and advisorySwitchDuplicateOmittedFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-service-usage-merge",
+      "category": "fom-composition",
+      "title": "Current FDD logically ORs service utilization across FOM modules",
+      "api_methods": ["RTIambassador.createFederationExecutionWithMIM", "RTIambassador.joinFederationExecution", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.requestAttributeValueUpdate", "FederateAmbassador.reflectAttributeValues"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.10"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12", "standard_section": "hla-1516.2-2025:clause-C.10"}],
+      "mapping_note": "Standard Java API and JDK XML-parser parity for public current-FDD service-usage OR. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-service-usage-merge-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomServiceUsageMerge",
+      "parity": "cpp-tck.fom-service-usage-merge",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.serviceUsageFirstFom, hla.rti.tck.serviceUsageSecondFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-standard-invalid-input-corpus",
       "category": "fom-lifecycle",
       "title": "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
