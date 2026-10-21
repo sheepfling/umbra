@@ -103,6 +103,8 @@ struct Options {
   std::wstring typedInteractionClassName = L"HLAinteractionRoot.TckTypedInteraction";
   std::wstring typedDerivedInteractionClassName =
       L"HLAinteractionRoot.TckTypedInteraction.TckTypedDerivedInteraction";
+  std::wstring typedGrandchildInteractionClassName =
+      L"HLAinteractionRoot.TckTypedInteraction.TckTypedDerivedInteraction.TckTypedGrandchildInteraction";
   std::wstring typedIntegerParameterName = L"IntegerParameter";
   std::wstring typedAsciiParameterName = L"AsciiParameter";
   std::wstring typedFixedArrayParameterName = L"FixedArrayParameter";

@@ -19357,6 +19357,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.inherited-object-attribute-projection-contract",
       "cpp-tck.inherited-interaction-class-delivery",
       "cpp-tck.inherited-interaction-class-delivery-contract",
+      "cpp-tck.interaction-closest-ancestor-transition",
+      "cpp-tck.interaction-closest-ancestor-transition-contract",
       "cpp-tck.timestamped-inherited-interaction-class-delivery",
       "cpp-tck.timestamped-inherited-interaction-class-delivery-contract",
       "cpp-tck.directed-interaction-derived-object-target",
@@ -22762,6 +22764,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.inherited-interaction-class-delivery-contract") {
     return scenarioInheritedInteractionClassDeliveryContract;
   }
+  if (id == "cpp-tck.interaction-closest-ancestor-transition") {
+    return scenarioInteractionClosestAncestorTransition;
+  }
+  if (id == "cpp-tck.interaction-closest-ancestor-transition-contract") {
+    return scenarioInteractionClosestAncestorTransitionContract;
+  }
   if (id == "cpp-tck.timestamped-inherited-interaction-class-delivery") {
     return scenarioTimestampedInheritedInteractionClassDelivery;
   }
@@ -23095,6 +23103,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.inherited-object-attribute-projection-contract" ||
                   scenario == "cpp-tck.inherited-interaction-class-delivery" ||
                   scenario == "cpp-tck.inherited-interaction-class-delivery-contract" ||
+                  scenario == "cpp-tck.interaction-closest-ancestor-transition" ||
+                  scenario == "cpp-tck.interaction-closest-ancestor-transition-contract" ||
                    scenario == "cpp-tck.timestamped-inherited-interaction-class-delivery" ||
                    scenario == "cpp-tck.timestamped-inherited-interaction-class-delivery-contract" ||
                     scenario == "cpp-tck.directed-interaction-derived-object-target" ||

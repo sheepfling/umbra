@@ -397,6 +397,80 @@ void scenarioInheritedInteractionClassDeliveryContract(
   scenarioInheritedInteractionClassDelivery(options, model);
 }
 
+void scenarioInteractionClosestAncestorTransition(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Interaction closest-ancestor transition requires an adapter-supplied model FOM");
+
+  Session publisher(options, model, "interaction-closest-ancestor-publisher");
+  Session subscriber(options, model, "interaction-closest-ancestor-subscriber");
+  auto const federation = federationName(options, "interaction-closest-ancestor-transition");
+  connectAndJoin(publisher, subscriber, options, federation, options.modelFom);
+
+  auto& sender = publisher.rtiAmbassador();
+  auto& receiver = subscriber.rtiAmbassador();
+  auto const sentClass = sender.getInteractionClassHandle(
+      options.typedGrandchildInteractionClassName);
+  auto const baseClass = receiver.getInteractionClassHandle(
+      options.typedInteractionClassName);
+  auto const middleClass = receiver.getInteractionClassHandle(
+      options.typedDerivedInteractionClassName);
+  auto const exactClass = receiver.getInteractionClassHandle(
+      options.typedGrandchildInteractionClassName);
+  require(
+      sentClass.isValid() && baseClass.isValid() && middleClass.isValid() &&
+          exactClass.isValid() && sentClass == exactClass &&
+          baseClass != middleClass && middleClass != exactClass,
+      "adapter FOM did not provide a stable three-level interaction hierarchy");
+
+  sender.publishInteractionClass(sentClass);
+  rti::ParameterHandleValueMap const parameters;
+  rti::VariableLengthData const tag;
+  auto checkOneDelivery = [&](rti::InteractionClassHandle const& expected,
+                              std::string const& phase) {
+    subscriber.recorder().clearInteraction();
+    sender.sendInteraction(sentClass, parameters, tag);
+    waitFor(
+        subscriber,
+        [&] { return subscriber.recorder().interactions().size() >= 1U; },
+        options,
+        phase);
+    for (int pass = 0; pass != 8; ++pass) {
+      subscriber.pump();
+    }
+    auto const deliveries = subscriber.recorder().interactions();
+    require(
+        deliveries.size() == 1U && deliveries.front().interaction == expected &&
+            deliveries.front().parameters.empty(),
+        phase + " did not report exactly one callback at the closest subscribed class");
+  };
+
+  receiver.subscribeInteractionClass(baseClass, true);
+  checkOneDelivery(baseClass, "base-only ancestor subscription");
+  receiver.subscribeInteractionClass(middleClass, true);
+  checkOneDelivery(middleClass, "closest of two ancestor subscriptions");
+  receiver.subscribeInteractionClass(exactClass, true);
+  checkOneDelivery(exactClass, "exact sent-class subscription");
+
+  receiver.unsubscribeInteractionClass(exactClass);
+  receiver.unsubscribeInteractionClass(middleClass);
+  receiver.unsubscribeInteractionClass(baseClass);
+  sender.unpublishInteractionClass(sentClass);
+  subscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  sender.destroyFederationExecution(federation);
+  subscriber.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioInteractionClosestAncestorTransitionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioInteractionClosestAncestorTransition(options, model);
+}
+
 void scenarioTimestampedInheritedInteractionClassDelivery(
     Options const& options,
     rti::CallbackModel model) {

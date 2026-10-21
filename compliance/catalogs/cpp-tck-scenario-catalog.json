@@ -60836,15 +60836,17 @@
         "cpp-1516.2-fom-root-hierarchy"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-05-declaration-management-page-084-l17-5"
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l17-5",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l92-30"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-5.1.4"
       ],
       "requirement_mappings": [
-        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l17-5", "standard_section": "hla-1516.1-2025:clause-5.1.4" }
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l17-5", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l92-30", "standard_section": "hla-1516.1-2025:clause-5.1.4" }
       ],
-      "mapping_note": "Direct mapping to §5.1.4: the derived-class subscriber, which subscribes to the sent class, receives that same class handle passed to sendInteraction. The base subscriber's promoted received class and parameter projection are separate assertions and do not redefine the sent class.",
+      "mapping_note": "Direct §5.1.4 mappings: the derived-class subscriber receives the sent class handle (page-084-l17-5), while the base subscriber receives only the sent parameter available at its projected base class and the exact-class subscriber receives both sent parameters (page-084-l92-30). The reverse base-to-derived non-delivery is supplemental. This is an observed two-level projection, not every possible FDD hierarchy.",
       "contract_refs": [
         "standard-inherited-interaction-class-delivery-contract.json",
         "fom-root-hierarchy-requirements-contract.json",
@@ -60882,15 +60884,17 @@
         "cpp-1516.2-fom-root-hierarchy"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-05-declaration-management-page-084-l17-5"
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l17-5",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l92-30"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-5.1.4"
       ],
       "requirement_mappings": [
-        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l17-5", "standard_section": "hla-1516.1-2025:clause-5.1.4" }
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l17-5", "standard_section": "hla-1516.1-2025:clause-5.1.4" },
+        { "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l92-30", "standard_section": "hla-1516.1-2025:clause-5.1.4" }
       ],
-      "mapping_note": "Direct mapping to §5.1.4: the derived-class subscriber, which subscribes to the sent class, receives that same class handle passed to sendInteraction. The base subscriber's promoted received class and parameter projection are separate assertions and do not redefine the sent class.",
+      "mapping_note": "The contract twin checks the same exact-class handle (page-084-l17-5) and base-versus-derived received-parameter availability projection (page-084-l92-30) through the official callback. It does not claim all FDD hierarchies or provider-independent conformance.",
       "contract_refs": [
         "standard-inherited-interaction-class-delivery-contract.json",
         "fom-root-hierarchy-requirements-contract.json",
@@ -60899,6 +60903,97 @@
       "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioInheritedInteractionClassDeliveryContract",
       "runner_id": "cpp-tck.inherited-interaction-class-delivery-contract",
       "parity": "cpp-tck.inherited-interaction-class-delivery",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.interaction-closest-ancestor-transition",
+      "category": "interaction-class-inheritance",
+      "title": "Select the closest subscribed ancestor and then the exact sent interaction class",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-109-l10-1",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l25-6",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l28-7",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l79-24",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l82-25"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-109-l10-1",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l25-6",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l28-7",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l79-24",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l82-25"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-6.1.9"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l10-1", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l25-6", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l28-7", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l79-24", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l82-25", "standard_section": "hla-1516.1-2025:clause-6.1.9" }
+      ],
+      "mapping_note": "The official-API native equivalent is umbra-cpp-inherited-interaction-receipt-superclass-subscription-integration. A sent grandchild interaction is delivered once with the base callback class when only base is subscribed, once with the middle callback class when base and middle are subscribed, and once with the exact sent class when all three are subscribed. This directly witnesses the scoped §6.1.9 candidate/received-class selection rules; empty parameters isolate class selection and do not claim parameter filtering, DDM, directed delivery, or interoperability.",
+      "contract_refs": ["standard-interaction-closest-ancestor-transition-contract.json"],
+      "native_equivalent_runner_ids": ["umbra-cpp-inherited-interaction-receipt-superclass-subscription-integration"],
+      "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioInteractionClosestAncestorTransition",
+      "runner_id": "cpp-tck.interaction-closest-ancestor-transition",
+      "parity": "java-tck.interaction-closest-ancestor-transition",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.interaction-closest-ancestor-transition-contract",
+      "category": "interaction-class-inheritance",
+      "title": "Pure C++ public-API contract for closest-ancestor interaction receipt",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-109-l10-1",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l25-6",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l28-7",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l79-24",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l82-25"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-109-l10-1",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l25-6",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l28-7",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l79-24",
+        "requirement-candidate-content-clauses-06-object-management-page-109-l82-25"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-6.1.9"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l10-1", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l25-6", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l28-7", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l79-24", "standard_section": "hla-1516.1-2025:clause-6.1.9" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-109-l82-25", "standard_section": "hla-1516.1-2025:clause-6.1.9" }
+      ],
+      "mapping_note": "This contract twin runs the same public-API three-step closest-ancestor/exact-class assertions as the primary. It makes no claim about parameter filtering or provider-independent conformance.",
+      "contract_refs": ["standard-interaction-closest-ancestor-transition-contract.json"],
+      "native_equivalent_runner_ids": ["umbra-cpp-inherited-interaction-receipt-superclass-subscription-integration"],
+      "cpp_test": "src/tck_inherited_derived_delivery_scenarios.cpp#scenarioInteractionClosestAncestorTransitionContract",
+      "runner_id": "cpp-tck.interaction-closest-ancestor-transition-contract",
+      "parity": "cpp-tck.interaction-closest-ancestor-transition",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

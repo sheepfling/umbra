@@ -169,7 +169,95 @@ final class InheritedInteractionClassDeliveryTck {
       }
    }
 
-   private static void assertDelivery(RTIambassador receiver, Interaction actual,
+    static void runClosestAncestor(RtiFactory factory, String fom, String baseName,
+          String middleName, String childName, CallbackModel callbackModel) throws Exception {
+       RTIambassador publisher = factory.getRtiAmbassador();
+       RTIambassador subscriber = factory.getRtiAmbassador();
+       Recorder callbacks = new Recorder();
+       String federation = "java-tck-interaction-closest-ancestor-" + UUID.randomUUID();
+       boolean publisherConnected = false, subscriberConnected = false;
+       boolean created = false, publisherJoined = false, subscriberJoined = false;
+       boolean published = false, baseSubscribed = false, middleSubscribed = false;
+       boolean exactSubscribed = false;
+       InteractionClassHandle sentClass = null, baseClass = null, middleClass = null;
+       InteractionClassHandle exactClass = null;
+       try {
+          publisher.connect(noopFederateAmbassador(), callbackModel);
+          publisherConnected = true;
+          subscriber.connect(callbacks.proxy(), callbackModel);
+          subscriberConnected = true;
+          publisher.createFederationExecution(federation, fom);
+          created = true;
+          publisher.joinFederationExecution("java-tck-closest-ancestor-publisher", federation);
+          publisherJoined = true;
+          subscriber.joinFederationExecution("java-tck-closest-ancestor-subscriber", federation);
+          subscriberJoined = true;
+
+          sentClass = publisher.getInteractionClassHandle(childName);
+          baseClass = subscriber.getInteractionClassHandle(baseName);
+          middleClass = subscriber.getInteractionClassHandle(middleName);
+          exactClass = subscriber.getInteractionClassHandle(childName);
+          JavaTckSupport.check(sentClass != null && baseClass != null && middleClass != null
+                && exactClass != null && sentClass.equals(exactClass)
+                && !baseClass.equals(middleClass) && !middleClass.equals(exactClass),
+             "adapter FOM did not provide a stable three-level interaction hierarchy");
+
+          publisher.publishInteractionClass(sentClass);
+          published = true;
+          ParameterHandleValueMap empty = publisher.getParameterHandleValueMapFactory().create(0);
+          subscriber.subscribeInteractionClass(baseClass);
+          baseSubscribed = true;
+          checkClosestAncestor(publisher, subscriber, callbackModel, callbacks,
+             sentClass, baseClass, empty, "base-only ancestor subscription");
+          subscriber.subscribeInteractionClass(middleClass);
+          middleSubscribed = true;
+          checkClosestAncestor(publisher, subscriber, callbackModel, callbacks,
+             sentClass, middleClass, empty, "closest of two ancestor subscriptions");
+          subscriber.subscribeInteractionClass(exactClass);
+          exactSubscribed = true;
+          checkClosestAncestor(publisher, subscriber, callbackModel, callbacks,
+             sentClass, exactClass, empty, "exact sent-class subscription");
+       } finally {
+          if (exactSubscribed && subscriberJoined) try {
+             subscriber.unsubscribeInteractionClass(exactClass);
+          } catch (Exception ignored) { }
+          if (middleSubscribed && subscriberJoined) try {
+             subscriber.unsubscribeInteractionClass(middleClass);
+          } catch (Exception ignored) { }
+          if (baseSubscribed && subscriberJoined) try {
+             subscriber.unsubscribeInteractionClass(baseClass);
+          } catch (Exception ignored) { }
+          if (published && publisherJoined) try {
+             publisher.unpublishInteractionClass(sentClass);
+          } catch (Exception ignored) { }
+          if (subscriberJoined) try {
+             subscriber.resignFederationExecution(ResignAction.NO_ACTION);
+          } catch (Exception ignored) { }
+          if (publisherJoined) try {
+             publisher.resignFederationExecution(ResignAction.NO_ACTION);
+          } catch (Exception ignored) { }
+          if (created) try { publisher.destroyFederationExecution(federation); }
+             catch (Exception ignored) { }
+          if (subscriberConnected) try { subscriber.disconnect(); } catch (Exception ignored) { }
+          if (publisherConnected) try { publisher.disconnect(); } catch (Exception ignored) { }
+       }
+    }
+
+    private static void checkClosestAncestor(RTIambassador publisher, RTIambassador subscriber,
+          CallbackModel model, Recorder callbacks, InteractionClassHandle sentClass,
+          InteractionClassHandle expectedClass, ParameterHandleValueMap empty,
+          String phase) throws Exception {
+       callbacks.interactions.clear();
+       publisher.sendInteraction(sentClass, empty, new byte[0]);
+       await(subscriber, model, callbacks, phase);
+       pumpSeveral(subscriber, model);
+       JavaTckSupport.check(callbacks.interactions.size() == 1
+             && callbacks.interactions.get(0).interaction.equals(expectedClass)
+             && callbacks.interactions.get(0).parameters.isEmpty(),
+          phase + " did not report exactly one callback at the closest subscribed class");
+    }
+
+    private static void assertDelivery(RTIambassador receiver, Interaction actual,
          InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
          FederateHandle expectedProducer, byte[] expectedValue, byte[] expectedTag,
          String description) throws Exception {

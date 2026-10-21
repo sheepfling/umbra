@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ primary and contract use only the IEEE 1516.1-2025 RTIambassador and FederateAmbassador surfaces with an adapter-supplied provider, model FOM, endpoint, and callback model. A grandchild interaction is sent three times as base-only, base-plus-middle, and base-plus-middle-plus-exact subscriptions accumulate. Each send produces one callback at the closest subscribed class. Empty parameter maps isolate class selection; parameter filtering and independent-provider conformance are outside this case.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-interaction-closest-ancestor-transition",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador getInteractionClassHandle, publishInteractionClass, subscribeInteractionClass, sendInteraction, and FederateAmbassador receiveInteraction",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 interaction declaration and receive callback surfaces",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_inherited_derived_delivery_scenarios.cpp::scenarioInteractionClosestAncestorTransitionContract"
+      ]
+    }
+  ]
+}

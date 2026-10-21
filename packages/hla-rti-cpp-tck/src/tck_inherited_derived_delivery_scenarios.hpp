@@ -8,6 +8,8 @@ void scenarioInheritedObjectAttributeProjection(Options const&, rti::CallbackMod
 void scenarioInheritedObjectAttributeProjectionContract(Options const&, rti::CallbackModel);
 void scenarioInheritedInteractionClassDelivery(Options const&, rti::CallbackModel);
 void scenarioInheritedInteractionClassDeliveryContract(Options const&, rti::CallbackModel);
+void scenarioInteractionClosestAncestorTransition(Options const&, rti::CallbackModel);
+void scenarioInteractionClosestAncestorTransitionContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInheritedInteractionClassDelivery(Options const&, rti::CallbackModel);
 void scenarioTimestampedInheritedInteractionClassDeliveryContract(Options const&, rti::CallbackModel);
 void scenarioDirectedDerivedObjectTargetDelivery(Options const&, rti::CallbackModel);

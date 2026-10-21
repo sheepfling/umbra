@@ -4877,6 +4877,17 @@ public final class RtiTckMain {
                 "cpp-1516.1-interaction-parameter-delivery",
                 "cpp-1516.2-fom-root-hierarchy"
              }, false), RtiTckMain::inheritedInteractionClassDelivery);
+        run(new Scenario("java-tck.interaction-closest-ancestor-transition",
+              "select the closest subscribed ancestor and then the exact sent interaction class",
+              "interaction-class-inheritance",
+              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.publishInteractionClass;RTIambassador.subscribeInteractionClass;RTIambassador.sendInteraction;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction",
+              new String[] {
+                 "requirement-candidate-content-clauses-06-object-management-page-109-l10-1",
+                 "requirement-candidate-content-clauses-06-object-management-page-109-l25-6",
+                 "requirement-candidate-content-clauses-06-object-management-page-109-l28-7",
+                 "requirement-candidate-content-clauses-06-object-management-page-109-l79-24",
+                 "requirement-candidate-content-clauses-06-object-management-page-109-l82-25"
+              }, false), RtiTckMain::interactionClosestAncestorTransition);
        run(new Scenario("java-tck.timestamped-inherited-interaction-class-delivery",
              "project timestamped derived interactions through base and derived subscriptions",
              "timestamped-interaction-class-inheritance",
@@ -11012,6 +11023,7 @@ public final class RtiTckMain {
           case "java-tck.zero-dimensional-regional-interaction": method = "zeroDimensionalRegionalInteraction"; break;
           case "java-tck.multi-region-interaction-routing": method = "multiRegionInteractionRouting"; break;
           case "java-tck.inherited-interaction-class-delivery": method = "inheritedInteractionClassDelivery"; break;
+          case "java-tck.interaction-closest-ancestor-transition": method = "interactionClosestAncestorTransition"; break;
           case "java-tck.timestamped-inherited-interaction-class-delivery": method = "timestampedInheritedInteractionClassDelivery"; break;
           case "java-tck.timed-regional-interaction-save-restore": method = "timedRegionalInteractionSaveRestore"; break;
           case "java-tck.timed-default-region-interaction-save-restore": method = "timedDefaultRegionInteractionSaveRestore"; break;
@@ -12246,6 +12258,12 @@ public final class RtiTckMain {
        InheritedInteractionClassDeliveryTck.run(factory(), requireFom(),
           typedInteractionClassName(), typedDerivedInteractionClassName(),
           typedIntegerParameterName(), typedDerivedParameterName(), callbackModel());
+    }
+
+    private static void interactionClosestAncestorTransition() throws Exception {
+       InheritedInteractionClassDeliveryTck.runClosestAncestor(factory(), requireFom(),
+          typedInteractionClassName(), typedDerivedInteractionClassName(),
+          typedGrandchildInteractionClassName(), callbackModel());
     }
 
     private static void timestampedInheritedInteractionClassDelivery() throws Exception {
@@ -13592,6 +13610,11 @@ public final class RtiTckMain {
       return System.getProperty("hla.rti.tck.typedDerivedInteractionClass",
          "HLAinteractionRoot.TckTypedInteraction.TckTypedDerivedInteraction");
    }
+
+    private static String typedGrandchildInteractionClassName() {
+       return System.getProperty("hla.rti.tck.typedGrandchildInteractionClass",
+          "HLAinteractionRoot.TckTypedInteraction.TckTypedDerivedInteraction.TckTypedGrandchildInteraction");
+    }
 
    private static String typedIntegerParameterName() {
       return System.getProperty("hla.rti.tck.typedIntegerParameter", "IntegerParameter");
