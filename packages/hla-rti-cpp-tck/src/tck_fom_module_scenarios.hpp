@@ -74,5 +74,9 @@ void scenarioFomTransportationDuplicateEqual(Options const&, rti::CallbackModel)
 void scenarioFomTransportationDuplicateEqualContract(Options const&, rti::CallbackModel);
 void scenarioFomTransportationDuplicateNoteConflict(Options const&, rti::CallbackModel);
 void scenarioFomTransportationDuplicateNoteConflictContract(Options const&, rti::CallbackModel);
+void scenarioFomUpdateRateDuplicateEqual(Options const&, rti::CallbackModel);
+void scenarioFomUpdateRateDuplicateEqualContract(Options const&, rti::CallbackModel);
+void scenarioFomUpdateRateDuplicateNoteConflict(Options const&, rti::CallbackModel);
+void scenarioFomUpdateRateDuplicateNoteConflictContract(Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

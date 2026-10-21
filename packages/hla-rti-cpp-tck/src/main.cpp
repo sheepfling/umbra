@@ -19439,6 +19439,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-synchronization-duplicate-note-conflict-contract",
       "cpp-tck.fom-transportation-duplicate-equal-contract",
       "cpp-tck.fom-transportation-duplicate-note-conflict-contract",
+      "cpp-tck.fom-update-rate-duplicate-equal-contract",
+      "cpp-tck.fom-update-rate-duplicate-note-conflict-contract",
       "cpp-tck.service-report-interaction-contract",
       "cpp-tck.service-report-attribute-update-contract",
       "cpp-tck.service-report-register-object-instance-contract",
@@ -20147,6 +20149,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-synchronization-duplicate-note-conflict",
       "cpp-tck.fom-transportation-duplicate-equal",
       "cpp-tck.fom-transportation-duplicate-note-conflict",
+      "cpp-tck.fom-update-rate-duplicate-equal",
+      "cpp-tck.fom-update-rate-duplicate-note-conflict",
       "cpp-tck.connection-loss-cleanup",
       "cpp-tck.connection-loss-cleanup-contract",
       "cpp-tck.connection-loss-automatic-unconditional-divestiture",
@@ -20999,6 +21003,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-transportation-duplicate-note-conflict-contract") {
     return scenarioFomTransportationDuplicateNoteConflictContract;
+  }
+  if (id == "cpp-tck.fom-update-rate-duplicate-equal-contract") {
+    return scenarioFomUpdateRateDuplicateEqualContract;
+  }
+  if (id == "cpp-tck.fom-update-rate-duplicate-note-conflict-contract") {
+    return scenarioFomUpdateRateDuplicateNoteConflictContract;
   }
   if (id == "cpp-tck.service-report-interaction-contract") {
     return scenarioServiceReportInteractionContract;
@@ -23258,6 +23268,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-transportation-duplicate-note-conflict") {
     return scenarioFomTransportationDuplicateNoteConflict;
   }
+  if (id == "cpp-tck.fom-update-rate-duplicate-equal") {
+    return scenarioFomUpdateRateDuplicateEqual;
+  }
+  if (id == "cpp-tck.fom-update-rate-duplicate-note-conflict") {
+    return scenarioFomUpdateRateDuplicateNoteConflict;
+  }
   if (id == "cpp-tck.connection-loss-cleanup") return scenarioConnectionLoss;
   if (id == "cpp-tck.connection-loss-cleanup-contract") {
     return scenarioConnectionLossContract;
@@ -23759,6 +23775,19 @@ int run(Options const& options) {
                    options.scenarioFoms.count("transportation-duplicate-note-conflict") == 0U))) {
         result.status = "skipped";
         result.message = "requires adapter-supplied transportation-duplicate FOM modules";
+      } else if ((scenario == "cpp-tck.fom-update-rate-duplicate-equal" ||
+                  scenario == "cpp-tck.fom-update-rate-duplicate-equal-contract" ||
+                  scenario == "cpp-tck.fom-update-rate-duplicate-note-conflict" ||
+                  scenario == "cpp-tck.fom-update-rate-duplicate-note-conflict-contract") &&
+                 (options.scenarioFoms.count("update-rate-duplicate-base") == 0U ||
+                  ((scenario == "cpp-tck.fom-update-rate-duplicate-equal" ||
+                    scenario == "cpp-tck.fom-update-rate-duplicate-equal-contract") &&
+                   options.scenarioFoms.count("update-rate-duplicate-equal") == 0U) ||
+                  ((scenario == "cpp-tck.fom-update-rate-duplicate-note-conflict" ||
+                    scenario == "cpp-tck.fom-update-rate-duplicate-note-conflict-contract") &&
+                   options.scenarioFoms.count("update-rate-duplicate-note-conflict") == 0U))) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied update-rate-duplicate FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&

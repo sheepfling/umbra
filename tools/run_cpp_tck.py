@@ -746,6 +746,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-duplicate-equal-tck.xml")),
             "transportation-duplicate-note-conflict="
             + str(default_path("packages/hla-rti-cpp-tck/fom/transportation-duplicate-note-conflict-tck.xml")),
+            "update-rate-duplicate-base="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/update-rate-duplicate-base-tck.xml")),
+            "update-rate-duplicate-equal="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/update-rate-duplicate-equal-tck.xml")),
+            "update-rate-duplicate-note-conflict="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/update-rate-duplicate-note-conflict-tck.xml")),
         ]
     scenario_foms: list[str] = []
     seen_scenario_foms: set[str] = set()

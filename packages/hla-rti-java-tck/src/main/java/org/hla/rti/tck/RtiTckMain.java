@@ -130,6 +130,12 @@ public final class RtiTckMain {
       "hla.rti.tck.transportationDuplicateEqualFom";
    private static final String TRANSPORTATION_DUPLICATE_NOTE_CONFLICT_FOM_PROPERTY =
       "hla.rti.tck.transportationDuplicateNoteConflictFom";
+   private static final String UPDATE_RATE_DUPLICATE_BASE_FOM_PROPERTY =
+      "hla.rti.tck.updateRateDuplicateBaseFom";
+   private static final String UPDATE_RATE_DUPLICATE_EQUAL_FOM_PROPERTY =
+      "hla.rti.tck.updateRateDuplicateEqualFom";
+   private static final String UPDATE_RATE_DUPLICATE_NOTE_CONFLICT_FOM_PROPERTY =
+      "hla.rti.tck.updateRateDuplicateNoteConflictFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1756,6 +1762,18 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomTransportationDuplicateNoteConflict);
+      run(new Scenario("java-tck.fom-update-rate-duplicate-equal",
+            "Accept identical same-name update-rate declarations",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getUpdateRateValue;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomUpdateRateDuplicateEqual);
+      run(new Scenario("java-tck.fom-update-rate-duplicate-note-conflict",
+            "Reject a changed note reference on one update-rate declaration",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomUpdateRateDuplicateNoteConflict);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11468,6 +11486,10 @@ public final class RtiTckMain {
             method = "fomTransportationDuplicateEqual"; break;
          case "java-tck.fom-transportation-duplicate-note-conflict":
             method = "fomTransportationDuplicateNoteConflict"; break;
+         case "java-tck.fom-update-rate-duplicate-equal":
+            method = "fomUpdateRateDuplicateEqual"; break;
+         case "java-tck.fom-update-rate-duplicate-note-conflict":
+            method = "fomUpdateRateDuplicateNoteConflict"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -13093,6 +13115,20 @@ public final class RtiTckMain {
       FomTransportationDuplicateTck.run(factory(),
          requireAdapterFile(TRANSPORTATION_DUPLICATE_BASE_FOM_PROPERTY),
          requireAdapterFile(TRANSPORTATION_DUPLICATE_NOTE_CONFLICT_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), true);
+   }
+
+   private static void fomUpdateRateDuplicateEqual() throws Exception {
+      FomUpdateRateDuplicateTck.run(factory(),
+         requireAdapterFile(UPDATE_RATE_DUPLICATE_BASE_FOM_PROPERTY),
+         requireAdapterFile(UPDATE_RATE_DUPLICATE_EQUAL_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), false);
+   }
+
+   private static void fomUpdateRateDuplicateNoteConflict() throws Exception {
+      FomUpdateRateDuplicateTck.run(factory(),
+         requireAdapterFile(UPDATE_RATE_DUPLICATE_BASE_FOM_PROPERTY),
+         requireAdapterFile(UPDATE_RATE_DUPLICATE_NOTE_CONFLICT_FOM_PROPERTY),
          timeImplementation(), callbackModel(), true);
    }
 
