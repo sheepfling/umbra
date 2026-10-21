@@ -19431,6 +19431,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-extendable-variant-hlaother-contract",
       "cpp-tck.fom-enumerated-value-collision-contract",
       "cpp-tck.fom-nonextendable-variant-alternative-conflict-contract",
+      "cpp-tck.fom-array-cardinality-forms-contract",
+      "cpp-tck.fom-array-cardinality-rejections-contract",
       "cpp-tck.service-report-interaction-contract",
       "cpp-tck.service-report-attribute-update-contract",
       "cpp-tck.service-report-register-object-instance-contract",
@@ -20131,6 +20133,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-extendable-variant-hlaother",
       "cpp-tck.fom-enumerated-value-collision",
       "cpp-tck.fom-nonextendable-variant-alternative-conflict",
+      "cpp-tck.fom-array-cardinality-forms",
+      "cpp-tck.fom-array-cardinality-rejections",
       "cpp-tck.connection-loss-cleanup",
       "cpp-tck.connection-loss-cleanup-contract",
       "cpp-tck.connection-loss-automatic-unconditional-divestiture",
@@ -20959,6 +20963,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-nonextendable-variant-alternative-conflict-contract") {
     return scenarioFomNonextendableVariantAlternativeConflictContract;
+  }
+  if (id == "cpp-tck.fom-array-cardinality-forms-contract") {
+    return scenarioFomArrayCardinalityFormsContract;
+  }
+  if (id == "cpp-tck.fom-array-cardinality-rejections-contract") {
+    return scenarioFomArrayCardinalityRejectionsContract;
   }
   if (id == "cpp-tck.service-report-interaction-contract") {
     return scenarioServiceReportInteractionContract;
@@ -23194,6 +23204,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-nonextendable-variant-alternative-conflict") {
     return scenarioFomNonextendableVariantAlternativeConflict;
   }
+  if (id == "cpp-tck.fom-array-cardinality-forms") {
+    return scenarioFomArrayCardinalityForms;
+  }
+  if (id == "cpp-tck.fom-array-cardinality-rejections") {
+    return scenarioFomArrayCardinalityRejections;
+  }
   if (id == "cpp-tck.connection-loss-cleanup") return scenarioConnectionLoss;
   if (id == "cpp-tck.connection-loss-cleanup-contract") {
     return scenarioConnectionLossContract;
@@ -23644,6 +23660,18 @@ int run(Options const& options) {
                   options.scenarioFoms.count("nonextendable-variant-second") == 0U)) {
         result.status = "skipped";
         result.message = "requires two adapter-supplied nonextendable-variant FOM modules";
+      } else if ((scenario == "cpp-tck.fom-array-cardinality-forms" ||
+                  scenario == "cpp-tck.fom-array-cardinality-forms-contract" ||
+                  scenario == "cpp-tck.fom-array-cardinality-rejections" ||
+                  scenario == "cpp-tck.fom-array-cardinality-rejections-contract") &&
+                 (options.scenarioFoms.count("array-cardinality-valid") == 0U ||
+                  ((scenario == "cpp-tck.fom-array-cardinality-rejections" ||
+                    scenario == "cpp-tck.fom-array-cardinality-rejections-contract") &&
+                   (options.scenarioFoms.count("array-cardinality-reversed-range") == 0U ||
+                    options.scenarioFoms.count("array-cardinality-fixed-encoding-mismatch") == 0U ||
+                    options.scenarioFoms.count("array-cardinality-variable-encoding-mismatch") == 0U)))) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied array-cardinality FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&

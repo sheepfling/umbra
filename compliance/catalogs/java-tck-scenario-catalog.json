@@ -8526,6 +8526,38 @@
       "exclusion": "Configure hla.rti.tck.nonextendableVariantFirstFom and nonextendableVariantSecondFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-array-cardinality-forms",
+      "category": "fom-composition",
+      "title": "Accept 2025 array cardinality forms with compatible predefined encodings",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4c-page-074-l60-4", "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6"],
+      "standard_sections": ["hla-1516.2-2025:clause-4.14.6"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l60-4", "standard_section": "hla-1516.2-2025:clause-4.14.6"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6", "standard_section": "hla-1516.2-2025:clause-4.14.6"}],
+      "mapping_note": "Standard Java API parity for schema-valid scalar, list, range, Dynamic, and mixed array cardinalities. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-array-cardinality-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomArrayCardinalityForms",
+      "parity": "cpp-tck.fom-array-cardinality-forms",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.arrayCardinalityValidFom for a 2025 Java provider; runtime unverified."
+    },
+    {
+      "id": "java-tck.fom-array-cardinality-rejections",
+      "category": "fom-composition",
+      "title": "Reject reversed array ranges and incompatible predefined encodings",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-4c-page-074-l60-4", "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6"],
+      "standard_sections": ["hla-1516.2-2025:clause-4.14.6"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l60-4", "standard_section": "hla-1516.2-2025:clause-4.14.6"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6", "standard_section": "hla-1516.2-2025:clause-4.14.6"}],
+      "mapping_note": "Standard Java API parity for three schema-valid invalid array modules and valid federation-name retry. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-array-cardinality-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomArrayCardinalityRejections",
+      "parity": "cpp-tck.fom-array-cardinality-rejections",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.arrayCardinalityValidFom, arrayCardinalityReversedRangeFom, arrayCardinalityFixedMismatchFom, and arrayCardinalityVariableMismatchFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-standard-invalid-input-corpus",
       "category": "fom-lifecycle",
       "title": "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",

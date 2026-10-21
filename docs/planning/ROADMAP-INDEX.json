@@ -1,4 +1,16 @@
 {
+  "portable_tck_fom_array_cardinality_handoff_2026_10_21": {
+    "status": "verified-installed-package",
+    "scope": "Translate native-green IEEE 1516.2-2025 clause 4.14.6 array cardinality forms and predefined encoding compatibility into separate pure official-API positive and rejection C++ primary/contract cases with Java scenario parity.",
+    "sources": "cpp/tests/libxml2_fom_composer_catch2.cpp:1685; packages/hla-rti-cpp-tck/src/tck_fom_array_cardinality.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomArrayCardinalityTck.java",
+    "direct_mappings": [
+      "requirement-candidate-sections-semantic-clause-4c-page-074-l60-4 -> IEEE 1516.2-2025 clause 4.14.6",
+      "requirement-candidate-sections-semantic-clause-4c-page-074-l68-6 -> IEEE 1516.2-2025 clause 4.14.6"
+    ],
+    "evidence": "Native focused CTest passed 1/1 and its stale plan pointer was corrected. The positive and three invalid DIF modules passed the official pinned XSD. Installed-package MinGW/Ninja CTest passed 8/8 and direct runner passed 8/8 across HLA_EVOKED and HLA_IMMEDIATE (out/mgw/array-cardinality-20261021.json). C++ and Java catalogs validate, parity audit passes, and Java compiles against the API-only JAR. Java provider runtime remains unverified.",
+    "scope_boundary": "The positive public Create proves the complete module is accepted, not private catalog retention of every named type. Three separate negative Creates assert InconsistentFOM and valid federation-name retry. Provider-defined and multidimensional encoding interpretation, Java provider runtime, interoperability, and conformance are not claimed. Provider library, FOMs, endpoint, logical time, and callback model remain adapter-owned.",
+    "next": "Select the next distinct native-green FOM table/Annex C behavior with an intact direct 2025 requirement mapping. Prefer a public Create or joined-member witness, keep Java API-only parity, and gate against the installed package before promotion; do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_enumerated_variant_conflicts_handoff_2026_10_21": {
     "status": "verified-installed-package",
     "scope": "Translate two native-green Annex C.3 rejection rules into separate pure official-API C++ primary/contract cases with Java scenario parity: enumerated value collision and non-extendable variant alternative-set conflict.",

@@ -14149,7 +14149,7 @@
         "table-constraints"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1956",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:1685",
       "next_action": "This private composition slice accepts the 2025 scalar, comma-separated component, [lower..upper], mixed, and Dynamic cardinality forms while preserving incomplete DIF rows; schema-valid reversed ranges and mismatched predefined fixed/variable encodings are rejected before FDD materialization. Multidimensional and provider-defined encoding interpretation, lookahead non-negative inference, synchronization capability, full Annex C merge, dependency packaging, JUnit/protected review, and conformance remain open."
     },
     {

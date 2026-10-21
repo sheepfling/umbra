@@ -58,5 +58,9 @@ void scenarioFomEnumeratedValueCollision(Options const&, rti::CallbackModel);
 void scenarioFomEnumeratedValueCollisionContract(Options const&, rti::CallbackModel);
 void scenarioFomNonextendableVariantAlternativeConflict(Options const&, rti::CallbackModel);
 void scenarioFomNonextendableVariantAlternativeConflictContract(Options const&, rti::CallbackModel);
+void scenarioFomArrayCardinalityForms(Options const&, rti::CallbackModel);
+void scenarioFomArrayCardinalityFormsContract(Options const&, rti::CallbackModel);
+void scenarioFomArrayCardinalityRejections(Options const&, rti::CallbackModel);
+void scenarioFomArrayCardinalityRejectionsContract(Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

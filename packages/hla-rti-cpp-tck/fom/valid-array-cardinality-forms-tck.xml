@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <dataTypes>
+        <arrayDataTypes>
+            <arrayData>
+                <name>TckScalarArrayCardinality</name>
+                <dataType>HLAbyte</dataType>
+                <cardinality>10</cardinality>
+                <encoding>HLAfixedArray</encoding>
+            </arrayData>
+            <arrayData>
+                <name>TckListArrayCardinality</name>
+                <dataType>HLAbyte</dataType>
+                <cardinality>1,2,3</cardinality>
+                <encoding>HLAvariableArray</encoding>
+            </arrayData>
+            <arrayData>
+                <name>TckRangeArrayCardinality</name>
+                <dataType>HLAbyte</dataType>
+                <cardinality>[1..4]</cardinality>
+                <encoding>HLAvariableArray</encoding>
+            </arrayData>
+            <arrayData>
+                <name>TckDynamicArrayCardinality</name>
+                <dataType>HLAbyte</dataType>
+                <cardinality>Dynamic</cardinality>
+                <encoding>HLAvariableArray</encoding>
+            </arrayData>
+            <arrayData>
+                <name>TckMixedArrayCardinality</name>
+                <dataType>HLAbyte</dataType>
+                <cardinality>Dynamic,[2..4]</cardinality>
+                <encoding>HLAvariableArray</encoding>
+            </arrayData>
+        </arrayDataTypes>
+    </dataTypes>
+</objectModel>

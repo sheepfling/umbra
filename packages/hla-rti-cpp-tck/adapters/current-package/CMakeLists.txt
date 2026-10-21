@@ -115,6 +115,10 @@ set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
   "enumerated-value-collision-second=${_repository_root}/packages/hla-rti-cpp-tck/fom/enumerated-value-collision-second-tck.xml"
   "nonextendable-variant-first=${_repository_root}/packages/hla-rti-cpp-tck/fom/nonextendable-variant-first-tck.xml"
   "nonextendable-variant-second=${_repository_root}/packages/hla-rti-cpp-tck/fom/nonextendable-variant-second-tck.xml"
+  "array-cardinality-valid=${_repository_root}/packages/hla-rti-cpp-tck/fom/valid-array-cardinality-forms-tck.xml"
+  "array-cardinality-reversed-range=${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-array-cardinality-tck.xml"
+  "array-cardinality-fixed-encoding-mismatch=${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-fixed-array-encoding-tck.xml"
+  "array-cardinality-variable-encoding-mismatch=${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-variable-array-encoding-tck.xml"
   CACHE STRING "Semicolon-separated NAME=FILE FOM bindings supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"

@@ -720,6 +720,14 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/nonextendable-variant-first-tck.xml")),
             "nonextendable-variant-second="
             + str(default_path("packages/hla-rti-cpp-tck/fom/nonextendable-variant-second-tck.xml")),
+            "array-cardinality-valid="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/valid-array-cardinality-forms-tck.xml")),
+            "array-cardinality-reversed-range="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/invalid-array-cardinality-tck.xml")),
+            "array-cardinality-fixed-encoding-mismatch="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/invalid-fixed-array-encoding-tck.xml")),
+            "array-cardinality-variable-encoding-mismatch="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/invalid-variable-array-encoding-tck.xml")),
         ]
     scenario_foms: list[str] = []
     seen_scenario_foms: set[str] = set()

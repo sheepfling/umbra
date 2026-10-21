@@ -104,6 +104,14 @@ public final class RtiTckMain {
       "hla.rti.tck.nonextendableVariantFirstFom";
    private static final String NONEXTENDABLE_VARIANT_SECOND_FOM_PROPERTY =
       "hla.rti.tck.nonextendableVariantSecondFom";
+   private static final String ARRAY_CARDINALITY_VALID_FOM_PROPERTY =
+      "hla.rti.tck.arrayCardinalityValidFom";
+   private static final String ARRAY_CARDINALITY_REVERSED_RANGE_FOM_PROPERTY =
+      "hla.rti.tck.arrayCardinalityReversedRangeFom";
+   private static final String ARRAY_CARDINALITY_FIXED_MISMATCH_FOM_PROPERTY =
+      "hla.rti.tck.arrayCardinalityFixedMismatchFom";
+   private static final String ARRAY_CARDINALITY_VARIABLE_MISMATCH_FOM_PROPERTY =
+      "hla.rti.tck.arrayCardinalityVariableMismatchFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1682,6 +1690,18 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomNonextendableVariantAlternativeConflict);
+      run(new Scenario("java-tck.fom-array-cardinality-forms",
+            "Accept standard array cardinality forms with compatible predefined encodings",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomArrayCardinalityForms);
+      run(new Scenario("java-tck.fom-array-cardinality-rejections",
+            "Reject reversed array ranges and incompatible predefined encodings",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomArrayCardinalityRejections);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11378,6 +11398,10 @@ public final class RtiTckMain {
             method = "fomEnumeratedValueCollision"; break;
          case "java-tck.fom-nonextendable-variant-alternative-conflict":
             method = "fomNonextendableVariantAlternativeConflict"; break;
+         case "java-tck.fom-array-cardinality-forms":
+            method = "fomArrayCardinalityForms"; break;
+         case "java-tck.fom-array-cardinality-rejections":
+            method = "fomArrayCardinalityRejections"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -12946,6 +12970,22 @@ public final class RtiTckMain {
          requireAdapterFile(NONEXTENDABLE_VARIANT_FIRST_FOM_PROPERTY),
          requireAdapterFile(NONEXTENDABLE_VARIANT_SECOND_FOM_PROPERTY),
          timeImplementation(), callbackModel(), true);
+   }
+
+   private static void fomArrayCardinalityForms() throws Exception {
+      FomArrayCardinalityTck.run(factory(),
+         requireAdapterFile(ARRAY_CARDINALITY_VALID_FOM_PROPERTY),
+         new String[0], timeImplementation(), callbackModel());
+   }
+
+   private static void fomArrayCardinalityRejections() throws Exception {
+      FomArrayCardinalityTck.run(factory(),
+         requireAdapterFile(ARRAY_CARDINALITY_VALID_FOM_PROPERTY),
+         new String[] {
+            requireAdapterFile(ARRAY_CARDINALITY_REVERSED_RANGE_FOM_PROPERTY),
+            requireAdapterFile(ARRAY_CARDINALITY_FIXED_MISMATCH_FOM_PROPERTY),
+            requireAdapterFile(ARRAY_CARDINALITY_VARIABLE_MISMATCH_FOM_PROPERTY)
+         }, timeImplementation(), callbackModel());
    }
 
    private static void fomStandardInvalidInputCorpus() throws Exception {
