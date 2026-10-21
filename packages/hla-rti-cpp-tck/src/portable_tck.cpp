@@ -91,6 +91,7 @@ void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
 #include "tck_restore_live_tso_interaction_multi_recipient.hpp"
 #include "tck_restore_live_tso_attribute_multi_recipient.hpp"
 #include "tck_restore_default_region_attribute_multi_recipient.hpp"
+#include "tck_restore_regional_interaction_multi_recipient.hpp"
 #include "tck_joined_federate_mom_updates_sent_mim_attribute.hpp"
 #include "tck_joined_federate_mom_object_instances_updated_mim_attribute.hpp"
 #include "tck_joined_federate_mom_object_instances_reflected_mim_attribute.hpp"
@@ -1436,6 +1437,10 @@ constexpr char restoreDefaultRegionAttributeMultiRecipientScenario[] =
     "cpp-tck.restore-default-region-attribute-multi-recipient";
 constexpr char restoreDefaultRegionAttributeMultiRecipientContractId[] =
     "cpp-tck.restore-default-region-attribute-multi-recipient-contract";
+constexpr char restoreRegionalInteractionMultiRecipientScenario[] =
+    "cpp-tck.restore-regional-interaction-multi-recipient";
+constexpr char restoreRegionalInteractionMultiRecipientContractId[] =
+    "cpp-tck.restore-regional-interaction-multi-recipient-contract";
 constexpr char restoreTimeWindowStateScenario[] =
     "cpp-tck.restore-time-window-state";
 constexpr char restoreTimeWindowStateContractId[] =
@@ -17418,6 +17423,14 @@ int runRestoreDefaultRegionAttributeMultiRecipientScenarios(int argc, char** arg
       scenarioRestoreDefaultRegionAttributeMultiRecipientContract, true);
 }
 
+int runRestoreRegionalInteractionMultiRecipientScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreRegionalInteractionMultiRecipientScenario,
+      restoreRegionalInteractionMultiRecipientContractId,
+      scenarioRestoreRegionalInteractionMultiRecipient,
+      scenarioRestoreRegionalInteractionMultiRecipientContract, true);
+}
+
 int runRestoreTimeWindowStateScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc, argv, restoreTimeWindowStateScenario,
@@ -21383,6 +21396,16 @@ bool hasRestoreDefaultRegionAttributeMultiRecipientScenario(int argc, char** arg
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == restoreDefaultRegionAttributeMultiRecipientScenario ||
         scenario == restoreDefaultRegionAttributeMultiRecipientContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreRegionalInteractionMultiRecipientScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreRegionalInteractionMultiRecipientScenario ||
+        scenario == restoreRegionalInteractionMultiRecipientContractId) return true;
   }
   return false;
 }
@@ -25948,6 +25971,9 @@ int main(int argc, char** argv) {
     }
     if (hasRestoreDefaultRegionAttributeMultiRecipientScenario(argc, argv)) {
       return runRestoreDefaultRegionAttributeMultiRecipientScenarios(argc, argv);
+    }
+    if (hasRestoreRegionalInteractionMultiRecipientScenario(argc, argv)) {
+      return runRestoreRegionalInteractionMultiRecipientScenarios(argc, argv);
     }
     if (hasRestoreTimeWindowStateScenario(argc, argv)) {
       return runRestoreTimeWindowStateScenarios(argc, argv);

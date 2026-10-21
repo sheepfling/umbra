@@ -76,6 +76,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_restore_live_tso_interaction_multi_recipient.cpp
   src/tck_restore_live_tso_attribute_multi_recipient.cpp
   src/tck_restore_default_region_attribute_multi_recipient.cpp
+  src/tck_restore_regional_interaction_multi_recipient.cpp
   src/tck_timestamped_directed_interaction_subscription_kind.cpp
   src/tck_timestamped_directed_zero_lookahead_tar_boundary.cpp
   src/tck_directed_interaction_received_class_projection.cpp
@@ -226,7 +227,7 @@ add_executable(hla_rti_cpp_tck
 )
 set_source_files_properties(src/main.cpp PROPERTIES
   COMPILE_DEFINITIONS "main=hla_rti_cpp_tck_original_main")
-target_compile_features(hla_rti_cpp_tck PRIVATE cxx_std_17)
+target_compile_features(hla_rti_cpp_tck PRIVATE cxx_std_20)
 if(MSVC)
   target_compile_options(hla_rti_cpp_tck PRIVATE /bigobj)
 endif()
@@ -330,6 +331,8 @@ if(BUILD_TESTING)
          _tck_scenario STREQUAL "cpp-tck.restore-live-tso-attribute-multi-recipient-contract" OR
          _tck_scenario STREQUAL "cpp-tck.restore-default-region-attribute-multi-recipient" OR
          _tck_scenario STREQUAL "cpp-tck.restore-default-region-attribute-multi-recipient-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-regional-interaction-multi-recipient" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-regional-interaction-multi-recipient-contract" OR
          _tck_scenario STREQUAL "cpp-tck.restore-time-window-state" OR
          _tck_scenario STREQUAL "cpp-tck.restore-time-window-state-contract" OR
          _tck_scenario STREQUAL "cpp-tck.restore-deferred-lookahead" OR

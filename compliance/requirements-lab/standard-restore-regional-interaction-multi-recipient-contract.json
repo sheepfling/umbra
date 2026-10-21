@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "A public-API translation of the native-green 128-assertion HLA_EVOKED three-member explicit-source regional interaction restore case. One adapter-configured source region overlaps two independently constrained regional subscribers; an untimed save captures their pending timestamped interaction copies and the retraction ledger. Post-save Retract terminalizes the live designator; restore recovers both copies and live retraction state. Independent Flush Queue Requests deliver source-region-preserving callbacks before each grant, and a later Retract notifies both recipients. Isolated C++ primary/contract passed using only installed 2026-10-20 package libraries with integer64 and float64 time. The adapter supplies provider libraries, endpoint, IEEE 1516.2-2025 DDM FOM, interaction class, parameter, two dimensions, logical-time implementation, and HLA_EVOKED callback model. Java parity compiles against the official API-only JAR; Java provider runtime, HLA_IMMEDIATE, durable/process-boundary restore, interoperability, and conformance are unverified.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-regional-interaction-multi-recipient",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador createRegion, setRangeBounds, commitRegionModifications, subscribeInteractionClassWithRegions, setConveyRegionDesignatorSetsSwitch, sendInteractionWithRegions, timeAdvanceRequest, requestFederationSave, federateSaveBegun, federateSaveComplete, retract, requestFederationRestore, federateRestoreComplete, flushQueueRequest; FederateAmbassador federationSaved, federationRestored, receiveInteraction, flushQueueGrant, requestRetraction",
+      "source": "official IEEE 1516.1-2025 C++ headers and hla.rti1516_2025 Java API; adapter-selected IEEE 1516.2-2025 DDM FOM",
+      "source_symbol": "IEEE 1516.1-2025 evoked explicit-source regional timestamped interaction fanout and federation save/restore interfaces",
+      "tests": [
+        "cpp/tests/restore_live_tso_regional_interaction_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped regional interaction to multiple recipients",
+        "packages/hla-rti-cpp-tck/src/tck_restore_regional_interaction_multi_recipient.cpp::scenarioRestoreRegionalInteractionMultiRecipient",
+        "packages/hla-rti-cpp-tck/src/tck_restore_regional_interaction_multi_recipient.cpp::scenarioRestoreRegionalInteractionMultiRecipientContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestoreRegionalInteractionMultiRecipientTck.java::run"
+      ]
+    }
+  ]
+}

@@ -3952,6 +3952,23 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l63-19",
                "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43"
             }, false), RtiTckMain::restoreDefaultRegionAttributeMultiRecipient);
+      run(new Scenario("java-tck.restore-regional-interaction-multi-recipient",
+            "Restore one explicit-source timestamped regional interaction to two subscribers",
+            "federation-save-restore",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getDimensionHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.commitRegionModifications;RTIambassador.subscribeInteractionClassWithRegions;RTIambassador.setConveyRegionDesignatorSetsSwitch;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.sendInteractionWithRegions;RTIambassador.timeAdvanceRequest;RTIambassador.requestFederationSave;RTIambassador.federateSaveBegun;RTIambassador.federateSaveComplete;RTIambassador.retract;RTIambassador.requestFederationRestore;RTIambassador.federateRestoreComplete;RTIambassador.flushQueueRequest;RTIambassador.evokeCallback;RTIambassador.unsubscribeInteractionClassWithRegions;RTIambassador.deleteRegion;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;FederateAmbassador.flushQueueGrant;FederateAmbassador.requestRetraction",
+            new String[] {
+               "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24",
+               "requirement-candidate-content-clauses-04-federation-management-page-067-l142-36",
+               "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17",
+               "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+               "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+               "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+               "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+               "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+               "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+               "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l152-45",
+               "requirement-candidate-content-clauses-09-data-distribution-management-page-239-l150-43"
+            }, false), RtiTckMain::restoreRegionalInteractionMultiRecipient);
       run(new Scenario("java-tck.restore-time-window-state",
             "Restore saved logical time and actual lookahead after post-save changes",
             "federation-save-restore",
@@ -9950,6 +9967,15 @@ public final class RtiTckMain {
          requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY), callbackModel());
    }
 
+   private static void restoreRegionalInteractionMultiRecipient() throws Exception {
+      RestoreRegionalInteractionMultiRecipientTck.run(factory(),
+         requireAdapterFile(DDM_FOM_PROPERTY), timeImplementation(),
+         requireAdapterValue(INTERACTION_CLASS_PROPERTY),
+         requireAdapterValue(PARAMETER_PROPERTY),
+         requireAdapterValue(DIMENSION_PROPERTY),
+         requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY), callbackModel());
+   }
+
    private static void restoreTimeWindowState() throws Exception {
       RestoreTimeWindowStateTck.run(factory(), requireFom(),
          timeImplementation(), callbackModel());
@@ -11313,6 +11339,8 @@ public final class RtiTckMain {
             method = "restoreLiveTsoAttributeMultiRecipient"; break;
          case "java-tck.restore-default-region-attribute-multi-recipient":
             method = "restoreDefaultRegionAttributeMultiRecipient"; break;
+         case "java-tck.restore-regional-interaction-multi-recipient":
+            method = "restoreRegionalInteractionMultiRecipient"; break;
          case "java-tck.restore-time-window-state":
             method = "restoreTimeWindowState"; break;
          case "java-tck.restore-deferred-lookahead":
