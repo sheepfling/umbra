@@ -18619,14 +18619,7 @@
         "requirement-candidate-content-clauses-05-declaration-management-page-091-l121-35",
         "requirement-candidate-content-clauses-05-declaration-management-page-091-l127-37",
         "requirement-candidate-content-clauses-06-object-management-page-118-l22-3",
-        "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
-        "requirement-candidate-content-clauses-08-time-management-page-212-l42-7",
-        "requirement-candidate-content-clauses-08-time-management-page-212-l48-9",
-        "requirement-candidate-content-clauses-08-time-management-page-212-l54-11",
-        "requirement-candidate-content-clauses-08-time-management-page-213-l76-20",
-        "requirement-candidate-content-clauses-08-time-management-page-213-l79-21",
-        "requirement-candidate-content-clauses-08-time-management-page-213-l88-24",
-        "requirement-candidate-content-clauses-08-time-management-page-213-l94-26"
+        "requirement-candidate-content-clauses-06-object-management-page-118-l28-5"
       ],
       "test_case": "RTIambassador publishes and unpublishes object-class attributes and registers an object through a configured process endpoint",
       "source_location": "cpp/tests/ieee1516_2025_connection_object_registration_catch2.cpp:457",
@@ -18661,9 +18654,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.1.2",
         "hla-1516.1-2025:clause-5.2",
-        "hla-1516.1-2025:clause-6.8.4",
-        "hla-1516.1-2025:clause-8.24.4",
-        "hla-1516.1-2025:clause-8.25.3"
+        "hla-1516.1-2025:clause-6.8.4"
       ],
       "next_action": "This focused object-management case proves that public object-class and attribute lookup, Publish Object Class Attributes, both Unpublish Object Class Attributes forms (subset and whole-class), Change Default Attribute Order Type, unnamed Register Object Instance, and Change Attribute Order Type cross the configured process endpoint and mutate the server-owned declaration/order ledger. The package lane uses an explicit DELETE_OBJECTS resignation because the sender has published ownership while another federate remains joined. It does not claim discovery delivery, named registration/reservation, regions/DDM, update/reflection, timestamped/retraction, ownership transfer, complete resign disposition, package/JUnit/protected-review evidence beyond the separately labeled smoke, Lab validation, or conformance."
     },
@@ -38901,12 +38892,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-180-l72-21",
         "requirement-candidate-content-clauses-08-time-management-page-212-l42-7",
         "requirement-candidate-content-clauses-08-time-management-page-212-l48-9",
-        "requirement-candidate-content-clauses-08-time-management-page-212-l54-11",
-        "requirement-candidate-content-clauses-08-time-management-page-213-l76-20",
-        "requirement-candidate-content-clauses-08-time-management-page-213-l79-21",
-        "requirement-candidate-content-clauses-08-time-management-page-213-l88-24",
         "requirement-candidate-content-clauses-08-time-management-page-213-l94-26",
-        "requirement-candidate-content-clauses-08-time-management-page-214-l81-20",
         "requirement-candidate-content-clauses-08-time-management-page-214-l87-22"
       ],
       "requirement_section_mapping_overrides": [
@@ -38949,7 +38935,7 @@
         "hla-1516.1-2025:clause-8.25.3",
         "hla-1516.1-2025:clause-8.26.4"
       ],
-      "requirements_lab_api_surface_status": "Direct §8.1.4 factor evidence is limited to the tested FOM-seeded default, prospective class-default change, and per-instance override; callback assertions verify those choices determine sent/received order for timestamped attribute updates. This is not the complete order matrix. The focused native C++ case also exercises the official Change Attribute Order Type, Change Default Attribute Order Type, and Change Interaction Order Type surfaces, publisher-scoped interaction order, legal Receive/TimeStamp delivery, invalid-order validation, and callback-driven teardown. The focused harness drains the runtime's legitimate Turn Updates On callback after registration; the aggregate case retains a stale no-callback expectation and is tracked separately.",
+      "requirements_lab_api_surface_status": "Direct §8.1.4 factor evidence is limited to the tested FOM-seeded default, prospective class-default change, and per-instance override; callback assertions verify those choices determine sent/received order for timestamped attribute updates. This is not the complete order matrix. The focused native C++ case also exercises the official Change Attribute Order Type, Change Default Attribute Order Type, and Change Interaction Order Type surfaces, publisher-scoped interaction order, legal Receive/TimeStamp delivery, invalid-order validation, and callback-driven teardown. It does not transfer ownership, compare separate publishers' defaults, validate class/attribute arguments, or assert the FDD's initial interaction order; those requirement mappings were removed. The focused harness drains the runtime's legitimate Turn Updates On callback after registration; the aggregate case retains a stale no-callback expectation and is tracked separately.",
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "The §8.1.4 mapping is a scoped witness for FOM-seeded, class-default, and per-instance order factors; it does not establish the complete message-order matrix or conformance. This bounded slice also captures publisher-scoped interaction order changes and mixed Receive/TimeStamp timestamped delivery. Next: inspect portable TCK gap requirement-candidate-content-clauses-08-time-management-page-180-l114-35 (timestamp presence for TSO-preferred data), determine whether an existing C++ TCK scenario asserts it directly, and require focused installed-package evidence. Keep Java runtime and conformance claims separate."
     },

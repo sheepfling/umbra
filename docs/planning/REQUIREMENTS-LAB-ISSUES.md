@@ -839,3 +839,27 @@ which directed mappings to §8.6.3. Preserve all stable candidate IDs and do
 not resync unchanged Lab inputs. Source: the exact pinned requirement queries
 and `output/semantic/content-block-content-15161-page-192.tex` in the 2025
 Requirements Lab topic.
+
+### RL-353 — Order-control test mappings claimed untested ownership and default branches
+
+The pinned Catch2 plan mapped the process-endpoint object-registration case and
+the embedded order-type-control case to ownership-transfer reset
+(`requirement-candidate-content-clauses-08-time-management-page-212-l54-11`)
+and new-owner default initialization
+(`requirement-candidate-content-clauses-08-time-management-page-213-l76-20`).
+Neither test performs an attribute ownership transfer. The process-endpoint
+case only checks that Change Default Attribute Order Type and Change Attribute
+Order Type calls succeed; it does not observe an order-dependent update. The
+focused order-control case does observe prospective defaults, instance order,
+and later interaction order, but has one publisher and does not validate
+cross-federate defaults, invalid class/attribute arguments, or initial FDD
+interaction order.
+
+Impact: remove these unsupported direct requirement mappings from the two
+Catch2 rows; keep the §8.24.4 ownership-transfer reset and §8.25.3 new-owner
+default requirements open until a focused official-API behavioral test exists.
+Audit the parallel `order-type-control-requirements-contract.json` test links
+before using that contract as evidence. This is a local traceability defect,
+not IEEE errata or a provider-conformance finding. No Requirements Lab resync
+was performed. Sources: `cpp/tests/order_type_control_catch2.cpp` and
+`cpp/tests/ieee1516_2025_connection_object_registration_catch2.cpp`.
