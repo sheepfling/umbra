@@ -83,6 +83,7 @@ LOCAL_TCK_HEADERS = {
     "tck_harness.hpp",
     "tck_directed_retraction_mixed_fanout.hpp",
     "tck_ownership_cancellation_idle.hpp",
+    "tck_ownership_denial_idle.hpp",
     "tck_restore_mixed_pending_time_role_callbacks.hpp",
     "tck_timed_restore_regional_attribute_multi_recipient.hpp",
     "tck_data_encoding.hpp",

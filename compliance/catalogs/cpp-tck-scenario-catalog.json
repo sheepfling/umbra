@@ -65663,6 +65663,52 @@
       "native_equivalent_runner_ids": ["umbra-cpp-attribute-ownership-acquisition-cancellation-process-idle-push-integration"],
       "default_status": "adapter-required",
       "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-denial-idle",
+      "category": "ownership-management",
+      "title": "Push an ordinary release request and denial notification to idle immediate recipients",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.registerObjectInstance", "RTIambassador.attributeOwnershipAcquisition", "RTIambassador.attributeOwnershipReleaseDenied", "RTIambassador.isAttributeOwnedByFederate", "RTIambassador.evokeCallback", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.discoverObjectInstance", "FederateAmbassador.requestAttributeOwnershipRelease", "FederateAmbassador.attributeOwnershipUnavailable"],
+      "requirement_ids": ["cpp-1516.1-ownership-management"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-04-federation-management-page-038-l27-5", "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42", "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6"],
+      "standard_sections": ["hla-1516.1-2025:clause-4", "hla-1516.1-2025:clause-7.8", "hla-1516.1-2025:clause-7.12"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-038-l27-5", "standard_section": "hla-1516.1-2025:clause-4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6", "standard_section": "hla-1516.1-2025:clause-7.12"}
+      ],
+      "mapping_note": "Direct mappings cover immediate callback delivery, the tagged owner release request, and the tagged denial/unavailable result with unchanged ownership. The installed-package pair passed 4/4 direct runs and 4/4 focused CTests under both callback models (out/mgw/ownership-denial-idle-configured-20261021.json); the native buffered-release transport fence is explicitly excluded. Java provider runtime remains unverified.",
+      "contract_refs": ["standard-ownership-denial-idle-contract.json"],
+      "cpp_test": "src/tck_ownership_denial_idle.cpp#scenarioOwnershipDenialIdle",
+      "runner_id": "cpp-tck.ownership-denial-idle",
+      "parity": "java-tck.ownership-denial-idle",
+      "native_equivalent_runner_ids": ["umbra-cpp-attribute-ownership-acquisition-release-denied-process-idle-push-integration"],
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-denial-idle-contract",
+      "category": "ownership-management",
+      "title": "Portable contract for idle immediate ownership-release denial",
+      "api_methods": ["RTIambassador.attributeOwnershipAcquisition", "RTIambassador.attributeOwnershipReleaseDenied", "RTIambassador.isAttributeOwnedByFederate", "FederateAmbassador.requestAttributeOwnershipRelease", "FederateAmbassador.attributeOwnershipUnavailable"],
+      "requirement_ids": ["cpp-1516.1-ownership-management"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-04-federation-management-page-038-l27-5", "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42", "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6"],
+      "standard_sections": ["hla-1516.1-2025:clause-4", "hla-1516.1-2025:clause-7.8", "hla-1516.1-2025:clause-7.12"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-038-l27-5", "standard_section": "hla-1516.1-2025:clause-4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6", "standard_section": "hla-1516.1-2025:clause-7.12"}
+      ],
+      "mapping_note": "Contract twin executes the same public-API body and four direct pairs. The installed-package pair passed 4/4 direct runs and 4/4 focused CTests under both callback models (out/mgw/ownership-denial-idle-configured-20261021.json); no private transport claim or Java runtime claim.",
+      "contract_refs": ["standard-ownership-denial-idle-contract.json"],
+      "cpp_test": "src/tck_ownership_denial_idle.cpp#scenarioOwnershipDenialIdleContract",
+      "runner_id": "cpp-tck.ownership-denial-idle-contract",
+      "parity": "cpp-tck.ownership-denial-idle",
+      "native_equivalent_runner_ids": ["umbra-cpp-attribute-ownership-acquisition-release-denied-process-idle-push-integration"],
+      "default_status": "adapter-required",
+      "promotion": "promoted"
     }
   ]
 }

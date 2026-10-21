@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "A distinct ordinary ownership-denial case observes discovery, a release request carrying the acquisition tag, one unavailable callback carrying the denial tag, and retained owner state. In HLA_IMMEDIATE mode both callback waits observe thread-safe recorders without any recipient RTI service or Evoke call; the HLA_EVOKED counterpart services callbacks normally. The provider, FOM, endpoint, and callback model are supplied by an adapter. Direct pinned mappings are page-038-l27-5 to Clause 4, page-161-l137-40 and page-161-l143-42 to §7.8, and page-167-l28-6 to §7.12. The transport-specific buffered-release fence and private protocol guards from the native source are not portable assertions and are excluded. This is public-API evidence, not provider-independent conformance evidence.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ownership-denial-idle",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador attributeOwnershipAcquisition and attributeOwnershipReleaseDenied; FederateAmbassador requestAttributeOwnershipRelease and attributeOwnershipUnavailable",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_denial_idle.cpp::scenarioOwnershipDenialIdleContract"
+      ]
+    }
+  ]
+}
