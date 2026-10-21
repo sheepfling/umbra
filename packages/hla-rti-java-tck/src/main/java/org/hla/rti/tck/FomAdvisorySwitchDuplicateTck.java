@@ -14,7 +14,7 @@ final class FomAdvisorySwitchDuplicateTck {
 
    static void run(RtiFactory factory, String disabled, String second,
          String timeImplementation, CallbackModel callbackModel,
-         boolean orderConflict) throws Exception {
+         boolean orderConflict, boolean omitted) throws Exception {
       RTIambassador creator = factory.getRtiAmbassador();
       RTIambassador member = factory.getRtiAmbassador();
       String federation = "java-tck-advisory-switch-duplicate-" + UUID.randomUUID();
@@ -34,7 +34,7 @@ final class FomAdvisorySwitchDuplicateTck {
             creator.destroyFederationExecution(federation);
             created = false;
          }
-         for (int order = 0; order < (orderConflict ? 2 : 1); order++) {
+         for (int order = 0; order < (orderConflict || omitted ? 2 : 1); order++) {
             String first = order == 0 ? disabled : second;
             String last = order == 0 ? second : disabled;
             creator.createFederationExecution(federation,

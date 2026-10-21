@@ -1,4 +1,16 @@
 {
+  "portable_tck_fom_advisory_switch_omitted_handoff_2026_10_21": {
+    "status": "verified-focused-installed-package-relink",
+    "scope": "Extend the IEEE 1516.2-2025 clause 4.13.3 and Annex C.8 portable advisory-switch cases to an omitted isEnabled value versus explicit false in both FOM module orders, with C++ primary/contract and Java scenario-ID parity.",
+    "sources": "cpp/tests/libxml2_fom_composer_catch2.cpp:911 and :975 (native generic duplicate/default rules); packages/hla-rti-cpp-tck/src/tck_fom_advisory_switch_duplicate.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomAdvisorySwitchDuplicateTck.java",
+    "direct_mappings": [
+      "requirement-candidate-sections-semantic-clause-4b-page-067-l50-4 -> IEEE 1516.2-2025 clause 4.13.3 Disabled default",
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l38-6 -> IEEE 1516.2-2025 Annex C.8 equivalent duplicate ignored"
+    ],
+    "evidence": "Native focused CTests passed 2/2; adapter-owned omitted FOM passed the pinned DIF XSD. Java compiles against the API-only JAR; catalogs and parity validate. A normal package build expanded to 207 unrelated objects after concurrent changes and was stopped. The changed advisory scenario and one newly referenced worker object were compiled individually, then tools/run_cpp_tck_focused_link.py relinked 232 existing objects against the installed package without replacing the shared executable. Isolated CTest passed 4/4 and direct runs passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/advisory-switch-omitted-20261021.json). Java provider runtime remains unverified.",
+    "scope_boundary": "Public Create and joined getAdvisoriesUseKnownClassSwitch treat omitted isEnabled as Disabled in both module orders. The focused relink checks the touched source and entry-point objects and reuses unrelated existing objects; it is not a full rebuild of all concurrent work. Private warnings, advisory callback policy, Java provider runtime, interoperability, and conformance are not claimed. Provider library, FOMs, endpoint, logical time, and callback model remain adapter-owned.",
+    "next": "Inspect the native-green Annex C.10 service-utilization OR merge and the existing public HLAcurrentFDD MOM query route for a genuinely observable portable FOM composition witness; if that private field cannot be exposed through standard services, select the next green public FOM behavior. Do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_advisory_switch_duplicate_handoff_2026_10_21": {
     "status": "verified-installed-package",
     "scope": "Translate IEEE 1516.2-2025 Annex C.8 equivalent and conflicting Advisories Use Known Class declarations into pure official-API C++ primary/contract cases with Java scenario-ID parity and adapter-owned FOM modules.",

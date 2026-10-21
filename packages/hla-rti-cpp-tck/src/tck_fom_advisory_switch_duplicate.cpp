@@ -11,18 +11,21 @@ std::wstring module(Options const& options, std::string const& name) {
 }
 
 void runAdvisorySwitchDuplicate(Options const& options,
-                                rti::CallbackModel model, bool orderConflict) {
+                                rti::CallbackModel model, bool orderConflict,
+                                bool omitted) {
   require(!options.logicalTimeImplementationName.empty(),
           "Advisory switch duplicate requires adapter-supplied logical time");
   auto const disabled = module(options, "advisory-switch-duplicate-disabled");
   auto const second = module(options, orderConflict
       ? "advisory-switch-duplicate-enabled"
-      : "advisory-switch-duplicate-equal");
+      : omitted ? "advisory-switch-duplicate-omitted"
+                : "advisory-switch-duplicate-equal");
   Session creator(options, model, "advisory-switch-duplicate-creator");
   Session member(options, model, "advisory-switch-duplicate-member");
   auto const federation = federationName(options, orderConflict
       ? "fom-advisory-switch-duplicate-order"
-      : "fom-advisory-switch-duplicate-equal");
+      : omitted ? "fom-advisory-switch-duplicate-omitted"
+                : "fom-advisory-switch-duplicate-equal");
   creator.connect();
   member.connect();
   auto create = [&](std::vector<std::wstring> const& modules) {
@@ -43,8 +46,8 @@ void runAdvisorySwitchDuplicate(Options const& options,
     creator.rtiAmbassador().destroyFederationExecution(federation);
   };
   checkPair(disabled, second, false);
-  if (orderConflict) {
-    checkPair(second, disabled, true);
+  if (orderConflict || omitted) {
+    checkPair(second, disabled, orderConflict);
   }
   member.disconnect();
   creator.disconnect();
@@ -54,7 +57,7 @@ void runAdvisorySwitchDuplicate(Options const& options,
 
 void scenarioFomAdvisorySwitchDuplicateEqual(Options const& options,
                                              rti::CallbackModel model) {
-  runAdvisorySwitchDuplicate(options, model, false);
+  runAdvisorySwitchDuplicate(options, model, false, false);
 }
 
 void scenarioFomAdvisorySwitchDuplicateEqualContract(
@@ -64,12 +67,22 @@ void scenarioFomAdvisorySwitchDuplicateEqualContract(
 
 void scenarioFomAdvisorySwitchDuplicateOrder(Options const& options,
                                              rti::CallbackModel model) {
-  runAdvisorySwitchDuplicate(options, model, true);
+  runAdvisorySwitchDuplicate(options, model, true, false);
 }
 
 void scenarioFomAdvisorySwitchDuplicateOrderContract(
     Options const& options, rti::CallbackModel model) {
   scenarioFomAdvisorySwitchDuplicateOrder(options, model);
+}
+
+void scenarioFomAdvisorySwitchDuplicateOmitted(Options const& options,
+                                               rti::CallbackModel model) {
+  runAdvisorySwitchDuplicate(options, model, false, true);
+}
+
+void scenarioFomAdvisorySwitchDuplicateOmittedContract(
+    Options const& options, rti::CallbackModel model) {
+  scenarioFomAdvisorySwitchDuplicateOmitted(options, model);
 }
 
 }  // namespace hla_rti_cpp_tck::detail

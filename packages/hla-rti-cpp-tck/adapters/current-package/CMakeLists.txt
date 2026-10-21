@@ -138,6 +138,7 @@ set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
   "advisory-switch-duplicate-disabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-disabled-tck.xml"
   "advisory-switch-duplicate-equal=${_repository_root}/packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-equal-tck.xml"
   "advisory-switch-duplicate-enabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-enabled-tck.xml"
+  "advisory-switch-duplicate-omitted=${_repository_root}/packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-omitted-tck.xml"
   CACHE STRING "Semicolon-separated NAME=FILE FOM bindings supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"

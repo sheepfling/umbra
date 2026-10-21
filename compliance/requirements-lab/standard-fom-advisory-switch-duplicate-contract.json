@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "Pure public-API Annex C.8 witnesses use three schema-valid, adapter-owned FOM modules to compare equivalent and conflicting Advisories Use Known Class settings. The native private preflight case passed 1/1, and the separate installed-package portable CTest/direct gate passed 8/8 each across both callback models. Java parity compiles against the API-only JAR but provider runtime is unverified. The portable cases assert only public Create, joined getAdvisoriesUseKnownClassSwitch, Resign, and Destroy outcomes. Private warnings, omitted advisory settings, callback delivery policy, interoperability, and conformance are not claimed.",
+  "notes": "Pure public-API Annex C.8 witnesses use adapter-owned schema-valid FOM modules to compare equivalent, conflicting, and omitted Advisories Use Known Class settings. The native duplicate and switch-default preflight cases passed 2/2. Equal and conflicting cases passed installed-package CTest/direct 8/8 each; the omitted case separately passed focused installed-package relink CTest/direct 4/4 each across both callback models without rebuilding unrelated objects. Java parity compiles against the API-only JAR but provider runtime is unverified. The portable cases assert only public Create, joined getAdvisoriesUseKnownClassSwitch, Resign, and Destroy outcomes. Private warnings, callback delivery policy, interoperability, and conformance are not claimed.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-advisory-switch-duplicate-equal",
@@ -22,6 +22,15 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1-2025 RTIambassador federation and advisory-switch query services",
       "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_advisory_switch_duplicate.cpp::scenarioFomAdvisorySwitchDuplicateOrderContract"]
+    },
+    {
+      "id": "standard-cpp-fom-advisory-switch-duplicate-omitted",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>), joinFederationExecution, getAdvisoriesUseKnownClassSwitch, resignFederationExecution, destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation and advisory-switch query services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_advisory_switch_duplicate.cpp::scenarioFomAdvisorySwitchDuplicateOmittedContract"]
     }
   ]
 }
