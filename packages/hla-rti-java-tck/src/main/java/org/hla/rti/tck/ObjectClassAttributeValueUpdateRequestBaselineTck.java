@@ -4,6 +4,7 @@ import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.AttributeHandleSet;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.RTIambassador;
@@ -43,7 +44,8 @@ final class ObjectClassAttributeValueUpdateRequestBaselineTck {
          requesterConnected = true;
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         owner.joinFederationExecution("java-tck-class-request-owner", federation);
+         FederateHandle ownerFederate = owner.joinFederationExecution(
+            "java-tck-class-request-owner", federation);
          ownerJoined = true;
          requester.joinFederationExecution("java-tck-class-requester", federation);
          requesterJoined = true;
@@ -88,6 +90,18 @@ final class ObjectClassAttributeValueUpdateRequestBaselineTck {
          await(requester, () -> requesterRecorder.discovered(firstOwnerObject)
                && requesterRecorder.discovered(secondOwnerObject),
             "requester did not discover both derived instances before the deadline");
+         List<Discovery> ownerDiscoveries = requesterRecorder.discoveries();
+         Set<ObjectInstanceHandle> discoveredObjects = new HashSet<>();
+         JavaTckSupport.check(ownerDiscoveries.size() == 2,
+            "class request setup returned duplicate or missing child discoveries");
+         for (Discovery discovery : ownerDiscoveries) {
+            JavaTckSupport.check((firstOwnerObject.equals(discovery.object)
+                  || secondOwnerObject.equals(discovery.object))
+                  && discoveredObjects.add(discovery.object)
+                  && requesterBaseClass.equals(discovery.objectClass)
+                  && ownerFederate.equals(discovery.producer),
+               "child discovery changed its closest subscribed class or producer");
+         }
          requester.registerObjectInstance(requesterBaseClass);
 
          byte[] requestTag = new byte[] {0x43, 0x4c, 0x53, 0x2d, 0x31};
@@ -171,8 +185,21 @@ final class ObjectClassAttributeValueUpdateRequestBaselineTck {
       }
    }
 
+   private static final class Discovery {
+      private final ObjectInstanceHandle object;
+      private final ObjectClassHandle objectClass;
+      private final FederateHandle producer;
+
+      private Discovery(ObjectInstanceHandle object, ObjectClassHandle objectClass,
+            FederateHandle producer) {
+         this.object = object;
+         this.objectClass = objectClass;
+         this.producer = producer;
+      }
+   }
+
    private static final class Recorder {
-      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       private final List<ProvidedUpdate> provided = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
@@ -181,8 +208,10 @@ final class ObjectClassAttributeValueUpdateRequestBaselineTck {
             new Class<?>[] {FederateAmbassador.class},
             (proxy, method, arguments) -> {
                String name = method.getName();
-               if ("discoverObjectInstance".equals(name)) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
+               if ("discoverObjectInstance".equals(name)
+                     && arguments != null && arguments.length == 4) {
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (ObjectClassHandle) arguments[1], (FederateHandle) arguments[3]));
                } else if ("provideAttributeValueUpdate".equals(name)) {
                   provided.add(new ProvidedUpdate((ObjectInstanceHandle) arguments[0],
                      (AttributeHandleSet) arguments[1], (byte[]) arguments[2]));
@@ -197,7 +226,11 @@ final class ObjectClassAttributeValueUpdateRequestBaselineTck {
       }
 
       private boolean discovered(ObjectInstanceHandle object) {
-         return discoveries.contains(object);
+         return discoveries.stream().anyMatch(discovery -> object.equals(discovery.object));
+      }
+
+      private List<Discovery> discoveries() {
+         return List.copyOf(discoveries);
       }
 
       private List<ProvidedUpdate> provided() {

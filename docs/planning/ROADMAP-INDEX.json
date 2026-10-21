@@ -33356,6 +33356,15 @@
         "boundary": "Only the bounded default-region class request equivalence is claimed. HLA_IMMEDIATE, Java provider runtime, other DDM operations, interoperability, validation, and conformance remain unverified.",
         "next": "Audit the native-green 43-assertion ordinary object-class Request Attribute Value Update subclass-owner case (umbra-cpp-object-class-attribute-value-update-request-integration, cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp:94) against existing portable TCK coverage. Translate only a distinct standard-API assertion with an exact 2025 mapping and gate it against the installed package."
       },
+      "latest_verified_object_class_request_discovery_cardinality_slice": {
+        "status": "verified-2026-10-21",
+        "scope": "Strengthen the existing official-API object-class Request Attribute Value Update primary/contract pair: each derived instance is discovered once with the closest subscribed base class and producing federate, and the owner receives exactly one tagged, owned-attribute callback per child instance. Java parity checks the same discovery metadata and unique callback set.",
+        "native_case": "umbra-cpp-object-class-attribute-value-update-request-integration",
+        "direct_mappings": ["page-135-l140/l143/l146/l152 -> §6.21", "page-136-l12/l21 -> §6.21.5", "page-137-l43 -> §6.22"],
+        "evidence": "Native 43-assertion focused CTest passed 1/1. Installed-package C++ primary/contract passed 4/4 direct runs (out/mgw/object-class-request-discovery-uniqueness-20261021.json) and 4/4 focused CTests across HLA_EVOKED/HLA_IMMEDIATE. Java parity compiled against the official 2025 API-only JAR. The catalog and contract now point to the actual C++ source instead of main.cpp.",
+        "boundary": "No Java provider-runtime, additional callback-order, provider-internal fanout, interoperability, validation, or conformance claim.",
+        "next": "Audit the native-green timestamped object-class request/provider-response case (umbra-cpp-object-class-attribute-value-update-timestamped-provider-response-integration, cpp/tests/ieee1516_2025_timestamped_object_class_request_provider_response_catch2.cpp:6) for assertions not already present in the portable TCK. Keep the timestamped response distinct from ordinary class-request cardinality; use exact 2025 mappings and installed-package gates before promotion."
+      },
       "restore_queued_ro_portability_audit_2026_10_21": {
         "status": "deferred-not-promoted",
         "native_case": "umbra-cpp-public-save-restore-queued-ro-interaction-discard",

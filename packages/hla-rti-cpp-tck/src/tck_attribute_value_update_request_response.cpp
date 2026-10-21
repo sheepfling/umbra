@@ -2,6 +2,7 @@
 #include "tck_main_scenarios.hpp"
 
 #include <cstdint>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -183,19 +184,27 @@ void scenarioObjectClassAttributeValueUpdateRequestBaseline(
       true,
       L"");
 
+  requester.recorder().clearDiscovery();
   std::vector<rti::ObjectInstanceHandle> ownerObjects;
-  ownerObjects.push_back(owner.rtiAmbassador().registerObjectInstance(ownerClass));
-  ownerObjects.push_back(owner.rtiAmbassador().registerObjectInstance(ownerClass));
-  require(
-      ownerObjects.front().isValid() && ownerObjects.back().isValid(),
-      "Object-class attribute-value request baseline registration returned an invalid handle");
-  for (auto const object : ownerObjects) {
+  for (int registration = 0; registration != 2; ++registration) {
+    auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+    require(object.isValid(),
+            "Object-class attribute-value request baseline registration returned an invalid handle");
+    ownerObjects.push_back(object);
     waitFor(
         requester,
         [&] { return requester.recorder().hasDiscovery(object); },
         options,
         "object-class attribute-value request baseline discovery");
+    auto const discovery = requester.recorder().discovery();
+    require(discovery.present && discovery.object == object &&
+                discovery.objectClass == requesterClass &&
+                discovery.producer == owner.federateHandle(),
+            "class request setup changed the discovered subscribed class or producer");
   }
+  require(ownerObjects.front() != ownerObjects.back() &&
+              requester.recorder().discoveryCount() == ownerObjects.size(),
+          "class request setup duplicated or omitted a child discovery");
   auto const requesterObject =
       requester.rtiAmbassador().registerObjectInstance(requesterClass);
   require(
@@ -221,13 +230,19 @@ void scenarioObjectClassAttributeValueUpdateRequestBaseline(
   require(
       ownerRequests.size() == ownerObjects.size(),
       "Object-class attribute-value request baseline returned an unexpected callback count");
+  std::set<rti::ObjectInstanceHandle> observedObjects;
   for (auto const& request : ownerRequests) {
     require(
         (request.object == ownerObjects.front() || request.object == ownerObjects.back()) &&
             request.attributes == rti::AttributeHandleSet{ownerIdentity} &&
             request.tag == requestTagBytes,
         "Object-class attribute-value request baseline returned the wrong callback metadata");
+    require(observedObjects.insert(request.object).second,
+            "class request returned two provider callbacks for one child instance");
   }
+  require(observedObjects == std::set<rti::ObjectInstanceHandle>{
+                                 ownerObjects.front(), ownerObjects.back()},
+          "class request omitted a matching child instance");
   require(
       requester.recorder().providedUpdates().empty(),
       "Object-class attribute-value request baseline solicited the requester-owned attribute");

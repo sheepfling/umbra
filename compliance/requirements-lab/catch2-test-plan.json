@@ -32194,9 +32194,18 @@
         "hla-1516.1-2025:clause-6.21.5",
         "hla-1516.1-2025:clause-6.22"
       ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l140-37", "standard_section": "hla-1516.1-2025:clause-6.21"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l143-38", "standard_section": "hla-1516.1-2025:clause-6.21"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l146-39", "standard_section": "hla-1516.1-2025:clause-6.21"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l152-41", "standard_section": "hla-1516.1-2025:clause-6.21"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l12-2", "standard_section": "hla-1516.1-2025:clause-6.21.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5", "standard_section": "hla-1516.1-2025:clause-6.21.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9", "standard_section": "hla-1516.1-2025:clause-6.22"}
+      ],
       "requirements_lab_api_surface_status": "The standalone C++ case exercises the official 2025 connect/create/join, handle lookup, publish/subscribe, register, evoke, object-class request, resign/destroy/disconnect, discovery callback, and Provide Attribute Value Update callback surfaces. The 2025 attribute-update passel FOM registers two concrete child instances and one requester-owned base instance, proving class-designator expansion, per-instance external-owner callbacks, unowned/requester-owned suppression, grouped delivery, tag propagation, and HLA_EVOKED delivery in one bounded lane.",
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "The bounded object-class baseline is green. Keep the object-instance lane separate, then add regional class requests, automatic provision, timestamped/retraction behavior, ensuing value-update responses, DDM, update-rate reduction, ownership transfer, FOM sharing policy, save/restore, remote transport, package support, JUnit/protected review, and Lab mapping resolution before making any validation claim."
+      "next_action": "Native focused CTest passed 1/1. Existing portable C++ primary/contract was strengthened to assert closest subscribed discovery class, producer, and unique per-child callbacks; installed-package direct runs and focused CTests passed 4/4 each across evoked/immediate. Java parity compiles against the official API-only JAR but has no provider runtime. Keep instance requests and timestamped provider responses separate; no validation claim."
     },
     {
       "id": "umbra-cpp-object-class-provide-attribute-value-update-service-report-integration",

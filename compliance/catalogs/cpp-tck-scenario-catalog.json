@@ -8716,7 +8716,7 @@
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5", "standard_section": "hla-1516.1-2025:clause-6.21.5" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9", "standard_section": "hla-1516.1-2025:clause-6.22" }
       ],
-      "mapping_note": "Direct coverage is limited to the class-designator Request Attribute Value Update service: the base-class request reaches each matching concrete instance and only its owned requested attributes; each owner receives one callback with that instance handle and request tag, and the requester is not called for its own attributes. Setup-only declarations and provider-internal fanout order are not claimed. The page-137 l40-8 candidate is excluded because of the recorded Requirements Lab structural-clause extraction mismatch; callback cardinality maps through l43-9 to §6.22.",
+      "mapping_note": "Direct coverage is limited to the class-designator Request Attribute Value Update service: the base-class request reaches each matching concrete instance and only its owned requested attributes; set equality proves exactly one callback per child with its request tag, and the requester is not called for its own attributes. Discovery verifies the closest subscribed base class and producing federate. Native focused CTest passed 1/1; installed-package C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests across evoked/immediate callback models (out/mgw/object-class-request-discovery-uniqueness-20261021.json). Setup-only declarations and provider-internal fanout order are not claimed. The page-137 l40-8 candidate remains excluded; callback cardinality maps through l43-9 to §6.22.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -8728,7 +8728,7 @@
         "object-class-attribute-value-update-request-api-contract.json",
         "object-class-attribute-value-update-request-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioObjectClassAttributeValueUpdateRequestBaseline",
+      "cpp_test": "src/tck_attribute_value_update_request_response.cpp#scenarioObjectClassAttributeValueUpdateRequestBaseline",
       "runner_id": "cpp-tck.object-class-attribute-value-update-request-baseline",
       "parity": "java-tck.object-class-attribute-value-update-request-baseline",
       "default_status": "adapter-required",
@@ -8777,11 +8777,11 @@
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5", "standard_section": "hla-1516.1-2025:clause-6.21.5" },
         { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9", "standard_section": "hla-1516.1-2025:clause-6.22" }
       ],
-      "mapping_note": "This contract scenario exercises the same standard class-designator request and callback assertions as its primary pair: expansion to matching instances, owner-specific attributes and tag, exactly one callback per owner instance, and suppression of the requester-owned callback. Provider-internal ordering and report behavior are outside scope. The page-137 l40-8 candidate remains excluded because of the recorded Requirements Lab extraction mismatch.",
+      "mapping_note": "This contract scenario exercises the same standard class-designator request and callback assertions as its primary pair: expansion to matching instances, closest subscribed discovery class and producer, owner-specific attributes and tag, exactly one callback per child instance, and suppression of the requester-owned callback. Installed-package C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests across evoked/immediate callback models (out/mgw/object-class-request-discovery-uniqueness-20261021.json). Provider-internal ordering and report behavior are outside scope. The page-137 l40-8 candidate remains excluded because of the recorded Requirements Lab extraction mismatch.",
       "contract_refs": [
         "standard-object-class-attribute-value-update-request-baseline-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioObjectClassAttributeValueUpdateRequestBaselineContract",
+      "cpp_test": "src/tck_attribute_value_update_request_response.cpp#scenarioObjectClassAttributeValueUpdateRequestBaselineContract",
       "runner_id": "cpp-tck.object-class-attribute-value-update-request-baseline-contract",
       "parity": "cpp-tck.object-class-attribute-value-update-request-baseline",
       "default_status": "adapter-required",

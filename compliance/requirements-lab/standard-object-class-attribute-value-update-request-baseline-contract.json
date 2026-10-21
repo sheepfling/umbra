@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 object-class Request Attribute Value Update overload over concrete subclass instances. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, rich FOM, endpoint, and callback configuration. It verifies class-scoped owner solicitation, inherited object-class and attribute handles, provider callback boundaries, and federation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 object-class Request Attribute Value Update overload over concrete subclass instances. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, rich FOM, endpoint, and callback configuration. It verifies class-scoped owner solicitation, closest subscribed discovery class and producer, unique per-child provider callback with owned requested attributes and tag, and federation cleanup without asserting provider-specific names, registries, headers, or implementation behavior. Native focused CTest passed 1/1; installed-package C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests across both callback models (out/mgw/object-class-request-discovery-uniqueness-20261021.json). Java parity compiles against the official API-only JAR, but provider runtime and conformance remain unverified.",
   "api_surfaces": [
     {
       "id": "standard-cpp-attribute-value-update-request-class",
@@ -13,7 +13,7 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador requestAttributeValueUpdate(class) declaration",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioObjectClassAttributeValueUpdateRequestBaselineContract"
+        "packages/hla-rti-cpp-tck/src/tck_attribute_value_update_request_response.cpp::scenarioObjectClassAttributeValueUpdateRequestBaselineContract"
       ]
     }
   ]
