@@ -38752,6 +38752,29 @@
       "default_status": "unsupported",
       "promotion": "candidate",
       "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, endpoint, and callback model; provider runtime has not been executed."
+    },
+    {
+      "id": "java-tck.ownership-denial-query",
+      "category": "ownership",
+      "title": "Report the original attribute owner after an ordinary release denial",
+      "api_methods": ["RTIambassador.connect(callback model supplied by adapter)", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.registerObjectInstance", "RTIambassador.attributeOwnershipAcquisition", "RTIambassador.attributeOwnershipReleaseDenied", "RTIambassador.queryAttributeOwnership", "RTIambassador.isAttributeOwnedByFederate", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.discoverObjectInstance", "FederateAmbassador.requestAttributeOwnershipRelease", "FederateAmbassador.attributeOwnershipUnavailable", "FederateAmbassador.informAttributeOwnership"],
+      "requirement_ids": ["cpp-1516.1-ownership-management"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42", "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6", "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.8", "hla-1516.1-2025:clause-7.12", "hla-1516.1-2025:clause-7.17.5", "hla-1516.1-2025:clause-7.18.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6", "standard_section": "hla-1516.1-2025:clause-7.12"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
+      ],
+      "mapping_note": "Java API-only parity checks the tagged release and denial callbacks before Query Attribute Ownership reports the unchanged original owner. The source compiles against the official 2025 API JAR; no Java provider runtime is claimed.",
+      "contract_refs": ["standard-ownership-denial-query-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#ownershipDenialQuery",
+      "parity": "cpp-tck.ownership-denial-query",
+      "default_status": "unsupported",
+      "promotion": "candidate",
+      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, endpoint, and callback model; provider runtime has not been executed."
     }
   ],
   "exclusions": [

@@ -138,6 +138,7 @@ void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
 #include "tck_directed_retraction_mixed_fanout.hpp"
 #include "tck_ownership_cancellation_idle.hpp"
 #include "tck_ownership_denial_idle.hpp"
+#include "tck_ownership_denial_query.hpp"
 #include "tck_timestamped_interaction_boundary_scenarios.hpp"
 #include "tck_region_lifecycle_scenarios.hpp"
 #include "tck_data_encoding.hpp"
@@ -19376,6 +19377,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.ownership-cancellation-idle-contract",
       "cpp-tck.ownership-denial-idle",
       "cpp-tck.ownership-denial-idle-contract",
+      "cpp-tck.ownership-denial-query",
+      "cpp-tck.ownership-denial-query-contract",
       "cpp-tck.directed-interaction-no-applicable-subscription",
       "cpp-tck.directed-interaction-subscription-accumulation",
       "cpp-tck.directed-interaction-derived-object-target-contract",
@@ -22824,6 +22827,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.ownership-denial-idle-contract") {
     return scenarioOwnershipDenialIdleContract;
+  }
+  if (id == "cpp-tck.ownership-denial-query") {
+    return scenarioOwnershipDenialQuery;
+  }
+  if (id == "cpp-tck.ownership-denial-query-contract") {
+    return scenarioOwnershipDenialQueryContract;
   }
   if (id == "cpp-tck.directed-interaction-no-applicable-subscription") {
     return scenarioDirectedInteractionNoApplicableSubscription;

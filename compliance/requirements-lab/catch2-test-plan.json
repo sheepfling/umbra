@@ -34814,7 +34814,7 @@
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
       "requirements_lab_api_surface_status": "The official 2025 C++ RTIambassador regular acquisition requests release from the current owner through a configured process endpoint. The owner's public Attribute Ownership Release Denied call terminates the pending acquisition, delivers one Attribute Ownership Unavailable callback with the denial tag, and a later public Query Attribute Ownership reports the same original federate as owner. This bounded HLA_EVOKED development-profile path does not establish complete ownership arbitration or conformance.",
-      "next_action": "Keep the two-federate denied-acquisition terminal path, exact denial-tag propagation, post-denial queried owner, and separate immediate callback companion green. Multi-acquirer delivery, cancellation races, RTI-owned state, timestamped/DDM behavior, interoperability, package/JUnit/protected-review, Lab validation, and conformance remain separate."
+      "next_action": "The post-denial public Query Attribute Ownership sequence has a separate promoted pure C++ TCK primary/contract pair and Java parity ID with five exact §7.8/§7.12/§7.17.5/§7.18.4 mappings. The installed-package C++ pair passed 4/4 direct runs and 4/4 focused CTests under both callback models (out/mgw/ownership-denial-query-promoted-20261021.json; out/mgw/cpp-tck-unregulated-timestamped-attribute-20261021). Java compiles against the official 2025 API JAR but has no provider runtime. Keep multi-acquirer arbitration, cancellation races, RTI-owned state, independent-provider interoperability, and conformance separate."
     },
     {
       "id": "umbra-cpp-attribute-ownership-acquisition-release-denied-process-push-integration",

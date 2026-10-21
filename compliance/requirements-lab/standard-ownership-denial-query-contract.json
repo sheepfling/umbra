@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK contract exercises one regular acquisition denied by the current owner. It verifies the tagged release request, one tagged Attribute Ownership Unavailable callback, a subsequent Query Attribute Ownership report naming the unchanged owner, and the public ownership predicates. The installed-package C++ primary/contract pair passed 4/4 direct runs and 4/4 focused CTests across evoked/immediate callbacks (out/mgw/ownership-denial-query-promoted-20261021.json; out/mgw/cpp-tck-unregulated-timestamped-attribute-20261021). Java source compiles against the official 2025 API JAR, but provider runtime has not run. Scope is limited to this ordinary two-federate path; no multi-acquirer arbitration, RTI-owned state, transport-specific behavior, independent-provider interoperability, or conformance claim is made.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ownership-denial-followed-by-query",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador AttributeOwnershipAcquisition, AttributeOwnershipReleaseDenied, QueryAttributeOwnership, and IsAttributeOwnedByFederate; FederateAmbassador RequestAttributeOwnershipRelease, AttributeOwnershipUnavailable, and InformAttributeOwnership",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_denial_query.cpp::scenarioOwnershipDenialQuery",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_denial_query.cpp::scenarioOwnershipDenialQueryContract"
+      ]
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.AttributeHandleSet;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.ResignAction;
@@ -21,6 +22,106 @@ final class OwnershipReleaseDeniedTck {
    private static final long CALLBACK_TIMEOUT_NANOS = 10_000_000_000L;
 
    private OwnershipReleaseDeniedTck() { }
+
+   static void runQueryAfterDenial(RtiFactory factory, String fom,
+         String objectClassName, String attributeName, CallbackModel callbackModel)
+         throws Exception {
+      RTIambassador owner = factory.getRtiAmbassador();
+      RTIambassador requester = factory.getRtiAmbassador();
+      Recorder ownerRecorder = new Recorder();
+      Recorder requesterRecorder = new Recorder();
+      String federation = "java-tck-ownership-denial-query-" + UUID.randomUUID();
+      boolean ownerConnected = false;
+      boolean requesterConnected = false;
+      boolean created = false;
+      boolean ownerJoined = false;
+      boolean requesterJoined = false;
+      try {
+         owner.connect(ownerRecorder.proxy(), callbackModel);
+         ownerConnected = true;
+         requester.connect(requesterRecorder.proxy(), callbackModel);
+         requesterConnected = true;
+         owner.createFederationExecution(federation, fom);
+         created = true;
+         FederateHandle ownerHandle = owner.joinFederationExecution(
+            "java-tck-denial-query-owner", federation);
+         ownerJoined = true;
+         requester.joinFederationExecution("java-tck-denial-query-requester", federation);
+         requesterJoined = true;
+
+         ObjectClassHandle ownerClass = owner.getObjectClassHandle(objectClassName);
+         ObjectClassHandle requesterClass = requester.getObjectClassHandle(objectClassName);
+         AttributeHandle ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName);
+         AttributeHandle requesterAttribute = requester.getAttributeHandle(
+            requesterClass, attributeName);
+         JavaTckSupport.check(ownerClass.equals(requesterClass)
+               && ownerAttribute.equals(requesterAttribute),
+            "post-denial query fixture did not resolve matching standard handles");
+         AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
+         AttributeHandleSet requesterAttributes = JavaTckSupport.attributeSet(
+            requester, requesterAttribute);
+         requester.subscribeObjectClassAttributes(requesterClass, requesterAttributes);
+         owner.publishObjectClassAttributes(ownerClass, ownerAttributes);
+         ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
+         await(requester, callbackModel,
+            () -> requesterRecorder.discoveries.contains(object),
+            "post-denial ownership-query discovery");
+         requester.publishObjectClassAttributes(requesterClass, requesterAttributes);
+
+         byte[] acquisitionTag = new byte[] {(byte) 0xA5, 0x21};
+         byte[] denialTag = new byte[] {(byte) 0xD3, 0x42};
+         ownerRecorder.clearOwnershipEvents();
+         requesterRecorder.clearOwnershipEvents();
+         requester.attributeOwnershipAcquisition(object, requesterAttributes, acquisitionTag);
+         await(owner, callbackModel,
+            () -> !ownerRecorder.releaseRequests.isEmpty(),
+            "post-denial ownership-query release request");
+         JavaTckSupport.check(ownerRecorder.releaseRequests.size() == 1,
+            "post-denial ownership query produced duplicate release requests");
+         checkEvent(ownerRecorder.releaseRequests.get(0), object, ownerAttributes,
+            acquisitionTag, "post-denial ownership-query release request");
+         owner.attributeOwnershipReleaseDenied(object, ownerAttributes, denialTag);
+         await(requester, callbackModel,
+            () -> !requesterRecorder.unavailable.isEmpty(),
+            "post-denial ownership-query unavailable callback");
+         JavaTckSupport.check(requesterRecorder.unavailable.size() == 1
+               && requesterRecorder.acquisitions.isEmpty(),
+            "post-denial ownership query duplicated unavailability or acquired ownership");
+         checkEvent(requesterRecorder.unavailable.get(0), object, requesterAttributes,
+            denialTag, "post-denial ownership-query unavailable callback");
+
+         requester.queryAttributeOwnership(object, requesterAttributes);
+         await(requester, callbackModel,
+            () -> !requesterRecorder.ownershipInformation.isEmpty(),
+            "post-denial Inform Attribute Ownership callback");
+         JavaTckSupport.check(requesterRecorder.ownershipInformation.size() == 1,
+            "post-denial ownership query produced duplicate owner reports");
+         OwnershipInfo report = requesterRecorder.ownershipInformation.get(0);
+         JavaTckSupport.check(object.equals(report.object)
+               && requesterAttributes.equals(report.attributes)
+               && ownerHandle.equals(report.owner),
+            "post-denial ownership query did not report the original owner");
+         JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerAttribute)
+               && !requester.isAttributeOwnedByFederate(object, requesterAttribute),
+            "post-denial ownership query changed ownership");
+      } finally {
+         if (requesterJoined) {
+            try { requester.resignFederationExecution(
+               ResignAction.CANCEL_PENDING_OWNERSHIP_ACQUISITIONS); }
+            catch (Exception ignored) { }
+         }
+         if (ownerJoined) {
+            try { owner.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST); }
+            catch (Exception ignored) { }
+         }
+         if (created) {
+            try { owner.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (requesterConnected) { try { requester.disconnect(); } catch (Exception ignored) { } }
+         if (ownerConnected) { try { owner.disconnect(); } catch (Exception ignored) { } }
+      }
+   }
 
    static void runIdle(RtiFactory factory, String fom, String objectClassName,
          String attributeName, CallbackModel callbackModel) throws Exception {
@@ -358,11 +459,25 @@ final class OwnershipReleaseDeniedTck {
       }
    }
 
+   private static final class OwnershipInfo {
+      private final ObjectInstanceHandle object;
+      private final AttributeHandleSet attributes;
+      private final FederateHandle owner;
+
+      private OwnershipInfo(ObjectInstanceHandle object, AttributeHandleSet attributes,
+            FederateHandle owner) {
+         this.object = object;
+         this.attributes = attributes;
+         this.owner = owner;
+      }
+   }
+
    private static final class Recorder {
       private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> releaseRequests = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> unavailable = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> acquisitions = new CopyOnWriteArrayList<>();
+      private final List<OwnershipInfo> ownershipInformation = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -372,6 +487,12 @@ final class OwnershipReleaseDeniedTck {
                if ("discoverObjectInstance".equals(name) && arguments != null
                      && arguments.length >= 1) {
                   discoveries.add((ObjectInstanceHandle) arguments[0]);
+               } else if ("informAttributeOwnership".equals(name)
+                     && arguments != null && arguments.length >= 3) {
+                  ownershipInformation.add(new OwnershipInfo(
+                     (ObjectInstanceHandle) arguments[0],
+                     (AttributeHandleSet) arguments[1],
+                     (FederateHandle) arguments[2]));
                } else if (("requestAttributeOwnershipRelease".equals(name)
                      || "attributeOwnershipUnavailable".equals(name)
                      || "attributeOwnershipAcquisitionNotification".equals(name))
@@ -401,6 +522,7 @@ final class OwnershipReleaseDeniedTck {
          releaseRequests.clear();
          unavailable.clear();
          acquisitions.clear();
+         ownershipInformation.clear();
       }
    }
 }

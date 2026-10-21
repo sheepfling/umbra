@@ -65709,6 +65709,116 @@
       "native_equivalent_runner_ids": ["umbra-cpp-attribute-ownership-acquisition-release-denied-process-idle-push-integration"],
       "default_status": "adapter-required",
       "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-denial-query",
+      "category": "ownership-management",
+      "title": "Query the retained attribute owner after a regular acquisition is denied",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipReleaseDenied",
+        "RTIambassador.queryAttributeOwnership",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.attributeOwnershipUnavailable",
+        "FederateAmbassador.informAttributeOwnership"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40",
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42",
+        "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40",
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42",
+        "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.8",
+        "hla-1516.1-2025:clause-7.12",
+        "hla-1516.1-2025:clause-7.17.5",
+        "hla-1516.1-2025:clause-7.18.4"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6", "standard_section": "hla-1516.1-2025:clause-7.12"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
+      ],
+      "mapping_note": "The C++ public-API case requests a regular acquisition, verifies the owner's tagged release request, denies it, checks one tagged Attribute Ownership Unavailable callback, and then confirms Query Attribute Ownership and Is Attribute Owned By Federate still identify the original owner. Direct mappings match the corresponding process public-case crosswalk. The installed-package primary/contract pair passed 4/4 direct runs (out/mgw/ownership-denial-query-promoted-20261021.json) and 4/4 focused CTests across HLA_EVOKED and HLA_IMMEDIATE (out/mgw/cpp-tck-unregulated-timestamped-attribute-20261021). Java has a source-level parity scenario; Java provider runtime, multi-acquirer arbitration, and provider-independent conformance are not claimed.",
+      "parity": "java-tck.ownership-denial-query",
+      "contract_refs": ["standard-ownership-denial-query-contract.json"],
+      "native_equivalent_runner_ids": ["umbra-cpp-attribute-ownership-acquisition-release-denied-process-integration"],
+      "cpp_test": "src/tck_ownership_denial_query.cpp#scenarioOwnershipDenialQuery",
+      "runner_id": "cpp-tck.ownership-denial-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-denial-query-contract",
+      "category": "ownership-management",
+      "title": "Contract twin for querying ownership after a denied acquisition",
+      "api_methods": [
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipReleaseDenied",
+        "RTIambassador.queryAttributeOwnership",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.attributeOwnershipUnavailable",
+        "FederateAmbassador.informAttributeOwnership"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40",
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42",
+        "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40",
+        "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42",
+        "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.8",
+        "hla-1516.1-2025:clause-7.12",
+        "hla-1516.1-2025:clause-7.17.5",
+        "hla-1516.1-2025:clause-7.18.4"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6", "standard_section": "hla-1516.1-2025:clause-7.12"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
+      ],
+      "mapping_note": "Contract twin for the same bounded public ownership-denial/query sequence. The installed-package pair passed 4/4 direct runs (out/mgw/ownership-denial-query-promoted-20261021.json) and 4/4 focused CTests across HLA_EVOKED and HLA_IMMEDIATE (out/mgw/cpp-tck-unregulated-timestamped-attribute-20261021). It is not evidence for broader arbitration or conformance; Java provider runtime remains unverified.",
+      "contract_refs": ["standard-ownership-denial-query-contract.json"],
+      "cpp_test": "src/tck_ownership_denial_query.cpp#scenarioOwnershipDenialQueryContract",
+      "runner_id": "cpp-tck.ownership-denial-query-contract",
+      "parity": "cpp-tck.ownership-denial-query",
+      "native_equivalent_runner_ids": ["umbra-cpp-attribute-ownership-acquisition-release-denied-process-integration"],
+      "default_status": "adapter-required",
+      "promotion": "promoted"
     }
   ]
 }
