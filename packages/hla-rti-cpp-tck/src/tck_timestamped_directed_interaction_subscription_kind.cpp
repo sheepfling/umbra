@@ -338,6 +338,115 @@ void scenarioTimestampedDirectedInteractionSubscriptionKind(
           sender.recorder().timeAdvanceGrants().front().encoded == encodeTime(*timestamp),
       "timestamped directed-interaction federates received the wrong grant times");
 
+  ownershipSubscriber.rtiAmbassador().publishObjectClassDirectedInteractions(
+      ownershipClass,
+      ownershipDirected);
+  ownershipSubscriber.rtiAmbassador().changeInteractionOrderType(
+      ownershipInteraction,
+      rti::TIMESTAMP);
+  ownershipSubscriber.rtiAmbassador().enableTimeRegulation(*ownershipTime.epsilon);
+  waitFor(
+      ownershipSubscriber,
+      [&] {
+        return !ownershipSubscriber.recorder().timeRegulationEnabled().empty();
+      },
+      options,
+      "timestamped directed-interaction second sender's Time Regulation callback");
+
+  auto const senderLater = timeAfter(
+      *senderTime.factory,
+      *senderTime.initial,
+      *senderTime.epsilon,
+      4U);
+  auto const ownershipLater = timeAfter(
+      *ownershipTime.factory,
+      *ownershipTime.initial,
+      *ownershipTime.epsilon,
+      4U);
+  require(
+      encodeTime(*senderLater) == encodeTime(*ownershipLater),
+      "timestamped directed-interaction senders constructed different later times");
+  rti::ParameterHandleValueMap ownershipParameters;
+  ownershipParameters.emplace(
+      ownershipParameter,
+      rti::VariableLengthData(valueBytes.data(), valueBytes.size()));
+  requireException(
+      [&] {
+        sender.rtiAmbassador().sendDirectedInteraction(
+            senderInteraction,
+            target,
+            parameters,
+            tag,
+            *timestamp);
+      },
+      L"InvalidLogicalTime",
+      "timestamped directed send below current logical time plus lookahead");
+  auto const senderAtLookaheadBoundary = timeAfter(
+      *senderTime.factory,
+      *senderTime.initial,
+      *senderTime.epsilon,
+      3U);
+  auto const boundaryRetraction = sender.rtiAmbassador().sendDirectedInteraction(
+      senderInteraction,
+      target,
+      parameters,
+      tag,
+      *senderAtLookaheadBoundary);
+  require(
+      boundaryRetraction.isValid(),
+      "timestamped directed send at current logical time plus lookahead returned no handle");
+  auto const sameSenderRetraction = sender.rtiAmbassador().sendDirectedInteraction(
+      senderInteraction,
+      target,
+      parameters,
+      tag,
+      *senderLater);
+  auto const otherSenderRetraction =
+      ownershipSubscriber.rtiAmbassador().sendDirectedInteraction(
+          ownershipInteraction,
+          target,
+          ownershipParameters,
+          tag,
+          *ownershipLater);
+  require(
+      sameSenderRetraction.isValid() && otherSenderRetraction.isValid() &&
+          copyBytes(retraction.encode()) != copyBytes(boundaryRetraction.encode()) &&
+          copyBytes(retraction.encode()) != copyBytes(sameSenderRetraction.encode()) &&
+          copyBytes(retraction.encode()) != copyBytes(otherSenderRetraction.encode()) &&
+          copyBytes(boundaryRetraction.encode()) !=
+              copyBytes(sameSenderRetraction.encode()) &&
+          copyBytes(boundaryRetraction.encode()) !=
+              copyBytes(otherSenderRetraction.encode()) &&
+          copyBytes(sameSenderRetraction.encode()) !=
+              copyBytes(otherSenderRetraction.encode()),
+      "timestamped directed sends did not return federation-unique retraction handles");
+
+  universalSubscriber.rtiAmbassador().publishObjectClassDirectedInteractions(
+      universalClass,
+      universalDirected);
+  auto const universalLater = timeAfter(
+      *universalTime.factory,
+      *universalTime.initial,
+      *universalTime.epsilon,
+      4U);
+  require(
+      encodeTime(*senderLater) == encodeTime(*universalLater),
+      "timestamped directed-interaction non-regulating sender constructed a different time");
+  rti::ParameterHandleValueMap universalParameters;
+  universalParameters.emplace(
+      universalParameter,
+      rti::VariableLengthData(valueBytes.data(), valueBytes.size()));
+  auto const nonRegulatingRetraction =
+      universalSubscriber.rtiAmbassador().sendDirectedInteraction(
+          universalInteraction,
+          target,
+          universalParameters,
+          tag,
+          *universalLater);
+  require(
+      !nonRegulatingRetraction.isValid(),
+      "timestamped directed send by a non-regulating federate returned a retraction handle");
+
   sender.resign(rti::NO_ACTION);
   ownershipSubscriber.resign(rti::NO_ACTION);
   universalSubscriber.resign(rti::NO_ACTION);

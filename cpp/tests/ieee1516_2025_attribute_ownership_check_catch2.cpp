@@ -2,6 +2,75 @@
 
 namespace {
 TEST_CASE(
+    "Unconditionally divesting resignation releases every owned instance attribute",
+    "[integration][development-profile][ownership-management]"
+    "[ownership-resign-unconditionally-divests-all]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador survivorReports;
+  auto owner = makeRti();
+  auto survivor = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "attribute-update-passel-fom.xml")
+                             .wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(survivor->connect(survivorReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      owner->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"unconditional-divest-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(survivor->joinFederationExecution(
+      L"unconditional-divest-survivor", L"subscriber", federationName));
+
+  auto const objectClass = owner->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const reliableBaseA = owner->getAttributeHandle(
+      objectClass, fixture_hla::fixture::reliable_base_a);
+  auto const unownedChild = owner->getAttributeHandle(
+      objectClass, fixture_hla::fixture::unowned_child);
+  AttributeHandleSet const attributes{reliableBaseA, unownedChild};
+  REQUIRE_NOTHROW(survivor->subscribeObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(objectClass, attributes));
+
+  ObjectInstanceHandle firstObject;
+  ObjectInstanceHandle secondObject;
+  REQUIRE_NOTHROW(firstObject = owner->registerObjectInstance(objectClass));
+  REQUIRE_NOTHROW(secondObject = owner->registerObjectInstance(objectClass));
+  REQUIRE(firstObject.isValid());
+  REQUIRE(secondObject.isValid());
+  while (survivor->evokeMultipleCallbacks(0.0, 0.0)) {
+  }
+  REQUIRE(survivorReports.objectDiscoveryReports.size() == 2U);
+
+  for (auto const object : {firstObject, secondObject}) {
+    REQUIRE(owner->isAttributeOwnedByFederate(object, reliableBaseA));
+    REQUIRE(owner->isAttributeOwnedByFederate(object, unownedChild));
+    REQUIRE_FALSE(survivor->isAttributeOwnedByFederate(object, reliableBaseA));
+    REQUIRE_FALSE(survivor->isAttributeOwnedByFederate(object, unownedChild));
+  }
+
+  REQUIRE_NOTHROW(owner->resignFederationExecution(
+      rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES));
+
+  // The surviving joined federate sees all four instance attributes as
+  // unowned after the successful resignation; the object instances remain.
+  for (auto const object : {firstObject, secondObject}) {
+    REQUIRE(survivor->getKnownObjectClassHandle(object) == objectClass);
+    REQUIRE_FALSE(survivor->isAttributeOwnedByFederate(object, reliableBaseA));
+    REQUIRE_FALSE(survivor->isAttributeOwnedByFederate(object, unownedChild));
+  }
+
+  REQUIRE_NOTHROW(survivor->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(survivor->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(survivor->disconnect());
+}
+
+TEST_CASE(
     "Embedded Is Attribute Owned By Federate reads 2025 ownership state",
     "[integration][development-profile][ownership-management]"
     "[rti.service.is-attribute-owned-by-federate]") {

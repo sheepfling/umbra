@@ -274,10 +274,10 @@ and recipient callback model are separate boundaries.
 
 | HLA service | Umbra process route | Focused process evidence and limits |
 | --- | --- | --- |
-| Acquisition If Available | Explicit request and registry plan; private status/count is separate from pushed events or the pull result slot. See the [detailed process path](#process-endpoint-private-result-and-callback-event-are-separate). | The configured-process `HLA_EVOKED` case covers one unowned attribute through default pull delivery; it does not cover mixed/unavailable results or pushed delivery. |
+| Acquisition If Available | Explicit request and registry plan; private status/count is separate from pushed events or the pull result slot. See the [detailed process path](#process-endpoint-private-result-and-callback-event-are-separate). | Configured-process `HLA_EVOKED`/pull and `HLA_IMMEDIATE`/push cases cover competing requests for one unowned attribute and a mixed request with one available and one still-owned attribute. They assert per-attribute acquisition/unavailable outcomes without requiring a universal winner or callback order: [competing requests](../../cpp/tests/attribute_ownership_query_catch2.cpp#L1818), [mixed attributes](../../cpp/tests/attribute_ownership_query_catch2.cpp#L2144). |
 | Confirm Divestiture | Explicit request and registry plan; private status/count is separate from queued recipient notifications. See [negotiated divestiture and confirmation](#negotiated-divestiture-adds-a-confirmation-stage). | The focused process-boundary case observes selected callbacks and tags under `HLA_IMMEDIATE`, not update-region behavior or an ownership-query timing guarantee. |
-| Unconditional Divestiture | Explicit request and registry plan; private acceptance is separate from acquisition work and assumption offers. See the [process route below](#process-endpoint-unconditional-divestiture-and-recipient-work-are-separate). | A portable C++ TCK scenario source covers a general standard path, but the checked-in package notes do not record a process-specific execution. The cited focused Catch2 case is embedded. |
-| Acquisition cancellation | Explicit request; its private acceptance result is distinct from the later confirmation event. See [process cancellation](#process-endpoint-cancellation-result-and-confirmation-are-separate). | The configured-process `HLA_EVOKED` case is pull-mode and covers a regular request; it does not cover deletion/Resign races. |
+| Unconditional Divestiture | Explicit request and registry plan; private acceptance is separate from acquisition work and assumption offers. See the [process route below](#process-endpoint-unconditional-divestiture-and-recipient-work-are-separate). | Focused process cases cover selected successful outcomes: owner-to-unowned query after divestiture, a later explicit acquisition/notification, and ownership-assumption offers under HLA_EVOKED and HLA_IMMEDIATE. They do not cover a regular request already pending at divestiture or the post-commit enqueue/send failure path. The portable C++ TCK's general scenario is not recorded as a process run. |
+| Acquisition cancellation | Explicit request; its private acceptance result is distinct from the later confirmation event. See [process cancellation](#process-endpoint-cancellation-result-and-confirmation-are-separate). | Configured-process `HLA_EVOKED`/pull covers confirmation after ordinary cancellation; `HLA_IMMEDIATE`/push covers an idle requester and a buffered owner-release callback. No focused process test combines cancellation with a divestiture-generated acquisition notification or Release Denied after owner-callback entry; deletion/Resign outcomes also remain gaps. |
 | Divestiture If Wanted | No process operation, client method, or server handler was found; the public method directly uses the embedded registry, as described above. | The pinned API declares the service, but the selected transfer/region tests exercise only the embedded route. |
 
 ### Object deletion uses a special privilege, not ordinary data ownership
@@ -293,8 +293,194 @@ covers the current implementation's special gate and the separate
 receiver-removal lifecycle. That guide also explains how an explicit
 unpublish can separate delete privilege across registrations in one class
 ([publication-epoch detail](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#a-publication-epoch-can-separate-delete-privilege-across-object-registrations)).
-The acquisition and divestiture diagrams below stay focused on per-attribute
-ownership transfer.
+The existing acquisition and divestiture diagrams stay focused on per-attribute
+transfer. The following sequence connects that transfer to deletion authority
+without merging the two state changes.
+
+#### Catalog inheritance and instance authority are different layers
+
+The catalog answers whether an object-class definition exposes the attribute.
+Its [effective-attribute lookup](../../cpp/src/internal/fom/fom_catalog.hpp#L229)
+walks the class's parent chain and combines declared attributes. A focused
+composer test builds the pinned 2025 standard MIM with the Restaurant FOM and
+checks that every object class in that composed catalog resolves
+`HLAprivilegeToDeleteObject` ([test](../../cpp/tests/libxml2_fom_composer_catch2.cpp#L788)).
+A separate catalog test checks that `HLAmanager.HLAfederate` retains the
+inherited row's `HLAtoken`, `valueRequired=false`, `DivestAcquire`, `Static`, and
+`PublishSubscribe` metadata, distinct from the class's directly declared MOM
+attributes ([test](../../cpp/tests/libxml2_fom_composer_catch2.cpp#L741)).
+These establish class-schema availability and metadata—not an object instance,
+an ownership transfer, or a federate's right to delete.
+
+```mermaid
+flowchart TB
+  subgraph schema["Composed FOM class schema"]
+    direction LR
+    MIM["2025 MIM declares the privilege at HLAobjectRoot"] --> PARENTS["Effective lookup walks the class parent chain"]
+    PARENTS --> AVAILABLE["Tested MIM plus Restaurant catalog exposes it on each composed class"]
+  end
+  subgraph runtime["One object instance: selected embedded path"]
+    direction LR
+    OBJECT["A particular registered object"] --> OWNER["Its current delete-privilege owner"]
+    OWNER --> CHECK["Delete gate checks that instance's owner"]
+  end
+```
+
+The two lanes are deliberately separate: an inherited attribute in the FOM
+catalog neither assigns nor proves the owner of any particular object. The
+runtime lane is bounded by the [embedded transfer-and-delete case](../../cpp/tests/object_instance_deletion_catch2.cpp#L235)
+and the [per-instance registry gate](../../cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp#L44).
+The composer cases and runtime test source were inspected but not rerun for
+this documentation change; no configured-process parity is claimed.
+
+### A new owner can gain delete authority without becoming the registrant
+
+The [2025 MIM row for `HLAprivilegeToDeleteObject`](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L33)
+defines it as an object-class attribute,
+and the 2025 [`deleteObjectInstance` API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L824)
+lists `DeletePrivilegeNotHeld`. A selected embedded test scenario makes the
+cross-service relationship concrete: A registers the object and initially
+owns its delete privilege; B must publish that special attribute at the
+object's known class before its acquisition request is eligible; A then
+divests it if wanted. After the transfer, A cannot delete the instance, while
+B can. The same test also transfers an ordinary attribute, showing that its
+update authority is a separate per-attribute ownership result.
+
+```mermaid
+sequenceDiagram
+    participant A as A Registrant
+    participant B as B New owner
+    participant R as RTI
+    participant C as C Observer
+    Note over B,R: B must publish HLAprivilegeToDeleteObject for this object class
+    alt Special attribute is not published
+        B->>R: attributeOwnershipAcquisition
+        R-->>B: AttributeNotPublished
+        Note over A,B: No transfer. A keeps the delete privilege
+    else Special attribute is published
+        B->>R: attributeOwnershipAcquisition
+        A->>R: attributeOwnershipDivestitureIfWanted
+        R-->>B: attributeOwnershipAcquisitionNotification
+        Note over A,B: B now owns the delete privilege. A remains the registrant
+        A->>R: deleteObjectInstance
+        R-->>A: DeletePrivilegeNotHeld
+        B->>R: deleteObjectInstance (tag from B)
+        R-->>C: removeObjectInstance (producer A)
+    end
+    Note over A,C: This is the selected embedded HLA_EVOKED test path only
+```
+
+The current worktree contains the
+[embedded transfer-and-delete test](../../cpp/tests/object_instance_deletion_catch2.cpp#L234),
+with direct assertions for [A's `DeletePrivilegeNotHeld` and B's successful
+delete](../../cpp/tests/object_instance_deletion_catch2.cpp#L353) and [the
+removal callback naming A rather than B](../../cpp/tests/object_instance_deletion_catch2.cpp#L361),
+plus the separate
+[publication-eligibility test](../../cpp/tests/object_instance_deletion_catch2.cpp#L377).
+The eligibility case keeps the object class published through ordinary
+`Efficiency` while explicitly unpublishing only the delete privilege; its
+acquisition then throws `AttributeNotPublished` until B publishes that
+attribute at the known class ([rejection](../../cpp/tests/object_instance_deletion_catch2.cpp#L435),
+[later successful acquisition](../../cpp/tests/object_instance_deletion_catch2.cpp#L454)).
+Together the two test sources assert the outcomes shown above, including the
+removal callback's original registrant identity and B's deletion tag. The
+transfer test's source comment attributes the producer-identity rule to
+§6.17, but the pinned callback header supplies only the signature and
+`producingFederate` parameter, not the clause prose. The checked-in test proves
+the expected identity in this embedded HLA_EVOKED scenario; it is not
+independent verification of the normative clause. Consult an authorized copy
+of IEEE 1516.1-2025 before presenting that exact attribution as verified
+([official IEEE listing](https://standards.ieee.org/ieee/1516.1/6688/)).
+These test-source assertions were not executed as part of this documentation
+review. The embedded registry
+checks the per-instance delete-privilege owner
+([deletion gate](../../cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp#L41))
+and retains the registrant in the removal snapshot
+([callback snapshot](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L108)).
+The 2025 process removal path has a distinct identity boundary: its TSO
+deletion message records the deleting requester's identity, while its public
+removal event is built from the receiver's removal snapshot. Keep these values
+separate:
+
+| Process boundary | `producingFederateId` source and meaning |
+| --- | --- |
+| Receive-order removal event | The event gets the producer from the removal snapshot either while enqueueing pushed callbacks or when the receiver polls a pull-mode event ([push path](../../cpp/src/internal/federation/process_federation_service_object_instance_removal.cpp#L60), [pull path](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L149)). |
+| TSO deletion message | `deletionRequest.federateId`, the federate making the deletion request ([message construction](../../cpp/src/internal/federation/process_federation_service_object_instance_deletion.cpp#L107)). |
+| Removal snapshot | The object instance's stored registration producer ([receive-order snapshot](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L106), [TSO snapshot](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L808)); registration records that producer when the object is created ([registration](../../cpp/src/internal/federation/federation_registry_object_instance_registration.cpp#L333)). |
+| Public callback | The process removal event carries the snapshot identity into callback delivery, and the bridge converts it to the public `FederateHandle` ([receive-order event](../../cpp/src/internal/federation/process_federation_service_object_instance_removal.cpp#L92), [TSO event](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L250), [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L651)). |
+
+Thus current process source maps the original registrant into both receive-order
+and timestamped `removeObjectInstance` callbacks, even though the internal TSO
+deletion message records the deleting requester. This is source evidence, not a
+process test with distinct registrant and delete-privilege owner. The focused
+receive-order process fixture registers and deletes through the same sender and
+asserts that removal producer matches discovery producer ([register](../../cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp#L766),
+[delete](../../cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp#L779),
+[callback assertion](../../cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp#L789)); the timestamped
+process fixture does likewise ([register](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1053),
+[delete](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1123),
+[callback assertion](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1158));
+neither test can distinguish the two identities. The transfer-and-delete
+assertion above is specifically the embedded `HLA_EVOKED` test path; do not
+generalize its runtime coverage to process delivery.
+
+The distinction is easy to miss because an internal TSO message names the
+deleting requester, while the eventual removal callback uses the original
+registrant from the receiver's removal snapshot. This source-only sequence
+shows those identities separately; it does not claim that a focused process
+test has exercised a transferred delete privilege.
+
+```mermaid
+sequenceDiagram
+    participant A as A: original registrant
+    participant B as B: current delete-privilege owner
+    participant S as Configured-process service
+    participant R as Shared registry
+    participant C as Receiving federate
+    participant Bridge as Callback bridge
+    Note over A,B: Assume HLAprivilegeToDeleteObject has moved from A to B. Process transfer-and-delete is not tested
+    B->>S: deleteObjectInstance(timestamp, tag)
+    S->>S: TSO message records requester ID B
+    S->>R: Enqueue timestamped deletion for eligible recipients
+    Note over S,C: Later, when C reaches its delivery boundary
+    S->>R: Commit C's TSO removal
+    R-->>S: Removal snapshot returns original registrant ID A
+    S->>Bridge: Process event carries producer ID A
+    Bridge-->>C: removeObjectInstance(handle, tag, producer A)
+    Note over S,C: Focused process tests use the same federate for registration and deletion. A != B remains source-only
+```
+
+The final public identity follows the snapshot path, not the TSO message's
+requester field. That is the implementation trace shown here; only the
+separate embedded transfer-and-delete case directly observes a distinct
+registrant and deleting federate.
+
+#### Configured-process deletion authorization: source path and test limit
+
+The configured-process handler first validates its session/federate membership,
+then separates receive-order from timestamped requests
+([handler](../../cpp/src/internal/federation/process_federation_service_object_instance_deletion.cpp#L37)).
+The receive-order path delegates to the registry deletion operation, whose
+source resolves the privilege handle for the object's registered class and
+compares its owner entry on that specific instance with the requester
+([registry gate](../../cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp#L41)).
+The timestamped path first uses the TSO deletion planner; it performs the same
+instance-owner comparison and derives the effective order before the process
+service continues to queue work
+([TSO planner](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L627)).
+This is a source trace of the configured-process implementation, not a
+normative rule or an observed post-transfer process result.
+
+The focused receive-order process case covers a registrant registering and
+deleting through the configured endpoint; the timestamped process cases cover
+timestamped removal/delivery paths. Neither case transfers
+`HLAprivilegeToDeleteObject` and then checks the former owner's rejection or
+the new owner's success ([receive-order case](../../cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp#L457),
+[timestamped case](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1221)).
+The inspected process cases contain no `DeletePrivilegeNotHeld` assertion.
+Therefore the embedded transfer test remains the only focused runtime evidence
+here for deletion after privilege transfer; configured-process transfer parity
+is still unverified.
 
 The current runtime entry points and callback dispatch are in
 [ownership services](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp)
@@ -360,8 +546,9 @@ and the tests below.
 
 The pinned API labels cancellation §7.15 and its confirmation callback §7.16.
 The process endpoint keeps the same public `void` operation/callback distinction
-but adds a private status/count result. The sequence below is the focused
-test's default pull route, not a cross-profile timing rule.
+but adds a private status/count result. The sequence below is the configured
+`HLA_EVOKED` pull route covered by the focused process case, not a
+cross-profile timing rule.
 
 ```mermaid
 sequenceDiagram
@@ -387,15 +574,24 @@ confirmation event is `confirmAttributeOwnershipAcquisitionCancellation`. The
 private status/count and process-event pull are Umbra boundary details, not
 HLA ownership outcomes.
 
-The configured-process case uses HLA_EVOKED and one regular-acquisition
-attribute. It checks that cancellation returns normally with no confirmation
-report yet, then that requester callback evocation yields the expected object
-and attribute confirmation and no acquisition callback. Although the test also
-finds no owner release report before and after cancellation, it does not poll the
-owner after the cancel call; it therefore does not prove process delivery
-suppression for a queued owner-release callback. The focused case also does not
-cover immediate dispatch, push mode, empty sets, or the Release-Denied-wins
-cancellation race.
+The [configured-process HLA_EVOKED case](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L1139)
+uses one regular-acquisition attribute. It checks that cancellation returns
+normally with no confirmation report yet, then requester callback evocation
+yields the expected object and attribute confirmation and no acquisition
+callback. It does not poll the owner after the cancel call, so it does not
+prove suppression of a queued owner-release callback on the pull route.
+
+Two focused [HLA_IMMEDIATE push cases](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L175)
+extend the process evidence: one confirms cancellation while the requester is
+idle; the [buffered-release case](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L434)
+holds the owner inside a Provide callback while the pushed owner-release event
+is buffered, then observes cancellation confirmation and suppression of that
+release callback after the owner unblocks. These events are owner-side release
+requests, not acquisition notifications created when Unconditional Divestiture
+exposes an unowned attribute. No focused process test combines that
+divestiture-generated notification with cancellation. The selected cases also
+do not cover empty sets, the after-entry Release-Denied/cancellation race, or the
+deletion/Resign lifecycle branches below.
 
 Umbra source observations: default pull mode commits the reservation when the
 queued confirmation reaches the `receive_interaction` delivery gate; configured
@@ -403,11 +599,74 @@ push mode begins the transition inside the service handler before sending the
 unsolicited event. The registry leaves the acquisition pending when the cancel
 service is accepted, suppresses new work for the reserved attributes, and
 removes them at confirmation delivery. If an owner-release callback has
-already entered user code, it may still answer; as described in the preceding
-Release Denied note, the denial then wins the terminal outcome. The process
-test does not exercise that race. An empty set is currently accepted as
+already entered user code, it may still answer. The available source does not
+establish that Release Denied always wins: the denial planner and
+cancellation-confirmation begin gate can commit in either order, with different
+requester events. See the [source-only Release Denied race](#release-denied-vs-cancellation-after-owner-callback-entry);
+no focused process test exercises it. An empty set is currently accepted as
 applied with no callback reservation in source, but that behavior is untested
 here and is not presented as a normative rule.
+
+#### Cancellation vs a divest-triggered acquisition notification
+
+This combined race is source-derived, not tested as a configured-process
+scenario. The pending-work planner skips an attribute that already has a
+cancellation reservation. If notification work is already queued, the
+cancellation plan and notification-begin gate serialize on registry state:
+when cancellation planning wins, it reserves the attribute but leaves the
+acquisition pending, so a later notification-begin gate suppresses transfer.
+When notification begin wins, it assigns ownership and removes the attribute
+from the pending request; a subsequent cancellation plan is rejected because
+the requester already owns the attribute. The accepted cancellation is then
+consumed at a separate begin gate. Configured-process timing differs by mode:
+push begins cancellation in the service handler before sending its confirmation
+frame, while pull queues the confirmation and begins cancellation when the
+recipient polls. In either mode, the notification gate revalidates registry
+state; a queued event is not itself a transfer. These are Umbra ordering
+points, not an HLA callback-order or race-priority rule. See the
+[pending-work planner](../../cpp/src/internal/federation/federation_registry_attribute_ownership_pending_work.cpp#L261),
+[cancellation reservation](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L15),
+[notification begin gate](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L209),
+[process cancellation handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L396),
+[push notification begin point](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L87),
+[pull notification begin point](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L400),
+and [pull cancellation begin point](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L432).
+
+```mermaid
+flowchart TD
+  Divest["Owner divests while a regular request is pending"] --> Remove["Registry removes former owner"]
+  Remove --> Planner{"Cancellation already reserved?"}
+  Planner -->|Yes| Skip["No acquisition notification is scheduled"]
+  Planner -->|No| Scheduled["Schedule acquisition-notification work"]
+  Scheduled --> Race{"Which registry transition wins first?"}
+  Cancel["Requester attempts cancellation"] --> Race
+  Race -->|Notification begin first| Acquire["Assign requester as owner and remove attribute from pending request"]
+  Acquire --> Callback["Project attributeOwnershipAcquisitionNotification"]
+  Acquire --> TooLate["Later cancellation plan is rejected: requester already owns attribute"]
+  Race -->|Cancellation plan first| Reserved["Accept cancellation and reserve attribute; request remains pending"]
+  Reserved --> NoticeGate["Queued notification begin rechecks registry state"]
+  NoticeGate --> Suppress["Reservation or consumed request suppresses this notification"]
+  Reserved --> Mode{"Configured-process delivery mode"}
+  Skip --> Mode
+  Mode -->|Push| PushBegin["Begin cancellation in service handler before confirmation send"]
+  Mode -->|Pull| PullQueued["Queue confirmation; reservation remains until receive poll"]
+  PullQueued --> PullBegin["Begin cancellation at recipient receive poll"]
+  PushBegin --> Confirm["Consume cancellation and remove attribute from pending request"]
+  PullBegin --> Confirm
+```
+
+The configured-process [pull cancellation case](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L1139)
+and [push cancellation case](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L175)
+exercise accepted cancellation without Unconditional Divestiture. The configured-process
+divestiture cases exercise divestiture without cancellation, while the embedded
+2025 divestiture case with pending requests does not add cancellation. A
+separate [embedded assumption-search case](../../cpp/tests/ieee1516_2025_embedded_ownership_assumption_search_continuation_catch2.cpp#L71)
+does cancel before unconditional divestiture and verifies that the requester
+becomes eligible for an ownership-assumption callback only after its
+cancellation confirmation. That is adjacent evidence about assumption-search
+eligibility, not the configured-process queued-notification race. No focused
+process test verifies either outcome in this combined state machine; its gates
+and push/pull distinction are source-derived.
 
 Before treating that sequence as guaranteed, account for lifecycle invalidation
 before callback dispatch. This is a source-derived 2025 process pull-path view,
@@ -451,7 +710,7 @@ and [§7.16 callback](../../third_party/ieee1516.1-2025/include/RTI/FederateAmba
 2025 process [ambassador](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp#L1598),
 [service handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L376),
 [registry reservation/delivery](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L15),
-[pull callback gate](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L384),
+[pull callback gate](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L432),
 and [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L546).
 Lifecycle sources: [explicit Resign handler](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L160),
 [departed-member event cleanup](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L25),
@@ -459,10 +718,10 @@ Lifecycle sources: [explicit Resign handler](../../cpp/src/internal/federation/p
 [registry cancellation recheck](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L136),
 [registry ineligible-state branch](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L194),
 [accepted-deletion state](../../cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp#L117),
-and [receive-loop empty-event skip](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L452).
+and [receive-loop empty-event skip](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L496).
 Adjacent tests: [embedded deletion case](../../cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp#L199)
 and [standalone pending-acquisition Resign case](../../cpp/tests/resign_action_cancel_pending_acquisition_catch2.cpp#L96);
-focused [process case](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L987).
+focused [process case](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L1136).
 
 ### Push delivery commits before the client can dispatch
 
@@ -512,9 +771,12 @@ Push-path evidence: [server commit-before-send](../../cpp/src/internal/federatio
 [callback bridge submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1390),
 [immediate/evoked dispatcher behavior](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122),
 and [process Resign branch](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L785).
-The only focused public process cancellation case remains the
-[default-pull HLA_EVOKED test](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L987);
-no 2010 behavior is inferred.
+The focused public process cancellation evidence includes the
+[default-pull HLA_EVOKED test](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L1136),
+[HLA_IMMEDIATE idle push case](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L175),
+and [buffered-release push case](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L434).
+The buffered-release case checks suppression before owner callback entry, not
+the after-entry Release Denied race. No 2010 behavior is inferred.
 
 ### Regular acquisition with an owner response
 
@@ -638,11 +900,13 @@ The focused [configured-process case](../../cpp/tests/attribute_ownership_acquis
 uses `HLA_EVOKED`, the default pull-event configuration, and one unowned
 attribute. It observes the acquisition notification and its tag after callback
 evocation, but does not query ownership or cover an owned/unavailable member,
-a mixed result, or pushed events. A separate process
-[Release Denied case](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L674)
-tests `attributeOwnershipUnavailable` after regular acquisition; it is not
-If-Available evidence. Likewise, the process
-[acquisition-cancellation case](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L987)
+a mixed result, or pushed events. A separate configured-process
+[Release Denied case](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L1117)
+tests `attributeOwnershipUnavailable` after regular acquisition; its
+[HLA_IMMEDIATE companion](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L1126)
+does likewise under push delivery. Neither is If-Available or cancellation
+race evidence. Likewise, the process
+[acquisition-cancellation case](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L1136)
 starts with regular acquisition, not §7.9. Do not use either to claim process
 coverage of If-Available unavailable or cancellation outcomes. The embedded
 mixed-outcome and ownership-query assertions remain a separate evidence lane.
@@ -681,31 +945,121 @@ sequenceDiagram
   end
 ```
 
-In the focused [configured-process test](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L674),
+In the focused configured-process [HLA_EVOKED test](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L1117),
 the owner's call returns normally while the requester's report list is still
-empty. The test then evokes the requester and checks one Unavailable report's
-object, attribute, and owner-supplied denial tag. It uses HLA_EVOKED and one
-requester/one owned attribute; it does not query ownership or test immediate
-dispatch, multiple requesters, stale delivery, or denial racing an acquisition
-cancellation. The existing HLA-level chart says the owner remains owner; this
-process case does not independently assert that query result.
+empty. The requester later observes one Unavailable report with the expected
+object, attribute, and owner-supplied denial tag, then queries and confirms that
+the original owner still owns the attribute [in this assertion](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L1067).
+The [HLA_IMMEDIATE companion](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L1126)
+checks the pushed route with the same assertions. Both use one requester and
+one owned attribute; neither tests cancellation racing the response, multiple
+requesters, or stale delivery.
 
 Umbra-specific source note: the process handler returns a private status and
 recipient count separately from the queued callback event. The registry groups
 denied attributes by pending requester, replans remaining acquisition work,
 and rechecks the requester, known object/class, and pending unavailable marker
-before exposing a pull event. If cancellation is requested while the owner's
-release callback is in flight, the registry source makes Release Denied the
-winning terminal event. These are implementation observations, not additional
-portable HLA ordering claims; the focused process test does not exercise the
-multi-requester or cancellation-race branches.
+before exposing an event. Cancellation acceptance records a reservation but
+leaves the attribute in the pending acquisition. The Release Denied planner
+marks it unavailable and consumes a matching reservation if one already
+exists; until the later Unavailable gate removes the pending attribute, a
+cancellation may still be accepted. Therefore “whichever plan commits first”
+is not a complete race rule. The cancellation-confirmation gate removes the
+pending attribute if it commits first; otherwise, the Unavailable-recipient
+gate rechecks its marker, consumes any matching reservation, and removes the
+pending attribute. These are configured-process source observations, not a
+portable HLA ordering claim.
+
+#### Release Denied vs cancellation after owner callback entry
+
+This is distinct from cancellation suppressing a release event before the
+owner callback enters user code. In configured push mode, the server performs
+an initial eligibility check before sending the event, then the callback bridge
+claims it again immediately before invoking the public callback; a pushed frame
+can be suppressed between those checks. Pull mode makes the owner-release
+claim while servicing the owner's receive poll. Once the callback is in user
+code, its Release Denied response can overlap the requester's cancellation
+plan and the later delivery gates:
+
+```mermaid
+flowchart TD
+  Start["Owner release callback is in user code;<br/>regular acquisition remains pending"] --> Order{"Which plan happens first?"}
+  Order -->|"Cancellation plan first"| Reservation["Accept cancellation;<br/>pending request remains"]
+  Reservation --> FirstGate{"Which registry transition follows?"}
+  FirstGate -->|"Cancellation begin gate"| CancelBeforeDenial["Consume reservation;<br/>remove pending attribute"]
+  CancelBeforeDenial --> ConfirmOnly["Cancellation confirmation may be exposed"]
+  CancelBeforeDenial --> DenialNoRecipient["Later Release Denied plan finds no pending recipient;<br/>no Unavailable event is queued"]
+  FirstGate -->|"Release Denied plan"| DenialWithReservation["Mark unavailable;<br/>consume the existing reservation"]
+  DenialWithReservation --> UnavailableGate["Unavailable gate rechecks marker,<br/>consumes any reservation, and removes pending attribute"]
+  DenialWithReservation -.-> CancelStale["Queued cancellation gate<br/>has no reservation"]
+  Order -->|"Release Denied plan first"| DenialWithoutReservation["Mark unavailable;<br/>leave the desired attribute pending"]
+  DenialWithoutReservation --> LaterCancel{"Cancellation accepted<br/>before Unavailable gate?"}
+  LaterCancel -->|No| UnavailableGate
+  LaterCancel -->|Yes| DeliveryOrder{"Which delivery gate commits first?"}
+  DeliveryOrder -->|"Cancellation begin gate"| CancelAfterDenial["Consume cancellation and<br/>remove pending attribute"]
+  CancelAfterDenial --> Confirm["Cancellation confirmation may be exposed"]
+  CancelAfterDenial -.-> UnavailableStale["Unavailable gate finds<br/>no pending marker"]
+  DeliveryOrder -->|"Unavailable-recipient gate"| UnavailableGate
+  UnavailableGate --> Unavailable["Unavailable may be exposed"]
+  UnavailableGate -.-> CancelStaleAfter["Later cancellation gate finds<br/>no reservation"]
+```
+
+The chart distinguishes an additional source-derived order: the cancellation
+confirmation gate can consume the pending request before the owner's later
+Release Denied plan runs. In that case the planner finds no pending recipient;
+the process handler returns an applied result with zero recipients and queues
+no Unavailable event ([planner](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L493),
+[handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L314)).
+This differs from cancellation being accepted first while its confirmation is
+still pending: a subsequent denial plan consumes that reservation and schedules
+Unavailable work. No focused configured-process or embedded test exercises the
+no-recipient ordering; the arranged embedded race below covers the latter
+reservation-consumed branch, not this one.
+
+For push release work, the [service's pre-send projection](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L103)
+checks eligibility but retains the reservation. The [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1532)
+then invokes the [client's release claim](../../cpp/src/internal/federation/process_federation_client_ownership.cpp#L18),
+which reaches the service [claim handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L488)
+and the registry [owner callback-entry gate](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L396)
+immediately before public callback invocation. Pull performs that registry gate
+at the owner's [receive poll](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L417).
+The [cancellation plan](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L15)
+records its reservation without removing the pending request; the [denial planner](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L493)
+marks the pending attribute unavailable and consumes a reservation it finds.
+Cancellation confirmation begins in the [push cancellation handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L439)
+or at the [pull receive poll](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L432).
+Unavailable delivery rechecks and consumes pending state in [push](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L458)
+or [pull](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L371).
+When both queues are present in pull mode, the receive handler checks the
+Unavailable queue before the acquisition/cancellation queue
+([queue order](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L367));
+the next completed poll can therefore be explained from this route, but it is
+not a normative priority rule.
+
+The normal [pull denial test](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L1117)
+and [push denial test](../../cpp/tests/attribute_ownership_acquisition_catch2.cpp#L1126)
+do not include cancellation. The [buffered-release cancellation test](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L434)
+blocks the owner inside a different callback; the requester cancels while that
+callback is blocked [here](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L640),
+and the release event is buffered before owner-release callback entry,
+cancellation is confirmed, and the later
+release callback is suppressed. It does not test Release Denied after owner
+callback entry. A separate [embedded 2025 race case](../../cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp#L166)
+holds the owner inside the release callback until requester cancellation has
+completed, then calls Release Denied; it observes no cancellation-confirmation
+callback, one Unavailable callback with the denial tag, and the original owner
+still owning the attribute ([assertions](../../cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp#L282)).
+That is evidence for this arranged embedded schedule, not configured-process
+behavior. No focused process test covers Release Denied after owner callback
+entry or determines the process race outcome. Do not infer normative priority,
+callback timing, or embedded/process parity.
 
 Evidence locators: pinned [§7.12 service](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1066)
 and [§7.10 callback](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L438);
 process [owner handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L314),
-[pull delivery recheck](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L323)
-and [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L585);
-Umbra's [recipient revalidation and cancellation precedence](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L220)
+[pull unavailable-event recheck](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L371),
+and [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L603);
+registry [unavailable recipient revalidation](../../cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp#L220)
 and [denial planning](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L492).
 
 ## Owner-side transfer paths
@@ -832,12 +1186,50 @@ flowchart TD
 
 The focused
 [Unconditional Attribute Ownership Divestiture offers eligible 2025 federates](../../cpp/tests/ieee1516_2025_unconditional_attribute_ownership_divestiture_catch2.cpp)
-shows that a candidate that stopped publishing before callback dispatch gets
-no stale offer, that a previously pending If-Available request can resolve
-after divestiture, and that the assumption recipient remains a non-owner until
-it separately requests acquisition. The search can continue after stale work
-is suppressed; a candidate that republishes can become eligible for a fresh
-offer.
+queues both a regular acquisition and an If-Available request before the owner
+divests. It later observes a separate acquisition notification for each,
+checks each original request tag, and verifies the corresponding requester
+owns its attribute. This directly covers the already-pending regular request
+in the embedded profile; it does not establish the configured-process path.
+The same case shows that a candidate that stopped publishing before callback
+dispatch gets no stale offer, and that an assumption recipient remains a
+non-owner until it separately requests acquisition. The search can continue
+after stale work is suppressed; a candidate that republishes can become
+eligible for a fresh offer.
+
+#### A transferred attribute starts a fresh assumption-search interval
+
+The 2025 embedded implementation keeps the assumption-search ledger per
+unowned interval, rather than treating an earlier offer as a permanent
+"already offered" mark. When unconditional divestiture starts a new interval,
+the registry clears that attribute's old candidate set, saved tag, and queued
+assumption-callback entries before recording the new tag and searching again
+([reset helper](../../cpp/src/internal/federation/federation_registry_attribute_ownership_pending_work.cpp#L27),
+[new interval](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L77)).
+
+The focused [search-epoch case](../../cpp/tests/ieee1516_2025_embedded_ownership_assumption_search_epoch_catch2.cpp#L97)
+offers an attribute to two candidates; one candidate acquires it, the other
+leaves its earlier offer unanswered and becomes ineligible. The new owner then
+divests with a different tag. After the second candidate republishes, it
+receives a second offer, and the test checks that this fresh offer carries the
+new tag ([assertions](../../cpp/tests/ieee1516_2025_embedded_ownership_assumption_search_epoch_catch2.cpp#L107)).
+The test does not compare the tag on the first offer. This is a verified
+embedded example of a fresh search interval, not a fairness or callback-timing
+rule; no configured-process test establishes the same sequence.
+
+```mermaid
+flowchart TD
+  First["Owner unconditionally divests with tag T1"] --> Offers["Eligible candidates receive assumption offers"]
+  Offers --> Accepted["Candidate A requests and acquires the attribute"]
+  Offers --> OldOffer["Candidate B leaves its first offer unanswered"]
+  Accepted --> NewOwner["Candidate A becomes the owner"]
+  OldOffer --> Eligibility["Candidate B becomes ineligible before the next divestiture"]
+  NewOwner --> Second["New owner unconditionally divests with tag T2"]
+  Eligibility --> Second
+  Second --> Reset["Registry clears old search records and seeds a fresh interval"]
+  Reset --> Republish["Candidate B republishes"]
+  Republish --> FreshOffer["Candidate B receives a second offer carrying T2"]
+```
 
 ### Process endpoint: Unconditional Divestiture and recipient work are separate
 
@@ -863,9 +1255,10 @@ flowchart TD
   Owner["Owner calls unconditionalAttributeOwnershipDivestiture"] --> Adapter["2025 adapter sends operation, handles, tag, and callback-enabled state"]
   Adapter --> Client["Process client sends the private request"]
   Client --> Handler["Service validates the session and calls the registry plan"]
-  Handler --> Commit["Registry commits unconditional ownership loss and returns recipient work"]
-  Commit --> Projection["Service attempts acquisition-work and assumption-recipient projection"]
-  Projection -->|"All work accepted"| Result["Private BooleanResult true"]
+  Handler --> Candidates["Registry preselects eligible assumption recipients"]
+  Candidates --> Commit["Commit owner removal and replan pending acquisition work"]
+  Commit --> Projection["Process acquisition work first, then assumption recipients"]
+  Projection -->|"Both helpers succeed"| Result["Private BooleanResult true"]
   Result --> Return["Public void call returns normally"]
   Projection -->|"Queue/send failure"| Error["Private internal error; adapter reports RTIinternalError"]
   Commit -.-> Caveat["State is already committed; inspected path shows no rollback"]
@@ -878,6 +1271,29 @@ flowchart TD
   Bridge --> Offered["Ownership-assumption callback is an offer, not transfer"]
 ```
 
+The shared 2025 registry selects assumption recipients before it changes the
+owner. Another member must know the object through its known class and publish
+the attribute there; that member is excluded for an attribute with a pending
+regular acquisition, If-Available acquisition, or cancellation. Those existing
+request states continue through their own acquisition or cancellation work
+rather than also becoming assumption offers. After building and recording the
+candidate set, the plan makes the attributes unowned and replans pending
+acquisition work. The process service then projects the returned acquisition
+work before the assumption recipients. These are registry and endpoint
+boundaries, not a callback-order, fairness, or cross-profile guarantee.
+
+The source sequence is explicit in the [pending-request exclusion scan](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L82), [candidate preselection](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L114), and [unowned transition plus pending-work replan](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L198).
+
+The 2025 embedded divestiture test queues regular and If-Available requests
+before divestiture and observes each request's own acquisition notification;
+it explicitly checks that the If-Available requester receives no assumption
+callback ([case](../../cpp/tests/ieee1516_2025_unconditional_attribute_ownership_divestiture_catch2.cpp#L173)).
+
+The test does not assert absence of an assumption callback for the regular
+requester. The configured-process cases cited below do not start with either
+request already pending, so this exclusion remains source-derived for that
+endpoint.
+
 Process evidence: the [public adapter branch](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp#L831)
 calls the [client operation](../../cpp/src/internal/federation/process_federation_client_ownership.cpp#L99);
 the [service handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L662)
@@ -885,15 +1301,131 @@ calls the [registry plan](../../cpp/src/internal/federation/federation_registry_
 and then the [recipient queue helpers](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L12).
 The [process callback bridge's acquisition-notification branch](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L533)
 and [ownership-assumption branch](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L571)
-project these private events to public callbacks. The portable C++ TCK has a
-[general unconditional-divestiture scenario](../../packages/hla-rti-cpp-tck/src/portable_tck.cpp#L22587)
-and [scenario catalog entry](../../packages/hla-rti-cpp-tck/README.md#L795),
-but neither establishes a process-specific run. The focused
-[Catch2 behavior case](../../cpp/tests/ieee1516_2025_unconditional_attribute_ownership_divestiture_catch2.cpp#L4)
-is embedded; the process probe's occurrence of the operation is inside a
+project these private events to public callbacks. Focused configured-process
+cases establish selected successful outcomes:
+
+- The [process ownership-transition case](../../cpp/tests/attribute_ownership_query_catch2.cpp#L1032)
+  observes `Query Attribute Ownership` report the owner before divestiture and
+  the unowned state afterward. Its [companion acquisition case](../../cpp/tests/attribute_ownership_query_catch2.cpp#L1164)
+  requests regular acquisition only after observing the unowned state, then
+  checks the acquisition notification and new owner. It does not exercise a
+  regular request already pending when divestiture runs.
+- The [unconsumed pushed-assumption case](../../cpp/tests/ieee1516_2025_process_unconsumed_pushed_ownership_assumption_evoked_catch2.cpp#L62)
+  verifies the `HLA_EVOKED` sequence: discovery is delivered on one evoke and
+  the assumption offer on the next, with the expected attributes and tag.
+- The [process HLA_IMMEDIATE assumption case](../../cpp/tests/ieee1516_2025_process_pushed_ownership_assumption_save_restore_catch2.cpp#L62)
+  checks the callback's object, attribute subset, and tag in a save/restore
+  scenario.
+
+The already-pending regular-acquisition branch is source-derived, not covered
+by those process cases. The registry removes the former owner and immediately
+replans pending acquisition work. Its planner can produce an acquisition
+notification for the first eligible waiting request on an unowned attribute,
+subject to current membership/object-awareness, cancellation and reservation
+state, and callback-route checks. This registry selection order is an
+implementation detail, not an HLA arbitration or fairness claim. The process
+service projects that work through its acquisition-event path: push mode
+revalidates and begins the notification before sending the event, while pull
+mode queues the event and begins it during the recipient's
+`receive_interaction` poll. That begin step can establish ownership before the
+callback bridge projects `attributeOwnershipAcquisitionNotification`; this is
+a source-path distinction, not a measured public timing guarantee. See the
+[pending-work planner](../../cpp/src/internal/federation/federation_registry_attribute_ownership_pending_work.cpp#L261),
+[push projection](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L87),
+[pull receive boundary](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L400),
+[registry notification boundary](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L209),
+and [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L533).
+The [companion process acquisition test](../../cpp/tests/attribute_ownership_query_catch2.cpp#L1164)
+requests acquisition only after querying the attribute as unowned, and the
+assumption-offer cases do not create a pending regular request first. No
+focused configured-process test covers this already-pending branch or its
+push/pull begin boundary. The cancellation overlap is traced in the [source-only
+process race](#cancellation-vs-a-divest-triggered-acquisition-notification).
+
+These cases cover selected public process routes; they do not prove the full
+recipient matrix or the handler's enqueue/send failure branch. The process
+handler commits the registry plan before calling the acquisition-work helper,
+and calls the assumption-recipient helper only if acquisition-work projection
+succeeds. Either helper can fail after some state or recipient work has already
+changed. The handler then returns an internal error which the public adapter
+maps to `RTIinternalError`; the inspected path shows no rollback or
+compensation. No focused process test injects an enqueue or send failure. See
+the [service handler](../../cpp/src/internal/federation/process_federation_service_ownership_handlers.cpp#L698),
+[registry plan](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L179),
+[acquisition-work helper](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L12),
+[assumption-recipient helper](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L164),
+and [public adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp#L864).
+
+#### Failure phase and possible residual effects
+
+The two helpers have different push/pull failure checkpoints. This is a
+source-only implementation trace, not a prediction of an untested runtime
+failure or an HLA rollback rule:
+
+- In push mode, the acquisition-work helper runs each registry begin gate and
+  collects event frames before its separate send loop. A failure during that
+  preparation can follow an earlier begin gate (including an ownership
+  transfer) before any collected frame is sent. If the send loop fails, the
+  begin gates for the prepared batch have already run, while only a prefix of
+  its frames may have been sent.
+- In pull mode, the helper appends events to recipient queues one at a time;
+  registry begin gates wait until a later `receive_interaction` poll. A later
+  helper failure can therefore leave an earlier queued prefix, with those
+  events still subject to their later state checks.
+- Only after acquisition-work projection succeeds does the service project
+  assumption recipients. Push sends eligible offers per recipient when
+  callbacks are enabled, or defers them to the process queue when callbacks
+  are disabled; pull queues them for later polling. A later failure can leave
+  earlier offers sent or queued. An assumption offer is not an ownership
+  transfer.
+
+In either profile, a helper failure becomes `RTIinternalError` at the public
+adapter, but the source shows no rollback of the plan or earlier side effects.
+The cited process tests cover selected successful calls; they do not exercise
+these failure checkpoints.
+
+```mermaid
+flowchart TD
+  Plan["Registry plan has committed owner removal,<br/>pending-work replanning, and assumption-search state"] --> Work{"Acquisition work returned?"}
+  Work -->|None| Assumptions{"Assumption recipients returned?"}
+  Work -->|Some| Mode{"Configured-process event mode"}
+  Mode -->|Push| Prepare["Run begin gates and collect event frames"]
+  Prepare -->|Prepared| SendBatch["Send collected frames sequentially"]
+  Prepare -->|Helper returns false| Error["Private internal error; public adapter reports RTIinternalError"]
+  SendBatch -->|All sends succeed| Assumptions
+  SendBatch -->|Send fails| Error
+  Mode -->|Pull| QueueWork["Queue events one at a time;<br/>begin gates wait for receive polling"]
+  QueueWork -->|Queued| Assumptions
+  QueueWork -->|Helper returns false| Error
+  Assumptions -->|None| Success["Private BooleanResult true"]
+  Assumptions -->|Some| AssumptionMode{"Mode and callback-enabled state?"}
+  AssumptionMode -->|Push, enabled| PushOffers["Resolve and send eligible offers per recipient"]
+  AssumptionMode -->|Push, disabled| DeferredOffers["Defer offer events in the process queue"]
+  AssumptionMode -->|Pull| PullOffers["Queue offer events for later polling"]
+  PushOffers -->|All processed| Success
+  PushOffers -->|Helper returns false| Error
+  DeferredOffers -->|Queued| Success
+  DeferredOffers -->|Helper returns false| Error
+  PullOffers -->|Queued| Success
+  PullOffers -->|Helper returns false| Error
+  Success --> Return["Public void call returns normally"]
+  Error -.-> Residual["No rollback shown:<br/>plan and earlier effects may remain"]
+```
+
+The [acquisition-work helper's push preparation/send phases](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L83)
+and [pull queue insertion](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L140)
+support the first two branches. The [assumption helper](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L164)
+contains the per-recipient push send and deferred/pull queue paths. No fault
+injection evidence is claimed.
+The portable C++ TCK has a [general unconditional-divestiture scenario](../../packages/hla-rti-cpp-tck/src/portable_tck.cpp#L11639)
+and [scenario catalog entry](../../packages/hla-rti-cpp-tck/README.md#L1256),
+but no process-specific TCK execution is recorded. The focused
+[standalone Catch2 behavior case](../../cpp/tests/ieee1516_2025_unconditional_attribute_ownership_divestiture_catch2.cpp#L4)
+is embedded. The process probe's occurrence of the operation is inside a
 connection-loss cleanup fixture ([fixture](../../cpp/tests/process_federation_service_probe.cpp#L678))
-and does not assert this ordinary callback path. Keep the process sequence
-source-derived and untested as a whole.
+and is not evidence for the ordinary success or failure paths. Keep the
+process diagram source-derived with these selected test boundaries; do not
+infer process-wide behavior or conformance from them.
 
 ### Divestiture If Wanted has an output-set result and later notifications
 
@@ -1041,6 +1573,31 @@ separate receiver-removal reservation is still checked at its own gate; if the
 receiver remains a member that knows the object, Umbra commits that receiver
 to unknown before `removeObjectInstance`. These are separate callback gates,
 not a promise of global ordering among ownership and removal callbacks.
+
+Clearing pending ownership ledgers at receive-order delete acceptance does not
+by itself establish when the object's update-region references are released.
+The [DDM guide's deletion/update-region timeline](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#object-deletion-and-update-region-lifetime)
+tracks those references through Remove and timestamped-retraction lifetime
+gates; it is a separate embedded 2025 implementation view, not a normative
+ownership-callback ordering rule or process-profile parity claim.
+
+This section's cleanup point is specifically receive-order deletion. Timestamped
+Delete has a separate enqueue and first accepted-Remove boundary; the latter
+clears pending ownership work, while a later Retract restores an
+invocation-time object snapshot. The source does not visibly rebuild the
+separate federation-level ownership-query identities, and no focused test
+combines pending ownership work with timestamped Delete/Retract. For embedded
+callback-route work, source shows a possible ordering split: a closure that
+runs during committed deletion is suppressed and is not visibly resubmitted by
+Retract, while a closure still queued until after Retract may see restored
+per-instance state. Neither ordering has a focused test. The configured-process
+route has different server-queue and client-buffer boundaries: pull delivery
+rechecks ownership work when polled, while already-sent push events can remain
+in the client or callback bridge and are not generically swept by a Delete's
+TSO identity. Neither process ordering has a combined test. See the
+[TSO deletion/retraction boundary](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md#service-specific-effects-deletion-is-special)
+for the separate embedded and configured-process source traces; neither is a
+normative callback-order rule or cross-profile parity claim.
 
 This accepted federation-wide deletion differs from
 `localDeleteObjectInstance`, which refuses the caller's local-forget request

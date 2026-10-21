@@ -1,15 +1,17 @@
 # IEEE 1516.1-2025 Process Endpoint: Request and Callback Flow
 
-This guide explains how one 2025 RTI service request crosses Umbra's private
-process endpoint and how a receive-order interaction can return through the
-recipient's callback bridge. It is an implementation walkthrough, not a
+This guide explains how 2025 RTI service requests cross Umbra's private process
+endpoint and how receive-order interactions and attribute updates reach a
+recipient's callback boundary. It is an implementation walkthrough, not a
 normative description of the IEEE wire protocol: the transport messages and
 request identities below are Umbra-private.
 
-The example is `Send Interaction`, but the request/response framing and event
-demultiplexing pattern is shared by other process-service operations. The guide
-does not attempt to describe every callback family, the full HLA interaction
-state machine, or logical-time admission. Read the [callback/service-ordering
+The main request/response and event-demultiplexing trace follows
+`Send Interaction`; a companion section follows receive-order
+`Update Attribute Values` through the service plan and compares its public
+failure boundary. The guide does not attempt to describe every callback family,
+the full HLA interaction state machine, or logical-time admission. Read the
+[callback/service-ordering
 guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md) for the broader
 callback dispatcher, and the [object and interaction information flow
 guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md) for portable
@@ -152,6 +154,121 @@ sequenceDiagram
     C-->>A: Public call returns void
     Note over C,A: Private recipient count and IDs are not public results
 ```
+
+#### Keep parameter octets, handles, and process framing separate
+
+The public 2025 call carries an interaction-class handle, a map from parameter
+handles to `VariableLengthData`, and a separate user tag. For an ordinary
+application interaction, if the application encodes a parameter with a
+`DataElement`, its encoded octets are already the parameter value at this
+boundary. The RTI does not infer the element type or decode and re-encode
+ordinary parameter octets. The configured-process adapter carries the class
+and sent parameter handles as routing/validation metadata, while a versioned
+private interaction envelope carries parameter-handle/octet pairs and the
+tag. The outer process request then adds its operation and correlation
+identity; neither that frame nor the private envelope is an HLA value format.
+
+```mermaid
+flowchart TD
+    App["Application calls sendInteraction(class, parameter/value map, tag)"]
+    App --> Map["ParameterHandleValueMap values and user tag are VariableLengthData octets"]
+    DataElement["Optional caller step:<br/>DataElement.encode() produces a parameter's octets"] --> Map
+    Class["Interaction class and parameter handles"] --> Adapter["2025 RTI adapter"]
+    Map --> Adapter
+    Adapter --> Handles["Private request metadata:<br/>class identity + sent parameter identities"]
+    Adapter --> Envelope["Versioned private interaction envelope:<br/>parameter identity/octet pairs + tag"]
+    Handles --> Request["Outer private send_interaction request<br/>includes request correlation identity"]
+    Envelope --> Request
+    Request --> Session["Process service checks session and membership"]
+    Session --> Plan["Registry checks publication and declared parameter identities;<br/>plans recipients and projected received handles"]
+    Plan --> Event["Recipient event carries received class,<br/>projected handles, and the opaque envelope"]
+    Event --> Route["Recipient ProcessFederationClient<br/>(push event or polling result)"]
+    Route --> Bridge["Callback bridge decodes the private envelope<br/>and selects octets for projected handles"]
+    Bridge --> Callback["receiveInteraction(received class, parameter/value map, tag)"]
+    Callback --> Decode["Application may decode each returned value<br/>using its chosen DataElement"]
+```
+
+The chart follows ordinary, non-RTI-consumed receive-order interactions at the
+configured-process endpoint. The predefined `HLAsetSwitches` interaction is
+intercepted and has a separate control/MOM path. Push event frames and polling
+responses are the two delivery routes shown above; recipient eligibility and
+class/parameter projection are detailed in the [object and
+interaction guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#interaction-path-class-subscription-parameter-projection-callback).
+For the value-side encoding boundary, see [one value from API call to octets](HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#one-value-from-api-call-to-octets).
+The registry validates class publication and parameter identities before
+fan-out, but the ordinary process path does not inspect the parameter value
+octets. On receipt, the callback bridge uses the recipient's projected handle
+list to rebuild the public map and extracts the tag from the private envelope;
+it does not decode a `DataElement`.
+
+The implementation mapping is visible at the [public process branch](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L78),
+[client request](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L13),
+[outer request codec](../../cpp/src/internal/federation/process_federation_service_codecs.cpp#L505),
+[private value envelope codec](../../cpp/src/internal/federation/process_federation_service_interaction_event_codecs.cpp#L46),
+[service validation and plan](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L91),
+[registry handle-only planner](../../cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp#L16),
+[event construction](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L535),
+and [callback reconstruction](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L90).
+
+The focused public process send test uses literal value bytes `01 00` and tag
+bytes `50 55 42`, then checks those bytes after a raw receiver polls the service
+([input](../../cpp/tests/ieee1516_2025_connection_send_interaction_catch2.cpp#L634),
+[decoded result assertions](../../cpp/tests/ieee1516_2025_connection_send_interaction_catch2.cpp#L661)).
+That verifies this path's byte/tag preservation, not an end-to-end
+`DataElement.encode()`-to-`receiveInteraction` round trip. The separate
+configured-process multi-recipient case checks official callbacks and FIFO
+tags; it does not establish a typed DataElement codec at the RTI boundary.
+
+#### Failure mapping: local typed errors versus remote rejection
+
+This diagram isolates local connection/membership and handle checks, plus the
+ordinary service-side membership and registry-plan rejection paths. It is not
+an exhaustive exception map: save/restore and transport failures are outside
+scope, and RTI-consumed MOM interactions use their separate branch.
+
+```mermaid
+flowchart TD
+    Start["Untimed Send Interaction<br/>ordinary application interaction"]
+    Start --> Connected{"Connected to the RTI?"}
+    Connected -->|No| NotConnected["Local NotConnected exception"]
+    Connected -->|Yes| Joined{"Joined to a federation execution?"}
+    Joined -->|No| NotMember["Local FederateNotExecutionMember exception"]
+    Joined -->|Yes| Handles{"Class and parameter handle wrappers<br/>have local identities?"}
+    Handles -->|Class missing| ClassError["Local InteractionClassNotDefined"]
+    Handles -->|Parameter missing| ParameterError["Local InteractionParameterNotDefined"]
+    Handles -->|Yes| Request["ProcessFederationClient sends private request"]
+    Request --> Session{"Server session matches federation/member?"}
+    Session -->|No| Rejected["Service returns generic rejected status"]
+    Session -->|Yes| Plan["Registry validates class/catalog, publication,<br/>and unique parameters defined for the sent class"]
+    Plan -->|Not applied| Rejected
+    Plan -->|Applied| Continue["Accepted send continues to recipient planning"]
+    Rejected --> ClientError["Client turns non-OK status into ProcessFederationClientError"]
+    ClientError --> InternalError["Public adapter maps it to RTIinternalError"]
+```
+
+The pinned 2025 [untimed `sendInteraction` overload](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L761)
+declares `InteractionClassNotDefined`, `InteractionParameterNotDefined`,
+`FederateNotExecutionMember`, and `NotConnected` among its exceptions. The
+adapter raises those typed errors for the local checks; after a process request
+is sent, a rejected session check or non-applied registry plan returns only a
+generic service status. Although the registry distinguishes an unpublished
+class from an invalid-for-this-class parameter handle, the process client
+converts the non-OK status to `ProcessFederationClientError`, which the public
+adapter maps to `RTIinternalError`. The timestamped overload has a different
+declared exception list; do not apply this untimed-path observation to it.
+
+The [focused public process Send Interaction case](../../cpp/tests/ieee1516_2025_connection_send_interaction_catch2.cpp#L457)
+asserts successful delivery only. It does not establish the public exception
+for a class that is valid locally but unpublished remotely, or a parameter
+handle that is valid but belongs to another interaction class. Treat this as a
+source-derived gap, not a normative or conformance conclusion.
+
+Evidence: [local adapter checks](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L62),
+[process client status conversion](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L30),
+[service membership rejection](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L91),
+[registry-plan result handling](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389),
+[registry publication and parameter classification](../../cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp#L48),
+and [public error conversion](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L135).
 
 The receiver route has two distinct responsibilities: consuming an event from
 the process session, then submitting the decoded event under the configured
@@ -305,6 +422,91 @@ with `requestId=0`. In both cases, the recipient consumes its own stream; sendin
 an event frame does not itself execute the receiver callback. HLA_IMMEDIATE and
 HLA_EVOKED callback scheduling is covered in section 2, while timestamped
 delivery and its grant/retraction boundaries remain in section 3.
+
+For this ordinary untimed process path, decoding the private request/event
+envelopes does not decode an HLA `DataElement`. The public adapter copies each
+`VariableLengthData`; service planning uses the attribute identities, then the
+service copies the value octets into accepted state and recipient events. The
+private event codec writes those octets with their attribute handles, and the
+callback bridge rebuilds the public value map without interpreting each value.
+The receiving federate chooses a compatible `DataElement` if it wants to
+decode the callback bytes. This is an implementation-path observation, not a
+claim about the normative validity rules for every payload.
+The copied-value steps are visible in the [public adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L102),
+[handle-based process plan and accepted-value copy](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L40),
+[private event codec](../../cpp/src/internal/federation/process_federation_service_codecs.cpp#L1684),
+and [callback-map reconstruction](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L281).
+
+The focused configured-process reflection test sends the literal value bytes
+`52 46 4C` and tag bytes `54 41 47`, then checks that both arrive unchanged
+([input](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L793),
+[callback assertions](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L821)).
+That verifies byte preservation in this scenario; it is not a typed
+`DataElement.encode()` round trip or a general payload-validation test. Keep
+the private frame/envelope distinction separate from the 2025 value format in
+the [DataElement guide](HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#pick-the-representation-boundary-before-reasoning-about-bytes).
+
+#### Failure mapping: configured-process Update Attribute Values
+
+This chart covers the untimed public service and the configured 2025 process
+endpoint. It shows representative local typed failures and the remote registry
+checks relevant to object knowledge, attribute definition, and ownership; it is
+not an exhaustive map of save/restore, protocol, or transport failures.
+
+```mermaid
+flowchart TD
+    Start["Untimed Update Attribute Values"]
+    Start --> Connected{"Connected to the RTI?"}
+    Connected -->|No| NotConnected["NotConnected"]
+    Connected -->|Yes| Joined{"Joined to a federation execution?"}
+    Joined -->|No| NotMember["FederateNotExecutionMember"]
+    Joined -->|Yes| Handles{"Local handle wrappers belong to this RTI?"}
+    Handles -->|Object handle invalid| UnknownLocal["Local ObjectInstanceNotKnown"]
+    Handles -->|Attribute handle invalid| UndefinedLocal["Local AttributeNotDefined"]
+    Handles -->|Yes| Request["Send private process request"]
+    Request --> Session{"Session, federation, and member match?"}
+    Session -->|No| Rejected["Generic rejected service status"]
+    Session -->|Yes| Plan["Registry checks producer-known instance,<br/>class-defined attributes, and ownership"]
+    Plan -->|Not applied| Rejected
+    Plan -->|Applied| Accepted["Continue recipient projection"]
+    Rejected --> ClientError["Client throws ProcessFederationClientError"]
+    ClientError --> PublicError["Public adapter maps to RTIinternalError"]
+```
+
+The pinned 2025 [`updateAttributeValues` untimed API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L727)
+lists `ObjectInstanceNotKnown`, `AttributeNotDefined`, and `AttributeNotOwned`
+among its declared exceptions. Before sending the request, the configured
+adapter checks its local handle wrappers and throws typed errors for an
+unrecognized object or attribute handle. After the request crosses the process
+boundary, the service checks session membership and asks the registry to plan
+the update. That plan distinguishes an instance not known to the producer, an
+undefined attribute, and an attribute not owned by the producer;
+the service returns the same generic rejected status for each non-applied
+plan. The client turns a non-OK response into `ProcessFederationClientError`,
+which the public adapter maps to `RTIinternalError`.
+
+That is the same broad local-versus-remote error shape as the earlier
+[untimed Send Interaction map](#failure-mapping-local-typed-errors-versus-remote-rejection),
+not the same semantic decision tree. Update Attribute Values checks a known
+object instance and per-instance attribute ownership; Send Interaction checks
+interaction publication and parameter membership in the sent class. Do not
+reuse one operation's validation rules for the other. This is a source-derived
+configured-process observation, not a conformance conclusion about the
+standard's exception requirements or exception precedence.
+
+The focused public process Update Attribute Values case listed below asserts
+that the valid untimed call succeeds under both callback models. It does not
+establish the public exception for a remote unknown instance, undefined
+attribute, or unowned attribute. The timestamped overload has additional time
+validation and is outside this chart.
+
+Evidence: [local handle checks](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L91),
+[public process-error conversion](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L133),
+[process-client status conversion](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L125),
+[service session check](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L27),
+[service registry-plan rejection](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L50),
+[registry object-knowledge check](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L106),
+and [registry attribute/ownership checks](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L139).
 
 ## 2. From a stream frame to an official callback
 
@@ -666,7 +868,8 @@ timing of service detach after public Disconnect.
 
 - [`Private process service dispatch correlates federation operations over framed data`](../../cpp/tests/process_transport_service_catch2.cpp#L25) checks Create, Join, and Send Interaction request/response correlation and payload preservation.
 - [`Private registry-bound service exchanges federation traffic across independently launched processes`](../../cpp/tests/process_federation_service_process_catch2.cpp#L38) launches server, sender, and receiver processes. Its receiver probe enables pushed events and checks projection through the official `FederateAmbassador::receiveInteraction` bridge ([probe setup](../../cpp/tests/process_federation_service_probe.cpp#L162), [receiver assertion](../../cpp/tests/process_federation_service_probe.cpp#L1406)). This test uses the private `ProcessFederationClient` seam, not the public `RTIambassador`.
-- [`RTIambassador routes public Send Interaction through a configured process endpoint`](../../cpp/tests/ieee1516_2025_connection_send_interaction_catch2.cpp#L457) checks the public send path and an explicit receiver poll in both callback-model sections. It uses the service's default polling mode, so it is not evidence for pushed callback delivery.
+- [`RTIambassador routes public Send Interaction through a configured process endpoint`](../../cpp/tests/ieee1516_2025_connection_send_interaction_catch2.cpp#L457) checks the public send path and an explicit receiver poll in both callback-model sections. Its raw receiver verifies one parameter handle, literal value bytes, and literal tag bytes at [the decoded result assertions](../../cpp/tests/ieee1516_2025_connection_send_interaction_catch2.cpp#L661); it does not test a DataElement-to-callback round trip. It uses the service's default polling mode, so it is not evidence for pushed callback delivery.
+- [`RTIambassador routes public Update Attribute Values through a configured process endpoint`](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_catch2.cpp#L457) calls the untimed service successfully in both callback-model sections. It is positive-path evidence only and does not test the public exception for a remote unknown instance, undefined attribute, or unowned attribute.
 - [`RTIambassador reflects an update only once for overlapping process subscriptions`](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L457) subscribes to one inherited attribute through parent and child object classes, sends one untimestamped update, and observes one reflection in both callback-model sections. The [fixture setup](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L545) enables pushed process events for HLA_IMMEDIATE and uses polling for HLA_EVOKED; that pairing is case setup, not a general callback-model/transport rule. It asserts one reflection at [line 817](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L817) and checks private `recipientCount == 1` at [line 873](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L873). It does not cover passive three-role eligibility, DSE, regional projection, or embedded/process parity.
 - [`RTIambassador receives a process interaction through the official Evoke callback surface`](../../cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp#L457) and [`RTIambassador preserves a timestamped process interaction through the official Evoke callback surface`](../../cpp/tests/ieee1516_2025_connection_timestamped_receive_evoke_catch2.cpp#L457) exercise public configured-endpoint callback paths. The timestamped case belongs to the adjacent time/retraction boundary, not the receive-order diagram.
 - The paired public process synchronization cases—[polling](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L457) and [pushed delivery](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L674)—exercise their respective announcement/completion callback paths. They do not queue synchronization, save/restore, and interaction-event families together, so they do not test the family-priority distinction described above.

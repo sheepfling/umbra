@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <iterator>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -13,6 +14,30 @@
 #include <vector>
 
 namespace umbra::detail {
+
+void EmbeddedFederationRegistry::setQueuedReceiveOrderInteractionsForSave(
+    std::wstring const& federationName,
+    std::vector<FederationStateImageReceiveOrderInteraction> messages) {
+  std::scoped_lock lock(mutex_);
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    throw std::logic_error(
+        "Cannot snapshot receive-order interactions for an unknown federation.");
+  }
+  federation->second.queuedReceiveOrderInteractions = std::move(messages);
+}
+
+void EmbeddedFederationRegistry::setQueuedReceiveOrderAttributeUpdatesForSave(
+    std::wstring const& federationName,
+    std::vector<FederationStateImageReceiveOrderAttributeUpdate> messages) {
+  std::scoped_lock lock(mutex_);
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    throw std::logic_error(
+        "Cannot snapshot receive-order attribute updates for an unknown federation.");
+  }
+  federation->second.queuedReceiveOrderAttributeUpdates = std::move(messages);
+}
 
 bool EmbeddedFederationRegistry::startFederationSave(
     Federation& federation,
@@ -75,7 +100,8 @@ bool EmbeddedFederationRegistry::startFederationSave(
 FederationSaveControlResult EmbeddedFederationRegistry::requestFederationSave(
     std::wstring const& federationName,
     std::uint64_t requestingFederateId,
-    std::wstring label) {
+    std::wstring label,
+    bool capturePublicReceiveOrderInteractions) {
   auto instrumentationScope = beginInstrumentation("requestFederationSave");
   FederationSaveControlResult result;
 
@@ -108,9 +134,46 @@ FederationSaveControlResult EmbeddedFederationRegistry::requestFederationSave(
       [](FederationTimeFederateSnapshot const& federate) {
         return federate.time.timeConstrained;
       });
+  auto capturePendingPublicInteractions = [&] {
+    if (!capturePublicReceiveOrderInteractions) {
+      return;
+    }
+    std::vector<FederationStateImageReceiveOrderInteraction> queued;
+    for (auto const& [federateId, route] :
+         federation->second.interactionCallbackRoutes) {
+      static_cast<void>(federateId);
+      if (!route.pendingReceiveOrderInteractions) {
+        continue;
+      }
+      auto pending = route.pendingReceiveOrderInteractions();
+      queued.insert(
+          queued.end(),
+          std::make_move_iterator(pending.begin()),
+          std::make_move_iterator(pending.end()));
+    }
+    std::sort(
+        queued.begin(),
+        queued.end(),
+        [](auto const& first, auto const& second) {
+          return std::pair{first.receivingFederateId, first.sequence} <
+              std::pair{second.receivingFederateId, second.sequence};
+        });
+    federation->second.queuedReceiveOrderInteractions = std::move(queued);
+  };
   if (!hasTimeConstrainedMember) {
-    // An immediate request supersedes any not-yet-initiated request only after
-    // all callback routes have been validated by startFederationSave().
+    // Validate routes before changing the saved callback image. An immediate
+    // request supersedes any not-yet-initiated request only after admission.
+    for (auto const& [federateId, member] : federation->second.members) {
+      static_cast<void>(member);
+      auto const route =
+          federation->second.interactionCallbackRoutes.find(federateId);
+      if (route == federation->second.interactionCallbackRoutes.end() ||
+          !route->second) {
+        result.status = FederationSaveControlStatus::callback_route_missing;
+        return result;
+      }
+    }
+    capturePendingPublicInteractions();
     static_cast<void>(startFederationSave(federation->second, std::move(label), result));
     return result;
   }
@@ -127,6 +190,7 @@ FederationSaveControlResult EmbeddedFederationRegistry::requestFederationSave(
       return result;
     }
   }
+  capturePendingPublicInteractions();
   federation->second.pendingImmediateSave = Federation::PendingImmediateSave{
       std::move(label)};
   federation->second.pendingTimedSave.reset();

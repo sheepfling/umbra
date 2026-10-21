@@ -569,6 +569,16 @@
       "reason": "Ratchet the mapped ownership-acquisition suite to its measured 2,359-line size after independent cases moved into focused thematic sources; preserve case tags, exact mappings, and ownership-service boundaries."
     },
     {
+      "path": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "max_lines": 23645,
+      "reason": "Ratchet the existing central portable C++ scenario runner after extracting the cohesive Auto Provide behavior to tck_auto_provide_scenarios.cpp. Keep new behavior in thematic ordinary .cpp files and continue extracting category-owned scenarios; preserve CLI routing, scenario IDs, adapter configuration, and both callback models while this legacy monolith is reduced."
+    },
+    {
+      "path": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
+      "max_lines": 24788,
+      "reason": "Growth-guard the existing central portable-scenario dispatcher at its measured 24,788 lines. This slice adds only route bindings; scenario behavior remains in thematic source files. Keep implementation out of this dispatcher and extract a cohesive category router before further growth, preserving scenario IDs, callback-model selection, and catalog validation."
+    },
+    {
       "path": "docs/planning/ROADMAP.md",
       "max_lines": 6221,
       "reason": "Human roadmap snapshot; use bounded query cards rather than splitting historical prose during implementation work."

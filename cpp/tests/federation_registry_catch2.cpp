@@ -1,4 +1,5 @@
 #include "ieee1516_2025_federation_registry_test_support.hpp"
+#include "../src/internal/federation/process_federation_service_protocol.hpp"
 
 TEST_CASE(
     "The embedded federation registry reports a directed interaction transportation override",
@@ -395,12 +396,20 @@ TEST_CASE(
   REQUIRE(std::filesystem::is_directory(directory));
 
   std::vector<std::filesystem::path> manifests;
+  std::vector<std::filesystem::path> commitMarkers;
   for (auto const& entry : std::filesystem::directory_iterator(directory)) {
-    if (entry.is_regular_file() && entry.path().extension() == ".json") {
+    if (!entry.is_regular_file()) {
+      continue;
+    }
+    auto const filename = entry.path().filename().string();
+    if (filename.ends_with(".json.tmp")) {
       manifests.push_back(entry.path());
+    } else if (filename.ends_with(".json.commit")) {
+      commitMarkers.push_back(entry.path());
     }
   }
   REQUIRE(manifests.size() == 2U);
+  REQUIRE(commitMarkers.size() == 2U);
   std::ifstream input(manifests.front(), std::ios::binary);
   std::string contents{std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
   REQUIRE(contents.find("umbra-federation-save-commit/v1") != std::string::npos);
@@ -925,6 +934,58 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Internal state-image codec preserves deferred receive-order attribute rechecks",
+    "[unit][internal-only][no-normative-mapping][save-restore][state-image]"
+    "[save-queued-ro-attribute-update-codec]") {
+  umbra::detail::FederationStateImage image;
+  image.federationName = L"exercise";
+  image.logicalTimeImplementationName = L"HLAinteger64Time";
+  image.members = {
+      {1U, L"producer", L"producer", 0U, 0U, 0, 0U},
+      {2U, L"receiver", L"receiver", 0U, 0U, 0, 0U},
+  };
+  image.objectInstanceCount = 1U;
+  image.objects.push_back({
+      42U,
+      L"object-42",
+      4U,
+      1U,
+      false,
+      0U,
+      {{3U, 1U, "HLAreliable", 0U, {}}},
+  });
+  image.queuedReceiveOrderAttributeUpdates.push_back({
+      1U,
+      1U,
+      2U,
+      42U,
+      {{3U, "value"}},
+      "tag",
+      "HLAreliable",
+      true,
+  });
+
+  auto const encoded =
+      umbra::detail::FederationStateImageCodec::encode(image);
+  REQUIRE(encoded.find("queuedReceiveOrderAttributeUpdates=1\n") !=
+      std::string::npos);
+  auto const decoded = umbra::detail::FederationStateImageCodec::decode(encoded);
+  REQUIRE(decoded.queuedReceiveOrderAttributeUpdates.size() == 1U);
+  auto const& update = decoded.queuedReceiveOrderAttributeUpdates.front();
+  REQUIRE(update.sequence == 1U);
+  REQUIRE(update.producingFederateId == 1U);
+  REQUIRE(update.receivingFederateId == 2U);
+  REQUIRE(update.objectInstanceHandle == 42U);
+  REQUIRE(update.values.size() == 1U);
+  REQUIRE(update.values.front().attributeHandle == 3U);
+  REQUIRE(update.values.front().value == "value");
+  REQUIRE(update.userSuppliedTag == "tag");
+  REQUIRE(update.transportationName == "HLAreliable");
+  REQUIRE(update.recheckAtReceive);
+  REQUIRE(umbra::detail::FederationStateImageCodec::encode(decoded) == encoded);
+}
+
+TEST_CASE(
     "Register Object Instance With Regions uses the default region and execution-wide generated names",
     "[unit][kernel][federation-registry][object-management][ddm][default-region]"
     "[object-instance-name][rti.service.register-object-instance-with-regions]"
@@ -1160,4 +1221,88 @@ TEST_CASE(
               }) == 1U);
 
   std::filesystem::remove_all(directory, ignored);
+}
+
+TEST_CASE(
+    "Internal failed federation restore completion never reports applied status",
+    "[unit][internal-only][no-normative-mapping][kernel][federation-registry]"
+    "[save-restore][restore-failure-result-status]") {
+  class RestoreFailureStore final : public umbra::detail::FederationSaveCommitStore {
+   public:
+    void commit(umbra::detail::FederationSaveCommitDescriptor const& descriptor) override {
+      committed = descriptor;
+    }
+
+    [[nodiscard]] std::optional<umbra::detail::FederationSaveCommitDescriptor> load(
+        std::wstring const&,
+        std::wstring const&) const override {
+      auto result = committed;
+      if (!result) {
+        return std::nullopt;
+      }
+      auto image = umbra::detail::FederationStateImageCodec::decode(
+          result->stateImage);
+      umbra::detail::FederationStateImageTsoInteractionMessage malformed;
+      malformed.messageId = 1U;
+      malformed.producingFederateId = image.members.front().id;
+      malformed.sentInteractionClassHandle = 1U;
+      malformed.parameters.push_back({1U, "value"});
+      // The private image codec preserves this bounded cross-field mismatch,
+      // but runtime restore rejects the payload before replacing live state.
+      image.tsoInteractionMessages.push_back(std::move(malformed));
+      image.tsoInteractionMessageCount = image.tsoInteractionMessages.size();
+      result->stateImage = umbra::detail::FederationStateImageCodec::encode(image);
+      return result;
+    }
+
+    std::optional<umbra::detail::FederationSaveCommitDescriptor> committed;
+  };
+
+  auto store = std::make_shared<RestoreFailureStore>();
+  EmbeddedFederationRegistry source({}, store);
+  REQUIRE(source.create(L"exercise", validDefinition()).status ==
+      FederationRegistryStatus::applied);
+  auto sourceMember = source.join(
+      L"exercise", L"trainer", L"alice", noOpCallbackRoute());
+  REQUIRE(sourceMember.status == FederationRegistryStatus::applied);
+  REQUIRE(sourceMember.membership);
+  REQUIRE(source.requestFederationSave(
+      L"exercise", sourceMember.membership->id, L"checkpoint").status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE(source.federateSaveBegun(
+      L"exercise", sourceMember.membership->id).status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE(source.federateSaveComplete(
+      L"exercise", sourceMember.membership->id).saveCompletedSuccessfully);
+
+  EmbeddedFederationRegistry restarted({}, store);
+  REQUIRE(restarted.create(L"exercise", validDefinition()).status ==
+      FederationRegistryStatus::applied);
+  auto restartedMember = restarted.join(
+      L"exercise", L"trainer", L"alice", noOpCallbackRoute());
+  REQUIRE(restartedMember.status == FederationRegistryStatus::applied);
+  REQUIRE(restartedMember.membership);
+  REQUIRE(restartedMember.membership->id == sourceMember.membership->id);
+  REQUIRE(restarted.requestFederationRestore(
+      L"exercise", restartedMember.membership->id, L"checkpoint").status ==
+      umbra::detail::FederationRestoreControlStatus::applied);
+
+  auto const result = restarted.federateRestoreComplete(
+      L"exercise", restartedMember.membership->id);
+  REQUIRE_FALSE(result.notifications.empty());
+  REQUIRE(std::all_of(
+      result.notifications.begin(),
+      result.notifications.end(),
+      [](umbra::detail::FederationRestoreNotification const& notification) {
+        return notification.kind ==
+                umbra::detail::FederationRestoreNotificationKind::completed &&
+            !notification.successful;
+      }));
+  REQUIRE(result.status ==
+      umbra::detail::FederationRestoreControlStatus::restore_failed);
+  auto const encoded = umbra::detail::encodeProcessFederationRestoreControlResult(
+      umbra::detail::ProcessFederationRestoreControlResult{result.status});
+  auto const decoded = umbra::detail::decodeProcessFederationRestoreControlResult(
+      encoded);
+  REQUIRE(decoded.status == result.status);
 }

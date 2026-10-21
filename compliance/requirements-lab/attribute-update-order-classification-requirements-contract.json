@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This portable C++ TCK slice maps an ordinary Update Attribute Values call to the receive-order reflection callback and a timestamped update to the timestamped reflection callback at the same receiver. The applicable canonical requirement is IEEE 1516.1-2025 clause 8.1.4; this is adapter-backed test evidence, not a conformance claim.",
+  "notes": "This portable C++ TCK slice maps ordinary and timestamped Update Attribute Values calls to their corresponding reflection callbacks. It witnesses selected §8.1.4 order-determination factors, the optional timestamp for one time-regulating sender's TSO-preferred attribute update, and the effect of changing sender time status while timestamp and preferred order stay fixed. It does not cover every sending service or the full order matrix. This is adapter-backed test evidence, not a conformance claim.",
   "canonical_standard_section_overrides": [
     {
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l9-1",
@@ -62,6 +62,53 @@
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeUpdateOrderClassification",
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeUpdateOrderClassificationContract"
       ]
+    },
+    {
+      "id": "standard-message-order-determination-factors",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l72-21",
+      "clause_id": "clause-8.1.4",
+      "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
+      "source_symbol": "scenarioAttributeUpdateOrderClassification",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeUpdateOrderClassification",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeUpdateOrderClassificationContract"
+      ]
+    },
+    {
+      "id": "standard-optional-timestamp-for-tso-preferred-attribute-send",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l114-35",
+      "clause_id": "clause-8.1.4",
+      "source": "packages/hla-rti-cpp-tck/src/tck_attribute_fdd_preferred_order_default.cpp",
+      "source_symbol": "scenarioAttributeFddPreferredOrderDefault",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_attribute_fdd_preferred_order_default.cpp::scenarioAttributeFddPreferredOrderDefault",
+        "packages/hla-rti-cpp-tck/src/tck_attribute_fdd_preferred_order_default.cpp::scenarioAttributeFddPreferredOrderDefaultContract"
+      ],
+      "scope_note": "The regulating publisher calls the no-time Update Attribute Values overload for one TSO-preferred attribute and the receiver observes ordinary receive-order reflection. The paired timestamped overload remains separately tested. This is direct evidence for this attribute service and trigger condition, not a claim for all message families or conformance."
+    },
+    {
+      "id": "standard-sender-time-status-determines-attribute-message-order",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l132-41",
+      "clause_id": "clause-8.1.4",
+      "source": "packages/hla-rti-cpp-tck/src/tck_timestamped_attribute_sender_regulation_transition.cpp",
+      "source_symbol": "scenarioTimestampedAttributeSenderRegulationTransition",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_timestamped_attribute_sender_regulation_transition.cpp::scenarioTimestampedAttributeSenderRegulationTransition",
+        "packages/hla-rti-cpp-tck/src/tck_timestamped_attribute_sender_regulation_transition.cpp::scenarioTimestampedAttributeSenderRegulationTransitionContract"
+      ],
+      "scope_note": "With a timestamped attribute update and the TimeStamp-preferred order fixed, changing the sender from non-regulating to regulating changes sent/received order from RECEIVE/RECEIVE to TIMESTAMP/TIMESTAMP. This directly covers the sender-status factor for this attribute service; receiver status is fixed and other message families are not implied."
+    },
+    {
+      "id": "standard-message-order-factors-considered-together",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l150-47",
+      "clause_id": "clause-8.1.4",
+      "source": "packages/hla-rti-cpp-tck/src/tck_timestamped_attribute_sender_regulation_transition.cpp",
+      "source_symbol": "scenarioTimestampedAttributeSenderRegulationTransition",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_timestamped_attribute_sender_regulation_transition.cpp::scenarioTimestampedAttributeSenderRegulationTransition",
+        "packages/hla-rti-cpp-tck/src/tck_timestamped_attribute_sender_regulation_transition.cpp::scenarioTimestampedAttributeSenderRegulationTransitionContract"
+      ],
+      "scope_note": "The fixed timestamp, selected TimeStamp-preferred attribute order, receiver time-constrained status, and toggled sender time-regulating status jointly determine the observed RECEIVE/RECEIVE versus TIMESTAMP/TIMESTAMP classification. Evidence is limited to this attribute-service combination and is not a full message-order matrix or conformance claim."
     }
   ]
 }

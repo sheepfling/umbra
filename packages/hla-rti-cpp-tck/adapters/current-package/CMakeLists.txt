@@ -69,6 +69,11 @@ set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-disabled-tck.xml"
   CACHE FILEPATH "Known-class-disabled advisory FOM supplied by this provider adapter")
+set(HLA_RTI_TCK_ADAPTER_OWNERSHIP_EXTENSION_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/ownership-post-join-extension-tck.xml"
+  CACHE FILEPATH "FOM extending an already registered object class for ownership testing")
+set(HLA_RTI_TCK_ADAPTER_OWNERSHIP_ADDED_ATTRIBUTE "AddedAfterRegistration"
+  CACHE STRING "Attribute added by the ownership extension FOM")
 set(HLA_RTI_TCK_ADAPTER_RATE_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-relevance-rate-tck.xml"
   CACHE FILEPATH "Attribute relevance rate advisory FOM supplied by this provider adapter")
@@ -268,6 +273,11 @@ if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM}" OR
   message(FATAL_ERROR
     "Adapter known-class-disabled advisory FOM does not exist: ${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM}")
 endif()
+if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_OWNERSHIP_EXTENSION_FOM}" OR
+   IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_OWNERSHIP_EXTENSION_FOM}")
+  message(FATAL_ERROR
+    "Adapter ownership extension FOM does not exist: ${HLA_RTI_TCK_ADAPTER_OWNERSHIP_EXTENSION_FOM}")
+endif()
 if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_RATE_FOM}" OR
    IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_RATE_FOM}")
   message(FATAL_ERROR
@@ -444,6 +454,8 @@ set(_tck_common_arguments
   --known-class-fom "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}"
   --known-class-disabled-fom
     "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM}"
+  --ownership-extension-fom "${HLA_RTI_TCK_ADAPTER_OWNERSHIP_EXTENSION_FOM}"
+  --ownership-added-attribute "${HLA_RTI_TCK_ADAPTER_OWNERSHIP_ADDED_ATTRIBUTE}"
   --rate-fom "${HLA_RTI_TCK_ADAPTER_RATE_FOM}"
   --rate-object-class "${HLA_RTI_TCK_ADAPTER_RATE_OBJECT_CLASS}"
   --rate-best-effort-attribute

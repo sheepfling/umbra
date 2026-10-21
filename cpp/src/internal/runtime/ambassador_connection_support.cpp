@@ -12,14 +12,70 @@
 #include <atomic>
 #include <charconv>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <string>
 #include <system_error>
 #include <utility>
 
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
+
 namespace rti1516_2025::umbra_binding_detail {
 
 namespace {
+
+#if defined(_WIN32)
+std::filesystem::path windowsEnvironmentPath(wchar_t const* name) {
+  auto const required = GetEnvironmentVariableW(name, nullptr, 0U);
+  if (required == 0U) {
+    return {};
+  }
+  std::wstring value(static_cast<std::size_t>(required), L'\0');
+  auto const written = GetEnvironmentVariableW(
+      name,
+      value.data(),
+      required);
+  if (written == 0U || written >= required) {
+    return {};
+  }
+  value.resize(static_cast<std::size_t>(written));
+  return std::filesystem::path(value);
+}
+#endif
+
+std::filesystem::path defaultFederationSaveDirectory() {
+#if defined(_WIN32)
+  auto root = windowsEnvironmentPath(L"LOCALAPPDATA");
+  if (root.empty()) {
+    root = windowsEnvironmentPath(L"APPDATA");
+  }
+  if (!root.empty()) {
+    return root / L"Umbra" / L"FederationSaves";
+  }
+#elif defined(__APPLE__)
+  if (auto const* home = std::getenv("HOME"); home != nullptr && *home != '\0') {
+    return std::filesystem::path(home) / "Library" / "Application Support" /
+        "Umbra" / "FederationSaves";
+  }
+#else
+  if (auto const* stateHome = std::getenv("XDG_STATE_HOME");
+      stateHome != nullptr && *stateHome != '\0') {
+    return std::filesystem::path(stateHome) / "umbra" / "federation-saves";
+  }
+  if (auto const* home = std::getenv("HOME"); home != nullptr && *home != '\0') {
+    return std::filesystem::path(home) / ".local" / "state" / "umbra" /
+        "federation-saves";
+  }
+#endif
+  throw RTIinternalError(
+      L"Umbra could not determine a persistent federation-save directory; "
+      L"configure federationSaveDirectory explicitly.");
+}
 
 [[noreturn]] void throwInvalidProcessAddress() {
   throw ConnectionFailed(
@@ -210,7 +266,7 @@ std::filesystem::path configuredAmbassadorFederationSaveDirectory(
     bool& settingsApplied) {
   settingsApplied = false;
   if (configuration == nullptr || configuration->additionalSettings().empty()) {
-    return {};
+    return defaultFederationSaveDirectory();
   }
   constexpr std::wstring_view prefix = L"federationSaveDirectory=";
   auto const& settings = configuration->additionalSettings();
@@ -234,7 +290,7 @@ std::filesystem::path configuredAmbassadorFederationSaveDirectory(
     }
     begin = end + 1U;
   }
-  return {};
+  return defaultFederationSaveDirectory();
 }
 
 umbra::detail::FomStandardEdition configuredAmbassadorFomStandardEdition(

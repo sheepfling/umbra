@@ -12,6 +12,7 @@
 #include "internal/handles/parameter_handle.hpp"
 #include "internal/handles/region_handle.hpp"
 #include "internal/handles/transportation_type_handle.hpp"
+#include "internal/runtime/callback_region_designator_copies.hpp"
 #include "internal/runtime/utf8_string.hpp"
 #include "internal/time/federate_time_state.hpp"
 #include "internal/time/federation_time_grant_policy.hpp"
@@ -85,7 +86,9 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
       std::vector<umbra::detail::ObjectInstanceRemovalRecipient>
           postGrantObjectRemovals;
       bool grantCompleted = false;
+      bool implicitRegulationCompleted = false;
       bool nextSaveConditionalsChanged = false;
+      bool registryGrantStarted = false;
       callbackSession->invoke([
           timeState = std::move(timeState),
           federationName,
@@ -97,11 +100,17 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
           &timedSaveNotifications,
           &postGrantObjectRemovals,
           &grantCompleted,
+          &registryGrantStarted,
+           &implicitRegulationCompleted,
           &nextSaveConditionalsChanged](FederateAmbassador& recipient) {
         auto const pendingSnapshot = timeState->snapshot();
         bool const flushQueue =
             pendingSnapshot.advanceMode ==
             umbra::detail::FederateTimeAdvanceMode::flush_queue_request;
+        bool const implicitRegulationAdvance =
+            pendingSnapshot.timeRegulationPending &&
+            pendingSnapshot.advanceMode ==
+                umbra::detail::FederateTimeAdvanceMode::time_advance_request_available;
         std::shared_ptr<LogicalTime const> grantedTime;
         std::shared_ptr<LogicalTime const> optimisticTime;
         std::shared_ptr<LogicalTime> flushQueueGrantedTime;
@@ -115,25 +124,30 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
           {
             std::scoped_lock lock(ambassadorFederationManagementMutex());
             auto& registry = embeddedFederationRegistry();
-            if (registry.beginTimeAdvanceGrant(
-                    federationName,
-                    federateId,
-                    generation,
-                    dispatchIdentity) !=
-                umbra::detail::FederationTimeGrantStatus::applied) {
+            auto const grantStatus = registry.beginTimeAdvanceGrant(
+                federationName,
+                federateId,
+                generation,
+                dispatchIdentity);
+            registryGrantStarted = grantStatus ==
+                umbra::detail::FederationTimeGrantStatus::applied;
+            if (!registryGrantStarted && grantStatus !=
+                    umbra::detail::FederationTimeGrantStatus::grant_not_ready) {
               return;
             }
-            auto admission = registry.admitImmediateFederationSaveAtTimeAdvanceBoundary(
-                federationName,
-                federateId);
-            if (admission.status != umbra::detail::FederationSaveControlStatus::applied) {
-              throw RTIinternalError(
-                  L"The embedded federation could not admit an untimed save at the time-advance boundary.");
+            if (registryGrantStarted) {
+              auto admission = registry.admitImmediateFederationSaveAtTimeAdvanceBoundary(
+                  federationName,
+                  federateId);
+              if (admission.status != umbra::detail::FederationSaveControlStatus::applied) {
+                throw RTIinternalError(
+                    L"The embedded federation could not admit an untimed save at the time-advance boundary.");
+              }
+              immediateSaveLabel = std::move(admission.currentFederateLabel);
+              immediateSaveNotification =
+                  std::move(admission.currentFederateNotification);
+              immediateSaveNotifications = std::move(admission.notifications);
             }
-            immediateSaveLabel = std::move(admission.currentFederateLabel);
-            immediateSaveNotification =
-                std::move(admission.currentFederateNotification);
-            immediateSaveNotifications = std::move(admission.notifications);
           }
 
           // Initiate Federate Save must reach a time-constrained recipient
@@ -171,6 +185,15 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
             grantedTime = cloneAmbassadorReferenceLogicalTime(
                 pendingSnapshot.implementationName,
                 *pendingSnapshot.requestedTime);
+            if (implicitRegulationAdvance) {
+              // Clause 8.3.4 suppresses queued timestamps strictly below the
+              // time at which this constrained federate becomes regulating.
+              // Keep messages exactly at the boundary eligible for this TARA.
+              static_cast<void>(registry.retireStaleTsoRecipientMessages(
+                  federationName,
+                  federateId,
+                  *grantedTime));
+            }
             // Section 8.9 includes TARA's already-queued ts == t_R payloads
             // in the pre-grant delivery set, just as other advance forms
             // include their selected grant timestamp.
@@ -197,20 +220,6 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                     pendingSnapshot.implementationName) {
               throw RTIinternalError(
                   L"The embedded Flush Queue Request has incomplete temporal state.");
-            }
-
-            auto execution = registry.timeSnapshotFor(federationName);
-            if (!execution) {
-              throw FederateNotExecutionMember(
-                  L"The embedded federation no longer records the Flush Queue requester.");
-            }
-            umbra::detail::FederationFlushQueueGrantCalculator flushQueueGrantCalculator;
-            auto flushQueueCalculation = flushQueueGrantCalculator.calculate(
-                *execution,
-                federateId);
-            if (!flushQueueCalculation.calculated()) {
-              throw RTIinternalError(
-                  L"The embedded federation could not calculate the Flush Queue Grant times.");
             }
 
             auto factory = HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
@@ -491,12 +500,21 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                           message.objectInstanceHandle,
                           passel.transportationName);
 
+                      CallbackRegionDesignatorCopies callbackRegionDesignatorCopies(
+                          federationName, federateId);
                       std::optional<RegionHandleSet> optionalSentRegions;
                       if (projection->conveyRegionDesignatorSets &&
                           (!passel.sentRegionHandles.empty() || passel.defaultRegionUsed)) {
                         optionalSentRegions.emplace();
-                        for (std::uint64_t const regionHandle : passel.sentRegionHandles) {
-                          optionalSentRegions->insert(makeRegionHandle(regionHandle));
+                        if (!passel.sentRegionHandles.empty()) {
+                          auto const copyStatus = callbackRegionDesignatorCopies.create(
+                              passel.sentRegionHandles,
+                              passel.sentRegionSnapshots,
+                              *optionalSentRegions);
+                          if (copyStatus != umbra::detail::RegionServiceStatus::applied) {
+                            throw RTIinternalError(
+                                L"The RTI could not create callback-scoped region designator copies for timestamped reflection.");
+                          }
                         }
                       }
                       recordFlushQueueTsoCallbackStarted(message.timestamp);
@@ -736,6 +754,7 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
         }
         };
         deliverTsoPayloads(tsoDeliveries);
+
         if (flushQueue) {
           std::scoped_lock lock(ambassadorFederationManagementMutex());
           auto& registry = embeddedFederationRegistry();
@@ -756,6 +775,20 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
           }
           flushQueueGrantedTime = std::move(calculation.grantedTime);
           flushQueueOptimisticTime = std::move(calculation.optimisticTime);
+        }
+
+        if (!flushQueue && !registryGrantStarted) {
+          // A TAR can have an eligible pre-grant TSO at its GALT boundary.
+          // Delivering it acknowledges that input without granting; then
+          // recompute the shared bounds and queue a grant only if TAR is now
+          // strictly below the remaining GALT.
+          std::scoped_lock lock(ambassadorFederationManagementMutex());
+          auto scheduled = embeddedFederationRegistry().reevaluateTimeAdvanceGrants(
+              federationName);
+          if (scheduled.status == umbra::detail::FederationTimeGrantStatus::applied) {
+            newlyEligible = std::move(scheduled.dispatches);
+          }
+          return;
         }
 
         if (!flushQueue) {
@@ -802,6 +835,15 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
             grantedTime = timeState->grant(generation);
             if (!grantedTime) {
               return;
+            }
+            if (implicitRegulationAdvance) {
+              grantedTime = timeState->grantTimeRegulationIfCurrent(
+                  generation, 0U);
+              if (!grantedTime) {
+                throw RTIinternalError(
+                    L"The embedded implicit regulation advance lost its matching enable request.");
+              }
+              implicitRegulationCompleted = true;
             }
             registry.applyTsoObjectDeletionProducerTimeBoundary(
                 federationName,
@@ -892,6 +934,15 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
           }
         }
 
+        if (flushQueue && grantedTime) {
+          std::scoped_lock lock(ambassadorFederationManagementMutex());
+          static_cast<void>(embeddedFederationRegistry()
+                                .retireStaleTsoRecipientMessages(
+                                    federationName,
+                                    federateId,
+                                    *grantedTime));
+        }
+
         // The state mutation happens immediately before its matching standard
         // callback, after the registry has rechecked the current shared bound.
         if (flushQueue) {
@@ -900,6 +951,8 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
                 L"The embedded Flush Queue Grant has no optimistic logical time.");
           }
           recipient.flushQueueGrant(*grantedTime, *optimisticTime);
+        } else if (implicitRegulationAdvance) {
+          recipient.timeRegulationEnabled(*grantedTime);
         } else {
           recipient.timeAdvanceGrant(*grantedTime);
         }
@@ -934,10 +987,18 @@ umbra::detail::FederationTimeGrantDispatch makeTimeAdvanceGrantDispatch(
         // The grant has completed the private transition back to Time Granted
         // (or the Flush Queue equivalent).  Publish the conditional MOM value
         // only after the matching public callback has been invoked.
-        queueAmbassadorJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
-            federationName,
-            federateId,
-            {umbra::detail::hla::utf8::mom::time_manager_state});
+        if (implicitRegulationCompleted) {
+          queueAmbassadorJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+              federationName,
+              federateId,
+              {umbra::detail::hla::utf8::mom::time_manager_state,
+               umbra::detail::hla::utf8::mom::time_regulating});
+        } else {
+          queueAmbassadorJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
+              federationName,
+              federateId,
+              {umbra::detail::hla::utf8::mom::time_manager_state});
+        }
       }
 
       if (nextSaveConditionalsChanged) {
@@ -1102,6 +1163,13 @@ makeTimeRoleEnableDispatchFactory(
             recipient.timeConstrainedEnabled(*enabledTime);
           }
         });
+
+        if (kind == umbra::detail::FederationTimeRoleEnableKind::constrained) {
+          embeddedFederationRegistry().completeTimeConstrainedEnableDispatch(
+              federationName,
+              federateId,
+              generation);
+        }
 
         if (!granted) {
           return;

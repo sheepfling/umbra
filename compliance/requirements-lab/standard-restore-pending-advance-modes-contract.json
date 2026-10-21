@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ and Java parity for the native 210-assertion HLA_EVOKED/HLA_IMMEDIATE saved pending TARA, NMR, and NMRA matrix. For each mode and callback model, one time-constrained member saves from Initiate Federate Save while its advance request is pending, advances after save, restores the saved request, and receives Federation Restored before the reconstructed grant at the saved target. The evoked branch also proves a competing TAR is rejected while the restored request is pending; both models verify the same advance family remains usable after the reconstructed grant. The adapter supplies provider, endpoint, logical-time implementation, callback model, and a standard IEEE 1516.2-2025 FOM with nonRegulatedGrant enabled. Ten direct requirement-section pairs cover clauses 4.20, 4.31, 4.32, 8, 8.9, 8.10.2, and 8.11. The native six-section case passed 210 assertions against the installed package; portable C++ primary/contract passed under both callback models and integer64/float64 time. Java compiles against the official API-only JAR but provider runtime remains unverified. This is bounded public-API evidence, not a claim about TAR, FQR, queued TSO, multi-member or durable restore, interoperability, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-pending-advance-modes",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador enableTimeConstrained, requestFederationSave, federateSaveBegun, federateSaveComplete, timeAdvanceRequestAvailable, nextMessageRequest, nextMessageRequestAvailable, requestFederationRestore, federateRestoreComplete, queryLogicalTime, evokeCallback; FederateAmbassador initiateFederateSave, timeAdvanceGrant, federationSaved, federationRestored",
+      "source": "third_party/ieee1516.1-2025/include/RTI and official hla.rti1516_2025 Java API; standard IEEE 1516.2-2025 nonRegulatedGrant FOM switch",
+      "source_symbol": "IEEE 1516.1-2025 federation save/restore and alternate time-advance interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp::Embedded federation restore reschedules saved pending TARA, NMR, and NMRA requests",
+        "packages/hla-rti-cpp-tck/src/tck_restore_pending_advance_modes.cpp::scenarioRestorePendingAdvanceModes",
+        "packages/hla-rti-cpp-tck/src/tck_restore_pending_advance_modes.cpp::scenarioRestorePendingAdvanceModesContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestorePendingAdvanceModesTck.java::run"
+      ]
+    }
+  ]
+}

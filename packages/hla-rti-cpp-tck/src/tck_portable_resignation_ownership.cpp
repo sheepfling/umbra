@@ -401,6 +401,105 @@ void scenarioResignDeleteObjectsThenDivestCrossObjectEffectsContractPortable(
   scenarioResignDeleteObjectsThenDivestCrossObjectEffectsPortable(options, model);
 }
 
+void scenarioResignDeleteThenDivestPrivilegeEpoch(
+    Options const& options, rti::CallbackModel model) {
+  require(!options.fom.empty(),
+          "Delete-then-divest privilege epochs require an adapter-supplied FOM");
+  Session owner(options, model, "delete-then-divest-epoch-owner");
+  Session peer(options, model, "delete-then-divest-epoch-peer");
+  auto const federation = federationName(options, "delete-then-divest-privilege-epoch");
+  connectAndJoin(owner, peer, options, federation, options.fom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const peerClass = peer.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass, options.attributeName);
+  auto const peerAttribute = peer.rtiAmbassador().getAttributeHandle(
+      peerClass, options.attributeName);
+  auto const ownerPrivilege = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass, L"HLAprivilegeToDeleteObject");
+  require(ownerClass.isValid() && peerClass.isValid() &&
+              ownerAttribute.isValid() && peerAttribute.isValid() &&
+              ownerPrivilege.isValid(),
+          "Adapter FOM did not resolve the ordinary attribute and standard delete privilege");
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const peerAttributes{peerAttribute};
+  rti::AttributeHandleSet const privilegeOnly{ownerPrivilege};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  peer.rtiAmbassador().subscribeObjectClassAttributes(
+      peerClass, peerAttributes, true, L"");
+  peer.rtiAmbassador().publishObjectClassAttributes(peerClass, peerAttributes);
+
+  auto const retained = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  auto const retainedName = owner.rtiAmbassador().getObjectInstanceName(retained);
+  require(retained.isValid() && !retainedName.empty() &&
+              owner.rtiAmbassador().isAttributeOwnedByFederate(
+                  retained, ownerAttribute) &&
+              owner.rtiAmbassador().isAttributeOwnedByFederate(
+                  retained, ownerPrivilege),
+          "First registration did not establish ordinary and delete-privilege ownership");
+  waitFor(peer, [&] { return peer.recorder().hasDiscovery(retained); },
+          options, "retained object discovery");
+
+  owner.rtiAmbassador().unpublishObjectClassAttributes(
+      ownerClass, privilegeOnly);
+  require(owner.rtiAmbassador().isAttributeOwnedByFederate(
+                  retained, ownerAttribute) &&
+              !owner.rtiAmbassador().isAttributeOwnedByFederate(
+                  retained, ownerPrivilege),
+          "Unpublishing the delete privilege did not preserve only ordinary ownership");
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, privilegeOnly);
+  require(!owner.rtiAmbassador().isAttributeOwnedByFederate(
+              retained, ownerPrivilege),
+          "Republishing delete privilege restored ownership of the earlier instance");
+
+  auto const deleted = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  auto const deletedName = owner.rtiAmbassador().getObjectInstanceName(deleted);
+  require(deleted.isValid() && deleted != retained &&
+              !deletedName.empty() && deletedName != retainedName &&
+              owner.rtiAmbassador().isAttributeOwnedByFederate(
+                  deleted, ownerAttribute) &&
+              owner.rtiAmbassador().isAttributeOwnedByFederate(
+                  deleted, ownerPrivilege),
+          "Later registration did not establish a new delete-privilege epoch");
+  waitFor(peer, [&] { return peer.recorder().hasDiscovery(deleted); },
+          options, "deleted object discovery");
+
+  peer.recorder().clearRemovals();
+  peer.recorder().clearOwnershipRecords();
+  owner.resign(rti::DELETE_OBJECTS_THEN_DIVEST);
+  waitFor(peer,
+          [&] {
+            return peer.recorder().removals().size() == 1U &&
+                peer.recorder().ownershipAssumption().has_value();
+          }, options, "delete-then-divest removal and assumption callbacks");
+  auto const removals = peer.recorder().removals();
+  auto const assumption = peer.recorder().ownershipAssumption();
+  require(removals.size() == 1U && removals.front().object == deleted &&
+              assumption->object == retained &&
+              assumption->attributes == peerAttributes &&
+              assumption->tag.empty(),
+          "Delete-then-divest did not separate the retained and deleted instances");
+  require(peer.rtiAmbassador().getObjectInstanceHandle(retainedName) == retained,
+          "The instance without delete privilege was removed");
+  requireException(
+      [&] { static_cast<void>(peer.rtiAmbassador().getObjectInstanceHandle(deletedName)); },
+      L"ObjectInstanceNotKnown",
+      "looking up the delete-privileged instance after resignation");
+
+  peer.resign(rti::NO_ACTION);
+  peer.rtiAmbassador().destroyFederationExecution(federation);
+  peer.disconnect();
+  owner.disconnect();
+}
+
+void scenarioResignDeleteThenDivestPrivilegeEpochContract(
+    Options const& options, rti::CallbackModel model) {
+  scenarioResignDeleteThenDivestPrivilegeEpoch(options, model);
+}
+
 void scenarioResignUnconditionallyDivestAttributesPreservesObjectsPortable(
     Options const& options,
     rti::CallbackModel model) {

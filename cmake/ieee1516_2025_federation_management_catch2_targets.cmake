@@ -115,6 +115,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     cpp/tests/ieee1516_2025_custom_regional_initial_transport_catch2.cpp
   )
   target_compile_definitions(umbra_ieee1516_2025_connection_catch2 PRIVATE
+    UMBRA_PROCESS_SERVICE_PROBE_PATH="$<TARGET_FILE:umbra_process_federation_service_probe>"
     UMBRA_PROCESS_TRANSPORT_PROXY_PROBE_PATH="$<TARGET_FILE:umbra_process_transport_proxy_probe>"
   )
   add_dependencies(umbra_ieee1516_2025_connection_catch2
@@ -135,6 +136,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     cpp/tests/process_federation_callback_bridge_catch2.cpp
     cpp/tests/transport_protocol_catch2.cpp
     cpp/tests/process_federation_service_codec_catch2.cpp
+    cpp/tests/process_federation_service_tso_region_copy_lease_catch2.cpp
     cpp/tests/process_federation_service_catch2.cpp cpp/tests/process_federation_service_join_rollback_catch2.cpp cpp/tests/process_federation_service_tso_attribute_before_grant_catch2.cpp cpp/tests/process_federation_service_attribute_relevance_advisory_catch2.cpp cpp/tests/process_federation_service_regional_class_request_attribute_value_update_catch2.cpp
     cpp/tests/process_federation_additional_fom_catch2.cpp
     cpp/tests/process_federation_service_process_catch2.cpp
@@ -142,6 +144,13 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   add_dependencies(
     umbra_process_boundary_private_catch2
     umbra_process_federation_service_probe
+  )
+
+  # Isolate the durable pushed-RO callback restart test from the larger
+  # process-service Catch2 translation unit.
+  umbra_add_embedded_2025_catch2_target(umbra_process_pushed_ro_attribute_restart_catch2
+    SOURCES
+    cpp/tests/process_pushed_ro_attribute_restart_catch2.cpp
   )
 
   # Keep the federation-wide MOM HLAsetSwitches Auto Provide case
@@ -226,6 +235,13 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   umbra_add_embedded_2025_catch2_target(umbra_default_region_interaction_routing_catch2
     SOURCES
     cpp/tests/default_region_interaction_routing_catch2.cpp
+  )
+
+  # Keep §9.1.5's default-region reinterpretation of the four ordinary DM
+  # subscription operations independently buildable and runnable.
+  umbra_add_embedded_2025_catch2_target(umbra_ddm_default_region_dm_services_catch2
+    SOURCES
+    cpp/tests/ddm_default_region_dm_services_catch2.cpp
   )
 
   # Keep the multi-region interaction routing matrix independently
@@ -451,6 +467,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     cpp/tests/timestamped_directed_interaction_tar_nmr_catch2.cpp
   )
 
+
   # Keep federation-scoped MOM save-conditionals independently
   # buildable. This isolates the pending/admitted/completed conditional
   # attribute contract from the damaged aggregate federation-management
@@ -632,6 +649,48 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   umbra_add_embedded_2025_catch2_target(umbra_timestamped_attribute_update_queued_passel_retraction_catch2
     SOURCES
     cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp
+  )
+
+  # Isolate the public 2025 time-regulating sender's Clause 8 lower-bound
+  # validation for the timestamped Update Attribute Values overload.
+  umbra_add_embedded_2025_catch2_target(umbra_timestamped_attribute_update_time_constraints_catch2
+    SOURCES
+    cpp/tests/timestamped_attribute_update_time_constraints_catch2.cpp
+  )
+
+  # Keep mixed Receive/TimeStamp passels independently buildable so this
+  # single-invocation message boundary has a focused 2025 C++ test selector.
+  umbra_add_embedded_2025_catch2_target(umbra_ieee1516_2025_mixed_order_attribute_passels_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_mixed_order_attribute_passels_catch2.cpp
+  )
+
+  # Keep the §8.1.4 optional-timestamp choice independently buildable under
+  # an already time-regulating sender and TSO-preferred attribute declaration.
+  umbra_add_embedded_2025_catch2_target(umbra_ieee1516_2025_optional_timestamp_preferred_tso_attribute_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_optional_timestamp_preferred_tso_attribute_catch2.cpp
+  )
+
+  # Keep the §8.1.4 sender-role conversion row independently buildable with
+  # the preferred order and supplied timestamp held constant.
+  umbra_add_embedded_2025_catch2_target(umbra_ieee1516_2025_timestamped_attribute_order_sender_regulation_transition_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_timestamped_attribute_order_sender_regulation_transition_catch2.cpp
+  )
+
+  # Keep the §8.1.4 per-recipient sent-TSO conversion row independently
+  # buildable across constrained and unconstrained joined federates.
+  umbra_add_embedded_2025_catch2_target(umbra_ieee1516_2025_sent_tso_per_recipient_order_conversion_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_sent_tso_per_recipient_order_conversion_catch2.cpp
+  )
+
+  # Keep the §8.2 constrained-to-regulating implicit advance independently
+  # buildable across its queued TSO and regulation-enabled callback boundary.
+  umbra_add_embedded_2025_catch2_target(umbra_ieee1516_2025_enable_time_regulation_implicit_advance_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_enable_time_regulation_implicit_advance_catch2.cpp
   )
 
   # Keep the five-form timestamped designator-terminalization case
@@ -934,6 +993,26 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   umbra_add_embedded_2025_catch2_target(umbra_next_message_request_queued_tso_catch2
     SOURCES
     cpp/tests/next_message_request_queued_tso_catch2.cpp
+  )
+
+  # Keep the §8.1.5 early-NMRA-grant timestamp-bound witness independently
+  # buildable from the separate NMR case and its larger test translation unit.
+  umbra_add_embedded_2025_catch2_target(umbra_next_message_request_available_early_grant_tso_bound_catch2
+    SOURCES
+    cpp/tests/next_message_request_available_early_grant_tso_bound_catch2.cpp
+  )
+
+  # Keep the NMRA actual-lookahead producer floor independently runnable.
+  umbra_add_embedded_2025_catch2_target(umbra_ieee1516_2025_nmra_actual_lookahead_floor_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_nmra_actual_lookahead_floor_catch2.cpp
+  )
+
+  # Keep invalid-logical-time NMRA service-report evidence independently
+  # buildable from the accepted-boundary and state-failure cases.
+  umbra_add_embedded_2025_catch2_target(umbra_next_message_request_available_invalid_time_service_report_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_next_message_request_available_invalid_time_service_report_catch2.cpp
   )
 
   # Keep the paired Available-time TARA/NMRA interaction case
@@ -1572,5 +1651,31 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     SOURCES
     cpp/tests/libxml2_fom_composer_catch2.cpp
     cpp/tests/federation_registry_composed_fom_catch2.cpp
+  )
+
+  # Keep the asynchronous RO/TSO eligibility boundary in a focused executable.
+  umbra_add_embedded_2025_catch2_target(umbra_async_delivery_reenable_tso_gate_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_asynchronous_delivery_reenable_tso_gate_catch2.cpp
+  )
+
+  # Keep the §8.15.3 equal-time TSO cutoff independently buildable from the
+  # broader asynchronous-delivery gate cases.
+  umbra_add_embedded_2025_catch2_target(umbra_asynchronous_delivery_tso_equal_time_cutoff_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_asynchronous_delivery_tso_equal_time_cutoff_catch2.cpp
+  )
+
+  # Keep the FQR timed-save equal-boundary proof independently runnable.
+  umbra_add_embedded_2025_catch2_target(umbra_fqr_timed_save_equal_boundary_tso_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_fqr_timed_save_equal_boundary_tso_catch2.cpp
+  )
+
+  # Keep process-endpoint Time Constrained/GALT callback admission independently
+  # buildable while retaining the shared multi-federate process fixture.
+  umbra_add_embedded_2025_catch2_target(umbra_process_time_constrained_galt_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_connection_process_query_time_bounds_multi_federate_catch2.cpp
   )
 endif()

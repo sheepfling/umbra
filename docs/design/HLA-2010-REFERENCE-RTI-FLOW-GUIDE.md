@@ -291,6 +291,18 @@ the last member. Read these transitions with the implementation guards below:
   header describes a deterministic provider directory pending a 2010 FOM
   loader.
 
+**Smoke evidence boundary:** the [binding-shell smoke](../../cpp/tests/ieee1516_2010_binding_shell_smoke.cpp#L99)
+asserts the disconnect-while-disconnected error and separately the
+[duplicate-connect error](../../cpp/tests/ieee1516_2010_binding_shell_smoke.cpp#L107); it then
+creates an execution and [joins two named members](../../cpp/tests/ieee1516_2010_binding_shell_smoke.cpp#L124),
+checks the publisher's [name/handle lookup](../../cpp/tests/ieee1516_2010_binding_shell_smoke.cpp#L158),
+and [resigns both with `NO_ACTION` before disconnect and destroy](../../cpp/tests/ieee1516_2010_binding_shell_smoke.cpp#L195).
+It does not attempt disconnect while joined, a duplicate-name or duplicate-
+session Join, destroy while members remain, or another `ResignAction`. It also
+does not assert whether resignation removes the publisher's object or emits a
+removal callback. Those guards and cleanup effects are source observations,
+not smoke-confirmed behavior.
+
 Source: [pinned 2010 `ResignAction` values](../../third_party/ieee1516.1-2010/include/RTI/Enums.h#L34),
 [pinned Connect/Disconnect declarations](../../third_party/ieee1516.1-2010/include/RTI/RTIambassador.h#L45),
 [generated 2010 ambassador shell](../../cpp/generated/rti_ambassador_shell_2010.hpp#L17),

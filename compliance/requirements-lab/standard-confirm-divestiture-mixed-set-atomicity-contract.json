@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "IEEE 1516.1-2025 public-API two-attribute scenario: the owner offers negotiated divestiture of only the requested attribute. A callback-local Confirm Divestiture containing both the requested and a second owner-published but unrequested attribute must throw AttributeDivestitureWasNotRequested, preserve both owner-held attributes, and produce no acquisition notification. A subsequent confirmation of only the requested attribute succeeds and transfers just that attribute. The pinned native mapping is page-159-l53-11 -> §7.6.3; metadata and ownership-state assertions beyond that selected fragment are supplemental public-API observations. Process transport and MOM service reporting are excluded. Adapter supplies provider, endpoint, two-attribute FOM and names, callback model and logical-time implementation. Current-source installed-package C++ primary/contract passed 4/4 under evoked/immediate callbacks. Java parity compiles against the official API-only JAR but has no provider-runtime execution evidence. This is not a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-confirm-divestiture-mixed-set-atomicity",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador attributeOwnershipAcquisition, negotiatedAttributeOwnershipDivestiture, confirmDivestiture, isAttributeOwnedByFederate and FederateAmbassador requestDivestitureConfirmation, attributeOwnershipAcquisitionNotification",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_assumption_search.cpp::scenarioConfirmDivestitureMixedSetAtomicity",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_assumption_search.cpp::scenarioConfirmDivestitureMixedSetAtomicityContract"
+      ]
+    }
+  ]
+}

@@ -130,6 +130,11 @@ ProcessTransportConnection::ProcessTransportConnection(
       instrumentation_(std::move(instrumentation)),
       open_(validSocket(nativeSocket)) {}
 
+ProcessTransportConnection::ProcessTransportConnection(
+    TestSendFrameHandler sendFrameHandler)
+    : testSendFrameHandler_(std::move(sendFrameHandler)),
+      open_(static_cast<bool>(testSendFrameHandler_)) {}
+
 ProcessTransportConnection::~ProcessTransportConnection() {
   close();
 }
@@ -167,12 +172,24 @@ ProcessTransportConnection::connectClient(
   }
 }
 
+std::shared_ptr<ProcessTransportConnection>
+ProcessTransportConnection::createForTesting(
+    TestSendFrameHandler sendFrameHandler) {
+  if (!sendFrameHandler) {
+    throw ProcessTransportError(
+        "A socketless process transport test connection requires a send callback.");
+  }
+  return std::shared_ptr<ProcessTransportConnection>(
+      new ProcessTransportConnection(std::move(sendFrameHandler)));
+}
+
 bool ProcessTransportConnection::sendFrame(TransportFrame const& frame) {
   auto instrumentationScope = instrumentation_
       ? instrumentation_->begin(InstrumentationLayer::transport, "send_frame")
       : RuntimeInstrumentation::Scope{};
   std::scoped_lock sendLock(sendMutex_);
   std::uintptr_t socket = kInvalidSocket;
+  TestSendFrameHandler testSendFrameHandler;
   {
     std::scoped_lock stateLock(stateMutex_);
     if (!open_) {
@@ -180,6 +197,14 @@ bool ProcessTransportConnection::sendFrame(TransportFrame const& frame) {
       return false;
     }
     socket = nativeSocket_;
+    testSendFrameHandler = testSendFrameHandler_;
+  }
+  if (testSendFrameHandler) {
+    auto const sent = testSendFrameHandler(frame);
+    if (!sent) {
+      instrumentationScope.complete(InstrumentationOutcome::failure);
+    }
+    return sent;
   }
   try {
     sendFrameOnSocket(socket, frame);
@@ -199,6 +224,10 @@ bool ProcessTransportConnection::receiveFrame(TransportFrame& frame) {
   {
     std::scoped_lock stateLock(stateMutex_);
     if (!open_) {
+      instrumentationScope.complete(InstrumentationOutcome::failure);
+      return false;
+    }
+    if (testSendFrameHandler_) {
       instrumentationScope.complete(InstrumentationOutcome::failure);
       return false;
     }
@@ -230,8 +259,11 @@ void ProcessTransportConnection::close() noexcept {
     nativeSocket_ = kInvalidSocket;
     failureHandler_ = {};
     forcedResignationHandler_ = {};
+    testSendFrameHandler_ = {};
   }
-  closeSocket(socket);
+  if (socket != kInvalidSocket) {
+    closeSocket(socket);
+  }
 }
 
 void ProcessTransportConnection::fail(std::wstring faultDescription) {
@@ -252,8 +284,11 @@ void ProcessTransportConnection::fail(std::wstring faultDescription) {
     failureHandler = std::move(failureHandler_);
     failureHandler_ = {};
     forcedResignationHandler_ = {};
+    testSendFrameHandler_ = {};
   }
-  closeSocket(socket);
+  if (socket != kInvalidSocket) {
+    closeSocket(socket);
+  }
   if (failureHandler) {
     failureHandler(std::move(faultDescription));
   } else {

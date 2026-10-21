@@ -2168,3 +2168,97 @@ TEST_CASE(
 }
 
 #endif
+
+TEST_CASE(
+    "Embedded unpublishing an owned class attribute immediately makes its instance attribute unowned",
+    "[integration][development-profile][2025][ownership-management]"
+    "[ownership-unpublish-owned-immediate-unowned]"
+    "[rti.service.unpublish-object-class-attributes]"
+    "[rti.service.query-attribute-ownership]"
+    "[federate.callback.inform-attribute-ownership]"
+    "[federate.callback.attribute-is-not-owned]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador observerReports;
+  auto owner = makeRti();
+  auto observer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("attribute-update-passel-fom.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(observer->connect(observerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName, fomModule, L"HLAinteger64Time"));
+  FederateHandle ownerHandle;
+  REQUIRE_NOTHROW(ownerHandle = owner->joinFederationExecution(
+      L"unpublish-owned-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(observer->joinFederationExecution(
+      L"unpublish-owned-observer", L"subscriber", federationName));
+
+  auto const child = owner->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const removedAttribute = owner->getAttributeHandle(
+      child, fixture_hla::fixture::reliable_base_a);
+  auto const retainedAttribute = owner->getAttributeHandle(
+      child, fixture_hla::fixture::reliable_child);
+  REQUIRE(child.isValid());
+  REQUIRE(removedAttribute.isValid());
+  REQUIRE(retainedAttribute.isValid());
+  REQUIRE(removedAttribute != retainedAttribute);
+  AttributeHandleSet const bothAttributes{removedAttribute, retainedAttribute};
+  AttributeHandleSet const removedOnly{removedAttribute};
+  AttributeHandleSet const retainedOnly{retainedAttribute};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(child, bothAttributes));
+  REQUIRE_NOTHROW(observer->subscribeObjectClassAttributes(
+      child, bothAttributes));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(child));
+  REQUIRE_FALSE(observer->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(observerReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(observerReports.objectDiscoveryReports.front().objectInstance ==
+          objectInstance);
+  REQUIRE(observer->getKnownObjectClassHandle(objectInstance) == child);
+  REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, removedAttribute));
+  REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, retainedAttribute));
+
+  // Removing only one class publication must release that instance attribute
+  // immediately, without divesting the other owned attribute.
+  REQUIRE_NOTHROW(owner->unpublishObjectClassAttributes(child, removedOnly));
+  REQUIRE_FALSE(owner->isAttributeOwnedByFederate(
+      objectInstance, removedAttribute));
+  REQUIRE(owner->isAttributeOwnedByFederate(
+      objectInstance, retainedAttribute));
+  REQUIRE_NOTHROW(observer->queryAttributeOwnership(
+      objectInstance, bothAttributes));
+  while (observer->evokeMultipleCallbacks(0.0, 0.0)) {
+  }
+  REQUIRE(observerReports.attributeOwnershipReports.size() == 2U);
+  auto const unowned = std::find_if(
+      observerReports.attributeOwnershipReports.begin(),
+      observerReports.attributeOwnershipReports.end(),
+      [&](ReportingFederateAmbassador::AttributeOwnershipReport const& report) {
+        return report.kind ==
+                ReportingFederateAmbassador::AttributeOwnershipReport::Kind::unowned &&
+            report.objectInstance == objectInstance &&
+            report.attributes == removedOnly;
+      });
+  auto const retained = std::find_if(
+      observerReports.attributeOwnershipReports.begin(),
+      observerReports.attributeOwnershipReports.end(),
+      [&](ReportingFederateAmbassador::AttributeOwnershipReport const& report) {
+        return report.kind ==
+                ReportingFederateAmbassador::AttributeOwnershipReport::Kind::federate &&
+            report.objectInstance == objectInstance &&
+            report.attributes == retainedOnly && report.owner == ownerHandle;
+      });
+  REQUIRE(unowned != observerReports.attributeOwnershipReports.end());
+  REQUIRE(retained != observerReports.attributeOwnershipReports.end());
+
+  VariableLengthData const deletionTag;
+  REQUIRE_NOTHROW(owner->deleteObjectInstance(objectInstance, deletionTag));
+  REQUIRE_NOTHROW(observer->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(observer->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}

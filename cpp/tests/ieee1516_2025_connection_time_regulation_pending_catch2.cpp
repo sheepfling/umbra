@@ -36,6 +36,7 @@
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 #include "internal/federation/federation_registry.hpp"
 #include "internal/federation/process_federation_service.hpp"
+#include "internal/federation/process_federation_service_host.hpp"
 #include "internal/federation/process_transport.hpp"
 #include "internal/federation/process_transport_session.hpp"
 #include "process_public_service_fixture.hpp"
@@ -127,6 +128,60 @@ class ProcessTimeFederateAmbassador final : public NullFederateAmbassador {
   std::wstring flushQueueGrantOptimisticImplementation;
   std::int64_t flushQueueGrantValue = -1;
   std::int64_t flushQueueGrantOptimisticValue = -1;
+};
+
+class ProcessImplicitAdvanceFederateAmbassador final
+    : public NullFederateAmbassador {
+ public:
+  void timeConstrainedEnabled(
+      rti1516_2025::LogicalTime const& time) override {
+    constrainedEnabledTime = time.toString();
+  }
+
+  void timeRegulationEnabled(
+      rti1516_2025::LogicalTime const& time) override {
+    regulationEnabledTime = time.toString();
+    callbackOrder.push_back('R');
+  }
+
+  void timeAdvanceGrant(
+      rti1516_2025::LogicalTime const& time) override {
+    grantTimes.push_back(time.toString());
+    callbackOrder.push_back('G');
+  }
+
+  void receiveInteraction(
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      ParameterHandleValueMap const&,
+      VariableLengthData const&,
+      rti1516_2025::TransportationTypeHandle const&,
+      rti1516_2025::FederateHandle const& producer,
+      rti1516_2025::RegionHandleSet const*,
+      rti1516_2025::LogicalTime const& time,
+      rti1516_2025::OrderType sentOrder,
+      rti1516_2025::OrderType receivedOrder,
+      rti1516_2025::MessageRetractionHandle const* retraction) override {
+    ++deliveryCount;
+    deliveredClass = interactionClass;
+    deliveredProducer = producer;
+    deliveredTime = time.toString();
+    deliveredSentOrder = sentOrder;
+    deliveredReceivedOrder = receivedOrder;
+    deliveredRetractionValid = retraction && retraction->isValid();
+    callbackOrder.push_back('I');
+  }
+
+  std::wstring constrainedEnabledTime;
+  std::wstring regulationEnabledTime;
+  std::vector<std::wstring> grantTimes;
+  std::size_t deliveryCount = 0U;
+  rti1516_2025::InteractionClassHandle deliveredClass;
+  rti1516_2025::FederateHandle deliveredProducer;
+  std::wstring deliveredTime;
+  rti1516_2025::OrderType deliveredSentOrder = rti1516_2025::RECEIVE;
+  rti1516_2025::OrderType deliveredReceivedOrder = rti1516_2025::RECEIVE;
+  bool deliveredRetractionValid = false;
+  std::vector<char> callbackOrder;
 };
 
 class ProcessSynchronizationFederateAmbassador final
@@ -319,6 +374,7 @@ using umbra::detail::LibXml2FomModuleComposer;
 using umbra::detail::LibXml2FomValidator;
 using umbra::detail::PrevalidatedFomModule;
 using umbra::detail::ProcessFederationService;
+using umbra::detail::ProcessFederationServiceHost;
 using umbra::detail::ProcessFederationServiceOptions;
 using umbra::detail::ProcessTransportConnection;
 using umbra::detail::ProcessTransportListener;
@@ -547,6 +603,149 @@ TEST_CASE(
     std::rethrow_exception(clientError);
   }
   REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "Process time-regulation enablement advances through queued TSO before Time Regulation Enabled",
+    "[integration][foundation][process-boundary][public-endpoint]"
+    "[time-management][tso][time-regulation-implicit-advance-process]"
+    "[time-regulation-smallest-feasible-enable-time]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[federate.callback.receive-interaction][federate.callback.time-regulation-enabled][2025]") {
+  constexpr wchar_t const* federationName =
+      L"process-time-regulation-implicit-advance-execution";
+  constexpr wchar_t const* interactionName =
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+
+  EmbeddedFederationRegistry registry;
+  ProcessFederationServiceHost authority(
+      registry,
+      composedProcessDefinition(),
+      {"127.0.0.1", 0U},
+      {"process-time-regulation-implicit-advance-authority", 0x9237U});
+  authority.start();
+  REQUIRE(authority.address().port != 0U);
+
+  ProcessImplicitAdvanceFederateAmbassador producerReports;
+  ProcessImplicitAdvanceFederateAmbassador enablingReports;
+  ProcessImplicitAdvanceFederateAmbassador peerReports;
+  auto producer = makeRti();
+  auto enabling = makeRti();
+  auto peer = makeRti();
+  auto const address =
+      L"tcp://127.0.0.1:" + std::to_wstring(authority.address().port);
+  auto connectFor = [&](RTIambassador& rti,
+                        ProcessImplicitAdvanceFederateAmbassador& reports,
+                        std::wstring const& name) {
+    auto const configuration = RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(name)
+                                   .withRtiAddress(address);
+    return rti.connect(reports, HLA_EVOKED, configuration).addressUsed;
+  };
+  REQUIRE(connectFor(*producer, producerReports, L"implicit-producer"));
+  REQUIRE(connectFor(*enabling, enablingReports, L"implicit-enabling"));
+  REQUIRE(connectFor(*peer, peerReports, L"implicit-constrained-peer"));
+  REQUIRE_NOTHROW(producer->createFederationExecution(
+      federationName, L"server-owned-restaurant-fom.xml"));
+  auto const producerHandle = producer->joinFederationExecution(
+      L"implicit-producer", L"implicit-process-type", federationName);
+  REQUIRE(producerHandle.isValid());
+  REQUIRE(enabling->joinFederationExecution(
+      L"implicit-enabling", L"implicit-process-type", federationName)
+              .isValid());
+  REQUIRE(peer->joinFederationExecution(
+      L"implicit-constrained-peer", L"implicit-process-type", federationName)
+              .isValid());
+
+  auto const interactionClass =
+      producer->getInteractionClassHandle(interactionName);
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(enabling->getInteractionClassHandle(interactionName) ==
+          interactionClass);
+  REQUIRE_NOTHROW(producer->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(enabling->subscribeInteractionClass(interactionClass, true));
+
+  REQUIRE_NOTHROW(enabling->enableTimeConstrained());
+  for (int attempt = 0;
+       attempt != 8 && enablingReports.constrainedEnabledTime.empty();
+       ++attempt) {
+    enabling->evokeCallback(0.25);
+  }
+  REQUIRE(enablingReports.constrainedEnabledTime == L"0");
+  REQUIRE_NOTHROW(peer->enableTimeConstrained());
+  for (int attempt = 0;
+       attempt != 8 && peerReports.constrainedEnabledTime.empty(); ++attempt) {
+    peer->evokeCallback(0.25);
+  }
+  REQUIRE(peerReports.constrainedEnabledTime == L"0");
+  REQUIRE_NOTHROW(producer->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  for (int attempt = 0;
+       attempt != 8 && producerReports.regulationEnabledTime.empty();
+       ++attempt) {
+    producer->evokeCallback(0.25);
+  }
+  REQUIRE(producerReports.regulationEnabledTime == L"0");
+
+  auto const retraction = producer->sendInteraction(
+      interactionClass,
+      ParameterHandleValueMap{},
+      VariableLengthData{},
+      rti1516_2025::HLAinteger64Time(5));
+  REQUIRE(retraction.isValid());
+  REQUIRE_FALSE(enabling->evokeCallback(0.0));
+  REQUIRE(enablingReports.deliveryCount == 0U);
+  REQUIRE(enablingReports.regulationEnabledTime.empty());
+
+  // The peer at 10 and lookahead 2 place the smallest feasible regulation
+  // grant at 8, beyond the queued timestamp-5 interaction; there is no TAR.
+  REQUIRE_NOTHROW(producer->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(10)));
+  for (int attempt = 0;
+       attempt != 8 && producerReports.grantTimes.empty(); ++attempt) {
+    producer->evokeCallback(0.25);
+  }
+  REQUIRE(producerReports.grantTimes == std::vector<std::wstring>{L"10"});
+  REQUIRE_NOTHROW(peer->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(10)));
+  for (int attempt = 0; attempt != 8 && peerReports.grantTimes.empty();
+       ++attempt) {
+    peer->evokeCallback(0.25);
+  }
+  REQUIRE(peerReports.grantTimes == std::vector<std::wstring>{L"10"});
+  REQUIRE(enablingReports.deliveryCount == 0U);
+
+  REQUIRE_NOTHROW(enabling->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(2)));
+  for (int attempt = 0;
+       attempt != 16 && enablingReports.regulationEnabledTime.empty();
+       ++attempt) {
+    enabling->evokeCallback(0.25);
+  }
+  REQUIRE_FALSE(enablingReports.regulationEnabledTime.empty());
+  REQUIRE(std::stoll(enablingReports.regulationEnabledTime) == 8);
+  REQUIRE(enablingReports.callbackOrder == std::vector<char>{'I', 'R'});
+  REQUIRE(enablingReports.grantTimes.empty());
+  REQUIRE(enablingReports.deliveryCount == 1U);
+  REQUIRE(enablingReports.deliveredClass == interactionClass);
+  REQUIRE(enablingReports.deliveredProducer == producerHandle);
+  REQUIRE(enablingReports.deliveredTime == L"5");
+  REQUIRE(enablingReports.deliveredSentOrder == rti1516_2025::TIMESTAMP);
+  REQUIRE(enablingReports.deliveredReceivedOrder == rti1516_2025::TIMESTAMP);
+  REQUIRE(enablingReports.deliveredRetractionValid);
+  enabling->evokeCallback(0.0);
+  REQUIRE(enablingReports.deliveryCount == 1U);
+  REQUIRE(enablingReports.grantTimes.empty());
+
+  REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(enabling->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(producer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(producer->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(peer->disconnect());
+  REQUIRE_NOTHROW(enabling->disconnect());
+  REQUIRE_NOTHROW(producer->disconnect());
+  authority.stop();
+  REQUIRE_NOTHROW(authority.rethrowIfFailed());
 }
 
 #endif

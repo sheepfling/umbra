@@ -39,6 +39,7 @@ inline umbra::detail::PrevalidatedFomModule validated(
       std::move(designator),
       L"IEEE1516-DIF-2025.xsd",
   });
+  CAPTURE(source, result.diagnostics);
   REQUIRE(result.status == umbra::detail::FomValidationStatus::valid);
   REQUIRE(result.module.has_value());
   return *result.module;

@@ -118,3 +118,116 @@ TEST_CASE(
   REQUIRE_NOTHROW(evoked->disconnect());
   REQUIRE_NOTHROW(immediate->disconnect());
 }
+
+TEST_CASE(
+    "Enable Time Regulation applies its actual lookahead to timestamped sends",
+    "[integration][development-profile][time-management][time-role][lookahead]"
+    "[enable-time-regulation-actual-lookahead-tso-send]"
+    "[rti.service.enable-time-regulation][rti.service.query-lookahead]"
+    "[rti.service.send-interaction][federate.callback.time-regulation-enabled]"
+    "[2025]") {
+  ReportingFederateAmbassador reports;
+  auto rti = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
+  REQUIRE_NOTHROW(rti->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"actual-lookahead-sender", L"sender", federationName));
+
+  auto const interactionClass = rti->getInteractionClassHandle(
+      fixture_hla::fom::main_course_served);
+  REQUIRE(interactionClass.isValid());
+  REQUIRE_NOTHROW(rti->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(rti->changeInteractionOrderType(interactionClass, TIMESTAMP));
+
+  rti1516_2025::HLAinteger64Interval const requestedLookahead(2);
+  REQUIRE_NOTHROW(rti->enableTimeRegulation(requestedLookahead));
+  REQUIRE(reports.timeRegulationEnabledReports.empty());
+  REQUIRE_FALSE(rti->evokeCallback(0.0));
+  REQUIRE(reports.timeRegulationEnabledReports.size() == 1U);
+  REQUIRE(reports.timeRegulationEnabledReports.front().value == L"0");
+
+  rti1516_2025::HLAinteger64Interval actualLookahead;
+  REQUIRE_NOTHROW(rti->queryLookahead(actualLookahead));
+  REQUIRE(actualLookahead.getInterval() == 2);
+
+  ParameterHandleValueMap const values;
+  VariableLengthData const tag;
+  REQUIRE_THROWS_AS(
+      rti->sendInteraction(
+          interactionClass,
+          values,
+          tag,
+          rti1516_2025::HLAinteger64Time(1)),
+      rti1516_2025::InvalidLogicalTime);
+  auto const message = rti->sendInteraction(
+      interactionClass,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(2));
+  REQUIRE(message.isValid());
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
+    "Disable Time Regulation converts timestamped sends to receive order",
+    "[integration][development-profile][time-management][time-role]"
+    "[disable-time-regulation-send-order-transition][2025]"
+    "[rti.service.disable-time-regulation][rti.service.send-interaction]"
+    "[federate.callback.receive-interaction]") {
+  ReportingFederateAmbassador senderReports;
+  ReportingFederateAmbassador receiverReports;
+  auto sender = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(sender->connect(senderReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(sender->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(sender->joinFederationExecution(
+      L"disable-regulation-send-order-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"disable-regulation-send-order-subscriber", L"subscriber", federationName));
+
+  auto const interactionClass = sender->getInteractionClassHandle(
+      fixture_hla::fom::main_course_served);
+  REQUIRE(interactionClass.isValid());
+  REQUIRE_NOTHROW(sender->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(sender->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(sender->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE(senderReports.timeRegulationEnabledReports.size() == 1U);
+
+  REQUIRE_NOTHROW(sender->disableTimeRegulation());
+
+  // This profile exposes the post-disable conversion through the timestamped
+  // callback shape, while the public callback's explicit order fields record
+  // the converted receive-order semantics. This case checks those order
+  // fields only; it does not establish the normative callback-shape rule.
+  REQUIRE_NOTHROW(sender->sendInteraction(
+      interactionClass,
+      ParameterHandleValueMap{},
+      VariableLengthData{},
+      rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE(receiverReports.interactionReports.empty());
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
+  auto const& delivered = receiverReports.timestampedInteractionReports.front();
+  REQUIRE(delivered.interactionClass == interactionClass);
+  REQUIRE(delivered.sentOrderType == rti1516_2025::RECEIVE);
+  REQUIRE(delivered.receivedOrderType == rti1516_2025::RECEIVE);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(sender->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(sender->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(sender->disconnect());
+}

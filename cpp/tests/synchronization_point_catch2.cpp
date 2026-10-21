@@ -237,6 +237,103 @@ void runSynchronizationScenario(CallbackModel callbackModel) {
   REQUIRE_NOTHROW(first->disconnect());
 }
 
+void runFailedDuplicateRegistrationHasNoFederationEffect(
+    CallbackModel callbackModel) {
+  ReportingFederateAmbassador firstReports;
+  ReportingFederateAmbassador secondReports;
+  ReportingFederateAmbassador lateReports;
+  auto first = makeRti();
+  auto second = makeRti();
+  auto late = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  unsigned char const originalTagBytes[] = {
+      0x4FU, 0x52U, 0x49U, 0x47U};
+  unsigned char const rejectedTagBytes[] = {
+      0x52U, 0x45U, 0x4AU, 0x45U, 0x43U, 0x54U};
+  VariableLengthData const originalTag(
+      originalTagBytes, sizeof(originalTagBytes));
+  VariableLengthData const rejectedTag(
+      rejectedTagBytes, sizeof(rejectedTagBytes));
+  std::wstring const label = L"failed-registration-no-federation-effect";
+
+  REQUIRE_NOTHROW(first->connect(firstReports, callbackModel));
+  REQUIRE_NOTHROW(second->connect(secondReports, callbackModel));
+  REQUIRE_NOTHROW(late->connect(lateReports, callbackModel));
+  REQUIRE_NOTHROW(first->createFederationExecution(
+      federationName, fomModule, L"HLAinteger64Time"));
+  auto const firstHandle = first->joinFederationExecution(
+      L"sync-effect-first", L"sync-effect", federationName);
+  second->joinFederationExecution(
+      L"sync-effect-second", L"sync-effect", federationName);
+
+  REQUIRE_NOTHROW(first->registerFederationSynchronizationPoint(
+      label, originalTag));
+  drainCallbacks(*first, callbackModel);
+  drainCallbacks(*second, callbackModel);
+  REQUIRE(firstReports.registrationReports.size() == 1U);
+  REQUIRE(firstReports.registrationReports.front().succeeded);
+  REQUIRE(firstReports.announcementReports.size() == 1U);
+  REQUIRE(secondReports.announcementReports.size() == 1U);
+  REQUIRE(
+      variableLengthDataBytes(
+          secondReports.announcementReports.front().userSuppliedTag) ==
+      std::vector<unsigned char>(
+          originalTagBytes, originalTagBytes + sizeof(originalTagBytes)));
+
+  // A rejected duplicate with a different tag and narrower explicit set must
+  // not rewrite the existing point or emit another announcement.
+  FederateHandleSet rejectedSet;
+  rejectedSet.insert(firstHandle);
+  REQUIRE_NOTHROW(first->registerFederationSynchronizationPoint(
+      label, rejectedTag, rejectedSet));
+  drainCallbacks(*first, callbackModel);
+  drainCallbacks(*second, callbackModel);
+  REQUIRE(firstReports.registrationReports.size() == 2U);
+  REQUIRE_FALSE(firstReports.registrationReports.back().succeeded);
+  REQUIRE(firstReports.registrationReports.back().label == label);
+  REQUIRE(firstReports.registrationReports.back().failureReason ==
+      rti1516_2025::SYNCHRONIZATION_POINT_LABEL_NOT_UNIQUE);
+  REQUIRE(firstReports.announcementReports.size() == 1U);
+  REQUIRE(secondReports.announcementReports.size() == 1U);
+
+  // The original unscoped registration still expands to a later joiner and
+  // retains its original tag, proving the failed request had no stored effect.
+  auto const lateHandle = late->joinFederationExecution(
+      L"sync-effect-late", L"sync-effect", federationName);
+  REQUIRE(lateHandle.isValid());
+  drainCallbacks(*late, callbackModel);
+  REQUIRE(lateReports.announcementReports.size() == 1U);
+  REQUIRE(lateReports.announcementReports.front().label == label);
+  REQUIRE(
+      variableLengthDataBytes(
+          lateReports.announcementReports.front().userSuppliedTag) ==
+      std::vector<unsigned char>(
+          originalTagBytes, originalTagBytes + sizeof(originalTagBytes)));
+
+  REQUIRE_NOTHROW(first->synchronizationPointAchieved(label));
+  REQUIRE_NOTHROW(second->synchronizationPointAchieved(label));
+  REQUIRE_NOTHROW(late->synchronizationPointAchieved(label));
+  drainCallbacks(*first, callbackModel);
+  drainCallbacks(*second, callbackModel);
+  drainCallbacks(*late, callbackModel);
+  REQUIRE(firstReports.synchronizedReports.size() == 1U);
+  REQUIRE(secondReports.synchronizedReports.size() == 1U);
+  REQUIRE(lateReports.synchronizedReports.size() == 1U);
+  REQUIRE(firstReports.synchronizedReports.front().failedToSyncSet.empty());
+  REQUIRE(secondReports.synchronizedReports.front().failedToSyncSet.empty());
+  REQUIRE(lateReports.synchronizedReports.front().failedToSyncSet.empty());
+
+  REQUIRE_NOTHROW(late->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(second->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(first->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(first->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(late->disconnect());
+  REQUIRE_NOTHROW(second->disconnect());
+  REQUIRE_NOTHROW(first->disconnect());
+}
+
 }  // namespace
 
 TEST_CASE(
@@ -259,4 +356,16 @@ TEST_CASE(
     "[federate.callback.announce-synchronization-point]"
     "[federate.callback.federation-synchronized]") {
   runSynchronizationScenario(HLA_IMMEDIATE);
+}
+
+TEST_CASE(
+    "Failed duplicate synchronization registration has no federation effect",
+    "[integration][development-profile][federation-management][synchronization]"
+    "[failed-register-no-federation-effect]"
+    "[rti.service.register-federation-synchronization-point]"
+    "[federate.callback.synchronization-point-registration]"
+    "[federate.callback.announce-synchronization-point]"
+    "[federate.callback.federation-synchronized]") {
+  runFailedDuplicateRegistrationHasNoFederationEffect(HLA_EVOKED);
+  runFailedDuplicateRegistrationHasNoFederationEffect(HLA_IMMEDIATE);
 }

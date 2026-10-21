@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ and Java translation of the mapped native three-member per-member queued-TSO timed-save case. The adapter supplies provider, FOM, interaction class and parameter names, endpoint, callback model, and logical-time implementation. With HLA_EVOKED callbacks, the regulator sends a timestamped interaction to one constrained recipient at the scheduled save time 5, then requests the timed save. The clean constrained recipient initiates save before its grant while the queued recipient remains unserviced. The queued recipient receives the timestamped interaction before its own save initiation and grant; the regulator is serviced afterward, and all three complete the save. Direct traceability is limited to five pinned requirement-section pairs in clauses 4.19, 4.19.6, and 4.20. C++ primary and contract passed against an installed package under integer64 and float64 time using an adapter-supplied portable FOM. Java compiles against the official API only; provider runtime is unverified. The per-recipient callback-service sequence is an experimental public observation, not a universal cross-service ordering, immediate-callback, transport, interoperability, or conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-timed-save-per-member-tso",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador publishInteractionClass, changeInteractionOrderType, subscribeInteractionClass, sendInteraction(time), requestFederationSave(time), timeAdvanceRequest, federateSaveBegun, federateSaveComplete; FederateAmbassador receiveInteraction(time), initiateFederateSave(time), timeAdvanceGrant, federationSaved",
+      "source": "third_party/ieee1516.1-2025/include/RTI and official hla.rti1516_2025 Java API",
+      "source_symbol": "IEEE 1516.1-2025 federation-save, interaction, and time-management interfaces",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_timed_save_per_member_tso.cpp::scenarioTimedSavePerMemberTso",
+        "packages/hla-rti-cpp-tck/src/tck_timed_save_per_member_tso.cpp::scenarioTimedSavePerMemberTsoContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/TimedSavePerMemberTsoTck.java::run"
+      ]
+    }
+  ]
+}

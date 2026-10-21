@@ -183,7 +183,7 @@ double checkedFloatInterval(LogicalTimeInterval const& value) {
 }
 
 double addFloatValue(double value, double addend) {
-  if (value == kFloat64Final && addend == 0.0) {
+  if (value == kFloat64Final) {
     return value;
   }
   if (value >= kFloat64Final || addend > kFloat64Final - value) {
@@ -200,6 +200,9 @@ double addFloatValue(double value, double addend) {
 }
 
 double subtractFloatValue(double value, double subtrahend) {
+  if (value == kFloat64Final) {
+    return value;
+  }
   if (subtrahend > value) {
     illegalTimeArithmetic(L"Reference logical-time subtraction precedes the initial value");
   }
@@ -258,6 +261,9 @@ HLAinteger64Time& HLAinteger64Time::operator=(LogicalTime const& value) {
 
 LogicalTime& HLAinteger64Time::operator+=(LogicalTimeInterval const& addend) {
   auto value = checkedIntegerInterval(addend);
+  if (_impl->value == kInteger64Final) {
+    return *this;
+  }
   if (value > kInteger64Final - _impl->value) {
     illegalTimeArithmetic(L"HLAinteger64Time addition exceeds the final value");
   }
@@ -267,6 +273,9 @@ LogicalTime& HLAinteger64Time::operator+=(LogicalTimeInterval const& addend) {
 
 LogicalTime& HLAinteger64Time::operator-=(LogicalTimeInterval const& subtrahend) {
   auto value = checkedIntegerInterval(subtrahend);
+  if (_impl->value == kInteger64Final) {
+    return *this;
+  }
   if (value > _impl->value) {
     illegalTimeArithmetic(L"HLAinteger64Time subtraction precedes the initial value");
   }

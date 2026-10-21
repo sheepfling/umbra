@@ -38,9 +38,13 @@ namespace umbra::detail::process_federation_service_codec_support {
 using process_federation_payload::parameterVector;
 
 inline constexpr std::uint8_t kRtiOwnedMomAttributeEventMarker = 0xA5U;
+inline constexpr std::uint8_t kPushAttributeDeliveryIdMarker = 0xA6U;
+inline constexpr std::uint8_t kTsoAttributeCallbackGroupMoreMarker = 0xAAU;
+inline constexpr std::uint8_t kTsoAttributeCallbackGroupFinalMarker = 0xABU;
 inline constexpr std::uint8_t kRtiOwnedMomDiscoveryEventMarker = 0xA6U;
 inline constexpr std::uint8_t kRtiOwnedMomInteractionEventMarker = 0xA7U;
 inline constexpr std::uint8_t kRtiOwnedMomRemovalEventMarker = 0xA8U;
+inline constexpr std::uint8_t kInteractionRegionSnapshotMetadataMarker = 0xA9U;
 class PayloadWriter final {
  public:
   void unsigned8(std::uint8_t value) { bytes_.push_back(value); }
@@ -685,6 +689,55 @@ inline void readInteractionRegionMetadata(
 inline void writeInteractionOrderMetadata(
     PayloadWriter& writer,
     ProcessFederationInteractionEvent const& event) {
+  if (!event.sentRegionSnapshots.empty()) {
+    if (!event.sentRegionHandles ||
+        event.sentRegionSnapshots.size() != event.sentRegionHandles->size()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process interaction snapshot requires one entry per conveyed region.");
+    }
+    if (event.sentRegionSnapshots.size() >
+        std::numeric_limits<std::uint32_t>::max()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process interaction has too many conveyed region snapshots.");
+    }
+    writer.unsigned8(kInteractionRegionSnapshotMetadataMarker);
+    writer.unsigned32(
+        static_cast<std::uint32_t>(event.sentRegionSnapshots.size()));
+    for (auto const& [regionHandle, snapshot] : event.sentRegionSnapshots) {
+      requireNonzero(
+          regionHandle,
+          "A process interaction snapshot requires non-zero region identities.");
+      if (!event.sentRegionHandles->contains(regionHandle) ||
+          !snapshot.specificationCommitted) {
+        throw ProcessFederationServiceProtocolError(
+            "A process interaction snapshot must match a committed conveyed region.");
+      }
+      writer.unsigned64(regionHandle);
+      writer.unsigned64Vector(parameterVector(snapshot.dimensionHandles));
+      writer.unsigned8(snapshot.specificationCommitted ? 1U : 0U);
+      if (snapshot.committedRangeBounds.size() >
+          std::numeric_limits<std::uint32_t>::max()) {
+        throw ProcessFederationServiceProtocolError(
+            "A process interaction snapshot has too many dimension ranges.");
+      }
+      writer.unsigned32(
+          static_cast<std::uint32_t>(snapshot.committedRangeBounds.size()));
+      for (auto const& [dimensionHandle, bounds] :
+           snapshot.committedRangeBounds) {
+        requireNonzero(
+            dimensionHandle,
+            "A process interaction snapshot requires non-zero dimension identities.");
+        if (!snapshot.dimensionHandles.contains(dimensionHandle) ||
+            bounds.lowerBound > bounds.upperBound) {
+          throw ProcessFederationServiceProtocolError(
+              "A process interaction snapshot contains invalid dimension bounds.");
+        }
+        writer.unsigned64(dimensionHandle);
+        writer.unsigned64(static_cast<std::uint64_t>(bounds.lowerBound));
+        writer.unsigned64(static_cast<std::uint64_t>(bounds.upperBound));
+      }
+    }
+  }
   if (!event.sentOrderType && !event.receivedOrderType) {
     return;
   }
@@ -703,7 +756,68 @@ inline void readInteractionOrderMetadata(
   if (reader.remaining() == 0U) {
     return;
   }
-  auto const marker = reader.unsigned8();
+  auto marker = reader.unsigned8();
+  if (marker == kInteractionRegionSnapshotMetadataMarker) {
+    auto const snapshotCount = reader.unsigned32();
+    for (std::uint32_t index = 0U; index < snapshotCount; ++index) {
+      auto const regionHandle = reader.unsigned64();
+      requireNonzero(
+          regionHandle,
+          "A process interaction snapshot requires non-zero region identities.");
+      auto const dimensionVector = reader.unsigned64Vector();
+      validateHandleVector(
+          dimensionVector,
+          "A process interaction snapshot requires sorted, unique dimension handles.");
+      RegionSpecificationSnapshot snapshot;
+      snapshot.dimensionHandles.insert(
+          dimensionVector.begin(), dimensionVector.end());
+      auto const committed = reader.unsigned8();
+      if (committed != 1U) {
+        throw ProcessFederationServiceProtocolError(
+            "A process interaction snapshot must describe a committed region.");
+      }
+      snapshot.specificationCommitted = true;
+      auto const rangeCount = reader.unsigned32();
+      if (rangeCount != snapshot.dimensionHandles.size()) {
+        throw ProcessFederationServiceProtocolError(
+            "A process interaction snapshot must contain every dimension range.");
+      }
+      for (std::uint32_t rangeIndex = 0U; rangeIndex < rangeCount; ++rangeIndex) {
+        auto const dimensionHandle = reader.unsigned64();
+        requireNonzero(
+            dimensionHandle,
+            "A process interaction snapshot requires non-zero dimension identities.");
+        auto const lowerBound = reader.unsigned64();
+        auto const upperBound = reader.unsigned64();
+        if (!snapshot.dimensionHandles.contains(dimensionHandle) ||
+            lowerBound > upperBound ||
+            upperBound > std::numeric_limits<unsigned long>::max() ||
+            snapshot.committedRangeBounds.contains(dimensionHandle)) {
+          throw ProcessFederationServiceProtocolError(
+              "A process interaction snapshot contains invalid dimension bounds.");
+        }
+        snapshot.committedRangeBounds.emplace(
+            dimensionHandle,
+            RegionRangeBounds{static_cast<unsigned long>(lowerBound),
+                              static_cast<unsigned long>(upperBound)});
+      }
+      if (!event.sentRegionHandles ||
+          !event.sentRegionHandles->contains(regionHandle) ||
+          !event.sentRegionSnapshots.emplace(regionHandle, std::move(snapshot)).second) {
+        throw ProcessFederationServiceProtocolError(
+            "A process interaction snapshot does not match one unique conveyed region.");
+      }
+    }
+    if (!event.sentRegionHandles ||
+        event.sentRegionSnapshots.size() != event.sentRegionHandles->size()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process interaction snapshot requires every conveyed region.");
+    }
+    if (reader.remaining() == 0U) {
+      return;
+    }
+    marker = reader.unsigned8();
+  }
   if (marker == kRtiOwnedMomInteractionEventMarker) {
     event.rtiOwnedMomInteraction = true;
     return;

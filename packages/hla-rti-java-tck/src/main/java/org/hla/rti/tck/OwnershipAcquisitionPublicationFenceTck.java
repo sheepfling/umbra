@@ -91,6 +91,9 @@ final class OwnershipAcquisitionPublicationFenceTck {
              "ownership acquisition registration returned an invalid object handle");
          await(requester, callbackModel, () -> requesterRecorder.discoveries.contains(object),
             "ownership acquisition object discovery");
+         JavaTckSupport.check(requesterClass.equals(
+               requester.getKnownObjectClassHandle(object)),
+            "ownership acquisition requester did not know the registered object class");
 
          byte[] initialTag = new byte[] {0x11, 0x22};
          byte[] acquisitionTag = new byte[] {0x33, 0x44, 0x55};
@@ -99,8 +102,17 @@ final class OwnershipAcquisitionPublicationFenceTck {
             () -> requester.attributeOwnershipAcquisition(
                object, requesterSecondSet, initialTag),
             "ObjectClassNotPublished", "acquiring an unpublished ownership attribute");
-         requester.publishObjectClassAttributes(requesterClass, requesterAttributes);
+         requester.publishObjectClassAttributes(requesterClass, requesterSecondOnly);
          requesterPublished = true;
+         JavaTckSupport.expectFailure(
+            () -> requester.attributeOwnershipAcquisition(
+               object, requesterFirstSet, initialTag),
+            "AttributeNotPublished",
+            "acquiring an attribute absent from an otherwise published class");
+         JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerFirst)
+               && !requester.isAttributeOwnedByFederate(object, requesterFirst),
+            "rejected acquisition of an unpublished attribute changed ownership");
+         requester.publishObjectClassAttributes(requesterClass, requesterFirstOnly);
 
          AttributeHandle invalidAttribute = JavaTckSupport.invalidHandle(AttributeHandle.class);
          AttributeHandleSet invalidAttributes = JavaTckSupport.attributeSet(
@@ -164,6 +176,30 @@ final class OwnershipAcquisitionPublicationFenceTck {
                && !requester.isAttributeOwnedByFederate(object, requesterFirst),
             "denying the request changed ownership");
          requester.unpublishObjectClassAttributes(requesterClass, requesterFirstOnly);
+         requesterRecorder.unavailable.clear();
+         owner.attributeOwnershipReleaseDenied(object, ownerFirstOnly, denialTag);
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(requester);
+         JavaTckSupport.check(requesterRecorder.unavailable.isEmpty(),
+            "repeated release denial produced unavailable after acquisition ended");
+         JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerFirst)
+               && !requester.isAttributeOwnedByFederate(object, requesterFirst),
+            "repeated release denial changed ownership without a pending acquisition");
+
+         requester.publishObjectClassAttributes(requesterClass, requesterFirstOnly);
+         requesterRecorder.clearOwnershipEvents();
+         requester.attributeOwnershipAcquisition(object, requesterFirstOnly, acquisitionTag);
+         AttributeHandleSet divested = owner.attributeOwnershipDivestitureIfWanted(
+            object, ownerFirstOnly, acquisitionTag);
+         JavaTckSupport.check(ownerFirstOnly.equals(divested),
+            "publication-eligible acquisition did not divest exactly the requested attribute");
+         await(requester, callbackModel, () -> !requesterRecorder.acquisitions.isEmpty(),
+            "publication-eligible ownership acquisition notification");
+         checkEvent(requesterRecorder.acquisitions.get(0), object, requesterFirstOnly,
+            acquisitionTag, "publication-eligible ownership acquisition notification");
+         JavaTckSupport.check(!owner.isAttributeOwnedByFederate(object, ownerFirst)
+               && requester.isAttributeOwnedByFederate(object, requesterFirst),
+            "publication-eligible acquisition failed to transfer ownership");
+         owner.deleteObjectInstance(object, new byte[0]);
       } finally {
          if (requesterJoined && requesterSubscribed && requesterClass != null
                && requesterAttributes != null) {

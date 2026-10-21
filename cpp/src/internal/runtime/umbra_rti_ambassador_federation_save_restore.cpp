@@ -1,11 +1,13 @@
 #include "internal/runtime/umbra_rti_ambassador.hpp"
 #include "internal/runtime/ambassador_string_helpers.hpp"
 #include "internal/runtime/ambassador_shared_utilities.hpp"
+#include "internal/runtime/ambassador_federation_lifecycle_support.hpp"
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 #include "internal/encoding/variable_length_data_2025.hpp"
 #include "internal/fom/hla_names.hpp"
 #include "internal/observability/mom_service_report_encoding.hpp"
+#include "internal/federation/process_federation_service_protocol.hpp"
 #include "internal/time/federation_time_bounds.hpp"
 #endif
 
@@ -205,7 +207,8 @@ void UmbraRtiAmbassador::requestFederationSave(std::wstring const& label) {
     auto result = embeddedFederationRegistry().requestFederationSave(
         *joinedFederationName_,
         *joinedFederateId_,
-        label);
+        label,
+        true);
     if (result.status != umbra::detail::FederationSaveControlStatus::applied) {
       throwFederationSaveServiceFailure(
           result.status,
@@ -333,7 +336,9 @@ void UmbraRtiAmbassador::requestFederationSave(
   // This both fences the selected IEEE implementation and gives the public
   // InvalidLogicalTime mapping for malformed or initial/final values.
   auto timestamp = cloneAmbassadorReferenceLogicalTime(timeState->implementationName(), time);
-  validateAmbassadorTsoTimestamp(timeState->snapshot(), *timestamp);
+  // The FQG optimistic send floor applies to outgoing TSO messages, not to
+  // timestamped Request Federation Save.
+  validateAmbassadorTsoTimestamp(timeState->snapshot(), *timestamp, false);
   // Table 5 gives LogicalTime the quoted value from time.toString().  Format
   // the private clone before locking, then commit that exact supplied
   // timestamp only if §4.19 accepts the request below.
@@ -1110,6 +1115,8 @@ void UmbraRtiAmbassador::federateRestoreComplete() {
   }
 #endif
   std::vector<umbra::detail::FederationRestoreNotification> notifications;
+  std::vector<umbra::detail::FederationStateImageReceiveOrderInteraction>
+      restoredQueuedReceiveOrderInteractions;
   std::vector<umbra::detail::FederationTimeGrantDispatch> timeAdvanceGrantDispatches;
   std::vector<umbra::detail::FederationTimeGrantDispatch> timeRoleEnableDispatches;
   std::vector<umbra::detail::AttributeOwnershipAcquisitionWorkItem>
@@ -1153,6 +1160,8 @@ void UmbraRtiAmbassador::federateRestoreComplete() {
           FederationRestoreServiceFailure::completion);
     }
     notifications = std::move(result.notifications);
+    restoredQueuedReceiveOrderInteractions =
+        std::move(result.restoredQueuedReceiveOrderInteractions);
     timeAdvanceGrantDispatches = std::move(result.timeAdvanceGrantDispatches);
     timeRoleEnableDispatches = std::move(result.timeRoleEnableDispatches);
     ownershipAcquisitionWorkItems = std::move(result.ownershipAcquisitionWorkItems);
@@ -1191,6 +1200,65 @@ void UmbraRtiAmbassador::federateRestoreComplete() {
   submitAmbassadorFederationRestoreNotifications(
       *joinedFederationName_,
       std::move(notifications));
+  for (auto const& saved : restoredQueuedReceiveOrderInteractions) {
+    if (saved.receivingFederateId != *joinedFederateId_) {
+      continue;
+    }
+    std::vector<std::uint8_t> payloadBytes;
+    payloadBytes.reserve(saved.payload.size());
+    for (unsigned char byte : saved.payload) {
+      payloadBytes.push_back(static_cast<std::uint8_t>(byte));
+    }
+    auto const envelope =
+        umbra::detail::decodeProcessFederationInteractionEnvelope(payloadBytes);
+    if (!envelope) {
+      throw RTIinternalError(
+          L"A restored receive-order interaction has no valid saved payload envelope.");
+    }
+    auto callbackRoute =
+        ambassadorMakeFederateCallbackRoute(callbacks_, callbackSession_);
+    if (callbackRoute.pendingReceiveOrderInteractions) {
+      auto const pending = callbackRoute.pendingReceiveOrderInteractions();
+      auto const alreadyQueued = std::any_of(
+          pending.begin(),
+          pending.end(),
+          [&saved](auto const& candidate) {
+            return candidate.producingFederateId == saved.producingFederateId &&
+                candidate.receivingFederateId == saved.receivingFederateId &&
+                candidate.interactionClassHandle == saved.interactionClassHandle &&
+                candidate.parameterHandles == saved.parameterHandles &&
+                candidate.payload == saved.payload &&
+                candidate.transportationName == saved.transportationName;
+          });
+      if (alreadyQueued) {
+        continue;
+      }
+    }
+    std::vector<AmbassadorInteractionParameterValue> sentParameters;
+    sentParameters.reserve(envelope->parameterValues.size());
+    for (auto const& [parameterHandle, value] : envelope->parameterValues) {
+      VariableLengthData parameterValue;
+      parameterValue.setData(value.data(), value.size());
+      sentParameters.emplace_back(parameterHandle, std::move(parameterValue));
+    }
+    VariableLengthData userSuppliedTag;
+    userSuppliedTag.setData(
+        envelope->userSuppliedTag.data(), envelope->userSuppliedTag.size());
+    queueAmbassadorReceiveOrderInteraction(
+        std::move(callbackRoute),
+        *joinedFederationName_,
+        umbra::detail::InteractionProducer::joinedFederate(
+            saved.producingFederateId),
+        saved.receivingFederateId,
+        saved.interactionClassHandle,
+        std::move(sentParameters),
+        std::move(userSuppliedTag),
+        ambassadorTransportationHandleFromFederationName(
+            *joinedFederationName_,
+            saved.transportationName,
+            L"Federate Restore Complete"),
+        saved.transportationName);
+  }
   // Queued Request Attribute Ownership Assumption callbacks are rebound only
   // after Federation Restored, preserving the same callback ordering boundary
   // as the other restored application-request families.

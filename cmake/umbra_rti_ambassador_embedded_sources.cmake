@@ -15,6 +15,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_region_registration.cpp
     cpp/src/internal/runtime/umbra_rti_ambassador_region_update_association.cpp
     cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp
+    cpp/src/internal/runtime/umbra_rti_ambassador_tso_receive_order_delivery.cpp
     cpp/src/internal/runtime/umbra_rti_ambassador_time_regulation_control.cpp
     cpp/src/internal/runtime/umbra_rti_ambassador_next_message_request.cpp
     cpp/src/internal/runtime/umbra_rti_ambassador_interaction_transportation_type_change.cpp

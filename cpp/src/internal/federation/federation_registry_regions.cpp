@@ -356,11 +356,19 @@ RegionDimensionSetResult EmbeddedFederationRegistry::dimensionHandleSetForRegion
     return {RegionServiceStatus::federate_not_member};
   }
   auto const region = federation->second.regions.find(regionHandle);
-  if (region == federation->second.regions.end() ||
-      region->second.ownerFederateId != federateId) {
+  if (region != federation->second.regions.end()) {
+    if (region->second.ownerFederateId != federateId) {
+      return {RegionServiceStatus::invalid_region};
+    }
+    return {RegionServiceStatus::applied, region->second.dimensionHandles};
+  }
+  auto const callbackCopy =
+      federation->second.callbackScopedRegionDesignatorCopies.find(regionHandle);
+  if (callbackCopy == federation->second.callbackScopedRegionDesignatorCopies.end() ||
+      callbackCopy->second.ownerFederateId != federateId) {
     return {RegionServiceStatus::invalid_region};
   }
-  return {RegionServiceStatus::applied, region->second.dimensionHandles};
+  return {RegionServiceStatus::applied, callbackCopy->second.dimensionHandles};
 }
 
 RegionRangeBoundsResult EmbeddedFederationRegistry::rangeBoundsForRegion(
@@ -376,12 +384,26 @@ RegionRangeBoundsResult EmbeddedFederationRegistry::rangeBoundsForRegion(
   if (!federation->second.members.contains(federateId)) {
     return {RegionServiceStatus::federate_not_member};
   }
-  auto const region = federation->second.regions.find(regionHandle);
-  if (region == federation->second.regions.end() ||
-      region->second.ownerFederateId != federateId) {
+  Federation::Region const* region = nullptr;
+  auto const ordinaryRegion = federation->second.regions.find(regionHandle);
+  if (ordinaryRegion != federation->second.regions.end()) {
+    if (ordinaryRegion->second.ownerFederateId != federateId) {
+      return {RegionServiceStatus::invalid_region};
+    }
+    region = &ordinaryRegion->second;
+  } else {
+    auto const callbackCopy =
+        federation->second.callbackScopedRegionDesignatorCopies.find(regionHandle);
+    if (callbackCopy == federation->second.callbackScopedRegionDesignatorCopies.end() ||
+        callbackCopy->second.ownerFederateId != federateId) {
+      return {RegionServiceStatus::invalid_region};
+    }
+    region = &callbackCopy->second;
+  }
+  if (region == nullptr) {
     return {RegionServiceStatus::invalid_region};
   }
-  if (!region->second.dimensionHandles.contains(dimensionHandle)) {
+  if (!region->dimensionHandles.contains(dimensionHandle)) {
     return {RegionServiceStatus::dimension_not_in_region};
   }
 
@@ -389,15 +411,93 @@ RegionRangeBoundsResult EmbeddedFederationRegistry::rangeBoundsForRegion(
   // before a first set, a committed value is the current specification value.
   // A never-initialized dimension has no range and therefore is not a usable
   // region until the caller supplies it and commits the template.
-  auto pending = region->second.pendingRangeBounds.find(dimensionHandle);
-  if (pending != region->second.pendingRangeBounds.end()) {
+  auto pending = region->pendingRangeBounds.find(dimensionHandle);
+  if (pending != region->pendingRangeBounds.end()) {
     return {RegionServiceStatus::applied, pending->second};
   }
-  auto committed = region->second.committedRangeBounds.find(dimensionHandle);
-  if (committed != region->second.committedRangeBounds.end()) {
+  auto committed = region->committedRangeBounds.find(dimensionHandle);
+  if (committed != region->committedRangeBounds.end()) {
     return {RegionServiceStatus::applied, committed->second};
   }
   return {RegionServiceStatus::invalid_region};
+}
+
+RegionServiceStatus EmbeddedFederationRegistry::createCallbackScopedRegionDesignatorCopies(
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId,
+    std::set<std::uint64_t> const& sentRegionHandles,
+    std::map<std::uint64_t, RegionSpecificationSnapshot> const& sentRegionSnapshots,
+    std::map<std::uint64_t, std::uint64_t>& copiedRegionHandles) {
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return RegionServiceStatus::federation_does_not_exist;
+  }
+  if (!federation->second.members.contains(receivingFederateId)) {
+    return RegionServiceStatus::federate_not_member;
+  }
+
+  std::uint64_t nextRegionHandle = federation->second.nextRegionHandle;
+  std::map<std::uint64_t, Federation::Region> copies;
+  std::map<std::uint64_t, std::uint64_t> copiedHandles;
+  for (std::uint64_t const sourceRegionHandle : sentRegionHandles) {
+    auto const snapshot = sentRegionSnapshots.find(sourceRegionHandle);
+    if (snapshot == sentRegionSnapshots.end() ||
+        !snapshot->second.specificationCommitted) {
+      return RegionServiceStatus::invalid_region;
+    }
+    for (std::uint64_t const dimensionHandle : snapshot->second.dimensionHandles) {
+      if (!snapshot->second.committedRangeBounds.contains(dimensionHandle)) {
+        return RegionServiceStatus::invalid_region;
+      }
+    }
+    for (auto const& [dimensionHandle, bounds] : snapshot->second.committedRangeBounds) {
+      static_cast<void>(bounds);
+      if (!snapshot->second.dimensionHandles.contains(dimensionHandle)) {
+        return RegionServiceStatus::invalid_region;
+      }
+    }
+    if (nextRegionHandle == 0U) {
+      return RegionServiceStatus::invalid_region;
+    }
+
+    std::uint64_t const copiedRegionHandle = nextRegionHandle++;
+    Federation::Region copy;
+    copy.ownerFederateId = receivingFederateId;
+    copy.dimensionHandles = snapshot->second.dimensionHandles;
+    copy.committedRangeBounds = snapshot->second.committedRangeBounds;
+    copy.specificationCommitted = true;
+    copies.emplace(copiedRegionHandle, std::move(copy));
+    copiedHandles.emplace(sourceRegionHandle, copiedRegionHandle);
+  }
+
+  for (auto& [regionHandle, copy] : copies) {
+    federation->second.callbackScopedRegionDesignatorCopies.emplace(
+        regionHandle, std::move(copy));
+  }
+  federation->second.nextRegionHandle = nextRegionHandle;
+  copiedRegionHandles = std::move(copiedHandles);
+  return RegionServiceStatus::applied;
+}
+
+void EmbeddedFederationRegistry::releaseCallbackScopedRegionDesignatorCopies(
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId,
+    std::map<std::uint64_t, std::uint64_t> const& copiedRegionHandles) {
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return;
+  }
+  for (auto const& [sourceRegionHandle, copiedRegionHandle] : copiedRegionHandles) {
+    static_cast<void>(sourceRegionHandle);
+    auto const copy =
+        federation->second.callbackScopedRegionDesignatorCopies.find(copiedRegionHandle);
+    if (copy != federation->second.callbackScopedRegionDesignatorCopies.end() &&
+        copy->second.ownerFederateId == receivingFederateId) {
+      federation->second.callbackScopedRegionDesignatorCopies.erase(copy);
+    }
+  }
 }
 
 RegionServiceStatus EmbeddedFederationRegistry::setRangeBounds(

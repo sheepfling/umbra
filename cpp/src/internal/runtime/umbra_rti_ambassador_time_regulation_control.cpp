@@ -7,8 +7,10 @@
 #include "internal/federation/federation_management_coordinator.hpp"
 #include "internal/fom/hla_names.hpp"
 #include "internal/time/federate_time_state.hpp"
+#include <RTI/time/HLAlogicalTimeFactoryFactory.h>
 #endif
 
+#include <algorithm>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -16,6 +18,72 @@
 #include <vector>
 
 namespace rti1516_2025::umbra_binding_detail {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+namespace {
+
+std::shared_ptr<LogicalTime> implicitRegulationAdvanceTarget(
+    umbra::detail::FederationTimeExecutionSnapshot const& execution,
+    std::uint64_t federateId,
+    LogicalTimeInterval const& lookahead) {
+  auto factory = HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+      execution.definition.logicalTimeImplementationName);
+  if (!factory || factory->getName() != lookahead.implementationName()) {
+    return nullptr;
+  }
+  auto const requester = std::find_if(
+      execution.federates.begin(), execution.federates.end(),
+      [federateId](auto const& member) {
+        return member.membership.id == federateId;
+      });
+  if (requester == execution.federates.end() ||
+      !requester->time.currentTime || !requester->time.timeConstrained) {
+    return nullptr;
+  }
+
+  auto clone = [&](LogicalTime const& time) -> std::shared_ptr<LogicalTime> {
+    auto copy = factory->decodeLogicalTime(time.encode());
+    return copy && copy->implementationName() == factory->getName()
+        ? std::shared_ptr<LogicalTime>(std::move(copy))
+        : nullptr;
+  };
+  auto target = clone(*requester->time.currentTime);
+  if (!target) {
+    return nullptr;
+  }
+  try {
+    for (auto const& peer : execution.federates) {
+      if (peer.membership.id == federateId || !peer.time.active ||
+          !peer.time.timeConstrained) {
+        continue;
+      }
+      if (!peer.time.currentTime) {
+        return nullptr;
+      }
+      auto emissionBoundary = clone(*target);
+      if (!emissionBoundary) {
+        return nullptr;
+      }
+      *emissionBoundary += lookahead;
+      if (*emissionBoundary < *peer.time.currentTime) {
+        auto required = clone(*peer.time.currentTime);
+        if (!required) {
+          return nullptr;
+        }
+        *required -= lookahead;
+        if (*required > *target) {
+          target = std::move(required);
+        }
+      }
+    }
+  } catch (Exception const&) {
+    return nullptr;
+  }
+  return target;
+}
+
+}  // namespace
+#endif
+
 void UmbraRtiAmbassador::enableTimeRegulation(LogicalTimeInterval const& lookahead) {
   auto instrumentationScope = beginRtiCall("enableTimeRegulation");
   try {
@@ -70,30 +138,49 @@ void UmbraRtiAmbassador::enableTimeRegulation(LogicalTimeInterval const& lookahe
     };
 
     umbra::detail::ProcessFederationEnableTimeRegulationResult processResult;
+    // The service may push an immediately eligible implicit-grant event
+    // before its response. Establish the pending gate before that exchange so
+    // HLA_IMMEDIATE completion cannot race a later assignment to true.
+    {
+      std::scoped_lock lock(mutex_);
+      processTimeRegulationCallbackPending_ = true;
+    }
     try {
       processResult = processClient->enableTimeRegulation(
           std::move(federationName), federateId, std::move(processLookahead));
     } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      {
+        std::scoped_lock lock(mutex_);
+        processTimeRegulationCallbackPending_ = false;
+      }
       throw RTIinternalError(wideAscii(error.what()));
     } catch (umbra::detail::ProcessFederationClientError const& error) {
+      {
+        std::scoped_lock lock(mutex_);
+        processTimeRegulationCallbackPending_ = false;
+      }
       throw RTIinternalError(wideAscii(error.what()));
+    }
+
+    if (processResult.status !=
+        umbra::detail::ProcessFederationTimeEnableStatus::applied) {
+      std::scoped_lock lock(mutex_);
+      processTimeRegulationCallbackPending_ = false;
     }
 
     switch (processResult.status) {
       case umbra::detail::ProcessFederationTimeEnableStatus::applied:
-        if (!processResult.enabledTime) {
-          throw RTIinternalError(
-              L"The process endpoint accepted Enable Time Regulation without a callback time.");
-        }
-        {
-          std::scoped_lock lock(mutex_);
-          processTimeRegulationCallbackPending_ = true;
-        }
-        try {
-          processClient->dispatchTimeRegulationEnabled(
-              std::move(*processResult.enabledTime));
-        } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
-          throw RTIinternalError(wideAscii(error.what()));
+        // A missing response time means the server-owned implicit TARA is
+        // pending; its ordered completion event follows qualifying TSO.
+        if (processResult.enabledTime) {
+          try {
+            processClient->dispatchTimeRegulationEnabled(
+                std::move(*processResult.enabledTime));
+          } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+            std::scoped_lock lock(mutex_);
+            processTimeRegulationCallbackPending_ = false;
+            throw RTIinternalError(wideAscii(error.what()));
+          }
         }
         appendSuccessfulVoidServiceReportToFileIfSelected(
             L"EnableTimeRegulation",
@@ -164,6 +251,8 @@ void UmbraRtiAmbassador::enableTimeRegulation(LogicalTimeInterval const& lookahe
       umbra::detail::formatMomLogicalTimeInterval(*requestedLookahead),
   };
   umbra::detail::FederateTimeEnableResult result;
+  umbra::detail::FederationTimeGrantDispatchResult implicitGrant;
+  bool implicitAdvance = false;
   {
     std::scoped_lock lock(mutex_, ambassadorFederationManagementMutex());
     requireConnectedForFederationManagement(lifecycle_);
@@ -174,7 +263,44 @@ void UmbraRtiAmbassador::enableTimeRegulation(LogicalTimeInterval const& lookahe
       throw FederateNotExecutionMember(
           L"Enable Time Regulation requires an active joined federate with initialized logical time.");
     }
-    result = timeState->requestTimeRegulation(std::move(requestedLookahead));
+    // Every embedded time grant also holds the federation-management mutex.
+    // Take the peer snapshot and admit this request under that same lock so
+    // its §8.2 floor cannot be stale before the implicit advance is queued.
+    // The caller's interval was decoded into requestedLookahead above, before
+    // entering the lock; only Umbra-owned logical-time values are used here.
+    std::shared_ptr<LogicalTime> implicitAdvanceTarget;
+    auto const executionSnapshot = embeddedFederationRegistry().timeSnapshotFor(
+        federationName);
+    if (!executionSnapshot) {
+      throw RTIinternalError(
+          L"Enable Time Regulation could not inspect the joined federation's time state.");
+    }
+    auto const requester = std::find_if(
+        executionSnapshot->federates.begin(), executionSnapshot->federates.end(),
+        [federateId](auto const& member) {
+          return member.membership.id == federateId;
+        });
+    if (requester == executionSnapshot->federates.end()) {
+      throw FederateNotExecutionMember(
+          L"Enable Time Regulation requires an active joined federate.");
+    }
+    if (requester->time.timeConstrained) {
+      implicitAdvanceTarget = implicitRegulationAdvanceTarget(
+          *executionSnapshot, federateId, *requestedLookahead);
+      if (!implicitAdvanceTarget) {
+        throw RTIinternalError(
+            L"Enable Time Regulation could not calculate its implicit advance target.");
+      }
+    }
+    result = timeState->requestTimeRegulation(
+        std::move(requestedLookahead), std::move(implicitAdvanceTarget));
+    if (result.status == umbra::detail::FederateTimeEnableStatus::applied) {
+      implicitAdvance = timeState->snapshot().timeAdvancePending;
+      if (implicitAdvance) {
+        implicitGrant = embeddedFederationRegistry().requestTimeAdvanceGrant(
+            federationName, federateId, result.generation);
+      }
+    }
   }
   if (result.status == umbra::detail::FederateTimeEnableStatus::applied) {
     // Acceptance makes the request reportable. Emit the public report after
@@ -207,6 +333,16 @@ void UmbraRtiAmbassador::enableTimeRegulation(LogicalTimeInterval const& lookahe
     case umbra::detail::FederateTimeEnableStatus::generation_exhausted:
       throw RTIinternalError(
           L"Umbra exhausted the embedded temporal-request generation space.");
+  }
+
+  if (implicitAdvance) {
+    if (implicitGrant.status != umbra::detail::FederationTimeGrantStatus::applied) {
+      throw RTIinternalError(
+          L"Enable Time Regulation could not schedule its implicit advance.");
+    }
+    submitAmbassadorTimeAdvanceGrantDispatches(
+        std::move(implicitGrant.dispatches));
+    return;
   }
 
   // This process-local development profile completes the callback at the

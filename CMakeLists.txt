@@ -19,6 +19,17 @@ include(CMakePackageConfigHelpers)
 
 option(UMBRA_FETCH_CATCH2 "Download the pinned Catch2 test dependency when it is unavailable" OFF)
 option(
+  UMBRA_BUILD_SHARED_LIBRARIES
+  "Build the IEEE 1516.1-2025 RTI, fedtime, and authorizer libraries as shared libraries"
+  OFF
+)
+set(
+  UMBRA_ALTERNATE_PROVIDER_PREFIX
+  ""
+  CACHE PATH
+  "Optional install prefix for a second IEEE 1516.1-2025 provider used by the shared-package ABI-switch smoke"
+)
+option(
   UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR
   "Build the private libxml2-backed IEEE 1516.2 FOM validator"
   OFF
@@ -197,12 +208,41 @@ if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_compile_definitions(ieee1516_2010_headers INTERFACE "_int64=long long")
 endif()
 
-# The implementation starts as a standards-shaped static binding with an
-# embedded connection slice. The official headers prescribe STATIC_RTI for both
-# a static librti and its consumers; exporting an incomplete DLL would require
-# every official class. The generated fallback overrides every pure virtual
-# member and throws RTIinternalError unless a real vertical slice overrides it.
-add_library(umbra_rti STATIC
+# The default remains a standards-shaped static development binding. The
+# optional shared profile uses the official header export macros and is the
+# first package-level slice toward Clause 12.12.1.1 binary interchangeability.
+# The generated fallback overrides every pure virtual member and throws
+# RTIinternalError unless a real vertical slice overrides it.
+if(UMBRA_BUILD_SHARED_LIBRARIES)
+  set(_umbra_2025_library_type SHARED)
+else()
+  set(_umbra_2025_library_type STATIC)
+endif()
+
+# Shared package identity is independent of the linkage profile. Keep the
+# historical output basenames and exported CMake target names stable; derive
+# the ABI generation from the project major version and expose it to consumers.
+set(UMBRA_RTI_ABI_MAJOR_VERSION "${PROJECT_VERSION_MAJOR}")
+set(UMBRA_RTI_LIBRARY_NAME "umbra_rti")
+set(UMBRA_FEDTIME_LIBRARY_NAME "umbra_fedtime")
+set(UMBRA_AUTHORIZER_LIBRARY_NAME "umbra_authorizer")
+function(umbra_configure_2025_library_abi target export_name library_name)
+  set_target_properties(${target} PROPERTIES
+    EXPORT_NAME "${export_name}"
+    OUTPUT_NAME "${library_name}"
+    INTERFACE_UMBRA_ABI_MAJOR_VERSION "${UMBRA_RTI_ABI_MAJOR_VERSION}"
+    COMPATIBLE_INTERFACE_STRING UMBRA_ABI_MAJOR_VERSION
+  )
+  if(UMBRA_BUILD_SHARED_LIBRARIES)
+    set_target_properties(${target} PROPERTIES
+      VERSION "${PROJECT_VERSION}"
+      SOVERSION "${UMBRA_RTI_ABI_MAJOR_VERSION}"
+      WINDOWS_EXPORT_ALL_SYMBOLS OFF
+    )
+  endif()
+endfunction()
+
+add_library(umbra_rti ${_umbra_2025_library_type}
   cpp/src/ieee1516_2025_attribute_handle.cpp
   cpp/src/ieee1516_2025_authorization.cpp
   cpp/src/ieee1516_2025_basic_data_elements.cpp
@@ -222,6 +262,7 @@ add_library(umbra_rti STATIC
   cpp/src/ieee1516_2025_region_handle.cpp
   cpp/src/ieee1516_2025_support.cpp
   cpp/src/ieee1516_2025_logical_time_encoding.cpp
+  cpp/src/ieee1516_2025_null_federate_ambassador.cpp
   cpp/src/ieee1516_2025_time.cpp
   cpp/src/ieee1516_2025_transportation_type_handle.cpp
   cpp/src/ieee1516_2025_variable_array.cpp
@@ -329,9 +370,13 @@ target_sources(umbra_rti PRIVATE
 )
 include(cmake/umbra_rti_ambassador_embedded_sources.cmake)
 add_library(umbra::rti ALIAS umbra_rti)
-set_target_properties(umbra_rti PROPERTIES EXPORT_NAME rti)
+umbra_configure_2025_library_abi(umbra_rti rti "${UMBRA_RTI_LIBRARY_NAME}")
 target_compile_features(umbra_rti PUBLIC cxx_std_20)
-target_compile_definitions(umbra_rti PUBLIC STATIC_RTI)
+if(UMBRA_BUILD_SHARED_LIBRARIES)
+  target_compile_definitions(umbra_rti PRIVATE BUILDING_RTI)
+else()
+  target_compile_definitions(umbra_rti PUBLIC STATIC_RTI)
+endif()
 if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   # The unmodified IEEE 1516.1-2025 encoding header uses Microsoft's _int64
   # keyword for every _WIN32 compiler. Keep the licensed header baseline exact
@@ -399,22 +444,30 @@ endif()
 # The IEEE binding separates the user-selectable LogicalTimeFactoryFactory
 # into libfedtime. Keep that boundary even while Umbra ships the two mandated
 # reference time representations with its static RTI library.
-add_library(umbra_fedtime STATIC cpp/src/ieee1516_2025_fedtime.cpp)
+add_library(umbra_fedtime ${_umbra_2025_library_type} cpp/src/ieee1516_2025_fedtime.cpp)
 add_library(umbra::fedtime ALIAS umbra_fedtime)
-set_target_properties(umbra_fedtime PROPERTIES EXPORT_NAME fedtime)
+umbra_configure_2025_library_abi(umbra_fedtime fedtime "${UMBRA_FEDTIME_LIBRARY_NAME}")
 target_compile_features(umbra_fedtime PUBLIC cxx_std_20)
-target_compile_definitions(umbra_fedtime PUBLIC STATIC_FEDTIME)
+if(UMBRA_BUILD_SHARED_LIBRARIES)
+  target_compile_definitions(umbra_fedtime PRIVATE BUILDING_FEDTIME)
+else()
+  target_compile_definitions(umbra_fedtime PUBLIC STATIC_FEDTIME)
+endif()
 target_link_libraries(umbra_fedtime PUBLIC umbra::rti)
 
 # The C++ binding similarly separates the generic AuthorizerFactoryFactory
 # entry point into libauthorizer. The reference HLAauthorizer implementation
 # stays in the RTI library; this target preserves the standard forwarding
 # boundary without inventing third-party RID loading before it exists.
-add_library(umbra_authorizer STATIC cpp/src/ieee1516_2025_authorizer.cpp)
+add_library(umbra_authorizer ${_umbra_2025_library_type} cpp/src/ieee1516_2025_authorizer.cpp)
 add_library(umbra::authorizer ALIAS umbra_authorizer)
-set_target_properties(umbra_authorizer PROPERTIES EXPORT_NAME authorizer)
+umbra_configure_2025_library_abi(umbra_authorizer authorizer "${UMBRA_AUTHORIZER_LIBRARY_NAME}")
 target_compile_features(umbra_authorizer PUBLIC cxx_std_20)
-target_compile_definitions(umbra_authorizer PUBLIC STATIC_AUTHORIZER)
+if(UMBRA_BUILD_SHARED_LIBRARIES)
+  target_compile_definitions(umbra_authorizer PRIVATE BUILDING_AUTHORIZER)
+else()
+  target_compile_definitions(umbra_authorizer PUBLIC STATIC_AUTHORIZER)
+endif()
 target_link_libraries(umbra_authorizer PUBLIC umbra::rti)
 
 include(cmake/fom_validation_backend.cmake)
@@ -2014,6 +2067,39 @@ if(BUILD_TESTING)
 
   if(TARGET Catch2::Catch2WithMain)
     include(cmake/catch2_executable_targets.cmake)
+    include(cmake/annex_c_variant_alternative_merge_target.cmake)
+    include(cmake/annex_c_general_data_type_merge_target.cmake)
+    include(cmake/annex_c_class_element_conflict_target.cmake)
+    include(cmake/annex_c_object_attribute_merge_target.cmake)
+    include(cmake/annex_c_interaction_parameter_merge_target.cmake)
+    include(cmake/annex_c_available_class_dimensions_target.cmake)
+    include(cmake/annex_c_object_attribute_semantics_conflict_target.cmake)
+    include(cmake/annex_c_interaction_parameter_conflict_target.cmake)
+    include(cmake/annex_c_interaction_class_semantics_conflict_internal_target.cmake)
+    include(cmake/annex_c_available_interaction_class_dimensions_target.cmake)
+    include(cmake/ieee1516_2025_tara_strict_timestamp_cutoff_target.cmake)
+    include(cmake/ieee1516_2025_fqr_post_grant_timestamp_floor_catch2.cmake)
+    include(cmake/ieee1516_2025_nmra_no_pregrant_tso_floor_catch2.cmake)
+    include(cmake/ieee1516_2025_nmra_message_set_catch2.cmake)
+    include(cmake/ieee1516_2025_tag_no_future_tso_below_grant_catch2.cmake)
+    include(cmake/ieee1516_2025_nmr_no_pregrant_tso_floor_catch2.cmake)
+    include(cmake/ieee1516_2025_nmr_received_tso_floor_catch2.cmake)
+    include(cmake/ieee1516_2025_fqg_post_grant_delivery_cutoff_catch2.cmake)
+    include(cmake/ieee1516_2025_send_interaction_mom_report_catch2.cmake)
+    include(cmake/ieee1516_2025_mom_report_single_region_catch2.cmake)
+    include(cmake/ieee1516_2025_process_mom_service_report_region_callback_catch2.cmake)
+    include(cmake/ieee1516_2025_send_interaction_file_destination_without_mom_observer_catch2.cmake)
+    include(cmake/ieee1516_2025_timestamped_interaction_sender_regulation_transition_catch2.cmake)
+    include(cmake/ieee1516_2025_interaction_fdd_preferred_order_default_catch2.cmake)
+    include(cmake/ieee1516_2025_ddm_default_region_class_request_equivalence_catch2.cmake)
+    include(cmake/ieee1516_2025_ddm_conveyed_region_designator_snapshot_catch2.cmake)
+    include(cmake/ieee1516_2025_directed_interaction_class_projection_catch2.cmake)
+    include(cmake/ieee1516_2025_directed_interaction_no_delivery_catch2_target.cmake)
+    include(cmake/ieee1516_2025_directed_interaction_subscription_accumulation_catch2.cmake)
+    include(cmake/ieee1516_2025_tar_strict_timestamp_cutoff_target.cmake)
+    include(cmake/ieee1516_2025_tar_post_grant_equal_timestamp_catch2.cmake)
+    include(cmake/time_management_private_phase_catch2.cmake)
+    include(cmake/fom_source_diagnostics_catch2.cmake)
     include(cmake/catch2_ctest_lanes.cmake)
   else()
     message(STATUS "Catch2 v3 not found; configure with -DUMBRA_FETCH_CATCH2=ON or provide Catch2::Catch2WithMain")

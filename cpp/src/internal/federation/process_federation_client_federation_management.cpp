@@ -436,6 +436,10 @@ void ProcessFederationClient::setServiceReportingSwitch(
       encodeProcessFederationAttributeScopeAdvisorySwitchRequest(
           ProcessFederationAttributeScopeAdvisorySwitchRequest{
               std::move(federationName), federateId, switchValue}));
+  if (response.status == TransportServiceStatus::service_reporting_interlock) {
+    throw rti1516_2025::ReportServiceInvocationsAreSubscribed(
+        L"The Service Reporting Switch cannot be enabled while the report-service-invocation interaction is subscribed.");
+  }
   if (response.status != TransportServiceStatus::ok) {
     throw ProcessFederationClientError(
         requestFailure(response.operation, response.status));

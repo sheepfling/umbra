@@ -2181,7 +2181,109 @@ FederationStateImage FederationStateImageCodec::decode(std::string_view payload)
         "Next-save time cannot be present without a next-save name.");
   }
   image.saveHistoryPresent = true;
-  cursor.expect("end");
+  auto const receiveOrderMarker = cursor.line();
+  if (receiveOrderMarker != "end") {
+    constexpr std::string_view queuePrefix =
+        "queuedReceiveOrderInteractions=";
+    if (!receiveOrderMarker.starts_with(queuePrefix)) {
+      throw std::runtime_error(
+          "Missing queued receive-order interaction section in Umbra state image.");
+    }
+    auto const queueCount = parseInteger<std::size_t>(
+        receiveOrderMarker.substr(queuePrefix.size()),
+        "queued receive-order interaction count");
+    image.queuedReceiveOrderInteractions.reserve(queueCount);
+    for (std::size_t index = 0U; index < queueCount; ++index) {
+      auto const fields = split(cursor.valueFor("queuedReceiveOrderInteraction"));
+      if (fields.size() != 7U) {
+        throw std::runtime_error(
+            "Malformed queued receive-order interaction in Umbra state image.");
+      }
+      FederationStateImageReceiveOrderInteraction message;
+      message.sequence = parseInteger<std::uint64_t>(
+          fields[0], "receive-order interaction sequence");
+      message.producingFederateId = parseInteger<std::uint64_t>(
+          fields[1], "receive-order interaction producer");
+      message.receivingFederateId = parseInteger<std::uint64_t>(
+          fields[2], "receive-order interaction recipient");
+      message.interactionClassHandle = parseInteger<std::uint64_t>(
+          fields[3], "receive-order interaction class");
+      auto const parameterCount = parseInteger<std::size_t>(
+          fields[4], "receive-order interaction parameter count");
+      message.payload = hexDecode(fields[5]);
+      message.transportationName = hexDecode(fields[6]);
+      message.parameterHandles.reserve(parameterCount);
+      for (std::size_t parameter = 0U; parameter < parameterCount; ++parameter) {
+        message.parameterHandles.push_back(parseInteger<std::uint64_t>(
+            cursor.valueFor("queuedReceiveOrderParameter"),
+            "receive-order interaction parameter handle"));
+      }
+      image.queuedReceiveOrderInteractions.push_back(std::move(message));
+    }
+    image.queuedReceiveOrderInteractionsPresent = true;
+    auto const attributeQueueMarker = cursor.line();
+    if (attributeQueueMarker != "end") {
+      constexpr std::string_view attributeQueuePrefix =
+          "queuedReceiveOrderAttributeUpdates=";
+      if (!attributeQueueMarker.starts_with(attributeQueuePrefix)) {
+        throw std::runtime_error(
+            "Unexpected trailing section after queued receive-order interactions.");
+      }
+      auto const attributeQueueCount = parseInteger<std::size_t>(
+          attributeQueueMarker.substr(attributeQueuePrefix.size()),
+          "queued receive-order attribute update count");
+      image.queuedReceiveOrderAttributeUpdates.reserve(attributeQueueCount);
+      for (std::size_t index = 0U; index < attributeQueueCount; ++index) {
+        auto const fields = split(cursor.valueFor(
+            "queuedReceiveOrderAttributeUpdate"));
+        if (fields.size() != 8U && fields.size() != 9U) {
+          throw std::runtime_error(
+              "Malformed queued receive-order attribute update in Umbra state image.");
+        }
+        FederationStateImageReceiveOrderAttributeUpdate update;
+        update.sequence = parseInteger<std::uint64_t>(
+            fields[0], "receive-order attribute update sequence");
+        update.producingFederateId = parseInteger<std::uint64_t>(
+            fields[1], "receive-order attribute update producer");
+        update.receivingFederateId = parseInteger<std::uint64_t>(
+            fields[2], "receive-order attribute update recipient");
+        update.objectInstanceHandle = parseInteger<std::uint64_t>(
+            fields[3], "receive-order attribute update object");
+        auto const valueCount = parseInteger<std::size_t>(
+            fields[4], "receive-order attribute value count");
+        update.userSuppliedTag = hexDecode(fields[5]);
+        update.transportationName = hexDecode(fields[6]);
+        if (fields[7] != "0" && fields[7] != "1") {
+          throw std::runtime_error(
+              "Malformed receive-order attribute recheck flag in Umbra state image.");
+        }
+        update.recheckAtReceive = fields[7] == "1";
+        if (fields.size() == 9U) {
+          update.pushDeliveryId = parseInteger<std::uint64_t>(
+              fields[8], "receive-order push delivery identity");
+        }
+        update.values.reserve(valueCount);
+        for (std::size_t valueIndex = 0U; valueIndex < valueCount; ++valueIndex) {
+          auto const valueFields = split(cursor.valueFor(
+              "queuedReceiveOrderAttributeValue"));
+          if (valueFields.size() != 2U) {
+            throw std::runtime_error(
+                "Malformed queued receive-order attribute value in Umbra state image.");
+          }
+          update.values.push_back({
+              parseInteger<std::uint64_t>(
+                  valueFields[0], "receive-order attribute handle"),
+              hexDecode(valueFields[1])});
+        }
+        image.queuedReceiveOrderAttributeUpdates.push_back(std::move(update));
+      }
+      image.queuedReceiveOrderAttributeUpdatesPresent = true;
+      if (cursor.line() != "end") {
+        throw std::runtime_error(
+            "Unexpected trailing section after queued receive-order attribute updates.");
+      }
+    }
+  }
   cursor.finish();
   return image;
 }

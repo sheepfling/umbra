@@ -53,6 +53,8 @@ int main(int argc, char** argv) {
     std::uint16_t identity = 0U;
     if (role == "sender") {
       identity = 0xB821U;
+    } else if (role == "sender-two") {
+      identity = 0xB823U;
     } else if (role == "receiver") {
       identity = 0xB822U;
     } else {

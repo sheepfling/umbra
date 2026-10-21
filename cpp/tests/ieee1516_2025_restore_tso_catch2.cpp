@@ -92,7 +92,6 @@ TEST_CASE(
       true);
 }
 
-#if 0
 TEST_CASE(
     "Embedded timed multi-recipient regional timestamped attribute update survives no-action resignation after restore",
     "[integration][development-profile][federation-management][save-restore]"
@@ -117,8 +116,6 @@ TEST_CASE(
   runTimedMultiRecipientRegionalResignationAfterRestore(
       rti1516_2025::NO_ACTION);
 }
-
-#endif
 
 TEST_CASE(
     "Embedded federation restore restores a saved live timestamped default-region interaction",
@@ -1021,6 +1018,7 @@ TEST_CASE(
     "Embedded federation restore restores a saved live timestamped directed interaction",
     "[integration][development-profile][federation-management][save-restore]"
     "[interaction-management][directed][time-management][tso]"
+    "[restore-live-tso-directed-interaction]"
     "[timestamped-directed-interaction][timestamped-directed-interaction-restore]"
     "[rti.service.request-federation-save][rti.service.request-federation-restore]"
     "[rti.service.federate-save-begun][rti.service.federate-save-complete]"

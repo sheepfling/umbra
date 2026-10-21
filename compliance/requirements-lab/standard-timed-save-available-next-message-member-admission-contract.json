@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ and Java translation of the mapped native three-member Available/next-message timed-save case. The adapter supplies provider, FOM, endpoint, callback model, and logical-time implementation. Under HLA_EVOKED, two time-constrained members each request a strictly later grant 6 through TARA and NMRA after a timed save request at 5; each receives initiateFederateSave(5) before its own grant 6, while the non-time-constrained regulator waits for both members before its initiation. All three complete the save. Five direct requirement-section pairs cover clauses 4.19, 4.19.6, and 4.20. C++ primary and contract passed against an installed package under integer64 and float64 time using an adapter-supplied portable FOM. Java compiles against the official API only; provider runtime is unverified. The per-recipient callback-service sequence is an experimental public observation, not a universal cross-service ordering, immediate-callback, transport, interoperability, or conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-timed-save-available-next-message-member-admission",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador requestFederationSave(time), timeAdvanceRequestAvailable, nextMessageRequestAvailable, timeAdvanceRequest, federateSaveBegun, federateSaveComplete; FederateAmbassador initiateFederateSave(time), timeAdvanceGrant, federationSaved",
+      "source": "third_party/ieee1516.1-2025/include/RTI and official hla.rti1516_2025 Java API",
+      "source_symbol": "IEEE 1516.1-2025 federation-save and time-management interfaces",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_timed_save_available_next_message_member_admission.cpp::scenarioTimedSaveAvailableNextMessageMemberAdmission",
+        "packages/hla-rti-cpp-tck/src/tck_timed_save_available_next_message_member_admission.cpp::scenarioTimedSaveAvailableNextMessageMemberAdmissionContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/TimedSaveAvailableNextMessageMemberAdmissionTck.java::run"
+      ]
+    }
+  ]
+}

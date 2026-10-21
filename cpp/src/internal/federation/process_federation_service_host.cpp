@@ -6,6 +6,19 @@
 
 namespace umbra::detail {
 
+namespace {
+
+std::shared_ptr<ProcessFederationService> requireService(
+    std::shared_ptr<ProcessFederationService> service) {
+  if (!service) {
+    throw std::invalid_argument(
+        "A process federation service host requires a shared service.");
+  }
+  return service;
+}
+
+}  // namespace
+
 struct ProcessFederationServiceHost::Worker final {
   explicit Worker(std::shared_ptr<ProcessTransportConnection> connectionValue)
       : connection(std::move(connectionValue)) {}
@@ -21,7 +34,19 @@ ProcessFederationServiceHost::ProcessFederationServiceHost(
     ProcessTransportAddress listenAddress,
     TransportEndpointIdentity localIdentity,
     ProcessFederationServiceOptions options)
-    : service_(registry, std::move(federationDefinition), std::move(options)),
+    : ProcessFederationServiceHost(
+          std::make_shared<ProcessFederationService>(
+              registry,
+              std::move(federationDefinition),
+              std::move(options)),
+          std::move(listenAddress),
+          std::move(localIdentity)) {}
+
+ProcessFederationServiceHost::ProcessFederationServiceHost(
+    std::shared_ptr<ProcessFederationService> service,
+    ProcessTransportAddress listenAddress,
+    TransportEndpointIdentity localIdentity)
+    : service_(requireService(std::move(service))),
       listener_(ProcessTransportListener::listen(std::move(listenAddress))),
       localIdentity_(std::move(localIdentity)) {
   if (localIdentity_.endpointId.empty()) {
@@ -154,10 +179,10 @@ void ProcessFederationServiceHost::serveConnection(Worker& worker) noexcept {
   std::optional<ProcessTransportSession> session;
   try {
     session.emplace(worker.connection);
-    auto const handler = service_.handlerFor(*session);
+    auto const handler = service_->handlerFor(*session);
     while (ProcessTransportServiceDispatcher::serveOne(*session, handler)) {
     }
-    if (!service_.connectionLost(
+    if (!service_->connectionLost(
             *session, L"The process federation service connection was lost.")) {
       throw std::runtime_error(
           "The process federation service could not apply connection-loss work.");
@@ -166,7 +191,7 @@ void ProcessFederationServiceHost::serveConnection(Worker& worker) noexcept {
     recordFailure(std::current_exception());
     if (session) {
       try {
-        static_cast<void>(service_.connectionLost(
+        static_cast<void>(service_->connectionLost(
             *session, L"The process federation service connection was lost."));
       } catch (...) {
         recordFailure(std::current_exception());
@@ -174,7 +199,7 @@ void ProcessFederationServiceHost::serveConnection(Worker& worker) noexcept {
     }
   }
   if (session) {
-    service_.detach(*session);
+    service_->detach(*session);
   }
   worker.connection->close();
   worker.finished.store(true, std::memory_order_release);

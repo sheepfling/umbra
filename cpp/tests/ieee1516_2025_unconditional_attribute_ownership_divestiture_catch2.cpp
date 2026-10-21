@@ -311,4 +311,256 @@ TEST_CASE(
   REQUIRE_NOTHROW(staleCandidate->disconnect());
   REQUIRE_NOTHROW(unpublishedCandidate->disconnect());
 }
+
+TEST_CASE(
+    "Associate Regions For Updates association is not restored after ownership reacquisition",
+    "[integration][development-profile][federation-management][object-management][ddm]"
+    "[ownership-management][ddm-update-region-association-lost-on-ownership-reacquire-2025]"
+    "[rti.service.register-object-instance-with-regions]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.attribute-ownership-acquisition-if-available]"
+    "[rti.service.attribute-ownership-divestiture-if-wanted]"
+    "[rti.service.associate-regions-for-updates]"
+    "[rti.service.update-attribute-values]"
+    "[federate.callback.attribute-ownership-acquisition-notification]"
+    "[federate.callback.reflect-attribute-values]") {
+  ReportingFederateAmbassador formerOwnerReports;
+  ReportingFederateAmbassador interimOwnerReports;
+  ReportingFederateAmbassador receiverReports;
+  auto formerOwner = makeRti();
+  auto interimOwner = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+                          "data" / "regional-ownership-fanout-fom.xml")
+                             .wstring();
+  unsigned char const initialValueBytes[] = {0x49, 0x4E, 0x49, 0x54};
+  unsigned char const reacquiredValueBytes[] = {0x52, 0x45, 0x41, 0x43};
+  unsigned char const acquisitionTagBytes[] = {0x41, 0x43, 0x51, 0x52};
+  unsigned char const divestitureTagBytes[] = {0x44, 0x49, 0x56, 0x52};
+  VariableLengthData const acquisitionTag(acquisitionTagBytes, sizeof(acquisitionTagBytes));
+  VariableLengthData const divestitureTag(divestitureTagBytes, sizeof(divestitureTagBytes));
+
+  REQUIRE_NOTHROW(formerOwner->connect(formerOwnerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(interimOwner->connect(interimOwnerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(formerOwner->createFederationExecution(
+      federationName,
+      fomModule,
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(formerOwner->joinFederationExecution(
+      L"ddm-reacquire-former-owner",
+      L"provider-a",
+      federationName));
+  REQUIRE_NOTHROW(interimOwner->joinFederationExecution(
+      L"ddm-reacquire-interim-owner",
+      L"provider-b",
+      federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"ddm-reacquire-receiver",
+      L"subscriber",
+      federationName));
+
+  auto const objectClass = formerOwner->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
+  auto const formerOwnerAttribute = formerOwner->getAttributeHandle(
+      objectClass,
+      L"ProviderBValue");
+  auto const interimOwnerClass = interimOwner->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
+  auto const interimOwnerAttribute = interimOwner->getAttributeHandle(
+      interimOwnerClass,
+      L"ProviderBValue");
+  auto const receiverClass = receiver->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
+  auto const receiverAttribute = receiver->getAttributeHandle(
+      receiverClass,
+      L"ProviderBValue");
+  auto const dimension = formerOwner->getDimensionHandle(L"UmbraRegionX");
+  auto const interimOwnerDimension = interimOwner->getDimensionHandle(L"UmbraRegionX");
+  auto const receiverDimension = receiver->getDimensionHandle(L"UmbraRegionX");
+  REQUIRE(objectClass.isValid());
+  REQUIRE(formerOwnerAttribute.isValid());
+  REQUIRE(interimOwnerClass.isValid());
+  REQUIRE(interimOwnerAttribute.isValid());
+  REQUIRE(receiverClass.isValid());
+  REQUIRE(receiverAttribute.isValid());
+  REQUIRE(dimension.isValid());
+  REQUIRE(interimOwnerDimension.isValid());
+  REQUIRE(receiverDimension.isValid());
+
+  AttributeHandleSet const formerOwnerAttributes{formerOwnerAttribute};
+  AttributeHandleSet const interimOwnerAttributes{interimOwnerAttribute};
+  AttributeHandleSet const receiverAttributes{receiverAttribute};
+  REQUIRE_NOTHROW(formerOwner->publishObjectClassAttributes(
+      objectClass,
+      formerOwnerAttributes));
+  REQUIRE_NOTHROW(interimOwner->publishObjectClassAttributes(
+      interimOwnerClass,
+      interimOwnerAttributes));
+
+  auto const ownerRegion = formerOwner->createRegion(DimensionHandleSet{dimension});
+  auto const interimOwnerRegion = interimOwner->createRegion(
+      DimensionHandleSet{interimOwnerDimension});
+  auto const receiverRegion = receiver->createRegion(
+      DimensionHandleSet{receiverDimension});
+  REQUIRE_NOTHROW(formerOwner->setRangeBounds(ownerRegion, dimension, RangeBounds(0UL, 2UL)));
+  REQUIRE_NOTHROW(formerOwner->commitRegionModifications(RegionHandleSet{ownerRegion}));
+  REQUIRE_NOTHROW(interimOwner->setRangeBounds(
+      interimOwnerRegion,
+      interimOwnerDimension,
+      RangeBounds(0UL, 2UL)));
+  REQUIRE_NOTHROW(interimOwner->commitRegionModifications(
+      RegionHandleSet{interimOwnerRegion}));
+  REQUIRE_NOTHROW(
+      receiver->setRangeBounds(receiverRegion, receiverDimension, RangeBounds(0UL, 2UL)));
+  REQUIRE_NOTHROW(receiver->commitRegionModifications(RegionHandleSet{receiverRegion}));
+
+  AttributeHandleSetRegionHandleSetPairVector const ownerPair{{
+      formerOwnerAttributes,
+      RegionHandleSet{ownerRegion},
+  }};
+  AttributeHandleSetRegionHandleSetPairVector const interimOwnerPair{{
+      interimOwnerAttributes,
+      RegionHandleSet{interimOwnerRegion},
+  }};
+  AttributeHandleSetRegionHandleSetPairVector const receiverPair{{
+      receiverAttributes,
+      RegionHandleSet{receiverRegion},
+  }};
+  REQUIRE_NOTHROW(interimOwner->subscribeObjectClassAttributesWithRegions(
+      interimOwnerClass,
+      interimOwnerPair));
+  REQUIRE_NOTHROW(receiver->setConveyRegionDesignatorSetsSwitch(true));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributesWithRegions(
+      receiverClass,
+      receiverPair));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = formerOwner->registerObjectInstanceWithRegions(
+      objectClass,
+      ownerPair));
+  REQUIRE(objectInstance.isValid());
+  auto evokeCallbacks = [&] {
+    for (int pass = 0; pass != 64; ++pass) {
+      static_cast<void>(formerOwner->evokeCallback(0.0));
+      static_cast<void>(interimOwner->evokeCallback(0.0));
+      static_cast<void>(receiver->evokeCallback(0.0));
+    }
+  };
+  evokeCallbacks();
+  REQUIRE(receiverReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(interimOwnerReports.objectDiscoveryReports.size() == 1U);
+
+  AttributeHandleValueMap initialValues;
+  initialValues.emplace(
+      formerOwnerAttribute,
+      VariableLengthData(initialValueBytes, sizeof(initialValueBytes)));
+  REQUIRE_NOTHROW(formerOwner->associateRegionsForUpdates(objectInstance, ownerPair));
+  REQUIRE_NOTHROW(formerOwner->updateAttributeValues(
+      objectInstance,
+      initialValues,
+      divestitureTag));
+  evokeCallbacks();
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
+  REQUIRE(receiverReports.attributeReflectionReports.back().sentRegionsSupplied);
+  REQUIRE(receiverReports.attributeReflectionReports.back().sentRegions ==
+          RegionHandleSet{ownerRegion});
+  receiverReports.attributeReflectionReports.clear();
+
+  REQUIRE_NOTHROW(interimOwner->attributeOwnershipAcquisitionIfAvailable(
+      objectInstance,
+      interimOwnerAttributes,
+      acquisitionTag));
+  AttributeHandleSet divestedAttributes;
+  REQUIRE_NOTHROW(formerOwner->attributeOwnershipDivestitureIfWanted(
+      objectInstance,
+      formerOwnerAttributes,
+      divestitureTag,
+      divestedAttributes));
+  REQUIRE(divestedAttributes == formerOwnerAttributes);
+  REQUIRE_FALSE(formerOwner->isAttributeOwnedByFederate(
+      objectInstance,
+      formerOwnerAttribute));
+  REQUIRE(interimOwner->isAttributeOwnedByFederate(
+      objectInstance,
+      interimOwnerAttribute));
+  evokeCallbacks();
+  REQUIRE(interimOwnerReports.attributeOwnershipAcquisitionReports.size() == 1U);
+  REQUIRE(interimOwnerReports.attributeOwnershipAcquisitionReports.front().attributes ==
+          interimOwnerAttributes);
+
+  AttributeHandleValueMap interimOwnerValues;
+  interimOwnerValues.emplace(
+      interimOwnerAttribute,
+      VariableLengthData(initialValueBytes, sizeof(initialValueBytes)));
+  REQUIRE_NOTHROW(interimOwner->updateAttributeValues(
+      objectInstance,
+      interimOwnerValues,
+      divestitureTag));
+  evokeCallbacks();
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
+  REQUIRE(receiverReports.attributeReflectionReports.back().sentRegionsSupplied);
+  REQUIRE(receiverReports.attributeReflectionReports.back().sentRegions.empty());
+  receiverReports.attributeReflectionReports.clear();
+
+  REQUIRE_NOTHROW(formerOwner->attributeOwnershipAcquisitionIfAvailable(
+      objectInstance,
+      formerOwnerAttributes,
+      acquisitionTag));
+  AttributeHandleSet reacquiredAttributes;
+  REQUIRE_NOTHROW(interimOwner->attributeOwnershipDivestitureIfWanted(
+      objectInstance,
+      interimOwnerAttributes,
+      acquisitionTag,
+      reacquiredAttributes));
+  REQUIRE(reacquiredAttributes == interimOwnerAttributes);
+  REQUIRE_FALSE(interimOwner->isAttributeOwnedByFederate(
+      objectInstance,
+      interimOwnerAttribute));
+  REQUIRE(formerOwner->isAttributeOwnedByFederate(
+      objectInstance,
+      formerOwnerAttribute));
+  evokeCallbacks();
+  REQUIRE(formerOwnerReports.attributeOwnershipAcquisitionReports.size() == 1U);
+
+  AttributeHandleValueMap reacquiredValues;
+  reacquiredValues.emplace(
+      formerOwnerAttribute,
+      VariableLengthData(reacquiredValueBytes, sizeof(reacquiredValueBytes)));
+  REQUIRE_NOTHROW(formerOwner->updateAttributeValues(
+      objectInstance,
+      reacquiredValues,
+      acquisitionTag));
+  evokeCallbacks();
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
+  auto const& reacquiredReflection = receiverReports.attributeReflectionReports.back();
+  REQUIRE(reacquiredReflection.objectInstance == objectInstance);
+  REQUIRE(reacquiredReflection.attributeValues.contains(receiverAttribute));
+  REQUIRE(reacquiredReflection.sentRegionsSupplied);
+  REQUIRE(reacquiredReflection.sentRegions.empty());
+
+  REQUIRE_NOTHROW(receiver->unsubscribeObjectClassAttributesWithRegions(
+      receiverClass,
+      receiverPair));
+  REQUIRE_NOTHROW(interimOwner->unsubscribeObjectClassAttributesWithRegions(
+      interimOwnerClass,
+      interimOwnerPair));
+  REQUIRE_NOTHROW(formerOwner->unpublishObjectClassAttributes(
+      objectClass,
+      formerOwnerAttributes));
+  REQUIRE_NOTHROW(interimOwner->unpublishObjectClassAttributes(
+      interimOwnerClass,
+      interimOwnerAttributes));
+  REQUIRE_NOTHROW(receiver->deleteRegion(receiverRegion));
+  REQUIRE_NOTHROW(interimOwner->deleteRegion(interimOwnerRegion));
+  REQUIRE_NOTHROW(formerOwner->deleteRegion(ownerRegion));
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(interimOwner->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(formerOwner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(formerOwner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(interimOwner->disconnect());
+  REQUIRE_NOTHROW(formerOwner->disconnect());
+}
 } // namespace

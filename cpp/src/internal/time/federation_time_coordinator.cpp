@@ -15,7 +15,8 @@ FederationTimeCoordinator::FederationTimeCoordinator(
       tsoQueue_(other.tsoQueue_),
       recipients_(other.recipients_),
       inTransitTsoMessages_(other.inTransitTsoMessages_),
-      deliveredTsoMessagesSinceLastAdvance_(other.deliveredTsoMessagesSinceLastAdvance_) {
+      deliveredTsoMessagesSinceLastAdvance_(other.deliveredTsoMessagesSinceLastAdvance_),
+      retiredInTransitTsoMessages_(other.retiredInTransitTsoMessages_) {
   for (auto const& [federateId, timeState] : other.federates_) {
     if (timeState) {
       federates_.emplace(federateId, std::make_shared<FederateTimeState>(*timeState));
@@ -191,7 +192,18 @@ TsoMessageEnqueueResult FederationTimeCoordinator::enqueueTsoMessage(
   if (result.status == TsoMessageQueueStatus::applied) {
     auto const state = federates_.find(recipientFederateId);
     if (state != federates_.end() && state->second) {
-      static_cast<void>(state->second->retargetPendingNextMessageAdvance(targetTime));
+      auto const snapshot = state->second->snapshot();
+      bool stale = false;
+      if (snapshot.currentTime && targetTime) {
+        try {
+          stale = *targetTime < *snapshot.currentTime;
+        } catch (rti1516_2025::Exception const&) {
+          stale = false;
+        }
+      }
+      if (!stale) {
+        static_cast<void>(state->second->retargetPendingNextMessageAdvance(targetTime));
+      }
     }
   }
   return result;
@@ -207,13 +219,118 @@ TsoMessageRetractionResult FederationTimeCoordinator::retractPendingTsoMessage(
   return tsoQueue_.retractPending(messageId);
 }
 
+std::vector<TsoQueuedMessage> FederationTimeCoordinator::retireTsoMessagesBefore(
+    std::uint64_t recipientFederateId,
+    rti1516_2025::LogicalTime const& boundary) {
+  std::vector<TsoQueuedMessage> retired =
+      tsoQueue_.retireBefore(recipientFederateId, boundary);
+  auto retireFromPhase = [&](auto& byRecipient, bool retainForAcknowledgement) {
+    auto phase = byRecipient.find(recipientFederateId);
+    if (phase == byRecipient.end()) {
+      return;
+    }
+    auto& messages = phase->second;
+    auto iterator = messages.begin();
+    while (iterator != messages.end()) {
+      bool stale = false;
+      try {
+        stale = *iterator->timestamp < boundary;
+      } catch (rti1516_2025::Exception const&) {
+        // An incomparable private timestamp is retained for normal error
+        // handling rather than being silently discarded.
+      }
+      if (stale) {
+        if (retainForAcknowledgement) {
+          retiredInTransitTsoMessages_.push_back(*iterator);
+        }
+        retired.push_back(std::move(*iterator));
+        iterator = messages.erase(iterator);
+      } else {
+        ++iterator;
+      }
+    }
+    if (messages.empty()) {
+      byRecipient.erase(phase);
+    }
+  };
+  retireFromPhase(inTransitTsoMessages_, true);
+  retireFromPhase(deliveredTsoMessagesSinceLastAdvance_, false);
+  return retired;
+}
+
+std::vector<TsoQueuedMessage>
+FederationTimeCoordinator::retireTsoMessagesAtOrBefore(
+    std::uint64_t recipientFederateId,
+    rti1516_2025::LogicalTime const& boundary) {
+  std::vector<TsoQueuedMessage> retired =
+      tsoQueue_.retireAtOrBefore(recipientFederateId, boundary);
+  auto retireFromPhase = [&](auto& byRecipient, bool retainForAcknowledgement) {
+    auto phase = byRecipient.find(recipientFederateId);
+    if (phase == byRecipient.end()) {
+      return;
+    }
+    auto& messages = phase->second;
+    auto iterator = messages.begin();
+    while (iterator != messages.end()) {
+      bool stale = false;
+      try {
+        stale = *iterator->timestamp < boundary ||
+                *iterator->timestamp == boundary;
+      } catch (rti1516_2025::Exception const&) {
+        // Retain incomparable timestamps for ordinary error handling.
+      }
+      if (stale) {
+        if (retainForAcknowledgement) {
+          retiredInTransitTsoMessages_.push_back(*iterator);
+        }
+        retired.push_back(std::move(*iterator));
+        iterator = messages.erase(iterator);
+      } else {
+        ++iterator;
+      }
+    }
+    if (messages.empty()) {
+      byRecipient.erase(phase);
+    }
+  };
+  retireFromPhase(inTransitTsoMessages_, true);
+  retireFromPhase(deliveredTsoMessagesSinceLastAdvance_, false);
+  return retired;
+}
+
 std::optional<std::shared_ptr<rti1516_2025::LogicalTime const>>
 FederationTimeCoordinator::earliestTsoTimestampFor(
     std::uint64_t recipientFederateId) const {
   if (recipientFederateId == 0 || !recipients_.contains(recipientFederateId)) {
     return std::nullopt;
   }
-  return tsoQueue_.earliestTimestampFor(recipientFederateId);
+  auto const state = federates_.find(recipientFederateId);
+  auto const snapshot = state == federates_.end() || !state->second
+      ? FederateTimeSnapshot{}
+      : state->second->snapshot();
+  // Ignore late-arriving TSO below an already committed recipient time. The
+  // registry retires its payload/ledger at the next delivery boundary.
+  auto const pending = tsoQueue_.pendingMessages();
+  std::shared_ptr<rti1516_2025::LogicalTime const> eligibleEarliest;
+  for (auto const& message : pending) {
+    if (message.recipientFederateId != recipientFederateId) {
+      continue;
+    }
+    try {
+      if (snapshot.currentTime && *message.timestamp < *snapshot.currentTime) {
+        continue;
+      }
+      if (!eligibleEarliest || *message.timestamp < *eligibleEarliest) {
+        eligibleEarliest = message.timestamp;
+      }
+    } catch (rti1516_2025::Exception const&) {
+      return tsoQueue_.earliestTimestampFor(recipientFederateId);
+    }
+  }
+  return eligibleEarliest
+      ? std::optional<std::shared_ptr<rti1516_2025::LogicalTime const>>{
+            std::move(eligibleEarliest)}
+      : std::nullopt;
 }
 
 FederationTsoDeliveryResult FederationTimeCoordinator::beginTsoDelivery(
@@ -228,6 +345,21 @@ FederationTsoDeliveryResult FederationTimeCoordinator::beginTsoDelivery(
   }
 
   auto messages = tsoQueue_.popEligible(recipientFederateId, boundary, inclusive);
+  if (messages.empty()) {
+    return {FederationTsoDeliveryStatus::no_messages, {}};
+  }
+  auto& inTransit = inTransitTsoMessages_[recipientFederateId];
+  inTransit.insert(inTransit.end(), messages.begin(), messages.end());
+  return {FederationTsoDeliveryStatus::applied, std::move(messages)};
+}
+
+FederationTsoDeliveryResult
+FederationTimeCoordinator::beginTsoReceiveOrderDelivery(
+    std::uint64_t recipientFederateId) {
+  if (recipientFederateId == 0 || !recipients_.contains(recipientFederateId)) {
+    return {FederationTsoDeliveryStatus::invalid_recipient, {}};
+  }
+  auto messages = tsoQueue_.popPendingForReceiveOrder(recipientFederateId);
   if (messages.empty()) {
     return {FederationTsoDeliveryStatus::no_messages, {}};
   }
@@ -254,6 +386,18 @@ FederationTsoDeliveryStatus FederationTimeCoordinator::completeTsoDelivery(
             })) {
       return FederationTsoDeliveryStatus::message_already_completed;
     }
+    auto const retired = std::find_if(
+        retiredInTransitTsoMessages_.begin(),
+        retiredInTransitTsoMessages_.end(),
+        [&message](TsoQueuedMessage const& candidate) {
+          return candidate.recipientFederateId == message.recipientFederateId &&
+              candidate.messageId == message.messageId &&
+              candidate.sequence == message.sequence;
+        });
+    if (retired != retiredInTransitTsoMessages_.end()) {
+      retiredInTransitTsoMessages_.erase(retired);
+      return FederationTsoDeliveryStatus::message_already_completed;
+    }
     return FederationTsoDeliveryStatus::message_not_in_transit;
   }
 
@@ -265,6 +409,18 @@ FederationTsoDeliveryStatus FederationTimeCoordinator::completeTsoDelivery(
             candidate.sequence == message.sequence;
       });
   if (position == inTransit->second.end()) {
+    auto const retired = std::find_if(
+        retiredInTransitTsoMessages_.begin(),
+        retiredInTransitTsoMessages_.end(),
+        [&message](TsoQueuedMessage const& candidate) {
+          return candidate.recipientFederateId == message.recipientFederateId &&
+              candidate.messageId == message.messageId &&
+              candidate.sequence == message.sequence;
+        });
+    if (retired != retiredInTransitTsoMessages_.end()) {
+      retiredInTransitTsoMessages_.erase(retired);
+      return FederationTsoDeliveryStatus::message_already_completed;
+    }
     return FederationTsoDeliveryStatus::message_not_in_transit;
   }
 
@@ -307,6 +463,17 @@ FederationTsoDeliveryStatus FederationTimeCoordinator::completeTsoDeliveryFor(
           })) {
     return FederationTsoDeliveryStatus::message_already_completed;
   }
+  auto const retired = std::find_if(
+      retiredInTransitTsoMessages_.begin(),
+      retiredInTransitTsoMessages_.end(),
+      [recipientFederateId, messageId](TsoQueuedMessage const& candidate) {
+        return candidate.recipientFederateId == recipientFederateId &&
+            candidate.messageId == messageId;
+      });
+  if (retired != retiredInTransitTsoMessages_.end()) {
+    retiredInTransitTsoMessages_.erase(retired);
+    return FederationTsoDeliveryStatus::message_already_completed;
+  }
   return FederationTsoDeliveryStatus::message_not_in_transit;
 }
 
@@ -327,18 +494,42 @@ FederationTsoSnapshot FederationTimeCoordinator::tsoSnapshotFor(
   if (recipientFederateId == 0 || !recipients_.contains(recipientFederateId)) {
     return result;
   }
+  auto const state = federates_.find(recipientFederateId);
+  auto const time = state == federates_.end() || !state->second
+      ? FederateTimeSnapshot{}
+      : state->second->snapshot();
+  auto isStale = [&time](TsoQueuedMessage const& message) {
+    if (!time.currentTime) {
+      return false;
+    }
+    try {
+      return *message.timestamp < *time.currentTime;
+    } catch (rti1516_2025::Exception const&) {
+      return false;
+    }
+  };
   for (auto const& message : tsoQueue_.pendingMessages()) {
     if (message.recipientFederateId == recipientFederateId) {
-      result.queued.push_back(message);
+      if (!isStale(message)) {
+        result.queued.push_back(message);
+      }
     }
   }
   if (auto const inTransit = inTransitTsoMessages_.find(recipientFederateId);
       inTransit != inTransitTsoMessages_.end()) {
-    result.inTransit = inTransit->second;
+    for (auto const& message : inTransit->second) {
+      if (!isStale(message)) {
+        result.inTransit.push_back(message);
+      }
+    }
   }
   if (auto const delivered = deliveredTsoMessagesSinceLastAdvance_.find(recipientFederateId);
       delivered != deliveredTsoMessagesSinceLastAdvance_.end()) {
-    result.deliveredSinceLastAdvance = delivered->second;
+    for (auto const& message : delivered->second) {
+      if (!isStale(message)) {
+        result.deliveredSinceLastAdvance.push_back(message);
+      }
+    }
   }
   return result;
 }
@@ -401,6 +592,16 @@ std::size_t FederationTimeCoordinator::discardTsoRecipient(
     count += delivered->second.size();
     deliveredTsoMessagesSinceLastAdvance_.erase(delivered);
   }
+  auto const retiredSize = retiredInTransitTsoMessages_.size();
+  retiredInTransitTsoMessages_.erase(
+      std::remove_if(
+          retiredInTransitTsoMessages_.begin(),
+          retiredInTransitTsoMessages_.end(),
+          [recipientFederateId](TsoQueuedMessage const& message) {
+            return message.recipientFederateId == recipientFederateId;
+          }),
+      retiredInTransitTsoMessages_.end());
+  count += retiredSize - retiredInTransitTsoMessages_.size();
   return count;
 }
 

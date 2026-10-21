@@ -252,3 +252,27 @@ TEST_CASE(
   REQUIRE(remaining.front().recipientFederateId == 3);
   REQUIRE(queue.discardRecipient(2) == 0);
 }
+
+TEST_CASE(
+    "Private 2025 TSO queue retires only one recipient's messages strictly below a grant",
+    "[tso][time][unit][time-management][flush-queue-grant]") {
+  umbra::detail::TsoMessageQueue queue(L"HLAinteger64Time");
+  auto const staleFanout = queue.allocateMessageId();
+  auto const equal = queue.allocateMessageId();
+  auto const later = queue.allocateMessageId();
+  REQUIRE(queue.enqueue(staleFanout, 2, integerTime(6)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(queue.enqueue(staleFanout, 3, integerTime(6)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(queue.enqueue(equal, 2, integerTime(7)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(queue.enqueue(later, 2, integerTime(8)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+
+  auto const retired = queue.retireBefore(2, *integerTime(7));
+  REQUIRE(retired.size() == 1U);
+  REQUIRE(retired.front().messageId == staleFanout);
+  REQUIRE(queue.pendingCountFor(2) == 2U);
+  REQUIRE(queue.pendingCountFor(3) == 1U);
+  REQUIRE(queue.pendingCount() == 3U);
+}

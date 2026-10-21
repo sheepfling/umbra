@@ -20,6 +20,26 @@ void scenarioTarQueuedTsoBeforeGrant(Options const&, rti::CallbackModel);
 void scenarioTarQueuedTsoBeforeGrantContract(Options const&, rti::CallbackModel);
 void scenarioNmrLitsBelowGaltImmediateGrant(Options const&, rti::CallbackModel);
 void scenarioNmrLitsBelowGaltImmediateGrantContract(Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedEnableRetainsQueuedTsoAttribute(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedEnableRetainsQueuedTsoAttributeContract(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedInteractionToReceiveOrder(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedInteractionToReceiveOrderContract(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedAttributeToReceiveOrder(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedAttributeToReceiveOrderContract(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedDeletionToReceiveOrder(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedDeletionToReceiveOrderContract(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrder(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
+    Options const&, rti::CallbackModel);
 }
 #include "tck_portable_member_control_scenarios.hpp"
 #include "tck_transport_order_scenarios.hpp"
@@ -31,6 +51,44 @@ void scenarioNmrLitsBelowGaltImmediateGrantContract(Options const&, rti::Callbac
 #include "tck_portable_resignation_ownership.hpp"
 #include "tck_portable_service_report_scenarios.hpp"
 #include "tck_timestamped_interaction_boundary_scenarios.hpp"
+#include "tck_flush_queue_nonlimiting_galt_scenarios.hpp"
+#include "tck_nrg_regulator_resignation.hpp"
+#include "tck_nrg_disabled_regulator_activation.hpp"
+#include "tck_constrained_tar_disable_release.hpp"
+#include "tck_save_active_callback_resignation.hpp"
+#include "tck_timed_save_fqr_callback_resignation.hpp"
+#include "tck_timed_save_tara_callback_resignation.hpp"
+#include "tck_timed_save_nmra_callback_resignation.hpp"
+#include "tck_timed_save_mixed_fqr_tar.hpp"
+#include "tck_timed_save_ordinary_before_fqr.hpp"
+#include "tck_timed_save_all_advance_modes.hpp"
+#include "tck_timed_save_per_member_tso.hpp"
+#include "tck_timed_save_flush_queue_admission.hpp"
+#include "tck_timed_save_available_admission.hpp"
+#include "tck_timed_save_next_message_admission.hpp"
+#include "tck_timed_save_available_next_message_member_admission.hpp"
+#include "tck_timed_save_resigned_constrained_member.hpp"
+#include "tck_restore_pending_flush_queue_request.hpp"
+#include "tck_restore_resignation_callback_lifetime.hpp"
+#include "tck_restore_pending_time_advance.hpp"
+#include "tck_restore_pending_advance_modes.hpp"
+#include "tck_restore_pending_tso_nmr.hpp"
+#include "tck_restore_pending_tso_nmra_attribute.hpp"
+#include "tck_restore_pending_tso_nmra_delete.hpp"
+#include "tck_restore_mixed_tso_four_member.hpp"
+#include "tck_restore_terminal_tso_attribute.hpp"
+#include "tck_restore_terminal_tso_interaction.hpp"
+#include "tck_restore_terminal_tso_directed_interaction.hpp"
+#include "tck_restore_time_window_state.hpp"
+#include "tck_restore_deferred_lookahead.hpp"
+#include "tck_restore_multi_pending_time_advance.hpp"
+#include "tck_restore_pending_flush_queue_immediate.hpp"
+#include "tck_restore_object_snapshot_status.hpp"
+#include "tck_restore_tso_retraction_uniqueness.hpp"
+#include "tck_restore_tso_directed_multi_recipient.hpp"
+#include "tck_restore_live_tso_retraction_record.hpp"
+#include "tck_restore_live_tso_directed_interaction.hpp"
+#include "tck_restore_live_tso_interaction_multi_recipient.hpp"
 #include "tck_joined_federate_mom_updates_sent_mim_attribute.hpp"
 #include "tck_joined_federate_mom_object_instances_updated_mim_attribute.hpp"
 #include "tck_joined_federate_mom_object_instances_reflected_mim_attribute.hpp"
@@ -55,8 +113,9 @@ void scenarioNmrLitsBelowGaltImmediateGrantContract(Options const&, rti::Callbac
 #include "tck_time_coordinated_interaction.hpp"
 #include "tck_empty_attribute_subscription.hpp"
 #include "tck_attribute_subscription_mode_transitions.hpp"
-#include "tck_nmr_future_timestamped_object_deletion.hpp"
-#include "tck_nmra_future_timestamped_object_deletion.hpp"
+#include "tck_portable_scenario_runner.hpp"
+#include "tck_timestamped_attribute_tara_router.hpp"
+#include "tck_timestamped_object_deletion_router.hpp"
 #include "tck_named_update_rate_subscription.hpp"
 #include "tck_default_rate_no_reduction.hpp"
 #include "tck_accumulating_attribute_subscriptions.hpp"
@@ -324,6 +383,10 @@ constexpr char resignDeleteObjectsThenDivestCrossObjectEffectsScenario[] =
     "cpp-tck.resign-delete-objects-then-divest-cross-object-effects";
 constexpr char resignDeleteObjectsThenDivestCrossObjectEffectsContractScenario[] =
     "cpp-tck.resign-delete-objects-then-divest-cross-object-effects-contract";
+constexpr char resignDeleteThenDivestPrivilegeEpochScenario[] =
+    "cpp-tck.resign-delete-then-divest-privilege-epoch";
+constexpr char resignDeleteThenDivestPrivilegeEpochContractScenario[] =
+    "cpp-tck.resign-delete-then-divest-privilege-epoch-contract";
 constexpr char resignUnconditionallyDivestAttributesPreservesObjectsScenario[] =
     "cpp-tck.resign-unconditionally-divest-attributes-preserves-objects";
 constexpr char resignUnconditionallyDivestAttributesPreservesObjectsContractScenario[] =
@@ -400,6 +463,10 @@ constexpr char serviceReportObjectAttributeDeclarationScenario[] =
     "cpp-tck.service-report-object-attribute-declaration";
 constexpr char serviceReportObjectAttributeDeclarationContractScenario[] =
     "cpp-tck.service-report-object-attribute-declaration-contract";
+constexpr char serviceReportAssociateRegionsForUpdatesScenario[] =
+    "cpp-tck.service-report-associate-regions-for-updates";
+constexpr char serviceReportAssociateRegionsForUpdatesContractScenario[] =
+    "cpp-tck.service-report-associate-regions-for-updates-contract";
 constexpr char serviceReportDirectedInteractionDeclarationScenario[] =
     "cpp-tck.service-report-directed-interaction-declaration";
 constexpr char serviceReportDirectedInteractionDeclarationContractScenario[] =
@@ -981,6 +1048,70 @@ constexpr char attributeOwnershipAcquisitionCancellationScenario[] =
     "cpp-tck.attribute-ownership-acquisition-cancellation";
 constexpr char attributeOwnershipAcquisitionCancellationContractId[] =
     "cpp-tck.attribute-ownership-acquisition-cancellation-contract";
+constexpr char negotiatedDivestitureNoAccepterScenario[] =
+    "cpp-tck.negotiated-divestiture-no-accepter";
+constexpr char negotiatedDivestitureNoAccepterContractId[] =
+    "cpp-tck.negotiated-divestiture-no-accepter-contract";
+constexpr char selectiveUnpublicationPendingAcquisitionScenario[] =
+    "cpp-tck.selective-unpublication-pending-acquisition";
+constexpr char selectiveUnpublicationPendingAcquisitionContractId[] =
+    "cpp-tck.selective-unpublication-pending-acquisition-contract";
+constexpr char resignAssumptionLaterPublicationScenario[] =
+    "cpp-tck.resign-assumption-later-publication";
+constexpr char resignAssumptionLaterPublicationContractId[] =
+    "cpp-tck.resign-assumption-later-publication-contract";
+constexpr char ownershipAssumptionSearchAfterDeclineScenario[] =
+    "cpp-tck.ownership-assumption-search-after-decline";
+constexpr char ownershipAssumptionSearchAfterDeclineContractId[] =
+    "cpp-tck.ownership-assumption-search-after-decline-contract";
+constexpr char resignMultiSurvivorAssumptionFanoutScenario[] =
+    "cpp-tck.resign-multi-survivor-assumption-fanout";
+constexpr char resignMultiSurvivorAssumptionFanoutContractId[] =
+    "cpp-tck.resign-multi-survivor-assumption-fanout-contract";
+constexpr char ownershipAssumptionTransferEpochScenario[] =
+    "cpp-tck.ownership-assumption-transfer-epoch";
+constexpr char ownershipAssumptionTransferEpochContractId[] =
+    "cpp-tck.ownership-assumption-transfer-epoch-contract";
+constexpr char resignAssumptionLaterDiscoveryScenario[] =
+    "cpp-tck.resign-assumption-later-discovery";
+constexpr char resignAssumptionLaterDiscoveryContractId[] =
+    "cpp-tck.resign-assumption-later-discovery-contract";
+constexpr char negotiatedDivestitureConcurrentAssumptionScenario[] =
+    "cpp-tck.negotiated-divestiture-concurrent-assumption";
+constexpr char negotiatedDivestitureConcurrentAssumptionContractId[] =
+    "cpp-tck.negotiated-divestiture-concurrent-assumption-contract";
+constexpr char confirmDivestitureFromCallbackScenario[] =
+    "cpp-tck.confirm-divestiture-from-callback";
+constexpr char confirmDivestitureFromCallbackContractId[] =
+    "cpp-tck.confirm-divestiture-from-callback-contract";
+constexpr char confirmDivestitureMixedSetAtomicityScenario[] =
+    "cpp-tck.confirm-divestiture-mixed-set-atomicity";
+constexpr char confirmDivestitureMixedSetAtomicityContractId[] =
+    "cpp-tck.confirm-divestiture-mixed-set-atomicity-contract";
+constexpr char divestitureIfWantedReturnSetScenario[] =
+    "cpp-tck.divestiture-if-wanted-return-set";
+constexpr char divestitureIfWantedReturnSetContractId[] =
+    "cpp-tck.divestiture-if-wanted-return-set-contract";
+constexpr char ifAvailableDuringNegotiatedDivestitureScenario[] =
+    "cpp-tck.if-available-during-negotiated-divestiture";
+constexpr char ifAvailableDuringNegotiatedDivestitureContractId[] =
+    "cpp-tck.if-available-during-negotiated-divestiture-contract";
+constexpr char ifAvailableDeletedObjectScenario[] =
+    "cpp-tck.if-available-deleted-object";
+constexpr char ifAvailableDeletedObjectContractId[] =
+    "cpp-tck.if-available-deleted-object-contract";
+constexpr char ifAvailableOwnershipRestoreScenario[] =
+    "cpp-tck.if-available-ownership-restore-unavailable-callback";
+constexpr char ifAvailableOwnershipRestoreContractId[] =
+    "cpp-tck.if-available-ownership-restore-unavailable-callback-contract";
+constexpr char ownershipAfterFomMergeScenario[] =
+    "cpp-tck.ownership-after-fom-merge";
+constexpr char ownershipAfterFomMergeContractId[] =
+    "cpp-tck.ownership-after-fom-merge-contract";
+constexpr char resignDivestsAllInstanceAttributesScenario[] =
+    "cpp-tck.resign-divests-all-instance-attributes";
+constexpr char resignDivestsAllInstanceAttributesContractId[] =
+    "cpp-tck.resign-divests-all-instance-attributes-contract";
 constexpr char negotiatedDivestitureConfirmationFlowScenario[] =
     "cpp-tck.negotiated-divestiture-confirmation-flow";
 constexpr char negotiatedDivestitureConfirmationFlowContractId[] =
@@ -1143,10 +1274,184 @@ constexpr char timestampedInteractionFlushQueueFutureInputScenario[] =
     "cpp-tck.timestamped-interaction-flush-queue-future-input";
 constexpr char timestampedInteractionFlushQueueFutureInputContractId[] =
     "cpp-tck.timestamped-interaction-flush-queue-future-input-contract";
+constexpr char flushQueueNonlimitingGaltScenario[] =
+    "cpp-tck.flush-queue-grant-optimistic-time-equal-when-galt-nonlimiting";
+constexpr char flushQueueNonlimitingGaltContractId[] =
+    "cpp-tck.flush-queue-grant-optimistic-time-equal-when-galt-nonlimiting-contract";
+constexpr char nrgRegulatorResignationScenario[] =
+    "cpp-tck.nrg-regulator-resignation-releases-constrained-tar";
+constexpr char nrgRegulatorResignationContractId[] =
+    "cpp-tck.nrg-regulator-resignation-releases-constrained-tar-contract";
+constexpr char nrgRegulatorDisableScenario[] =
+    "cpp-tck.nrg-regulator-disable-releases-constrained-tar";
+constexpr char nrgRegulatorDisableContractId[] =
+    "cpp-tck.nrg-regulator-disable-releases-constrained-tar-contract";
+constexpr char nrgDisabledRegulatorActivationScenario[] =
+    "cpp-tck.nrg-disabled-regulator-activation-releases-constrained-tar";
+constexpr char nrgDisabledRegulatorActivationContractId[] =
+    "cpp-tck.nrg-disabled-regulator-activation-releases-constrained-tar-contract";
+constexpr char constrainedTarDisableReleaseScenario[] =
+    "cpp-tck.constrained-tar-disable-releases-pending-grant";
+constexpr char constrainedTarDisableReleaseContractId[] =
+    "cpp-tck.constrained-tar-disable-releases-pending-grant-contract";
+constexpr char saveActiveCallbackResignationScenario[] =
+    "cpp-tck.save-active-callback-resignation-guard";
+constexpr char saveActiveCallbackResignationContractId[] =
+    "cpp-tck.save-active-callback-resignation-guard-contract";
+constexpr char timedSaveActiveCallbackResignationScenario[] =
+    "cpp-tck.timed-save-active-callback-resignation-guard";
+constexpr char timedSaveActiveCallbackResignationContractId[] =
+    "cpp-tck.timed-save-active-callback-resignation-guard-contract";
+constexpr char timedSaveFqrCallbackResignationScenario[] =
+    "cpp-tck.timed-save-fqr-active-callback-resignation-guard";
+constexpr char timedSaveFqrCallbackResignationContractId[] =
+    "cpp-tck.timed-save-fqr-active-callback-resignation-guard-contract";
+constexpr char timedSaveTaraCallbackResignationScenario[] =
+    "cpp-tck.timed-save-tara-active-callback-resignation-guard";
+constexpr char timedSaveTaraCallbackResignationContractId[] =
+    "cpp-tck.timed-save-tara-active-callback-resignation-guard-contract";
+constexpr char timedSaveNmraCallbackResignationScenario[] =
+    "cpp-tck.timed-save-nmra-active-callback-resignation-guard";
+constexpr char timedSaveNmraCallbackResignationContractId[] =
+    "cpp-tck.timed-save-nmra-active-callback-resignation-guard-contract";
+constexpr char timedSaveMixedFqrTarScenario[] =
+    "cpp-tck.timed-save-mixed-fqr-tar-members";
+constexpr char timedSaveMixedFqrTarContractId[] =
+    "cpp-tck.timed-save-mixed-fqr-tar-members-contract";
+constexpr char timedSaveOrdinaryBeforeFqrScenario[] =
+    "cpp-tck.timed-save-ordinary-boundary-before-fqr";
+constexpr char timedSaveOrdinaryBeforeFqrContractId[] =
+    "cpp-tck.timed-save-ordinary-boundary-before-fqr-contract";
+constexpr char timedSaveAllAdvanceModesScenario[] =
+    "cpp-tck.timed-save-all-advance-modes";
+constexpr char timedSaveAllAdvanceModesContractId[] =
+    "cpp-tck.timed-save-all-advance-modes-contract";
+constexpr char timedSavePerMemberTsoScenario[] =
+    "cpp-tck.timed-save-per-member-tso";
+constexpr char timedSavePerMemberTsoContractId[] =
+    "cpp-tck.timed-save-per-member-tso-contract";
+constexpr char timedSaveFlushQueueAdmissionScenario[] =
+    "cpp-tck.timed-save-flush-queue-admission";
+constexpr char timedSaveFlushQueueAdmissionContractId[] =
+    "cpp-tck.timed-save-flush-queue-admission-contract";
+constexpr char timedSaveAvailableAdmissionScenario[] =
+    "cpp-tck.timed-save-available-admission";
+constexpr char timedSaveAvailableAdmissionContractId[] =
+    "cpp-tck.timed-save-available-admission-contract";
+constexpr char timedSaveNextMessageAdmissionScenario[] =
+    "cpp-tck.timed-save-next-message-admission";
+constexpr char timedSaveNextMessageAdmissionContractId[] =
+    "cpp-tck.timed-save-next-message-admission-contract";
+constexpr char timedSaveAvailableNextMessageMemberAdmissionScenario[] =
+    "cpp-tck.timed-save-available-next-message-member-admission";
+constexpr char timedSaveAvailableNextMessageMemberAdmissionContractId[] =
+    "cpp-tck.timed-save-available-next-message-member-admission-contract";
+constexpr char timedSaveResignedConstrainedMemberScenario[] =
+    "cpp-tck.timed-save-resigned-constrained-member";
+constexpr char timedSaveResignedConstrainedMemberContractId[] =
+    "cpp-tck.timed-save-resigned-constrained-member-contract";
+constexpr char timedSaveResignedPendingFqrScenario[] =
+    "cpp-tck.timed-save-resigned-pending-fqr";
+constexpr char timedSaveResignedPendingFqrContractId[] =
+    "cpp-tck.timed-save-resigned-pending-fqr-contract";
+constexpr char restorePendingFlushQueueRequestScenario[] =
+    "cpp-tck.restore-pending-flush-queue-request";
+constexpr char restorePendingFlushQueueRequestContractId[] =
+    "cpp-tck.restore-pending-flush-queue-request-contract";
+constexpr char restoreResignationCallbackLifetimeScenario[] =
+    "cpp-tck.restore-resignation-callback-lifetime";
+constexpr char restoreResignationCallbackLifetimeContractId[] =
+    "cpp-tck.restore-resignation-callback-lifetime-contract";
+constexpr char restorePendingTimeAdvanceScenario[] =
+    "cpp-tck.restore-pending-time-advance";
+constexpr char restorePendingTimeAdvanceContractId[] =
+    "cpp-tck.restore-pending-time-advance-contract";
+constexpr char restorePendingTimeAdvanceImmediateScenario[] =
+    "cpp-tck.restore-pending-time-advance-immediate";
+constexpr char restorePendingTimeAdvanceImmediateContractId[] =
+    "cpp-tck.restore-pending-time-advance-immediate-contract";
+constexpr char restorePendingAdvanceModesScenario[] =
+    "cpp-tck.restore-pending-advance-modes";
+constexpr char restorePendingAdvanceModesContractId[] =
+    "cpp-tck.restore-pending-advance-modes-contract";
+constexpr char restorePendingTsoNmrScenario[] =
+    "cpp-tck.restore-pending-tso-nmr";
+constexpr char restorePendingTsoNmrContractId[] =
+    "cpp-tck.restore-pending-tso-nmr-contract";
+constexpr char restorePendingTsoNmraScenario[] =
+    "cpp-tck.restore-pending-tso-nmra";
+constexpr char restorePendingTsoNmraContractId[] =
+    "cpp-tck.restore-pending-tso-nmra-contract";
+constexpr char restorePendingTsoNmraAttributeScenario[] =
+    "cpp-tck.restore-pending-tso-nmra-attribute-update";
+constexpr char restorePendingTsoNmraAttributeContractId[] =
+    "cpp-tck.restore-pending-tso-nmra-attribute-update-contract";
+constexpr char restorePendingTsoNmraDeleteScenario[] =
+    "cpp-tck.restore-pending-tso-nmra-delete";
+constexpr char restorePendingTsoNmraDeleteContractId[] =
+    "cpp-tck.restore-pending-tso-nmra-delete-contract";
+constexpr char restoreMixedTsoFourMemberScenario[] =
+    "cpp-tck.restore-mixed-tso-four-member";
+constexpr char restoreMixedTsoFourMemberContractId[] =
+    "cpp-tck.restore-mixed-tso-four-member-contract";
+constexpr char restoreTerminalTsoAttributeScenario[] =
+    "cpp-tck.restore-terminal-tso-attribute";
+constexpr char restoreTerminalTsoAttributeContractId[] =
+    "cpp-tck.restore-terminal-tso-attribute-contract";
+constexpr char restoreTerminalTsoInteractionScenario[] =
+    "cpp-tck.restore-terminal-tso-interaction";
+constexpr char restoreTerminalTsoInteractionContractId[] =
+    "cpp-tck.restore-terminal-tso-interaction-contract";
+constexpr char restoreTerminalTsoDirectedInteractionScenario[] =
+    "cpp-tck.restore-terminal-tso-directed-interaction";
+constexpr char restoreTerminalTsoDirectedInteractionContractId[] =
+    "cpp-tck.restore-terminal-tso-directed-interaction-contract";
+constexpr char restoreTsoRetractionUniquenessScenario[] =
+    "cpp-tck.restore-tso-retraction-uniqueness";
+constexpr char restoreTsoRetractionUniquenessContractId[] =
+    "cpp-tck.restore-tso-retraction-uniqueness-contract";
+constexpr char restoreTsoDirectedMultiRecipientScenario[] =
+    "cpp-tck.restore-tso-directed-multi-recipient";
+constexpr char restoreTsoDirectedMultiRecipientContractId[] =
+    "cpp-tck.restore-tso-directed-multi-recipient-contract";
+constexpr char restoreLiveTsoRetractionRecordScenario[] =
+    "cpp-tck.restore-live-tso-retraction-record";
+constexpr char restoreLiveTsoRetractionRecordContractId[] =
+    "cpp-tck.restore-live-tso-retraction-record-contract";
+constexpr char restoreLiveTsoDirectedInteractionScenario[] =
+    "cpp-tck.restore-live-tso-directed-interaction";
+constexpr char restoreLiveTsoDirectedInteractionContractId[] =
+    "cpp-tck.restore-live-tso-directed-interaction-contract";
+constexpr char restoreLiveTsoInteractionMultiRecipientScenario[] =
+    "cpp-tck.restore-live-tso-interaction-multi-recipient";
+constexpr char restoreLiveTsoInteractionMultiRecipientContractId[] =
+    "cpp-tck.restore-live-tso-interaction-multi-recipient-contract";
+constexpr char restoreTimeWindowStateScenario[] =
+    "cpp-tck.restore-time-window-state";
+constexpr char restoreTimeWindowStateContractId[] =
+    "cpp-tck.restore-time-window-state-contract";
+constexpr char restoreDeferredLookaheadScenario[] =
+    "cpp-tck.restore-deferred-lookahead";
+constexpr char restoreDeferredLookaheadContractId[] =
+    "cpp-tck.restore-deferred-lookahead-contract";
+constexpr char restoreMultiPendingTimeAdvanceScenario[] =
+    "cpp-tck.restore-multi-pending-time-advance";
+constexpr char restoreMultiPendingTimeAdvanceContractId[] =
+    "cpp-tck.restore-multi-pending-time-advance-contract";
+constexpr char restorePendingFlushQueueImmediateScenario[] =
+    "cpp-tck.restore-pending-flush-queue-immediate";
+constexpr char restorePendingFlushQueueImmediateContractId[] =
+    "cpp-tck.restore-pending-flush-queue-immediate-contract";
+constexpr char restoreObjectSnapshotStatusScenario[] =
+    "cpp-tck.restore-object-snapshot-status";
+constexpr char restoreObjectSnapshotStatusContractId[] =
+    "cpp-tck.restore-object-snapshot-status-contract";
 constexpr char fqrPostgrantLowerTsoRetractionScenario[] =
     "cpp-tck.fqr-postgrant-lower-tso-retraction";
 constexpr char fqrPostgrantLowerTsoRetractionContractId[] =
     "cpp-tck.fqr-postgrant-lower-tso-retraction-contract";
+constexpr char fqrNonTimeConstrainedInTransitTsoScenario[] =
+    "cpp-tck.fqr-non-time-constrained-in-transit-tso";
 constexpr char fqgPostgrantDeliveryCutoffScenario[] =
     "cpp-tck.fqg-postgrant-delivery-cutoff";
 constexpr char fqgPostgrantDeliveryCutoffContractId[] =
@@ -1227,6 +1532,14 @@ constexpr char nmraNoPregrantTsoFloorScenario[] =
     "cpp-tck.nmra-no-pregrant-tso-floor";
 constexpr char nmraNoPregrantTsoFloorContractId[] =
     "cpp-tck.nmra-no-pregrant-tso-floor-contract";
+constexpr char nmraReceivedTsoActualLookaheadFloorScenario[] =
+    "cpp-tck.nmra-received-tso-actual-lookahead-floor";
+constexpr char nmraReceivedTsoActualLookaheadFloorContractId[] =
+    "cpp-tck.nmra-received-tso-actual-lookahead-floor-contract";
+constexpr char nmraRoEarliestTsoCohortScenario[] =
+    "cpp-tck.nmra-ro-earliest-tso-cohort";
+constexpr char nmraRoEarliestTsoCohortContractId[] =
+    "cpp-tck.nmra-ro-earliest-tso-cohort-contract";
 constexpr char sendMessageTimeStatePreservationGrantedScenario[] =
     "cpp-tck.send-message-time-state-preservation-granted";
 constexpr char sendMessageTimeStatePreservationGrantedContractId[] =
@@ -1235,10 +1548,46 @@ constexpr char availableTimeAdvancesInclusiveGaltScenario[] =
     "cpp-tck.available-time-advances-inclusive-galt";
 constexpr char availableTimeAdvancesInclusiveGaltContractId[] =
     "cpp-tck.available-time-advances-inclusive-galt-contract";
+constexpr char tarAcknowledgedTsoGaltReleaseScenario[] =
+    "cpp-tck.tar-acknowledged-tso-galt-release";
+constexpr char tarAcknowledgedTsoGaltReleaseContractId[] =
+    "cpp-tck.tar-acknowledged-tso-galt-release-contract";
 constexpr char timeConstrainedEnableAtGaltEqualityScenario[] =
     "cpp-tck.time-constrained-enable-galt-equality";
 constexpr char timeConstrainedEnableAtGaltEqualityContractId[] =
     "cpp-tck.time-constrained-enable-galt-equality-contract";
+constexpr char timeConstrainedEnableRegulatingFederateCurrentTimeScenario[] =
+    "cpp-tck.time-constrained-enable-regulating-federate-current-time";
+constexpr char timeConstrainedEnableRegulatingFederateCurrentTimeContractId[] =
+    "cpp-tck.time-constrained-enable-regulating-federate-current-time-contract";
+constexpr char timeConstrainedEnableRetainsQueuedTsoScenario[] =
+    "cpp-tck.time-constrained-enable-retains-queued-tso";
+constexpr char timeConstrainedEnableRetainsQueuedTsoContractId[] =
+    "cpp-tck.time-constrained-enable-retains-queued-tso-contract";
+constexpr char timeConstrainedEnableRetainsQueuedTsoAttributeScenario[] =
+    "cpp-tck.time-constrained-enable-retains-queued-tso-attribute";
+constexpr char timeConstrainedEnableRetainsQueuedTsoAttributeContractId[] =
+    "cpp-tck.time-constrained-enable-retains-queued-tso-attribute-contract";
+constexpr char timeConstrainedEnableReceiveOrderBoundaryScenario[] =
+    "cpp-tck.time-constrained-enable-receive-order-boundary";
+constexpr char timeConstrainedEnableReceiveOrderBoundaryContractId[] =
+    "cpp-tck.time-constrained-enable-receive-order-boundary-contract";
+constexpr char timeConstrainedDisableQueuedInteractionToReceiveOrderScenario[] =
+    "cpp-tck.time-constrained-disable-queued-interaction-to-ro";
+constexpr char timeConstrainedDisableQueuedInteractionToReceiveOrderContractId[] =
+    "cpp-tck.time-constrained-disable-queued-interaction-to-ro-contract";
+constexpr char timeConstrainedDisableQueuedAttributeToReceiveOrderScenario[] =
+    "cpp-tck.time-constrained-disable-queued-attribute-to-ro";
+constexpr char timeConstrainedDisableQueuedAttributeToReceiveOrderContractId[] =
+    "cpp-tck.time-constrained-disable-queued-attribute-to-ro-contract";
+constexpr char timeConstrainedDisableQueuedDeletionToReceiveOrderScenario[] =
+    "cpp-tck.time-constrained-disable-queued-deletion-to-ro";
+constexpr char timeConstrainedDisableQueuedDeletionToReceiveOrderContractId[] =
+    "cpp-tck.time-constrained-disable-queued-deletion-to-ro-contract";
+constexpr char timeConstrainedDisableQueuedDirectedToReceiveOrderScenario[] =
+    "cpp-tck.time-constrained-disable-queued-directed-to-ro";
+constexpr char timeConstrainedDisableQueuedDirectedToReceiveOrderContractId[] =
+    "cpp-tck.time-constrained-disable-queued-directed-to-ro-contract";
 constexpr char timeRegulationImplicitAdvanceScenario[] =
     "cpp-tck.time-regulation-implicit-advance";
 constexpr char timeRegulationImplicitAdvanceContractId[] =
@@ -1273,6 +1622,18 @@ constexpr char timestampedInteractionTaraEqualBoundaryScenario[] =
     "cpp-tck.timestamped-interaction-tara-equal-boundary";
 constexpr char timestampedInteractionTaraEqualBoundaryContractId[] =
     "cpp-tck.timestamped-interaction-tara-equal-boundary-contract";
+constexpr char timestampedInteractionTaraQueuedEqualBoundaryScenario[] =
+    "cpp-tck.timestamped-interaction-tara-queued-equal-boundary";
+constexpr char timestampedInteractionTaraQueuedEqualBoundaryContractId[] =
+    "cpp-tck.timestamped-interaction-tara-queued-equal-boundary-contract";
+constexpr char timestampedInteractionZeroLookaheadSendAtGrantScenario[] =
+    "cpp-tck.timestamped-interaction-zero-lookahead-send-at-grant";
+constexpr char timestampedInteractionZeroLookaheadSendAtGrantContractId[] =
+    "cpp-tck.timestamped-interaction-zero-lookahead-send-at-grant-contract";
+constexpr char timestampedInteractionZeroLookaheadTarSendBoundaryScenario[] =
+    "cpp-tck.timestamped-interaction-zero-lookahead-tar-send-boundary";
+constexpr char timestampedInteractionZeroLookaheadTarSendBoundaryContractId[] =
+    "cpp-tck.timestamped-interaction-zero-lookahead-tar-send-boundary-contract";
 constexpr char timestampedInteractionTarEqualBoundaryScenario[] =
     "cpp-tck.timestamped-interaction-tar-equal-boundary";
 constexpr char timestampedInteractionTarEqualBoundaryContractId[] =
@@ -1281,10 +1642,6 @@ constexpr char timestampedInteractionTarPostGrantCutoffScenario[] =
     "cpp-tck.timestamped-interaction-tar-post-grant-cutoff";
 constexpr char timestampedInteractionTarPostGrantCutoffContractId[] =
     "cpp-tck.timestamped-interaction-tar-post-grant-cutoff-contract";
-constexpr char timestampedAttributeTarPostGrantCutoffScenario[] =
-    "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff";
-constexpr char timestampedAttributeTarPostGrantCutoffContractId[] =
-    "cpp-tck.timestamped-attribute-update-tar-post-grant-cutoff-contract";
 constexpr char timestampedAttributeTimeAdvancingCutoffScenario[] =
     "cpp-tck.timestamped-attribute-update-time-advancing-cutoff";
 constexpr char timestampedAttributeTimeAdvancingCutoffContractId[] =
@@ -1309,14 +1666,6 @@ constexpr char timestampedObjectDeletionMixedAdvancesScenario[] =
     "cpp-tck.timestamped-object-deletion-mixed-advances";
 constexpr char timestampedObjectDeletionMixedAdvancesContractId[] =
     "cpp-tck.timestamped-object-deletion-mixed-advances-contract";
-constexpr char timestampedObjectDeletionFutureNmrArrivalScenario[] =
-    "cpp-tck.timestamped-object-deletion-future-nmr-arrival";
-constexpr char timestampedObjectDeletionFutureNmrArrivalContractId[] =
-    "cpp-tck.timestamped-object-deletion-future-nmr-arrival-contract";
-constexpr char timestampedObjectDeletionFutureNmraArrivalScenario[] =
-    "cpp-tck.timestamped-object-deletion-future-nmra-arrival";
-constexpr char timestampedObjectDeletionFutureNmraArrivalContractId[] =
-    "cpp-tck.timestamped-object-deletion-future-nmra-arrival-contract";
 constexpr char timestampedDirectedInteractionTarNmrScenario[] =
     "cpp-tck.timestamped-directed-interaction-tar-nmr";
 constexpr char timestampedDirectedInteractionTarNmrContractId[] =
@@ -3343,18 +3692,6 @@ void scenarioTimestampedAttributeUpdateContractPortable(
   scenarioTimestampedAttributeUpdateContract(options, model);
 }
 
-void scenarioTimestampedAttributeUpdateTarPostGrantCutoffPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioTimestampedAttributeUpdateTarPostGrantCutoff(options, model);
-}
-
-void scenarioTimestampedAttributeUpdateTarPostGrantCutoffContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioTimestampedAttributeUpdateTarPostGrantCutoffContract(options, model);
-}
-
 void scenarioTimestampedAttributeUpdateTimeAdvancingCutoffPortable(
     Options const& options,
     rti::CallbackModel model) {
@@ -3851,6 +4188,30 @@ void scenarioNmraNoPregrantTsoFloorContractPortable(
   scenarioNmraNoPregrantTsoFloorContract(options, model);
 }
 
+void scenarioNmraReceivedTsoActualLookaheadFloorPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmraReceivedTsoActualLookaheadFloor(options, model);
+}
+
+void scenarioNmraReceivedTsoActualLookaheadFloorContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmraReceivedTsoActualLookaheadFloorContract(options, model);
+}
+
+void scenarioNmraQueuedRoAndEarliestTsoCohortPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmraQueuedRoAndEarliestTsoCohort(options, model);
+}
+
+void scenarioNmraQueuedRoAndEarliestTsoCohortContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNmraQueuedRoAndEarliestTsoCohortContract(options, model);
+}
+
 void scenarioSendMessageTimeStatePreservationGrantedPortable(
     Options const& options, rti::CallbackModel model) {
   scenarioSendMessageTimeStatePreservationGranted(options, model);
@@ -3873,6 +4234,18 @@ void scenarioAvailableTimeAdvancesInclusiveGaltContractPortable(
   scenarioAvailableTimeAdvancesInclusiveGaltContract(options, model);
 }
 
+void scenarioTarAcknowledgedTsoGaltReleasePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTarAcknowledgedTsoGaltRelease(options, model);
+}
+
+void scenarioTarAcknowledgedTsoGaltReleaseContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTarAcknowledgedTsoGaltReleaseContract(options, model);
+}
+
 void scenarioTimeConstrainedEnableAtGaltEqualityPortable(
     Options const& options,
     rti::CallbackModel model) {
@@ -3883,6 +4256,102 @@ void scenarioTimeConstrainedEnableAtGaltEqualityContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimeConstrainedEnableAtGaltEqualityContract(options, model);
+}
+
+void scenarioTimeConstrainedEnableRegulatingFederateCurrentTimePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedEnableRegulatingFederateCurrentTime(options, model);
+}
+
+void scenarioTimeConstrainedEnableRegulatingFederateCurrentTimeContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedEnableRegulatingFederateCurrentTimeContract(options, model);
+}
+
+void scenarioTimeConstrainedEnableRetainsQueuedTsoPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedEnableRetainsQueuedTso(options, model);
+}
+
+void scenarioTimeConstrainedEnableRetainsQueuedTsoContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedEnableRetainsQueuedTsoContract(options, model);
+}
+
+void scenarioTimeConstrainedEnableRetainsQueuedTsoAttributePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedEnableRetainsQueuedTsoAttribute(options, model);
+}
+
+void scenarioTimeConstrainedEnableRetainsQueuedTsoAttributeContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedEnableRetainsQueuedTsoAttributeContract(options, model);
+}
+
+void scenarioTimeConstrainedEnableReceiveOrderBoundaryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedEnableReceiveOrderBoundary(options, model);
+}
+
+void scenarioTimeConstrainedEnableReceiveOrderBoundaryContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedEnableReceiveOrderBoundaryContract(options, model);
+}
+
+void scenarioTimeConstrainedDisableQueuedInteractionToReceiveOrderPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedDisableQueuedInteractionToReceiveOrder(options, model);
+}
+
+void scenarioTimeConstrainedDisableQueuedInteractionToReceiveOrderContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedDisableQueuedInteractionToReceiveOrderContract(options, model);
+}
+
+void scenarioTimeConstrainedDisableQueuedAttributeToReceiveOrderPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedDisableQueuedAttributeToReceiveOrder(options, model);
+}
+
+void scenarioTimeConstrainedDisableQueuedAttributeToReceiveOrderContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedDisableQueuedAttributeToReceiveOrderContract(options, model);
+}
+
+void scenarioTimeConstrainedDisableQueuedDeletionToReceiveOrderPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedDisableQueuedDeletionToReceiveOrder(options, model);
+}
+
+void scenarioTimeConstrainedDisableQueuedDeletionToReceiveOrderContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedDisableQueuedDeletionToReceiveOrderContract(options, model);
+}
+
+void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrder(options, model);
+}
+
+void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(options, model);
 }
 
 void scenarioTimeRegulationImplicitAdvancePortable(
@@ -4118,30 +4587,6 @@ void scenarioTimestampedObjectDeletionMixedAdvancesContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedObjectDeletionMixedAdvancesContract(options, model);
-}
-
-void scenarioTimestampedObjectDeletionFutureNmrArrivalPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrFutureTimestampedObjectDeletion(options, model);
-}
-
-void scenarioTimestampedObjectDeletionFutureNmrArrivalContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrFutureTimestampedObjectDeletionContract(options, model);
-}
-
-void scenarioTimestampedObjectDeletionFutureNmraArrivalPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmraFutureTimestampedObjectDeletion(options, model);
-}
-
-void scenarioTimestampedObjectDeletionFutureNmraArrivalContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmraFutureTimestampedObjectDeletionContract(options, model);
 }
 
 void scenarioTimestampedDirectedInteractionTarNmrPortable(
@@ -11058,9 +11503,18 @@ void scenarioOwnershipAcquisitionIfAvailable(
   auto const requesterAttribute = requester.rtiAmbassador().getAttributeHandle(
       requesterClass,
       options.attributeName);
+  auto const requesterSecondaryAttribute = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.secondaryAttributeName);
+  auto const ownerSecondaryAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.secondaryAttributeName);
   require(
       ownerClass.isValid() && requesterClass.isValid() &&
-          ownerAttribute.isValid() && requesterAttribute.isValid(),
+          ownerAttribute.isValid() && ownerSecondaryAttribute.isValid() &&
+          requesterAttribute.isValid() &&
+          requesterSecondaryAttribute.isValid() &&
+          requesterSecondaryAttribute != requesterAttribute,
       "If Available ownership-acquisition lookup returned an invalid standard handle");
 
   rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
@@ -11108,6 +11562,52 @@ void scenarioOwnershipAcquisitionIfAvailable(
               requesterAttribute),
       "If Available ownership-acquisition did not establish the standard initial ownership state");
 
+  rti::ObjectInstanceHandle const unknownObject;
+  rti::AttributeHandle const undefinedAttribute;
+  rti::VariableLengthData const preconditionTag;
+  requireException(
+      [&] {
+        requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+            unavailableObject,
+            rti::AttributeHandleSet{requesterSecondaryAttribute},
+            preconditionTag);
+      },
+      L"AttributeNotPublished",
+      "requesting If Available ownership for an unpublished attribute");
+  requireException(
+      [&] {
+        requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+            unknownObject,
+            requesterAttributes,
+            preconditionTag);
+      },
+      L"ObjectInstanceNotKnown",
+      "requesting If Available ownership for an unknown object instance");
+  requireException(
+      [&] {
+        requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+            unavailableObject,
+            rti::AttributeHandleSet{undefinedAttribute},
+            preconditionTag);
+      },
+      L"AttributeNotDefined",
+      "requesting If Available ownership for an undefined attribute");
+  requester.rtiAmbassador().unpublishObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+  requireException(
+      [&] {
+        requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+            unavailableObject,
+            requesterAttributes,
+            preconditionTag);
+      },
+      L"ObjectClassNotPublished",
+      "requesting If Available ownership without class publication");
+  requester.rtiAmbassador().publishObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+
   std::vector<std::uint8_t> const unavailableTagBytes{
       0x51U,
       0xA7U,
@@ -11115,16 +11615,29 @@ void scenarioOwnershipAcquisitionIfAvailable(
   rti::VariableLengthData const unavailableTag(
       unavailableTagBytes.data(),
       unavailableTagBytes.size());
+  owner.recorder().clearOwnershipRecords();
   requester.recorder().clearOwnershipRecords();
   requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
       unavailableObject,
       requesterAttributes,
       unavailableTag);
+  if (model == rti::HLA_EVOKED) {
+    requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+        unavailableObject,
+        requesterAttributes,
+        unavailableTag);
+  }
   waitFor(
       requester,
       [&] { return requester.recorder().ownershipUnavailable().has_value(); },
       options,
       "If Available ownership-acquisition unavailable callback");
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(requester.evokeMultipleCallbacks(0.0, 0.0));
+    require(
+        requester.recorder().ownershipUnavailableEvents().size() == 1U,
+        "repeating a pending If Available request produced another unavailable callback");
+  }
   auto const unavailable = requester.recorder().ownershipUnavailable();
   require(
       unavailable->object == unavailableObject &&
@@ -11140,6 +11653,12 @@ void scenarioOwnershipAcquisitionIfAvailable(
               unavailableObject,
               requesterAttribute),
       "If Available ownership-acquisition unavailable changed ownership");
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(owner.evokeMultipleCallbacks(0.0, 0.0));
+  }
+  require(
+      !owner.recorder().ownershipReleaseRequest().has_value(),
+      "If Available ownership-acquisition unavailable requested owner release");
 
   std::vector<std::uint8_t> const acquisitionTagBytes{
       0x3CU,
@@ -11205,6 +11724,94 @@ void scenarioOwnershipAcquisitionIfAvailable(
           availableObject,
           requesterAttribute),
       "If Available ownership-acquisition cleanup did not release the transferred attribute");
+
+  if (model == rti::HLA_EVOKED) {
+    rti::AttributeHandleSet const requesterSecondaryOnly{requesterSecondaryAttribute};
+    rti::AttributeHandleSet const requesterBoth{
+        requesterAttribute,
+        requesterSecondaryAttribute};
+    requester.rtiAmbassador().publishObjectClassAttributes(
+        requesterClass,
+        requesterBoth);
+    auto const mixedObject = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+    waitFor(
+        requester,
+        [&] { return requester.recorder().hasDiscovery(mixedObject); },
+        options,
+        "If Available mixed-repeat object discovery");
+    owner.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+        mixedObject,
+        ownerAttributes,
+        rti::VariableLengthData{});
+    require(
+        !owner.rtiAmbassador().isAttributeOwnedByFederate(
+            mixedObject,
+            ownerAttribute) &&
+            !owner.rtiAmbassador().isAttributeOwnedByFederate(
+                mixedObject,
+                ownerSecondaryAttribute),
+        "If Available mixed-repeat setup did not leave both attributes unowned");
+
+    requester.recorder().clearOwnershipRecords();
+    requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+        mixedObject,
+        requesterAttributes,
+        acquisitionTag);
+    requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+        mixedObject,
+        requesterBoth,
+        acquisitionTag);
+    waitFor(
+        requester,
+        [&] { return requester.recorder().ownershipAcquisition().has_value(); },
+        options,
+        "If Available mixed-repeat first acquisition notification");
+    auto const firstMixed = requester.recorder().ownershipAcquisition();
+    require(
+        firstMixed->object == mixedObject &&
+            firstMixed->tag == acquisitionTagBytes &&
+            (firstMixed->attributes == requesterAttributes ||
+             firstMixed->attributes == requesterSecondaryOnly ||
+             firstMixed->attributes == requesterBoth) &&
+            !requester.recorder().ownershipUnavailable().has_value(),
+        "If Available mixed-repeat first callback returned unexpected metadata");
+    if (firstMixed->attributes != requesterBoth) {
+      requester.recorder().clearOwnershipRecords();
+      waitFor(
+          requester,
+          [&] { return requester.recorder().ownershipAcquisition().has_value(); },
+          options,
+          "If Available mixed-repeat second acquisition notification");
+      auto const secondMixed = requester.recorder().ownershipAcquisition();
+      require(
+          secondMixed->object == mixedObject &&
+              secondMixed->tag == acquisitionTagBytes &&
+              secondMixed->attributes ==
+                  (firstMixed->attributes == requesterAttributes
+                       ? requesterSecondaryOnly
+                       : requesterAttributes) &&
+              !requester.recorder().ownershipUnavailable().has_value(),
+          "If Available mixed-repeat second callback did not report the new attribute");
+    }
+    require(
+        requester.rtiAmbassador().isAttributeOwnedByFederate(
+            mixedObject,
+            requesterAttribute) &&
+            requester.rtiAmbassador().isAttributeOwnedByFederate(
+                mixedObject,
+                requesterSecondaryAttribute),
+        "If Available mixed repeat did not acquire both eligible attributes");
+    requester.recorder().clearOwnershipRecords();
+    static_cast<void>(requester.evokeMultipleCallbacks(0.0, 0.0));
+    require(
+        !requester.recorder().ownershipAcquisition().has_value() &&
+            !requester.recorder().ownershipUnavailable().has_value(),
+        "If Available mixed repeat produced an extra terminal callback");
+    requester.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+        mixedObject,
+        requesterBoth,
+        rti::VariableLengthData{});
+  }
   requester.resign(rti::DELETE_OBJECTS);
   owner.resign(rti::DELETE_OBJECTS);
   owner.rtiAmbassador().destroyFederationExecution(federation);
@@ -11239,19 +11846,43 @@ void scenarioAttributeOwnershipAcquisitionCancellation(
   auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
       ownerClass,
       options.typedIdentityAttributeName);
+  auto const ownerSecondAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.typedIntegerAttributeName);
   auto const requesterAttribute = requester.rtiAmbassador().getAttributeHandle(
       requesterClass,
       options.typedIdentityAttributeName);
+  auto const requesterSecondAttribute = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.typedIntegerAttributeName);
   require(
       ownerClass.isValid() && requesterClass.isValid() &&
-          ownerAttribute.isValid() && requesterAttribute.isValid(),
+          ownerAttribute.isValid() && ownerSecondAttribute.isValid() &&
+          requesterAttribute.isValid() && requesterSecondAttribute.isValid() &&
+          ownerAttribute != ownerSecondAttribute &&
+          requesterAttribute != requesterSecondAttribute,
       "Attribute ownership-acquisition cancellation lookup returned an invalid standard handle");
 
-  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
-  rti::AttributeHandleSet const requesterAttributes{requesterAttribute};
+  rti::AttributeHandleSet const ownerAttributes{
+      ownerAttribute, ownerSecondAttribute};
+  rti::AttributeHandleSet const requesterAttributes{
+      requesterAttribute, requesterSecondAttribute};
   owner.rtiAmbassador().publishObjectClassAttributes(
       ownerClass,
       ownerAttributes);
+  auto const undiscoveredObject =
+      owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      undiscoveredObject.isValid(),
+      "Ownership-cancellation unknown-object setup returned an invalid handle");
+  requireException(
+      [&] {
+        requester.rtiAmbassador().cancelAttributeOwnershipAcquisition(
+            undiscoveredObject,
+            requesterAttributes);
+      },
+      L"ObjectInstanceNotKnown",
+      "canceling acquisition for an object not discovered by this federate");
   requester.rtiAmbassador().subscribeObjectClassAttributes(
       requesterClass,
       requesterAttributes,
@@ -11294,6 +11925,19 @@ void scenarioAttributeOwnershipAcquisitionCancellation(
       L"AttributeAlreadyOwned",
       "canceling an ownership acquisition for an owned attribute");
 
+  requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+      object,
+      requesterAttributes,
+      acquisitionTag);
+  requireException(
+      [&] {
+        requester.rtiAmbassador().cancelAttributeOwnershipAcquisition(
+            object,
+            requesterAttributes);
+      },
+      L"AttributeAcquisitionWasNotRequested",
+      "canceling an If Available request as a regular acquisition");
+
   requester.rtiAmbassador().attributeOwnershipAcquisition(
       object,
       requesterAttributes,
@@ -11301,6 +11945,29 @@ void scenarioAttributeOwnershipAcquisitionCancellation(
   requester.rtiAmbassador().cancelAttributeOwnershipAcquisition(
       object,
       requesterAttributes);
+  if (model == rti::HLA_EVOKED) {
+    requireException(
+        [&] {
+          requester.rtiAmbassador().unpublishObjectClassAttributes(
+              requesterClass,
+              requesterAttributes);
+        },
+        L"OwnershipAcquisitionPending",
+        "unpublishing before ownership-cancellation confirmation");
+    requireException(
+        [&] {
+          requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+              object,
+              requesterAttributes,
+              acquisitionTag);
+        },
+        L"AttributeAlreadyBeingAcquired",
+        "requesting If Available while regular cancellation is pending");
+    static_cast<void>(owner.evokeMultipleCallbacks(0.0, 0.0));
+    require(
+        !owner.recorder().ownershipReleaseRequest().has_value(),
+        "canceled acquisition delivered a stale owner-side release request");
+  }
   waitFor(
       requester,
       [&] {
@@ -11319,10 +11986,29 @@ void scenarioAttributeOwnershipAcquisitionCancellation(
           owner.rtiAmbassador().isAttributeOwnedByFederate(
               object,
               ownerAttribute) &&
+          owner.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              ownerSecondAttribute) &&
           !requester.rtiAmbassador().isAttributeOwnedByFederate(
               object,
-              requesterAttribute),
+              requesterAttribute) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              requesterSecondAttribute),
       "attribute ownership-acquisition cancellation changed ownership or delivered acquisition");
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(requester.evokeMultipleCallbacks(0.0, 0.0));
+    require(
+        !requester.recorder().ownershipUnavailable().has_value(),
+        "regular acquisition did not supersede a pending If Available callback");
+    static_cast<void>(owner.evokeMultipleCallbacks(0.0, 0.0));
+    require(
+        !owner.recorder().ownershipReleaseRequest().has_value(),
+        "confirmed cancellation left a stale owner-side release request");
+  }
+  require(
+      requester.recorder().ownershipAcquisitionCancellationEvents().size() == 1U,
+      "one grouped cancellation returned duplicate confirmation callbacks");
   requireException(
       [&] {
         requester.rtiAmbassador().cancelAttributeOwnershipAcquisition(
@@ -11608,6 +12294,86 @@ void scenarioAttributeOwnershipReleaseDenied(
               object,
               requesterAttribute),
       "Ownership-release denial transferred ownership or delivered an acquisition");
+
+  Session secondRequester(options, model, "ownership-release-denial-second-requester");
+  secondRequester.connect();
+  secondRequester.join(
+      options.memberFederateName + L"-denial-second",
+      options.federateType,
+      federation);
+  auto const secondClass = secondRequester.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const secondAttribute = secondRequester.rtiAmbassador().getAttributeHandle(
+      secondClass, options.attributeName);
+  require(secondClass.isValid() && secondAttribute.isValid(),
+          "Second release-denial requester could not resolve the adapter attribute");
+  rti::AttributeHandleSet const secondAttributes{secondAttribute};
+  secondRequester.rtiAmbassador().subscribeObjectClassAttributes(
+      secondClass, secondAttributes, true, L"");
+  secondRequester.rtiAmbassador().publishObjectClassAttributes(
+      secondClass, secondAttributes);
+  waitFor(secondRequester,
+          [&] { return secondRequester.recorder().hasDiscovery(object); },
+          options, "second ownership-release-denial requester discovery");
+
+  owner.recorder().clearOwnershipRecords();
+  requester.recorder().clearOwnershipRecords();
+  secondRequester.recorder().clearOwnershipRecords();
+  std::vector<std::uint8_t> const firstFanoutTagBytes{0xA5U, 0x11U};
+  std::vector<std::uint8_t> const secondFanoutTagBytes{0xA5U, 0x22U};
+  std::vector<std::uint8_t> const fanoutDenialTagBytes{0xD3U, 0x44U};
+  rti::VariableLengthData const firstFanoutTag(
+      firstFanoutTagBytes.data(), firstFanoutTagBytes.size());
+  rti::VariableLengthData const secondFanoutTag(
+      secondFanoutTagBytes.data(), secondFanoutTagBytes.size());
+  rti::VariableLengthData const fanoutDenialTag(
+      fanoutDenialTagBytes.data(), fanoutDenialTagBytes.size());
+  requester.rtiAmbassador().attributeOwnershipAcquisition(
+      object, requesterAttributes, firstFanoutTag);
+  secondRequester.rtiAmbassador().attributeOwnershipAcquisition(
+      object, secondAttributes, secondFanoutTag);
+  waitFor(owner,
+          [&] { return owner.recorder().ownershipReleaseRequest().has_value(); },
+          options, "multi-acquirer ownership release request");
+  owner.rtiAmbassador().attributeOwnershipReleaseDenied(
+      object, ownerAttributes, fanoutDenialTag);
+  waitFor(requester,
+          [&] { return requester.recorder().ownershipUnavailable().has_value(); },
+          options, "first multi-acquirer unavailable callback");
+  waitFor(secondRequester,
+          [&] { return secondRequester.recorder().ownershipUnavailable().has_value(); },
+          options, "second multi-acquirer unavailable callback");
+  for (int pass = 0; pass != 8; ++pass) {
+    requester.pump();
+    secondRequester.pump();
+  }
+  require(requester.recorder().ownershipUnavailableEvents().size() == 1U &&
+              secondRequester.recorder().ownershipUnavailableEvents().size() == 1U,
+          "Release Denied delivered duplicate multi-acquirer unavailable callbacks");
+  auto const firstUnavailable = requester.recorder().ownershipUnavailable();
+  auto const secondUnavailable = secondRequester.recorder().ownershipUnavailable();
+  require(firstUnavailable->object == object &&
+              firstUnavailable->attributes == requesterAttributes &&
+              firstUnavailable->tag == fanoutDenialTagBytes &&
+              secondUnavailable->object == object &&
+              secondUnavailable->attributes == secondAttributes &&
+              secondUnavailable->tag == fanoutDenialTagBytes,
+          "Release Denied did not notify both regular acquirers with its tag");
+  require(owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+              !requester.rtiAmbassador().isAttributeOwnedByFederate(
+                  object, requesterAttribute) &&
+              !secondRequester.rtiAmbassador().isAttributeOwnedByFederate(
+                  object, secondAttribute) &&
+              !requester.recorder().ownershipAcquisition().has_value() &&
+              !secondRequester.recorder().ownershipAcquisition().has_value(),
+          "Multi-acquirer release denial changed ownership or delivered an acquisition");
+  requester.rtiAmbassador().unpublishObjectClassAttributes(
+      requesterClass, requesterAttributes);
+  secondRequester.rtiAmbassador().unpublishObjectClassAttributes(
+      secondClass, secondAttributes);
+
+  secondRequester.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  secondRequester.disconnect();
 
   requester.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
   owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
@@ -13937,70 +14703,6 @@ void scenarioMomTransportationTypeChangeRequestContract(
   scenarioMomTransportationTypeChangeRequest(options, model);
 }
 
-using PortableScenario = void (*)(Options const&, rti::CallbackModel);
-
-int runPortableScenarioPair(
-    int argc,
-    char** argv,
-    char const* scenarioId,
-    char const* contractId,
-    PortableScenario scenario,
-    PortableScenario contract) {
-  auto const options = parseOptions(argc, argv);
-  std::vector<ScenarioResult> results;
-  for (auto const& callback : callbackModels(options)) {
-    for (auto const& selected : options.scenarios) {
-      if (selected != scenarioId && selected != contractId) {
-        continue;
-      }
-      auto const started = Clock::now();
-      ScenarioResult result{selected, callback.first, "passed", "", 0};
-      try {
-        if (selected == scenarioId) {
-          scenario(options, callback.second);
-        } else {
-          contract(options, callback.second);
-        }
-      } catch (rti::Exception const& error) {
-        result.status = "failed";
-        result.message = toNarrow(error.name()) + ": " + toNarrow(error.what());
-      } catch (std::exception const& error) {
-        result.status = "failed";
-        result.message = error.what();
-      } catch (...) {
-        result.status = "failed";
-        result.message = "unknown non-standard exception";
-      }
-      result.durationMilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
-          Clock::now() - started).count();
-      results.push_back(result);
-      std::cout << result.status << " " << result.id << " ["
-                << result.callbackModel << "]";
-      if (!result.message.empty()) {
-        std::cout << ": " << result.message;
-      }
-      std::cout << '\n';
-    }
-  }
-  if (!options.results.empty()) {
-    writeResults(options.results, options, results);
-  }
-  if (!options.junit.empty()) {
-    writeJUnit(options.junit, results);
-  }
-  auto const failures = std::count_if(
-      results.begin(),
-      results.end(),
-      [](auto const& result) { return result.status == "failed"; });
-  auto const skipped = std::count_if(
-      results.begin(),
-      results.end(),
-      [](auto const& result) { return result.status == "skipped"; });
-  std::cout << "summary passed=" << results.size() - failures - skipped
-            << " skipped=" << skipped << " failed=" << failures << '\n';
-  return failures == 0 ? 0 : 1;
-}
-
 int runModifyLookaheadScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -14827,6 +15529,15 @@ int runResignDeleteObjectsThenDivestCrossObjectEffectsScenarios(
       scenarioResignDeleteObjectsThenDivestCrossObjectEffectsContractPortable);
 }
 
+int runResignDeleteThenDivestPrivilegeEpochScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv,
+      resignDeleteThenDivestPrivilegeEpochScenario,
+      resignDeleteThenDivestPrivilegeEpochContractScenario,
+      scenarioResignDeleteThenDivestPrivilegeEpoch,
+      scenarioResignDeleteThenDivestPrivilegeEpochContract);
+}
+
 int runResignUnconditionallyDivestAttributesPreservesObjectsScenarios(
     int argc,
     char** argv) {
@@ -14977,6 +15688,18 @@ int runServiceReportObjectAttributeDeclarationScenarios(int argc, char** argv) {
       serviceReportObjectAttributeDeclarationContractScenario,
       scenarioServiceReportObjectAttributeDeclarationPortable,
       scenarioServiceReportObjectAttributeDeclarationContractPortable);
+}
+
+int runServiceReportAssociateRegionsForUpdatesScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportAssociateRegionsForUpdatesScenario,
+      serviceReportAssociateRegionsForUpdatesContractScenario,
+      scenarioServiceReportAssociateRegionsForUpdates,
+      scenarioServiceReportAssociateRegionsForUpdatesContract);
 }
 
 int runServiceReportDirectedInteractionDeclarationScenarios(
@@ -15847,6 +16570,167 @@ int runAttributeOwnershipAcquisitionCancellationScenarios(
       scenarioAttributeOwnershipAcquisitionCancellationContract);
 }
 
+int runNegotiatedDivestitureNoAccepterScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      negotiatedDivestitureNoAccepterScenario,
+      negotiatedDivestitureNoAccepterContractId,
+      scenarioNegotiatedDivestitureNoAccepter,
+      scenarioNegotiatedDivestitureNoAccepterContract);
+}
+
+int runSelectiveUnpublicationPendingAcquisitionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      selectiveUnpublicationPendingAcquisitionScenario,
+      selectiveUnpublicationPendingAcquisitionContractId,
+      scenarioSelectiveUnpublicationPendingAcquisition,
+      scenarioSelectiveUnpublicationPendingAcquisitionContract);
+}
+
+int runResignAssumptionLaterPublicationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      resignAssumptionLaterPublicationScenario,
+      resignAssumptionLaterPublicationContractId,
+      scenarioResignAssumptionLaterPublication,
+      scenarioResignAssumptionLaterPublicationContract);
+}
+
+int runOwnershipAssumptionSearchAfterDeclineScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv,
+      ownershipAssumptionSearchAfterDeclineScenario,
+      ownershipAssumptionSearchAfterDeclineContractId,
+      scenarioOwnershipAssumptionSearchAfterDecline,
+      scenarioOwnershipAssumptionSearchAfterDeclineContract);
+}
+
+int runResignMultiSurvivorAssumptionFanoutScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv,
+      resignMultiSurvivorAssumptionFanoutScenario,
+      resignMultiSurvivorAssumptionFanoutContractId,
+      scenarioResignMultiSurvivorAssumptionFanout,
+      scenarioResignMultiSurvivorAssumptionFanoutContract,
+      true);
+}
+
+int runOwnershipAssumptionTransferEpochScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv,
+      ownershipAssumptionTransferEpochScenario,
+      ownershipAssumptionTransferEpochContractId,
+      scenarioOwnershipAssumptionTransferEpoch,
+      scenarioOwnershipAssumptionTransferEpochContract);
+}
+
+int runResignAssumptionLaterDiscoveryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv,
+      resignAssumptionLaterDiscoveryScenario,
+      resignAssumptionLaterDiscoveryContractId,
+      scenarioResignAssumptionLaterDiscovery,
+      scenarioResignAssumptionLaterDiscoveryContract);
+}
+
+int runNegotiatedDivestitureConcurrentAssumptionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv,
+      negotiatedDivestitureConcurrentAssumptionScenario,
+      negotiatedDivestitureConcurrentAssumptionContractId,
+      scenarioNegotiatedDivestitureConcurrentAssumption,
+      scenarioNegotiatedDivestitureConcurrentAssumptionContract);
+}
+
+int runConfirmDivestitureFromCallbackScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv,
+      confirmDivestitureFromCallbackScenario,
+      confirmDivestitureFromCallbackContractId,
+      scenarioConfirmDivestitureFromCallback,
+      scenarioConfirmDivestitureFromCallbackContract);
+}
+
+int runConfirmDivestitureMixedSetAtomicityScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv,
+      confirmDivestitureMixedSetAtomicityScenario,
+      confirmDivestitureMixedSetAtomicityContractId,
+      scenarioConfirmDivestitureMixedSetAtomicity,
+      scenarioConfirmDivestitureMixedSetAtomicityContract);
+}
+
+int runDivestitureIfWantedReturnSetScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv,
+      divestitureIfWantedReturnSetScenario,
+      divestitureIfWantedReturnSetContractId,
+      scenarioDivestitureIfWantedReturnSet,
+      scenarioDivestitureIfWantedReturnSetContract);
+}
+
+int runIfAvailableDuringNegotiatedDivestitureScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv,
+      ifAvailableDuringNegotiatedDivestitureScenario,
+      ifAvailableDuringNegotiatedDivestitureContractId,
+      scenarioIfAvailableDuringNegotiatedDivestiture,
+      scenarioIfAvailableDuringNegotiatedDivestitureContract,
+      true);
+}
+
+int runIfAvailableOwnershipScenarios(int argc, char** argv) {
+  bool const restoreScenarioSelected = [&] {
+    for (int index = 1; index + 1 < argc; ++index) {
+      if (std::string(argv[index]) != "--scenario") continue;
+      auto const scenario = std::string(argv[index + 1]);
+      if (scenario == ifAvailableOwnershipRestoreScenario ||
+          scenario == ifAvailableOwnershipRestoreContractId) return true;
+    }
+    return false;
+  }();
+  if (restoreScenarioSelected) {
+    return runPortableScenarioPair(
+        argc,
+        argv,
+        ifAvailableOwnershipRestoreScenario,
+        ifAvailableOwnershipRestoreContractId,
+        scenarioIfAvailableOwnershipRestoreUnavailableCallback,
+        scenarioIfAvailableOwnershipRestoreUnavailableCallbackContract);
+  }
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      ifAvailableDeletedObjectScenario,
+      ifAvailableDeletedObjectContractId,
+      scenarioIfAvailableDeletedObject,
+      scenarioIfAvailableDeletedObjectContract,
+      true);
+}
+
+int runOwnershipAfterFomMergeScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv,
+      ownershipAfterFomMergeScenario,
+      ownershipAfterFomMergeContractId,
+      scenarioOwnershipAfterFomMerge,
+      scenarioOwnershipAfterFomMergeContract,
+      true);
+}
+
+int runResignDivestsAllInstanceAttributesScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv,
+      resignDivestsAllInstanceAttributesScenario,
+      resignDivestsAllInstanceAttributesContractId,
+      scenarioResignDivestsAllInstanceAttributes,
+      scenarioResignDivestsAllInstanceAttributesContract);
+}
+
 int runNegotiatedDivestitureConfirmationFlowScenarios(
     int argc,
     char** argv) {
@@ -16027,16 +16911,6 @@ int runTimestampedAttributeUpdateScenarios(int argc, char** argv) {
       scenarioTimestampedAttributeUpdateContractPortable);
 }
 
-int runTimestampedAttributeTarPostGrantCutoffScenarios(int argc, char** argv) {
-  return runPortableScenarioPair(
-      argc,
-      argv,
-      timestampedAttributeTarPostGrantCutoffScenario,
-      timestampedAttributeTarPostGrantCutoffContractId,
-      scenarioTimestampedAttributeUpdateTarPostGrantCutoffPortable,
-      scenarioTimestampedAttributeUpdateTarPostGrantCutoffContractPortable);
-}
-
 int runTimestampedAttributeTimeAdvancingCutoffScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -16207,6 +17081,359 @@ int runTimestampedInteractionFlushQueueFutureInputScenarios(
       scenarioTimestampedInteractionFlushQueueFutureInputContractPortable);
 }
 
+int runFlushQueueNonlimitingGaltScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      flushQueueNonlimitingGaltScenario,
+      flushQueueNonlimitingGaltContractId,
+      scenarioFlushQueueNonlimitingGaltPortable,
+      scenarioFlushQueueNonlimitingGaltContractPortable);
+}
+
+int runNrgRegulatorResignationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, nrgRegulatorResignationScenario,
+      nrgRegulatorResignationContractId,
+      scenarioNrgRegulatorResignation,
+      scenarioNrgRegulatorResignationContract);
+}
+
+int runNrgRegulatorDisableScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, nrgRegulatorDisableScenario,
+      nrgRegulatorDisableContractId,
+      scenarioNrgRegulatorDisable,
+      scenarioNrgRegulatorDisableContract);
+}
+
+int runNrgDisabledRegulatorActivationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, nrgDisabledRegulatorActivationScenario,
+      nrgDisabledRegulatorActivationContractId,
+      scenarioNrgDisabledRegulatorActivation,
+      scenarioNrgDisabledRegulatorActivationContract);
+}
+
+int runConstrainedTarDisableReleaseScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, constrainedTarDisableReleaseScenario,
+      constrainedTarDisableReleaseContractId,
+      scenarioConstrainedTarDisableRelease,
+      scenarioConstrainedTarDisableReleaseContract);
+}
+
+int runSaveActiveCallbackResignationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, saveActiveCallbackResignationScenario,
+      saveActiveCallbackResignationContractId,
+      scenarioSaveActiveCallbackResignation,
+      scenarioSaveActiveCallbackResignationContract, true);
+}
+
+int runTimedSaveActiveCallbackResignationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timedSaveActiveCallbackResignationScenario,
+      timedSaveActiveCallbackResignationContractId,
+      scenarioTimedSaveActiveCallbackResignation,
+      scenarioTimedSaveActiveCallbackResignationContract,
+      true);
+}
+
+int runTimedSaveFqrCallbackResignationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, timedSaveFqrCallbackResignationScenario,
+      timedSaveFqrCallbackResignationContractId,
+      scenarioTimedSaveFqrCallbackResignation,
+      scenarioTimedSaveFqrCallbackResignationContract, true);
+}
+
+int runTimedSaveTaraCallbackResignationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, timedSaveTaraCallbackResignationScenario,
+      timedSaveTaraCallbackResignationContractId,
+      scenarioTimedSaveTaraCallbackResignation,
+      scenarioTimedSaveTaraCallbackResignationContract, true);
+}
+
+int runTimedSaveNmraCallbackResignationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, timedSaveNmraCallbackResignationScenario,
+      timedSaveNmraCallbackResignationContractId,
+      scenarioTimedSaveNmraCallbackResignation,
+      scenarioTimedSaveNmraCallbackResignationContract, true);
+}
+
+int runTimedSaveMixedFqrTarScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, timedSaveMixedFqrTarScenario,
+      timedSaveMixedFqrTarContractId,
+      scenarioTimedSaveMixedFqrTar,
+      scenarioTimedSaveMixedFqrTarContract, true);
+}
+
+int runTimedSaveOrdinaryBeforeFqrScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, timedSaveOrdinaryBeforeFqrScenario,
+      timedSaveOrdinaryBeforeFqrContractId,
+      scenarioTimedSaveOrdinaryBeforeFqr,
+      scenarioTimedSaveOrdinaryBeforeFqrContract, true);
+}
+
+int runTimedSaveAllAdvanceModesScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, timedSaveAllAdvanceModesScenario,
+      timedSaveAllAdvanceModesContractId,
+      scenarioTimedSaveAllAdvanceModes,
+      scenarioTimedSaveAllAdvanceModesContract, true);
+}
+
+int runTimedSavePerMemberTsoScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, timedSavePerMemberTsoScenario,
+      timedSavePerMemberTsoContractId,
+      scenarioTimedSavePerMemberTso,
+      scenarioTimedSavePerMemberTsoContract, true);
+}
+
+int runTimedSaveFlushQueueAdmissionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, timedSaveFlushQueueAdmissionScenario,
+      timedSaveFlushQueueAdmissionContractId,
+      scenarioTimedSaveFlushQueueAdmission,
+      scenarioTimedSaveFlushQueueAdmissionContract, true);
+}
+
+int runTimedSaveAvailableAdmissionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, timedSaveAvailableAdmissionScenario,
+      timedSaveAvailableAdmissionContractId,
+      scenarioTimedSaveAvailableAdmission,
+      scenarioTimedSaveAvailableAdmissionContract, true);
+}
+
+int runTimedSaveNextMessageAdmissionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, timedSaveNextMessageAdmissionScenario,
+      timedSaveNextMessageAdmissionContractId,
+      scenarioTimedSaveNextMessageAdmission,
+      scenarioTimedSaveNextMessageAdmissionContract, true);
+}
+
+int runTimedSaveAvailableNextMessageMemberAdmissionScenarios(
+    int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, timedSaveAvailableNextMessageMemberAdmissionScenario,
+      timedSaveAvailableNextMessageMemberAdmissionContractId,
+      scenarioTimedSaveAvailableNextMessageMemberAdmission,
+      scenarioTimedSaveAvailableNextMessageMemberAdmissionContract, true);
+}
+
+int runTimedSaveResignedConstrainedMemberScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, timedSaveResignedConstrainedMemberScenario,
+      timedSaveResignedConstrainedMemberContractId,
+      scenarioTimedSaveResignedConstrainedMember,
+      scenarioTimedSaveResignedConstrainedMemberContract, true);
+}
+
+int runTimedSaveResignedPendingFqrScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, timedSaveResignedPendingFqrScenario,
+      timedSaveResignedPendingFqrContractId,
+      scenarioTimedSaveResignedPendingFqr,
+      scenarioTimedSaveResignedPendingFqrContract, true);
+}
+
+int runRestorePendingFlushQueueRequestScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restorePendingFlushQueueRequestScenario,
+      restorePendingFlushQueueRequestContractId,
+      scenarioRestorePendingFlushQueueRequest,
+      scenarioRestorePendingFlushQueueRequestContract, true);
+}
+
+int runRestoreResignationCallbackLifetimeScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreResignationCallbackLifetimeScenario,
+      restoreResignationCallbackLifetimeContractId,
+      scenarioRestoreResignationCallbackLifetime,
+      scenarioRestoreResignationCallbackLifetimeContract, true);
+}
+
+int runRestorePendingTimeAdvanceScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restorePendingTimeAdvanceScenario,
+      restorePendingTimeAdvanceContractId,
+      scenarioRestorePendingTimeAdvance,
+      scenarioRestorePendingTimeAdvanceContract, true);
+}
+
+int runRestorePendingTimeAdvanceImmediateScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restorePendingTimeAdvanceImmediateScenario,
+      restorePendingTimeAdvanceImmediateContractId,
+      scenarioRestorePendingTimeAdvanceImmediate,
+      scenarioRestorePendingTimeAdvanceImmediateContract,
+      CallbackScope::ImmediateOnly);
+}
+
+int runRestorePendingAdvanceModesScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restorePendingAdvanceModesScenario,
+      restorePendingAdvanceModesContractId,
+      scenarioRestorePendingAdvanceModes,
+      scenarioRestorePendingAdvanceModesContract);
+}
+
+int runRestorePendingTsoNmrScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restorePendingTsoNmrScenario,
+      restorePendingTsoNmrContractId,
+      scenarioRestorePendingTsoNmr,
+      scenarioRestorePendingTsoNmrContract);
+}
+
+int runRestorePendingTsoNmraScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restorePendingTsoNmraScenario,
+      restorePendingTsoNmraContractId,
+      scenarioRestorePendingTsoNmra,
+      scenarioRestorePendingTsoNmraContract);
+}
+
+int runRestorePendingTsoNmraAttributeScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restorePendingTsoNmraAttributeScenario,
+      restorePendingTsoNmraAttributeContractId,
+      scenarioRestorePendingTsoNmraAttribute,
+      scenarioRestorePendingTsoNmraAttributeContract);
+}
+
+int runRestorePendingTsoNmraDeleteScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restorePendingTsoNmraDeleteScenario,
+      restorePendingTsoNmraDeleteContractId,
+      scenarioRestorePendingTsoNmraDelete,
+      scenarioRestorePendingTsoNmraDeleteContract);
+}
+
+int runRestoreMixedTsoFourMemberScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreMixedTsoFourMemberScenario,
+      restoreMixedTsoFourMemberContractId,
+      scenarioRestoreMixedTsoFourMember,
+      scenarioRestoreMixedTsoFourMemberContract, true);
+}
+
+int runRestoreTerminalTsoAttributeScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreTerminalTsoAttributeScenario,
+      restoreTerminalTsoAttributeContractId,
+      scenarioRestoreTerminalTsoAttribute,
+      scenarioRestoreTerminalTsoAttributeContract, true);
+}
+
+int runRestoreTerminalTsoInteractionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreTerminalTsoInteractionScenario,
+      restoreTerminalTsoInteractionContractId,
+      scenarioRestoreTerminalTsoInteraction,
+      scenarioRestoreTerminalTsoInteractionContract, true);
+}
+
+int runRestoreTerminalTsoDirectedInteractionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreTerminalTsoDirectedInteractionScenario,
+      restoreTerminalTsoDirectedInteractionContractId,
+      scenarioRestoreTerminalTsoDirectedInteraction,
+      scenarioRestoreTerminalTsoDirectedInteractionContract, true);
+}
+
+int runRestoreTsoRetractionUniquenessScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreTsoRetractionUniquenessScenario,
+      restoreTsoRetractionUniquenessContractId,
+      scenarioRestoreTsoRetractionUniqueness,
+      scenarioRestoreTsoRetractionUniquenessContract, true);
+}
+
+int runRestoreTsoDirectedMultiRecipientScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreTsoDirectedMultiRecipientScenario,
+      restoreTsoDirectedMultiRecipientContractId,
+      scenarioRestoreTsoDirectedMultiRecipient,
+      scenarioRestoreTsoDirectedMultiRecipientContract, true);
+}
+
+int runRestoreLiveTsoRetractionRecordScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreLiveTsoRetractionRecordScenario,
+      restoreLiveTsoRetractionRecordContractId,
+      scenarioRestoreLiveTsoRetractionRecord,
+      scenarioRestoreLiveTsoRetractionRecordContract, true);
+}
+
+int runRestoreLiveTsoDirectedInteractionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreLiveTsoDirectedInteractionScenario,
+      restoreLiveTsoDirectedInteractionContractId,
+      scenarioRestoreLiveTsoDirectedInteraction,
+      scenarioRestoreLiveTsoDirectedInteractionContract, true);
+}
+
+int runRestoreLiveTsoInteractionMultiRecipientScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreLiveTsoInteractionMultiRecipientScenario,
+      restoreLiveTsoInteractionMultiRecipientContractId,
+      scenarioRestoreLiveTsoInteractionMultiRecipient,
+      scenarioRestoreLiveTsoInteractionMultiRecipientContract, true);
+}
+
+int runRestoreTimeWindowStateScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreTimeWindowStateScenario,
+      restoreTimeWindowStateContractId,
+      scenarioRestoreTimeWindowState,
+      scenarioRestoreTimeWindowStateContract, true);
+}
+
+int runRestoreDeferredLookaheadScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreDeferredLookaheadScenario,
+      restoreDeferredLookaheadContractId,
+      scenarioRestoreDeferredLookahead,
+      scenarioRestoreDeferredLookaheadContract, true);
+}
+
+int runRestoreMultiPendingTimeAdvanceScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreMultiPendingTimeAdvanceScenario,
+      restoreMultiPendingTimeAdvanceContractId,
+      scenarioRestoreMultiPendingTimeAdvance,
+      scenarioRestoreMultiPendingTimeAdvanceContract, true);
+}
+
+int runRestorePendingFlushQueueImmediateScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restorePendingFlushQueueImmediateScenario,
+      restorePendingFlushQueueImmediateContractId,
+      scenarioRestorePendingFlushQueueImmediate,
+      scenarioRestorePendingFlushQueueImmediateContract,
+      CallbackScope::ImmediateOnly);
+}
+
+int runRestoreObjectSnapshotStatusScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreObjectSnapshotStatusScenario,
+      restoreObjectSnapshotStatusContractId,
+      scenarioRestoreObjectSnapshotStatus,
+      scenarioRestoreObjectSnapshotStatusContract,
+      CallbackScope::ImmediateOnly);
+}
+
 int runFqrPostgrantLowerTsoRetractionScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -16215,6 +17442,16 @@ int runFqrPostgrantLowerTsoRetractionScenarios(int argc, char** argv) {
       fqrPostgrantLowerTsoRetractionContractId,
       scenarioFqrPostgrantLowerTsoRetractionPortable,
       scenarioFqrPostgrantLowerTsoRetractionContractPortable);
+}
+
+int runFqrNonTimeConstrainedInTransitTsoScenario(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      fqrNonTimeConstrainedInTransitTsoScenario,
+      fqrNonTimeConstrainedInTransitTsoScenario,
+      scenarioFqrNonTimeConstrainedInTransitTso,
+      scenarioFqrNonTimeConstrainedInTransitTso);
 }
 
 int runFqgPostgrantDeliveryCutoffScenarios(int argc, char** argv) {
@@ -16353,6 +17590,26 @@ int runNmraNoPregrantTsoFloorScenarios(int argc, char** argv) {
       scenarioNmraNoPregrantTsoFloorContractPortable);
 }
 
+int runNmraReceivedTsoActualLookaheadFloorScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      nmraReceivedTsoActualLookaheadFloorScenario,
+      nmraReceivedTsoActualLookaheadFloorContractId,
+      scenarioNmraReceivedTsoActualLookaheadFloorPortable,
+      scenarioNmraReceivedTsoActualLookaheadFloorContractPortable);
+}
+
+int runNmraRoEarliestTsoCohortScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      nmraRoEarliestTsoCohortScenario,
+      nmraRoEarliestTsoCohortContractId,
+      scenarioNmraQueuedRoAndEarliestTsoCohortPortable,
+      scenarioNmraQueuedRoAndEarliestTsoCohortContractPortable);
+}
+
 int runNmrNoPregrantTsoFloorScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -16443,6 +17700,16 @@ int runAvailableTimeAdvancesInclusiveGaltScenarios(int argc, char** argv) {
       scenarioAvailableTimeAdvancesInclusiveGaltContractPortable);
 }
 
+int runTarAcknowledgedTsoGaltReleaseScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      tarAcknowledgedTsoGaltReleaseScenario,
+      tarAcknowledgedTsoGaltReleaseContractId,
+      scenarioTarAcknowledgedTsoGaltReleasePortable,
+      scenarioTarAcknowledgedTsoGaltReleaseContractPortable);
+}
+
 int runTimeConstrainedEnableAtGaltEqualityScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -16451,6 +17718,100 @@ int runTimeConstrainedEnableAtGaltEqualityScenarios(int argc, char** argv) {
       timeConstrainedEnableAtGaltEqualityContractId,
       scenarioTimeConstrainedEnableAtGaltEqualityPortable,
       scenarioTimeConstrainedEnableAtGaltEqualityContractPortable);
+}
+
+int runTimeConstrainedEnableRegulatingFederateCurrentTimeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timeConstrainedEnableRegulatingFederateCurrentTimeScenario,
+      timeConstrainedEnableRegulatingFederateCurrentTimeContractId,
+      scenarioTimeConstrainedEnableRegulatingFederateCurrentTimePortable,
+      scenarioTimeConstrainedEnableRegulatingFederateCurrentTimeContractPortable);
+}
+
+int runTimeConstrainedEnableRetainsQueuedTsoScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timeConstrainedEnableRetainsQueuedTsoScenario,
+      timeConstrainedEnableRetainsQueuedTsoContractId,
+      scenarioTimeConstrainedEnableRetainsQueuedTsoPortable,
+      scenarioTimeConstrainedEnableRetainsQueuedTsoContractPortable);
+}
+
+int runTimeConstrainedEnableRetainsQueuedTsoAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timeConstrainedEnableRetainsQueuedTsoAttributeScenario,
+      timeConstrainedEnableRetainsQueuedTsoAttributeContractId,
+      scenarioTimeConstrainedEnableRetainsQueuedTsoAttributePortable,
+      scenarioTimeConstrainedEnableRetainsQueuedTsoAttributeContractPortable);
+}
+
+int runTimeConstrainedEnableReceiveOrderBoundaryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timeConstrainedEnableReceiveOrderBoundaryScenario,
+      timeConstrainedEnableReceiveOrderBoundaryContractId,
+      scenarioTimeConstrainedEnableReceiveOrderBoundaryPortable,
+      scenarioTimeConstrainedEnableReceiveOrderBoundaryContractPortable);
+}
+
+int runTimeConstrainedDisableQueuedInteractionToReceiveOrderScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timeConstrainedDisableQueuedInteractionToReceiveOrderScenario,
+      timeConstrainedDisableQueuedInteractionToReceiveOrderContractId,
+      scenarioTimeConstrainedDisableQueuedInteractionToReceiveOrderPortable,
+      scenarioTimeConstrainedDisableQueuedInteractionToReceiveOrderContractPortable);
+}
+
+int runTimeConstrainedDisableQueuedAttributeToReceiveOrderScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timeConstrainedDisableQueuedAttributeToReceiveOrderScenario,
+      timeConstrainedDisableQueuedAttributeToReceiveOrderContractId,
+      scenarioTimeConstrainedDisableQueuedAttributeToReceiveOrderPortable,
+      scenarioTimeConstrainedDisableQueuedAttributeToReceiveOrderContractPortable);
+}
+
+int runTimeConstrainedDisableQueuedDeletionToReceiveOrderScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timeConstrainedDisableQueuedDeletionToReceiveOrderScenario,
+      timeConstrainedDisableQueuedDeletionToReceiveOrderContractId,
+      scenarioTimeConstrainedDisableQueuedDeletionToReceiveOrderPortable,
+      scenarioTimeConstrainedDisableQueuedDeletionToReceiveOrderContractPortable);
+}
+
+int runTimeConstrainedDisableQueuedDirectedToReceiveOrderScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timeConstrainedDisableQueuedDirectedToReceiveOrderScenario,
+      timeConstrainedDisableQueuedDirectedToReceiveOrderContractId,
+      scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderPortable,
+      scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContractPortable);
 }
 
 int runTimeRegulationImplicitAdvanceScenarios(int argc, char** argv) {
@@ -16581,6 +17942,42 @@ int runTimestampedInteractionTaraEqualBoundaryScenarios(int argc, char** argv) {
       timestampedInteractionTaraEqualBoundaryContractId,
       scenarioTimestampedInteractionTaraEqualBoundaryPortable,
       scenarioTimestampedInteractionTaraEqualBoundaryContractPortable);
+}
+
+int runTimestampedInteractionTaraQueuedEqualBoundaryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionTaraQueuedEqualBoundaryScenario,
+      timestampedInteractionTaraQueuedEqualBoundaryContractId,
+      scenarioTimestampedInteractionTaraQueuedEqualBoundaryPortable,
+      scenarioTimestampedInteractionTaraQueuedEqualBoundaryContractPortable);
+}
+
+int runTimestampedInteractionZeroLookaheadSendAtGrantScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionZeroLookaheadSendAtGrantScenario,
+      timestampedInteractionZeroLookaheadSendAtGrantContractId,
+      scenarioTimestampedInteractionZeroLookaheadSendAtGrantPortable,
+      scenarioTimestampedInteractionZeroLookaheadSendAtGrantContractPortable);
+}
+
+int runTimestampedInteractionZeroLookaheadTarSendBoundaryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionZeroLookaheadTarSendBoundaryScenario,
+      timestampedInteractionZeroLookaheadTarSendBoundaryContractId,
+      scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryPortable,
+      scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryContractPortable);
 }
 
 int runTimestampedInteractionTarEqualBoundaryScenarios(int argc, char** argv) {
@@ -16763,30 +18160,6 @@ int runTimestampedObjectDeletionMixedAdvancesScenarios(
       timestampedObjectDeletionMixedAdvancesContractId,
       scenarioTimestampedObjectDeletionMixedAdvancesPortable,
       scenarioTimestampedObjectDeletionMixedAdvancesContractPortable);
-}
-
-int runTimestampedObjectDeletionFutureNmrArrivalScenarios(
-    int argc,
-    char** argv) {
-  return runPortableScenarioPair(
-      argc,
-      argv,
-      timestampedObjectDeletionFutureNmrArrivalScenario,
-      timestampedObjectDeletionFutureNmrArrivalContractId,
-      scenarioTimestampedObjectDeletionFutureNmrArrivalPortable,
-      scenarioTimestampedObjectDeletionFutureNmrArrivalContractPortable);
-}
-
-int runTimestampedObjectDeletionFutureNmraArrivalScenarios(
-    int argc,
-    char** argv) {
-  return runPortableScenarioPair(
-      argc,
-      argv,
-      timestampedObjectDeletionFutureNmraArrivalScenario,
-      timestampedObjectDeletionFutureNmraArrivalContractId,
-      scenarioTimestampedObjectDeletionFutureNmraArrivalPortable,
-      scenarioTimestampedObjectDeletionFutureNmraArrivalContractPortable);
 }
 
 int runTimestampedDirectedInteractionTarNmrScenarios(
@@ -18959,6 +20332,172 @@ bool hasAttributeOwnershipAcquisitionCancellationScenario(
   return false;
 }
 
+bool hasNegotiatedDivestitureNoAccepterScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == negotiatedDivestitureNoAccepterScenario ||
+        scenario == negotiatedDivestitureNoAccepterContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasSelectiveUnpublicationPendingAcquisitionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == selectiveUnpublicationPendingAcquisitionScenario ||
+        scenario == selectiveUnpublicationPendingAcquisitionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasResignAssumptionLaterPublicationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == resignAssumptionLaterPublicationScenario ||
+        scenario == resignAssumptionLaterPublicationContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasOwnershipAssumptionSearchAfterDeclineScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == ownershipAssumptionSearchAfterDeclineScenario ||
+        scenario == ownershipAssumptionSearchAfterDeclineContractId) return true;
+  }
+  return false;
+}
+
+bool hasResignMultiSurvivorAssumptionFanoutScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == resignMultiSurvivorAssumptionFanoutScenario ||
+        scenario == resignMultiSurvivorAssumptionFanoutContractId) return true;
+  }
+  return false;
+}
+
+bool hasOwnershipAssumptionTransferEpochScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == ownershipAssumptionTransferEpochScenario ||
+        scenario == ownershipAssumptionTransferEpochContractId) return true;
+  }
+  return false;
+}
+
+bool hasResignAssumptionLaterDiscoveryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == resignAssumptionLaterDiscoveryScenario ||
+        scenario == resignAssumptionLaterDiscoveryContractId) return true;
+  }
+  return false;
+}
+
+bool hasNegotiatedDivestitureConcurrentAssumptionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == negotiatedDivestitureConcurrentAssumptionScenario ||
+        scenario == negotiatedDivestitureConcurrentAssumptionContractId) return true;
+  }
+  return false;
+}
+
+bool hasConfirmDivestitureFromCallbackScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == confirmDivestitureFromCallbackScenario ||
+        scenario == confirmDivestitureFromCallbackContractId) return true;
+  }
+  return false;
+}
+
+bool hasConfirmDivestitureMixedSetAtomicityScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == confirmDivestitureMixedSetAtomicityScenario ||
+        scenario == confirmDivestitureMixedSetAtomicityContractId) return true;
+  }
+  return false;
+}
+
+bool hasDivestitureIfWantedReturnSetScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == divestitureIfWantedReturnSetScenario ||
+        scenario == divestitureIfWantedReturnSetContractId) return true;
+  }
+  return false;
+}
+
+bool hasIfAvailableDuringNegotiatedDivestitureScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == ifAvailableDuringNegotiatedDivestitureScenario ||
+        scenario == ifAvailableDuringNegotiatedDivestitureContractId) return true;
+  }
+  return false;
+}
+
+bool hasIfAvailableOwnershipScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == ifAvailableDeletedObjectScenario ||
+        scenario == ifAvailableDeletedObjectContractId ||
+        scenario == ifAvailableOwnershipRestoreScenario ||
+        scenario == ifAvailableOwnershipRestoreContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasOwnershipAfterFomMergeScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == ownershipAfterFomMergeScenario ||
+        scenario == ownershipAfterFomMergeContractId) return true;
+  }
+  return false;
+}
+
+bool hasResignDivestsAllInstanceAttributesScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == resignDivestsAllInstanceAttributesScenario ||
+        scenario == resignDivestsAllInstanceAttributesContractId) return true;
+  }
+  return false;
+}
+
 bool hasNegotiatedDivestitureConfirmationFlowScenario(
     int argc,
     char** argv) {
@@ -19417,6 +20956,441 @@ bool hasTimestampedInteractionFlushQueueFutureInputScenario(
   return false;
 }
 
+bool hasFlushQueueNonlimitingGaltScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario") {
+      auto const scenario = std::string(argv[index + 1]);
+      if (scenario == flushQueueNonlimitingGaltScenario ||
+          scenario == flushQueueNonlimitingGaltContractId) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool hasNrgRegulatorResignationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == nrgRegulatorResignationScenario ||
+        scenario == nrgRegulatorResignationContractId) return true;
+  }
+  return false;
+}
+
+bool hasNrgRegulatorDisableScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == nrgRegulatorDisableScenario ||
+        scenario == nrgRegulatorDisableContractId) return true;
+  }
+  return false;
+}
+
+bool hasNrgDisabledRegulatorActivationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == nrgDisabledRegulatorActivationScenario ||
+        scenario == nrgDisabledRegulatorActivationContractId) return true;
+  }
+  return false;
+}
+
+bool hasConstrainedTarDisableReleaseScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == constrainedTarDisableReleaseScenario ||
+        scenario == constrainedTarDisableReleaseContractId) return true;
+  }
+  return false;
+}
+
+bool hasSaveActiveCallbackResignationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == saveActiveCallbackResignationScenario ||
+        scenario == saveActiveCallbackResignationContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedSaveActiveCallbackResignationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedSaveActiveCallbackResignationScenario ||
+        scenario == timedSaveActiveCallbackResignationContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedSaveFqrCallbackResignationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedSaveFqrCallbackResignationScenario ||
+        scenario == timedSaveFqrCallbackResignationContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedSaveTaraCallbackResignationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedSaveTaraCallbackResignationScenario ||
+        scenario == timedSaveTaraCallbackResignationContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedSaveNmraCallbackResignationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedSaveNmraCallbackResignationScenario ||
+        scenario == timedSaveNmraCallbackResignationContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedSaveMixedFqrTarScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedSaveMixedFqrTarScenario ||
+        scenario == timedSaveMixedFqrTarContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedSaveOrdinaryBeforeFqrScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedSaveOrdinaryBeforeFqrScenario ||
+        scenario == timedSaveOrdinaryBeforeFqrContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedSaveAllAdvanceModesScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedSaveAllAdvanceModesScenario ||
+        scenario == timedSaveAllAdvanceModesContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedSavePerMemberTsoScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedSavePerMemberTsoScenario ||
+        scenario == timedSavePerMemberTsoContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedSaveFlushQueueAdmissionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedSaveFlushQueueAdmissionScenario ||
+        scenario == timedSaveFlushQueueAdmissionContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedSaveAvailableAdmissionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedSaveAvailableAdmissionScenario ||
+        scenario == timedSaveAvailableAdmissionContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedSaveNextMessageAdmissionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedSaveNextMessageAdmissionScenario ||
+        scenario == timedSaveNextMessageAdmissionContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedSaveAvailableNextMessageMemberAdmissionScenario(
+    int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedSaveAvailableNextMessageMemberAdmissionScenario ||
+        scenario == timedSaveAvailableNextMessageMemberAdmissionContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedSaveResignedConstrainedMemberScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedSaveResignedConstrainedMemberScenario ||
+        scenario == timedSaveResignedConstrainedMemberContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedSaveResignedPendingFqrScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedSaveResignedPendingFqrScenario ||
+        scenario == timedSaveResignedPendingFqrContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestorePendingFlushQueueRequestScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restorePendingFlushQueueRequestScenario ||
+        scenario == restorePendingFlushQueueRequestContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreResignationCallbackLifetimeScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreResignationCallbackLifetimeScenario ||
+        scenario == restoreResignationCallbackLifetimeContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestorePendingTimeAdvanceScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restorePendingTimeAdvanceScenario ||
+        scenario == restorePendingTimeAdvanceContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestorePendingTimeAdvanceImmediateScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restorePendingTimeAdvanceImmediateScenario ||
+        scenario == restorePendingTimeAdvanceImmediateContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestorePendingAdvanceModesScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restorePendingAdvanceModesScenario ||
+        scenario == restorePendingAdvanceModesContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestorePendingTsoNmrScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restorePendingTsoNmrScenario ||
+        scenario == restorePendingTsoNmrContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestorePendingTsoNmraScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restorePendingTsoNmraScenario ||
+        scenario == restorePendingTsoNmraContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestorePendingTsoNmraAttributeScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restorePendingTsoNmraAttributeScenario ||
+        scenario == restorePendingTsoNmraAttributeContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestorePendingTsoNmraDeleteScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restorePendingTsoNmraDeleteScenario ||
+        scenario == restorePendingTsoNmraDeleteContractId) return true;
+  }
+  return false;
+}
+
+
+bool hasRestoreMixedTsoFourMemberScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreMixedTsoFourMemberScenario ||
+        scenario == restoreMixedTsoFourMemberContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreTerminalTsoAttributeScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreTerminalTsoAttributeScenario ||
+        scenario == restoreTerminalTsoAttributeContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreTerminalTsoInteractionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreTerminalTsoInteractionScenario ||
+        scenario == restoreTerminalTsoInteractionContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreTerminalTsoDirectedInteractionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreTerminalTsoDirectedInteractionScenario ||
+        scenario == restoreTerminalTsoDirectedInteractionContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreTsoRetractionUniquenessScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreTsoRetractionUniquenessScenario ||
+        scenario == restoreTsoRetractionUniquenessContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreTsoDirectedMultiRecipientScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreTsoDirectedMultiRecipientScenario ||
+        scenario == restoreTsoDirectedMultiRecipientContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreLiveTsoRetractionRecordScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreLiveTsoRetractionRecordScenario ||
+        scenario == restoreLiveTsoRetractionRecordContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreLiveTsoDirectedInteractionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreLiveTsoDirectedInteractionScenario ||
+        scenario == restoreLiveTsoDirectedInteractionContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreLiveTsoInteractionMultiRecipientScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreLiveTsoInteractionMultiRecipientScenario ||
+        scenario == restoreLiveTsoInteractionMultiRecipientContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreTimeWindowStateScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreTimeWindowStateScenario ||
+        scenario == restoreTimeWindowStateContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreDeferredLookaheadScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreDeferredLookaheadScenario ||
+        scenario == restoreDeferredLookaheadContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreMultiPendingTimeAdvanceScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreMultiPendingTimeAdvanceScenario ||
+        scenario == restoreMultiPendingTimeAdvanceContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestorePendingFlushQueueImmediateScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restorePendingFlushQueueImmediateScenario ||
+        scenario == restorePendingFlushQueueImmediateContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestoreObjectSnapshotStatusScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreObjectSnapshotStatusScenario ||
+        scenario == restoreObjectSnapshotStatusContractId) return true;
+  }
+  return false;
+}
+
 bool hasFqrPostgrantLowerTsoRetractionScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -19425,6 +21399,16 @@ bool hasFqrPostgrantLowerTsoRetractionScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == fqrPostgrantLowerTsoRetractionScenario ||
         scenario == fqrPostgrantLowerTsoRetractionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFqrNonTimeConstrainedInTransitTsoScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) == fqrNonTimeConstrainedInTransitTsoScenario) {
       return true;
     }
   }
@@ -19619,6 +21603,34 @@ bool hasNmraNoPregrantTsoFloorScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasNmraReceivedTsoActualLookaheadFloorScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == nmraReceivedTsoActualLookaheadFloorScenario ||
+        scenario == nmraReceivedTsoActualLookaheadFloorContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasNmraRoEarliestTsoCohortScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == nmraRoEarliestTsoCohortScenario ||
+        scenario == nmraRoEarliestTsoCohortContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasNmrNoPregrantTsoFloorScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -19745,6 +21757,20 @@ bool hasAvailableTimeAdvancesInclusiveGaltScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasTarAcknowledgedTsoGaltReleaseScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == tarAcknowledgedTsoGaltReleaseScenario ||
+        scenario == tarAcknowledgedTsoGaltReleaseContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasTimeConstrainedEnableAtGaltEqualityScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -19753,6 +21779,132 @@ bool hasTimeConstrainedEnableAtGaltEqualityScenario(int argc, char** argv) {
     auto const selected = std::string(argv[index + 1]);
     if (selected == timeConstrainedEnableAtGaltEqualityScenario ||
         selected == timeConstrainedEnableAtGaltEqualityContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimeConstrainedEnableRegulatingFederateCurrentTimeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const selected = std::string(argv[index + 1]);
+    if (selected == timeConstrainedEnableRegulatingFederateCurrentTimeScenario ||
+        selected == timeConstrainedEnableRegulatingFederateCurrentTimeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimeConstrainedEnableRetainsQueuedTsoScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const selected = std::string(argv[index + 1]);
+    if (selected == timeConstrainedEnableRetainsQueuedTsoScenario ||
+        selected == timeConstrainedEnableRetainsQueuedTsoContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimeConstrainedEnableRetainsQueuedTsoAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const selected = std::string(argv[index + 1]);
+    if (selected == timeConstrainedEnableRetainsQueuedTsoAttributeScenario ||
+        selected == timeConstrainedEnableRetainsQueuedTsoAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimeConstrainedEnableReceiveOrderBoundaryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const selected = std::string(argv[index + 1]);
+    if (selected == timeConstrainedEnableReceiveOrderBoundaryScenario ||
+        selected == timeConstrainedEnableReceiveOrderBoundaryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimeConstrainedDisableQueuedInteractionToReceiveOrderScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const selected = std::string(argv[index + 1]);
+    if (selected == timeConstrainedDisableQueuedInteractionToReceiveOrderScenario ||
+        selected == timeConstrainedDisableQueuedInteractionToReceiveOrderContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimeConstrainedDisableQueuedAttributeToReceiveOrderScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const selected = std::string(argv[index + 1]);
+    if (selected == timeConstrainedDisableQueuedAttributeToReceiveOrderScenario ||
+        selected == timeConstrainedDisableQueuedAttributeToReceiveOrderContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimeConstrainedDisableQueuedDeletionToReceiveOrderScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const selected = std::string(argv[index + 1]);
+    if (selected == timeConstrainedDisableQueuedDeletionToReceiveOrderScenario ||
+        selected == timeConstrainedDisableQueuedDeletionToReceiveOrderContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimeConstrainedDisableQueuedDirectedToReceiveOrderScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const selected = std::string(argv[index + 1]);
+    if (selected == timeConstrainedDisableQueuedDirectedToReceiveOrderScenario ||
+        selected == timeConstrainedDisableQueuedDirectedToReceiveOrderContractId) {
       return true;
     }
   }
@@ -19783,6 +21935,54 @@ bool hasTimestampedInteractionMixedAdvancesScenario(int argc, char** argv) {
         scenario == timestampedInteractionMixedAdvancesContractId ||
         scenario == timestampedInteractionTaraEqualBoundaryScenario ||
         scenario == timestampedInteractionTaraEqualBoundaryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedInteractionTaraQueuedEqualBoundaryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionTaraQueuedEqualBoundaryScenario ||
+        scenario == timestampedInteractionTaraQueuedEqualBoundaryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedInteractionZeroLookaheadSendAtGrantScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionZeroLookaheadSendAtGrantScenario ||
+        scenario == timestampedInteractionZeroLookaheadSendAtGrantContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedInteractionZeroLookaheadTarSendBoundaryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionZeroLookaheadTarSendBoundaryScenario ||
+        scenario == timestampedInteractionZeroLookaheadTarSendBoundaryContractId) {
       return true;
     }
   }
@@ -19917,22 +22117,6 @@ bool hasTimestampedInteractionTarPostGrantCutoffScenario(int argc, char** argv) 
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedInteractionTarPostGrantCutoffScenario ||
         scenario == timestampedInteractionTarPostGrantCutoffContractId) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool hasTimestampedAttributeTarPostGrantCutoffScenario(
-    int argc,
-    char** argv) {
-  for (int index = 1; index + 1 < argc; ++index) {
-    if (std::string(argv[index]) != "--scenario") {
-      continue;
-    }
-    auto const scenario = std::string(argv[index + 1]);
-    if (scenario == timestampedAttributeTarPostGrantCutoffScenario ||
-        scenario == timestampedAttributeTarPostGrantCutoffContractId) {
       return true;
     }
   }
@@ -20167,38 +22351,6 @@ bool hasTimestampedObjectDeletionMixedAdvancesScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedObjectDeletionMixedAdvancesScenario ||
         scenario == timestampedObjectDeletionMixedAdvancesContractId) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool hasTimestampedObjectDeletionFutureNmrArrivalScenario(
-    int argc,
-    char** argv) {
-  for (int index = 1; index + 1 < argc; ++index) {
-    if (std::string(argv[index]) != "--scenario") {
-      continue;
-    }
-    auto const scenario = std::string(argv[index + 1]);
-    if (scenario == timestampedObjectDeletionFutureNmrArrivalScenario ||
-        scenario == timestampedObjectDeletionFutureNmrArrivalContractId) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool hasTimestampedObjectDeletionFutureNmraArrivalScenario(
-    int argc,
-    char** argv) {
-  for (int index = 1; index + 1 < argc; ++index) {
-    if (std::string(argv[index]) != "--scenario") {
-      continue;
-    }
-    auto const scenario = std::string(argv[index + 1]);
-    if (scenario == timestampedObjectDeletionFutureNmraArrivalScenario ||
-        scenario == timestampedObjectDeletionFutureNmraArrivalContractId) {
       return true;
     }
   }
@@ -21369,6 +23521,16 @@ bool hasResignDeleteObjectsThenDivestCrossObjectEffectsScenario(
   return false;
 }
 
+bool hasResignDeleteThenDivestPrivilegeEpochScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == resignDeleteThenDivestPrivilegeEpochScenario ||
+        scenario == resignDeleteThenDivestPrivilegeEpochContractScenario) return true;
+  }
+  return false;
+}
+
 bool hasResignUnconditionallyDivestAttributesPreservesObjectsScenario(
     int argc,
     char** argv) {
@@ -21565,6 +23727,22 @@ bool hasServiceReportObjectAttributeDeclarationScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == serviceReportObjectAttributeDeclarationScenario ||
         scenario == serviceReportObjectAttributeDeclarationContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportAssociateRegionsForUpdatesScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportAssociateRegionsForUpdatesScenario ||
+        scenario == serviceReportAssociateRegionsForUpdatesContractScenario) {
       return true;
     }
   }
@@ -23451,6 +25629,51 @@ int main(int argc, char** argv) {
     if (hasAttributeOwnershipAcquisitionCancellationScenario(argc, argv)) {
       return runAttributeOwnershipAcquisitionCancellationScenarios(argc, argv);
     }
+    if (hasNegotiatedDivestitureNoAccepterScenario(argc, argv)) {
+      return runNegotiatedDivestitureNoAccepterScenarios(argc, argv);
+    }
+    if (hasSelectiveUnpublicationPendingAcquisitionScenario(argc, argv)) {
+      return runSelectiveUnpublicationPendingAcquisitionScenarios(argc, argv);
+    }
+    if (hasResignAssumptionLaterPublicationScenario(argc, argv)) {
+      return runResignAssumptionLaterPublicationScenarios(argc, argv);
+    }
+    if (hasOwnershipAssumptionSearchAfterDeclineScenario(argc, argv)) {
+      return runOwnershipAssumptionSearchAfterDeclineScenarios(argc, argv);
+    }
+    if (hasResignMultiSurvivorAssumptionFanoutScenario(argc, argv)) {
+      return runResignMultiSurvivorAssumptionFanoutScenarios(argc, argv);
+    }
+    if (hasOwnershipAssumptionTransferEpochScenario(argc, argv)) {
+      return runOwnershipAssumptionTransferEpochScenarios(argc, argv);
+    }
+    if (hasResignAssumptionLaterDiscoveryScenario(argc, argv)) {
+      return runResignAssumptionLaterDiscoveryScenarios(argc, argv);
+    }
+    if (hasNegotiatedDivestitureConcurrentAssumptionScenario(argc, argv)) {
+      return runNegotiatedDivestitureConcurrentAssumptionScenarios(argc, argv);
+    }
+    if (hasConfirmDivestitureFromCallbackScenario(argc, argv)) {
+      return runConfirmDivestitureFromCallbackScenarios(argc, argv);
+    }
+    if (hasConfirmDivestitureMixedSetAtomicityScenario(argc, argv)) {
+      return runConfirmDivestitureMixedSetAtomicityScenarios(argc, argv);
+    }
+    if (hasDivestitureIfWantedReturnSetScenario(argc, argv)) {
+      return runDivestitureIfWantedReturnSetScenarios(argc, argv);
+    }
+    if (hasIfAvailableDuringNegotiatedDivestitureScenario(argc, argv)) {
+      return runIfAvailableDuringNegotiatedDivestitureScenarios(argc, argv);
+    }
+    if (hasIfAvailableOwnershipScenario(argc, argv)) {
+      return runIfAvailableOwnershipScenarios(argc, argv);
+    }
+    if (hasOwnershipAfterFomMergeScenario(argc, argv)) {
+      return runOwnershipAfterFomMergeScenarios(argc, argv);
+    }
+    if (hasResignDivestsAllInstanceAttributesScenario(argc, argv)) {
+      return runResignDivestsAllInstanceAttributesScenarios(argc, argv);
+    }
     if (hasNegotiatedDivestitureConfirmationFlowScenario(argc, argv)) {
       return runNegotiatedDivestitureConfirmationFlowScenarios(argc, argv);
     }
@@ -23510,8 +25733,11 @@ int main(int argc, char** argv) {
     if (hasTimestampedAttributeUpdateScenario(argc, argv)) {
       return runTimestampedAttributeUpdateScenarios(argc, argv);
     }
-    if (hasTimestampedAttributeTarPostGrantCutoffScenario(argc, argv)) {
-      return runTimestampedAttributeTarPostGrantCutoffScenarios(argc, argv);
+    if (auto const result =
+            hla_rti_cpp_tck::detail::tryRunTimestampedAttributeTaraScenario(
+                argc,
+                argv)) {
+      return *result;
     }
     if (hasTimestampedAttributeTimeAdvancingCutoffScenario(argc, argv)) {
       return runTimestampedAttributeTimeAdvancingCutoffScenarios(argc, argv);
@@ -23557,8 +25783,140 @@ int main(int argc, char** argv) {
     if (hasTimestampedInteractionFlushQueueFutureInputScenario(argc, argv)) {
       return runTimestampedInteractionFlushQueueFutureInputScenarios(argc, argv);
     }
+    if (hasFlushQueueNonlimitingGaltScenario(argc, argv)) {
+      return runFlushQueueNonlimitingGaltScenarios(argc, argv);
+    }
+    if (hasNrgRegulatorResignationScenario(argc, argv)) {
+      return runNrgRegulatorResignationScenarios(argc, argv);
+    }
+    if (hasNrgRegulatorDisableScenario(argc, argv)) {
+      return runNrgRegulatorDisableScenarios(argc, argv);
+    }
+    if (hasNrgDisabledRegulatorActivationScenario(argc, argv)) {
+      return runNrgDisabledRegulatorActivationScenarios(argc, argv);
+    }
+    if (hasConstrainedTarDisableReleaseScenario(argc, argv)) {
+      return runConstrainedTarDisableReleaseScenarios(argc, argv);
+    }
+    if (hasSaveActiveCallbackResignationScenario(argc, argv)) {
+      return runSaveActiveCallbackResignationScenarios(argc, argv);
+    }
+    if (hasTimedSaveActiveCallbackResignationScenario(argc, argv)) {
+      return runTimedSaveActiveCallbackResignationScenarios(argc, argv);
+    }
+    if (hasTimedSaveFqrCallbackResignationScenario(argc, argv)) {
+      return runTimedSaveFqrCallbackResignationScenarios(argc, argv);
+    }
+    if (hasTimedSaveTaraCallbackResignationScenario(argc, argv)) {
+      return runTimedSaveTaraCallbackResignationScenarios(argc, argv);
+    }
+    if (hasTimedSaveNmraCallbackResignationScenario(argc, argv)) {
+      return runTimedSaveNmraCallbackResignationScenarios(argc, argv);
+    }
+    if (hasTimedSaveMixedFqrTarScenario(argc, argv)) {
+      return runTimedSaveMixedFqrTarScenarios(argc, argv);
+    }
+    if (hasTimedSaveOrdinaryBeforeFqrScenario(argc, argv)) {
+      return runTimedSaveOrdinaryBeforeFqrScenarios(argc, argv);
+    }
+    if (hasTimedSaveAllAdvanceModesScenario(argc, argv)) {
+      return runTimedSaveAllAdvanceModesScenarios(argc, argv);
+    }
+    if (hasTimedSavePerMemberTsoScenario(argc, argv)) {
+      return runTimedSavePerMemberTsoScenarios(argc, argv);
+    }
+    if (hasTimedSaveFlushQueueAdmissionScenario(argc, argv)) {
+      return runTimedSaveFlushQueueAdmissionScenarios(argc, argv);
+    }
+    if (hasTimedSaveAvailableAdmissionScenario(argc, argv)) {
+      return runTimedSaveAvailableAdmissionScenarios(argc, argv);
+    }
+    if (hasTimedSaveNextMessageAdmissionScenario(argc, argv)) {
+      return runTimedSaveNextMessageAdmissionScenarios(argc, argv);
+    }
+    if (hasTimedSaveAvailableNextMessageMemberAdmissionScenario(argc, argv)) {
+      return runTimedSaveAvailableNextMessageMemberAdmissionScenarios(argc, argv);
+    }
+    if (hasTimedSaveResignedConstrainedMemberScenario(argc, argv)) {
+      return runTimedSaveResignedConstrainedMemberScenarios(argc, argv);
+    }
+    if (hasTimedSaveResignedPendingFqrScenario(argc, argv)) {
+      return runTimedSaveResignedPendingFqrScenarios(argc, argv);
+    }
+    if (hasRestorePendingFlushQueueRequestScenario(argc, argv)) {
+      return runRestorePendingFlushQueueRequestScenarios(argc, argv);
+    }
+    if (hasRestoreResignationCallbackLifetimeScenario(argc, argv)) {
+      return runRestoreResignationCallbackLifetimeScenarios(argc, argv);
+    }
+    if (hasRestorePendingTimeAdvanceScenario(argc, argv)) {
+      return runRestorePendingTimeAdvanceScenarios(argc, argv);
+    }
+    if (hasRestorePendingTimeAdvanceImmediateScenario(argc, argv)) {
+      return runRestorePendingTimeAdvanceImmediateScenarios(argc, argv);
+    }
+    if (hasRestorePendingAdvanceModesScenario(argc, argv)) {
+      return runRestorePendingAdvanceModesScenarios(argc, argv);
+    }
+    if (hasRestorePendingTsoNmrScenario(argc, argv)) {
+      return runRestorePendingTsoNmrScenarios(argc, argv);
+    }
+    if (hasRestorePendingTsoNmraScenario(argc, argv)) {
+      return runRestorePendingTsoNmraScenarios(argc, argv);
+    }
+    if (hasRestorePendingTsoNmraAttributeScenario(argc, argv)) {
+      return runRestorePendingTsoNmraAttributeScenarios(argc, argv);
+    }
+    if (hasRestorePendingTsoNmraDeleteScenario(argc, argv)) {
+      return runRestorePendingTsoNmraDeleteScenarios(argc, argv);
+    }
+    if (hasRestoreMixedTsoFourMemberScenario(argc, argv)) {
+      return runRestoreMixedTsoFourMemberScenarios(argc, argv);
+    }
+    if (hasRestoreTerminalTsoAttributeScenario(argc, argv)) {
+      return runRestoreTerminalTsoAttributeScenarios(argc, argv);
+    }
+    if (hasRestoreTerminalTsoInteractionScenario(argc, argv)) {
+      return runRestoreTerminalTsoInteractionScenarios(argc, argv);
+    }
+    if (hasRestoreTerminalTsoDirectedInteractionScenario(argc, argv)) {
+      return runRestoreTerminalTsoDirectedInteractionScenarios(argc, argv);
+    }
+    if (hasRestoreTsoRetractionUniquenessScenario(argc, argv)) {
+      return runRestoreTsoRetractionUniquenessScenarios(argc, argv);
+    }
+    if (hasRestoreTsoDirectedMultiRecipientScenario(argc, argv)) {
+      return runRestoreTsoDirectedMultiRecipientScenarios(argc, argv);
+    }
+    if (hasRestoreLiveTsoRetractionRecordScenario(argc, argv)) {
+      return runRestoreLiveTsoRetractionRecordScenarios(argc, argv);
+    }
+    if (hasRestoreLiveTsoDirectedInteractionScenario(argc, argv)) {
+      return runRestoreLiveTsoDirectedInteractionScenarios(argc, argv);
+    }
+    if (hasRestoreLiveTsoInteractionMultiRecipientScenario(argc, argv)) {
+      return runRestoreLiveTsoInteractionMultiRecipientScenarios(argc, argv);
+    }
+    if (hasRestoreTimeWindowStateScenario(argc, argv)) {
+      return runRestoreTimeWindowStateScenarios(argc, argv);
+    }
+    if (hasRestoreDeferredLookaheadScenario(argc, argv)) {
+      return runRestoreDeferredLookaheadScenarios(argc, argv);
+    }
+    if (hasRestoreMultiPendingTimeAdvanceScenario(argc, argv)) {
+      return runRestoreMultiPendingTimeAdvanceScenarios(argc, argv);
+    }
+    if (hasRestorePendingFlushQueueImmediateScenario(argc, argv)) {
+      return runRestorePendingFlushQueueImmediateScenarios(argc, argv);
+    }
+    if (hasRestoreObjectSnapshotStatusScenario(argc, argv)) {
+      return runRestoreObjectSnapshotStatusScenarios(argc, argv);
+    }
     if (hasFqrPostgrantLowerTsoRetractionScenario(argc, argv)) {
       return runFqrPostgrantLowerTsoRetractionScenarios(argc, argv);
+    }
+    if (hasFqrNonTimeConstrainedInTransitTsoScenario(argc, argv)) {
+      return runFqrNonTimeConstrainedInTransitTsoScenario(argc, argv);
     }
     if (hasFqgPostgrantDeliveryCutoffScenario(argc, argv)) {
       return runFqgPostgrantDeliveryCutoffScenarios(argc, argv);
@@ -23621,14 +25979,49 @@ int main(int argc, char** argv) {
     if (hasNmraNoPregrantTsoFloorScenario(argc, argv)) {
       return runNmraNoPregrantTsoFloorScenarios(argc, argv);
     }
+    if (hasNmraReceivedTsoActualLookaheadFloorScenario(argc, argv)) {
+      return runNmraReceivedTsoActualLookaheadFloorScenarios(argc, argv);
+    }
+    if (hasNmraRoEarliestTsoCohortScenario(argc, argv)) {
+      return runNmraRoEarliestTsoCohortScenarios(argc, argv);
+    }
     if (hasSendMessageTimeStatePreservationGrantedScenario(argc, argv)) {
       return runSendMessageTimeStatePreservationGrantedScenarios(argc, argv);
     }
     if (hasAvailableTimeAdvancesInclusiveGaltScenario(argc, argv)) {
       return runAvailableTimeAdvancesInclusiveGaltScenarios(argc, argv);
     }
+    if (hasTarAcknowledgedTsoGaltReleaseScenario(argc, argv)) {
+      return runTarAcknowledgedTsoGaltReleaseScenarios(argc, argv);
+    }
     if (hasTimeConstrainedEnableAtGaltEqualityScenario(argc, argv)) {
       return runTimeConstrainedEnableAtGaltEqualityScenarios(argc, argv);
+    }
+    if (hasTimeConstrainedEnableRegulatingFederateCurrentTimeScenario(argc, argv)) {
+      return runTimeConstrainedEnableRegulatingFederateCurrentTimeScenarios(
+          argc,
+          argv);
+    }
+    if (hasTimeConstrainedEnableRetainsQueuedTsoScenario(argc, argv)) {
+      return runTimeConstrainedEnableRetainsQueuedTsoScenarios(argc, argv);
+    }
+    if (hasTimeConstrainedEnableRetainsQueuedTsoAttributeScenario(argc, argv)) {
+      return runTimeConstrainedEnableRetainsQueuedTsoAttributeScenarios(argc, argv);
+    }
+    if (hasTimeConstrainedEnableReceiveOrderBoundaryScenario(argc, argv)) {
+      return runTimeConstrainedEnableReceiveOrderBoundaryScenarios(argc, argv);
+    }
+    if (hasTimeConstrainedDisableQueuedInteractionToReceiveOrderScenario(argc, argv)) {
+      return runTimeConstrainedDisableQueuedInteractionToReceiveOrderScenarios(argc, argv);
+    }
+    if (hasTimeConstrainedDisableQueuedAttributeToReceiveOrderScenario(argc, argv)) {
+      return runTimeConstrainedDisableQueuedAttributeToReceiveOrderScenarios(argc, argv);
+    }
+    if (hasTimeConstrainedDisableQueuedDeletionToReceiveOrderScenario(argc, argv)) {
+      return runTimeConstrainedDisableQueuedDeletionToReceiveOrderScenarios(argc, argv);
+    }
+    if (hasTimeConstrainedDisableQueuedDirectedToReceiveOrderScenario(argc, argv)) {
+      return runTimeConstrainedDisableQueuedDirectedToReceiveOrderScenarios(argc, argv);
     }
     if (hasTimeRegulationImplicitAdvanceScenario(argc, argv)) {
       return runTimeRegulationImplicitAdvanceScenarios(argc, argv);
@@ -23672,6 +26065,19 @@ int main(int argc, char** argv) {
     }
     if (hasTimeCoordinatedInteractionScenario(argc, argv)) {
       return runTimeCoordinatedInteractionScenario(argc, argv);
+    }
+    if (hasTimestampedInteractionTaraQueuedEqualBoundaryScenario(argc, argv)) {
+      return runTimestampedInteractionTaraQueuedEqualBoundaryScenarios(
+          argc, argv);
+    }
+    if (hasTimestampedInteractionZeroLookaheadSendAtGrantScenario(argc, argv)) {
+      return runTimestampedInteractionZeroLookaheadSendAtGrantScenarios(
+          argc, argv);
+    }
+    if (hasTimestampedInteractionZeroLookaheadTarSendBoundaryScenario(
+            argc, argv)) {
+      return runTimestampedInteractionZeroLookaheadTarSendBoundaryScenarios(
+          argc, argv);
     }
     if (hasTimestampedInteractionMixedAdvancesScenario(argc, argv)) {
       if (std::find_if(
@@ -23727,11 +26133,11 @@ int main(int argc, char** argv) {
     if (hasTimestampedObjectDeletionMixedAdvancesScenario(argc, argv)) {
       return runTimestampedObjectDeletionMixedAdvancesScenarios(argc, argv);
     }
-    if (hasTimestampedObjectDeletionFutureNmrArrivalScenario(argc, argv)) {
-      return runTimestampedObjectDeletionFutureNmrArrivalScenarios(argc, argv);
-    }
-    if (hasTimestampedObjectDeletionFutureNmraArrivalScenario(argc, argv)) {
-      return runTimestampedObjectDeletionFutureNmraArrivalScenarios(argc, argv);
+    if (auto const result =
+            hla_rti_cpp_tck::detail::tryRunTimestampedObjectDeletionScenario(
+                argc,
+                argv)) {
+      return *result;
     }
     if (hasTimestampedDirectedInteractionTarNmrScenario(argc, argv)) {
       return runTimestampedDirectedInteractionTarNmrScenarios(argc, argv);
@@ -23979,6 +26385,9 @@ int main(int argc, char** argv) {
     if (hasResignDeleteObjectsThenDivestCrossObjectEffectsScenario(argc, argv)) {
       return runResignDeleteObjectsThenDivestCrossObjectEffectsScenarios(argc, argv);
     }
+    if (hasResignDeleteThenDivestPrivilegeEpochScenario(argc, argv)) {
+      return runResignDeleteThenDivestPrivilegeEpochScenarios(argc, argv);
+    }
     if (hasResignUnconditionallyDivestAttributesPreservesObjectsScenario(
             argc,
             argv)) {
@@ -24023,6 +26432,9 @@ int main(int argc, char** argv) {
     }
     if (hasServiceReportObjectAttributeDeclarationScenario(argc, argv)) {
       return runServiceReportObjectAttributeDeclarationScenarios(argc, argv);
+    }
+    if (hasServiceReportAssociateRegionsForUpdatesScenario(argc, argv)) {
+      return runServiceReportAssociateRegionsForUpdatesScenarios(argc, argv);
     }
     if (hasServiceReportDirectedInteractionDeclarationScenario(argc, argv)) {
       return runServiceReportDirectedInteractionDeclarationScenarios(argc, argv);

@@ -75,6 +75,11 @@ ProcessFederationService::handleSetServiceReportingSwitch(
       switchRequest.federationName,
       switchRequest.federateId,
       switchRequest.switchValue);
+  if (status ==
+      ServiceReportingSwitchStatus::report_service_invocations_are_subscribed) {
+    return responseFor(
+        request, TransportServiceStatus::service_reporting_interlock);
+  }
   if (status != ServiceReportingSwitchStatus::applied) {
     return rejected(request);
   }
@@ -379,6 +384,10 @@ ProcessFederationService::handleServiceInvocationReport(
       event.payload = interactionPayload;
       event.transportationName = hla::utf8::mom::reliable;
       event.rtiOwnedMomInteraction = true;
+      if (recipient.conveyRegionDesignatorSets) {
+        event.sentRegionHandles = recipient.sentRegionHandles;
+        event.sentRegionSnapshots = recipient.sentRegionSnapshots;
+      }
       if (options_.pushReceiveOrderEvents) {
         pushedEvents.emplace_back(receivingSession->second, std::move(event));
       } else {

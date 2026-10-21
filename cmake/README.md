@@ -10,6 +10,23 @@ package configuration template.
 | run_installed_package_smoke.cmake | Builds the exported runtime set, installs the configured build into a staging prefix, validates the profile/resource manifests, configures a clean consumer, builds it, and runs its test. |
 | package-smoke/ | Minimal downstream project used by the smoke script. |
 
+The opt-in `UMBRA_BUILD_SHARED_LIBRARIES=ON` profile builds the 2025 RTI,
+logical-time, and authorization targets as shared libraries, using the official
+`BUILDING_RTI`, `BUILDING_FEDTIME`, and `BUILDING_AUTHORIZER` export macros.
+The `mingw-shared` preset runs the installed-package consumer against those
+libraries and checks that the installed headers remain under `include/RTI`.
+This is package/load evidence for the shared-library foundation only: it does
+not by itself demonstrate swapping a federate binary to an independently
+supplied RTI implementation or establish cross-platform ABI compatibility.
+To run the optional unchanged-consumer switch check, configure with
+`-DUMBRA_ALTERNATE_PROVIDER_PREFIX=<install-prefix>` pointing at a genuine
+second 1516.1 provider. The smoke requires matching RTI, fedtime, and authorizer
+runtime library names, a distinct RTI library artifact and `rtiName()` /
+`rtiVersion()` identity, then runs the same executable against the alternate
+loader path. Run the top-level CTest `umbra.package_runtime_provider_switch`
+(the package-install fixture runs first). Without that prefix CTest marks the
+switch check skipped; a skip is not evidence of two-provider compatibility.
+
 CTest invokes the installed-package smoke path from the ordinary native build;
 it is also available as the named `umbra_test_installable_package` target (or
 the `installable-package` CTest label). Its staging and consumer builds are

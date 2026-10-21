@@ -3,6 +3,7 @@
 #include "internal/federation/federation_management_coordinator.hpp"
 #include "internal/fom/hla_names.hpp"
 #include "internal/runtime/ambassador_shared_utilities.hpp"
+#include "internal/runtime/ambassador_string_helpers.hpp"
 #include "internal/observability/mom_service_report_encoding.hpp"
 #include "internal/time/federate_time_state.hpp"
 
@@ -39,6 +40,48 @@ void flushAmbassadorAsynchronousReceiveCallbacks(
 void UmbraRtiAmbassador::enableAsynchronousDelivery() {
   auto instrumentationScope = beginRtiCall("enableAsynchronousDelivery");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_, ambassadorFederationManagementMutex());
+      requireConnectedForFederationManagement(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Enable Asynchronous Delivery requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (processClient == nullptr) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+    }
+
+    auto result = umbra::detail::ProcessFederationAsynchronousDeliveryStatus::applied;
+    try {
+      result = processClient->setAsynchronousDeliveryEnabled(true);
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    if (result ==
+        umbra::detail::ProcessFederationAsynchronousDeliveryStatus::applied) {
+      appendSuccessfulVoidServiceReportToFileIfSelected(
+          L"EnableAsynchronousDelivery",
+          umbra::detail::MomServiceType::time_management,
+          {},
+          true);
+      return;
+    }
+    if (result ==
+        umbra::detail::ProcessFederationAsynchronousDeliveryStatus::already_enabled) {
+      throw AsynchronousDeliveryAlreadyEnabled(
+          L"Asynchronous delivery is already enabled for the joined federate.");
+    }
+    throw RTIinternalError(
+        L"Umbra received an invalid process asynchronous-delivery enable outcome.");
+  }
+#endif
   std::shared_ptr<umbra::detail::FederateTimeState> timeState;
   umbra::detail::FederateAsynchronousDeliveryStatus result;
   std::optional<AmbassadorJoinedFederateMomConditionalWork> momWork;
@@ -104,6 +147,48 @@ void UmbraRtiAmbassador::enableAsynchronousDelivery() {
 void UmbraRtiAmbassador::disableAsynchronousDelivery() {
   auto instrumentationScope = beginRtiCall("disableAsynchronousDelivery");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_, ambassadorFederationManagementMutex());
+      requireConnectedForFederationManagement(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Disable Asynchronous Delivery requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (processClient == nullptr) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+    }
+
+    auto result = umbra::detail::ProcessFederationAsynchronousDeliveryStatus::applied;
+    try {
+      result = processClient->setAsynchronousDeliveryEnabled(false);
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    if (result ==
+        umbra::detail::ProcessFederationAsynchronousDeliveryStatus::applied) {
+      appendSuccessfulVoidServiceReportToFileIfSelected(
+          L"DisableAsynchronousDelivery",
+          umbra::detail::MomServiceType::time_management,
+          {},
+          true);
+      return;
+    }
+    if (result ==
+        umbra::detail::ProcessFederationAsynchronousDeliveryStatus::already_disabled) {
+      throw AsynchronousDeliveryAlreadyDisabled(
+          L"Asynchronous delivery is already disabled for the joined federate.");
+    }
+    throw RTIinternalError(
+        L"Umbra received an invalid process asynchronous-delivery disable outcome.");
+  }
+#endif
   std::shared_ptr<umbra::detail::FederateTimeState> timeState;
   umbra::detail::FederateAsynchronousDeliveryStatus result;
   std::optional<AmbassadorJoinedFederateMomConditionalWork> momWork;

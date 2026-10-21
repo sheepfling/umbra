@@ -260,5 +260,194 @@ TEST_CASE(
   REQUIRE_NOTHROW(immediate->disconnect());
 }
 
+TEST_CASE(
+    "Embedded partial unpublication revokes only the affected attribute update",
+    "[integration][development-profile][declaration-management][object-management]"
+    "[publication-ownership-update-boundary][2025]"
+    "[rti.service.unpublish-object-class-attributes]"
+    "[rti.service.is-attribute-owned-by-federate]"
+    "[rti.service.update-attribute-values]"
+    "[federate.callback.reflect-attribute-values]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador subscriberReports;
+  auto publisher = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" / "tests" / "data" /
+                          "attribute-update-passel-fom.xml")
+                             .wstring();
+  unsigned char const firstBytes[] = {0xA1};
+  unsigned char const secondBytes[] = {0xB2};
+  VariableLengthData const tag;
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"partial-unpublish-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"partial-unpublish-subscriber", L"subscriber", federationName));
+
+  auto const child = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+  auto const first = publisher->getAttributeHandle(child, L"ReliableBaseA");
+  auto const second = publisher->getAttributeHandle(child, L"ReliableBaseB");
+  REQUIRE(child.isValid());
+  REQUIRE(first.isValid());
+  REQUIRE(second.isValid());
+  REQUIRE(first != second);
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(
+      child, AttributeHandleSet{first, second}));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      child, AttributeHandleSet{first, second}));
+  auto const objectInstance = publisher->registerObjectInstance(child);
+  REQUIRE(objectInstance.isValid());
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.objectDiscoveryReports.size() == 1U);
+
+  AttributeHandleValueMap firstValue;
+  firstValue.emplace(first, VariableLengthData(firstBytes, sizeof(firstBytes)));
+  AttributeHandleValueMap secondValue;
+  secondValue.emplace(
+      second, VariableLengthData(secondBytes, sizeof(secondBytes)));
+  REQUIRE(publisher->isAttributeOwnedByFederate(objectInstance, first));
+  REQUIRE(publisher->isAttributeOwnedByFederate(objectInstance, second));
+  REQUIRE_NOTHROW(
+      publisher->updateAttributeValues(objectInstance, firstValue, tag));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 1U);
+  REQUIRE(subscriberReports.attributeReflectionReports.front()
+              .attributeValues.contains(first));
+
+  // 2025 §5.3.3 allows unpublishing one class attribute, with ownership of
+  // its corresponding instance attribute lost. The still-published attribute
+  // is a positive control for both ownership and reflection.
+  REQUIRE_NOTHROW(publisher->unpublishObjectClassAttributes(
+      child, AttributeHandleSet{first}));
+  REQUIRE_FALSE(publisher->isAttributeOwnedByFederate(objectInstance, first));
+  REQUIRE(publisher->isAttributeOwnedByFederate(objectInstance, second));
+  REQUIRE_THROWS_AS(
+      publisher->updateAttributeValues(objectInstance, firstValue, tag),
+      rti1516_2025::AttributeNotOwned);
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 1U);
+  REQUIRE_NOTHROW(
+      publisher->updateAttributeValues(objectInstance, secondValue, tag));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 2U);
+  auto const& retainedReflection =
+      subscriberReports.attributeReflectionReports.back();
+  REQUIRE(retainedReflection.objectInstance == objectInstance);
+  REQUIRE(retainedReflection.attributeValues.size() == 1U);
+  REQUIRE_FALSE(retainedReflection.attributeValues.contains(first));
+  REQUIRE(retainedReflection.attributeValues.contains(second));
+  REQUIRE(variableLengthDataBytes(retainedReflection.attributeValues.at(second)) ==
+          std::vector<unsigned char>(
+              secondBytes, secondBytes + sizeof(secondBytes)));
+
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(subscriber->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded receive-order attribute update reflects only subscribed class attributes",
+    "[integration][development-profile][declaration-management][object-management]"
+    "[subscription-attribute-reflection-boundary][2025]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.update-attribute-values]"
+    "[federate.callback.reflect-attribute-values]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador firstReports;
+  ReportingFederateAmbassador secondReports;
+  auto publisher = makeRti();
+  auto firstReceiver = makeRti();
+  auto secondReceiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" / "tests" / "data" /
+                          "attribute-update-passel-fom.xml")
+                             .wstring();
+  unsigned char const firstBytes[] = {0xA1, 0xA2};
+  unsigned char const secondBytes[] = {0xB1, 0xB2};
+  VariableLengthData const tag;
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(firstReceiver->connect(firstReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(secondReceiver->connect(secondReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"attribute-filter-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(firstReceiver->joinFederationExecution(
+      L"attribute-filter-first", L"subscriber", federationName));
+  REQUIRE_NOTHROW(secondReceiver->joinFederationExecution(
+      L"attribute-filter-second", L"subscriber", federationName));
+
+  auto const child = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+  auto const first = publisher->getAttributeHandle(child, L"ReliableBaseA");
+  auto const second = publisher->getAttributeHandle(child, L"ReliableBaseB");
+  REQUIRE(child.isValid());
+  REQUIRE(first.isValid());
+  REQUIRE(second.isValid());
+  REQUIRE(first != second);
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(
+      child, AttributeHandleSet{first, second}));
+  REQUIRE_NOTHROW(firstReceiver->subscribeObjectClassAttributes(
+      child, AttributeHandleSet{first}));
+  REQUIRE_NOTHROW(secondReceiver->subscribeObjectClassAttributes(
+      child, AttributeHandleSet{second}));
+  auto const objectInstance = publisher->registerObjectInstance(child);
+  REQUIRE(objectInstance.isValid());
+  REQUIRE_FALSE(firstReceiver->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_FALSE(secondReceiver->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(firstReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(secondReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(firstReceiver->getKnownObjectClassHandle(objectInstance) == child);
+  REQUIRE(secondReceiver->getKnownObjectClassHandle(objectInstance) == child);
+  REQUIRE(firstReports.attributeReflectionReports.empty());
+  REQUIRE(secondReports.attributeReflectionReports.empty());
+  REQUIRE(publisher->isAttributeOwnedByFederate(objectInstance, first));
+  REQUIRE(publisher->isAttributeOwnedByFederate(objectInstance, second));
+
+  AttributeHandleValueMap values;
+  values.emplace(first, VariableLengthData(firstBytes, sizeof(firstBytes)));
+  values.emplace(second, VariableLengthData(secondBytes, sizeof(secondBytes)));
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(objectInstance, values, tag));
+  REQUIRE_FALSE(firstReceiver->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_FALSE(secondReceiver->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(firstReports.attributeReflectionReports.size() == 1U);
+  REQUIRE(secondReports.attributeReflectionReports.size() == 1U);
+  auto const& firstReflection = firstReports.attributeReflectionReports.front();
+  auto const& secondReflection = secondReports.attributeReflectionReports.front();
+  REQUIRE(firstReflection.objectInstance == objectInstance);
+  REQUIRE(secondReflection.objectInstance == objectInstance);
+  REQUIRE(firstReflection.attributeValues.size() == 1U);
+  REQUIRE(secondReflection.attributeValues.size() == 1U);
+  REQUIRE(firstReflection.attributeValues.contains(first));
+  REQUIRE_FALSE(firstReflection.attributeValues.contains(second));
+  REQUIRE(secondReflection.attributeValues.contains(second));
+  REQUIRE_FALSE(secondReflection.attributeValues.contains(first));
+  REQUIRE(variableLengthDataBytes(firstReflection.attributeValues.at(first)) ==
+          std::vector<unsigned char>(
+              firstBytes, firstBytes + sizeof(firstBytes)));
+  REQUIRE(variableLengthDataBytes(secondReflection.attributeValues.at(second)) ==
+          std::vector<unsigned char>(
+              secondBytes, secondBytes + sizeof(secondBytes)));
+  REQUIRE(publisherReports.attributeReflectionReports.empty());
+
+  REQUIRE_NOTHROW(secondReceiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(firstReceiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(secondReceiver->disconnect());
+  REQUIRE_NOTHROW(firstReceiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
 
 }  // namespace

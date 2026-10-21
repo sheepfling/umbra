@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "IEEE 1516.1-2025 public-API ownership scenario: an owner receives one tagged Request Divestiture Confirmation following a requester's acquisition and negotiated divestiture, invokes Confirm Divestiture inside that callback, and the requester receives one tagged acquisition notification with ownership transfer. Direct pinned native mappings are page-154-l156-49 -> §7.2, page-156-l41-12 -> §7.3.4, page-159-l53-11 -> §7.6.3, and page-161-l137-40 -> §7.8. Callback re-entry itself is supplemental public-API evidence; process endpoint and pushed receive-order transport are excluded. Adapter supplies provider, endpoint, FOM, names, callback model and logical-time implementation. Current-source installed-package C++ primary/contract passed 4/4 under evoked/immediate callbacks. Java parity compiles against the official API-only JAR but has no provider-runtime execution evidence. This is not a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-confirm-divestiture-from-callback",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador attributeOwnershipAcquisition, negotiatedAttributeOwnershipDivestiture, confirmDivestiture, isAttributeOwnedByFederate and FederateAmbassador requestDivestitureConfirmation, attributeOwnershipAcquisitionNotification",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_assumption_search.cpp::scenarioConfirmDivestitureFromCallback",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_assumption_search.cpp::scenarioConfirmDivestitureFromCallbackContract"
+      ]
+    }
+  ]
+}

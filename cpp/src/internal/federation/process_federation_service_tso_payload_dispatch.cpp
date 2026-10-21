@@ -13,12 +13,16 @@ void ProcessFederationService::dispatchTsoInteractionPayloads(
     std::wstring const& federationName,
     std::uint64_t receivingFederateId,
     rti1516_2025::LogicalTime const& boundary,
-    bool inclusive) {
-  auto delivery = registry_.beginTsoPayloadDelivery(
-      federationName,
-      receivingFederateId,
-      boundary,
-      inclusive);
+    bool inclusive,
+    bool asReceiveOrder) {
+  auto delivery = asReceiveOrder
+      ? registry_.beginTsoPayloadReceiveOrderDelivery(
+            federationName, receivingFederateId)
+      : registry_.beginTsoPayloadDelivery(
+            federationName,
+            receivingFederateId,
+            boundary,
+            inclusive);
   if (delivery.status != FederationTsoRegistryStatus::applied ||
       (delivery.deliveryStatus != FederationTsoDeliveryStatus::applied &&
        delivery.deliveryStatus != FederationTsoDeliveryStatus::no_messages)) {
@@ -32,14 +36,15 @@ void ProcessFederationService::dispatchTsoInteractionPayloads(
       dispatchTsoAttributeUpdateDelivery(
           federationName,
           receivingFederateId,
-          *attribute);
+          *attribute,
+          asReceiveOrder);
       continue;
     }
 
     if (auto const* directed =
             std::get_if<TsoDirectedInteractionDelivery>(&typedDelivery)) {
       auto const& message = directed->message;
-      if (!message.timestamp) {
+      if (!asReceiveOrder && !message.timestamp) {
         throw std::runtime_error(
             "The process federation encountered a timestamped directed interaction without a timestamp.");
       }
@@ -91,7 +96,8 @@ void ProcessFederationService::dispatchTsoInteractionPayloads(
       if (!projection || !registry_.beginTsoInteractionCallback(
                              federationName,
                              receivingFederateId,
-                             message.messageId)) {
+                             message.messageId,
+                             asReceiveOrder)) {
         static_cast<void>(registry_.finishTsoRecipientCallbackSuppressed(
             federationName,
             receivingFederateId,
@@ -129,10 +135,13 @@ void ProcessFederationService::dispatchTsoInteractionPayloads(
         envelope.parameterValues.emplace_back(parameterHandle, std::move(bytes));
       }
 
-      auto const timestamp = encodeProcessLogicalTime(message.timestamp);
-      if (!timestamp) {
-        throw std::runtime_error(
-            "The process federation could not encode a timestamped directed-interaction time.");
+      std::optional<ProcessFederationLogicalTime> timestamp;
+      if (!asReceiveOrder) {
+        timestamp = encodeProcessLogicalTime(message.timestamp);
+        if (!timestamp) {
+          throw std::runtime_error(
+              "The process federation could not encode a timestamped directed-interaction time.");
+        }
       }
       ProcessFederationInteractionEvent event{
           message.producingFederateId,
@@ -144,8 +153,10 @@ void ProcessFederationService::dispatchTsoInteractionPayloads(
           std::move(timestamp),
           projection->objectInstanceHandle,
           message.messageId};
-      event.sentOrderType = rti1516_2025::TIMESTAMP;
-      event.receivedOrderType = rti1516_2025::TIMESTAMP;
+      if (!asReceiveOrder) {
+        event.sentOrderType = rti1516_2025::TIMESTAMP;
+        event.receivedOrderType = rti1516_2025::TIMESTAMP;
+      }
       if (!receivingSession->send(TransportServiceMessage{
               TransportServiceMessageKind::event,
               TransportServiceOperation::receive_interaction,
@@ -169,7 +180,7 @@ void ProcessFederationService::dispatchTsoInteractionPayloads(
     if (auto const* deletion =
             std::get_if<TsoObjectDeletionDelivery>(&typedDelivery)) {
       auto const& message = deletion->message;
-      if (!message.timestamp) {
+      if (!asReceiveOrder && !message.timestamp) {
         static_cast<void>(registry_.finishTsoRecipientCallbackSuppressed(
             federationName,
             receivingFederateId,
@@ -236,7 +247,8 @@ void ProcessFederationService::dispatchTsoInteractionPayloads(
             federationName,
             receivingFederateId,
             message.objectInstanceHandle,
-            message.messageId);
+            message.messageId,
+            asReceiveOrder);
       }
       if (!removal) {
         static_cast<void>(registry_.finishTsoRecipientCallbackSuppressed(
@@ -252,11 +264,17 @@ void ProcessFederationService::dispatchTsoInteractionPayloads(
           removal->objectInstanceHandle,
           removal->producingFederateId,
           {},
-          encodeProcessLogicalTime(message.timestamp),
+          asReceiveOrder
+              ? std::optional<ProcessFederationLogicalTime>{}
+              : encodeProcessLogicalTime(message.timestamp),
           message.messageId,
-          true,
-          message.sentOrderType,
-          rti1516_2025::TIMESTAMP};
+          !asReceiveOrder,
+          asReceiveOrder
+              ? std::optional<rti1516_2025::OrderType>{}
+              : std::optional<rti1516_2025::OrderType>{message.sentOrderType},
+          asReceiveOrder
+              ? std::optional<rti1516_2025::OrderType>{}
+              : std::optional<rti1516_2025::OrderType>{rti1516_2025::TIMESTAMP}};
       event.userSuppliedTag.resize(message.userSuppliedTag.size());
       if (!event.userSuppliedTag.empty()) {
         auto const* data = static_cast<std::uint8_t const*>(
@@ -270,7 +288,7 @@ void ProcessFederationService::dispatchTsoInteractionPayloads(
             data + message.userSuppliedTag.size(),
             event.userSuppliedTag.begin());
       }
-      if (!event.timestamp) {
+      if (!asReceiveOrder && !event.timestamp) {
         throw std::runtime_error(
             "The process federation could not encode a timestamped object-deletion time.");
       }
@@ -311,7 +329,8 @@ void ProcessFederationService::dispatchTsoInteractionPayloads(
     dispatchTsoInteractionDelivery(
         federationName,
         receivingFederateId,
-        *interaction);
+        *interaction,
+        asReceiveOrder);
     continue;
   }
 }

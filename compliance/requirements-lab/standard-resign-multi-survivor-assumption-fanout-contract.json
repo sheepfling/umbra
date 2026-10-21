@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable IEEE 1516.1-2025 public-API translation of the verified native three-member directive-1 resignation case. The adapter supplies the provider, endpoint, FOM, ordinary object class and attribute, logical-time implementation, and HLA_EVOKED callback configuration. Two subscribed and publishing survivors discover one object registered by the departing owner. After UNCONDITIONALLY_DIVEST_ATTRIBUTES, neither survivor has received a callback until serviced. Servicing only the first delivers exactly one Request Attribute Ownership Assumption with the object, its resolved ordinary attribute, standard HLAprivilegeToDeleteObject, and empty resignation tag; the second queue remains untouched. Servicing the second delivers the same standard offer independently without repeating the first. Direct mappings are requirement-candidate-content-clauses-04-federation-management-page-058-l125-35 and page-058-l147-40 to canonical clause 4.12. This does not claim complete resignation-action coverage, ownership arbitration, immediate callback ordering, or conformance. Official-header C++ primary/contract passed 2/2 HLA_EVOKED twice against current-source installed package libraries; both-mode reports two passes and two explicit immediate skips. Java parity compiles against the official API-only JAR but has no provider-runtime result.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-resign-multi-survivor-assumption-fanout",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador resignFederationExecution(UNCONDITIONALLY_DIVEST_ATTRIBUTES), evokeCallback, with FederateAmbassador discoverObjectInstance and requestAttributeOwnershipAssumption",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador federation and ownership declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_assumption_search.cpp::scenarioResignMultiSurvivorAssumptionFanout",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_assumption_search.cpp::scenarioResignMultiSurvivorAssumptionFanoutContract"
+      ]
+    }
+  ]
+}

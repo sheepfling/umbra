@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable IEEE 1516.1-2025 public-API translation of the verified 31-assertion native DELETE_OBJECTS_THEN_DIVEST voluntary resignation case. An adapter-supplied FOM declares an ordinary object class and attribute. One owner registers an instance while holding its ordinary attribute and standard HLAprivilegeToDeleteObject, unpublishes the delete privilege while retaining ordinary ownership, republishes it without retroactively reacquiring the earlier instance privilege, then registers a second instance with a new implicit privilege. On DELETE_OBJECTS_THEN_DIVEST resignation, the peer sees the second object removed, the first object and its name retained, and a Request Attribute Ownership Assumption for only the first object's ordinary attribute. The native recipient-local assumption-before-removal sequence is expressly excluded because the standard mapping does not establish a cross-service callback ordering guarantee. Direct mappings are requirement-candidate-content-clauses-04-federation-management-page-058-l112-33, page-058-l125-35, and page-058-l147-40 to canonical clause 4.12. The publication-epoch assertions are supplemental public-API setup, not a new complete declaration-management mapping or conformance claim. Official-header C++ primary/contract passed 4/4 across evoked and immediate callback models twice against installed package libraries. Java parity compiles against the official API-only JAR but has no provider-runtime result.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-resign-delete-then-divest-privilege-epoch",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador publishObjectClassAttributes, unpublishObjectClassAttributes, registerObjectInstance, resignFederationExecution(DELETE_OBJECTS_THEN_DIVEST), getObjectInstanceHandle with FederateAmbassador discoverObjectInstance, removeObjectInstance, requestAttributeOwnershipAssumption",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador federation, declaration, object, and ownership declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_portable_resignation_ownership.cpp::scenarioResignDeleteThenDivestPrivilegeEpoch",
+        "packages/hla-rti-cpp-tck/src/tck_portable_resignation_ownership.cpp::scenarioResignDeleteThenDivestPrivilegeEpochContract"
+      ]
+    }
+  ]
+}

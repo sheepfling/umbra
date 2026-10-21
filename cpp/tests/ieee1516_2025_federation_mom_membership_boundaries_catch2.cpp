@@ -1,6 +1,120 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
 namespace {
+void verifyCreateDesignatorIsRetainedInFederationMom(
+    bool withExplicitMim,
+    bool useFileUrl = false) {
+  ReportingFederateAmbassador reports;
+  auto rti = makeRti();
+  auto const federationName = nextFederationName();
+  auto const suppliedPath = resourcePath("examples/RestaurantFOMmodule-2025.xml");
+  auto const genericPath = suppliedPath.generic_wstring();
+  auto encodedUrlPath = genericPath;
+  auto const restaurantName = encodedUrlPath.find(L"RestaurantFOMmodule");
+  if (restaurantName != std::wstring::npos) {
+    encodedUrlPath.replace(restaurantName, 1U, L"%52");
+  }
+  auto const suppliedDesignator = useFileUrl
+      ? (encodedUrlPath.starts_with(L"/") ? L"file://" + encodedUrlPath
+                                           : L"file:///" + encodedUrlPath)
+      : suppliedPath.wstring();
+
+  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
+  if (withExplicitMim) {
+    auto const mimDesignator = resourcePath("mim/HLAstandardMIM-2025.xml").wstring();
+    REQUIRE_NOTHROW(rti->createFederationExecutionWithMIM(
+        federationName,
+        std::vector<std::wstring>{suppliedDesignator},
+        mimDesignator,
+        standard_hla::mom::integer64_time));
+  } else {
+    REQUIRE_NOTHROW(rti->createFederationExecution(
+        federationName,
+        std::vector<std::wstring>{suppliedDesignator},
+        standard_hla::mom::integer64_time));
+  }
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"create-designator-observer", L"observer", federationName));
+
+  auto const momClass = rti->getObjectClassHandle(
+      standard_hla::mom::federation_object_class);
+  auto const designatorAttribute = rti->getAttributeHandle(
+      momClass, standard_hla::mom::fom_module_designator_list);
+  REQUIRE(momClass.isValid());
+  REQUIRE(designatorAttribute.isValid());
+
+  REQUIRE_NOTHROW(rti->subscribeObjectClassAttributes(
+      momClass,
+      AttributeHandleSet{designatorAttribute},
+      true));
+  while (rti->evokeCallback(0.0)) {
+  }
+  auto const discoveredFederation = std::find_if(
+      reports.objectDiscoveryReports.begin(),
+      reports.objectDiscoveryReports.end(),
+      [&](ReportingFederateAmbassador::ObjectDiscoveryReport const& report) {
+        return report.objectClass == momClass &&
+            report.objectInstanceName == standard_hla::mom::federation;
+      });
+  REQUIRE(discoveredFederation != reports.objectDiscoveryReports.end());
+
+  auto const reflectionCount = reports.attributeReflectionReports.size();
+  REQUIRE_NOTHROW(rti->requestAttributeValueUpdate(
+      discoveredFederation->objectInstance,
+      AttributeHandleSet{designatorAttribute},
+      VariableLengthData{}));
+  while (rti->evokeCallback(0.0)) {
+  }
+  REQUIRE(reports.attributeReflectionReports.size() == reflectionCount + 1U);
+  auto const& reflection = reports.attributeReflectionReports.back();
+  REQUIRE(reflection.objectInstance == discoveredFederation->objectInstance);
+  REQUIRE(reflection.attributeValues.size() == 1U);
+  auto const designators = decodeHlaUnicodeStringList(
+      reflection.attributeValues.at(designatorAttribute));
+  REQUIRE(designators);
+  REQUIRE(*designators == std::vector<std::wstring>{suppliedDesignator});
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
+    "Embedded federation MOM retains the exact Create FOM module designator",
+    "[integration][development-profile][federation-management][mom][fom]"
+    "[fom-module-designator-preservation-create]"
+    "[rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.request-attribute-value-update]"
+    "[federate.callback.reflect-attribute-values]") {
+  verifyCreateDesignatorIsRetainedInFederationMom(false);
+}
+
+TEST_CASE(
+    "Embedded federation MOM retains the exact Create With MIM FOM module designator",
+    "[integration][development-profile][federation-management][mom][fom]"
+    "[fom-module-designator-preservation-create-with-mim]"
+    "[rti.service.create-federation-execution-with-mim]"
+    "[rti.service.join-federation-execution]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.request-attribute-value-update]"
+    "[federate.callback.reflect-attribute-values]") {
+  verifyCreateDesignatorIsRetainedInFederationMom(true);
+}
+
+TEST_CASE(
+    "Embedded Create Federation Execution loads a file URL FOM designator",
+    "[integration][development-profile][federation-management][mom][fom]"
+    "[fom-module-designator-file-url]"
+    "[rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.request-attribute-value-update]"
+    "[federate.callback.reflect-attribute-values]") {
+  verifyCreateDesignatorIsRetainedInFederationMom(false, true);
+}
+
 TEST_CASE(
     "Embedded federation MOM reflects HLAfederatesInFederation at membership boundaries",
     "[integration][development-profile][federation-management][mom][mom-membership]"

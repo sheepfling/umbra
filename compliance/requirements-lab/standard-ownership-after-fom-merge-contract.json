@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable 2025 public-API translation of the verified native join-time FOM ownership case. An adapter-supplied base FOM declares a publishable class and original attribute; the owner registers an instance before another federate joins with an adapter-supplied FOM module adding an attribute to that same class. The old attribute remains owned, while the new attribute is unowned for both federates; publishing the new attribute does not confer ownership. Under HLA_EVOKED, If Available acquisition leaves it unowned until Attribute Ownership Acquisition Notification arrives with the requested object, attribute set, and tag, then the joiner owns it. The four page-148 candidate fragments are treated as one ownership-state group under canonical clause 7, consistent with the native RL-309 disposition; no fragment is claimed independently complete. This does not claim arbitrary FOM merge behavior, HLA_IMMEDIATE ordering, or conformance. Official-header C++ primary/contract passed 2/2 evoked twice against current-source installed package libraries; Java parity compiles against official API-only JAR but has no provider-runtime result.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ownership-after-fom-merge",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador joinFederationExecution(additionalFomModules), getAttributeHandle, publishObjectClassAttributes, isAttributeOwnedByFederate, attributeOwnershipAcquisitionIfAvailable with FederateAmbassador discoverObjectInstance and attributeOwnershipAcquisitionNotification",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador federation, object, and ownership declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_after_fom_merge.cpp::scenarioOwnershipAfterFomMerge",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_after_fom_merge.cpp::scenarioOwnershipAfterFomMergeContract"
+      ]
+    }
+  ]
+}

@@ -95,4 +95,92 @@ TEST_CASE(
   REQUIRE_NOTHROW(owner->disconnect());
 }
 
+TEST_CASE(
+    "Embedded partial unpublication excludes an unrelated pending acquisition",
+    "[integration][development-profile][declaration-management]"
+    "[ownership-management][selective-unpublication-pending-acquisition][2025]"
+    "[rti.service.unpublish-object-class-attributes]"
+    "[rti.service.attribute-ownership-acquisition]") {
+  rti1516_2025::NullFederateAmbassador ownerFederate;
+  ReportingFederateAmbassador requesterReports;
+  auto owner = makeRti();
+  auto requester = makeRti();
+  auto const federationName = nextFederationName();
+  auto const restaurantFom =
+      resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  auto ownerDirectory = temporaryServiceReportDirectory();
+  auto requesterDirectory = temporaryServiceReportDirectory();
+  auto ownerConfiguration =
+      configurationForServiceReportDirectory(ownerDirectory.path());
+  auto requesterConfiguration =
+      configurationForServiceReportDirectory(requesterDirectory.path());
+  ownerConfiguration.withRtiAddress(L"in-process");
+  requesterConfiguration.withRtiAddress(L"in-process");
+
+  REQUIRE_NOTHROW(owner->connect(
+      ownerFederate, rti1516_2025::HLA_EVOKED, ownerConfiguration));
+  REQUIRE_NOTHROW(requester->connect(
+      requesterReports, rti1516_2025::HLA_EVOKED, requesterConfiguration));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName, restaurantFom, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"selective-unpublish-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"selective-unpublish-requester", L"subscriber", federationName));
+
+  auto const objectClass =
+      owner->getObjectClassHandle(fixture_hla::fom::employee_server);
+  auto const pendingAttribute = owner->getAttributeHandle(
+      objectClass, fixture_hla::fixture::efficiency);
+  auto const unrelatedAttribute = owner->getAttributeHandle(
+      objectClass, fixture_hla::fixture::name);
+  REQUIRE(objectClass.isValid());
+  REQUIRE(pendingAttribute.isValid());
+  REQUIRE(unrelatedAttribute.isValid());
+  REQUIRE(pendingAttribute != unrelatedAttribute);
+  AttributeHandleSet const pendingOnly{pendingAttribute};
+  AttributeHandleSet const unrelatedOnly{unrelatedAttribute};
+  AttributeHandleSet const both{pendingAttribute, unrelatedAttribute};
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(objectClass, both));
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(objectClass, both));
+  auto const objectInstance = owner->registerObjectInstance(objectClass);
+  REQUIRE(objectInstance.isValid());
+  REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(requester->getKnownObjectClassHandle(objectInstance) == objectClass);
+
+  REQUIRE_NOTHROW(requester->publishObjectClassAttributes(objectClass, both));
+  REQUIRE_NOTHROW(requester->attributeOwnershipAcquisition(
+      objectInstance, pendingOnly, VariableLengthData{}));
+  REQUIRE_FALSE(requester->isAttributeOwnedByFederate(
+      objectInstance, pendingAttribute));
+  REQUIRE(owner->isAttributeOwnedByFederate(
+      objectInstance, pendingAttribute));
+  REQUIRE(owner->isAttributeOwnedByFederate(
+      objectInstance, unrelatedAttribute));
+
+  // The acquisition protects only its own class attribute publication.
+  REQUIRE_NOTHROW(requester->unpublishObjectClassAttributes(
+      objectClass, unrelatedOnly));
+  REQUIRE_THROWS_AS(
+      requester->attributeOwnershipAcquisition(
+          objectInstance, unrelatedOnly, VariableLengthData{}),
+      rti1516_2025::AttributeNotPublished);
+  REQUIRE_THROWS_AS(
+      requester->unpublishObjectClassAttributes(objectClass, pendingOnly),
+      rti1516_2025::OwnershipAcquisitionPending);
+  REQUIRE_FALSE(requester->isAttributeOwnedByFederate(
+      objectInstance, pendingAttribute));
+  REQUIRE(owner->isAttributeOwnedByFederate(
+      objectInstance, pendingAttribute));
+
+  REQUIRE_NOTHROW(requester->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(
+      rti1516_2025::DELETE_OBJECTS));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
 }  // namespace

@@ -7,9 +7,8 @@ requirements, or a claim of conformance.
 
 ## Scope and authority
 
-- **Standard boundary:** IEEE 1516.1-2025 only. The 2010 API and runtime are a
-  separate compatibility stream and are deliberately not described or compared
-  here.
+- **Standard boundary:** IEEE 1516.1-2025 only. Normative claims and Umbra
+  implementation evidence are identified separately throughout this guide.
 - **Implementation boundary:** the opt-in, non-installable 2025 embedded
   federation-management development profile and the time-coordination code
   exercised by its tests. Support is intentionally bounded; see
@@ -265,7 +264,7 @@ completion are distinct events. The specific route from eligible TSO work
 through callback-model handling to grant callback is the current embedded
 2025 path: its pending-task details and tested TSO-before-grant ordering below
 are profile evidence, not a universal scheduler or queue algorithm. No
-process-profile or 2010 parity is inferred.
+process-profile parity is inferred.
 For the fuller callback-task and per-ambassador dispatch model, see the
 separate [callback and service ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md).
 
@@ -594,7 +593,7 @@ are explicit in the adapter. For the generic delivered-versus-pending
 Retract/Request Retraction sequence, see the [TSO retraction guide's
 mixed-recipient walkthrough](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md#a-mixed-recipient-walkthrough).
 This is one embedded attribute-update scenario, not a rule for every
-timestamped service, the process profile, or the 2010 stream.
+timestamped service or the process profile.
 
 ### Timestamped attribute updates: time eligibility and receiver projection
 
@@ -623,10 +622,10 @@ flowchart TD
 ```
 
 This is an Umbra 2025 profile comparison, not a normative claim about when an
-RTI must freeze an attribute projection, nor a claim about the separate 2010
-stream. The embedded callback path resolves the current subscription, known
-class, and DDM projection during callback dispatch, then applies any
-best-effort rate filter before reflecting; the regional
+RTI must freeze an attribute projection. In the embedded callback path, the
+current subscription, known class, and DDM projection are resolved during
+callback dispatch; any best-effort rate filter is then applied before
+reflection; the regional
 [selector-mutation scenario](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#a-recipient-region-can-invalidate-queued-regional-tso-delivery)
 shows an accepted update suppressed after the receiver commits a disjoint
 region. The process service also resolves the current projection at TSO
@@ -672,6 +671,14 @@ Directed Interaction, and the supported Send Interaction With Regions
 overload with retraction. This list is not a claim that every timestamped HLA
 service family is implemented.
 
+Delete Object Instance has service-specific state effects beyond this generic
+TSO lifecycle: each receiver's removal commit and the deletion-specific
+restoration branch on Retract. For those current Umbra 2025 source/test details,
+see the [object-removal flow's timestamped-deletion section](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#timestamped-deletion-each-receiver-reaches-its-own-removal-boundary)
+and the [TSO retraction guide's deletion branch](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md#service-specific-effects-deletion-is-special).
+The linked restoration evidence is embedded-profile evidence and does not
+establish process-profile parity.
+
 In the selected 2025 embedded attribute-update path, TSO eligibility and
 update-rate admission are separate gates: a timestamped update can reach its
 logical-time delivery boundary and still have individual best-effort
@@ -684,6 +691,149 @@ handle at the recipient boundary. Compare the
 with the [attribute update-rate guide's TSO boundary](HLA-2025-ATTRIBUTE-UPDATE-RATE-ADMISSION-FLOW-GUIDE.md#3-keep-the-wall-clock-outside-the-tso-state-machine).
 This is selected source/test evidence, not a universal HLA ordering rule or
 process-profile claim.
+
+### One timestamped invocation can split by attribute order
+
+A timestamp on `updateAttributeValues` does not force every submitted
+attribute for every recipient onto one delivery path in the current 2025
+embedded profile. The sender's attributes are grouped by their effective
+transportation, order, and update-region association, then projected for each
+recipient. If one time-constrained receiver is eligible for both receive-order
+and timestamp-order passels, the single invocation reaches two distinct timing
+gates:
+
+```mermaid
+flowchart TD
+  Call["One timestamped Update Attribute Values(values, T, tag)"] --> Resolve["Resolve effective order and other passel metadata per attribute"]
+  Resolve --> Group["Group by transportation, order, and region association"]
+  Group --> Project["Project eligible passels for one receiver"]
+  Project --> Split{"Receiver has both RECEIVE and TIMESTAMP passels?"}
+  Split -->|RECEIVE| RO["Route receive-order passel through the RO callback gate"]
+  Split -->|TIMESTAMP| TSO["Retain timestamp-order passel in the recipient TSO queue"]
+  RO --> ROGate{"Receive-order temporal gate open?"}
+  ROGate -->|"Asynchronous delivery enabled or time advance pending"| ROReady["Submit RECEIVE/RECEIVE reflection; this passel has no retraction designator"]
+  ROGate -->|No| Deferred["Defer receive-order callback"]
+  Deferred --> ROGate
+  TSO --> Boundary["Wait for recipient's logical-time boundary at T"]
+  Boundary --> TSOReady["Submit TIMESTAMP/TIMESTAMP reflection before the matching grant"]
+```
+
+The chart combines source-derived boundaries, not one verified end-to-end
+test. In this embedded path the original timestamp and tag are carried on
+both callback routes, while the order fields differ: the receive-order passel
+uses `RECEIVE` for sent and received order and is routed without a retraction
+designator; the queued TSO passel uses timestamp order and participates in
+retraction. If the TSO work is retracted after an RO callback has already been
+observed, that earlier callback cannot be undone. After either temporal gate
+admits its work, `HLA_IMMEDIATE` versus `HLA_EVOKED` still determines when the
+application callback is invoked.
+
+The passel planner groups on effective per-attribute metadata in the
+[registry](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L133);
+the [embedded adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L608)
+separates each recipient's RO and TSO passels, [queues its TSO passels](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L633),
+and sends its RO passels through the [receive-order callback route](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L761). The
+[time-advance dispatcher](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L497)
+delivers a queued TSO reflection before its matching grant. The existing
+[receive-order gate](#receive-order-and-asynchronous-delivery) explains the
+RO branch. Nearby checked-in evidence is adjacent, not combined: the
+[order-control case](../../cpp/tests/order_type_control_catch2.cpp#L169)
+covers order controls; the [timestamped mixed-fanout case](../../cpp/tests/timestamped_default_region_attribute_mixed_fanout_catch2.cpp#L155)
+varies recipient time roles, not per-attribute order to one receiver; and the
+[asynchronous-delivery case](../../cpp/tests/ieee1516_2025_asynchronous_delivery_temporal_state_catch2.cpp#L5)
+tests an interaction route, not timestamped attribute passels. No tracked
+focused test combines different attribute orders for one receiver in one call.
+This is an Umbra 2025 embedded case study, not a normative rule or a
+process-profile claim.
+
+### Process endpoint: the same order split crosses a different boundary
+
+The process endpoint calls the same per-attribute registry planner. For a
+time-regulating producer and one time-constrained receiver eligible for both
+orders, however, its process service represents the two passels differently:
+the RECEIVE passel becomes an ordinary process attribute event, while the
+TIMESTAMP passel remains in the recipient's TSO message until its time
+boundary. The diagram below is a 2025 process-profile source trace; the frame,
+queue, and message-identity details are Umbra implementation mapping.
+
+```mermaid
+flowchart TD
+  Call["One timestamped Update Attribute Values(values, T, tag)"] --> Plan["Shared registry plans per-attribute passels"]
+  Plan --> Split{"Passel for this constrained receiver"}
+  Split -->|RECEIVE| ROEvent["Create process event with T/tag and no retraction identity"]
+  ROEvent --> Mode{"Receive-order event route"}
+  Mode -->|Push| Frame["Send receive_attribute_update event frame"]
+  Mode -->|Pull| Queue["Hold for receiver's poll request"]
+  Frame --> Client["Receiver client submits event to callback bridge"]
+  Queue --> Client
+  Client --> ROCallback["Classify reflection as RECEIVE/RECEIVE"]
+  Split -->|TIMESTAMP| TSOQueue["Retain passel in per-recipient TSO message"]
+  TSOQueue --> Boundary["Wait for recipient's TSO delivery boundary"]
+  Boundary --> TSOEvent["Materialize event with T/tag and retraction identity"]
+  TSOEvent --> TSOCallback["Classify reflection as TIMESTAMP/TIMESTAMP"]
+  TSOCallback --> Ack["Acknowledge TSO callback completion"]
+  Ack --> Grant["Deliver matching Time Advance Grant"]
+```
+
+The [process service](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L126)
+stores only TIMESTAMP passels in the queued TSO payload; a RECEIVE passel is
+materialized separately with the original timestamp and tag but no retraction
+identity. It uses the process event route described in the
+[process endpoint guide](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#process-mapping-receive-order-object-attribute-update).
+At TSO delivery, the [service emits an event carrying the queued message
+identity](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L77),
+and the [callback bridge maps timestamped events with and without a retraction
+identity to different order classifications](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L330).
+The checked-in [public process TSO case](../../cpp/tests/ieee1516_2025_connection_process_tso_attribute_update_regulation_reenable_changed_lookahead_catch2.cpp#L460)
+observes a single TSO attribute reflection before its matching grant; it does
+not combine RECEIVE and TIMESTAMP attributes in one invocation.
+
+The bounded source review finds no equivalent temporal gate in the process
+attribute route. In [`handleUpdateAttributeValues`](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L64),
+the constrained-recipient set is used to hold eligible TIMESTAMP passels in
+the TSO queue; an eligible RECEIVE passel is still materialized as an ordinary
+process event and routed through push or poll. The client-side
+[`dispatchAttributeUpdate`](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L23)
+forwards to [`ProcessFederationCallbackBridge::submitAttributeUpdate`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1366),
+which submits directly to the callback dispatcher. By contrast, the shared
+[`submitReceiveOrderCallback`](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1097)
+path checks [`FederateTimeState::receiveOrderDeliveryAllowed`](../../cpp/src/internal/time/federate_time_state.cpp#L760)
+and defers a blocked callback. The process bridge does not put its attribute
+events into that deferred queue, and the reviewed process path does not show
+`Enable Asynchronous Delivery` changing their eligibility.
+
+The same source boundary appears for process receive-order interactions. The
+process send service may re-resolve a route-only ordinary or directed
+interaction candidate while preparing the event
+([ordinary](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L512),
+[directed](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L805));
+the client then forwards that event through
+[`dispatchReceiveOrder`](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L17)
+to [`ProcessFederationCallbackBridge::submitReceiveOrder`](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1211),
+which submits callback work to its dispatcher and callback session
+([dispatcher submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1236),
+[callback entry](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1272)).
+The inspected process interaction path does not consult
+[`FederateTimeState::receiveOrderDeliveryAllowed`](../../cpp/src/internal/time/federate_time_state.cpp#L760)
+or place the event in its deferred asynchronous-receive queue. This extends
+the source observation to process interactions; it does not establish a public
+process-profile outcome or normative result.
+
+These are source-path differences, not proof of the public process-profile
+outcome or a normative HLA rule. The checked-in [public process receive-order
+attribute case](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L457)
+covers one ordinary reflection for overlapping subscriptions, not a
+time-constrained, Time-Granted receiver. The checked-in [public process TSO
+case](../../cpp/tests/ieee1516_2025_connection_process_tso_attribute_update_regulation_reenable_changed_lookahead_catch2.cpp#L460)
+and [private service TSO case](../../cpp/tests/process_federation_service_tso_attribute_before_grant_catch2.cpp#L78)
+cover a single TIMESTAMP attribute before its matching grant, not the mixed
+call. A bounded test search found no process-endpoint case combining the
+constrained role, asynchronous-delivery off/on, and a pending advance. The
+[mixed-order case currently present in the worktree](../../cpp/tests/ieee1516_2025_mixed_order_attribute_passels_catch2.cpp)
+is untracked and embedded-profile-only, so it is neither durable evidence nor
+process evidence. Keep the process callback-eligibility question open for both
+attribute and interaction routes; do not reuse the embedded gate as a process
+guarantee.
 
 ## Receive order and asynchronous delivery
 
@@ -802,9 +952,95 @@ DDM relevance into the timing predicate.
 Both cited public scenarios exercise the embedded profile. A bounded search
 of C++ tests for `enableAsynchronousDelivery` and
 `disableAsynchronousDelivery` found no process-endpoint case invoking either
-service. This section therefore establishes only the embedded 2025
+service. Do not mistake the
+[connection-loss TSO-cutoff case](../../cpp/tests/ieee1516_2025_connection_lost_tso_cutoff_report_catch2.cpp#L5)
+for process coverage: despite its filename, it is explicitly an embedded
+transport-loss scenario and injects failure through
+[`failEmbeddedTransportConnectionForTesting`](../../cpp/tests/ieee1516_2025_connection_lost_tso_cutoff_report_catch2.cpp#L82).
+Its asynchronous-delivery call belongs to that embedded cutoff scenario. This
+section therefore establishes only the embedded 2025
 receive-order gate; process-profile admission and dispatch behavior remain
 unverified here, and no parity is implied.
+
+The process-source boundary is more specific but still unverified at runtime.
+The configured-process Join branch records the remote member identity and
+selected logical-time implementation, then returns without assigning the
+ambassador's embedded `federateTimeState_`
+([process Join](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L354)).
+The public asynchronous-delivery adapters have no process-client branch; they
+fall through to code requiring that local time state and checking service
+availability through the embedded registry
+([enable/disable adapters](../../cpp/src/internal/runtime/umbra_rti_ambassador_asynchronous_delivery.cpp#L39),
+[embedded service-state check](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L105)).
+The inspected process interaction callback bridge invokes its callback session
+without the embedded `receiveOrderDeliveryAllowed` predicate
+([process callback admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1272)).
+These source paths do not show a process asynchronous-delivery switch being
+applied to process RECEIVE callbacks. They do not establish the public
+exception/result for a process call or normative behavior; no focused process
+test covers that call or the combined constrained/async/pending-advance case.
+
+### Save/Restore has separate time-state and callback-queue boundaries
+
+The receive-order gate above explains when an eligible RECEIVE callback can
+enter a dispatcher. Save/Restore involves other state owners; a restored time
+request is not the same thing as replaying a callback closure that was already
+waiting in a live queue.
+
+```mermaid
+flowchart TD
+  B["Save boundary: identify who owns the pending work"] --> DOMAIN{"State domain?"}
+  DOMAIN -->|RTI image| IMAGE["Selected time-state and TSO ledgers"]
+  IMAGE --> TIME["Time-state record<br/>roles, logical-time fields, lookahead,<br/>pending time advance and mode"]
+  TIME --> APPLY["Restore into the current time coordinator"]
+  APPLY --> PENDING{"Saved time advance still pending?"}
+  PENDING -->|No| READY["Saved time state applied"]
+  PENDING -->|Yes| REBUILD["Rebuild grant dispatch from the live member route<br/>with a fresh dispatch identity"]
+  REBUILD --> ELIGIBLE{"Eligible after restored state is applied?"}
+  ELIGIBLE -->|No| WAIT["Remain pending for a later time transition"]
+  ELIGIBLE -->|Yes| ORDER["Prepare federationRestored first,<br/>then schedule the eligible grant"]
+  IMAGE --> TSO["Selected TSO payload, recipient phase,<br/>and retraction records"]
+  TSO --> GATE["Return to the normal recipient TSO queue<br/>and logical-time gate"]
+  DOMAIN -->|Live callback queue| QUEUE{"Already-admitted callback work?"}
+  QUEUE --> RO["Deferred embedded RECEIVE closure"]
+  RO --> RO_LIMIT["Separate from time-state and TSO records;<br/>restore/replay is not established"]
+  QUEUE --> PUSH["Pushed configured-process event frame"]
+  PUSH --> PUSH_LIMIT["One selected test preserves frames through<br/>service Save/Restore in a live process;<br/>this is not host-process restart evidence"]
+```
+
+This is a source- and test-bounded Umbra 2025 view, not a normative HLA
+persistence matrix. The image captures selected temporal-control state,
+including roles, logical-time values, lookahead requests, and pending-advance
+state ([capture](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L828));
+restore decodes that record into the current coordinator
+([restore](../../cpp/src/internal/federation/federation_registry_state_image_restore.cpp#L172)).
+For a saved pending time advance, the registry rebuilds grant work from the
+current live callback factory and assigns a new dispatch identity so an old
+closure is stale; it prepares `federationRestored` notifications before
+scheduling grants
+([rebinding](../../cpp/src/internal/federation/federation_registry_state_image_restore.cpp#L873),
+[completion order](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L960)).
+Selected TSO payload, queue-phase, and retraction records are a different
+ledger ([queue restore](../../cpp/src/internal/federation/federation_registry_state_image_restore.cpp#L753),
+[retraction records](../../cpp/src/internal/federation/federation_registry_restore_tso_payloads.cpp#L46))
+and resume through recipient-specific time gates; see the
+[Save/Restore dispositions](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#in-flight-work-has-protocol-specific-restore-dispositions).
+
+Focused embedded tests show a saved logical time and actual lookahead replacing
+post-save changes, and a deferred lookahead decrease returning with the saved
+state ([time-window cases](../../cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp#L3),
+[deferred decrease](../../cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp#L81)).
+A fresh-registry public case records a pending TAR and pending lookahead in the
+image, then observes one grant through a newly bound route after restore under
+both `HLA_EVOKED` and `HLA_IMMEDIATE`
+([scenario](../../cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp#L252),
+[saved request fields](../../cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp#L392),
+[restored grant](../../cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp#L452)).
+The new registry is created within the same test process; this is not proof of
+operating-system process restart. These tests do not establish that a deferred
+receive-order closure is serialized or replayed. The separate configured-process
+case that retains selected pushed frames across service Save/Restore is likewise
+a live-session observation, documented in the [Save/Restore guide](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#in-flight-work-has-protocol-specific-restore-dispositions).
 
 ## Lookahead changes and pending operations
 
@@ -890,6 +1126,55 @@ include:
 - resignation/removal of a member; and
 - replacement of the federation definition through an additional FOM.
 
+Do not read the member-removal trigger as “a resignation grants every waiting
+federate.” The configured-process 2025 `Resign` handler re-evaluates pending
+grants after registry resignation and its cleanup dispatch succeed
+([handler](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L153)).
+The embedded 2025 membership-loss path separately re-evaluates after forced
+member removal ([path](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L266)).
+These are source observations, not proof of a grant outcome: the focused
+process scheduler case releases its request after the regulating peer's TAR,
+while the focused resignation lifecycle case has no pending advance
+([scheduler](../../cpp/tests/ieee1516_2025_connection_time_advance_federation_scheduler_catch2.cpp#L729),
+[resignation](../../cpp/tests/ieee1516_2025_federation_resign_lifecycle_catch2.cpp#L4)).
+Forced connection loss also has a distinct, narrowly bounded lost-regulator
+TSO cutoff; do not generalize it to voluntary `Resign` or ordinary grant rules
+([lifecycle explanation](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#L950)).
+
+One focused 2025 process case makes the pending-to-grant transition concrete:
+a time-constrained member requests TAR(5) and remains ungranted; its
+time-regulating peer then requests TAR(5), after which the first member's grant
+is observed. This is one tested route that changes the federation's temporal
+state, not a complete or normative list of events that can release every
+pending request.
+
+```mermaid
+sequenceDiagram
+  participant C as Time-constrained member
+  participant RTI as 2025 process RTI
+  participant R as Time-regulating peer
+  C->>RTI: TAR(5)
+  RTI->>RTI: Keep the advance pending
+  Note over C,RTI: No timeAdvanceGrant callback yet
+  R->>RTI: TAR(5)
+  RTI->>RTI: Recompute eligibility from current federation time state
+  RTI->>RTI: Recheck the pending request before grant commit
+  RTI-->>C: timeAdvanceGrant(5)
+  Note over C,RTI: Public time changes at the matching grant callback
+```
+
+The [focused public process case](../../cpp/tests/ieee1516_2025_connection_time_advance_federation_scheduler_catch2.cpp#L729)
+asserts that the first grant count is zero before the regulating peer's TAR and
+one afterward, at time 5. Its HLA_EVOKED variant drains the eligible callback
+through Evoke; the HLA_IMMEDIATE variant is separately exercised
+([case](../../cpp/tests/ieee1516_2025_connection_time_advance_federation_scheduler_catch2.cpp#L735)).
+The implementation schedules only eligible pending requests
+([scheduler](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L939))
+and rechecks the live bound when the grant begins
+([grant-entry check](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L156)).
+The chart does not assert a GALT value, include TSO traffic, or claim that the
+standard mandates this particular implementation trigger or callback timing.
+
 The scheduler computes opaque dispatch actions under the registry boundary,
 then submits callback work after releasing runtime locks. Before committing a
 grant it rechecks the live state/bound, so an old queued action cannot grant a
@@ -944,7 +1229,8 @@ The current opt-in development slice has explicit limits:
   independent-vendor conformance evidence. Third-party variable-width time
   implementations and all adapter/package combinations are not established by
   this guide.
-- This guide says nothing about IEEE 1516.1-2010 behavior.
+- Normative claims remain limited to the cited IEEE 1516.1-2025 text; source
+  and test claims remain limited to their named Umbra profiles and scenarios.
 
 The detailed limits and future coordination requirements are maintained in
 [Embedded time coordination](EMBEDDED-TIME-COORDINATION-DESIGN.md). If code
@@ -978,8 +1264,8 @@ does not assert full coverage of that clause.
 Before changing a diagram or adding a new one:
 
 1. Identify the exact 2025 service and canonical subsection; use the official
-   standard and existing Requirements Lab contract rather than an older
-   1516e/2010 reference or another RTI's behavior.
+   standard and existing Requirements Lab contract rather than unverified
+   summaries or another RTI's behavior.
 2. Draw the normative rule separately from Umbra's supported path. Mark
    unimplemented, partial, and experimental branches visibly.
 3. Trace the current path from the public ambassador method through private
@@ -987,7 +1273,7 @@ Before changing a diagram or adding a new one:
 4. Link at least one focused test that demonstrates the specific scenario.
    A test is evidence for that case, not proof of every branch in the clause.
 5. Recheck both immediate and evoked callback models when dispatch timing is
-   involved, and preserve the explicit 2010/2025 source boundary.
+   involved, and preserve the explicit embedded/process profile boundary.
 6. Keep diagrams focused. Split by an actual responsibility—roles, bounds,
    advance decision, or message lifecycle—not merely to increase diagram or
    file counts.

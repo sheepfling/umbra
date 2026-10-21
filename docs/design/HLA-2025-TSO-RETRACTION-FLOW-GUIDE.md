@@ -474,24 +474,159 @@ example:
 
 ```mermaid
 flowchart TD
-  A[Timestamped Delete accepted] --> B[Save invocation-time object snapshot and recipient ledger]
-  B --> C{Has a Remove Object Instance callback entered user code?}
-  C -->|No| D[Cancel pending removal reservation only]
-  D --> E[Keep intervening object changes; do not restore an old snapshot]
-  C -->|Yes| F[Restore invocation-time instance snapshot before request callback]
+  A[Timestamped Delete queued: save invocation snapshot and recipient ledger] --> B{Has a recipient passed the registry Remove gate?}
+  B -->|No| C[Legal Retract cancels the pending removal reservation]
+  C --> D[Keep intervening object and ownership changes; do not restore the snapshot]
+  B -->|Yes| E[Commit deletion and clear pending ownership ledgers]
+  E --> F[Legal Retract restores the invocation-time ObjectInstance snapshot]
   F --> G[Filter departed federates and regions that no longer exist]
   G --> H[Request Retraction to eligible recipients]
-  E --> I[Retraction completes]
+  F --> S{When does an embedded ownership callback closure reach its registry gate?}
+  S -->|Before Retract| T[Delete state or cleared key suppresses the callback]
+  T --> U[Retract restores state; no ownership-task resubmission is visible]
+  S -->|Still queued until after Retract| V[Restored per-instance key may pass its callback gate]
+  V --> W[Exact public outcome is untested]
+  F -.-> Q[Federation-level ownership-query identities are outside the object snapshot]
+  Q --> R[Retract does not visibly restore the query identity]
+  D --> I[Retraction completes]
   H --> I
 ```
 
-The ordering matters: after an already-delivered deletion is retracted, the
-registry reconstitutes the instance before queuing Request Retraction, so an
-immediate recipient can observe the restored object while handling the
-callback. Only still-joined holders can regain attribute ownership in the
-covered profile. By contrast, before any removal callback begins, cancelling
-the pending deletion clears its reservation without overwriting unrelated
-updates made after the delete was invoked.
+The decision above is the shared registry's accepted-Remove gate, not callback
+completion. The embedded callback path crosses that gate immediately before
+calling `FederateAmbassador::removeObjectInstance`; the configured-process path
+crosses it before sending the removal event, and the client callback bridge has
+a later gate of its own. See the [process deletion route](#timestamped-object-removal-follows-a-distinct-process-route).
+Do not use “the public callback has started” as a synonym for the registry's
+deletion-commit boundary.
+
+On the ordinary recipient-bearing path, enqueue records the object snapshot and
+retraction recipients without clearing pending ownership work. The first
+recipient accepted by the registry sets `deleteAccepted` and clears both the
+per-instance ownership-operation ledgers and federation-level ownership-query
+identities. A legal Retract before that gate cancels only the removal
+reservation; after it, the registry restores the saved `ObjectInstance` before
+queuing Request Retraction and filters out departed holders and deleted
+regions.
+
+There is an important source-only limit on what that reconstitution restores.
+The saved `ObjectInstance` contains its per-instance ownership fields, while
+ownership-query identities are stored separately on `Federation`; the first
+accepted Remove erases those query identities, and the reconstitution path does
+not visibly recreate them. In the embedded path, ownership callback closures
+capture request identities and recheck registry state when dispatched. If a
+closure reaches its gate while deletion is committed, it is suppressed; Retract
+can later restore its old per-instance ledger entry, but the retraction branch
+does not visibly resubmit the consumed callback closure. If that closure remains
+queued until after Retract, the restored entry and `deleteAccepted == false` may
+allow it through the later gate, subject to current eligibility. Query callbacks
+are different: their federation-level identity remains absent, so restoring the
+object snapshot does not make the old query closure resolvable. These are source
+traces, not observed public outcomes or process-endpoint behavior.
+
+### Configured-process callback buffers are a separate boundary
+
+Do not carry the embedded closure schedule above over to the configured-process
+client. For a queued, time-constrained recipient, ownership work can be waiting
+in a server session queue, already sent to the client's `pendingEvents_`, or
+submitted to the callback bridge. The timestamped Remove gate is server-side
+and precedes sending the deletion event; the process client's Retract handling
+is keyed to the deletion's TSO identity, not to unrelated ownership work.
+
+```mermaid
+flowchart TD
+  subgraph DeleteLifecycle["Timestamped Delete lifecycle"]
+    direction TB
+    Delete["TSO Delete: snapshot + message ID"] --> Remove["First Remove gate: commit deletion + clear ownership ledgers"]
+    Remove --> Retract["Legal Retract: restore saved ObjectInstance"]
+    Retract --> Sweep["Filter TSO-ID interaction, removal, and update work"]
+  end
+  subgraph Pull["Pull ownership path"]
+    direction TB
+    ServerQueue["Server session queue"] --> Poll["Receive poll + operation-specific gate"]
+    Poll --> Gate{"Which state exists at this poll?"}
+    Gate -->|Delete still committed| Skip["Per-instance gate may reject work;<br/>query identity is absent"]
+    Gate -->|Retract restored ObjectInstance| Reopened["Some per-instance work may pass again;<br/>query identity remains absent"]
+    Gate -->|No deletion accepted| Normal["Apply ordinary operation-specific gate"]
+    Normal --> PullBuffer["Client event buffer"]
+    Reopened --> PullBuffer
+    PullBuffer --> PullBridge["Callback bridge"]
+  end
+  subgraph Push["Push ownership path"]
+    direction TB
+    Admission["Operation-specific plan or gate"] --> PushBuffer["Sent frame in client event buffer"]
+    PushBuffer --> PushBridge["Callback bridge"]
+  end
+  Sweep -. "Ownership work uses separate identities" .-> NoSweep["No generic ownership-event sweep"]
+  Note["Combined Delete/Retract ownership callback outcome: untested"]
+  Skip -.-> Note
+  PullBridge -.-> Note
+  PushBridge -.-> Note
+```
+
+In pull mode, ownership callbacks remain in per-session queues until a Receive
+poll applies their operation-specific gate or projection. The gate sees the
+registry state at poll time: while Delete remains committed, per-instance work
+can be rejected and a query callback can find its federation-level identity
+erased. If legal Retract restores the saved `ObjectInstance` before that poll,
+some per-instance records may again satisfy their callback gate, while the
+query identity remains absent because it is stored outside that snapshot. The
+server Retract sweep does not remove these separately queued ownership events.
+This is a source-derived ordering possibility, not a tested delivery outcome.
+
+In push mode, some ownership events cross a registry gate before send; after
+that, the client and callback bridge buffer them independently. The bridge has
+a distinct late claim for owner-release callbacks, but no generic
+ownership-versus-delete recheck. These are different source paths, not
+evidence that every event in either mode is suppressed or delivered after
+Retract. The pull poll gates are in the [process receive path](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L392);
+retraction restores the object snapshot in the [registry path](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L230)
+and removes only TSO-keyed server events in the [process Retract handler](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L174).
+
+On legal Retract, the process service removes only TSO-identity-matched
+interaction, object-removal, and attribute-update entries from its server
+queues. The process client removes matching interaction and object-removal
+events from `pendingEvents_`; an ownership event has no identity tying it to
+that Delete. An already-buffered ownership event is therefore outside those
+deletion-specific sweeps, although its own operation may have another gate.
+The existing [process object callback-gate test](../../cpp/tests/ieee1516_2025_connection_process_object_retraction_callback_gate_catch2.cpp#L319)
+checks suppression of a pushed timestamped removal across callback disable,
+Retract, and re-enable. The [process timestamped-delete case](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1221)
+and [future-arrival case](../../cpp/tests/ieee1516_2025_connection_process_tso_object_deletion_future_arrival_catch2.cpp#L6)
+cover deletion delivery and time-advance behavior. None combines pending
+ownership-query or ownership-operation callbacks with Delete/Retract, so the
+cross-queue callback outcome remains unverified. Relevant source boundaries:
+[server TSO Remove gate](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L235),
+[pull ownership gates](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L289),
+[push ownership work enqueue](../../cpp/src/internal/federation/process_federation_service_attribute_ownership_delivery.cpp#L12),
+[server Retract queue filtering](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L174),
+[client Retract filtering](../../cpp/src/internal/federation/process_federation_client.cpp#L512), and
+[callback-bridge ownership admission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1706).
+
+The focused [pending-removal/retraction test](../../cpp/tests/ieee1516_2025_timestamped_delete_object_instance_retraction_catch2.cpp#L68)
+and [delivered-removal/reconstitution test](../../cpp/tests/timestamped_object_deletion_retraction_catch2.cpp#L229)
+do not combine deletion with pending ownership queries or ownership operations,
+and neither arranges the callback-before-versus-after-Retract ordering above.
+Therefore the callback outcome remains unverified. The cited source paths are
+[TSO enqueue and snapshot](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L828),
+[first accepted removal and cleanup](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L779),
+[query-identity cleanup](../../cpp/src/internal/federation/federation_registry_attribute_ownership_pending_work.cpp#L43),
+[per-instance ownership state](../../cpp/src/internal/federation/federation_registry.hpp#L2508),
+[federation-level query identities](../../cpp/src/internal/federation/federation_registry.hpp#L2619), and
+[deletion reconstitution](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L230).
+The embedded callback route and representative gates are
+[queued acquisition closures](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp#L133),
+[regular acquisition gate](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp#L209),
+[assumption callback gate](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L229), and
+[ownership-query identity lookup](../../cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp#L189).
+
+The [ownership guide's accepted-deletion flow](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md#accepted-object-deletion-invalidates-pending-ownership-work)
+describes receive-order deletion. Keep its cleanup point distinct from this
+timestamped path's first accepted-Remove gate. Neither guide establishes a
+normative callback-order rule from implementation source. For configured-process
+queue and client-buffer boundaries, use the separate [process callback-buffer
+trace](#configured-process-callback-buffers-are-a-separate-boundary), not the
+embedded closure schedule above.
 
 This deletion path is not the generic rule for interactions or attribute
 updates. For those services, the RTI's recipient ledger decides which original

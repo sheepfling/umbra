@@ -6,8 +6,23 @@
 #include <RTI/RTI1516.h>
 
 #include <atomic>
+#include <exception>
 #include <filesystem>
 #include <memory>
+#include <stdexcept>
+#include <string>
+#include <thread>
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+#include <umbra/embedded_profile_configuration.hpp>
+
+#include "ieee1516_2025_process_fom_test_support.hpp"
+#include "internal/federation/federation_registry.hpp"
+#include "internal/federation/process_federation_service.hpp"
+#include "internal/federation/process_transport.hpp"
+#include "internal/federation/process_transport_session.hpp"
+#include "process_public_service_fixture.hpp"
+#endif
 
 #ifndef UMBRA_SOURCE_DIRECTORY
 #error "The MOM service-reporting interlock test requires the Umbra source directory."
@@ -164,3 +179,141 @@ TEST_CASE(
   REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(rti->disconnect());
 }
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+TEST_CASE(
+    "Process MOM subscription prevents enabling the Service Reporting Switch with the official exception",
+    "[integration][process-boundary][public-endpoint][2025]"
+    "[mom][service-reporting][service-reporting-interlock]"
+    "[rti.service.get-interaction-class-handle]"
+    "[rti.service.subscribe-interaction-class]"
+    "[rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.unsubscribe-interaction-class]"
+    "[rti.service.resign-federation-execution]") {
+  using namespace umbra::detail;
+  using umbra::test::process_fom_support_2025::composedProcessDefinition;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  constexpr wchar_t const* federationName =
+      L"process-mom-service-reporting-interlock-execution";
+  constexpr wchar_t const* federateName =
+      L"process-mom-service-reporting-interlock-federate";
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-mom-service-reporting-interlock-server", 0x9E51U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session,
+                handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(description);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The process MOM service-reporting fixture lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The process MOM service-reporting fixture lost Join.");
+      serveExpected(
+          TransportServiceOperation::get_interaction_class_handle,
+          "The process MOM service-reporting fixture lost report-class lookup.");
+      serveExpected(
+          TransportServiceOperation::subscribe_interaction_class,
+          "The process MOM service-reporting fixture lost the report subscription.");
+      serveExpected(
+          TransportServiceOperation::get_service_reporting_switch,
+          "The process MOM service-reporting fixture lost the initial switch query.");
+      serveExpected(
+          TransportServiceOperation::set_service_reporting_switch,
+          "The process MOM service-reporting fixture lost the interlocked switch request.");
+      serveExpected(
+          TransportServiceOperation::get_service_reporting_switch,
+          "The process MOM service-reporting fixture lost the unchanged switch query.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The process MOM service-reporting fixture lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  rti1516_2025::NullFederateAmbassador callbacks;
+  auto rti = makeRti();
+  auto configuration = rti1516_2025::RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-mom-service-reporting-interlock-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(callbacks, HLA_EVOKED, configuration).addressUsed);
+    REQUIRE_NOTHROW(rti->createFederationExecution(
+        federationName, L"server-owned-fom.xml"));
+    REQUIRE(rti->joinFederationExecution(
+                federateName, L"process-mom-service-reporting-interlock-type", federationName)
+                .isValid());
+    joined = true;
+
+    auto const reportInvocation = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+    REQUIRE(reportInvocation.isValid());
+    REQUIRE_NOTHROW(rti->subscribeInteractionClass(reportInvocation));
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+
+    REQUIRE_THROWS_AS(
+        rti->setServiceReportingSwitch(true), ReportServiceInvocationsAreSubscribed);
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+
+    REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+    joined = false;
+    REQUIRE_NOTHROW(rti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  listener.reset();
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+}
+#endif

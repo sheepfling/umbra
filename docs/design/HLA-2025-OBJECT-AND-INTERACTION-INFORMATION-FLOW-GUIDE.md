@@ -402,6 +402,63 @@ sequenceDiagram
   declaration lattice or every discovery interaction with active/passive
   declarations. See the DDM guide for region-bound behavior.
 
+### Object existence, receiver knowledge, and DDM eligibility are separate states
+
+One object can exist in the federation while a particular receiver does not know
+it; a receiver that does know it can still be outside the current value-routing
+scope. This embedded 2025 source map keeps those ledgers separate. Regional DDM
+can participate in discovery and is checked again for later value routing, but
+the inspected receive-order delete planner selects removal recipients from the
+known-object ledger rather than retesting current region overlap. This is a
+source-level explanation, not a normative claim about every conforming RTI.
+
+```mermaid
+flowchart TD
+  Register["Register object instance<br/>create federation object record"] --> Candidate{"For this receiver:<br/>does discovery evaluation find an eligible declaration?<br/>If regional, does the current region path qualify?"}
+  Candidate -->|No| ExistsUnknown["Object exists;<br/>receiver remains unknown"]
+  Candidate -->|Yes| Pending["Discovery is pending"]
+  Pending --> Commit{"Receiver-specific discovery<br/>boundary still valid?"}
+  Commit -->|No| NoCommit["No known-object transition"]
+  Commit -->|Yes| Known["Receiver knows object<br/>at the selected class"]
+  Known --> Update{"For a later attribute update:<br/>does this class/subscription path qualify now?<br/>If regional, do current regions overlap?"}
+  Update -->|Yes| Value["Value delivery may be planned"]
+  Update -->|No| OutOfScope["No value through this path;<br/>receiver-known state remains"]
+  Value --> Known
+  OutOfScope --> Known
+  Register --> Delete["Object deletion is accepted"]
+  Delete --> Recipients["Plan removal for other joined,<br/>known receivers with usable routes;<br/>current DDM overlap is not retested here"]
+  Recipients --> RemovalGate{"At this receiver's removal boundary:<br/>reservation, membership, and knowledge valid?"}
+  RemovalGate -->|No| Suppress["Suppress stale removal callback"]
+  RemovalGate -->|Yes| Forget["Clear receiver-known state"]
+  Forget --> Remove["Deliver removeObjectInstance"]
+```
+
+The standard-facing API exposes these as distinct services—registration
+(including [`registerObjectInstanceWithRegions` §9.5](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1487)),
+regional subscription (§9.8), delete request (§6.16), and removal callback
+(§6.17). The pinned headers establish those API roles, not the detailed
+eligibility rules drawn above.
+
+Evidence for the embedded 2025 path: the [discovery candidate resolver](../../cpp/src/internal/federation/federation_registry.cpp#L830)
+uses object existence, per-receiver declarations, and current source/receiver
+region realizations; [discovery planning](../../cpp/src/internal/federation/federation_registry_object_instance_discovery_planning.cpp#L13)
+tracks pending recipients separately from the known-class map. The [value
+recipient planner](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L49)
+first requires receiver knowledge and then evaluates current declarations and
+regional relevance. The [delete planner](../../cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp#L54)
+selects other joined, known receivers with callback routes, while the
+[removal boundary](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L49)
+clears receiver knowledge before returning the callback snapshot.
+
+The focused [three-dimensional regional case](../../cpp/tests/three_dimensional_regional_object_attribute_overlap_catch2.cpp#L110)
+observes initial discovery, suppresses later reflections after committed
+disjoint ranges, and observes reflection again after overlap is restored. The
+separate [embedded delete-service case](../../cpp/tests/delete_object_instance_service_report_catch2.cpp#L194)
+observes ordinary discovery followed by removal. Neither combines a previously
+discovered object, a later disjoint-region commit, and deletion while disjoint;
+the “known receiver still receives removal” relation is therefore source-only.
+This chart does not establish configured-process equivalence or 2010 behavior.
+
 ### Object-class attribute availability is not declaration inheritance
 
 Keep three questions separate: which attributes are available on an FOM class;
@@ -456,15 +513,18 @@ The focused [public process update case](../../cpp/tests/ieee1516_2025_connectio
 registers an object, sends a distinct `Update Attribute Values` call, and
 checks that both callbacks occurred ([explicit update](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L801),
 [final assertions](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L815)).
-It demonstrates a later publisher update reaching a receiver that also learns
-the object; it is not evidence that process discovery itself triggers an
-ordinary current-value snapshot. In the inspected [process discovery enqueue
-path](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L95),
-a follow-up initial-value event is constructed only for RTI-owned MOM objects.
-The focused [late-subscription evidence map](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md#late-subscription-can-mean-two-different-receiver-states)
-records this process boundary alongside the embedded initial-reflection path
-and its test gap; the exact 2025 §5.8 rule remains unverified, so this is not a
-normative conclusion.
+That later update is distinct from the now-separate configured-process
+late-subscription case: the receiver subscribes after the sender stores values
+and the test source asserts discovery plus a reflection containing only the
+selected `Name` bytes ([test](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L652),
+[assertions](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L952)).
+The current process enqueue source commits known-object state, plans current
+eligible ordinary values, and stages discovery and value events separately
+([process enqueue](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L90)).
+The test has HLA_EVOKED and HLA_IMMEDIATE sections; this documentation pass
+did not run it, and the process implementation file is modified in the current
+worktree. The exact licensed §5.8 rule remains unverified, so these source and
+test assertions are not a normative or conformance conclusion.
 
 The selected embedded 2025 path has a distinct ordinary-object initial-state
 step: it enters `discoverObjectInstance`, then plans and invokes a reflection
@@ -474,16 +534,20 @@ The focused [late-subscription test](../../cpp/tests/subscribe_object_class_attr
 stores publisher values before the receiver subscribes, then observes one
 discovery and one subscribed-value reflection. Its separate callback
 collections prove occurrence and value, not relative callback order. Keep this
-embedded observation separate from the process MOM-only initial-value event;
-the focused subscription guide gives the detailed receiver-state comparison.
-Neither selected source/test evidence nor the process ordering comment
-independently verifies the exact normative §5.8/§6.9/§6.11 rules.
+embedded callback-after-discovery path separate from the process service-stage
+initial-value plan; both are distinct from the RTI-owned MOM snapshot path.
+The process test source asserts discovery and selected-value reflection under
+both callback-model sections, but was not run in this documentation pass and
+does not assert a general cross-model callback order. Neither selected
+source/test evidence nor the process ordering comment independently verifies
+the exact normative §5.8/§6.9/§6.11 rules.
 
-For a visual comparison of the embedded initial-value path and the process
-MOM-only initial-value branch, see the subscription-state guide's
+For a visual comparison of the embedded callback-after-discovery path, the
+process ordinary discovery/value path, and the separate MOM branch, see the subscription-state guide's
 [late-subscription profile chart](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md#process-late-subscription-path-same-selectors-an-unresolved-initial-value-edge).
-That companion chart does not establish the normative sequence or ordinary
-process initial-value behavior.
+That companion chart distinguishes the ordinary newly-discovered case from
+the still-open value-only effect of adding an attribute to an already-known
+object; it does not establish the licensed normative rule.
 
 To distinguish stored-value reflection from discovery-triggered provider
 solicitation and a federate-issued request, see the Auto Provide guide's
@@ -667,7 +731,13 @@ The plan rejects a repeated or undefined attribute and an attribute not owned
 by the sender. It also resolves each attribute's effective order,
 transportation, and region association. The passels are the unit carried into
 recipient selection; the timestamped overload has a different subsequent
-queue/grant path.
+queue/grant path. In the 2025 embedded profile, a timestamped invocation can
+also split attributes with different effective orders into receive-order and
+TSO paths for the same constrained receiver; see the time guide's
+[mixed-order passel flow](HLA-2025-TIME-MANAGEMENT-GUIDE.md#one-timestamped-invocation-can-split-by-attribute-order).
+The time guide has a separate process-endpoint view, which preserves the
+profile boundary and leaves its constrained receive-order timing evidence
+open. Neither view establishes process/embedded parity or 2010 behavior.
 
 #### 2. Project each passel for each receiver
 
@@ -734,6 +804,64 @@ scenarios; copy/re-plan ordering, the once-per-invocation counter, and lock
 release before fan-out are source-derived details, not assertions in that test.
 This is selected embedded 2025 evidence, not process parity or a complete
 normative matrix.
+
+### Configured-process untimed update: local validation and remote rejection differ
+
+The pinned 2025 [`updateAttributeValues` API declaration](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L727)
+lists `ObjectInstanceNotKnown`, `AttributeNotDefined`, and `AttributeNotOwned`
+among its exceptions. In the configured-process source path, the public
+adapter first checks connection and membership, then converts the supplied
+handle wrappers to numeric values. A failed object-handle conversion is
+reported locally as `ObjectInstanceNotKnown`; a failed attribute-handle
+conversion is `AttributeNotDefined` ([adapter checks](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L82)).
+Successful conversion only makes the handles transportable: the process
+service still has to establish that the object is known in this execution,
+the attributes belong to its registered class, and the producer owns them.
+
+The process service invokes the shared registry planner. The planner retains
+distinct statuses for unknown object, undefined attribute, and not-owned
+attribute ([planner status](../../cpp/src/internal/federation/federation_registry_service_types.hpp#L1238),
+[validation](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L101)).
+Unlike the selected embedded adapter path, which maps those statuses to the
+corresponding public exceptions ([embedded translation](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_failure_translation.cpp#L409)),
+the process service returns one generic `rejected` response for every
+non-applied plan ([process handler](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L45),
+[generic response](../../cpp/src/internal/federation/process_federation_service.cpp#L317)).
+The process client turns that response into `ProcessFederationClientError`,
+which the public adapter exposes as `RTIinternalError`
+([client](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L108),
+[adapter mapping](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L133)).
+This is a source-derived process/embedded mapping difference, not a finding
+about normative conformance or the complete API exception matrix.
+
+```mermaid
+flowchart TD
+  CALL["Untimed updateAttributeValues"] --> PRE["Check connection and federation membership"]
+  PRE -->|"Not connected / not a member"| PREERR["NotConnected / FederateNotExecutionMember"]
+  PRE -->|"Pass"| OBJECT{"Object handle converts locally?"}
+  OBJECT -->|"No"| OIN["ObjectInstanceNotKnown"]
+  OBJECT -->|"Yes"| ATTR{"Attribute handles convert locally?"}
+  ATTR -->|"No"| AND["AttributeNotDefined"]
+  ATTR -->|"Yes"| SEND["Copy values and tag; send process request"]
+  SEND --> SESSION{"Process session and member match?"}
+  SESSION -->|"No"| REJECT["Generic rejected response"]
+  SESSION -->|"Yes"| PLAN["Shared registry checks object, class attributes, and ownership"]
+  PLAN -->|"Applied"| CONTINUE["Continue accepted-update routing"]
+  PLAN -->|"Unknown object / undefined attribute / not owned / other planner failure"| REJECT
+  REJECT --> CLIENT["ProcessFederationClientError"]
+  CLIENT --> PUBLIC["Public adapter throws RTIinternalError"]
+```
+
+The focused [public process update case](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_catch2.cpp#L457)
+uses a valid published attribute owned by the sender, asserts that the
+untimed call does not throw, and observes a successful response with zero
+recipients in its `HLA_EVOKED` and `HLA_IMMEDIATE` sections
+([call and assertion](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_catch2.cpp#L597),
+[zero-recipient result](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_catch2.cpp#L626)).
+It does not test remote unknown-object, undefined-attribute, or not-owned
+translation. The process failure mapping above is therefore source evidence,
+not an asserted public outcome. The timestamped overload and its TSO failure
+paths are separate and are not covered by this flow.
 
 ## Interaction path: class subscription, parameter projection, callback
 
@@ -813,9 +941,15 @@ The parent walk selects the first eligible subscription and returns one plan
 for that recipient; projection then drops sent parameters that are not defined
 by the selected class or its ancestors. A route-only DSE candidate has no
 received class or parameter projection yet; the [DSE guide](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md)
-covers that later re-evaluation boundary.
+covers that later re-evaluation boundary. Its [object-state versus interaction-history
+comparison](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#object-state-is-not-an-interaction-history)
+explains why DSE can make this particular already-sent interaction eligible
+later, while a newly discoverable object follows a separate current-state
+reflection path. That is a later eligibility check for the retained send, not
+a replay of arbitrary interaction history.
 
-The registry promotion test makes the projection concrete for a send of
+The [internal 2025 registry promotion test](../../cpp/tests/federation_registry_composed_fom_catch2.cpp#L1208)
+makes the projection concrete for a send of
 `MainCourseServed` with three parameters:
 
 | Receiver's subscription | Planned callback class | Parameters in this FOM's plan |
@@ -1040,66 +1174,135 @@ class and its visible parameter set are fixed for delivery:
   handle and projected parameter handles into a `ProcessFederationInteractionEvent`.
   If delayed subscription evaluation left a route-only candidate without a
   received class, the handler resolves it before creating the event. The later
-  pull receive handler dequeues the stored event, and the callback bridge uses
-  that event's class and parameter handles without querying the registry again.
+  delivery route is configurable: pull mode enqueues the event for a later
+  receive poll, while push mode sends an unsolicited event frame and does not
+  also retain a duplicate in the polling queue. Both routes carry the same
+  event-time class and parameter projection to the callback bridge.
 
 ```mermaid
 sequenceDiagram
   autonumber
   actor Sender as Sending federate
+  participant SenderRTI as Sender process RTI
   participant Service as Process send service
   participant Registry as Shared federation registry
-  participant Queue as Receiver event queue
+  participant Queue as Receiver session event queue
+  participant ReceiverRTI as Receiver process RTI
   participant Bridge as Process callback bridge
+  participant Dispatcher as Shared callback dispatcher
   actor Receiver as Receiving federate
 
-  Sender->>Service: sendInteraction(sent class, parameters, tag)
+  Sender->>SenderRTI: sendInteraction(sent class, parameters, tag)
+  SenderRTI->>Service: send_interaction request
   Service->>Registry: Plan recipients and choose each received class
   Registry-->>Service: Closest eligible class C′ + visible parameter handles P′
   opt Delayed-evaluation route has no projection yet
     Service->>Registry: Resolve recipient projection before event creation
     Registry-->>Service: Current C′ and P′, or no event for this route
   end
-  Service->>Queue: Store event(C′, P′, sent values, tag)
-  Note over Registry,Queue: Later unpublish or unsubscribe changes live declarations,<br/>but the ordinary queued event keeps its stored projection
-  Receiver->>Service: receive_interaction (pull path)
-  Service->>Queue: Dequeue the already-materialized event
-  Service-->>Bridge: Stored class, handles, values, and tag
-  Bridge->>Receiver: receiveInteraction(C′, project values by P′, tag)
+  Service->>Service: Materialize event(C′, P′, sent values, tag)
+  Note over Service,Registry: Later declaration changes do not rewrite this event snapshot
+  alt Pull mode (multi-recipient fixture: HLA_EVOKED, push disabled)
+    Service->>Queue: Enqueue event
+    Receiver->>ReceiverRTI: evokeCallback()
+    ReceiverRTI->>Service: receive_interaction poll
+    Service->>Queue: Dequeue the materialized event
+    Service-->>ReceiverRTI: Event(C′, P′, values, tag)
+    ReceiverRTI->>Bridge: Submit pulled event
+    Bridge->>Dispatcher: Submit callback
+    Dispatcher-->>Receiver: receiveInteraction(C′, project values by P′, tag)
+  else Push mode (multi-recipient fixture: HLA_IMMEDIATE, push enabled)
+    Service-->>ReceiverRTI: Unsolicited receive_interaction event frame
+    ReceiverRTI->>ReceiverRTI: Stream reader decodes and buffers event
+    ReceiverRTI->>Bridge: Dispatch buffered event
+    Bridge->>Dispatcher: Submit callback
+    Dispatcher-->>Receiver: receiveInteraction(C′, project values by P′, tag)
+    Note over ReceiverRTI,Receiver: Test uses a later receiver getInteractionClassHandle as a fence,<br/>it does not establish callback-before-sender-send-return timing
+  end
 ```
 
-For the inspected pull path, ordinary publish/unpublish and
-subscribe/unsubscribe requests update registry declarations but do not rewrite
-the already-materialized interaction event. The receive handler dequeues that
-event as stored, and the bridge forwards its stored class/parameter projection.
-Thus this source path does not apply the embedded callback-time eligibility
-fence: a declaration change after event creation does not itself revise the
-event's promoted class or parameter set. This is a source-derived process
-observation, not a normative rule or a focused test result. The process public
-Send Interaction case uses a raw process receiver to pull and inspect one
-exact-class event's parameter handle/value and tag; it does not exercise class
-promotion or a declaration change between send and receive. A separate
-configured-process multi-recipient test does assert actual `receiveInteraction`
-callbacks under both callback models, but its subscriptions also name the sent
-class exactly. Thus process callback delivery is tested for that exact-class
-scenario, while ancestor-subscription promotion and post-send declaration
-changes remain untested in the configured-process profile. Timestamped
-interaction delivery and retraction are separate paths.
+The earlier MainCourseServed promotion example shows the shared planner's
+received-class and parameter-map results. This process trace follows that
+planner output through event snapshot and delivery; it does not turn the
+internal registry test into process callback evidence.
+
+The service option selects the process transport route; it is not itself a
+recipient-planning rule. The option defaults to pull mode, while the focused
+configured-process multi-recipient case enables pushed events for HLA_IMMEDIATE
+and leaves push disabled for HLA_EVOKED. Treat that pairing as test setup, not
+as proof that every process host derives transport mode from callback model.
+With push enabled, the service sends the event frame instead of keeping a
+second copy for polling. With push disabled, the public Evoke path polls the
+service and dequeues the queued event.
+
+For either inspected route, the already-materialized process event carries its
+class and parameter projection; the later callback path does not query the
+registry again. Ordinary publish/unpublish and subscribe/unsubscribe requests
+change live declarations but do not rewrite an accepted event. This is a
+source-derived process observation, not a normative rule or a focused
+declaration-change test. The process public Send Interaction case uses a raw
+receiver to pull and inspect one exact-class event's parameter handle/value
+and tag; it does not exercise class promotion or a declaration change between
+send and receive. The configured-process multi-recipient test asserts actual
+`receiveInteraction` callbacks for two exact-class receivers under both
+callback models and preserves the two sent tags in FIFO order. Its
+HLA_IMMEDIATE branch checks delivery after a later receiver-side
+`getInteractionClassHandle` fence returns; it does not establish that remote
+callbacks precede the sender's `sendInteraction` return. Ancestor-subscription
+promotion is covered by the shared planner's internal test above, but not by a
+configured-process callback test. A nonempty inherited-parameter subset and
+post-send declaration changes also remain untested in that process profile.
+Timestamped interaction delivery and retraction are separate paths.
 
 For the distinct question of whether a prior ancestor subscription can match
 a descendant introduced by an additional-module Join, see the [FOM guide's
 interaction-catalog growth boundary](HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md#interaction-catalog-growth-is-not-a-receive-interaction-callback).
 
-Evidence: process planning and event materialization
+Two process-path boundaries sit outside this ordinary recipient flow. First,
+the predefined federation `HLAsetSwitches` interaction (including a compatible
+descendant) is intercepted and consumed by the process RTI before the ordinary
+recipient planner runs; it is a control request, not an ordinary application
+interaction delivery. Its process switch-state and MOM-projection behavior is
+covered separately in the [Federation MOM guide](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#switch-storage-current-mom-projection-and-conditional-reflection-are-separate).
+Second, push fan-out is sequential rather than an atomic service boundary in
+the inspected source: the service sends recipient frames one at a time and
+returns an internal-error response if the session pointer is null or a frame
+send fails. No rollback of earlier submitted frames is visible. The process
+client turns the failed response into a client error, which the public adapter
+maps to `RTIinternalError`; therefore an error returned to the sender does not
+by itself establish that no earlier recipient frame was submitted, nor that a
+receiver callback ran. The pull route instead queues recipient events and does
+not cross this per-recipient frame-send step. These are source observations,
+not normative delivery guarantees; the reviewed process interaction tests do
+not inject a failure midway through push fan-out.
+
+Evidence: [predefined control interception](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L107),
+[sequential push fan-out and failure response](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L595),
+[process client response mapping](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L13),
+[public adapter exception mapping](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L137),
+and the successful [configured-process multi-recipient case](../../cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp#L459).
+
+Evidence: [public 2025 process send adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L46);
+process planning and event materialization
 ([send planner](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389),
-[route-only resolution and event construction](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L514),
-[unpublish handler](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L370),
-[unsubscribe handler](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L384)),
-[pull dequeue](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L70),
-[callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L214),
-and the [process public-send case](../../cpp/tests/ieee1516_2025_connection_send_interaction_catch2.cpp#L457).
+[route-only resolution](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L514),
+[event snapshot](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L535),
+[push/pull branch](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L569),
+[push frame send](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L594),
+[pull-mode default](../../cpp/src/internal/federation/process_federation_service.hpp#L32));
+[push event decode](../../cpp/src/internal/federation/process_federation_client.cpp#L447)
+and [bridge submission](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1212);
+[public Evoke entry](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L32),
+[process poll request](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L248),
+[service dequeue](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L107),
+and [callback projection](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L90).
+Focused evidence: the [raw process pull case](../../cpp/tests/ieee1516_2025_connection_send_interaction_catch2.cpp#L457)
+and [configured-process multi-recipient callback case](../../cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp#L459),
+which sets the route at [line 523](../../cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp#L523)
+and uses the immediate-mode fence at [line 807](../../cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp#L807).
 The shared class/parameter projection is implemented by the [registry recipient
-resolver](../../cpp/src/internal/federation/federation_registry.cpp#L1421); the
+resolver](../../cpp/src/internal/federation/federation_registry.cpp#L1421) and
+[class-scoped parameter filter](../../cpp/src/internal/federation/federation_registry.cpp#L1598); the
 embedded delivery-time call is in the [callback closure](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp#L77).
 
 ### Timestamped interactions resolve the receiver projection later
@@ -1229,6 +1432,10 @@ verifies this result. Its test-plan row maps the voluntary ResignAction
 behavior to §4.12; it does not establish the full §5.1.2 publication
 predicate or process parity.
 
+For the cross-service case where a different federate acquires
+`HLAprivilegeToDeleteObject` and then deletes the object, see the ownership
+guide's [delete-authority transfer sequence](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md#a-new-owner-can-gain-delete-authority-without-becoming-the-registrant).
+
 Object deletion is not the inverse of registration at one instant. In the
 current receive-order path, the registry validates that the deleting federate
 knows the instance and holds HLAprivilegeToDeleteObject, plans removal for
@@ -1319,6 +1526,12 @@ its gate. The registry's removal snapshot lets the callback carry the producer
 identity even when the final receiver transition makes the deleted registry
 entry eligible for immediate purge.
 
+When delete privilege has moved away from the original registrant, keep the
+deleting requester distinct from the producer identity delivered to the
+receiver. The 2025 ownership guide traces the configured-process source path
+and its test limit in the [delete-authority transfer and removal identity
+sequence](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md#a-new-owner-can-gain-delete-authority-without-becoming-the-registrant).
+
 | 2025 delivery path | Removal commit point | What the cited test establishes |
 | --- | --- | --- |
 | Embedded callback queue | Callback closure revalidates and commits before service-report routing and the user callback. | The focused ownership-query case observes `ObjectInstanceNotKnown` before callback dispatch and then one recorded `removeObjectInstance` callback. It does not assert every pending-work ledger is cleared. |
@@ -1347,31 +1560,45 @@ preflights routes for other current members whose known-object map contains the
 object. A voluntary resignation with a missing required route is rejected
 before those object mutations. On success, the registry reserves one removal
 per such receiver, removes the departing producer's own known-object entry,
-and returns the recipient plans. The process service then enqueues ordinary
-receive-order removals with an empty tag. The survivor, not the departing
-producer, crosses its own known-object removal gate:
+and returns recipient plans. The two charts separate that producer-side
+planning boundary from the survivor's later per-recipient delivery and commit
+gate.
+
+##### Producer-side route preflight and planning
 
 ```mermaid
 flowchart TD
-  Producer["Producer Resigns with DELETE_OBJECTS"] --> Plan["Registry selects eligible objects and preflights routes for known surviving members"]
-  Plan --> Routes{"Are required callback routes available?"}
+  Producer["Producer requests Resign with DELETE_OBJECTS"] --> Plan["Select eligible objects; preflight routes to known surviving members"]
+  Plan --> Routes{"Are all required callback routes available?"}
   Routes -->|No| Reject["Reject voluntary Resign before object mutation"]
-  Routes -->|Yes| Reserve["Reserve one removal per known survivor; remove producer knowledge"]
-  Reserve --> Dispatch["Process service dispatches recipient removal plans"]
-  Dispatch --> Session{"Is the survivor session still joined?"}
-  Session -->|No| Cancel["Cancel ordinary reservation; skip this recipient"]
-  Session -->|Yes| Mode{"Push receive-order events enabled?"}
+  Routes -->|Yes| Reserve["Reserve one removal for each known survivor"]
+  Reserve --> Forget["Remove producer's own known-object state"]
+  Forget --> Plans["Process service receives the recipient removal plans"]
+```
+
+##### Survivor-side delivery and commit gate
+
+For each returned recipient plan, the process service applies the receiver's
+membership and known-object gates. The default pull path keeps an unconsumed
+reservation in the server queue; optional push crosses the receiver commit
+gate before sending the event:
+
+```mermaid
+flowchart TD
+  Plan["Process service handles one recipient plan"] --> Session{"Is the survivor session still joined?"}
+  Session -->|No| Cancel["Cancel the reservation; skip this recipient"]
+  Session -->|Yes| Mode{"Is optional push enabled?"}
   Mode -->|No: default pull| Queue["Queue event; keep removal reservation pending"]
   Queue --> OwnResign{"Does this receiver Resign before polling?"}
   OwnResign -->|Yes| Clear["Receiver Resign clears server queue and registry reservation"]
   OwnResign -->|No| Poll["Receiver polls the queued event"]
   Poll --> PullGate["Recheck membership, reservation, and known-object state"]
   Mode -->|Yes: optional push| PushGate["Recheck and commit receiver removal before event push"]
-  PullGate --> Valid{"Valid removal snapshot?"}
+  PullGate --> Valid{"Is the removal snapshot valid?"}
   PushGate --> Valid
   Valid -->|No| Suppress["Suppress stale event; no callback"]
   Valid -->|Yes| Commit["Forget receiver object; capture producer identity"]
-  Commit --> Callback["Bridge invokes removeObjectInstance with empty tag"]
+  Commit --> Callback["Invoke removeObjectInstance with empty tag and producer"]
 ```
 
 The Resign handler calls the registry, dispatches the returned plans, then
@@ -1402,8 +1629,10 @@ focused process test located here settles the already-pushed-after-Resign race.
 No claim is made here that the voluntary process `DELETE_OBJECTS` path has a
 focused Umbra Catch2 assertion, or that embedded/2010 callback timing matches
 this source trace. The complete action and ownership preconditions remain in
-the lifecycle guide. The producer-removal chart is pending Mermaid syntax/render
-and visual review; GitHub rendering remains unverified.
+the lifecycle guide. Both producer-removal charts passed Mermaid CLI rendering
+and local visual review. Splitting at the returned recipient-plan boundary
+keeps producer-side resignation planning separate from survivor-side delivery
+and revalidation; GitHub rendering remains unverified.
 
 #### Cross-object `DELETE_OBJECTS_THEN_DIVEST`: removal and ownership callbacks
 
@@ -1564,7 +1793,7 @@ sequenceDiagram
       Note over State: First valid removal callback commits deletion<br/>and invalidates pending object work
     else No other federate knows the object
       State->>State: Accept deletion without a removal callback
-      Note over State: Clear producer knowledge;<br/>retain object/name while designator is retractable
+      Note over State: Clear producer knowledge,<br/>retain object and name while designator is retractable
     end
   end
 ```
@@ -1628,6 +1857,13 @@ checks removal payload, callback models, sender regulation, receiver
 constraint, and receive-order preference. It does not exercise Retract after
 removal or the invocation-snapshot restoration path. Do not infer process
 parity for those embedded retraction details or any 2010 behavior.
+
+For the separate Save/Restore boundary, see the [queued timestamped-deletion
+restore case](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#worked-case-queued-timestamped-object-deletion-returns-after-fresh-registry-restore)
+and [post-restore retraction after one receiver observes removal](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#worked-case-retracting-a-restored-deletion-after-one-recipient-receives-it).
+These are fresh embedded registries within one test process; their
+`process-restart` tags do not establish an OS-process restart, process-endpoint
+behavior, or 2010 parity.
 
 ### Local delete forgets one federate's view; it does not delete the instance
 
@@ -1714,11 +1950,614 @@ execution; explicit Destroy is separate. The focused [final-member scenario](../
 checks that the execution can be joined again after the object cleanup. This is
 implementation evidence, not a complete normative `ResignAction` rule.
 
+## MOM object-information report is a federate-local view
+
+The 2025 MIM pairs the joined-federate request
+`HLAmanager.HLAfederate.HLArequest.HLArequestObjectInstanceInformation` with
+`HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstanceInformation`. The
+request names one object through `HLAobjectInstance`, typed as
+`HLAobjectInstanceHandle`; the report's `HLAobjectInstance` is typed as
+`HLAobjectInstanceReference`. The report is reliable, Receive order, and has
+the `HLAfederate` dimension ([request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1184),
+[report and fields](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1702)).
+
+```mermaid
+flowchart TD
+  REQUEST["Joined federate requests one object<br/>HLAobjectInstance: HLAobjectInstanceHandle"]
+  VIEW["Evaluate this federate's view of the object"]
+  KNOWS{"Does this federate know the object?"}
+  KNOWN["One HLAreportObjectInstanceInformation<br/>HLAobjectInstance<br/>HLAownedInstanceAttributeList<br/>HLAregisteredClass + HLAknownClass"]
+  NULL["One NULL report of the same class<br/>HLAobjectInstance<br/>empty HLAownedInstanceAttributeList<br/>omit HLAregisteredClass + HLAknownClass"]
+  SCOPE["HLAfederate report dimension<br/>reliable, Receive order"]
+  OBSERVE["Eligible subscriber observes receiveInteraction"]
+
+  REQUEST --> VIEW --> KNOWS
+  KNOWS -- yes --> KNOWN --> SCOPE
+  KNOWS -- no --> NULL --> SCOPE
+  SCOPE --> OBSERVE
+```
+
+An empty `HLAownedInstanceAttributeList` does not by itself mean NULL. A
+federate can know an object and own none of its attributes: that report still
+includes both class parameters. In the NULL form, the list parameter is
+present but empty, while `HLAregisteredClass` and `HLAknownClass` are omitted.
+The registered class and the class known by this particular federate answer
+different questions; the focused case includes both fields but uses equal
+class values, so it does not exercise a case where they differ.
+
+There is a wording conflict within the pinned MIM for the NULL list: the
+report-level semantics call `HLAownedInstanceAttributeList` undefined, while
+the parameter-level semantics require an empty list. Umbra's embedded encoder
+includes the parameter in both shapes, and the focused case observes it present
+and empty in the NULL response. Those are implementation/test observations;
+this guide does not infer that the two MIM phrases are normatively equivalent
+([report semantics](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1709),
+[parameter semantics](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1723),
+[encoder](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_object_instance_reports.cpp#L141),
+[focused assertions](../../cpp/tests/joined_federate_mom_object_instance_information_report_catch2.cpp#L294)).
+
+The [focused embedded case](../../cpp/tests/joined_federate_mom_object_instance_information_report_catch2.cpp#L147)
+shows three useful states: a self-registered object whose report lists
+`Efficiency` and the implicitly published `HLAprivilegeToDeleteObject`; an
+owner-registered object known by the requester, with an empty owned-attribute
+list but both class fields; and that same requester-local view after
+`localDeleteObjectInstance`, where the report has only the object and empty
+list parameters. The test checks that the request returns before the report
+callback in its `HLA_EVOKED` case, then receives the interaction after callback
+draining. This NULL response is about the requester's knowledge, not proof of
+federation-wide deletion; see [local deletion's caller-only state change](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#local-delete-forgets-one-federates-view-it-does-not-delete-the-instance).
+
+In the embedded implementation, the [Send Interaction handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L456)
+validates the joined requester and object parameter before calling the
+[per-federate report planner](../../cpp/src/internal/federation/federation_registry_mom_object_instance_information_reporting.cpp#L29).
+The planner reads that federate's known-class and ownership state and plans the
+`HLAfederate` dimension; the [report encoder](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_object_instance_reports.cpp#L163)
+adds the two class parameters only for a known object. This describes the
+reviewed embedded path, not the configured-process endpoint.
+
+The configured-process path has a source-visible gap. The pinned MIM marks the
+request Subscribe, while the reviewed process Send Interaction handler sends
+non-special classes to the [ordinary receive-order planner](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389),
+whose [admission path requires publication](../../cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp#L50).
+Source-derived inference: if this Subscribe-only request reaches that gate
+without a publication entry, the generic planner returns
+`interaction_class_not_published`; this is not a tested public-process result.
+A bounded source/test search found no process-specific request/report handler
+or configured-process test for this interaction. The generic route therefore
+does not demonstrate the MIM-prescribed report, and the exact public exception
+and embedded/process parity remain unverified.
+
+## MOM delete-capability report is an aggregate snapshot
+
+`HLArequestObjectInstancesThatCanBeDeleted` inherits the joined-federate
+`HLAfederate` parameter from `HLAmanager.HLAfederate`; that parameter names the
+joined federate being queried, which may differ from the requester. The 2025
+MIM says the request results in one
+`HLAreportObjectInstancesThatCanBeDeleted`. The report is reliable, Receive
+order, and dimensioned by `HLAfederate`; its sole
+`HLAobjectInstanceCounts` parameter is a list of `(registered object class,
+count)` pairs, and the MIM requires an empty list for a NULL response
+([inherited target parameter](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L914),
+[request class](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1092),
+[report shape](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1428)).
+
+```mermaid
+flowchart TD
+  REQUESTER["Joined requester sends request<br/>HLAfederate = target federate"] --> VALIDATE{"Requester and target are joined?"}
+  VALIDATE -->|No| REJECT["Request is rejected by the reviewed embedded handler"]
+  VALIDATE -->|Yes| SNAPSHOT["Inspect current live object-instance state"]
+  SNAPSHOT --> OWNER{"Does target own this instance's<br/>HLAprivilegeToDeleteObject?"}
+  OWNER -->|No| SKIP["Do not count this instance"]
+  OWNER -->|Yes| GROUP["Increment count for its registered object class"]
+  SKIP --> NEXT{"More live instances?"}
+  GROUP --> NEXT
+  NEXT -->|Yes| SNAPSHOT
+  NEXT -->|No| COUNTS{"Any instances counted?"}
+  COUNTS -->|Yes| REPORT["One HLAreportObjectInstancesThatCanBeDeleted<br/>HLAobjectInstanceCounts = class/count list"]
+  REPORT --> DIM["HLAfederate dimension identifies the target<br/>reliable, Receive order"]
+  DIM --> RECIPIENT["Eligible report subscribers for that dimension<br/>receive the RTI interaction"]
+  COUNTS -->|No| NULL["NULL response uses an empty count list"]
+  NULL --> DIM
+```
+
+The embedded handler decodes the inherited `HLAfederate` target, requires both
+the requesting and reported federates to be joined, and dispatches to the
+report planner. The planner scans current object instances, excludes instances
+whose deletion is already accepted, and counts an instance only when the
+target federate owns its `HLAprivilegeToDeleteObject`; it groups by the
+registered class, not the class known by a particular receiver. The routing
+plan applies the target's `HLAfederate` dimension, while subscription matching
+determines which federates receive the report
+([embedded request handling](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L282),
+[live-instance scan](../../cpp/src/internal/federation/federation_registry_mom_object_instances_that_can_be_deleted_reporting.cpp#L77),
+[privilege-owner count predicate](../../cpp/src/internal/federation/federation_registry_mom_object_instances_that_can_be_deleted_reporting.cpp#L96),
+[dimension routing](../../cpp/src/internal/federation/federation_registry_mom_object_instances_that_can_be_deleted_reporting.cpp#L107),
+[report callback routing](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_object_instance_reports.cpp#L104)).
+
+This is a point-in-time aggregate, not an object-handle list, a reservation,
+or permission that remains valid for a later delete call. Delete authority is
+the current ownership of the special attribute, and the delete service checks
+object knowledge and that authority when the service is invoked; ownership or
+object state can change after a report. The separate [delete transition](#object-removal-delete-callback-and-per-receiver-cleanup)
+and [authority-transfer sequence](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md#a-new-owner-can-gain-delete-authority-without-becoming-the-registrant)
+show why the target federate is not necessarily the object's original
+registrant. The focused embedded [live-count case](../../cpp/tests/joined_federate_mom_object_instances_that_can_be_deleted_report_catch2.cpp#L137)
+requests counts for another joined federate, observes one count for each of
+two registered classes, deletes one object, then observes only the remaining
+class count. It does not exercise an empty/NULL count list, transferred delete
+authority, or a configured-process report.
+
+For the untested empty-list branch, the embedded handler passes the planned
+count map through the object-class-count encoder and the shared report queue
+attaches that encoded value as the report parameter; neither step has a
+non-empty-count guard. So the reviewed source path appears to construct the
+MIM's empty-list response when the plan is applied and has eligible recipients,
+but the focused test does not observe that runtime result
+([handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L436),
+[encoder](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_activity_reports.cpp#L109),
+[queue](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_object_instance_reports.cpp#L21)).
+Treat this as source evidence, not a focused NULL-response test.
+
+For the configured-process route, the reviewed Send Interaction handler has no
+special case for this MOM request and falls through to the ordinary
+receive-order planner, whose admission check requires the sender to publish
+the interaction class. Since the pinned MIM marks this request Subscribe, that
+route is a source-visible concern—not a tested public exception or a claim
+about required standard behavior. The bounded search found no
+configured-process request/report test for this interaction
+([generic process route](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389),
+[publication admission](../../cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp#L48)).
+
+## MOM updated-instance report is a joined-lifetime ledger
+
+`HLArequestObjectInstancesUpdated` uses the same inherited `HLAfederate`
+target, reliable Receive-order request, and target-dimensioned report shape
+as the delete-capability request. Its meaning is different: the 2025 MIM says
+`HLAreportObjectInstancesUpdated` counts instances by registered class for
+which the joined target has successfully invoked Update Attribute Values. It
+is not a scan of currently live objects. The report carries one
+`HLAobjectInstanceCounts` list, and the MIM describes one report interaction
+([request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1102),
+[report](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1450)).
+
+```mermaid
+flowchart TD
+  REQUESTER["Joined requester sends request<br/>HLAfederate = target federate"] --> VALIDATE{"Requester and target are joined?"}
+  VALIDATE -->|No| REJECT["Reviewed embedded handler rejects the request"]
+  VALIDATE -->|Yes| LEDGER["Read target member's accepted-update ledger"]
+  LEDGER --> ANY{"Any recorded objects?"}
+  ANY -->|Yes| ENTRY["Each distinct updated object handle retains<br/>its registered class from the accepted update"]
+  ANY -->|No| NULL["MIM NULL-response branch<br/>parameter-specific text says empty list"]
+  ENTRY --> GROUP["Aggregate one count per recorded object<br/>grouped by registered class"]
+  GROUP --> MORE{"More ledger entries?"}
+  MORE -->|Yes| ENTRY
+  MORE -->|No| REPORT["One HLAreportObjectInstancesUpdated<br/>HLAobjectInstanceCounts = class/count list"]
+  REPORT --> DIM["HLAfederate dimension identifies the target<br/>reliable, Receive order"]
+  NULL --> DIM
+  DIM --> RECIPIENT["Eligible report subscribers for that dimension<br/>receive the RTI interaction"]
+  RECIPIENT --> CALLBACK["In the focused HLA_EVOKED case,<br/>callback arrives after explicit draining"]
+```
+
+In the embedded registry, only a successfully accepted update reaches the
+telemetry mutation: after update validation, the member's total
+`HLAupdatesSent` count advances and the object handle enters a distinct-handle
+set. The registered class is retained in a separate handle-to-class map for
+the report. A second accepted update to the same object changes the service
+total but not the distinct-object count or its class bucket. The report planner
+iterates that member map, aggregates by saved registered class, and constructs
+the report's `HLAfederate` dimension; it does not inspect the live object map
+to decide report membership. The source explicitly keeps this as joined-member
+history after object deletion, unlike the preceding delete-capability report's
+current live ownership scan ([accepted update bookkeeping and retained history](../../cpp/src/internal/federation/federation_registry.cpp#L619),
+[joined-member distinct-handle ledger](../../cpp/src/internal/federation/federation_registry_service_types.hpp#L197),
+[registered-class ledger](../../cpp/src/internal/federation/federation_registry_service_types.hpp#L201),
+[class-grouped report planner](../../cpp/src/internal/federation/federation_registry_mom_object_instances_updated_reporting.cpp#L73),
+[target-dimension routing](../../cpp/src/internal/federation/federation_registry_mom_object_instances_updated_reporting.cpp#L85)).
+
+This also separates three similarly named MOM measures. `HLAupdatesSent` is
+the number of successful Update Attribute Values service invocations;
+`HLAobjectInstancesUpdated` is the total number of distinct instances touched
+by that joined federate; and this request/report adds the per-registered-class
+breakdown of those distinct instances. The MIM defines the invocation total
+and distinct-instance total separately ([`HLAupdatesSent`](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L335),
+[`HLAobjectInstancesUpdated`](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L416)).
+The existing [joined-federate MOM guide](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md)
+explains the periodic scalar measures; this section follows the explicit
+request and class-grouped response. It is not interchangeable with the
+preceding live delete-authority count.
+
+The focused embedded [class-grouping case](../../cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp#L203)
+updates one Server object twice and one Soda object once, then observes one
+count for each registered class after draining the requester's evoked callback
+queue. It does not test a target with no updated instances, update history
+after deletion, transport-specific empty results, or a configured-process
+report. The MIM's NULL wording itself needs care: its report-level semantics
+mentions no updates "for a given transport type" and an "undefined value",
+while the parameter-level semantics explicitly requires an empty list. The
+report has no transport-type parameter, and Umbra's reviewed planner groups
+only by registered class; this guide records that wording without resolving
+normative intent or claiming those NULL details are runtime-tested
+([report NULL wording](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1457),
+[parameter NULL wording](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1464)).
+
+The configured-process Send Interaction route has no reviewed special handler
+for this Subscribe-only request; the generic route proceeds to the ordinary
+publication-gated planner. This is a source-level warning, not evidence of a
+tested public exception or process/embedded parity. The bounded search found
+no configured-process request/report test
+([generic process route](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389),
+[publication admission](../../cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp#L48)).
+
+## MOM update-activity report groups counts by class and transportation
+
+`HLArequestUpdatesSent` asks the RTI to report how many successful Update
+Attribute Values invocations a joined target generated; the MIM scopes the
+count from the beginning of the federation execution. Each
+`HLAreportUpdatesSent` carries a transportation type and a list of
+class/count records, with the target identified by the inherited
+`HLAfederate` dimension. This is an activity count, not a distinct-object
+count: updating one object twice contributes two updates to its class and
+transport bucket ([request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1122),
+[report and parameters](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1498),
+[inherited target parameter](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L914)).
+
+```mermaid
+flowchart TD
+  REQUESTER["Joined requester sends HLArequestUpdatesSent<br/>HLAfederate = target federate"] --> VALIDATE{"Requester and target are joined?"}
+  VALIDATE -->|No| REJECT["Embedded handler rejects the request"]
+  VALIDATE -->|Yes| LEDGER["Read target's accepted update counts<br/>by registered class and transportation"]
+  LEDGER --> BUCKET["Build one report for each transportation bucket<br/>selected by the report planner"]
+  BUCKET --> ANY{"Any class counts in this bucket?"}
+  ANY -->|Yes| COUNTS["HLAupdateCounts contains class/count records"]
+  ANY -->|No| EMPTY["NULL response carries an empty HLAupdateCounts list"]
+  COUNTS --> REPORT["HLAreportUpdatesSent includes HLAtransportation"]
+  EMPTY --> REPORT
+  REPORT --> DIM["HLAfederate dimension identifies the target<br/>RTI report uses reliable Receive order"]
+  DIM --> RECIPIENT["Eligible report subscribers receive the interaction"]
+  RECIPIENT --> CALLBACK["In the focused HLA_EVOKED test,<br/>report callbacks follow explicit draining"]
+```
+
+Keep the three update-related measures separate. `HLAupdatesSent` is the
+joined federate's total number of successful Update Attribute Values service
+invocations. `HLAobjectInstancesUpdated` counts [distinct object instances](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L416).
+`HLAreportUpdatesSent` instead groups update invocations by registered object
+class and transportation type. In the embedded registry, a successful update
+increments the scalar invocation total once, and increments the per-class
+count for each distinct transportation present in that update's planned
+passels. Therefore, an update spanning attributes assigned different
+transportation types can contribute to more than one transport bucket; that
+is source-derived, and the focused test uses one transportation type per
+invocation ([MIM scalar totals](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L335),
+[accepted update accounting](../../cpp/src/internal/federation/federation_registry.cpp#L562),
+[embedded acceptance boundary](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L315),
+[configured-process counter input](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L181)).
+
+The MIM's report-level text says one interaction is sent per transportation
+type used and describes `HLAupdateCounts` as undefined in a NULL response;
+the parameter-level text instead requires an empty list when a given type
+has no updates. Umbra's inspected planner initializes
+both supported transportation buckets even when the target has no updates;
+the focused test observes two empty reports for its idle target. The test
+confirms that implementation result, but neither it nor this guide resolves
+how the MIM's “type used” phrase relates to the per-type NULL requirement
+([report-level NULL wording](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1509),
+[parameter-level empty-list rule](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1521),
+[planner buckets](../../cpp/src/internal/federation/federation_registry_mom_updates_sent_reporting.cpp#L77),
+[focused empty-response assertions](../../cpp/tests/joined_federate_mom_updates_sent_catch2.cpp#L329)).
+
+The focused embedded [class-and-transportation case](../../cpp/tests/joined_federate_mom_updates_sent_catch2.cpp#L145)
+updates a Server instance twice using best effort and a Soda instance once
+using reliable. It observes a count of two for Server/best effort and one for
+Soda/reliable, then queries an idle joined target and verifies empty lists for
+both reported transports. The requester sees no report before draining its
+HLA_EVOKED queue. It does not exercise a single update call whose planned
+passels use multiple transport types, nor a configured-process request/report
+case.
+
+The configured-process update service records accepted update counts in the
+shared registry, but the bounded process-source review found no dedicated
+`HLArequestUpdatesSent` handler or report encoder. The process Send Interaction
+route follows its generic publication-planned path, while the pinned MIM marks
+the request Subscribe. This is a source-visible profile gap, not a tested
+public result or an embedded/process parity claim; no configured-process
+report test was found ([generic process route](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389),
+[generic publication admission](../../cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp#L48),
+[embedded request handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L1552),
+[embedded report encoder/queue](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_activity_reports.cpp#L182)).
+
+## MOM reflection reports separate callback activity from distinct objects
+
+The two receiver-side reflection reports branch from the same `Reflect
+Attribute Values` callback path, but retain different facts. `HLArequestReflectionsReceived`
+reports callback activity grouped by the reflected object's registered class
+and the transportation type used for that receipt. `HLArequestObjectInstancesReflected`
+reports distinct object handles grouped by registered class. Repeated
+reflections of one object therefore increase the former's count each time but
+do not add another distinct object to the latter. Both requests identify the
+joined target through `HLAfederate`; the reports use that target's
+`HLAfederate` dimension ([activity request/report](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1153),
+[distinct-instance request/report](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1112),
+[inherited target parameter](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L914)).
+
+```mermaid
+flowchart TD
+  SENDER["A federate sends Update Attribute Values"] --> DELIVERY["An eligible receiver reaches a Reflect Attribute Values<br/>callback-entry path"]
+  DELIVERY --> ACTIVITY["Increment receiver reflection-callback total<br/>and registered-class × effective-transport count"]
+  DELIVERY --> INSTANCE["Record receiver object handle and registered class<br/>in the distinct-instance ledger"]
+  INSTANCE --> UNIQUE["One retained handle per object;<br/>later reflections reuse that entry"]
+
+  ACTREQ["Joined requester sends HLArequestReflectionsReceived<br/>HLAfederate = target receiver"] --> AV{"Requester and target are joined?"}
+  AV -->|No| AREJ["Reviewed embedded handler rejects the request"]
+  AV -->|Yes| AREAD["Read target callback counts by transport and class"]
+  ACTIVITY --> AREAD
+  AREAD --> ARPT["HLAreportReflectionsReceived per transport<br/>HLAtransportation + HLAreflectCounts class/count list"]
+  AREAD -.-> ANOTE["Pinned MIM: one report per type used;<br/>NULL prose says undefined, parameter prose says empty list.<br/>Implementation/test emits reliable and best-effort buckets."]
+
+  OBJREQ["Joined requester sends HLArequestObjectInstancesReflected<br/>HLAfederate = target receiver"] --> OV{"Requester and target are joined?"}
+  OV -->|No| OREJ["Reviewed embedded handler rejects the request"]
+  OV -->|Yes| OREAD["Read target's retained distinct-handle ledger"]
+  UNIQUE --> OREAD
+  OREAD --> GROUP["Count distinct handles by saved registered class"]
+  GROUP -->|Objects recorded| ORPT["HLAreportObjectInstancesReflected<br/>HLAobjectInstanceCounts class/count list"]
+  GROUP -->|No objects| ONULL["MIM NULL-response wording;<br/>parameter-specific text says empty list"]
+
+  ARPT --> ROUTE["Reliable, Receive-order report;<br/>HLAfederate dimension names the target"]
+  ORPT --> ROUTE
+  ONULL --> ROUTE
+  ROUTE --> SUB["Eligible report subscribers for that dimension<br/>receive the RTI interaction"]
+  SUB --> CALLBACK["In focused HLA_EVOKED tests,<br/>report callbacks follow explicit draining"]
+```
+
+The activity report's count is not an attribute-value count and not a count of
+distinct objects: it is grouped receiver callback activity. In the embedded
+source, the receipt counter and class/transport bucket advance immediately
+before calling the application's
+`FederateAmbassador::reflectAttributeValues`; the distinct-object map is
+updated at the same callback-entry boundary. The registered class is captured
+there as well ([activity ledger update](../../cpp/src/internal/federation/federation_registry.cpp#L779),
+[callback dispatch](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1660),
+[distinct-instance update](../../cpp/src/internal/federation/federation_registry.cpp#L646),
+[timestamped callback path](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L466)).
+These are implementation checkpoints, not claims that an application callback
+returned successfully. The distinct-instance planner reads a retained member
+map rather than enumerating only live objects, so deletion does not erase this
+implementation's recorded history ([planner](../../cpp/src/internal/federation/federation_registry_mom_object_instances_reflected_reporting.cpp#L72));
+the focused test does not cover post-deletion history.
+
+The activity report's pinned MIM text says one report is sent for each
+transportation type used and describes an undefined value when a type has no
+reflections. Its `HLAreflectCounts` parameter semantics separately require an
+empty list in a NULL response ([report semantics and parameter](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1538)).
+Umbra's embedded planner initializes reliable and best-effort buckets, and the
+focused idle-target test observes two reports with empty lists. That evidence
+does not resolve how the MIM's report-level wording relates to its
+parameter-level empty-list requirement ([planner](../../cpp/src/internal/federation/federation_registry_mom_reflections_received_reporting.cpp#L77),
+[focused activity case](../../cpp/tests/joined_federate_mom_reflections_received_catch2.cpp#L194)).
+
+The test also confirms the query names the receiver whose callback ledger has
+the counts—not the application sender—and observes two best-effort Server
+reflections and one reliable Soda reflection. It checks that reports are not
+observed until the requester's `HLA_EVOKED` queue is drained. It does not cover
+a target other than the requester, callback exceptions, post-deletion
+distinct-instance history, or a configured-process report path. The existing
+distinct-instance case covers repeated callbacks and class grouping, but not
+its empty/NULL response ([distinct-instance test](../../cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp#L248)).
+
+The configured-process Send Interaction review found no dedicated
+`HLArequestReflectionsReceived` handler or focused request/report test; the
+generic route and publication admission were inspected, but this is
+source-visible evidence only. It establishes neither a public process result
+nor embedded/process parity
+([generic process route](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389),
+[publication admission](../../cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp#L48)).
+
+Keep the neighboring MOM measurements separate: `HLAreflectionsReceived` is
+the scalar service-invocation total, `HLAobjectInstancesReflected` is the
+distinct-instance total, `HLAreportReflectionsReceived` is the on-demand
+per-class/per-transport activity breakdown, and
+`HLAreportObjectInstancesReflected` is the on-demand distinct-instance
+breakdown ([MIM service total](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L320),
+[MIM distinct-instance value](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L430),
+[joined-federate MOM guide](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md)).
+
+## MOM interaction-receipt report groups by sent class and transportation
+
+The 2025 MIM defines two distinct receiver-side report pairs. The broad
+`HLArequestInteractionsReceived` / `HLAreportInteractionsReceived` pair reports
+received interactions; the directed
+`HLArequestDirectedInteractionsReceived` /
+`HLAreportDirectedInteractionsReceived` pair reports only directed receives.
+Both identify the target joined federate with `HLAfederate`, group by the
+interaction's sent class and transportation, and use reliable, Receive-order
+report interactions. These are not the sender's `HLAinteractionsSent` total
+([broad request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1163),
+[directed request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1173),
+[broad report](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1610),
+[directed report](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1671),
+[inherited target parameter](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L914)).
+This is a request-driven Federation MOM report, not the separate
+`HLAreportServiceInvocation` event/file mechanism ([reporting distinction](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#three-distinct-traces-call-outcome-invocation-report-requested-mom-report)).
+
+```mermaid
+flowchart TD
+  SENDER["A federate sends an interaction"] --> ELIGIBLE["An eligible target reaches an embedded<br/>receiveInteraction or receiveDirectedInteraction callback path"]
+  ELIGIBLE --> RECORD["At callback entry, update the total sent-class × transport ledger;<br/>directed receives also update the directed-only subset"]
+  RECORD --> CALLBACK["Invoke the target's public interaction callback"]
+
+  TOTAL_REQUEST["Requester sends HLArequestInteractionsReceived<br/>HLAfederate = target receiver"] --> TOTAL_VALIDATE{"Embedded route resolves<br/>requester and joined target?"}
+  TOTAL_VALIDATE -->|No| TOTAL_REJECT["Embedded handler rejects the request"]
+  TOTAL_VALIDATE -->|Yes| TOTAL_READ["Read target's all-interaction<br/>class × transportation ledger"]
+  RECORD --> TOTAL_READ
+  TOTAL_READ --> TOTAL_PLAN["Plan HLAinteractionCounts<br/>and HLAtransportation buckets"]
+  TOTAL_PLAN --> TOTAL_REPORT["HLAreportInteractionsReceived"]
+
+  DIRECTED_REQUEST["Requester sends HLArequestDirectedInteractionsReceived<br/>HLAfederate = target receiver"] --> DIRECTED_VALIDATE{"Embedded route resolves<br/>requester and joined target?"}
+  DIRECTED_VALIDATE -->|No| DIRECTED_REJECT["Embedded handler rejects the request"]
+  DIRECTED_VALIDATE -->|Yes| DIRECTED_READ["Read target's directed-only<br/>class × transportation subset"]
+  RECORD --> DIRECTED_READ
+  DIRECTED_READ --> DIRECTED_PLAN["Plan HLAinteractionCounts<br/>and HLAtransportation buckets"]
+  DIRECTED_PLAN --> DIRECTED_REPORT["HLAreportDirectedInteractionsReceived"]
+
+  TOTAL_REPORT --> SHAPE["Reliable, Receive order;<br/>HLAfederate dimension identifies the target"]
+  DIRECTED_REPORT --> SHAPE
+  SHAPE --> SUB["Eligible subscribers for that target dimension<br/>can receive the RTI report interaction"]
+  SUB --> OBSERVE["Focused HLA_EVOKED cases observe reports<br/>after draining callbacks"]
+```
+
+The embedded registry updates the receiver's total interaction count and its
+sent-class/transport bucket at callback entry, immediately before invoking the
+public callback. A directed receive updates that same total ledger and a
+separate directed-only subset. The broad request plans from the total map; the
+directed request plans from the subset. This is *sent* class, even where
+ordinary class promotion could make the public callback's received class an
+ancestor ([ordinary callback boundary](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp#L128),
+[timestamped callback boundary](../../cpp/src/internal/runtime/umbra_rti_ambassador_tso_receive_order_interaction.cpp#L161),
+[directed callback boundary](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp#L196),
+[shared total and directed-subset update](../../cpp/src/internal/federation/federation_registry.cpp#L731),
+[broad report planner](../../cpp/src/internal/federation/federation_registry_mom_interactions_received_reporting.cpp#L77),
+[directed report planner](../../cpp/src/internal/federation/federation_registry_mom_directed_interactions_received_reporting.cpp#L28),
+[directed request handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L2108),
+[directed report queue](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_activity_reports.cpp#L258),
+[scalar receive-count source](../../cpp/src/internal/federation/federation_registry_mom_object_state.cpp#L953)).
+
+The focused embedded [broad-report case](../../cpp/tests/joined_federate_mom_interactions_received_catch2.cpp#L149)
+uses ordinary `ServerAction.TakeOrder` receives over reliable and best effort,
+and observes empty lists for an idle target. The separate focused embedded
+[directed-report case](../../cpp/tests/joined_federate_mom_directed_interactions_received_catch2.cpp#L180)
+first receives an ordinary `TakeOrder`, then a directed `TakeOrder` of the same
+class. Its directed report contains one reliable count and an empty best-effort
+list; the idle target gets empty lists for both standard buckets. This directly
+shows that the ordinary receive is excluded from the directed subset. A second
+[custom-transport case](../../cpp/tests/ieee1516_2025_custom_transportation_directed_interaction_integration_catch2.cpp#L4)
+confirms a declared custom transportation and its directed class count appear
+in the directed report. The focused cases use the embedded profile and
+`HLA_EVOKED`; the request returns before the test drains callbacks. They do not
+establish configured-process behavior or embedded/process parity.
+
+The broad report's own focused case does not send a directed interaction.
+Although the shared embedded ledger source shows directed callbacks enter its
+total map, that broad-report inclusion remains source-derived rather than
+directly exercised; ancestor-class promotion remains untested in these report
+cases. The configured-process evidence gap also remains open.
+
+For both report classes, the pinned MIM says one response is sent per
+transportation type used and describes a NULL response's
+`HLAinteractionCounts` as undefined, while the parameter semantics require an
+empty list ([broad report wording](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1618),
+[directed report wording](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1678),
+[directed parameter wording](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1693)).
+The embedded tests observe empty lists, but do not resolve that MIM wording
+difference. The directed-report semantics also name
+`HLArequest.HLAreportDirectedInteractionsReceived` as the triggering request;
+that apparent class-name typo is recorded as written, not silently corrected.
+
+## MOM interaction-send reports separate total sends from the directed subset
+
+The 2025 MIM defines a broad sender-side report pair,
+`HLArequestInteractionsSent` / `HLAreportInteractionsSent`, and a separate
+directed pair, `HLArequestDirectedInteractionsSent` /
+`HLAreportDirectedInteractionsSent`. Each request names the joined federate to
+report with `HLAfederate`; each report is scoped by an `HLAfederate` dimension
+and carries `HLAtransportation` plus sent-class counts in
+`HLAinteractionCounts`. Both request classes are Subscribe, reliable, and
+Receive ordered; both report classes are Publish, reliable, and Receive ordered
+([broad request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1132),
+[directed request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1143),
+[broad report](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1578),
+[directed report](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1640),
+[inherited target parameter](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L914)).
+
+The broad report describes the joined federate's sends since the beginning of
+the federation execution, grouped by *sent* class and transportation. Its MIM
+text explicitly includes sends with region and says the counts reflect
+related DDM usage. The directed pair reports directed sends separately. These
+are requested class/transport activity reports, not the scalar
+`HLAinteractionsSent` member field or the distinct `HLAreportServiceInvocation`
+event/file mechanism ([reporting distinction](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#three-distinct-traces-call-outcome-invocation-report-requested-mom-report)).
+
+```mermaid
+flowchart TD
+  ACCEPT["An embedded send passes its final synchronous validation<br/>or queue-admission boundary"] --> TOTAL["Increment scalar HLAinteractionsSent once;<br/>record class × transportation in total report ledger"]
+  ACCEPT --> ISDIRECTED{"Was the accepted send directed?"}
+  ISDIRECTED -->|Yes| DIRECTED["Also record it in the<br/>directed-only subset"]
+  ISDIRECTED -->|No| NODIRECTED["No directed-subset increment"]
+
+  ALL_REQUEST["HLArequestInteractionsSent<br/>HLAfederate = joined sender to report"] --> ALL_VALIDATE{"Embedded requester and target<br/>are joined members?"}
+  ALL_VALIDATE -->|No| ALL_REJECT["Embedded handler rejects the request"]
+  ALL_VALIDATE -->|Yes| ALL_READ["Read target's total sent-class ×<br/>transportation ledger"]
+  TOTAL --> ALL_READ
+  ALL_READ --> ALL_PLAN["Build HLAinteractionCounts by<br/>sent class within each transport bucket"]
+  ALL_PLAN --> ALL_REPORT["HLAreportInteractionsSent"]
+
+  DIRECTED_REQUEST["HLArequestDirectedInteractionsSent<br/>HLAfederate = joined sender to report"] --> DIRECTED_VALIDATE{"Embedded requester and target<br/>are joined members?"}
+  DIRECTED_VALIDATE -->|No| DIRECTED_REJECT["Embedded handler rejects the request"]
+  DIRECTED_VALIDATE -->|Yes| DIRECTED_READ["Read target's directed-only<br/>sent-class × transport ledger"]
+  DIRECTED --> DIRECTED_READ
+  DIRECTED_READ --> DIRECTED_PLAN["Build HLAinteractionCounts by<br/>sent class within each transport bucket"]
+  DIRECTED_PLAN --> DIRECTED_REPORT["HLAreportDirectedInteractionsSent"]
+
+  ALL_REPORT --> SHAPE["Reliable, Receive order;<br/>HLAfederate dimension identifies the target"]
+  DIRECTED_REPORT --> SHAPE
+  SHAPE --> OBSERVER["Eligible report subscribers can receive<br/>the RTI-originated report interaction"]
+  OBSERVER --> DRAIN["Focused HLA_EVOKED cases observe reports<br/>after callback draining"]
+```
+
+The embedded registry records a send only after the service has crossed its
+final synchronous validation/queue-admission boundary. That sender ledger is
+independent of receiver fan-out; a directed send increments the total ledger
+and the directed-only subset. The focused broad-report case exercises two
+transportations and a region-scoped send: it finds the regional
+`MainCourseServed` count in the reliable bucket, consistent with the MIM's
+explicit region inclusion. The directed-report case exercises two reliable
+`TakeOrder` directed sends and finds a count of two in that class bucket. It
+does not contrast an ordinary `TakeOrder` send against the directed report,
+so exclusion of ordinary sends from that report is established by the separate
+source ledgers, not that focused result ([accepted-send ledger](../../cpp/src/internal/federation/federation_registry.cpp#L679),
+[broad planner](../../cpp/src/internal/federation/federation_registry_mom_interactions_sent_reporting.cpp#L27),
+[directed planner](../../cpp/src/internal/federation/federation_registry_mom_directed_interactions_sent_reporting.cpp#L27),
+[broad request handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L1690),
+[directed request handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L1830),
+[broad focused case](../../cpp/tests/joined_federate_mom_interactions_sent_catch2.cpp#L153),
+[directed focused case](../../cpp/tests/ieee1516_2025_federation_mom_directed_interactions_sent_catch2.cpp#L4)).
+
+The MIM says each report pair returns a response per transportation type used
+and describes the report-level `HLAinteractionCounts` value in a NULL response
+as undefined, while the parameter semantics require an empty list. The
+embedded planners seed reliable and best-effort buckets; focused tests observe
+both, including empty lists for an idle target ([broad NULL wording](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1589),
+[directed NULL wording](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1651),
+[directed parameter](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1661),
+[empty-bucket case](../../cpp/tests/mom_sender_count_reports_null_buckets_catch2.cpp#L116)).
+The directed-report semantics also appear to name
+`HLAreportDirectedInteractionsSent` as the request class; this apparent MIM
+copy/paste error is recorded as written, not silently corrected. The cited
+cases are embedded-profile tests; no configured-process report case or custom
+transport report case was found in this bounded review.
+
+One additional embedded-source ordering detail is not exercised by those
+tests: the request handler snapshots the report plan first, then records the
+accepted MOM request itself as a non-directed send before queueing the report.
+Thus a self-querying total report is planned before its current request enters
+the sender ledger, while a later total query can see previously accepted MOM
+request sends. A directed request does not enter the directed-only subset.
+Treat this as source-derived implementation behavior, not as a normative or
+configured-process claim ([broad request/plan/record order](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L1690),
+[directed request/plan/record order](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L1830)).
+
 ## Evidence map: implementation versus exercised scenarios
 
 | Topic | Current implementation entry points | Focused test evidence |
 | --- | --- | --- |
 | Object declarations and discovery | [publication adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_publication.cpp#L19), [subscription adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp#L19), [registration](../../cpp/src/internal/federation/federation_registry_object_instance_registration.cpp#L196), [discovery planning](../../cpp/src/internal/federation/federation_registry_object_instance_discovery_planning.cpp), [discovery state transition](../../cpp/src/internal/federation/federation_registry_object_instance_discovery_state.cpp#L15), [discovery eligibility](../../cpp/src/internal/federation/federation_registry.cpp#L830) | [process-endpoint object discovery](../../cpp/tests/ieee1516_2025_connection_object_discovery_catch2.cpp#L457) |
+| Joined-federate MOM object-information report | [2025 MIM request/report](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1184), [embedded handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L456), [per-federate report plan](../../cpp/src/internal/federation/federation_registry_mom_object_instance_information_reporting.cpp#L29), [known/NULL payload shape](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_object_instance_reports.cpp#L163) | [embedded known/NULL case](../../cpp/tests/joined_federate_mom_object_instance_information_report_catch2.cpp#L147); no configured-process report case was found in the bounded review. |
+| Joined-federate MOM delete-capability counts | [2025 MIM request/report](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1092), [embedded handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L282), [live privilege-owner count](../../cpp/src/internal/federation/federation_registry_mom_object_instances_that_can_be_deleted_reporting.cpp#L96), [target dimension](../../cpp/src/internal/federation/federation_registry_mom_object_instances_that_can_be_deleted_reporting.cpp#L107), [report fan-out](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_object_instance_reports.cpp#L104) | [embedded counts change after deletion](../../cpp/tests/joined_federate_mom_object_instances_that_can_be_deleted_report_catch2.cpp#L137); empty/NULL, transferred-owner, and configured-process cases were not found in the bounded review. |
+| Joined-federate MOM updated-instance counts | [2025 MIM request/report and NULL wording](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1102), [accepted-update lifetime ledger](../../cpp/src/internal/federation/federation_registry.cpp#L604), [class-grouped report planner](../../cpp/src/internal/federation/federation_registry_mom_object_instances_updated_reporting.cpp#L73), [report routing](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_object_instance_reports.cpp#L87) | [embedded repeated-update/class-grouping case](../../cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp#L137); empty/NULL and post-deletion-history cases are untested, and no configured-process report test was found in the bounded review. |
+| Joined-federate MOM reflection activity counts | [2025 MIM request/report and transport/class parameters](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1153), [callback-entry activity ledger](../../cpp/src/internal/federation/federation_registry.cpp#L779), [per-transport planner](../../cpp/src/internal/federation/federation_registry_mom_reflections_received_reporting.cpp#L77), [embedded request handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L1441) | [embedded repeated-reflection, transport-bucket, and empty-list case](../../cpp/tests/joined_federate_mom_reflections_received_catch2.cpp#L194); callback exceptions and configured-process reports are untested. |
+| Joined-federate MOM reflected-instance counts | [2025 MIM request/report and NULL wording](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1112), [receiver callback-entry ledger](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L834), [retained registered-class map](../../cpp/src/internal/federation/federation_registry.cpp#L669), [class-grouped report planner](../../cpp/src/internal/federation/federation_registry_mom_object_instances_reflected_reporting.cpp#L72) | [embedded repeated-reflection/class-grouping case](../../cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp#L248); empty/NULL and post-deletion history are untested, and no configured-process report case was found in the bounded review. |
+| Joined-federate MOM update-activity counts | [2025 MIM request/report and transport/class parameters](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1122), [accepted per-class/transport update ledger](../../cpp/src/internal/federation/federation_registry.cpp#L562), [report planner](../../cpp/src/internal/federation/federation_registry_mom_updates_sent_reporting.cpp#L29), [embedded handler and report queue](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L1552) | [embedded repeated-update, transport-bucket, and empty-list case](../../cpp/tests/joined_federate_mom_updates_sent_catch2.cpp#L145); mixed-transport single-call and configured-process request/report behavior are untested. |
+| Joined-federate MOM interaction-receipt counts | [2025 broad MIM request/report pair](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1163), [receiver callback-entry ledger](../../cpp/src/internal/federation/federation_registry.cpp#L731), [broad planner and route](../../cpp/src/internal/federation/federation_registry_mom_interactions_received_reporting.cpp#L77) | [embedded reliable/best-effort and empty-idle-target case](../../cpp/tests/joined_federate_mom_interactions_received_catch2.cpp#L149) uses ordinary receives only; directed inclusion in the broad report is source-derived, and ancestor-class promotion and configured-process report behavior remain untested. |
+| Joined-federate MOM directed-interaction receipt counts | [2025 directed MIM request/report pair](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1173), [directed-only ledger update](../../cpp/src/internal/federation/federation_registry.cpp#L752), [directed planner and request route](../../cpp/src/internal/federation/federation_registry_mom_directed_interactions_received_reporting.cpp#L28), [embedded request handler and queue](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L2108) | [same-class ordinary-versus-directed exclusion, reliable/best-effort buckets, and idle target](../../cpp/tests/joined_federate_mom_directed_interactions_received_catch2.cpp#L180); [declared custom-transport report bucket](../../cpp/tests/ieee1516_2025_custom_transportation_directed_interaction_integration_catch2.cpp#L4). No configured-process request/report case was found in the bounded review. |
+| Joined-federate MOM interaction-send reports | [2025 broad and directed MIM request/report pairs](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1132), [accepted total and directed-send ledgers](../../cpp/src/internal/federation/federation_registry.cpp#L696), [separate report planners](../../cpp/src/internal/federation/federation_registry_mom_interactions_sent_reporting.cpp#L27) and [directed planner](../../cpp/src/internal/federation/federation_registry_mom_directed_interactions_sent_reporting.cpp#L27), [embedded request routes](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L1691) | [broad reliable/best-effort and region-scoped counts](../../cpp/tests/joined_federate_mom_interactions_sent_catch2.cpp#L153), [two directed sends in the directed report](../../cpp/tests/ieee1516_2025_federation_mom_directed_interactions_sent_catch2.cpp#L4), [empty total and directed buckets](../../cpp/tests/mom_sender_count_reports_null_buckets_catch2.cpp#L116). Broad-report inclusion of directed sends and self-query counting order remain source-derived; no configured-process or custom-transport report case was found. |
 | Object-class publication withdrawal and ownership effects | [Pinned 2025 API §5.3](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L443), [embedded service adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_publication.cpp#L149), [registry pending-acquisition guard and owner transition](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L45) | [Subclass versus superclass whole-class withdrawal](../../cpp/tests/fom_declaration_management_catch2.cpp#L266), [pending acquisition rejects withdrawal](../../cpp/tests/ieee1516_2025_unpublish_object_class_attributes_ownership_pending_service_report_catch2.cpp#L71). Neither case asserts every owner-metadata cleanup postcondition. |
 | Callback value-map and tag retention | [2025 reflection/interaction callback signatures](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L238), [VariableLengthData copy constructor](../../third_party/ieee1516.1-2025/include/RTI/VariableLengthData.h#L38), [data-pointer lifetime note](../../third_party/ieee1516.1-2025/include/RTI/VariableLengthData.h#L50) | The [embedded receive-order interaction case](../../cpp/tests/receive_order_interaction_catch2.cpp#L53) copies the const-reference map and tag during the callback and checks saved bytes after draining; this demonstrates a safe use pattern, not a cross-profile lifetime guarantee. |
 | Attribute update request and reflection | [update adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L61), [provider selection](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L547), [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L396) | [request → provide callback → provider update → reflection](../../cpp/tests/ieee1516_2025_connection_request_attribute_value_update_catch2.cpp#L470), [one reflection for overlapping subscriptions](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L457) |
@@ -1727,7 +2566,7 @@ implementation evidence, not a complete normative `ResignAction` rule.
 | Ordinary interaction publication withdrawal after send acceptance | [ordinary declaration removal](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L262), [send-time publication check and recipient planning](../../cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp#L16), [callback-time receiver projection](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp#L77), [recipient predicate](../../cpp/src/internal/federation/federation_registry.cpp#L1421) | No focused send → unpublish → evoke case was found in the reviewed suite. The [interaction-relevance advisory case](../../cpp/tests/declaration_relevance_advisory_catch2.cpp#L91) exercises declaration/advisory transitions, not accepted-message delivery after withdrawal. This conclusion is source-only and embedded-profile scoped. |
 | Embedded accepted-send/report/counter boundary | [owned input snapshot, re-plan, report, counter, and unlocked fan-out](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L2293), [selected report interaction/file route](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L131), [delivery-time recipient projection](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp#L57) | [successful file record before evoked app callback](../../cpp/tests/ieee1516_2025_send_interaction_service_report_file_catch2.cpp#L96), [immediate report observer while receiver callback stays queued](../../cpp/tests/ieee1516_2025_service_report_receive_order_send_interaction_catch2.cpp#L94); the [counter restore test](../../cpp/tests/ieee1516_2025_federation_registry_interaction_send_counters_restore_catch2.cpp#L17) covers persistence/restore, not public-send ordering |
 | Delete and resignation effects | [delete planning and pending-work invalidation](../../cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp#L15), [receiver removal commit](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L48), [embedded callback gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1331), [process push/pull planning](../../cpp/src/internal/federation/process_federation_service_object_instance_removal.cpp#L12), [process pull commit gate](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L86), [process callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L650), [resign lifecycle](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L80) | [embedded unknown-before-callback query](../../cpp/tests/ieee1516_2025_attribute_ownership_check_catch2.cpp#L75), [process-endpoint delete callback payload](../../cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp#L779), [DELETE_OBJECTS resign scenario](../../cpp/tests/ieee1516_2025_embedded_resign_action_delete_objects_catch2.cpp#L4) |
-| Process ordinary interaction projection boundary | [shared send planner](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389), [send-time event projection](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L514), [unpublish](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L370), [unsubscribe](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L384), [pull dequeue](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L70), [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L214) | [public process send case](../../cpp/tests/ieee1516_2025_connection_send_interaction_catch2.cpp#L457) inspects an exact-class pulled event's parameter handle/value and tag without asserting a receiver callback; the [configured-process multi-recipient case](../../cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp#L459) asserts exact-class callbacks and FIFO tags under both callback models. Neither tests ancestor-subscription promotion or post-send declaration changes. |
+| Process ordinary interaction projection boundary | [shared send planner](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389), [event materialization](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L535), [push/pull routing](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L569), [unpublish](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L370), [unsubscribe](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L384), [pull dequeue](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L107), [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L90) | [public process send case](../../cpp/tests/ieee1516_2025_connection_send_interaction_catch2.cpp#L457) inspects an exact-class pulled event's parameter handle/value and tag without asserting a receiver callback; the [configured-process multi-recipient case](../../cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp#L459) asserts exact-class callbacks and FIFO tags under both callback models. These process cases do not exercise ancestor promotion or post-send declaration changes. The separate [internal 2025 registry planner test](../../cpp/tests/federation_registry_composed_fom_catch2.cpp#L1208) checks exact-class and ancestor-class plans and filters the child parameters from empty parent views; it does not invoke process delivery, test one receiver subscribed at competing class levels, or exercise a nonempty inherited-parameter subset. |
 | Timestamped interaction projection point by 2025 profile | [embedded callback-time projection](../../cpp/src/internal/runtime/umbra_rti_ambassador_tso_receive_order_interaction.cpp#L117), [process event-time projection](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L209), [process event before matching grant](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L376) | [embedded regional subscription replacement](../../cpp/tests/ieee1516_2025_timestamped_regional_interaction_subscription_replacement_catch2.cpp#L91) covers one delivery-time change; [process same-time FIFO before one grant](../../cpp/tests/ieee1516_2025_connection_process_tso_interaction_multiple_message_ordering_catch2.cpp#L456) does not change declarations. No focused process subscription-mutation case was identified in this bounded review. |
 | Federate-local object deletion | [6.18 API entry and declared exceptions](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L863), [runtime adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_deletion_services.cpp#L431), [registry local-forget transition](../../cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp#L136), [process service forwarding](../../cpp/src/internal/federation/process_federation_service_object_instance_deletion.cpp#L8) | [embedded state-preservation, rejection, and rediscovery scenario](../../cpp/tests/local_delete_object_instance_catch2.cpp#L110), [selected process-endpoint success path](../../cpp/tests/ieee1516_2025_connection_local_delete_catch2.cpp#L457) |
 | Timestamped object deletion and recipient time gates | [pinned timestamped Delete API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L847), [embedded admission and recipient routing](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_deletion_services.cpp#L147), [per-recipient TSO ledger/snapshot](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L680), [callback-entry removal commit](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L595) | [embedded delivered-delete retraction](../../cpp/tests/timestamped_object_deletion_retraction_catch2.cpp#L148), [FQR/TARA/NMRA boundary split](../../cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp#L5), [recipient-local forget](../../cpp/tests/local_delete_timestamped_object_removal_catch2.cpp#L141), [process callback metadata](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L457). Retraction restoration remains embedded-only in the cited evidence. |

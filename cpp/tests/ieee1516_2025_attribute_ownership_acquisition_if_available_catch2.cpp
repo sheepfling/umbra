@@ -6,7 +6,8 @@ TEST_CASE(
     "[integration][development-profile][ownership-management]"
     "[rti.service.attribute-ownership-acquisition-if-available]"
     "[federate.callback.attribute-ownership-acquisition-notification]"
-    "[federate.callback.attribute-ownership-unavailable]") {
+    "[federate.callback.attribute-ownership-unavailable]"
+    "[ownership-if-available-acquisition-eligibility]") {
   TestFederateAmbassador unjoinedFederate;
   ReportingFederateAmbassador ownerReports;
   ReportingFederateAmbassador requesterReports;
@@ -207,6 +208,106 @@ TEST_CASE(
   REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(unjoined->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(requester->disconnect());
+}
+
+TEST_CASE(
+    "Embedded If Available requester is selected by negotiated divestiture",
+    "[integration][development-profile][ownership-management]"
+    "[ownership-if-available-during-negotiated-divestiture]"
+    "[rti.service.attribute-ownership-acquisition-if-available]"
+    "[rti.service.negotiated-attribute-ownership-divestiture]"
+    "[rti.service.confirm-divestiture]"
+    "[federate.callback.request-divestiture-confirmation]"
+    "[federate.callback.attribute-ownership-acquisition-notification]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador requesterReports;
+  auto owner = makeRti();
+  auto requester = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" /
+                          "tests" / "data" / "attribute-update-passel-fom.xml")
+                             .wstring();
+  unsigned char const acquisitionTagBytes[] = {0x6A, 0x71};
+  unsigned char const divestitureTagBytes[] = {0x6B, 0x71};
+  unsigned char const confirmationTagBytes[] = {0x6C, 0x71};
+  VariableLengthData const acquisitionTag(
+      acquisitionTagBytes, sizeof(acquisitionTagBytes));
+  VariableLengthData const divestitureTag(
+      divestitureTagBytes, sizeof(divestitureTagBytes));
+  VariableLengthData const confirmationTag(
+      confirmationTagBytes, sizeof(confirmationTagBytes));
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"if-available-divestiture-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"if-available-divestiture-requester", L"publisher", federationName));
+
+  auto const objectClass = owner->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase.UmbraAttributeFixtureChild");
+  auto const attribute = owner->getAttributeHandle(objectClass, L"ReliableBaseA");
+  AttributeHandleSet const attributes{attribute};
+  REQUIRE(objectClass.isValid());
+  REQUIRE(attribute.isValid());
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(
+      objectClass, attributes));
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(requester->publishObjectClassAttributes(objectClass, attributes));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(objectClass));
+  REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, attribute));
+
+  // Keep the requester's callback queue untouched until the owner offers
+  // negotiated divestiture, so the pending If Available request can be
+  // matched by the RTI before its no-acquirer result is delivered.
+  REQUIRE_NOTHROW(requester->attributeOwnershipAcquisitionIfAvailable(
+      objectInstance, attributes, acquisitionTag));
+  REQUIRE_NOTHROW(owner->negotiatedAttributeOwnershipDivestiture(
+      objectInstance, attributes, divestitureTag));
+  for (int pass = 0; pass != 128 && owner->evokeMultipleCallbacks(0.0, 0.0);
+       ++pass) {
+  }
+  REQUIRE(ownerReports.divestitureConfirmationReports.size() == 1U);
+  REQUIRE(ownerReports.divestitureConfirmationReports.front().objectInstance ==
+          objectInstance);
+  REQUIRE(ownerReports.divestitureConfirmationReports.front().attributes ==
+          attributes);
+  REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, attribute));
+  REQUIRE_FALSE(requester->isAttributeOwnedByFederate(objectInstance, attribute));
+
+  REQUIRE_NOTHROW(owner->confirmDivestiture(
+      objectInstance, attributes, confirmationTag));
+  REQUIRE_FALSE(owner->isAttributeOwnedByFederate(objectInstance, attribute));
+  REQUIRE(requester->isAttributeOwnedByFederate(objectInstance, attribute));
+  for (int pass = 0; pass != 128 && requester->evokeMultipleCallbacks(0.0, 0.0);
+       ++pass) {
+  }
+  REQUIRE(requesterReports.attributeOwnershipAcquisitionReports.size() == 1U);
+  auto const& notification =
+      requesterReports.attributeOwnershipAcquisitionReports.front();
+  REQUIRE(notification.kind ==
+          ReportingFederateAmbassador::AttributeOwnershipAcquisitionReport::Kind::notification);
+  REQUIRE(notification.objectInstance == objectInstance);
+  REQUIRE(notification.attributes == attributes);
+  REQUIRE(variableLengthDataBytes(notification.userSuppliedTag) ==
+          std::vector<unsigned char>(
+              confirmationTagBytes,
+              confirmationTagBytes + sizeof(confirmationTagBytes)));
+
+  REQUIRE_NOTHROW(requester->unpublishObjectClassAttributes(
+      objectClass, attributes));
+  REQUIRE_NOTHROW(owner->unpublishObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(owner->disconnect());
   REQUIRE_NOTHROW(requester->disconnect());
 }

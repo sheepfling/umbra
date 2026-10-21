@@ -238,8 +238,45 @@ TEST_CASE(
   });
   bounds = FederationTimeBoundsCalculator{}.calculate(execution, 1);
   REQUIRE(bounds.status == FederationTimeBoundStatus::available);
-  REQUIRE(asIntegerTime(bounds.galt).getTime() == 5);
-  REQUIRE(asIntegerTime(bounds.lits).getTime() == 5);
+  // Callback-acknowledged time 5 is history, not a future delivery boundary.
+  // The still-in-transit time 7 remains the earliest pending input.
+  REQUIRE(asIntegerTime(bounds.galt).getTime() == 7);
+  REQUIRE(asIntegerTime(bounds.lits).getTime() == 7);
+}
+
+TEST_CASE(
+    "Acknowledged TSO stops capping GALT while an in-transit TSO still blocks",
+    "[unit][internal-only][no-normative-mapping][kernel][time-management]"
+    "[federation-time][galt][lits][lane.acknowledged-tso-galt-frontier-foundation]") {
+  auto recipient = integerTimeState();
+  auto regulator = integerTimeState();
+  advanceTo(*regulator, 5);
+  enableRegulation(*regulator, 1);
+
+  auto execution = snapshot({{1, recipient}, {2, regulator}});
+  umbra::detail::TsoQueuedMessage const message{
+      42,
+      1,
+      1,
+      std::make_shared<HLAinteger64Time const>(3),
+  };
+  execution.federates.front().inTransitTsoMessages.push_back(message);
+
+  auto bounds = FederationTimeBoundsCalculator{}.calculate(execution, 1);
+  REQUIRE(bounds.status == FederationTimeBoundStatus::available);
+  REQUIRE(asIntegerTime(bounds.galt).getTime() == 3);
+  REQUIRE(asIntegerTime(bounds.lits).getTime() == 3);
+
+  // Acknowledge the callback by moving it from in-transit to delivery history.
+  // It can no longer arrive after the grant; the other regulator now supplies
+  // the time-6 frontier without being capped at the historical time-3 event.
+  execution.federates.front().inTransitTsoMessages.clear();
+  execution.federates.front().deliveredTsoMessagesSinceLastAdvance.push_back(
+      message);
+  bounds = FederationTimeBoundsCalculator{}.calculate(execution, 1);
+  REQUIRE(bounds.status == FederationTimeBoundStatus::available);
+  REQUIRE(asIntegerTime(bounds.galt).getTime() == 6);
+  REQUIRE(asIntegerTime(bounds.lits).getTime() == 6);
 }
 
 TEST_CASE(

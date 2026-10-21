@@ -3,6 +3,8 @@
 #include "internal/federation/process_federation_callback_bridge.hpp"
 #include "internal/federation/process_federation_client.hpp"
 #include "internal/federation/process_federation_service.hpp"
+#include "internal/federation/process_federation_service_host.hpp"
+#include "process_federation_service_probe_time_management.hpp"
 #include "process_public_service_fixture.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
@@ -13,6 +15,8 @@
 
 #include <RTI/RTI1516.h>
 #include <RTI/NullFederateAmbassador.h>
+#include <RTI/time/HLAinteger64Interval.h>
+#include <RTI/time/HLAinteger64Time.h>
 
 #include <array>
 #include <atomic>
@@ -47,6 +51,7 @@ using umbra::detail::LibXml2FomValidator;
 using umbra::detail::PrevalidatedFomModule;
 using umbra::detail::ProcessFederationClient;
 using umbra::detail::ProcessFederationService;
+using umbra::detail::ProcessFederationServiceHost;
 using umbra::detail::ProcessFederationServiceOptions;
 using umbra::detail::ProcessTransportConnection;
 using umbra::detail::ProcessTransportListener;
@@ -246,6 +251,1312 @@ std::uint64_t readHandle(std::filesystem::path const& path) {
     }
     return handle;
   });
+}
+
+void publishPortMarker(
+    std::filesystem::path const& path,
+    std::uint16_t port) {
+  auto temporary = path;
+  temporary += ".tmp";
+  writeText(temporary, std::to_string(port));
+  std::filesystem::rename(temporary, path);
+}
+
+std::string awaitProcessMarker(
+    std::filesystem::path const& directory,
+    std::string const& markerName,
+    std::string const& errorRole,
+    std::chrono::seconds timeout = std::chrono::seconds(15)) {
+  auto const marker = directory / markerName;
+  auto const errorMarker = directory / (errorRole + ".error");
+  auto const deadline = std::chrono::steady_clock::now() + timeout;
+  while (std::chrono::steady_clock::now() < deadline) {
+    if (std::filesystem::exists(errorMarker)) {
+      std::ifstream errorInput(errorMarker, std::ios::binary);
+      std::string message{
+          std::istreambuf_iterator<char>(errorInput),
+          std::istreambuf_iterator<char>()};
+      throw std::runtime_error(errorRole + " process failed: " + message);
+    }
+    if (std::filesystem::exists(marker)) {
+      std::ifstream input(marker, std::ios::binary);
+      std::string value{
+          std::istreambuf_iterator<char>(input),
+          std::istreambuf_iterator<char>()};
+      if (!value.empty()) {
+        return value;
+      }
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  throw std::runtime_error("The process probe timed out waiting for " + markerName);
+}
+
+class AuthoritativeTsoArrivalAmbassador final
+    : public rti1516_2025::NullFederateAmbassador {
+ public:
+  void timeRegulationEnabled(
+      rti1516_2025::LogicalTime const&) override {
+    regulationEnabled = true;
+  }
+
+  void timeConstrainedEnabled(
+      rti1516_2025::LogicalTime const&) override {
+    constrainedEnabled = true;
+  }
+
+  void discoverObjectInstance(
+      rti1516_2025::ObjectInstanceHandle const& instance,
+      rti1516_2025::ObjectClassHandle const& objectClass,
+      std::wstring const&,
+      rti1516_2025::FederateHandle const&) override {
+    ++discoveries;
+    discoveredInstance = instance;
+    discoveredClass = objectClass;
+    callbackOrder.push_back('D');
+  }
+
+  void receiveInteraction(
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      rti1516_2025::ParameterHandleValueMap const& parameterValues,
+      rti1516_2025::VariableLengthData const& userSuppliedTag,
+      rti1516_2025::TransportationTypeHandle const&,
+      rti1516_2025::FederateHandle const& producingFederate,
+      rti1516_2025::RegionHandleSet const*,
+      rti1516_2025::LogicalTime const& time,
+      rti1516_2025::OrderType sentOrder,
+      rti1516_2025::OrderType receivedOrder,
+      rti1516_2025::MessageRetractionHandle const* retraction) override {
+    ++interactions;
+    timestampedInteractionClass = interactionClass;
+    timestampedProducer = producingFederate;
+    timestampedParameterCount = parameterValues.size();
+    timestampedSentOrder = sentOrder;
+    timestampedReceivedOrder = receivedOrder;
+    timestampedRetractionIsValid =
+        retraction != nullptr && retraction->isValid();
+    if (parameterValues.size() == 1U) {
+      auto const& parameterValue = parameterValues.begin()->second;
+      auto const* parameterBytes =
+          static_cast<unsigned char const*>(parameterValue.data());
+      if (parameterBytes != nullptr) {
+        timestampedParameterValue.assign(
+            parameterBytes, parameterBytes + parameterValue.size());
+      }
+    }
+    auto const* tagBytes =
+        static_cast<unsigned char const*>(userSuppliedTag.data());
+    if (tagBytes != nullptr) {
+      timestampedTag.assign(tagBytes, tagBytes + userSuppliedTag.size());
+    }
+    callbackOrder.push_back('I');
+    if (auto const* integerTime =
+            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+      interactionTime = integerTime->getTime();
+      interactionTimes.push_back(integerTime->getTime());
+    }
+  }
+
+  void receiveDirectedInteraction(
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      rti1516_2025::ObjectInstanceHandle const& objectInstance,
+      rti1516_2025::ParameterHandleValueMap const& parameterValues,
+      rti1516_2025::VariableLengthData const& userSuppliedTag,
+      rti1516_2025::TransportationTypeHandle const&,
+      rti1516_2025::FederateHandle const& producingFederate,
+      rti1516_2025::LogicalTime const& time,
+      rti1516_2025::OrderType sentOrder,
+      rti1516_2025::OrderType receivedOrder,
+      rti1516_2025::MessageRetractionHandle const* optionalRetraction) override {
+    ++directedInteractions;
+    directedInteractionClass = interactionClass;
+    directedObjectInstance = objectInstance;
+    directedParameterCount = parameterValues.size();
+    directedProducer = producingFederate;
+    directedSentOrderIsTimestamp = sentOrder == rti1516_2025::TIMESTAMP;
+    directedReceivedOrderIsTimestamp = receivedOrder == rti1516_2025::TIMESTAMP;
+    directedRetractionIsValid = optionalRetraction != nullptr &&
+        optionalRetraction->isValid();
+    if (auto const* integerTime =
+            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+      directedInteractionTime = integerTime->getTime();
+    }
+    auto const* tagBytes =
+        static_cast<unsigned char const*>(userSuppliedTag.data());
+    if (tagBytes != nullptr) {
+      directedTag.assign(tagBytes, tagBytes + userSuppliedTag.size());
+    }
+    callbackOrder.push_back('I');
+  }
+
+  void receiveInteraction(
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      rti1516_2025::ParameterHandleValueMap const& parameterValues,
+      rti1516_2025::VariableLengthData const& userSuppliedTag,
+      rti1516_2025::TransportationTypeHandle const&,
+      rti1516_2025::FederateHandle const& producingFederate,
+      rti1516_2025::RegionHandleSet const*) override {
+    ++receiveOrderInteractions;
+    receiveOrderClass = interactionClass;
+    receiveOrderProducer = producingFederate;
+    if (parameterValues.size() == 1U) {
+      auto const& parameterValue = parameterValues.begin()->second;
+      auto const* parameterBytes =
+          static_cast<unsigned char const*>(parameterValue.data());
+      if (parameterBytes != nullptr) {
+        receiveOrderParameterValue.assign(
+            parameterBytes, parameterBytes + parameterValue.size());
+      }
+    }
+    auto const* bytes = static_cast<unsigned char const*>(userSuppliedTag.data());
+    if (bytes != nullptr) {
+      receiveOrderTag.assign(bytes, bytes + userSuppliedTag.size());
+    }
+    callbackOrder.push_back('R');
+  }
+
+  void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
+    ++grants;
+    callbackOrder.push_back('G');
+    if (auto const* integerTime =
+            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+      grantTime = integerTime->getTime();
+    }
+  }
+
+  bool regulationEnabled = false;
+  bool constrainedEnabled = false;
+  std::size_t discoveries = 0U;
+  rti1516_2025::ObjectInstanceHandle discoveredInstance;
+  rti1516_2025::ObjectClassHandle discoveredClass;
+  std::size_t interactions = 0U;
+  rti1516_2025::InteractionClassHandle timestampedInteractionClass;
+  rti1516_2025::FederateHandle timestampedProducer;
+  std::size_t timestampedParameterCount = 0U;
+  rti1516_2025::OrderType timestampedSentOrder = rti1516_2025::RECEIVE;
+  rti1516_2025::OrderType timestampedReceivedOrder = rti1516_2025::RECEIVE;
+  bool timestampedRetractionIsValid = false;
+  std::vector<unsigned char> timestampedParameterValue;
+  std::vector<unsigned char> timestampedTag;
+  std::size_t receiveOrderInteractions = 0U;
+  std::size_t grants = 0U;
+  std::size_t directedInteractions = 0U;
+  rti1516_2025::InteractionClassHandle directedInteractionClass;
+  rti1516_2025::ObjectInstanceHandle directedObjectInstance;
+  std::size_t directedParameterCount = 0U;
+  rti1516_2025::FederateHandle directedProducer;
+  bool directedSentOrderIsTimestamp = false;
+  bool directedReceivedOrderIsTimestamp = false;
+  bool directedRetractionIsValid = false;
+  std::vector<unsigned char> directedTag;
+  rti1516_2025::InteractionClassHandle receiveOrderClass;
+  rti1516_2025::FederateHandle receiveOrderProducer;
+  std::vector<unsigned char> receiveOrderParameterValue;
+  std::vector<unsigned char> receiveOrderTag;
+  std::int64_t interactionTime = -1;
+  std::vector<std::int64_t> interactionTimes;
+  std::int64_t directedInteractionTime = -1;
+  std::int64_t grantTime = -1;
+  std::vector<char> callbackOrder;
+};
+
+class AuthoritativeTsoAttributeArrivalAmbassador final
+    : public rti1516_2025::NullFederateAmbassador {
+ public:
+  void timeRegulationEnabled(rti1516_2025::LogicalTime const&) override {
+    regulationEnabled = true;
+  }
+
+  void timeConstrainedEnabled(rti1516_2025::LogicalTime const&) override {
+    constrainedEnabled = true;
+  }
+
+  void discoverObjectInstance(
+      rti1516_2025::ObjectInstanceHandle const& instance,
+      rti1516_2025::ObjectClassHandle const& objectClass,
+      std::wstring const&,
+      rti1516_2025::FederateHandle const&) override {
+    ++discoveries;
+    discoveredInstance = instance;
+    discoveredClass = objectClass;
+    callbackOrder.push_back('D');
+  }
+
+  void reflectAttributeValues(
+      rti1516_2025::ObjectInstanceHandle const& instance,
+      rti1516_2025::AttributeHandleValueMap const& values,
+      rti1516_2025::VariableLengthData const& userSuppliedTag,
+      rti1516_2025::TransportationTypeHandle const&,
+      rti1516_2025::FederateHandle const& producingFederate,
+      rti1516_2025::RegionHandleSet const*,
+      rti1516_2025::LogicalTime const& time,
+      rti1516_2025::OrderType sentOrderType,
+      rti1516_2025::OrderType receivedOrderType,
+      rti1516_2025::MessageRetractionHandle const* optionalRetraction) override {
+    ++reflections;
+    reflectedInstance = instance;
+    reflectedProducer = producingFederate;
+    reflectedSentOrder = sentOrderType;
+    reflectedReceivedOrder = receivedOrderType;
+    reflectedRetractionIsValid = optionalRetraction != nullptr &&
+        optionalRetraction->isValid();
+    if (values.size() == 1U) {
+      reflectedAttribute = values.begin()->first;
+      auto const& value = values.begin()->second;
+      auto const* bytes = static_cast<unsigned char const*>(value.data());
+      if (bytes != nullptr) {
+        reflectedValue.assign(bytes, bytes + value.size());
+      }
+    }
+    auto const* tagBytes =
+        static_cast<unsigned char const*>(userSuppliedTag.data());
+    if (tagBytes != nullptr) {
+      reflectedTag.assign(tagBytes, tagBytes + userSuppliedTag.size());
+    }
+    if (auto const* integerTime =
+            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+      reflectedTime = integerTime->getTime();
+    }
+    callbackOrder.push_back('R');
+  }
+
+  void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
+    ++grants;
+    if (auto const* integerTime =
+            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+      grantTime = integerTime->getTime();
+    }
+    callbackOrder.push_back('G');
+  }
+
+  bool regulationEnabled = false;
+  bool constrainedEnabled = false;
+  std::size_t discoveries = 0U;
+  std::size_t reflections = 0U;
+  std::size_t grants = 0U;
+  rti1516_2025::ObjectInstanceHandle discoveredInstance;
+  rti1516_2025::ObjectClassHandle discoveredClass;
+  rti1516_2025::ObjectInstanceHandle reflectedInstance;
+  rti1516_2025::AttributeHandle reflectedAttribute;
+  rti1516_2025::FederateHandle reflectedProducer;
+  rti1516_2025::OrderType reflectedSentOrder = rti1516_2025::RECEIVE;
+  rti1516_2025::OrderType reflectedReceivedOrder = rti1516_2025::RECEIVE;
+  bool reflectedRetractionIsValid = false;
+  std::vector<unsigned char> reflectedValue;
+  std::vector<unsigned char> reflectedTag;
+  std::int64_t reflectedTime = -1;
+  std::int64_t grantTime = -1;
+  std::vector<char> callbackOrder;
+};
+
+template <typename Ready>
+void evokeUntil(
+    rti1516_2025::RTIambassador& ambassador,
+    Ready&& ready,
+    char const* failureMessage) {
+  auto const deadline = std::chrono::steady_clock::now() +
+      std::chrono::seconds(10);
+  while (!ready() && std::chrono::steady_clock::now() < deadline) {
+    static_cast<void>(ambassador.evokeCallback(0.01));
+  }
+  if (!ready()) {
+    throw std::runtime_error(failureMessage);
+  }
+}
+
+rti1516_2025::RtiConfiguration publicProcessConfiguration(
+    std::uint16_t port,
+    wchar_t const* identity) {
+  return rti1516_2025::RtiConfiguration::createConfiguration()
+      .withConfigurationName(identity)
+      .withRtiAddress(L"tcp://127.0.0.1:" + std::to_wstring(port));
+}
+
+int runAuthoritativeTsoService(
+    std::filesystem::path const& directory,
+    std::string const& role,
+    bool pushReceiveOrderEvents = false) {
+  EmbeddedFederationRegistry registry;
+  ProcessFederationServiceOptions serviceOptions;
+  serviceOptions.pushReceiveOrderEvents = pushReceiveOrderEvents;
+  ProcessFederationServiceHost authority(
+      registry,
+      composedRestaurantDefinition(),
+      {"127.0.0.1", 0U},
+      {"process-tso-authoritative-coordinator", 0xB880U},
+      std::move(serviceOptions));
+  authority.start();
+  publishPortMarker(
+      directory / (role + ".port"), authority.address().port);
+  auto const stopMarker = role + ".stop";
+  auto const deadline = std::chrono::steady_clock::now() +
+      std::chrono::seconds(30);
+  while (!std::filesystem::exists(directory / stopMarker) &&
+         std::chrono::steady_clock::now() < deadline) {
+    if (!authority.running()) {
+      authority.rethrowIfFailed();
+      throw std::runtime_error("The authoritative process service stopped early.");
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  if (!std::filesystem::exists(directory / stopMarker)) {
+    throw std::runtime_error("The authoritative process service timed out.");
+  }
+  authority.stop();
+  authority.rethrowIfFailed();
+  writeText(directory / (role + ".ok"), "stopped");
+  return 0;
+}
+
+int runAuthoritativeTsoSender(
+    std::filesystem::path const& directory,
+    std::string const& role,
+    std::string const& receiverRole = "tso-receiver",
+    std::int64_t senderAdvanceTime = 5,
+    std::int64_t messageTimestamp = 5,
+    bool awaitAdvanceGrantBeforeReportingSent = false,
+    bool sendEqualTargetMessage = false) {
+  auto const port = readPort(directory / "tso-authority.port");
+  constexpr wchar_t const* federationName =
+      L"process-tso-authoritative-coordinator";
+  constexpr wchar_t const* federateName = L"authoritative-tso-sender";
+  constexpr wchar_t const* federateType = L"authoritative-tso-type";
+  constexpr wchar_t const* interactionName =
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+  constexpr wchar_t const* parameterName = L"TimelinessOk";
+
+  AuthoritativeTsoArrivalAmbassador ambassador;
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  if (!rti->connect(
+           ambassador,
+           rti1516_2025::HLA_EVOKED,
+           publicProcessConfiguration(port, L"authoritative-tso-sender"))
+           .addressUsed) {
+    throw std::runtime_error("The sender did not select the authority endpoint.");
+  }
+  rti->createFederationExecution(
+      federationName, L"server-owned-authoritative-tso-fom.xml");
+  auto const senderHandle = rti->joinFederationExecution(
+      federateName, federateType, federationName);
+  if (!senderHandle.isValid()) {
+    throw std::runtime_error("The sender Join returned an invalid handle.");
+  }
+  auto const interactionClass =
+      rti->getInteractionClassHandle(interactionName);
+  auto const parameter = rti->getParameterHandle(
+      interactionClass, parameterName);
+  rti->publishInteractionClass(interactionClass);
+  rti->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1));
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.regulationEnabled; },
+      "The sender did not receive Time Regulation Enabled.");
+  publishPortMarker(directory / (role + ".port"), 1U);
+
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      receiverRole + ".requested",
+      receiverRole));
+  std::uint8_t const payload = 0x61U;
+  std::uint8_t const tag = 0x58U;
+  rti1516_2025::ParameterHandleValueMap values;
+  values.emplace(parameter, rti1516_2025::VariableLengthData(&payload, 1U));
+  auto const retraction = rti->sendInteraction(
+      interactionClass,
+      values,
+      rti1516_2025::VariableLengthData(&tag, 1U),
+      rti1516_2025::HLAinteger64Time(messageTimestamp));
+  if (!retraction.isValid()) {
+    throw std::runtime_error("The timestamped Send Interaction was rejected.");
+  }
+  if (sendEqualTargetMessage) {
+    auto const equalBoundaryRetraction = rti->sendInteraction(
+        interactionClass,
+        values,
+        rti1516_2025::VariableLengthData(&tag, 1U),
+        rti1516_2025::HLAinteger64Time(4));
+    if (!equalBoundaryRetraction.isValid()) {
+      throw std::runtime_error(
+          "The equal-target timestamped Send Interaction was rejected.");
+    }
+  }
+  rti->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(senderAdvanceTime));
+  if (awaitAdvanceGrantBeforeReportingSent) {
+    evokeUntil(
+        *rti,
+        [&] { return ambassador.grants == 1U; },
+        "The sender did not receive its TAR grant before publishing its send frontier.");
+    if (ambassador.grantTime != senderAdvanceTime) {
+      throw std::runtime_error(
+          "The sender grant did not reach the requested logical time.");
+    }
+  }
+  std::string const sentEvidence = sendEqualTargetMessage
+      ? "sent-timestamps-3-and-4"
+      : "sent-timestamp-" + std::to_string(messageTimestamp);
+  writeText(directory / (role + ".sent"), sentEvidence);
+
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      receiverRole + ".completed",
+      receiverRole));
+  writeText(directory / (role + ".completed"), sentEvidence);
+  rti->resignFederationExecution(rti1516_2025::NO_ACTION);
+  rti->disconnect();
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      role + ".stop",
+      role,
+      std::chrono::seconds(10)));
+  writeText(directory / (role + ".ok"), "stopped");
+  return 0;
+}
+
+int runAuthoritativeTsoReceiver(
+    std::filesystem::path const& directory,
+    std::string const& role) {
+  auto const port = readPort(directory / "tso-authority.port");
+  constexpr wchar_t const* federationName =
+      L"process-tso-authoritative-coordinator";
+  constexpr wchar_t const* federateName = L"authoritative-tso-receiver";
+  constexpr wchar_t const* federateType = L"authoritative-tso-type";
+  constexpr wchar_t const* interactionName =
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+
+  AuthoritativeTsoArrivalAmbassador ambassador;
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  if (!rti->connect(
+           ambassador,
+           rti1516_2025::HLA_EVOKED,
+           publicProcessConfiguration(port, L"authoritative-tso-receiver"))
+           .addressUsed) {
+    throw std::runtime_error("The receiver did not select the authority endpoint.");
+  }
+  auto const receiverHandle = rti->joinFederationExecution(
+      federateName, federateType, federationName);
+  if (!receiverHandle.isValid()) {
+    throw std::runtime_error("The receiver Join returned an invalid handle.");
+  }
+  auto const interactionClass =
+      rti->getInteractionClassHandle(interactionName);
+  rti->subscribeInteractionClass(interactionClass, true);
+  rti->enableTimeConstrained();
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.constrainedEnabled; },
+      "The receiver did not receive Time Constrained Enabled.");
+  rti->nextMessageRequestAvailable(rti1516_2025::HLAinteger64Time(10));
+  writeText(directory / (role + ".requested"), "requested");
+  publishPortMarker(directory / (role + ".port"), 1U);
+
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      "tso-sender.sent",
+      "tso-sender"));
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.grants == 1U; },
+      "The receiver did not receive its NMRA grant.");
+  if (ambassador.interactions != 1U ||
+      ambassador.callbackOrder != std::vector<char>{'I', 'G'} ||
+      ambassador.interactionTime != 5 || ambassador.grantTime != 5) {
+    throw std::runtime_error(
+        "The authority process did not deliver the timestamped interaction before the NMRA grant.");
+  }
+  writeText(
+      directory / (role + ".completed"),
+      "interaction-before-grant-at-5");
+  rti->resignFederationExecution(rti1516_2025::NO_ACTION);
+  rti->disconnect();
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      role + ".stop",
+      role,
+      std::chrono::seconds(10)));
+  writeText(directory / (role + ".ok"), "stopped");
+  return 0;
+}
+
+int runAuthoritativeTaraTsoReceiver(
+    std::filesystem::path const& directory,
+    std::string const& role) {
+  auto const port = readPort(directory / "tso-authority.port");
+  constexpr wchar_t const* federationName =
+      L"process-tso-authoritative-coordinator";
+  constexpr wchar_t const* federateName = L"authoritative-tara-tso-receiver";
+  constexpr wchar_t const* federateType = L"authoritative-tso-type";
+  constexpr wchar_t const* interactionName =
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+
+  AuthoritativeTsoArrivalAmbassador ambassador;
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  if (!rti->connect(
+           ambassador,
+           rti1516_2025::HLA_EVOKED,
+           publicProcessConfiguration(port, L"authoritative-tara-tso-receiver"))
+           .addressUsed) {
+    throw std::runtime_error("The TARA receiver did not select the authority endpoint.");
+  }
+  auto const receiverHandle = rti->joinFederationExecution(
+      federateName, federateType, federationName);
+  if (!receiverHandle.isValid()) {
+    throw std::runtime_error("The TARA receiver Join returned an invalid handle.");
+  }
+  auto const interactionClass =
+      rti->getInteractionClassHandle(interactionName);
+  rti->subscribeInteractionClass(interactionClass, true);
+  rti->enableTimeConstrained();
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.constrainedEnabled; },
+      "The TARA receiver did not receive Time Constrained Enabled.");
+  rti->timeAdvanceRequestAvailable(rti1516_2025::HLAinteger64Time(6));
+  writeText(directory / (role + ".requested"), "TARA-6-requested");
+  publishPortMarker(directory / (role + ".port"), 1U);
+
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      "tso-tara-sender.sent",
+      "tso-tara-sender"));
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.grants == 1U; },
+      "The TARA receiver did not receive its grant.");
+  if (ambassador.interactions != 1U ||
+      ambassador.callbackOrder != std::vector<char>{'I', 'G'} ||
+      ambassador.timestampedInteractionClass != interactionClass ||
+      ambassador.interactionTime != 5 || ambassador.grantTime != 6 ||
+      ambassador.timestampedParameterCount != 1U ||
+      ambassador.timestampedParameterValue != std::vector<unsigned char>{0x61U} ||
+      ambassador.timestampedTag != std::vector<unsigned char>{0x58U} ||
+      ambassador.timestampedSentOrder != rti1516_2025::TIMESTAMP ||
+      ambassador.timestampedReceivedOrder != rti1516_2025::TIMESTAMP ||
+      !ambassador.timestampedRetractionIsValid) {
+    throw std::runtime_error(
+        "The authoritative coordinator did not deliver the timestamp-5 interaction before the TARA-6 grant with its public metadata intact.");
+  }
+  writeText(
+      directory / (role + ".completed"),
+      "interaction-before-tara-grant-at-6");
+  rti->resignFederationExecution(rti1516_2025::NO_ACTION);
+  rti->disconnect();
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      role + ".stop",
+      role,
+      std::chrono::seconds(10)));
+  writeText(directory / (role + ".ok"), "stopped");
+  return 0;
+}
+
+int runAcknowledgedTsoTarReceiver(
+    std::filesystem::path const& directory,
+    std::string const& role) {
+  auto const port = readPort(directory / "tso-authority.port");
+  constexpr wchar_t const* federationName =
+      L"process-tso-authoritative-coordinator";
+  constexpr wchar_t const* federateName =
+      L"authoritative-acknowledged-tso-tar-receiver";
+  constexpr wchar_t const* federateType = L"authoritative-tso-type";
+  constexpr wchar_t const* interactionName =
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+
+  AuthoritativeTsoArrivalAmbassador ambassador;
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  if (!rti->connect(
+           ambassador,
+           rti1516_2025::HLA_EVOKED,
+           publicProcessConfiguration(
+               port, L"authoritative-acknowledged-tso-tar-receiver"))
+           .addressUsed) {
+    throw std::runtime_error(
+        "The acknowledged-TSO receiver did not select the authority endpoint.");
+  }
+  auto const receiverHandle = rti->joinFederationExecution(
+      federateName, federateType, federationName);
+  if (!receiverHandle.isValid()) {
+    throw std::runtime_error(
+        "The acknowledged-TSO receiver Join returned an invalid handle.");
+  }
+  auto const interactionClass =
+      rti->getInteractionClassHandle(interactionName);
+  rti->subscribeInteractionClass(interactionClass, true);
+  rti->enableTimeConstrained();
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.constrainedEnabled; },
+      "The acknowledged-TSO receiver did not receive Time Constrained Enabled.");
+
+  // Tell the sender it can publish timestamps 3 and 4 and advance to 5. It
+  // reports readiness only after TAG(5), making its lookahead-1 frontier 6
+  // before this receiver requests TAR(4).
+  writeText(directory / (role + ".requested"), "receiver-ready");
+  publishPortMarker(directory / (role + ".port"), 1U);
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      "tso-galt-release-sender.sent",
+      "tso-galt-release-sender"));
+  rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4));
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.grants == 1U; },
+      "The receiver did not receive TAR(4) after acknowledging timestamp 3.");
+  if (ambassador.interactions != 2U ||
+      ambassador.callbackOrder != std::vector<char>{'I', 'I', 'G'} ||
+      ambassador.timestampedInteractionClass != interactionClass ||
+      ambassador.interactionTimes != std::vector<std::int64_t>{3, 4} ||
+      ambassador.interactionTime != 4 || ambassador.grantTime != 4 ||
+      ambassador.timestampedParameterCount != 1U ||
+      ambassador.timestampedParameterValue != std::vector<unsigned char>{0x61U} ||
+      ambassador.timestampedTag != std::vector<unsigned char>{0x58U} ||
+      ambassador.timestampedSentOrder != rti1516_2025::TIMESTAMP ||
+      ambassador.timestampedReceivedOrder != rti1516_2025::TIMESTAMP ||
+      !ambassador.timestampedProducer.isValid() ||
+      !ambassador.timestampedRetractionIsValid) {
+    throw std::runtime_error(
+        "The authoritative coordinator did not deliver timestamp 3 before TAR(4) after regulator TAG(5).");
+  }
+  writeText(
+      directory / (role + ".completed"),
+      "timestamps-3-and-4-before-tar-grant-4");
+  rti->resignFederationExecution(rti1516_2025::NO_ACTION);
+  rti->disconnect();
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      role + ".stop",
+      role,
+      std::chrono::seconds(10)));
+  writeText(directory / (role + ".ok"), "stopped");
+  return 0;
+}
+
+int runAuthoritativeDirectedTsoSender(
+    std::filesystem::path const& directory,
+    std::string const& role,
+    bool const useNmr,
+    bool const useTara = false) {
+  std::string const rolePrefix = useTara
+      ? "directed-tso-tara"
+      : (useNmr ? "directed-tso-nmr" : "directed-tso-nmra");
+  auto const port = readPort(directory / (rolePrefix + "-authority.port"));
+  constexpr wchar_t const* federationName =
+      L"process-directed-tso-authoritative-coordinator";
+  constexpr wchar_t const* federateName = L"authoritative-directed-tso-sender";
+  constexpr wchar_t const* federateType = L"authoritative-directed-tso-type";
+  constexpr wchar_t const* objectClassName =
+      L"HLAobjectRoot.Employee.Server";
+  constexpr wchar_t const* interactionName =
+      L"HLAinteractionRoot.ServerAction.TakeOrder";
+  constexpr wchar_t const* privilegeName = L"HLAprivilegeToDeleteObject";
+
+  AuthoritativeTsoArrivalAmbassador ambassador;
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  if (!rti->connect(
+           ambassador,
+           rti1516_2025::HLA_EVOKED,
+           publicProcessConfiguration(port, L"authoritative-directed-tso-sender"))
+           .addressUsed) {
+    throw std::runtime_error("The directed sender did not select the authority endpoint.");
+  }
+  rti->createFederationExecution(
+      federationName, L"server-owned-authoritative-tso-fom.xml");
+  auto const senderHandle = rti->joinFederationExecution(
+      federateName, federateType, federationName);
+  if (!senderHandle.isValid()) {
+    throw std::runtime_error("The directed sender Join returned an invalid handle.");
+  }
+
+  auto const objectClass = rti->getObjectClassHandle(objectClassName);
+  auto const privilege = rti->getAttributeHandle(objectClass, privilegeName);
+  auto const interactionClass = rti->getInteractionClassHandle(interactionName);
+  if (!objectClass.isValid() || !privilege.isValid() ||
+      !interactionClass.isValid()) {
+    throw std::runtime_error(
+        "The directed sender could not resolve the Restaurant FOM target or interaction.");
+  }
+  rti1516_2025::AttributeHandleSet publishedAttributes;
+  publishedAttributes.insert(privilege);
+  rti1516_2025::InteractionClassHandleSet directedInteractions;
+  directedInteractions.insert(interactionClass);
+  rti->publishObjectClassAttributes(objectClass, publishedAttributes);
+  rti->publishObjectClassDirectedInteractions(objectClass, directedInteractions);
+  rti->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1));
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.regulationEnabled; },
+      "The directed sender did not receive Time Regulation Enabled.");
+  publishPortMarker(directory / (role + ".port"), 1U);
+
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      rolePrefix + "-receiver.ready",
+      rolePrefix + "-receiver"));
+  auto const target = rti->registerObjectInstance(objectClass);
+  if (!target.isValid()) {
+    throw std::runtime_error("The directed sender registered an invalid target instance.");
+  }
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      rolePrefix + "-receiver.requested",
+      rolePrefix + "-receiver"));
+
+  std::uint8_t const tag = 0x3AU;
+  rti1516_2025::ParameterHandleValueMap parameterValues;
+  auto const retraction = rti->sendDirectedInteraction(
+      interactionClass,
+      target,
+      parameterValues,
+      rti1516_2025::VariableLengthData(&tag, 1U),
+      rti1516_2025::HLAinteger64Time(5));
+  if (!retraction.isValid()) {
+    throw std::runtime_error("The timestamped Send Directed Interaction was rejected.");
+  }
+  rti->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(useTara ? 6 : 5));
+  writeText(directory / (role + ".sent"), "sent-directed-timestamp-5");
+
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      rolePrefix + "-receiver.completed",
+      rolePrefix + "-receiver"));
+  writeText(directory / (role + ".completed"), "sent-directed-timestamp-5");
+  rti->resignFederationExecution(rti1516_2025::NO_ACTION);
+  rti->disconnect();
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      role + ".stop",
+      role,
+      std::chrono::seconds(10)));
+  writeText(directory / (role + ".ok"), "stopped");
+  return 0;
+}
+
+int runAuthoritativeDirectedTsoReceiver(
+    std::filesystem::path const& directory,
+    std::string const& role,
+    bool const useNmr,
+    bool const useTara = false) {
+  std::string const rolePrefix = useTara
+      ? "directed-tso-tara"
+      : (useNmr ? "directed-tso-nmr" : "directed-tso-nmra");
+  auto const port = readPort(directory / (rolePrefix + "-authority.port"));
+  constexpr wchar_t const* federationName =
+      L"process-directed-tso-authoritative-coordinator";
+  constexpr wchar_t const* federateName = L"authoritative-directed-tso-receiver";
+  constexpr wchar_t const* federateType = L"authoritative-directed-tso-type";
+  constexpr wchar_t const* objectClassName =
+      L"HLAobjectRoot.Employee.Server";
+  constexpr wchar_t const* interactionName =
+      L"HLAinteractionRoot.ServerAction.TakeOrder";
+  constexpr wchar_t const* privilegeName = L"HLAprivilegeToDeleteObject";
+
+  AuthoritativeTsoArrivalAmbassador ambassador;
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  if (!rti->connect(
+           ambassador,
+           rti1516_2025::HLA_EVOKED,
+           publicProcessConfiguration(port, L"authoritative-directed-tso-receiver"))
+           .addressUsed) {
+    throw std::runtime_error("The directed receiver did not select the authority endpoint.");
+  }
+  auto const receiverHandle = rti->joinFederationExecution(
+      federateName, federateType, federationName);
+  if (!receiverHandle.isValid()) {
+    throw std::runtime_error("The directed receiver Join returned an invalid handle.");
+  }
+
+  auto const objectClass = rti->getObjectClassHandle(objectClassName);
+  auto const privilege = rti->getAttributeHandle(objectClass, privilegeName);
+  auto const interactionClass = rti->getInteractionClassHandle(interactionName);
+  if (!objectClass.isValid() || !privilege.isValid() ||
+      !interactionClass.isValid()) {
+    throw std::runtime_error(
+        "The directed receiver could not resolve the Restaurant FOM target or interaction.");
+  }
+  rti1516_2025::AttributeHandleSet subscribedAttributes;
+  subscribedAttributes.insert(privilege);
+  rti1516_2025::InteractionClassHandleSet directedInteractions;
+  directedInteractions.insert(interactionClass);
+  rti->subscribeObjectClassAttributes(objectClass, subscribedAttributes);
+  rti->subscribeObjectClassDirectedInteractions(
+      objectClass, directedInteractions, true);
+  rti->enableTimeConstrained();
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.constrainedEnabled; },
+      "The directed receiver did not receive Time Constrained Enabled.");
+  writeText(directory / (role + ".ready"), "subscribed");
+  publishPortMarker(directory / (role + ".port"), 1U);
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.discoveries == 1U; },
+      "The directed receiver did not discover its target object.");
+  if (useTara) {
+    rti->timeAdvanceRequestAvailable(rti1516_2025::HLAinteger64Time(6));
+    writeText(directory / (role + ".requested"), "tara-6-pending");
+  } else if (useNmr) {
+    rti->nextMessageRequest(rti1516_2025::HLAinteger64Time(10));
+    writeText(directory / (role + ".requested"), "nmr-10-pending");
+  } else {
+    rti->nextMessageRequestAvailable(rti1516_2025::HLAinteger64Time(10));
+    writeText(directory / (role + ".requested"), "nmra-10-pending");
+  }
+
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      rolePrefix + "-sender.sent",
+      rolePrefix + "-sender"));
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.grants == 1U; },
+      useTara
+          ? "The directed receiver did not receive its TARA grant."
+          : (useNmr
+                ? "The directed receiver did not receive its NMR grant."
+                : "The directed receiver did not receive its NMRA grant."));
+  if (ambassador.directedInteractions != 1U ||
+      ambassador.callbackOrder != std::vector<char>{'D', 'I', 'G'} ||
+      ambassador.discoveries != 1U ||
+      ambassador.directedObjectInstance != ambassador.discoveredInstance ||
+      ambassador.discoveredClass != objectClass ||
+      ambassador.directedInteractionClass != interactionClass ||
+      !ambassador.directedProducer.isValid() ||
+      ambassador.directedParameterCount != 0U ||
+      ambassador.directedTag != std::vector<unsigned char>{0x3AU} ||
+      !ambassador.directedSentOrderIsTimestamp ||
+      !ambassador.directedReceivedOrderIsTimestamp ||
+      !ambassador.directedRetractionIsValid ||
+      ambassador.directedInteractionTime != 5 ||
+      ambassador.grantTime != (useTara ? 6 : 5)) {
+    throw std::runtime_error(
+        useTara
+            ? "The coordinator did not deliver the timestamp-5 directed callback before grant 6 with its target and metadata intact."
+            : "The coordinator did not deliver the timestamped directed callback before grant 5 with its target and metadata intact.");
+  }
+  writeText(
+      directory / (role + ".completed"),
+      useTara
+          ? "directed-interaction-before-tara-grant-at-6"
+          : "directed-interaction-before-grant-at-5");
+  rti->resignFederationExecution(rti1516_2025::NO_ACTION);
+  rti->disconnect();
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      role + ".stop",
+      role,
+      std::chrono::seconds(10)));
+  writeText(directory / (role + ".ok"), "stopped");
+  return 0;
+}
+
+int runDisableTcdTsoAuthority(
+    std::filesystem::path const& directory,
+    std::string const& role) {
+  return runAuthoritativeTsoService(directory, role);
+}
+
+int runDisableTcdTsoSender(
+    std::filesystem::path const& directory,
+    std::string const& role) {
+  auto const port = readPort(directory / "tcd-authority.port");
+  constexpr wchar_t const* federationName =
+      L"process-tcd-tso-to-ro-authoritative-coordinator";
+  constexpr wchar_t const* federateName = L"process-tcd-tso-sender";
+  constexpr wchar_t const* federateType = L"process-tcd-tso-type";
+  constexpr wchar_t const* interactionName =
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+  constexpr wchar_t const* parameterName = L"TimelinessOk";
+
+  AuthoritativeTsoArrivalAmbassador ambassador;
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  if (!rti->connect(
+           ambassador,
+           rti1516_2025::HLA_EVOKED,
+           publicProcessConfiguration(port, L"process-tcd-tso-sender"))
+           .addressUsed) {
+    throw std::runtime_error("The sender did not select the authority endpoint.");
+  }
+  rti->createFederationExecution(
+      federationName, L"server-owned-process-tcd-tso-fom.xml");
+  auto const senderHandle = rti->joinFederationExecution(
+      federateName, federateType, federationName);
+  if (!senderHandle.isValid()) {
+    throw std::runtime_error("The sender Join returned an invalid handle.");
+  }
+  auto const interactionClass =
+      rti->getInteractionClassHandle(interactionName);
+  auto const parameter = rti->getParameterHandle(interactionClass, parameterName);
+  rti->publishInteractionClass(interactionClass);
+  rti->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1));
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.regulationEnabled; },
+      "The sender did not receive Time Regulation Enabled.");
+  publishPortMarker(directory / (role + ".port"), 1U);
+
+  static_cast<void>(awaitProcessMarker(
+      directory, "tcd-receiver.ready", "tcd-receiver"));
+  std::uint8_t const payload = 0x71U;
+  std::uint8_t const tag = 0x72U;
+  rti1516_2025::ParameterHandleValueMap values;
+  values.emplace(parameter, rti1516_2025::VariableLengthData(&payload, 1U));
+  auto const retraction = rti->sendInteraction(
+      interactionClass,
+      values,
+      rti1516_2025::VariableLengthData(&tag, 1U),
+      rti1516_2025::HLAinteger64Time(5));
+  if (!retraction.isValid()) {
+    throw std::runtime_error("The timestamped Send Interaction was rejected.");
+  }
+  writeText(directory / (role + ".sent"), "timestamp-5-queued");
+  static_cast<void>(awaitProcessMarker(
+      directory, "tcd-receiver.completed", "tcd-receiver"));
+  writeText(directory / (role + ".completed"), "queued-tso-delivered-receive-order");
+  rti->resignFederationExecution(rti1516_2025::NO_ACTION);
+  rti->disconnect();
+  static_cast<void>(awaitProcessMarker(
+      directory, role + ".stop", role, std::chrono::seconds(10)));
+  writeText(directory / (role + ".ok"), "stopped");
+  return 0;
+}
+
+int runDisableTcdTsoReceiver(
+    std::filesystem::path const& directory,
+    std::string const& role) {
+  auto const port = readPort(directory / "tcd-authority.port");
+  constexpr wchar_t const* federationName =
+      L"process-tcd-tso-to-ro-authoritative-coordinator";
+  constexpr wchar_t const* federateName = L"process-tcd-tso-receiver";
+  constexpr wchar_t const* federateType = L"process-tcd-tso-type";
+  constexpr wchar_t const* interactionName =
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+
+  AuthoritativeTsoArrivalAmbassador ambassador;
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  if (!rti->connect(
+           ambassador,
+           rti1516_2025::HLA_EVOKED,
+           publicProcessConfiguration(port, L"process-tcd-tso-receiver"))
+           .addressUsed) {
+    throw std::runtime_error("The receiver did not select the authority endpoint.");
+  }
+  auto const receiverHandle = rti->joinFederationExecution(
+      federateName, federateType, federationName);
+  if (!receiverHandle.isValid()) {
+    throw std::runtime_error("The receiver Join returned an invalid handle.");
+  }
+  auto const interactionClass =
+      rti->getInteractionClassHandle(interactionName);
+  rti->subscribeInteractionClass(interactionClass, true);
+  rti->enableTimeConstrained();
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.constrainedEnabled; },
+      "The receiver did not receive Time Constrained Enabled.");
+  publishPortMarker(directory / (role + ".port"), 1U);
+  writeText(directory / (role + ".ready"), "time-constrained-enabled");
+  static_cast<void>(awaitProcessMarker(
+      directory, "tcd-sender.sent", "tcd-sender"));
+
+  // The sender publishes this marker only after Send Interaction returns; the
+  // service sends its TSO frame to this receiver before replying to the sender.
+  // Query GALT then acts as an ordered stream barrier: its response follows
+  // that already-sent frame on the same receiver session, so the process
+  // client has buffered and submitted the interaction to the HLA_EVOKED
+  // callback queue before this call returns. Do not evoke the callback or
+  // assert any particular GALT value/formula here.
+  rti1516_2025::HLAinteger64Time observedGalt;
+  if (!rti->queryGALT(observedGalt)) {
+    throw std::runtime_error(
+        "The receiver could not complete the ordered Query GALT queue barrier.");
+  }
+  if (ambassador.interactions != 0U ||
+      ambassador.receiveOrderInteractions != 0U ||
+      !ambassador.callbackOrder.empty()) {
+    throw std::runtime_error(
+        "The receiver invoked a callback before Disable Time Constrained.");
+  }
+
+  rti->disableTimeConstrained();
+  if (ambassador.interactions != 0U ||
+      ambassador.receiveOrderInteractions != 0U ||
+      !ambassador.callbackOrder.empty()) {
+    throw std::runtime_error(
+        "Disable Time Constrained invoked a queued callback eagerly.");
+  }
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.receiveOrderInteractions == 1U; },
+      "The queued TSO interaction was not delivered as receive order after disabling Time Constrained.");
+  if (ambassador.interactions != 0U || ambassador.grants != 0U ||
+      ambassador.callbackOrder != std::vector<char>{'R'} ||
+      ambassador.receiveOrderClass != interactionClass ||
+      !ambassador.receiveOrderProducer.isValid() ||
+      ambassador.receiveOrderParameterValue !=
+          std::vector<unsigned char>{0x71U} ||
+      ambassador.receiveOrderTag != std::vector<unsigned char>{0x72U}) {
+    throw std::runtime_error(
+        "Disabling Time Constrained did not produce the expected receive-order-only callback.");
+  }
+  writeText(directory / (role + ".completed"), "queued-tso-delivered-receive-order");
+  rti->resignFederationExecution(rti1516_2025::NO_ACTION);
+  rti->disconnect();
+  static_cast<void>(awaitProcessMarker(
+      directory, role + ".stop", role, std::chrono::seconds(10)));
+  writeText(directory / (role + ".ok"), "stopped");
+  return 0;
+}
+
+int runAuthoritativeAttributeTsoAuthority(
+    std::filesystem::path const& directory,
+    std::string const& role) {
+  return runAuthoritativeTsoService(directory, role, true);
+}
+
+int runAuthoritativeAttributeTsoSender(
+    std::filesystem::path const& directory,
+    std::string const& role,
+    bool useNmr,
+    bool useTara = false) {
+  std::string const processPrefix = useTara
+      ? "attribute-tso-tara"
+      : useNmr ? "attribute-tso-nmr" : "attribute-tso";
+  auto const port = readPort(
+      directory / (processPrefix + "-authority.port"));
+  wchar_t const* const federationName = useTara
+      ? L"process-tso-attribute-update-tara-authoritative-coordinator"
+      : useNmr
+      ? L"process-tso-attribute-update-nmr-authoritative-coordinator"
+      : L"process-tso-attribute-update-authoritative-coordinator";
+  wchar_t const* const federateName = useTara
+      ? L"process-tso-attribute-tara-sender"
+      : useNmr ? L"process-tso-attribute-nmr-sender"
+               : L"process-tso-attribute-sender";
+  wchar_t const* const federateType = useTara
+      ? L"process-tso-attribute-tara-type"
+      : useNmr ? L"process-tso-attribute-nmr-type"
+               : L"process-tso-attribute-type";
+  wchar_t const* const configurationName = useTara
+      ? L"process-tso-attribute-tara-sender"
+      : useNmr ? L"process-tso-attribute-nmr-sender"
+               : L"process-tso-attribute-sender";
+  constexpr wchar_t const* objectClassName =
+      L"HLAobjectRoot.Food.Drink.Soda";
+  constexpr wchar_t const* attributeName = L"Flavor";
+
+  AuthoritativeTsoAttributeArrivalAmbassador ambassador;
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  if (!rti->connect(
+           ambassador,
+           rti1516_2025::HLA_EVOKED,
+           publicProcessConfiguration(port, configurationName))
+           .addressUsed) {
+    throw std::runtime_error("The attribute sender did not select the coordinator endpoint.");
+  }
+  rti->createFederationExecution(
+      federationName, L"server-owned-process-tso-attribute-update-fom.xml");
+  auto const senderHandle = rti->joinFederationExecution(
+      federateName, federateType, federationName);
+  if (!senderHandle.isValid()) {
+    throw std::runtime_error("The attribute sender Join returned an invalid handle.");
+  }
+  auto const objectClass = rti->getObjectClassHandle(objectClassName);
+  auto const attribute = rti->getAttributeHandle(objectClass, attributeName);
+  rti->publishObjectClassAttributes(objectClass, {attribute});
+  rti->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1));
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.regulationEnabled; },
+      "The attribute sender did not receive Time Regulation Enabled.");
+  publishPortMarker(directory / (role + ".port"), 1U);
+  writeText(directory / (role + ".ready"), "regulation-enabled");
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      processPrefix + "-receiver.ready",
+      processPrefix + "-receiver"));
+
+  auto const objectInstance = rti->registerObjectInstance(objectClass);
+  if (!objectInstance.isValid()) {
+    throw std::runtime_error("The attribute sender could not register the Soda object.");
+  }
+  std::array<unsigned char, 1U> valueBytes{0x61U};
+  std::array<unsigned char, 1U> tagBytes{0x62U};
+  rti1516_2025::AttributeHandleValueMap attributeValues;
+  attributeValues.emplace(
+      attribute,
+      rti1516_2025::VariableLengthData(valueBytes.data(), valueBytes.size()));
+  auto const retraction = rti->updateAttributeValues(
+      objectInstance,
+      attributeValues,
+      rti1516_2025::VariableLengthData(tagBytes.data(), tagBytes.size()),
+      rti1516_2025::HLAinteger64Time(5));
+  if (!retraction.isValid()) {
+    throw std::runtime_error("The timestamped Update Attribute Values call was rejected.");
+  }
+  rti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(useTara ? 6 : 5));
+  writeText(directory / (role + ".sent"), "sent-timestamp-5");
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      processPrefix + "-receiver.completed",
+      processPrefix + "-receiver"));
+  writeText(directory / (role + ".completed"), "sent-timestamp-5");
+  rti->resignFederationExecution(rti1516_2025::NO_ACTION);
+  rti->disconnect();
+  static_cast<void>(awaitProcessMarker(
+      directory, role + ".stop", role, std::chrono::seconds(10)));
+  writeText(directory / (role + ".ok"), "stopped");
+  return 0;
+}
+
+int runAuthoritativeAttributeTsoReceiver(
+    std::filesystem::path const& directory,
+    std::string const& role,
+    bool useNmr,
+    bool useTara = false) {
+  std::string const processPrefix = useTara
+      ? "attribute-tso-tara"
+      : useNmr ? "attribute-tso-nmr" : "attribute-tso";
+  auto const port = readPort(
+      directory / (processPrefix + "-authority.port"));
+  wchar_t const* const federationName = useTara
+      ? L"process-tso-attribute-update-tara-authoritative-coordinator"
+      : useNmr
+      ? L"process-tso-attribute-update-nmr-authoritative-coordinator"
+      : L"process-tso-attribute-update-authoritative-coordinator";
+  wchar_t const* const federateName = useTara
+      ? L"process-tso-attribute-tara-receiver"
+      : useNmr ? L"process-tso-attribute-nmr-receiver"
+               : L"process-tso-attribute-receiver";
+  wchar_t const* const federateType = useTara
+      ? L"process-tso-attribute-tara-type"
+      : useNmr ? L"process-tso-attribute-nmr-type"
+               : L"process-tso-attribute-type";
+  wchar_t const* const configurationName = useTara
+      ? L"process-tso-attribute-tara-receiver"
+      : useNmr ? L"process-tso-attribute-nmr-receiver"
+               : L"process-tso-attribute-receiver";
+  constexpr wchar_t const* objectClassName =
+      L"HLAobjectRoot.Food.Drink.Soda";
+  constexpr wchar_t const* attributeName = L"Flavor";
+
+  AuthoritativeTsoAttributeArrivalAmbassador ambassador;
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  if (!rti->connect(
+           ambassador,
+           rti1516_2025::HLA_EVOKED,
+           publicProcessConfiguration(port, configurationName))
+           .addressUsed) {
+    throw std::runtime_error("The attribute receiver did not select the coordinator endpoint.");
+  }
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      processPrefix + "-sender.ready",
+      processPrefix + "-sender"));
+  auto const receiverHandle = rti->joinFederationExecution(
+      federateName, federateType, federationName);
+  if (!receiverHandle.isValid()) {
+    throw std::runtime_error("The attribute receiver Join returned an invalid handle.");
+  }
+  auto const objectClass = rti->getObjectClassHandle(objectClassName);
+  auto const attribute = rti->getAttributeHandle(objectClass, attributeName);
+  rti->subscribeObjectClassAttributes(objectClass, {attribute}, true);
+  rti->enableTimeConstrained();
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.constrainedEnabled; },
+      "The attribute receiver did not receive Time Constrained Enabled.");
+  if (useTara) {
+    rti->timeAdvanceRequestAvailable(rti1516_2025::HLAinteger64Time(6));
+  } else if (useNmr) {
+    rti->nextMessageRequest(rti1516_2025::HLAinteger64Time(10));
+  } else {
+    rti->nextMessageRequestAvailable(rti1516_2025::HLAinteger64Time(10));
+  }
+  publishPortMarker(directory / (role + ".port"), 1U);
+  writeText(
+      directory / (role + ".ready"),
+      useTara ? "tara-6-pending"
+              : useNmr ? "nmr-10-pending" : "nmra-10-pending");
+  static_cast<void>(awaitProcessMarker(
+      directory,
+      processPrefix + "-sender.sent",
+      processPrefix + "-sender"));
+  evokeUntil(
+      *rti,
+      [&] { return ambassador.grants == 1U; },
+      useTara
+          ? "The attribute receiver did not receive its TARA grant."
+          : useNmr ? "The attribute receiver did not receive its NMR grant."
+                   : "The attribute receiver did not receive its NMRA grant.");
+  std::int64_t const expectedGrantTime = useTara ? 6 : 5;
+  if (ambassador.discoveries != 1U || ambassador.reflections != 1U ||
+      ambassador.callbackOrder != std::vector<char>{'D', 'R', 'G'} ||
+      ambassador.discoveredClass != objectClass ||
+      ambassador.discoveredInstance != ambassador.reflectedInstance ||
+      ambassador.reflectedAttribute != attribute ||
+      !ambassador.reflectedProducer.isValid() ||
+      ambassador.reflectedValue != std::vector<unsigned char>{0x61U} ||
+      ambassador.reflectedTag != std::vector<unsigned char>{0x62U} ||
+      ambassador.reflectedSentOrder != rti1516_2025::TIMESTAMP ||
+      ambassador.reflectedReceivedOrder != rti1516_2025::TIMESTAMP ||
+      ambassador.reflectedTime != 5 ||
+      ambassador.grantTime != expectedGrantTime ||
+      (useTara && !ambassador.reflectedRetractionIsValid)) {
+    std::ostringstream diagnostic;
+    diagnostic << "The late timestamped attribute update did not precede the "
+               << (useTara ? "TARA" : useNmr ? "NMR" : "NMRA")
+               << " grant with its metadata intact. "
+               << "discoveries=" << ambassador.discoveries
+               << " reflections=" << ambassador.reflections
+               << " grants=" << ambassador.grants
+               << " callback-order=" << std::string(
+                      ambassador.callbackOrder.begin(),
+                      ambassador.callbackOrder.end())
+               << " reflected-time=" << ambassador.reflectedTime
+               << " grant-time=" << ambassador.grantTime
+               << " retraction-valid="
+               << ambassador.reflectedRetractionIsValid
+               << " value="
+               << (ambassador.reflectedValue.empty()
+                       ? -1
+                       : static_cast<int>(ambassador.reflectedValue.front()))
+               << " tag="
+               << (ambassador.reflectedTag.empty()
+                       ? -1
+                       : static_cast<int>(ambassador.reflectedTag.front()))
+               << " sent-order="
+               << static_cast<int>(ambassador.reflectedSentOrder)
+               << " received-order="
+               << static_cast<int>(ambassador.reflectedReceivedOrder)
+               << " object-match="
+               << (ambassador.discoveredInstance == ambassador.reflectedInstance)
+               << " class-match=" << (ambassador.discoveredClass == objectClass)
+               << " attribute-match=" << (ambassador.reflectedAttribute == attribute)
+               << " producer-valid=" << ambassador.reflectedProducer.isValid();
+    throw std::runtime_error(diagnostic.str());
+  }
+  writeText(
+      directory / (role + ".completed"),
+      useTara ? "attribute-before-tara-grant-at-6"
+              : useNmr ? "attribute-before-nmr-grant-at-5"
+                       : "attribute-before-grant-at-5");
+  rti->resignFederationExecution(rti1516_2025::NO_ACTION);
+  rti->disconnect();
+  static_cast<void>(awaitProcessMarker(
+      directory, role + ".stop", role, std::chrono::seconds(10)));
+  writeText(directory / (role + ".ok"), "stopped");
+  return 0;
 }
 
 int runServer(std::filesystem::path const& directory) {
@@ -1806,9 +3117,143 @@ int main(int argc, char** argv) {
     if (std::string(argv[1]) == "receiver") {
       return runReceiver(directory);
     }
+    if (std::string(argv[1]) == "tso-authority") {
+      return runAuthoritativeTsoService(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "tso-sender") {
+      return runAuthoritativeTsoSender(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "tso-receiver") {
+      return runAuthoritativeTsoReceiver(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "tso-tara-sender") {
+      return runAuthoritativeTsoSender(
+          directory, argv[1], "tso-tara-receiver", 6);
+    }
+    if (std::string(argv[1]) == "tso-tara-receiver") {
+      return runAuthoritativeTaraTsoReceiver(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "tso-galt-release-sender") {
+      return runAuthoritativeTsoSender(
+          directory,
+          argv[1],
+          "tso-galt-release-receiver",
+          5,
+          3,
+          true,
+          true);
+    }
+    if (std::string(argv[1]) == "tso-galt-release-receiver") {
+      return runAcknowledgedTsoTarReceiver(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "no-tso-coordinator-authority") {
+      return runAuthoritativeTsoService(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "no-tso-coordinator-regulator" ||
+        std::string(argv[1]) == "no-tso-coordinator-requester") {
+      return umbra::test::runNoTsoCoordinatorClientProbe(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "delete-tso-nmr-authority" ||
+        std::string(argv[1]) == "delete-tso-nmra-authority" ||
+        std::string(argv[1]) == "delete-tso-tara-authority") {
+      return runAuthoritativeTsoService(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "delete-tso-nmr-sender" ||
+        std::string(argv[1]) == "delete-tso-nmr-receiver" ||
+        std::string(argv[1]) == "delete-tso-nmra-sender" ||
+        std::string(argv[1]) == "delete-tso-nmra-receiver" ||
+        std::string(argv[1]) == "delete-tso-tara-sender" ||
+        std::string(argv[1]) == "delete-tso-tara-receiver") {
+      return umbra::test::runDeleteTsoCoordinatorClientProbe(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "delete-tso-nmr-sender" ||
+        std::string(argv[1]) == "delete-tso-nmr-receiver" ||
+        std::string(argv[1]) == "delete-tso-nmra-sender" ||
+        std::string(argv[1]) == "delete-tso-nmra-receiver") {
+      return umbra::test::runDeleteTsoCoordinatorClientProbe(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "directed-tso-nmra-authority" ||
+        std::string(argv[1]) == "directed-tso-nmr-authority" ||
+        std::string(argv[1]) == "directed-tso-tara-authority") {
+      return runAuthoritativeTsoService(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "directed-tso-tara-sender") {
+      return runAuthoritativeDirectedTsoSender(directory, argv[1], false, true);
+    }
+    if (std::string(argv[1]) == "directed-tso-tara-receiver") {
+      return runAuthoritativeDirectedTsoReceiver(directory, argv[1], false, true);
+    }
+    if (std::string(argv[1]) == "directed-tso-nmra-sender") {
+      return runAuthoritativeDirectedTsoSender(directory, argv[1], false);
+    }
+    if (std::string(argv[1]) == "directed-tso-nmra-receiver") {
+      return runAuthoritativeDirectedTsoReceiver(directory, argv[1], false);
+    }
+    if (std::string(argv[1]) == "directed-tso-nmr-sender") {
+      return runAuthoritativeDirectedTsoSender(directory, argv[1], true);
+    }
+    if (std::string(argv[1]) == "directed-tso-nmr-receiver") {
+      return runAuthoritativeDirectedTsoReceiver(directory, argv[1], true);
+    }
+    if (std::string(argv[1]) == "tcd-authority") {
+      return runDisableTcdTsoAuthority(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "tcd-sender") {
+      return runDisableTcdTsoSender(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "tcd-receiver") {
+      return runDisableTcdTsoReceiver(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "attribute-tso-authority") {
+      return runAuthoritativeAttributeTsoAuthority(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "attribute-tso-sender") {
+      return runAuthoritativeAttributeTsoSender(directory, argv[1], false);
+    }
+    if (std::string(argv[1]) == "attribute-tso-receiver") {
+      return runAuthoritativeAttributeTsoReceiver(directory, argv[1], false);
+    }
+    if (std::string(argv[1]) == "attribute-tso-nmr-authority") {
+      return runAuthoritativeAttributeTsoAuthority(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "attribute-tso-nmr-sender") {
+      return runAuthoritativeAttributeTsoSender(directory, argv[1], true);
+    }
+    if (std::string(argv[1]) == "attribute-tso-nmr-receiver") {
+      return runAuthoritativeAttributeTsoReceiver(directory, argv[1], true);
+    }
+    if (std::string(argv[1]) == "attribute-tso-tara-authority") {
+      return runAuthoritativeAttributeTsoAuthority(directory, argv[1]);
+    }
+    if (std::string(argv[1]) == "attribute-tso-tara-sender") {
+      return runAuthoritativeAttributeTsoSender(
+          directory, argv[1], false, true);
+    }
+    if (std::string(argv[1]) == "attribute-tso-tara-receiver") {
+      return runAuthoritativeAttributeTsoReceiver(
+          directory, argv[1], false, true);
+    }
   } catch (std::exception const& error) {
     try {
       writeText(directory / (std::string(argv[1]) + ".error"), error.what());
+    } catch (...) {
+    }
+    return 1;
+  } catch (rti1516_2025::Exception const& error) {
+    try {
+      auto narrow = [](std::wstring const& value) {
+        std::string result;
+        result.reserve(value.size());
+        for (wchar_t character : value) {
+          result.push_back(character >= 0 && character <= 0x7f
+                  ? static_cast<char>(character)
+                  : '?');
+        }
+        return result;
+      };
+      writeText(
+          directory / (std::string(argv[1]) + ".error"),
+          narrow(error.name()) + ": " + narrow(error.what()));
     } catch (...) {
     }
     return 1;

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable translation of the verified 34-assertion native untimed save active-callback resignation witness. In HLA_EVOKED, three federates join an adapter-supplied FOM; the scenario uses the untimed Create Federation Execution overload and does not require a logical-time implementation. The held and departing members begin the save inside Initiate Federate Save callbacks. Resignation within the departing callback is rejected by the standard CallNotAllowedFromWithinCallback exception; the same resignation after callback return succeeds. Surviving members receive Federation Not Saved with FEDERATE_RESIGNED_DURING_SAVE, the departed member receives no stale failure, and a subsequent two-member save completes. Direct native traceability pairs are page-058-l112-33 to IEEE 1516.1-2025 clause 4.12, page-065-l96-24 to clause 4.19, page-066-l22-5 to clause 4.19.6, page-067-l142-36 to clause 4.21.1, and page-069-l70-17, page-069-l76-19, and page-069-l133-38 to clause 4.23. Official-header C++ primary and contract passed twice against installed package libraries in an isolated build; a focused rerun without a time implementation passed 2/2. The Java parity compiles against the official API-only JAR but has no provider-runtime result. This is an evoked-callback slice, not an immediate-callback or provider-independent conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-save-active-callback-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador requestFederationSave, federateSaveBegun, resignFederationExecution, evokeCallback, federateSaveComplete with FederateAmbassador initiateFederateSave, federationNotSaved, federationSaved",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador federation-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_save_active_callback_resignation.cpp::scenarioSaveActiveCallbackResignation",
+        "packages/hla-rti-cpp-tck/src/tck_save_active_callback_resignation.cpp::scenarioSaveActiveCallbackResignationContract"
+      ]
+    }
+  ]
+}

@@ -6,6 +6,7 @@
 #include "internal/federation/process_transport_session.hpp"
 #include "internal/observability/service_report_store.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <filesystem>
@@ -22,6 +23,53 @@
 #include <vector>
 
 namespace umbra::detail {
+
+using CallbackRegionDesignatorCopyMap =
+    std::map<std::uint64_t, std::uint64_t>;
+
+// Owns the receiver-side region designator copies for one pending timestamped
+// attribute message. Erasing the lease at callback acknowledgement or session
+// teardown retires every copied region through the registry.
+class ProcessTsoCallbackRegionDesignatorCopyLease final {
+ public:
+  ProcessTsoCallbackRegionDesignatorCopyLease(
+      EmbeddedFederationRegistry& registry,
+      std::wstring federationName,
+      std::uint64_t receivingFederateId);
+  ProcessTsoCallbackRegionDesignatorCopyLease(
+      ProcessTsoCallbackRegionDesignatorCopyLease const&) = delete;
+  ProcessTsoCallbackRegionDesignatorCopyLease& operator=(
+      ProcessTsoCallbackRegionDesignatorCopyLease const&) = delete;
+  ProcessTsoCallbackRegionDesignatorCopyLease(
+      ProcessTsoCallbackRegionDesignatorCopyLease&& other) noexcept;
+  ProcessTsoCallbackRegionDesignatorCopyLease& operator=(
+      ProcessTsoCallbackRegionDesignatorCopyLease&&) = delete;
+  ~ProcessTsoCallbackRegionDesignatorCopyLease();
+
+  void reserve(std::size_t count);
+  [[nodiscard]] CallbackRegionDesignatorCopyMap const& add(
+      CallbackRegionDesignatorCopyMap copies);
+  [[nodiscard]] bool empty() const noexcept;
+
+ private:
+  void release() noexcept;
+
+  EmbeddedFederationRegistry* registry_ = nullptr;
+  std::wstring federationName_;
+  std::uint64_t receivingFederateId_ = 0U;
+  std::vector<CallbackRegionDesignatorCopyMap> copiesByPassel_;
+};
+
+[[nodiscard]] std::optional<ProcessFederationAttributeUpdateEvent>
+projectProcessTsoAttributeUpdatePasselToCallback(
+    EmbeddedFederationRegistry& registry,
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId,
+    TsoAttributeUpdateMessage const& message,
+    TsoAttributeUpdatePassel const& passel,
+    ReceiveOrderAttributeUpdateRecipient const& projection,
+    ProcessTsoCallbackRegionDesignatorCopyLease& callbackRegionCopies,
+    bool asReceiveOrder = false);
 
 // Private service behavior switches used while the process endpoint is being
 // carried toward the public RTI binding.  Polling remains the compatibility
@@ -119,6 +167,9 @@ class ProcessFederationService final {
       std::wstring const& federationName,
       std::uint64_t objectInstanceHandle) noexcept;
   struct SessionState final {
+    using CallbackRegionDesignatorCopyMap =
+        std::map<std::uint64_t, std::uint64_t>;
+
     std::optional<std::wstring> federationName;
     std::uint64_t federateId = 0U;
     // The process endpoint keeps the same federation-owned temporal state
@@ -127,12 +178,27 @@ class ProcessFederationService final {
     // ownership boundary explicit and lets later role/grant operations use
     // the exact state established at Join.
     std::shared_ptr<FederateTimeState> timeState;
+    // An accepted Time Constrained enable may wait here until the federation's
+    // GALT admits the federate's unchanged current logical time.
+    std::optional<std::uint64_t> pendingTimeConstrainedEnableGeneration;
     // One writer and one immutable location belong to this joined-federate
     // lifetime.  Resign clears the state; rejoin allocates a new writer.
     std::unique_ptr<ServiceReportWriter> serviceReportWriter;
     std::filesystem::path serviceReportLocation;
     std::deque<ProcessFederationInteractionEvent> interactionEvents;
+    // Receiver-owned region designator copies live through one evoked
+    // Receive Interaction callback and are retired at the next receive poll.
+    std::map<std::uint64_t, std::uint64_t>
+        activeCallbackRegionDesignatorCopies;
+    // Copies for all timestamped attribute passels from one accepted message
+    // stay live until the callback bridge acknowledges its final passel.
+    std::map<
+        std::uint64_t,
+        ProcessTsoCallbackRegionDesignatorCopyLease>
+        pendingTsoAttributeCallbackRegionDesignatorCopies;
     std::deque<ProcessFederationAttributeUpdateEvent> attributeUpdateEvents;
+    std::map<std::uint64_t, ProcessFederationAttributeUpdateEvent>
+        pendingPushedAttributeUpdates;
     // One service-owned regional passel per push readiness marker. The callback-entry
     // claim consumes exactly one, even if current DDM relevance suppresses it.
     std::deque<ProcessFederationAttributeUpdateEvent>
@@ -289,6 +355,9 @@ class ProcessFederationService final {
       ProcessTransportSession& session,
       TransportServiceMessage const& request);
   [[nodiscard]] TransportServiceMessage handleAcknowledgeTsoDelivery(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage handleAcknowledgePushAttributeUpdate(
       ProcessTransportSession& session,
       TransportServiceMessage const& request);
   [[nodiscard]] TransportServiceMessage handleQueryLogicalTime(
@@ -696,17 +765,22 @@ class ProcessFederationService final {
   void dispatchTimeAdvanceGrants(
       std::wstring const& federationName,
       std::vector<FederationTimeGrantDispatch> dispatches);
+  [[nodiscard]] bool dispatchEligibleTimeConstrainedEnables(
+      std::wstring const& federationName);
 
   // Typed TSO events keep delivery ownership private to the process boundary.
   void dispatchTsoAttributeUpdateDelivery(std::wstring const& federationName,
-      std::uint64_t receivingFederateId, TsoAttributeUpdateDelivery const& attribute);
+      std::uint64_t receivingFederateId, TsoAttributeUpdateDelivery const& attribute,
+      bool asReceiveOrder = false);
   void dispatchTsoInteractionDelivery(std::wstring const& federationName,
-      std::uint64_t receivingFederateId, TsoInteractionDelivery const& interaction);
+      std::uint64_t receivingFederateId, TsoInteractionDelivery const& interaction,
+      bool asReceiveOrder = false);
   void dispatchTsoInteractionPayloads(
       std::wstring const& federationName,
       std::uint64_t receivingFederateId,
       rti1516_2025::LogicalTime const& boundary,
-      bool inclusive);
+      bool inclusive,
+      bool asReceiveOrder = false);
 
   [[nodiscard]] TransportServiceMessage rejected(
       TransportServiceMessage const& request) const;
@@ -724,6 +798,7 @@ class ProcessFederationService final {
   // enough to send a matching retraction notification.
   std::map<std::uint64_t, std::vector<ProcessTransportSession*>>
       pendingPushedRetractionRecipients_;
+  std::uint64_t nextPushedAttributeDeliveryId_ = 1U;
   std::map<std::uint64_t, std::uint64_t> processTsoMessageProducers_;
   // Joining may replace a federation's composed definition. Serialize that
   // preparation/commit pair so two process clients cannot both compose from

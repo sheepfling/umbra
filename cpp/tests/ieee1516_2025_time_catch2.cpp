@@ -106,8 +106,33 @@ TEST_CASE(
   HLAinteger64Time initialTime;
   REQUIRE(initialTime.isInitial());
   REQUIRE_THROWS_AS(initialTime -= epsilon, IllegalTimeArithmetic);
-  REQUIRE_THROWS_AS(finalTime += epsilon, IllegalTimeArithmetic);
   REQUIRE_THROWS_AS(HLAinteger64Time(-1), InvalidLogicalTime);
+}
+
+TEST_CASE(
+    "Logical time arithmetic preserves the final value when adding or subtracting intervals",
+    "[baseline][time][unit][foundation][time-management][final-time-arithmetic]") {
+  HLAinteger64Interval integerEpsilon;
+  integerEpsilon.setEpsilon();
+  HLAinteger64Time integerFinal;
+  integerFinal.setFinal();
+  integerFinal += integerEpsilon;
+  REQUIRE(integerFinal.isFinal());
+  REQUIRE(integerFinal.getTime() == std::numeric_limits<Integer64>::max());
+  integerFinal -= integerEpsilon;
+  REQUIRE(integerFinal.isFinal());
+  REQUIRE(integerFinal.getTime() == std::numeric_limits<Integer64>::max());
+
+  HLAfloat64Interval floatEpsilon;
+  floatEpsilon.setEpsilon();
+  HLAfloat64Time floatFinal;
+  floatFinal.setFinal();
+  floatFinal += floatEpsilon;
+  REQUIRE(floatFinal.isFinal());
+  REQUIRE(floatFinal.getTime() == std::numeric_limits<double>::max());
+  floatFinal -= floatEpsilon;
+  REQUIRE(floatFinal.isFinal());
+  REQUIRE(floatFinal.getTime() == std::numeric_limits<double>::max());
 }
 
 TEST_CASE("HLAinteger64Time reports malformed encodings and factory-decodes valid values", "[baseline][time][unit][foundation][time-management]") {

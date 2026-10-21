@@ -943,8 +943,8 @@ enum class ProcessFederationTimeEnableStatus : std::uint8_t {
 struct ProcessFederationEnableTimeRegulationResult final {
   ProcessFederationTimeEnableStatus status =
       ProcessFederationTimeEnableStatus::inactive;
-  // Present only when the request was applied.  This is the value delivered
-  // through FederateAmbassador::timeRegulationEnabled on the client side.
+  // An applied request with no value awaits an unsolicited implicit-advance
+  // completion event. Otherwise this is the immediate callback value.
   std::optional<ProcessFederationLogicalTime> enabledTime;
 };
 
@@ -954,6 +954,9 @@ struct ProcessFederationEnableTimeConstrainedResult final {
   // Present only when the request was accepted.  The client callback bridge
   // delivers this value through FederateAmbassador::timeConstrainedEnabled.
   std::optional<ProcessFederationLogicalTime> enabledTime;
+  // True when the request was accepted but its callback is deferred until GALT
+  // reaches the joined federate's current logical time.
+  bool awaitingGalt = false;
 };
 
 // Disable Time Regulation and Disable Time Constrained share one private
@@ -993,6 +996,12 @@ struct ProcessFederationTimeAdvanceResult final {
   // callback time and the optimistic logical-time floor; ordinary temporal
   // responses/events leave this absent.
   std::optional<ProcessFederationLogicalTime> optimisticTime;
+  // An implicit regulation advance uses the same ordered grant event channel,
+  // but completes with Time Regulation Enabled rather than Time Advance Grant.
+  bool regulationEnabled = false;
+  // A deferred Time Constrained enable completes on the same ordered callback
+  // channel once federation GALT admits the joined federate's current time.
+  bool constrainedEnabled = false;
 };
 
 struct ProcessFederationSendInteractionResult final {
@@ -1317,9 +1326,9 @@ struct ProcessFederationInteractionEvent final {
   // Present only for a directed interaction.  It is appended to preserve
   // existing ordinary-event aggregate callers and legacy event decoding.
   std::optional<std::uint64_t> objectInstanceHandle;
-  // Present for a timestamped directed interaction. The process service uses
-  // this execution-wide identity to suppress a queued event when its producer
-  // retracts before the receiver crosses the callback boundary.
+  // Private identity for a queued TSO interaction. It remains present if
+  // Disable Time Constrained converts the callback to receive order and is
+  // never exposed as a timestamped callback unless timestamp is also present.
   std::optional<std::uint64_t> retractionMessageId;
   // Present for a regional passel. A null value plus defaultRegionUsed=true
   // represents the official default region and is projected as an engaged,
@@ -1340,6 +1349,18 @@ struct ProcessFederationInteractionEvent final {
   // Only HLAreportException carries this private routing identity. It is
   // never exposed as the callback producer or as an application parameter.
   std::optional<std::uint64_t> exceptionReportFederateId;
+  // Send-time committed DDM region state used to materialize receiver-owned
+  // callback designator copies for configured-process receive-order delivery.
+  // Timestamped interaction callbacks do not use this field; timestamped
+  // attribute callbacks materialize copies in the process service instead.
+  std::map<std::uint64_t, RegionSpecificationSnapshot> sentRegionSnapshots;
+};
+
+enum class ProcessFederationTsoAttributeUpdateCallbackGroupPosition :
+    std::uint8_t {
+  ungrouped,
+  more,
+  final,
 };
 
 struct ProcessFederationAttributeUpdateEvent final {
@@ -1370,6 +1391,15 @@ struct ProcessFederationAttributeUpdateEvent final {
   // between Update Attribute Values and the receiver's Evoke poll.
   bool recheckAtReceive = false;
   std::map<std::uint64_t, RegionSpecificationSnapshot> sentRegionSnapshots;
+  // Private identity for callback-boundary acknowledgement of ordinary
+  // pushed receive-order attribute updates. It is not a TSO retraction id.
+  std::uint64_t pushDeliveryId = 0U;
+  // TSO attribute passels from one accepted update share a message id but may
+  // produce several callbacks. Grouped events acknowledge only after the
+  // final passel callback, keeping its receiver-owned region copies alive.
+  ProcessFederationTsoAttributeUpdateCallbackGroupPosition
+      tsoCallbackGroupPosition =
+          ProcessFederationTsoAttributeUpdateCallbackGroupPosition::ungrouped;
 };
 
 // One accepted object-instance Request Attribute Value Update provider
@@ -1689,6 +1719,10 @@ struct ProcessFederationUpdateAttributeValuesResult final {
   // execution-owned identity returned for an accepted timestamp-ordered
   // update so the public adapter can expose a real MessageRetractionHandle.
   std::uint64_t messageId = 0U;
+  // Preserve the API exception selected by the shared object/ownership
+  // planner when a public process-endpoint update is rejected.
+  ReceiveOrderAttributeUpdateStatus status =
+      ReceiveOrderAttributeUpdateStatus::applied;
 };
 
 struct ProcessFederationReceiveAttributeUpdateResult final {

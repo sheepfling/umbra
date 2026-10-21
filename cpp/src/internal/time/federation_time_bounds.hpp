@@ -37,10 +37,12 @@ struct FederationTimeBounds {
 // regulator's earliest possible future timestamp is its current logical time
 // (or pending advance target) plus actual lookahead; a forward TAR by a
 // zero-lookahead regulator makes that lower bound exclusive, so the selected
-// factory's epsilon is added. The recipient's delivered-since-last-advance,
-// queued, and in-transit TSO timestamps are also considered. LITS is the
-// smallest future (queued or in-transit) TSO timestamp constrained by GALT;
-// when GALT is undefined it can still be defined by such an incoming message.
+// factory's epsilon is added. Only queued and in-transit TSO timestamps can
+// constrain the recipient's incoming-message frontier; callback-acknowledged
+// TSO history is retained elsewhere for lifecycle/retraction bookkeeping but
+// cannot hold back a later grant. LITS is the smallest future queued or
+// in-transit TSO timestamp constrained by GALT; when GALT is undefined it can
+// still be defined by such an incoming message.
 class FederationTimeBoundsCalculator final {
  public:
   [[nodiscard]] FederationTimeBounds calculate(

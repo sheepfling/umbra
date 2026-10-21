@@ -176,6 +176,167 @@ ancestry map](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#class-an
 compares those selected 2025 uses; class hierarchy does not imply one generic
 nearest-ancestor callback rule.
 
+## Variant-record alternatives resolve against the merged discriminant
+
+The 2025 OMT schema represents a variant record with a discriminant data type
+and alternatives that carry discriminant-enumerator expressions and payload
+data types ([pinned OMT schema](../../third_party/ieee1516.2-2025/resources/schemas/IEEE1516-OMT-2025.xsd)).
+Umbra's composer resolves those pieces after module merge, so an alternative
+may depend on an enumerated data type declared elsewhere in the completed
+module set. The following is the inspected 2025 composition path, not a
+complete normative restatement of the OMT rules:
+
+```mermaid
+flowchart TD
+  A[Merge ordered 2025 modules] --> B{New alternative for an existing variant record?}
+  B -->|Yes| C{Existing record uses HLAextendableVariantRecord?}
+  C -->|No| X[Reject composition]
+  C -->|Yes| D[Merge alternatives and their supplied enumerator expressions]
+  B -->|No| D
+  D --> E[Resolve the completed discriminant data type and enumerated table]
+  E --> F[Parse supplied names, comma lists, ranges, or HLAother]
+  F --> G{Syntax valid and named members or endpoints declared?}
+  G -->|No| X
+  G -->|Yes| H[Expand each range in enumerator-table declaration order]
+  H --> I{Does one value map to different named alternatives?}
+  I -->|Yes| X
+  I -->|No| J{Is HLAother present?}
+  J -->|Yes| K[Assign HLAother the remaining declared values]
+  J -->|No| L[Build the composed data-type definition]
+  K --> L
+```
+
+Several implementation details matter when reading this flow:
+
+- Adding a new alternative to an already-declared record passes the composer
+  gate only when the record's encoding is `HLAextendableVariantRecord`. When
+  modules contribute enumerator expressions to the same alternative, the
+  current merge path combines those expressions before completed-model
+  validation ([extension gate](../../cpp/src/internal/fom/libxml2_fom_composer.cpp#L312),
+  [alternative merge](../../cpp/src/internal/fom/libxml2_fom_composer.cpp#L900)).
+- A supplied discriminant type must resolve to `enumeratedData`. Each supplied
+  simple name and each range endpoint must be present in that table. The
+  composer then expands a range across the table's declaration order and
+  rejects a value assigned to different named alternatives
+  ([type and membership checks](../../cpp/src/internal/fom/libxml2_fom_composer_validators.cpp#L584),
+  [membership](../../cpp/src/internal/fom/libxml2_fom_composer_validators.cpp#L1724),
+  [range expansion and assignment](../../cpp/src/internal/fom/libxml2_fom_composer_validators.cpp#L1791)).
+- In this implementation, `HLAother` must be the complete enumerator field,
+  may not be repeated, is rejected for an extendable variant record, and is
+  assigned the enumerators not explicitly covered by named alternatives.
+  Treat this as bounded source evidence, not as a new interpretation of the
+  2025 standard.
+- DIF can contain intentionally incomplete rows. If the discriminant member
+  table is omitted or has no supplied enumerators, these membership and range
+  checks do not manufacture a closed set; a supplied discriminant type still
+  goes through the 2025 type-kind check.
+
+The focused composer test source contains cases for malformed and omitted
+expressions, unknown enumerators and range endpoints, a consumer declared
+before its provider module, overlapping expanded assignments, and the
+Restaurant `HLAother` example ([syntax and incomplete input](../../cpp/tests/libxml2_fom_composer_catch2.cpp#L1238),
+[membership and cross-module resolution](../../cpp/tests/libxml2_fom_composer_catch2.cpp#L1296),
+[declaration-order expansion and overlap](../../cpp/tests/libxml2_fom_composer_catch2.cpp#L1369)).
+These are composer-level tests; they do not establish configured-process
+Create/Join outcomes or normative conformance. The test cases were not rerun
+for this documentation change.
+
+The configured-process service does not implement a second FOM composer.
+For an explicit Create request, `handleCreate` requires the configured
+preparation callback, obtains its prepared `FederationDefinition`, then gives
+that definition to the registry commit path; additional-module Join follows a
+separate preparation callback and commit
+([Create](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L219),
+[Join](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L301)).
+The public process fixture wires those callbacks to
+`FederationManagementCoordinator::prepareCreate` and
+`prepareAdditionalModules` ([Create callback](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L255),
+[Join callback](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L268)).
+This establishes where the shared composition rules enter the configured
+route; it does not establish that the endpoint inspects or exposes a
+variant-specific catalog result. These observations have different
+evidentiary strength:
+
+| Boundary | What the focused 2025 test observes | What it does not establish |
+| --- | --- | --- |
+| Composer: MIM + Restaurant FOM | Composition returns `valid`, a catalog, and a non-null `DrinkGarnish` data-type lookup ([composer case](../../cpp/tests/libxml2_fom_composer_catch2.cpp#L1291)). Separate synthetic cases exercise member resolution, range expansion, overlap rejection, and `HLAother`. | The Restaurant positive assertion does not inspect the resulting `DrinkGarnish` discriminant-to-alternative assignments or payload definition. These remain composer-level results, not process-service behavior. |
+| Embedded public API Create | The 2025 API accepts a two-module extendable-variant record when the added named alternative is disjoint from the base range; it rejects an overlapping alternative with `InconsistentFOM`, then succeeds on a valid retry ([case](../../cpp/tests/fom_declaration_management_catch2.cpp#L200)). | It does not inspect the resulting FDD, establish the corresponding process path, or prove behavior beyond these tested inputs. |
+| Configured-process Create | The public process case accepts `createFederationExecution` with the 2025 Restaurant FOM; its server-side checks also confirm failed Create leaves no definition and a later failed Join leaves the successfully created base module count unchanged ([successful Restaurant Create](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L363), [registry-state checks](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L305)). A second public case creates with an explicit MIM and checks that the committed definition contains one FOM module, one MIM module, and the selected logical-time implementation ([committed definition](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L673), [client request](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L720)). The Restaurant fixture contains `DrinkGarnish`, discriminated by `DrinkType` and encoded as `HLAextendableVariantRecord` ([declaration](../../third_party/ieee1516.2-2025/resources/examples/RestaurantFOMmodule-2025.xml#L1026), [encoding](../../third_party/ieee1516.2-2025/resources/examples/RestaurantFOMmodule-2025.xml#L1041)). | The process tests confirm accepted preparation/definition commit and module provenance, not the `DrinkGarnish` discriminant-to-alternative assignments. They do not exercise variant-specific process failures or range resolution. |
+| Configured-process additional-module Join | The test rejects a missing module, accepts `reference-data-class-provider-fom.xml`, and resolves the added object-class handle/name ([successful Join and lookup](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L378)). That extension contains an object-class declaration only ([fixture](../../cpp/tests/data/reference-data-class-provider-fom.xml#L5)). | It does not add or merge a variant-record alternative. The module is object-only, as also shown by the [post-Join interaction boundary](#interaction-catalog-growth-is-not-a-receive-interaction-callback). |
+
+Keep these as separate claims: composer tests exercise variant merge and
+resolution; configured-process Create tests accept and commit the prepared
+Restaurant definition (including the explicit-MIM module boundary); the
+configured-process Join test verifies an object-only extension. A bounded
+process/connection-test search found no variant-record-specific assertion, so
+these do not establish variant-specific configured-process behavior or
+normative conformance.
+
+### FOM variant definition and runtime encoding are separate paths
+
+The composed FOM catalog describes the discriminant and its permitted
+alternatives. A federate application separately constructs a runtime
+`HLAextendableVariantRecord`, registers its discriminant-to-`DataElement` map
+with `addVariant`, selects a value, and encodes it. The shared concepts help
+the application keep those representations aligned, but the inspected
+configured-process Create path does not demonstrate a catalog-to-codec
+handoff.
+
+```mermaid
+flowchart TB
+  subgraph MODEL["FOM model path"]
+    direction TB
+    Modules["2025 MIM and FOM modules"] --> Compose["Merge and validate variant definition"]
+    Compose --> Catalog["Composed catalog<br/>discriminant and alternatives"]
+    Catalog --> ComposerEvidence["Composer tests<br/>resolve names, ranges, overlap"]
+  end
+
+  subgraph VALUE["Runtime value path"]
+    direction TB
+    Application["Federate application"] --> Construct["Construct HLAextendableVariantRecord"]
+    Construct --> Map["addVariant(discriminant, DataElement)"]
+    Map --> Select["setDiscriminant and setVariant"]
+    Select --> Encode["Encode selected value to octets"]
+    Encode --> CodecEvidence["Codec tests<br/>explicit mapping and byte assertions"]
+  end
+
+  Catalog -. "No automatic catalog-to-codec handoff demonstrated" .-> Map
+  ProcessEvidence["Process Create test accepts the Restaurant FOM;<br/>it does not exercise variant encoding"] -.-> Modules
+```
+
+The dotted connection marks an evidence boundary, not a required application
+architecture. The composer case checks for a `DrinkGarnish` catalog entry
+([test](../../cpp/tests/libxml2_fom_composer_catch2.cpp#L1291)); the focused
+codec case constructs the `addVariant` map directly and asserts the encoded
+bytes ([test](../../cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp#L994)).
+The configured-process Restaurant Create case proves acceptance of that input
+fixture only ([test](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L363)).
+This evidence set does not connect the catalog entry to the runtime
+`DataElement`. For the full discriminant/alternative byte behavior, see the
+data-element guide's [variant branch flow](HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#variants-are-discriminant-driven-branches).
+
+The manual translation is easiest to see in the Restaurant example. Its FOM
+declares `DrinkType` with representation `HLAinteger32BE` and assigns the
+enumerators `Margarita = 1` and `DryMartini = 2`; `DrinkGarnish` associates
+those names with `HasSaltRim` (`HLAboolean`) and `OliveCount` (`FruitCount`)
+([enumerators](../../third_party/ieee1516.2-2025/resources/examples/RestaurantFOMmodule-2025.xml#L910),
+[variant definition](../../third_party/ieee1516.2-2025/resources/examples/RestaurantFOMmodule-2025.xml#L1026),
+[FruitCount representation](../../third_party/ieee1516.2-2025/resources/examples/RestaurantFOMmodule-2025.xml#L740)).
+The catalog projection retains the discriminant type name and, per alternative,
+the alternative name, enumerator-name strings, and payload data-type name
+([projection type](../../cpp/src/internal/fom/fom_catalog.hpp#L101),
+[projection builder](../../cpp/src/internal/fom/libxml2_fom_composer.cpp#L2104)).
+The public codec API instead takes a typed discriminant prototype and
+`DataElement` discriminant/value pairs through `addVariant`
+([2025 API](../../third_party/ieee1516.1-2025/include/RTI/encoding/HLAextendableVariantRecord.h#L29),
+[mapping operation](../../third_party/ieee1516.1-2025/include/RTI/encoding/HLAextendableVariantRecord.h#L93)).
+An application therefore has to map the FOM names and values to compatible
+runtime elements—for example, use `HLAinteger32BE` values corresponding to
+1 and 2 as keys, with payload prototypes matching `HLAboolean` and
+`FruitCount`. This is an illustrative application-side mapping, not a tested
+catalog-to-codec conversion or a requirement that every application use this
+particular construction.
+
 ## Join with additional FOM modules: replace definition and add member together
 
 An ordinary Join without extra FOM modules uses the existing federation
@@ -188,34 +349,82 @@ keeps the federation's established logical-time implementation.
 flowchart TD
   A[Join request with additional 2025 FOM modules] --> B[Read current federation definition]
   B --> C[Revalidate existing modules and validate additions]
-  C --> D[Compose complete replacement model and FDD]
-  D --> E{Valid and same established time implementation?}
-  E -- No --> F[Reject Join; keep current definition and memberships]
-  E -- Yes --> G[Prepare replacement handle directories and member time state]
+  C --> D{All retained and added modules pass 2025 validation?}
+  D -- No --> X[Reject before registry commit; keep current definition and memberships]
+  D -- Yes --> E[Compose complete replacement model and materialize FDD]
+  E --> F{Composition, FDD, and established-time checks pass?}
+  F -- No --> X
+  F -- Yes --> G[Prepare replacement handle directories and member time state]
   G --> H{Registry commit checks succeed?}
-  H -- No --> F
+  H -- No --> X
   H -- Yes --> I[Atomically commit replacement definition plus new membership]
-  I --> J[Initialize joined-federate report and lifecycle state]
-  J --> K{Post-commit setup succeeds?}
-  K -- Yes --> L[Return the new FederateHandle]
-  K -- No --> M[Resign the new member and report Join failure]
-  M --> N[Observed rollback does not restore the replacement definition]
+  I --> P{Post-commit implementation path}
+  P -- Embedded --> J[Set up report/MOM state and apply lifecycle Join]
+  P -- Configured process --> Q[When configured: report/MOM; install session; queue eligible events]
+  J --> R{Embedded setup succeeds?}
+  Q --> S{Process setup succeeds?}
+  R -- Yes --> L[Return the new FederateHandle]
+  S -- Yes --> L
+  R -- No --> T[Embedded rollback resigns the new member]
+  S -- No --> U[Process rollback clears any installed session/events and resigns the member]
+  T --> V[No prior-definition restore step appears in inspected rollback source]
+  U --> V
 ```
 
 The registry commit is atomic with respect to its shared state: after preparing
 the replacement directories, it commits the replacement definition and new
 membership together. Before that commit, preparation and registry rejection
 leave the prior shared definition in place. This is not an end-to-end
-transaction for every later step in the public Join call, however. In the
-observed embedded path, the ambassador next creates joined-federate
-service-report state and advances its lifecycle. If that setup fails, its
-rollback resigns the new member; it does not restore the prior federation
-definition or handle directories. Thus an additional-module Join can report an
-error after the complete replacement catalog has already been installed.
-The focused writer-creation failure test covers an ordinary Join and proves
-that the failed applicant's member name can be reused; it does not exercise this
-post-commit failure with additional modules or assert catalog state. Treat this
-as a source-observed gap, not a portable HLA rule or a tested guarantee.
+transaction for every later step in the public Join call. After the atomic
+registry swap
+([commit](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L596)),
+the embedded ambassador establishes joined-federate report/MOM state and
+advances its lifecycle; its inspected rollback resigns the new member
+([embedded rollback path](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L540)).
+The configured-process service performs its own report/MOM setup when
+configured, installs the session, and then queues joined-MOM discovery and
+pending synchronization announcements
+([process rollback and session cleanup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L758),
+[post-commit event setup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L791)).
+Its rollback resigns the member and clears installed session/event state as
+needed. The inspected rollback paths contain no call that restores the prior
+definition or handle directories; this is source evidence, not a tested
+post-failure catalog observation.
+
+The focused [embedded writer-failure case](../../cpp/tests/service_report_writer_failure_catch2.cpp#L92)
+and [process setup-failure case](../../cpp/tests/process_federation_service_join_rollback_catch2.cpp#L39)
+cover ordinary Join, not Join with replacement modules. The
+[invalid-additional-FOM process case](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L408)
+covers rejection of the unavailable `missing-additional-fom.xml` path before
+registry commit and a valid retry. It does not exercise a DIF-invalid module,
+a semantic composition conflict, or failure after commit. None asserts the
+catalog after a post-commit failure involving added modules. Treat persistence
+on that failure path as a source observation, not an HLA rule or a tested
+guarantee.
+
+The focused private-process rejection case also reads the registry definition
+after the invalid Join and asserts that its FOM module count is still the base
+count; after a valid retry with the same requested federate name and type, it
+asserts the count grew by one and the new class handle resolves
+([unchanged definition](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L488),
+[valid retry](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L499)).
+This directly observes module-count preservation across that pre-commit failure,
+not byte-for-byte FDD equality or every catalog entry. The test starts from a
+newly created execution with no already-joined members; it does not compare a
+populated membership set before and after rejection. Its successful retry with
+the same requested federate name is a narrow recovery observation, not a
+general membership-preservation assertion. Source shows that preparation
+returns before the process handler calls the registry Join operation, and the
+registry swaps the replacement definition only after its membership writes
+succeed ([preparation result rejected before Join](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L311),
+[registry Join call](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L611),
+[registry commit point](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L596)).
+That supports a source-level pre-commit boundary; the focused test does not
+measure membership count or identity. In contrast, the
+[embedded preparation-failure case](../../cpp/tests/ieee1516_2025_embedded_fom_preparation_atomicity_catch2.cpp#L28)
+only verifies that a subsequent ordinary Join succeeds; it does not compare
+the prior catalog or module count. Neither case exercises a failure after an
+additional-module replacement definition has committed.
 
 ### Caller-visible preparation failures are phase-specific
 
@@ -281,7 +490,7 @@ lookup test](../../cpp/tests/object_class_lookup_catch2.cpp#L99),
 [interaction-class lookup test](../../cpp/tests/interaction_class_lookup_catch2.cpp#L103),
 and [configured-process additional-FOM test](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L219).
 
-### Model replacement is not itself an observer-discovery event
+### Catalog replacement does not itself discover ordinary application objects
 
 The additional-module Join commit reconciles the replacement model's handle
 directories and swaps them with the federation definition while adding the
@@ -320,20 +529,48 @@ is forbidden or required. Keep that question separate from the tested catalog
 and handle behavior, and see the [object/interaction information guide's
 receiver-specific discovery model](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md).
 
+Do not read “catalog replacement does not discover an application object” as
+“an additional-module Join has no observer effects.” Join also admits a member:
+the embedded and configured-process runtime paths may plan discovery of that
+member's distinct RTI-owned `HLAfederate` MOM object for eligible existing
+subscribers ([embedded Join discovery](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L707),
+[process Join discovery](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L789)).
+That is a membership effect, not discovery caused by a new application class.
+Separately, the embedded additional-module test observes a changed
+`HLAcurrentFDD` reflection after Join ([test](../../cpp/tests/federation_mom_current_fdd_catch2.cpp#L287)).
+The reviewed configured-process Join path does not enqueue the federation-level
+conditional update, despite the MIM condition; a later value request reads the
+updated definition. No focused process observer test checks that automatic
+reflection. See the [process Federation MOM boundary](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#2025-process-profile-federation-mom-after-an-additional-module-join)
+and the [membership/MOM lifecycle map](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#the-federation-and-member-mom-projections-follow-different-scopes)
+for those separate paths. These source and test observations do not settle the
+normative callback duty or imply embedded/process parity.
+
+This consequence chart starts after validation and composition, at the prepared
+Join's registry-commit boundary. The earlier [additional-module Join phase
+diagram](#join-with-additional-fom-modules-replace-definition-and-add-member-together)
+shows preparation, atomic model-and-membership commit, and the profile-specific
+post-commit setup/rollback paths.
+
 ```mermaid
 flowchart TB
   accTitle: Additional-module Join changes model vocabulary, not automatically live application-object state
-  accDescr: The selected 2025 sources show a model-and-membership commit, new catalog lookup, retained object knowledge and declarations, a separate Federation MOM reflection, and an unresolved normative callback question.
-  Join["Additional-module Join succeeds"] --> Commit["Commit replacement catalog and handle directories<br/>with the new member"]
+  accDescr: The selected 2025 sources show atomic model-and-membership replacement, retained object knowledge and class-keyed declarations, later registration and discovery through the updated catalog, distinct membership-driven HLAfederate discovery and Federation MOM reflection paths, and an unresolved post-Join application-object test and normative callback question.
+  Join["Prepared additional-module Join request"] --> Commit["Atomically commit replacement catalog and handle directories<br/>with the new member"]
   Commit --> Catalog["Shared model vocabulary changes"]
   Catalog --> Lookup["Added classes or parameters can resolve;<br/>selected embedded tests preserve old handles"]
+  Commit --> MemberMOM["Separate membership effect:<br/>new HLAfederate object may be discovered by eligible observers"]
   Commit --> Runtime["Existing object knowledge, per-class subscriptions,<br/>and instance ownership remain separate state"]
   Runtime --> NoCallback["Commit path does not directly call ordinary<br/>object-discovery planning or synthesize Receive Interaction"]
   NoCallback --> Normative["Source observation only:<br/>normative Join-to-callback duty is unresolved"]
   Commit --> Mom["Separate embedded Federation MOM projection"]
   Mom --> Reflection["HLAcurrentFDD reflection observed after Join;<br/>not ordinary application-object discovery"]
-  Runtime --> Later["Later declarations and sends are separate transitions<br/>with their own catalog and receiver-state gates"]
-  Later --> Gap["No focused post-Join delivery test for added<br/>attribute or interaction cases"]
+  Runtime --> LaterReg["Later registration under an added<br/>descendant class is a new transition"]
+  LaterReg --> Resolve["Current-catalog discovery walk starts at<br/>registered class and checks subscribed ancestors"]
+  Resolve --> Known["If discovery gates pass, save the closest<br/>qualifying class as receiver-known class"]
+  Known --> LaterValue["A later update starts projection from<br/>receiver-known class, then applies its own gates"]
+  LaterValue --> Gap["Source inference only: no focused test combines<br/>Join + retained ancestor subscription + later registration/reflection"]
+  Runtime --> OldInstance["Join alone does not retype an existing object<br/>or invoke ordinary discovery planning"]
 ```
 
 The lookup and MOM observations in this diagram are embedded-profile tests;
@@ -387,13 +624,48 @@ This describes the inspected 2025 implementation only. There is no successful
 focused Join test here for adding an attribute to an already-defined class,
 and no test of how pre-existing observers see such a change.
 
-For an already-registered object, keep three consequences separate:
+For objects and declarations around a model change, keep these consequences separate:
 
 | Additional-module shape or later event | Existing-object consequence in the inspected 2025 path | Evidence limit |
 | --- | --- | --- |
 | Join adds a child class below an existing class. | Existing members can resolve the new class, but an object registered under the old class keeps its registered-class handle; the current resolver starts from that registered class and walks toward its ancestors, not down into newly added children. | The successful embedded fixture tests catalog lookup and stability of an older class handle, not a live object's discovery or retyping ([test](../../cpp/tests/object_class_lookup_catch2.cpp#L99), [instance class field](../../cpp/src/internal/federation/federation_registry.hpp#L2414), [resolver](../../cpp/src/internal/federation/federation_registry.cpp#L830)). |
 | A module adds an attribute to an existing class. | Replacing the catalog does not itself add the new attribute to an instance's ownership record or to a member's subscription declarations. | The cited Restaurant extension is rejected during FDD materialization, before any Join commit; there is no successful focused add-attribute Join case ([rejection case](../../cpp/tests/ieee1516_2025_embedded_fom_preparation_atomicity_catch2.cpp#L28), [Join replacement](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L596), [instance owner record](../../cpp/src/internal/federation/federation_registry.hpp#L2419), [subscription declaration state](../../cpp/src/internal/federation/federation_registry.hpp#L2323)). |
 | A member subscribes after the model change, but already knows the object. | This is a separate declaration transition: discovery replanning skips the receiver's known instance, and the ordinary current-value reflection question remains open. | The subscription guide documents the source path and the missing isolated value-only test; do not infer an immediate Join callback or a normative no-reflection rule ([known-object subscription boundary](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md)). |
+| Later registration under an added descendant class with an earlier ancestor subscription. | Embedded source may use the retained ancestor declaration for discovery, save the closest qualifying class as receiver-known, then start later value projection from that class. | Cross-path source inference only. The focused Join and child/base-subscription tests cover separate pieces; no post-Join combined case, process-parity evidence, or normative callback conclusion. |
+
+#### Later registration can use a retained ancestor declaration
+
+During additional-module Join, the registry copies and reconciles its existing
+handle directories against the replacement catalog, then swaps those prepared
+directories with the new definition. Per-federate object-class declarations
+remain in their separate class-keyed map. A later embedded
+`RegisterObjectInstance` stores the selected registered-class handle and calls
+the discovery planner. That planner resolves the registered class against the
+current catalog, walks toward its ancestors, applies relevance, ownership,
+region, and receiver-declaration gates, then records the closest qualifying
+class as the receiver-known class. Later attribute-value planning starts from
+that saved receiver-known class and applies its own delivery gates. See the
+[Join reconciliation and commit](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L280),
+[retained declaration map](../../cpp/src/internal/federation/federation_registry.hpp#L2584),
+[registration-to-discovery path](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_region_registration.cpp#L386),
+[current-catalog resolver](../../cpp/src/internal/federation/federation_registry.cpp#L830),
+and [receiver-known-class value planner](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L49).
+The active discovery-relevance gate and this receiver's declaration match are
+separate decisions: another joined member may establish active relevance while
+the receiver is selected through its own declaration. The
+[subscription ancestry crosswalk](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md#class-ancestry-affects-separate-decisions)
+shows those roles separately.
+
+This is an implementation path, not a promise that every such registration
+discovers or delivers: the active-relevance, owned-attribute, regional, and
+receiver-specific predicates still apply. The focused
+[additional-module lookup test](../../cpp/tests/object_class_lookup_catch2.cpp#L99)
+checks catalog visibility and an earlier handle; the focused
+[base-subscription/child-object test](../../cpp/tests/subscribe_object_class_attributes_discovery_catch2.cpp#L297)
+uses a class already present at Create. Neither combines retained subscription,
+Join-added descendant, later registration, discovery, and follow-up reflection.
+The configured-process [additional-FOM test](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L219)
+also stops at lookup.
 
 These are bounded source and test observations, not a substitute for the
 licensed standard text. They separate catalog visibility, instance class and
@@ -431,6 +703,16 @@ that callback class closer and still yields one receipt
 ([receipt case](../../cpp/tests/inherited_interaction_receipt_catch2.cpp#L71)).
 This verifies the selected 2025 hierarchy-routing scenario, not what happens
 when the descendant was introduced by a later Join.
+The ordinary interaction state machine and its separate
+active-relevance/receiver-selection and parameter-projection decisions are
+shown in the object/interaction guide's
+[interaction path](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#interaction-path-class-subscription-parameter-projection-callback)
+and [class-promotion flow](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#interaction-relevance-class-promotion-and-parameter-projection).
+The receipt test sends an empty parameter map, so it establishes the selected
+callback class, not parameter filtering. The separate
+[registry projection case](../../cpp/tests/federation_registry_composed_fom_catch2.cpp#L1209)
+checks parameter visibility across distinct receivers, not a post-Join send or
+same-receiver class-promotion-plus-projection case.
 
 In the inspected registry, ordinary interaction subscriptions are stored per
 federate and interaction-class handle. A later ordinary send resolves the sent
@@ -456,30 +738,67 @@ module-bearing process Join is accepted only when the service has an
 configured-process test and process service probe install a
 `FederationManagementCoordinator`-backed callback. The service serializes
 preparation and registry commit, then passes the prepared replacement into
-the registry Join. The registry copies and reconciles the existing interaction
-class directory against the replacement catalog, preserving prior named
-handles, and swaps the definition and directories with the new membership.
-The per-federate interaction-declaration map is separate and is not rewritten
-by that commit. A later process send calls the shared receive-order planner;
-its recipient resolver uses the current catalog and walks the sent class's
-parent chain against stored subscriptions. This is a 2025 process source
-inference that a pre-existing ancestor subscription can be considered for a
-subsequent send of an added descendant—not a tested delivery result.
+the registry Join. After membership writes succeed, the registry swaps the
+replacement definition together with reconciled object, attribute, interaction,
+parameter, dimension, and transportation handle directories. Existing
+interaction-class and parameter identities are retained; new definitions get
+directory entries. The per-federate interaction-declaration map is separate
+and is not rewritten by that commit.
 
-The configured-process fixture's added module is object-only
-([module](../../cpp/tests/data/reference-data-class-provider-fom.xml#L5)); its
-public assertions resolve that new object class by handle and name. No focused
-process case adds an interaction class or parameter, preserves a pre-existing
-ancestor subscription through such an addition, and sends to a descendant.
-The process source path is therefore not process/embedded parity evidence.
+The later process service path uses those current directories: Get Parameter
+Handle resolves the interaction handle to its class name and then resolves a
+parameter through that class or an ancestor; subscription requests pass the
+class handle into the stored per-federate declaration map. Send Interaction
+calls the shared receive-order planner, which validates sender publication and
+the sent class and parameter handles against the current catalog. Recipient
+selection walks the sent class and its parent chain against stored
+subscriptions, selects the closest eligible received class, and projects only
+parameters defined for that class or an ancestor. This source path means a pre-existing ancestor
+subscription can be considered for a later send of an added descendant; it is
+not a tested post-Join delivery result.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant J as Process Join
+    participant R as Shared registry
+    participant M as Joined member
+    participant P as Eligible peer
+
+    P->>R: Subscribe to a pre-existing ancestor interaction class
+    J->>R: Commit replacement definition and reconciled handle directories
+    Note over R: Existing per-federate declarations are separate and are not rewritten
+    M->>R: Resolve added interaction-class and parameter handles
+    M->>R: Publish the added interaction class using its handle
+    M->>R: Send with interaction-class and parameter handles
+    R->>R: Validate publication and handles against current catalog
+    R->>R: Match the stored subscription along class ancestry
+    R->>P: Select received class and project its visible parameters
+    R->>P: Route through the configured-process callback path
+    Note over J,P: Source trace only, no focused process test exercises this full post-Join sequence
+```
 
 Implementation evidence: [optional process preparation hook](../../cpp/src/internal/federation/process_federation_service.hpp#L31),
 [serialized process Join preparation](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L257),
-[atomic definition/directory replacement with membership](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L298),
-[existing interaction-handle reconciliation](../../cpp/src/internal/handles/interaction_class_handle_directory.cpp#L10),
-[per-federate declarations](../../cpp/src/internal/federation/federation_registry.hpp#L2250),
-[later process send planner](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389),
-and [current-catalog parent resolution](../../cpp/src/internal/federation/federation_registry.cpp#L1421).
+[directory reconciliation](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L298),
+[atomic replacement with membership](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L600),
+[parameter-handle reconciliation and inherited lookup](../../cpp/src/internal/handles/parameter_handle_directory.cpp#L11),
+[process Get Parameter Handle](../../cpp/src/internal/federation/process_federation_service_handle_lookup.cpp#L135),
+[process interaction publication](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L324),
+[process interaction subscription](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L338),
+[per-federate interaction declarations](../../cpp/src/internal/federation/federation_registry.hpp#L2250),
+[process send planner call](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389),
+[recipient class selection and parameter projection](../../cpp/src/internal/federation/federation_registry.cpp#L1421),
+and [parameter filtering for the received class](../../cpp/src/internal/federation/federation_registry.cpp#L1597).
+
+The configured-process fixture's added module is object-only
+([module](../../cpp/tests/data/reference-data-class-provider-fom.xml#L5)); its
+public assertions resolve that new object class by handle and name. It does not
+exercise interaction/parameter lookup, publication or subscription, send, or
+receive after the module-bearing Join. Existing interaction and inherited
+parameter lookup tests exercise lookup separately, not the configured-process
+post-Join delivery sequence. Thus the process source path is not end-to-end
+test evidence or process/embedded parity evidence.
 
 For how FOM dimension declarations become class-available dimensions and then
 application-chosen region scope, see the DDM guide's
@@ -488,10 +807,19 @@ For one bounded example where dimensions along an object-class parent chain
 are used by a child-class regional registration and subscription, see the
 DDM guide's [inherited-dimensions case](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#inherited-dimensions-in-a-child-class-regional-path).
 That is source/test evidence, not a general normative inheritance ruling.
+For the Join-specific distinction between current dimension-context admission,
+retained region specifications, and later object overlap/delivery, see the
+DDM guide's [additional-module Join trace](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#2025-implementation-trace-class-availability-and-existing-regions)
+and [post-admission delivery boundary](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#dimension-context-admission-is-not-later-regional-delivery).
 The corresponding interaction-class path is a separate source-only case:
 available dimensions, exact-class regional declaration storage, and the
 send-time parent walk are distinct steps, with no reviewed cross-class
-regional test. See the DDM guide's [interaction ancestry map](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#interaction-class-ancestry-available-context-and-declaration-lookup).
+regional test. The DDM guide's [interaction ancestry map](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#interaction-class-ancestry-available-context-and-declaration-lookup)
+now also traces how an additional-module Join leaves declaration keys intact
+while later sends resolve against the current catalog
+([Join-to-regional-interaction bridge](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#additional-module-join-retained-regional-interaction-declarations)).
+This embedded source trace does not establish process behavior or normative
+callback delivery.
 
 The effective model described here is separate from the RTI-owned Federation
 MOM projection. For the distinction between the federation-wide conditional
@@ -543,9 +871,9 @@ and [2025-API registration-only case](../../cpp/tests/external_2010_fom_catch2.c
 | FDD serialization/schema boundary | [FDD materializer](../../cpp/src/internal/fom/libxml2_fom_composer.cpp#L1430) | [MIM plus supplied base FOM produces catalog and validated FDD](../../cpp/tests/libxml2_fom_composer_catch2.cpp#L345), [DIF-valid extension rejected at FDD boundary](../../cpp/tests/ieee1516_2025_embedded_fom_preparation_atomicity_catch2.cpp#L29) |
 | Duplicate behavior and fixed-order repeatability | [Annex C merge implementation](../../cpp/src/internal/fom/libxml2_fom_composer.cpp#L843) | [first switch retained with warning](../../cpp/tests/libxml2_fom_composer_catch2.cpp#L885), [fixed-input repeatability](../../cpp/tests/libxml2_fom_composer_catch2.cpp#L837), [equivalent duplicate vs. conflict](../../cpp/tests/libxml2_fom_composer_catch2.cpp#L2131) |
 | Create failure before federation-name reservation | [Prepare, then registry create](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L201) | [failed Create leaves name available; valid Create then succeeds](../../cpp/tests/ieee1516_2025_embedded_fom_preparation_atomicity_catch2.cpp#L4) |
-| Additional-module Join commit boundary | [Prepare replacement and commit definition with membership](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L508), [atomic registry transition](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L216) | [failed addition leaves base federation joinable](../../cpp/tests/ieee1516_2025_embedded_fom_preparation_atomicity_catch2.cpp#L29), [registry replacement-definition contract](../../cpp/tests/federation_registry_foundation_catch2.cpp#L123) |
+| Additional-module Join commit boundary | [Prepare replacement and commit definition with membership](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L508), [atomic registry transition](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L216) | [failed embedded addition leaves the base federation joinable](../../cpp/tests/ieee1516_2025_embedded_fom_preparation_atomicity_catch2.cpp#L29), [private-process rejection preserves the base module count and permits a valid retry with the same requested federate name](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L408), [registry replacement-definition contract](../../cpp/tests/federation_registry_foundation_catch2.cpp#L123) |
 | Configured-process additional-module interaction boundary | [optional preparation and Join handler](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L257), [atomic catalog/directory replacement](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L298), [existing interaction-handle reconciliation](../../cpp/src/internal/handles/interaction_class_handle_directory.cpp#L10), [later shared send planner and current-catalog resolver](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389) | [configured-process additional-FOM test](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L219) uses an object-only module and checks object-class lookup; no focused interaction subscription/send/receive case after Join was identified |
-| Post-commit Join setup rollback | [Report/lifecycle setup and membership-only rollback](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L570), [registry swaps the replacement definition before returning](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L596) | [ordinary-Join writer-creation failure and member-name reuse](../../cpp/tests/service_report_writer_failure_catch2.cpp#L92); additional-module catalog state after this failure is not tested |
+| Post-commit Join setup rollback | [Embedded report/lifecycle setup and membership-only rollback](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L540), [process post-commit session/discovery rollback](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L758), [registry swaps the replacement definition before returning](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L596) | [ordinary embedded-Join writer failure](../../cpp/tests/service_report_writer_failure_catch2.cpp#L92), [ordinary process-Join setup failures](../../cpp/tests/process_federation_service_join_rollback_catch2.cpp#L35), [additional-FOM process rejection before commit](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L408); no focused case asserts replacement-catalog state after post-commit failure with added modules |
 
 The linked tests prove only their named cases. They do not establish exhaustive
 coverage of every Annex C table, every schema-valid FOM, process/embedded

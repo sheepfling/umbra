@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable embedded temporal-role development slice to source-derived IEEE 1516.1-2025 records. It keeps Enable Time Regulation and Enable Time Constrained pending until their respective standard callback is dispatched; stores the requested lookahead only when time regulation becomes enabled; exposes Query Lookahead; and clears the corresponding mode on Disable. Relevant role state changes re-evaluate the bounded embedded TAR scheduler. The role callback tests use the federate's current time; timestamped callback times and retraction lifetime are covered by separate service contracts. Focused regressions now include default-region and explicit-source regional timestamped interactions plus an explicit-source regional timestamped object update that remain queued across a Time Constrained disable/re-enable cycle, while normal-interaction regressions prove both that disabling regulation temporarily removes Retract authority without terminalizing a live designator and that an accepted queued TSO still delivers exactly once after regulation is callback-gated back on at the same lookahead. The JNI/Java/JPype callback-gating companion exercises the same lifecycle through both HLA_EVOKED and HLA_IMMEDIATE, preserving the pending-request and already-enabled exception mappings. Separate restore-control regressions return a saved actual lookahead after a post-save increase and retain one saved deferred decrease target; they do not establish general time-role save/restore behavior. It does not cover complete TSO delivery/order, asynchronous delivery, the separately traced Modify Lookahead service, full enable-time coordination, broader re-enable matrices, package support, catalog result, JUnit sidecar, protected review, or conformance claim.",
+  "notes": "This contract pins Umbra's opt-in, non-installable embedded temporal-role development slice to source-derived IEEE 1516.1-2025 records. It keeps Enable Time Regulation and Enable Time Constrained pending until their respective standard callback is dispatched; stores the requested lookahead only when time regulation becomes enabled; exposes Query Lookahead; and clears the corresponding mode on Disable. Relevant role state changes re-evaluate the bounded embedded TAR scheduler. The role callback tests use the federate's current time; timestamped callback times and retraction lifetime are covered by separate service contracts. Focused regressions now include default-region and explicit-source regional timestamped interactions plus an explicit-source regional timestamped object update that remain queued across a Time Constrained disable/re-enable cycle, while normal-interaction regressions prove both that disabling regulation temporarily removes Retract authority without terminalizing a live designator and that an accepted queued TSO still delivers exactly once after regulation is callback-gated back on at the same lookahead. The JNI/Java/JPype callback-gating companion exercises the same lifecycle through both HLA_EVOKED and HLA_IMMEDIATE, preserving the pending-request and already-enabled exception mappings. Separate restore-control regressions return a saved actual lookahead after a post-save increase and retain one saved deferred decrease target; they do not establish general time-role save/restore behavior. It does not cover complete TSO delivery/order, asynchronous delivery, the separately traced Modify Lookahead service, full enable-time coordination, broader re-enable matrices, general package support, protected review, or conformance; the named portable C++ scenarios have their own installed-package results and JUnit sidecars but do not establish validation or conformance.",
   "requirements": [
     {
       "id": "umbra-embedded-time-regulation-request-pending",
@@ -37,6 +37,8 @@
       "tests": [
         "cpp/tests/federate_time_state_catch2.cpp::Federate time state keeps time-role enables callback-gated and blocks advances",
         "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "packages/hla-rti-cpp-tck/src/tck_timestamped_attribute_sender_regulation_transition.cpp::scenarioTimestampedAttributeSenderRegulationTransition",
+        "packages/hla-rti-cpp-tck/src/tck_timestamped_attribute_sender_regulation_transition.cpp::scenarioTimestampedAttributeSenderRegulationTransitionContract",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
@@ -151,8 +153,112 @@
       "tests": [
         "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
-        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioModifyLookahead",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioModifyLookaheadContract"
       ]
+    }
+  ],
+  "canonical_standard_section_overrides": [
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l64-15",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.4.3",
+      "canonical_clause_id": "clause-8.3.4",
+      "canonical_title": "Enable Time Regulation postconditions",
+      "source_path": "content/clauses/08-time-management-page-190.tex",
+      "source_location": "page 190, lines 64-65",
+      "issue": "RL-340"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l67-16",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.4.3",
+      "canonical_clause_id": "clause-8.3.4",
+      "canonical_title": "Enable Time Regulation postconditions",
+      "source_path": "content/clauses/08-time-management-page-190.tex",
+      "source_location": "page 190, lines 67-68",
+      "issue": "RL-340"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l76-19",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.4.3",
+      "canonical_clause_id": "clause-8.3.4",
+      "canonical_title": "Enable Time Regulation postconditions",
+      "source_path": "content/clauses/08-time-management-page-190.tex",
+      "source_location": "page 190, lines 76-77",
+      "issue": "RL-340"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l103-25",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.4.3",
+      "canonical_clause_id": "clause-8.4",
+      "canonical_title": "Disable Time Regulation service",
+      "source_path": "content/clauses/08-time-management-page-190.tex",
+      "source_location": "page 190, lines 102-104",
+      "issue": "RL-340"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l106-26",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.4.3",
+      "canonical_clause_id": "clause-8.4",
+      "canonical_title": "Disable Time Regulation service",
+      "source_path": "content/clauses/08-time-management-page-190.tex",
+      "source_location": "page 190, lines 105-107",
+      "issue": "RL-340"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l72-20",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.6.3",
+      "canonical_clause_id": "clause-8.6",
+      "canonical_title": "Time Constrained Enabled service",
+      "source_path": "content/clauses/08-time-management-page-192.tex",
+      "source_location": "page 192, lines 72-79",
+      "issue": "RL-342"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l78-22",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.6.3",
+      "canonical_clause_id": "clause-8.6",
+      "canonical_title": "Time Constrained Enabled service",
+      "source_path": "content/clauses/08-time-management-page-192.tex",
+      "source_location": "page 192, lines 78-80",
+      "issue": "RL-342"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l84-24",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.6.3",
+      "canonical_clause_id": "clause-8.6",
+      "canonical_title": "Time Constrained Enabled service",
+      "source_path": "content/clauses/08-time-management-page-192.tex",
+      "source_location": "page 192, lines 84-89",
+      "issue": "RL-342"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l93-27",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.6.3",
+      "canonical_clause_id": "clause-8.6",
+      "canonical_title": "Time Constrained Enabled service",
+      "source_path": "content/clauses/08-time-management-page-192.tex",
+      "source_location": "page 192, lines 93-94",
+      "issue": "RL-342"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l99-29",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.6.3",
+      "canonical_clause_id": "clause-8.6",
+      "canonical_title": "Time Constrained Enabled service",
+      "source_path": "content/clauses/08-time-management-page-192.tex",
+      "source_location": "page 192, lines 99-100",
+      "issue": "RL-342"
     }
   ]
 }

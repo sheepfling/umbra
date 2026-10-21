@@ -67,13 +67,14 @@ TEST_CASE(
   REQUIRE_NOTHROW(nmr->enableTimeConstrained());
   REQUIRE_FALSE(nmr->evokeCallback(0.0));
   REQUIRE_NOTHROW(publisher->enableTimeRegulation(
-      rti1516_2025::HLAinteger64Interval(5)));
+      rti1516_2025::HLAinteger64Interval(4)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
 
   // The deletion is accepted at timestamp 7. TAR reaches that timestamp
   // directly, while NMR requests 10 and selects the queued timestamp 7.
   // Both recipients must receive the removal before their own grant, and the
-  // producer's time advance to 2 supplies the outgoing TSO lower bound.
+  // producer's time advance to 4 places GALT at 8, strictly above their
+  // grant at 7.
   auto const retraction = publisher->deleteObjectInstance(
       objectInstance,
       tag,
@@ -86,13 +87,15 @@ TEST_CASE(
   REQUIRE_NOTHROW(nmr->nextMessageRequest(rti1516_2025::HLAinteger64Time(10)));
   REQUIRE(tarReports.timeAdvanceGrantReports.empty());
   REQUIRE(nmrReports.timeAdvanceGrantReports.empty());
-  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(tar->evokeCallback(0.0));
-  REQUIRE_FALSE(nmr->evokeCallback(0.0));
+  while (tar->evokeCallback(0.0)) {
+  }
+  while (nmr->evokeCallback(0.0)) {
+  }
 
   REQUIRE(publisherReports.timeAdvanceGrantReports.size() == 1U);
-  REQUIRE(publisherReports.timeAdvanceGrantReports.front().value == L"2");
+  REQUIRE(publisherReports.timeAdvanceGrantReports.front().value == L"4");
   REQUIRE(tarReports.objectRemovalReports.size() == 1U);
   REQUIRE(nmrReports.objectRemovalReports.size() == 1U);
   REQUIRE(tarReports.timeAdvanceGrantReports.size() == 1U);

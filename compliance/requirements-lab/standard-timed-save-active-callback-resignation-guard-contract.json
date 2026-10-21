@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ translation of the 38-assertion native timed-save active-callback resignation guard. The adapter supplies the FOM, endpoint, and logical-time implementation. In HLA_EVOKED, a regulating owner requests a timed save at time 5 and both the owner and a time-constrained member request TAR(5). The owner's grant precedes its save callback; the constrained member receives Initiate Federate Save before its grant. Resignation attempted from that active callback is rejected with CallNotAllowedFromWithinCallback, after which both members report save begun, complete the save, and receive Federation Saved. Direct traceability is limited to the seven pinned native requirement-section pairs in clauses 4.12, 4.19, 4.19.6, 4.20, and 4.23. HLA_EVOKED only; no immediate-callback, FQR/TARA/NMRA, Java-provider, interoperability, or conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timed-save-active-callback-resignation-guard",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador requestFederationSave(label, LogicalTime), timeAdvanceRequest, resignFederationExecution, federateSaveBegun, federateSaveComplete with FederateAmbassador initiateFederateSave(label, LogicalTime), timeAdvanceGrant, federationSaved",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador and FederateAmbassador time-management and federation-save declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_save_active_callback_resignation.cpp::scenarioTimedSaveActiveCallbackResignation",
+        "packages/hla-rti-cpp-tck/src/tck_save_active_callback_resignation.cpp::scenarioTimedSaveActiveCallbackResignationContract"
+      ]
+    }
+  ]
+}

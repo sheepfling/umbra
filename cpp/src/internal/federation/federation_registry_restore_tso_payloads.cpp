@@ -69,7 +69,7 @@ void EmbeddedFederationRegistry::restoreTsoPayloadsFromStateImage(
         savedRecord.deliveryRequiredAfterConnectionLoss;
     for (auto const& savedRecipient : savedRecord.recipientStates) {
       if (savedRecipient.receivingFederateId == 0U ||
-          savedRecipient.state > 3U) {
+          savedRecipient.state > 4U) {
         throw std::logic_error(
             "The saved TSO Request Retraction record has an invalid recipient state.");
       }

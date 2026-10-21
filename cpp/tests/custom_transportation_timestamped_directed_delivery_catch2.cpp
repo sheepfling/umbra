@@ -127,9 +127,20 @@ class ReportingFederateAmbassador final : public NullFederateAmbassador {
     callbackOrder.push_back("grant");
   }
 
+  void flushQueueGrant(
+      LogicalTime const& time,
+      LogicalTime const& optimisticTime) override {
+    flushQueueGrantReports.push_back({time.toString(), optimisticTime.toString()});
+  }
+
   std::vector<ObjectInstanceHandle> objectDiscoveryReports;
   std::vector<DirectedInteractionReport> directedInteractionReports;
   std::vector<TimeAdvanceGrantReport> timeAdvanceGrantReports;
+  struct FlushQueueGrantReport final {
+    std::wstring actual;
+    std::wstring optimistic;
+  };
+  std::vector<FlushQueueGrantReport> flushQueueGrantReports;
   std::vector<std::string> callbackOrder;
 };
 
@@ -139,6 +150,114 @@ std::unique_ptr<RTIambassador> makeRti() {
 }
 
 }  // namespace
+
+TEST_CASE(
+    "Embedded distinct FQR grant permits timestamped directed send above actual time",
+    "[integration][development-profile][time-management][tso]"
+    "[fqr-distinct-actual-optimistic-directed-bound]"
+    "[rti.service.send-directed-interaction][rti.service.flush-queue-request]"
+    "[rti.service.query-logical-time]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador senderReports;
+  auto owner = makeRti();
+  auto sender = makeRti();
+  auto const federationName = nextFederationName();
+  std::vector<std::wstring> const fomModules{
+      resourcePath("directed-interaction-object-consumer-fom.xml").wstring(),
+      resourcePath("transportation-directed-interaction-provider-fom.xml").wstring(),
+      resourcePath("transportation-reference-provider-fom.xml").wstring(),
+  };
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(sender->connect(senderReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      fomModules,
+      standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"fqr-directed-owner", L"owner", federationName));
+  REQUIRE_NOTHROW(sender->joinFederationExecution(
+      L"fqr-directed-sender", L"sender", federationName));
+
+  auto const objectClass = owner->getObjectClassHandle(
+      fixture_hla::fom::directed_fixture_object);
+  auto const marker = owner->getAttributeHandle(
+      objectClass, fixture_hla::fixture::directed_target_marker);
+  auto const interactionClass = owner->getInteractionClassHandle(
+      fixture_hla::fom::directed_fixture_interaction);
+  REQUIRE(objectClass.isValid());
+  REQUIRE(marker.isValid());
+  REQUIRE(interactionClass.isValid());
+  InteractionClassHandleSet const directedClasses{interactionClass};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(owner->subscribeObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(sender->subscribeObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(owner->publishObjectClassDirectedInteractions(
+      objectClass, directedClasses));
+  REQUIRE_NOTHROW(sender->publishObjectClassDirectedInteractions(
+      objectClass, directedClasses));
+  REQUIRE_NOTHROW(owner->subscribeObjectClassDirectedInteractions(
+      objectClass, directedClasses));
+  REQUIRE_NOTHROW(sender->subscribeObjectClassDirectedInteractions(
+      objectClass, directedClasses, true));
+  REQUIRE_NOTHROW(owner->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(sender->changeInteractionOrderType(interactionClass, TIMESTAMP));
+
+  auto const target = owner->registerObjectInstance(objectClass);
+  REQUIRE(target.isValid());
+  while (sender->evokeCallback(0.0)) {
+  }
+  REQUIRE(senderReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE_NOTHROW(owner->enableTimeConstrained());
+  while (owner->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(owner->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  while (owner->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(sender->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  while (sender->evokeCallback(0.0)) {
+  }
+
+  REQUIRE_NOTHROW(owner->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  REQUIRE_NOTHROW(sender->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  while (owner->evokeCallback(0.0)) {
+  }
+  while (sender->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(sender->sendDirectedInteraction(
+      interactionClass,
+      target,
+      ParameterHandleValueMap{},
+      VariableLengthData{},
+      rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE_NOTHROW(owner->flushQueueRequest(rti1516_2025::HLAinteger64Time(10)));
+  while (owner->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.flushQueueGrantReports.size() == 1U);
+  REQUIRE(ownerReports.flushQueueGrantReports.front().actual == L"5");
+  REQUIRE(ownerReports.flushQueueGrantReports.front().optimistic == L"7");
+  rti1516_2025::HLAinteger64Time logicalTime;
+  REQUIRE_NOTHROW(owner->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+
+  REQUIRE_NOTHROW(owner->sendDirectedInteraction(
+      interactionClass,
+      target,
+      ParameterHandleValueMap{},
+      VariableLengthData{},
+      rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE_NOTHROW(owner->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+
+  REQUIRE_NOTHROW(sender->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(sender->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
 
 TEST_CASE(
     "Embedded timestamped directed delivery accepts a declared custom FOM transportation",

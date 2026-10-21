@@ -2075,7 +2075,9 @@ std::string FederationStateImageCodec::encode(FederationStateImage const& image)
       }
     }
   }
-  if (image.saveHistoryPresent) {
+  if (image.saveHistoryPresent ||
+      !image.queuedReceiveOrderInteractions.empty() ||
+      !image.queuedReceiveOrderAttributeUpdates.empty()) {
     if (image.lastSaveName.empty() && image.lastSaveTimeEncoding.has_value()) {
       throw std::logic_error(
           "Last-save time cannot be present without a last-save name.");
@@ -2093,6 +2095,104 @@ std::string FederationStateImageCodec::encode(FederationStateImage const& image)
     result += '|';
     result += encodeOptional(image.nextSaveTimeEncoding);
     result += '\n';
+  }
+  if (image.saveHistoryPresent ||
+      !image.queuedReceiveOrderInteractions.empty() ||
+      !image.queuedReceiveOrderAttributeUpdates.empty()) {
+    result += "queuedReceiveOrderInteractions=";
+    result += std::to_string(image.queuedReceiveOrderInteractions.size());
+    result += '\n';
+  std::uint64_t previousRecipient = 0U;
+  std::uint64_t previousSequence = 0U;
+  for (auto const& message : image.queuedReceiveOrderInteractions) {
+    if (message.producingFederateId == 0U ||
+        message.receivingFederateId == 0U ||
+        message.interactionClassHandle == 0U ||
+        message.transportationName.empty() || message.sequence == 0U ||
+        (message.receivingFederateId < previousRecipient) ||
+        (message.receivingFederateId == previousRecipient &&
+         message.sequence <= previousSequence) ||
+        std::any_of(
+            message.parameterHandles.begin(),
+            message.parameterHandles.end(),
+            [](std::uint64_t handle) { return handle == 0U; })) {
+      throw std::logic_error(
+          "Invalid queued receive-order interaction in Umbra state image.");
+    }
+    previousRecipient = message.receivingFederateId;
+    previousSequence = message.sequence;
+    result += "queuedReceiveOrderInteraction=";
+    result += std::to_string(message.sequence);
+    result += '|';
+    result += std::to_string(message.producingFederateId);
+    result += '|';
+    result += std::to_string(message.receivingFederateId);
+    result += '|';
+    result += std::to_string(message.interactionClassHandle);
+    result += '|';
+    result += std::to_string(message.parameterHandles.size());
+    result += '|';
+    result += hexEncode(message.payload);
+    result += '|';
+    result += hexEncode(message.transportationName);
+    result += '\n';
+    for (auto const handle : message.parameterHandles) {
+      result += "queuedReceiveOrderParameter=";
+      result += std::to_string(handle);
+      result += '\n';
+    }
+  }
+  result += "queuedReceiveOrderAttributeUpdates=";
+  result += std::to_string(image.queuedReceiveOrderAttributeUpdates.size());
+  result += '\n';
+  previousRecipient = 0U;
+  previousSequence = 0U;
+  for (auto const& update : image.queuedReceiveOrderAttributeUpdates) {
+    if (update.sequence == 0U || update.producingFederateId == 0U ||
+        update.receivingFederateId == 0U ||
+        update.objectInstanceHandle == 0U || update.values.empty() ||
+        update.transportationName.empty() ||
+        update.receivingFederateId < previousRecipient ||
+        (update.receivingFederateId == previousRecipient &&
+         update.sequence <= previousSequence) ||
+        std::any_of(
+            update.values.begin(),
+            update.values.end(),
+            [](FederationStateImageReceiveOrderAttributeValue const& value) {
+              return value.attributeHandle == 0U;
+            })) {
+      throw std::logic_error(
+          "Invalid queued receive-order attribute update in Umbra state image.");
+    }
+    previousRecipient = update.receivingFederateId;
+    previousSequence = update.sequence;
+    result += "queuedReceiveOrderAttributeUpdate=";
+    result += std::to_string(update.sequence);
+    result += '|';
+    result += std::to_string(update.producingFederateId);
+    result += '|';
+    result += std::to_string(update.receivingFederateId);
+    result += '|';
+    result += std::to_string(update.objectInstanceHandle);
+    result += '|';
+    result += std::to_string(update.values.size());
+    result += '|';
+    result += hexEncode(update.userSuppliedTag);
+    result += '|';
+    result += hexEncode(update.transportationName);
+    result += '|';
+    result += update.recheckAtReceive ? '1' : '0';
+    result += '|';
+    result += std::to_string(update.pushDeliveryId);
+    result += '\n';
+    for (auto const& value : update.values) {
+      result += "queuedReceiveOrderAttributeValue=";
+      result += std::to_string(value.attributeHandle);
+      result += '|';
+      result += hexEncode(value.value);
+      result += '\n';
+    }
+  }
   }
   result += "end\n";
   return result;

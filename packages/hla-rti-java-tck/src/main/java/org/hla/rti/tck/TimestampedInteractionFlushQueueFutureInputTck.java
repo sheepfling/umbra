@@ -85,10 +85,13 @@ final class TimestampedInteractionFlushQueueFutureInputTck {
 
          LogicalTime initial = publisher.queryLogicalTime();
          LogicalTime receiverInitial = receiver.queryLogicalTime();
-         LogicalTime firstTime = offset(initial, epsilon, 1);
+         LogicalTime firstTime = offset(initial, epsilon, 11);
          LogicalTime secondTime = offset(initial, epsilon, 12);
          LogicalTime publisherTarget = offset(initial, epsilon, 4);
          LogicalTime requestBoundary = offset(receiverInitial, epsilon, 10);
+         JavaTckSupport.check(compareTime(requestBoundary, firstTime) < 0
+               && compareTime(firstTime, secondTime) < 0,
+            "both future TSO timestamps must be later than the Flush Queue request time");
          byte[] firstPayload = new byte[] {0x46, 0x55, 0x54, 0x55, 0x52, 0x45};
          byte[] secondPayload = new byte[] {0x46, 0x55, 0x54, 0x55, 0x52, 0x45, 0x2d, 0x32};
          byte[] firstTag = new byte[] {0x46, 0x51, 0x31};
@@ -134,17 +137,22 @@ final class TimestampedInteractionFlushQueueFutureInputTck {
          LogicalTime flushGrant = receiverRecorder.flushQueueGrantTime;
          LogicalTime optimistic = receiverRecorder.flushQueueOptimisticTime;
          JavaTckSupport.check(flushGrant != null && optimistic != null
-               && firstTime.equals(optimistic)
+               && requestBoundary.equals(optimistic)
                && compareTime(flushGrant, receiverInitial) >= 0
                && compareTime(flushGrant, requestBoundary) <= 0
                && compareTime(optimistic, flushGrant) >= 0
                && flushGrant.equals(receiver.queryLogicalTime()),
-            "Flush Queue Grant/query returned an inconsistent actual or optimistic frontier");
+            "Flush Queue Grant/query returned an inconsistent actual frontier or request-bounded optimistic time");
 
          LogicalTimeInterval receiverLookahead = receiver.queryLookahead();
          JavaTckSupport.check(receiverLookahead.equals(receiver.getTimeFactory().makeEpsilon()),
             "receiver lookahead changed unexpectedly");
-         LogicalTime postGrantSendTime = offset(flushGrant, receiverLookahead, 1);
+         JavaTckSupport.expectFailure(
+            () -> receiver.sendInteraction(receiverClass,
+               oneParameter(receiver, receiverParameter, firstPayload), firstTag.clone(), optimistic),
+            "InvalidLogicalTime",
+            "timestamped interaction below optimistic Flush Queue time plus lookahead");
+         LogicalTime postGrantSendTime = offset(optimistic, receiverLookahead, 1);
          MessageRetractionReturn postGrantSend = receiver.sendInteraction(receiverClass,
             oneParameter(receiver, receiverParameter, firstPayload), firstTag,
             postGrantSendTime);

@@ -19,13 +19,15 @@ and the selected public process-endpoint path. The guide keeps those evidence
 sets distinct and does not generalize beyond the cited code and tests.
 
 The official [IEEE 1516.1-2025 edition page](https://standards.ieee.org/ieee/1516.1/6688/)
-is the normative starting point. In the pinned API, the
+identifies the edition. The checkout's pinned 2025 import is the unmodified C++
+API header tree only ([README](../../third_party/ieee1516.1-2025/README.md)); it
+does not include normative clause text. In the pinned API, the
 [FederateAmbassador declarations](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L333)
 identify attributesInScope as callback 6.19 and attributesOutOfScope as 6.20.
 Umbra source comments cite clause 10.1.3 for the special case where a
 federate removes its own final applicable subscription. Treat that as a
-source-derived rule to verify against the standard, not as a substitute for
-the official text.
+source-derived rule that has not been independently verified against the
+official clause text in this checkout.
 
 ## First separate four signals
 
@@ -146,11 +148,14 @@ not establish every possible ordering with unrelated callback families.
 
 Planning records an expected direction. Before an embedded callback is
 entered, Umbra recalculates which scheduled attributes still match that
-direction. The process-service path performs a registry eligibility check
-before work crosses the process boundary; when receive-order events are
-queued, the receive path checks eligibility again before returning the event.
-A later commit, unsubscribe, switch change, resignation, or object deletion
-can therefore make previously planned work ineligible.
+direction. The process service checks registry eligibility before routing a
+scope event, but its next checkpoint depends on the configured event path:
+server-queued events are checked again when a later receive request dequeues
+them; pushed events are sent after the first check and then enter the client's
+callback pipeline without another registry scope check shown in the reviewed
+path. A later commit, unsubscribe, switch change, resignation, or object
+deletion can make planned work ineligible, but the last RTI-side check is not
+always at application callback entry.
 
 That means “the RTI planned an In callback” is not the same claim as “the
 application will receive that callback.” In the embedded **HLA_EVOKED** test
@@ -161,8 +166,48 @@ region move; it is valid at callback entry, and the subsequent move produces
 the Out report. The process endpoint test separately exercises the enabled
 scope-switch setup, regional unsubscribe, owner-side association changes, and
 public In/Out callbacks under both callback models, but it does not stage a
-queued-stale race. Process stale-event filtering is therefore supported by
-source inspection, not that focused test.
+queued-stale race. In that fixture, `HLA_EVOKED` uses the server's polling
+queue and `HLA_IMMEDIATE` selects pushed events; this is how that test
+configures the service, not a general equivalence between callback model and
+event transport.
+
+### Process event transport has two stale-work checkpoints
+
+Both process paths first check whether the planned scope direction still
+matches current registry state. The difference is what happens after that
+admission check: a server-queued event gets a second check at dequeue, while a
+pushed event is handed across the transport and on to client callback dispatch
+without another registry check visible in the path.
+
+~~~mermaid
+flowchart TD
+  Plan["Scope transition plan"] --> Filter["Filter planned attributes by current scope and direction"]
+  Filter --> Eligible{"Any eligible attributes remain?"}
+  Eligible -->|No| Drop["Suppress before routing"]
+  Eligible -->|Yes: subset| Mode{"Configured process event path"}
+  Mode -->|Pushed event| Push["Send eligible subset after admission check"]
+  Push --> Client["Client callback pipeline"]
+  Mode -->|Server queue| Queue["Store eligible subset in per-session server queue"]
+  Queue --> Receive["Later process receive_interaction poll"]
+  Receive --> Refilter["Filter queued attributes against current scope again"]
+  Refilter --> Any{"Any eligible attributes remain?"}
+  Any -->|No| Suppress["Consume stale event; continue scanning"]
+  Any -->|Yes: subset| Return["Return current eligible subset"]
+  Return --> Client
+  Client --> Callback["Submit or dispatch scope callback"]
+~~~
+
+Here, `receive_interaction` is Umbra's private process-protocol poll name, not
+the HLA `receiveInteraction` callback or an HLA service. Its result is a
+multiplexed event envelope with a dedicated scope-change slot
+([client poll](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L215),
+[protocol result](../../cpp/src/internal/federation/process_federation_service_protocol.hpp#L1623)).
+
+The second registry check is at server dequeue, not necessarily at the later
+public callback entry. A change after that check—or after the pushed path's
+admission check—before application observation has no focused race test here.
+Do not claim that either source path proves an HLA-required stale-callback
+cutoff; this is a bounded implementation observation and an open test gap.
 
 ## Decision flow for one planned change
 
@@ -173,7 +218,7 @@ flowchart TD
   B -->|No| D{Is this the receiver's own final unsubscribe causing Out?}
   D -->|Yes| E[Implicit loss of scope; suppress Out advisory]
   D -->|No| F{Receiver's Attribute Scope Advisory Switch enabled?}
-  F -->|No| G[Suppress callback; no disabled-switch backlog]
+  F -->|No| G[Suppress this plan; enqueue no new callback work]
   F -->|Yes| H[Group attribute with same receiver, object, and direction]
   H --> I[Queue or route callback work]
   I --> J{At delivery, does current scope match planned direction?}
@@ -187,15 +232,51 @@ planner. Other mutations should be evaluated by their own transition path;
 for example, removing the owner's overlapping source association can produce
 an Out advisory for a still-subscribed receiver.
 
-The switch-off branch is supported by implementation checks but is not
-isolated by the cited switch-off test scenario. In that embedded segment, the
-receiver disables the switch and removes its own final regional subscription;
-the self-final-unsubscribe exception already suppresses Out independently of
-the switch. The process-endpoint test keeps the switch enabled. Thus the
-source paths show the switch being checked during embedded enqueue/callback
-revalidation and process enqueue/receive revalidation, but a focused test of
-an otherwise-reportable transition suppressed solely by disabling the scope
-switch remains open.
+The source has switch gates at admission: the embedded route checks the
+recipient's switch before scheduling, and the shared registry eligibility
+predicate returns no attributes when the switch is off; the process service
+uses that predicate before routing and again when pull delivery dequeues an
+event ([embedded gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1208),
+[switch-aware predicate](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L12),
+[process admission](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L238),
+[pull recheck](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L161)).
+That supports source-level suppression for work evaluated while disabled; it
+does not by itself establish what happens to an already-pushed event if the
+switch changes afterward.
+
+### Switching off is not a common queue flush
+
+The switch-setting path changes the registry value; it does not clear the
+process session's scope-event queue or the client's callback dispatcher. The
+source behavior depends on how far the event has progressed:
+
+| Work position when the switch is disabled | Source behavior | Evidence boundary |
+| --- | --- | --- |
+| Embedded callback closure is queued but has not entered the callback | The closure rechecks the switch-dependent registry predicate at callback entry. If the switch is off at that check, the closure returns without invoking the scope callback ([route](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1207), [predicate](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L12)). | Source-derived; no switch-only pending-callback test. |
+| Process pull event remains in the server session queue | The setter changes registry state but does not purge the queue ([setter](../../cpp/src/internal/federation/process_federation_service_ddm_switches.cpp#L39), [session queue](../../cpp/src/internal/federation/process_federation_service.hpp#L149)). A later receive poll removes the event and rechecks eligibility ([receive recheck](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L157)): while still disabled it is suppressed; if re-enabled before that poll, it may be reconsidered if the current scope still matches. | Source-derived; neither switch/poll interleaving is tested. |
+| Process pushed frame has been sent or its callback task submitted | The server checks eligibility before sending ([push/admission path](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L207)), but the client callback bridge has no later scope-switch check ([bridge submit](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1844), [delivery](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L684)), and the switch-setting path does not purge client callback tasks. | No post-send cancellation or recheck is visible; callback delivery across a concurrent switch change is untested. |
+
+These are three different implementation checkpoints, not one HLA-wide
+“disable cancels pending advisories” rule. “Enqueue no new callback work”
+describes only the plan being evaluated while the switch is off; it does not
+mean work admitted earlier is removed from every queue.
+
+No focused test isolates switch-off as the only suppressor. The embedded test
+comment calls its segment switch-gate suppression, but the action is to disable
+the switch and remove the receiver's final regional subscription
+([test segment](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L302));
+the subscription planner's self-final-unsubscribe exception independently
+suppresses the Out advisory ([planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L613)).
+Re-enabling and subscribing later checks a fresh In callback, not whether an
+otherwise-reportable Out was suppressed solely by the switch. The process
+endpoint scenario explicitly enables the switch before exercising ordinary
+transitions ([setup](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L893)).
+Other C++ test uses of the setter cover service/MOM reporting, unrelated
+behavior, or rejected save/restore-interlocked calls, not switch-only scope
+suppression. No focused test toggles the switch around an event already waiting
+in the process pull queue, an already-sent pushed frame, or a client callback
+task.
+So that test remains open.
 
 ## Implementation and test evidence
 
@@ -205,8 +286,8 @@ switch remains open.
 | Pre/post association comparison and recipient/object/direction grouping | [Association planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L517); [region-association service](../../cpp/src/internal/federation/federation_registry_update_region_associations.cpp#L190) | [Embedded region movement, grouped attributes, and stale evoked callback](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L201) |
 | Pre/post receiver-region commit comparison | [Committed region planner](../../cpp/src/internal/federation/federation_registry_regions.cpp#L255) | [Embedded committed-region moves](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L209) |
 | Subscription transition and the final-self-unsubscribe Out exception | [Subscription planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L577) | [Embedded exception and switch scenario](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L238); [process endpoint exception](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L457) |
-| Embedded switch gate, callback-time filtering, and callback dispatch | [Scope callback route](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1190) | [Stale-In transition and callback-model cases](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L201); [switch-off segment coincides with the final-unsubscribe exception](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L302) |
-| Process boundary queue and receive-time stale-work filtering | [Process event planning](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L147); [receive path](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L125) | [Public process endpoint test for self-unsubscribe and owner-side Out/In callbacks in both callback models; no stale-queue race](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L457) |
+| Embedded switch gate, callback-time filtering, and callback dispatch | [Scope callback route](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1190); [switch-aware eligibility predicate](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L12) | [Stale-In transition and callback-model cases](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L201); [confounded switch-off segment](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L302) |
+| Process event transport checkpoints | [Admission check and push/queue split](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L207); [server dequeue-time recheck](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L154); [client pushed-event dispatch](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L326); [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1844) | [Public process endpoint transition test; switch enabled, no stale-event race](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L457); [switch setup](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L893); [its callback-model-to-event-mode setting](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L595) |
 | Public callback names and API clauses | [Pinned 2025 FederateAmbassador](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L333) | Both tests record callback object and attribute count; the embedded test also checks exact attribute-set equality. |
 
 The embedded test is a focused regional transition scenario: it checks

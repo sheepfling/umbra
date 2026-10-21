@@ -8,6 +8,9 @@ void scenarioServiceReportObjectAttributeDeclaration(
   require(
       !options.mimFom.empty(),
       "Object-attribute declaration service-report testing requires an adapter-supplied standard MIM");
+  require(
+      !options.multiAttributeFom.empty(),
+      "Object-attribute publication service-report testing requires an adapter-supplied multi-attribute FOM");
 
   Session subject(options, model, "object-attribute-declaration-service-report-subject");
   Session observer(options, model, "object-attribute-declaration-service-report-observer");
@@ -18,7 +21,8 @@ void scenarioServiceReportObjectAttributeDeclaration(
   observer.connect();
   subject.rtiAmbassador().createFederationExecutionWithMIM(
       federation,
-      std::vector<std::wstring>{options.fom.wstring()},
+      std::vector<std::wstring>{
+          options.fom.wstring(), options.multiAttributeFom.wstring()},
       options.mimFom.wstring(),
       options.logicalTimeImplementationName);
   subject.join(
@@ -35,9 +39,22 @@ void scenarioServiceReportObjectAttributeDeclaration(
   auto const attribute = subject.rtiAmbassador().getAttributeHandle(
       objectClass,
       options.attributeName);
+  auto const publicationClass = subject.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const publicationAttribute = subject.rtiAmbassador().getAttributeHandle(
+      publicationClass,
+      options.multiAttributeFirstName);
+  auto const secondPublicationAttribute = subject.rtiAmbassador().getAttributeHandle(
+      publicationClass,
+      options.multiAttributeSecondName);
   require(
       objectClass.isValid() && attribute.isValid(),
       "Object-attribute declaration service-report lookup returned an invalid object or attribute handle");
+  require(
+      publicationClass.isValid() && publicationAttribute.isValid() &&
+          secondPublicationAttribute.isValid() &&
+          publicationAttribute != secondPublicationAttribute,
+      "Object-attribute publication service-report lookup returned an invalid or duplicate handle");
 
   auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
       L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
@@ -97,6 +114,19 @@ void scenarioServiceReportObjectAttributeDeclaration(
     return std::vector<ExpectedArgument>{
         {36, L"Object class designator", quoted(objectValue)},
         {34, L"Optional set of attribute designators", L"null"}};
+  };
+  auto const attributeHandleSetValue = [&](rti::AttributeHandleSet const& handles) {
+    std::wstring value{L"["};
+    bool first = true;
+    for (auto const handle : handles) {
+      if (!first) {
+        value += L",";
+      }
+      first = false;
+      value += quoted(handle.toString());
+    }
+    value += L"]";
+    return value;
   };
 
   auto verifyReport = [&](std::size_t index,
@@ -306,6 +336,24 @@ void scenarioServiceReportObjectAttributeDeclaration(
       7U,
       L"UnsubscribeObjectClassAttributes",
       wholeUnsubscribeArguments(validObject),
+      true,
+      L"");
+
+  rti::AttributeHandleSet const publicationAttributes{
+      publicationAttribute, secondPublicationAttribute};
+  require(
+      publicationAttributes.size() == 2U,
+      "Object-attribute publication service-report fixture did not provide two distinct attributes");
+  subject.rtiAmbassador().publishObjectClassAttributes(
+      publicationClass,
+      publicationAttributes);
+  verifyReport(
+      8U,
+      L"PublishObjectClassAttributes",
+      {{36, L"Object class designator", quoted(publicationClass.toString())},
+       {1,
+        L"Set of attribute designators",
+        attributeHandleSetValue(publicationAttributes)}},
       true,
       L"");
 

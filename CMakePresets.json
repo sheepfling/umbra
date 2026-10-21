@@ -84,6 +84,16 @@
       }
     },
     {
+      "name": "mingw-shared",
+      "displayName": "MinGW shared-library package",
+      "description": "Build and package the three IEEE 1516.1-2025 C++ libraries as shared libraries and run a clean installed consumer.",
+      "inherits": "mingw-catch2",
+      "binaryDir": "${sourceDir}/out/mgw/shared",
+      "cacheVariables": {
+        "UMBRA_BUILD_SHARED_LIBRARIES": "ON"
+      }
+    },
+    {
       "name": "mingw-fom",
       "displayName": "MinGW FOM validator",
       "description": "FOM/XML validation tests; downloads the pinned Catch2 and libxml2 dependencies when needed.",
@@ -141,6 +151,11 @@
       "jobs": 1
     },
     {
+      "name": "mingw-shared-debug",
+      "configurePreset": "mingw-shared",
+      "jobs": 1
+    },
+    {
       "name": "mingw-fom-debug",
       "configurePreset": "mingw-fom",
       "jobs": 1
@@ -194,6 +209,13 @@
     {
       "name": "mingw-catch2-debug",
       "configurePreset": "mingw-catch2",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "mingw-shared-debug",
+      "configurePreset": "mingw-shared",
       "output": {
         "outputOnFailure": true
       }

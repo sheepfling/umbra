@@ -10,6 +10,28 @@ These records describe the evidence available when each review was made; they
 do not upgrade source observations or focused tests into normative or
 conformance claims.
 
+## 2025 Delete-privilege transfer and callback identity review — 2026-10-16
+
+Connected the ownership and object-removal guides at a concrete 2025 reader
+seam. The current worktree contains an embedded `HLA_EVOKED` scenario in which
+the original registrant transfers both an ordinary attribute and
+`HLAprivilegeToDeleteObject`; the focused source asserts that only the new
+privilege owner can delete and that the observer's removal callback retains
+the original registrant as `producingFederate`, with the new deleter's tag.
+A paired source scenario checks that acquisition fails with
+`AttributeNotPublished` when the prospective owner has not published the
+special attribute at the object's known class, then succeeds after publication.
+These are checked-in test-source assertions, not test results from this review.
+
+Added one 2025 sequence to the attribute-ownership guide and linked its test
+and embedded registry evidence. The process timestamped-delete path builds
+separate producer metadata; this chart makes no process-profile parity claim,
+and process callback identity is the next evidence review. Mermaid 12.1.0
+syntax parsing accepted the new sequence. No image was produced and visual
+review remains pending because browser launch fails with Windows
+`STATUS_ACCESS_DENIED` (`0xC0000022`). No build, test, CI, or Requirements Lab
+work was performed.
+
 ## 2025 Process callback stream and Resign timing audit — 2026-10-14
 
 The Resign review separates event frames buffered by the client, tasks already
@@ -8420,3 +8442,1493 @@ not an end-to-end result, normative conclusion, or confirmed defect. The new
 chart has no syntax/render or visual verdict because Mermaid CLI's browser
 failed to launch (exit code 2147483651). No C++, build, tests, CI, Requirements
 Lab, or 2010 content changed.
+
+## 2025 additional-module Join: later object registration under a new descendant — 2026-10-15
+
+The FOM, subscription, and object-information guides already covered Join-time
+catalog replacement, no immediate ordinary discovery for existing objects,
+and ancestor-based discovery selection separately. Added the missing reader
+bridge for a later registration under a Join-added descendant while an earlier
+ancestor subscription remains. The FOM guide's existing flowchart now shows
+that registration as a separate event, the current-catalog ancestor walk,
+receiver-known-class selection, and the separate later value-projection gates.
+
+The inference is bounded to source: the Join commit reconciles handle
+directories without rewriting the per-federate declaration map; embedded
+registration invokes discovery planning; the resolver walks from registered
+class toward ancestors; subsequent value planning starts with the saved
+receiver-known class. The focused additional-FOM lookup test and the
+Create-time child/base-subscription test cover separate halves only. The
+configured-process Join case checks lookup, not post-Join discovery or value
+delivery. No post-Join combined test, process parity, 2010 parity, or normative
+callback claim is recorded.
+
+The existing FOM chart was modified after its 2026-10-14 render/visual review,
+so that earlier review does not validate the current chart. Mermaid CLI 12.0.0
+failed to launch Puppeteer's browser before parsing (exit code 2147483651); the
+current chart has no syntax/render or visual verdict. No C++, build, test, CI,
+Requirements Lab, or 2010 content changed.
+
+## 2025 additional-module Join: interaction subscriptions and later sends — 2026-10-15
+
+The bounded audit verified that the FOM guide already traces the source-only
+post-Join interaction inference: the registry reconciles the interaction-class
+and parameter directories while retaining the per-federate declaration map; a
+later send resolves against the current catalog, walks the sent class toward
+its ancestors, chooses the closest eligible receiver subscription, and
+projects parameters visible through that selected class. The process send
+service calls the shared registry plan, but no focused process test combines
+additional-module Join, a retained ancestor subscription, and a descendant
+send.
+
+The existing 2025 object/interaction guide already diagrams the ordinary
+send path, including the separate federation-wide active-relevance gate,
+receiver-specific match, callback-class selection, and parameter projection.
+The FOM guide now links directly to those flows instead of duplicating them.
+Evidence limits remain explicit: the embedded hierarchy-receipt case uses a
+Create-time class tree and an empty parameter map; a separate registry case
+checks parameter filtering for distinct receivers; configured-process
+additional-FOM coverage checks object-class lookup only. No post-Join combined
+delivery result, process parity, 2010 parity, or normative callback duty is
+claimed. No Mermaid source changed, so chart render evidence is unchanged. No
+C++, build, test, CI, Requirements Lab, or 2010 content changed.
+
+## 2025 additional-module Join: object dimensions and retained regions — 2026-10-15
+
+The existing DDM guide already diagrams the source-derived same-class
+dimension-reference extension and the unchanged dimension set of an existing
+Region. The bounded audit found that a reader could mistake a later regional
+context check for delivery. Added a bridge explaining that later regional
+object-subscription and update-region-association calls validate against
+current class availability, store their own declaration/association state,
+and still require a separate later source/receiver overlap evaluation. Linked
+the Join trace to the existing regional-discovery and overlap/value-routing
+diagrams rather than adding another chart.
+
+The combined behavior is source-only. The additional-module dimension test
+adds a separate class/dimension and observes handle lookup; the three-
+dimensional regional object test covers overlap without Join. No focused test
+extends an existing class's dimension list, retains its old Regions, adds new
+regional state, and observes a later update. This is not normative or
+process/2010 parity evidence. No Mermaid source changed, so chart render
+evidence is unchanged. No C++, build, test, CI, Requirements Lab, or 2010
+content changed.
+
+## 2025 additional-module Join: regional interaction declarations — 2026-10-15
+
+The bounded embedded-source audit connected three existing pieces: Join
+reconciles the interaction-class, parameter, and dimension handle directories
+with the replacement catalog while leaving per-federate interaction
+declarations in their separate state map; regional declarations stay keyed to
+the exact class handle; a later regional send resolves against the current
+catalog, checks source-region dimension context, and walks from the sent class
+toward parents while testing region overlap. Added this bridge to the DDM
+guide and linked it from the FOM guide. The existing ancestry chart already
+shows the send-time decision, so no chart was added.
+
+Tests cover only separate slices: the additional-module lookup case sees a
+new interaction class/dimension, while the regional receive-order case uses
+the same class for subscription and send without Join. No focused case
+combines Join, a retained parent-class regional subscription, and a later
+descendant send. This is not normative, process-parity, or 2010-parity
+evidence. No Mermaid source changed; no C++, build, test, CI, Requirements
+Lab, or 2010 work was done.
+
+## 2025 Delay Subscription Evaluation: process regional recheck correction — 2026-10-15
+
+A bounded comparison of the DSE guide with the current process attribute
+update handler found its receive-order regional limitation had gone stale.
+For an unprojected route-only candidate in the pre-event branch, the lookup
+passes sent attribute handles and supplied sent-region handles/snapshots. Pull
+delivery and regional push instead carry the context with the event and
+re-resolve at the receiving service boundary. Updated the prose and process
+attribute chart to show both paths. TSO attribute dispatch remains a separate
+later recheck. The eight named focused DSE files are embedded tests. This
+initial filename-focused scan missed a separate configured-process
+regional-attribute test; a 2026-10-16 test-tag audit corrected that inventory
+in the later addendum below. Nonregional receive-order push and process TSO
+remain without focused DSE coverage. No normative, process-parity, or
+2010-parity claim is made. The edited chart needs local render and visual
+review; Mermaid inventory count is unchanged.
+No C++, build, test, CI, Requirements Lab, or 2010 content changed.
+
+## 2025 DataElement encoding: ordinary versus extendable variants — 2026-10-15
+
+A bounded source/test audit found that the guide's single ordinary-variant
+flow did not explain why the 2025 `HLAextendableVariantRecord` has a distinct
+unknown-discriminant path. Expanded the existing chart and prose to contrast
+ordinary discriminant-only handling with the extendable record's four-octet
+length-field boundary, signed big-endian payload length, fixed eight-octet
+alternative boundary, and cursor skip of an unknown length-delimited payload.
+The local encoder emits zero length for an unmapped current discriminant; the
+decoder does not retain that unknown payload for `getVariant` or re-encoding.
+The focused test checks mapped values, two alignment stages, malformed length
+and padding, truncation, trailing data, and unknown-payload skipping; it does
+not test a negative length or a parent continuing after the skip. This remains
+2025 source/test evidence and makes no 2010 or normative parity claim. The
+existing variant chart was revised, not added, so the Mermaid count is
+unchanged. Mermaid CLI 12.0.0 is installed, but rendering was attempted first
+with its bundled browser and then with the installed Chrome; both Puppeteer
+launches failed before Mermaid parsed or rendered the chart. Fresh syntax,
+render, and visual review remain pending. No C++, build, test, CI, Requirements
+Lab, or 2010 content changed.
+
+## 2025 Names and Handle Resolution: normalization coordinate domains — 2026-10-15
+
+A bounded reader-gap audit rechecked the guide's model lookup, active-versus-
+known federate identity, inherited class-member lookup, per-federate object
+knowledge, typed handle encoding, and support normalization against current
+2025 sources and focused tests. All 54 local source/test links and line anchors
+resolve. The guide already distinguished the major flows, but it left one
+normalization ambiguity: the four typed operations return the same C++ scalar
+type while representing values in different standard MIM dimension
+categories. Added a warning against treating cross-category numeric equality
+or inequality as global handle identity, backed by Umbra's category-specific
+mix inputs and the tests' actual scope (point-range validity and same-category
+agreement across ambassadors, not cross-category uniqueness).
+
+No Mermaid source changed, so the seven diagrams' existing local-render review
+remains applicable and the 300-diagram inventory is unchanged. The separate
+2010 stream remains untouched; no build, test, CI, or Requirements Lab work was
+done. Next: a bounded reader-gap audit of the 2025 Connect, Disconnect, and
+configuration guide, tracing configuration/profile selection, authorization
+handoff, connection lifecycle, and cleanup against current source and focused
+tests.
+
+## 2025 Connect and Disconnect: process-host cleanup boundary — 2026-10-16
+
+A bounded source/test review found the guide's statement that no production
+callsite invokes `ProcessFederationService::detach` had become stale. The
+included `ProcessFederationServiceHost::serveConnection` path runs
+`connectionLost(session)` and then `detach(session)` when its serving loop ends.
+The public client-side `Disconnect` still sends no Disconnect service request:
+it closes its local socket and does not wait for the separate host worker.
+Updated the flowchart and prose to distinguish this implemented asynchronous
+host cleanup path from a synchronous public-service guarantee. A repository-wide
+symbol search found host construction only in focused tests, not a non-test
+server launcher in this checkout. The configured lifecycle fixture explicitly
+detaches its session; the host integration case disconnects clients and then
+stops the host but does not assert server-session removal or timing. The
+host-related test sources were inspected, not rerun.
+
+The existing cleanup chart was revised, not added; the global inventory remains
+300 diagrams. Fresh render/visual review of the revised chart is pending. The
+separate 2010 reference-RTI stream is untouched. No C++, build, test, CI, or
+Requirements Lab changes were made. The pinned API's omission of `NotConnected`
+from the Disconnect `@throws` list remains an unresolved normative-review item.
+
+## 2025 Federation and Federate Lifecycle: host loss versus client/session state — 2026-10-16
+
+A bounded reader-gap audit found a stale statement in the lifecycle guide that
+the process service's connection-loss helper had no caller in `cpp/src`.
+`ProcessFederationServiceHost::serveConnection` calls
+`service.connectionLost(session, ...)` after its service loop ends, attempts
+the cleanup path when serving throws, then detaches the service session and
+closes the connection. For a joined session, the service resolves its member
+and applies the registry's forced-loss transition and survivor-effect
+projection; an unjoined session has no membership cleanup. `detach` clears
+service routing and pending pushed-retraction recipient references, not the
+federation membership transition.
+
+The host path is present in source, but there is no non-test host construction
+site in this checkout. The host integration test uses unjoined clients and
+checks ordinary connection/disconnection plus host shutdown; the stalled-hello
+case checks shutdown interruption. Neither verifies cleanup of a joined member
+or server cleanup timing. The current-process fault fixture is a distinct,
+manually forced loss/detach path. The guide's revised diagram separates the
+host worker, fault fixture, and client callback/buffer paths. Its final-member
+loss case also clarifies that the test reuses the same `RTIambassador` object
+over a new connection and creates a fresh member lifetime; it does not resume
+the lost connection or membership.
+
+The changed chart needs fresh local render and visual review. No normative
+claim, process/embedded parity claim, or 2010 behavior is inferred. No C++,
+build, test, CI, or Requirements Lab work was performed.
+
+## 2025 Delay Subscription Evaluation: nonregional process push boundary — 2026-10-16
+
+A bounded reader-gap audit confirmed the guide already distinguishes sender
+service validity, receiver eligibility timing, callback scheduling, and the
+time-constrained recipient's TSO grant boundary. Its embedded/process evidence
+boundary was also explicit. The process attribute route needed one additional
+distinction: receive-order pull and regional push use `recheckAtReceive`, but
+nonregional receive-order push stays on the existing pre-event route pending a
+separate DSE slice. An unprojected candidate there is re-resolved before event
+construction, not at the receiving service boundary ([source branch and scope
+comment](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L210)).
+A broader test-tag scan found a configured-process test file omitted by
+filename-only discovery: its [regional attribute cases](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L523)
+cover the HLA_EVOKED receive fence and HLA_IMMEDIATE callback-task admission; a
+third [callback/resignation fence case](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L539)
+checks an in-progress reflection and fresh rejoin. Those cases do not cover
+nonregional push, process interaction DSE, or process TSO DSE.
+
+Clarified the existing prose and added this lane to the existing process
+attribute chart rather than adding a duplicate diagram. The chart now needs a
+fresh local syntax/render and visual review. No normative conclusion,
+process-parity claim, or 2010 behavior was inferred. No C++, build, test, CI,
+or Requirements Lab work was performed.
+
+## 2025 Object-Attribute Subscription State: empty-set unsubscribe boundary — 2026-10-16
+
+The subscription guide already separated the 2025 declaration map from active
+relevance, receiver knowledge, discovery, value projection, advisories,
+regional state, and DSE timing. A bounded source audit found one more
+implementation distinction worth surfacing: `unsubscribeObjectClassAttributes`
+with an empty set reaches the embedded registry unchanged, where its erase
+loop removes no ordinary entries (while an existing class declaration still
+advances the subscription generation). The process client forwards the empty
+vector unchanged, but the service expands it to the currently stored ordinary
+subscriptions before registry mutation; regional declarations are not part of
+that expansion. The public API exposes a separate whole-class unsubscribe
+service, but the pinned header comments do not settle whether empty subset
+unsubscribe should mean no-op or remove-all.
+
+The scanned public tests cover empty sets only alongside invalid handles; none
+starts from valid ordinary subscriptions and checks the resulting state on
+both routes. Added a compact source/profile comparison and an explicit open
+question to the guide; no additional Mermaid diagram was warranted. This is
+not a normative conclusion or process/embedded parity claim. The 2010 stream,
+Requirements Lab, C++, builds, tests, and CI were untouched.
+
+## 2025 additional-module Join: regional interaction handoff reconciliation — 2026-10-16
+
+The roadmap's active Join/regional-interaction handoff was already represented
+in the current DDM guide and linked from the FOM guide. Rechecked the bounded
+source chain: Join reconciles interaction/parameter/dimension handle
+directories and commits the replacement definition; per-federate declarations
+remain separate; regional subscription pairs are keyed by the exact declared
+class handle; later recipient matching walks from the sent class toward
+parents and checks overlap. The cited tests cover added dimension/class lookup
+and same-class regional subscription/send separately, not a combined
+post-Join parent-subscription/descendant-send scenario. The existing ancestry
+chart already shows the send-time walk, so no duplicate was warranted.
+
+Added one navigation cross-link from the ordinary interaction projection
+section to the DSE guide's existing object-state-versus-interaction-history
+comparison. This does not claim event replay, normative wording, process
+parity, or 2010 equivalence. No source or Mermaid chart changed; no build,
+test, CI, or Requirements Lab work was performed.
+
+## 2025 Auto Provide: process automatic-discovery evidence review — 2026-10-16
+
+The existing guide already distinguishes embedded automatic provider
+solicitation from process discovery delivery, process MOM initial values, and
+the federation-wide HLAautoProvide switch. A targeted source call-site scan
+finds the automatic planner only on the embedded callback route. The focused
+process switch case submits false and true HLAsetSwitches interactions but
+does not read back the switch, trigger discovery, or assert a provider
+callback; no focused process Auto Provide test was found. Corrected the
+test-line link and bounded the table wording to match those observations. The
+existing guide already states process behavior is unverified, so no duplicate
+diagram was warranted. No normative, process-parity, or 2010 claim was added;
+no C++, build, test, CI, or Requirements Lab work was performed.
+
+## 2025 object deletion and removal: timing-guide navigation review — 2026-10-16
+
+The object-information guide already separates accepted receive-order delete,
+per-recipient removal commit, timestamped deletion, local forget, process
+resignation removal, and deletion-specific retraction. The ownership guide
+explains stale ownership work after accepted deletion; the time and TSO
+retraction guides cover generic TSO phases and service-specific undo. Source
+and focused evidence keep the invocation-snapshot restoration path embedded-
+only; process timestamped-delete coverage does not establish that behavior.
+Found a navigation gap from the time guide's TSO service list to Delete-specific
+state effects. Added links to the existing object-removal and deletion-
+retraction sections, labeled as current Umbra 2025 evidence. No duplicate
+diagram, process/embedded parity, or 2010 equivalence was inferred. No C++,
+build, test, CI, or Requirements Lab work was performed.
+
+## 2025 Save/Restore: timestamped object deletion and retraction review — 2026-10-16
+
+The Save/Restore guide already has worked traces for queued timestamped object
+deletion returning through a fresh-registry restore and for Retract after one
+recipient has observed removal. The focused public cases use fresh embedded
+registries within one test process under both callback models; `process-restart`
+tags do not prove an OS-process restart. The second test verifies restoration
+of the observed receiver's object lookup and suppression of the other pending
+removal. Internal filesystem state-image cases remain a different evidence
+layer from public process-endpoint behavior. Added links from the object
+deletion section to these existing cases rather than repeating their diagrams.
+No profile or edition parity is inferred; no C++, build, test, CI, or
+Requirements Lab work was performed.
+
+## 2025 Federation MOM: state ownership across save and membership lifetimes — 2026-10-16
+
+The existing federation-scoped and joined-federate MOM guides already separate
+the objects, update fields, and evidence: the federation membership list and
+next/last-save values; member `HLAfederateState` transitions during Save/Restore;
+and member-object pending removal plus new identity on rejoin. Embedded tests
+cover each bounded path. Process coverage demonstrates member removal before
+rejoin discovery/reflection, but not the federation membership-list reflection
+or member `HLAfederateState` Save/Restore. Added focused cross-links instead of
+duplicating the existing state diagrams. No process/embedded or 2010 parity is
+inferred; no C++, build, test, CI, or Requirements Lab work was performed.
+
+## 2025 FOM post-Join chart: grammar check and render retry — 2026-10-16
+
+The revised chart parses as Mermaid `flowchart-v2` using the installed Mermaid
+core parser. This was a syntax-only check under Node with a no-op DOMPurify
+adapter to bypass the parser package's browser-oriented sanitizer initialization;
+it is not a sanitizer or render check. Mermaid CLI rendering was retried with
+installed Chrome and Edge using separate profiles. Both failed before creating
+an image, reporting that the browser was already running for the profile and
+`The user name or password is incorrect`; the default browser launch also
+failed with code `2147483651`. The 2026-10-14 visual review predates the current
+chart text, so visual review remains pending. No chart semantics changed. No
+build, test, CI, or Requirements Lab work was performed; no 2010 behavior or
+process/embedded parity is inferred.
+
+## 2025 Auto Provide: process-profile evidence correction — 2026-10-16
+
+The source trace keeps process discovery state/event delivery and the separate
+RTI-owned MOM initial-value path distinct from the embedded-only
+`planAutoProvideForDiscovery` call. A bounded process test review found the
+`HLAsetSwitches` case does more than check successful service completion: its
+server-side fixture reads the internal registry switch and asserts `true` after
+Join, `false` after the first adjustment, and `true` after re-enabling. It does
+not call the public getter, trigger discovery, or assert
+`provideAttributeValueUpdate`; no focused process Auto Provide solicitation
+test was found. Corrected those statements in the guide without claiming a
+normative rule or process parity. No C++, test, build, CI, or Requirements Lab
+changes were made.
+
+## 2025 additional-module Join and regional interactions — 2026-10-16
+
+The DDM guide already traces embedded current-dimension context, exact-class
+regional declaration keys, and send-time parent/overlap selection; the FOM
+guide directly links that section. Focused tests separately cover additional-
+module class/dimension lookup and same-class regional send, not retained
+parent-region subscription followed by a Join-added descendant send. Added the
+configured-process source path: Join supplies its prepared definition to the
+registry, regional subscription uses the shared registry declaration methods,
+and receive-order send delegates to the shared planner. The reviewed public
+process fan-out case joins without additional modules and does not verify the
+combined route. Added this source mapping to the DDM guide; no second diagram,
+normative callback rule, process-parity claim, or 2010 claim was added. No
+build, test, CI, or Requirements Lab work was performed.
+
+## 2025 Delay Subscription Evaluation: receive-order temporal gate — 2026-10-16
+
+The DSE reader review found no need for another route chart: the guide already
+distinguishes sender-side validity, subscription/relevance evaluation time,
+receive-order and TSO boundaries, directed selectors, and embedded/process
+evidence. It did need to prevent a reader from treating `HLA_EVOKED` or
+`HLA_IMMEDIATE` as the only receive-order delivery condition. Added prose links
+to the time-management guide's receive-order/asynchronous-delivery decision
+and two adjacent embedded tests. Those tests show that a time-constrained
+receiver can defer receive-order work while Time Granted until asynchronous
+delivery is enabled or a time advance is pending, and that asynchronous
+delivery does not bypass the TSO gate. This is not DSE-focused or process
+evidence and does not establish an internal rule for every RTI. No normative
+§8.1.8 interpretation, 2010 comparison, or 2025 profile-parity claim was
+added. No C++, build, test, CI, or Requirements Lab work was performed.
+
+## 2025 FOM post-Join render retry and §6.21 entitlement boundary — 2026-10-16
+
+The revised FOM post-Join chart did not render locally. Mermaid CLI's default
+browser launch failed before image output with code `2147483651`; system Chrome
+with a fresh profile also failed before output with an already-running-profile
+message and `The user name or password is incorrect`. Keep the syntax-only
+`flowchart-v2` parse separate from visual validation and leave review pending.
+
+The Request Attribute Value Update guide's direct-requester entitlement
+question also remains unresolved after a bounded source/test and authority
+check. Its selected requester-as-receiver scenario has a subscription, and the
+process scenario seeds subscription state through its fixture; neither tests
+an unsubscribed requester receiving the provider's later update. The pinned API
+declaration is not the §6.21 clause text. IEEE's public product page indicates
+purchase/subscription access, while the linked ZIP was not inspectable in the
+browser reader. The existing guide already states this evidence limit; no
+duplicate text or diagram was added and no normative conclusion was inferred.
+
+## 2025 mixed-order timestamped attribute passels — 2026-10-16
+
+The new time-guide flow is a bounded source composition of the embedded 2025
+registry passel planner, per-recipient RO/TSO routing, the receive-order
+temporal gate, and TSO callback-before-grant dispatch. It describes the
+current source path only. Existing checked-in order-control, mixed-recipient
+fan-out, and receive-order-gate scenarios each cover a neighboring behavior,
+but no tracked focused case was found for different attribute orders reaching
+the same constrained receiver in one timestamped invocation. The untracked
+scenario is not treated as test evidence.
+
+The new Mermaid block passed a syntax-only `flowchart-v2` parse through the
+local Mermaid core parser with a Node-only no-op DOMPurify adapter. This did
+not render an image or validate layout; render and visual review remain
+pending. Do not infer a normative rule, process-profile parity, or 2010
+behavior from this embedded source trace.
+
+## 2025 process mixed-order attribute passels — 2026-10-16
+
+The process endpoint shares the registry's per-attribute passel plan but
+materializes its paths separately: a timestamped RECEIVE passel carries the
+invocation timestamp/tag without retraction identity through the ordinary
+push/poll event route; a constrained-recipient TIMESTAMP passel remains in the
+TSO message until its time boundary, then crosses with its message identity
+and is acknowledged after callback completion. The callback bridge derives
+RECEIVE/RECEIVE versus TIMESTAMP/TIMESTAMP classifications from that event
+identity. This is 2025 process source mapping, not HLA protocol vocabulary.
+
+Checked-in process TSO cases cover a single timestamped attribute reflection
+before its matching grant, including callback order and the TSO classification.
+No checked-in focused case was found for different attribute orders in one
+invocation to the same constrained receiver. The process RECEIVE path reviewed
+here has no explicit lookup of the embedded `FederateTimeState` asynchronous-
+delivery/time-advance gate, and the inspected tests do not establish its
+Time-Granted eligibility. Keep that process timing question open; do not infer
+profile parity or 2010 behavior. The added process diagram passed a
+syntax-only Mermaid parse, but has no render or visual verdict.
+## 2025 per-recipient interaction order conversion — 2026-10-16
+
+Added a reader-facing sequence to the 2025 Order and Transportation guide for
+one embedded `HLA_EVOKED` timestamped interaction sent to two receivers: the
+unconstrained receiver observes `sentOrderType=TIMESTAMP` and
+`receivedOrderType=RECEIVE`; the constrained receiver observes both fields as
+TIMESTAMP after advancing to the message time, with the callback before its
+grant. Both callbacks carry a valid retraction designator. The focused test
+also checks payload, tag, transportation, and logical time. Source links show
+the time-constrained recipient split and immediate receive-order route.
+
+The case is implementation/test evidence only. It does not establish the full
+normative order-conversion table, process-endpoint behavior, or 2010 behavior.
+The chart passed a syntax-only Mermaid 12.0.0 parse using the local core parser
+and an in-memory no-op DOMPurify adapter. It was not rendered or visually
+reviewed; Windows browser launch remains denied. No C++ build, test, CI, or
+Requirements Lab work was performed.
+
+## 2025 saved object-name reservation ownership across restore — 2026-10-16
+
+The object-name reservation guide now has a bounded sequence for a two-federate
+embedded `HLA_IMMEDIATE` public-API case. A filesystem-backed federation save
+records an unregistered reservation with its owner; after a fresh registry and
+execution are created and both federates rejoin with the same handles, restore
+reattaches the name to that owner. The peer receives
+`ObjectInstanceNameNotReserved` when trying to release it and a reservation-
+failure callback when trying to claim it. After the owner releases the name,
+the peer's reservation succeeds and the former owner can no longer release it.
+
+The cited test recreates the registry in the same test process; despite its
+tags, it is not proof of an OS process restart. The source confirms saved owner
+identity capture and restore validation. This is embedded implementation/test
+evidence, not a normative save/restore rule, process-endpoint result, or 2010
+behavior. The new sequence passed Mermaid 12.1.0 syntax parsing. It has not
+been rendered or visually inspected; Windows browser launch remains denied.
+No build, test, CI, or Requirements Lab work was performed.
+
+## 2025 discovery and first-reflection review — 2026-10-16
+
+The existing [object-information discussion](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#first-reflection-after-discovery-order-and-evidence-boundary)
+and [subscription-state comparison](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md#process-late-subscription-path-same-selectors-an-unresolved-initial-value-edge)
+already distinguish discovery from initial value reflection. Embedded source
+plans subscribed current values after discovery, and its focused late-
+subscription test observes both callback types without proving their relative
+order. Process discovery's separate initial-value event is MOM-only; the public
+process discovery test asserts discovery, and the explicit-update test is not
+evidence of a discovery-triggered ordinary snapshot. Thus there is no new chart
+gap for this bounded question, while ordinary process late-subscription values
+and exact normative ordering remain unresolved.
+
+Evidence links: [embedded lifecycle callback](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L322),
+[process MOM-only initial-value branch](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L95),
+[embedded late-subscription test](../../cpp/tests/subscribe_object_class_attributes_discovery_catch2.cpp#L180),
+and [process explicit-update test](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L457).
+Pinned API headers expose signatures and clause labels, not the normative prose
+needed to settle ordering. No callback-order rule or 2010 behavior is inferred.
+No build, test rerun, CI, or Requirements Lab work was performed.
+
+Next review: survey the 2010 Reference RTI synchronization-point barrier only
+against the separate 2010 guide, `reference_2010.cpp`, and the 2010 binding-shell
+smoke. Separate exercised participant/callback transitions from source-only
+behavior; clarify the 2010 guide only if a reader gap is demonstrated. Do not
+borrow 2025 behavior or imply edition parity.
+
+## 2010 synchronization-point barrier coverage review — 2026-10-16
+
+The existing [2010 barrier section](HLA-2010-REFERENCE-RTI-FLOW-GUIDE.md#4-synchronization-point-barrier)
+already explains the selected participant set, registration/announcement,
+achievement and completion callbacks, plus source-only callback-failure and
+retry behavior. The [reference source's registration path](../../cpp/src/internal/runtime/reference_2010.cpp#L114)
+and [achievement path](../../cpp/src/internal/runtime/reference_2010.cpp#L164)
+support those implementation observations. The [2010 binding-shell smoke](../../cpp/tests/ieee1516_2010_binding_shell_smoke.cpp)
+has no synchronization-point scenario, so none of the barrier transitions is
+test-confirmed. The guide already states this limit and avoids presenting
+reference-profile behavior as a 2010 normative rule; no additional diagram or
+guide change was justified. No 2025 inference, build, test run, CI, or
+Requirements Lab work was performed.
+
+Next review: audit the separate 2010 boundary between logical-time value
+construction/encoding and RTI time-managed services, using only the 2010
+reference guide, DataElement/encoding guide, reference source, and 2010 time
+smoke tests. Preserve the independent 2010 stream.
+
+## 2010 logical-time values versus RTI time services review — 2026-10-16
+
+The [2010 time-boundary section](HLA-2010-REFERENCE-RTI-FLOW-GUIDE.md#5-timing-values-are-not-time-managed-execution)
+already distinguishes value/factory algebra from time-managed services and
+shows the reference-profile boundary separately. Integer/float implementations
+and their three smoke programs cover values, arithmetic, factories, and
+serialization, not RTI service calls. The [generated shell](../../cpp/generated/rti_ambassador_shell_2010.hpp#L325)
+routes time-management overrides to [`unavailable()`](../../cpp/generated/rti_ambassador_shell_2010.hpp#L691);
+its time-boundary errors are implementation evidence, not a universal 2010 RTI
+claim. The guide already states the smoke tests do not exercise those service
+stubs, so no additional diagram or guide edit was needed. No build, test, CI,
+2025 inference, or Requirements Lab work was performed.
+
+Next review: audit the separate 2010 Join/Resign membership lifecycle against
+its reference guide, `reference_2010.cpp`, and the 2010 binding-shell smoke.
+Keep source-only callback or cleanup behavior distinct from directly exercised
+membership transitions; do not infer behavior from the 2025 stream.
+
+## 2010 Join/Resign membership evidence audit — 2026-10-16
+
+The 2010 guide already separates ambassador connection state from execution
+membership and describes Join guards and source-only resignation cleanup. Added
+a brief evidence boundary: the smoke confirms the [successful named-Join path](../../cpp/tests/ieee1516_2010_binding_shell_smoke.cpp#L124),
+member lookup, and [NO_ACTION resign followed by disconnect and destroy](../../cpp/tests/ieee1516_2010_binding_shell_smoke.cpp#L195),
+but not disconnect-while-joined, duplicate/invalid Join, destruction with
+members present, alternate ResignAction behavior, or removal-callback effects.
+The source implements these profile behaviors, while no focused assertion
+establishes their outcomes. The two existing state diagrams and prose cover the
+reader's HLA distinction; no new chart was needed. No build, test run, CI,
+2025 inference, or Requirements Lab work was performed.
+
+The active handoff is now limited to IEEE 1516.1-2025 documentation and its
+profile-specific evidence gaps; this historical review does not queue further
+2010 work.
+
+## 2025 process Attribute Scope: queued stale-work boundary — 2026-10-16
+
+The 2025 Attribute Scope guide already distinguishes a queued scope advisory
+from its later application callback. In the process source, candidate
+attributes are rechecked against current scope before an event is sent or
+queued ([planning](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L245));
+the pull receive path checks current scope again before returning queued work
+([receive boundary](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L154)).
+The public process regional-unsubscribe case checks the unsubscribe exception
+and later owner-side In/Out callbacks, but does not mutate scope after a scope
+event has been queued ([case](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L457)).
+The guide already records this gap. No extra diagram or behavioral claim was
+needed: the implementation path is source evidence, while the stale queued
+interleaving remains untested by that public case. This is an Umbra 2025 profile
+observation and does not establish a normative HLA rule or parity across
+delivery profiles.
+
+This documentation review is limited to IEEE 1516.1-2025 evidence; no build,
+test run, CI, or Requirements Lab work was performed.
+
+## 2025 active-establisher/passive-receiver subscription review — 2026-10-16
+
+The existing [object-attribute subscription guide](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md#passive-is-not-a-hard-delivery-veto)
+already separates federation-wide active relevance from the receiver's own
+eligibility. The 2025 embedded discovery resolver permits a passive receiver
+after another joined, non-producing member establishes a matching active
+declaration
+([discovery](../../cpp/src/internal/federation/federation_registry.cpp#L869));
+the value recipient planner applies the same distinction per attribute while
+retaining the receiver's own subscription and class/region checks
+([reflection](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L76)).
+
+The focused passive-object test has one publisher and one subscriber; it
+observes passive-only suppression and that same subscriber's later
+passive-to-active transition
+([passive-only case](../../cpp/tests/passive_object_attribute_subscription_catch2.cpp#L120)).
+Its additive-mode case likewise uses one subscriber to show an active A and
+passive B projection, followed by swapping those modes
+([additive case](../../cpp/tests/passive_object_attribute_subscription_catch2.cpp#L356)).
+Neither test has a separate active establisher and passive receiver. The guide
+already states this exact source/test boundary, distinguishes discovery from
+per-attribute reflection, and keeps process delivery separate. A repository
+search also found passive interaction-subscription cases, but those test a
+different service and do not close the object-attribute gap. No reader-facing
+omission justified another chart or prose change; keep the three-role result
+source-derived and unverified by a focused test.
+
+This review is limited to IEEE 1516.1-2025 documentation; no build, test run,
+CI, or Requirements Lab work was performed.
+
+Next review: audit the 2025 synchronization case where a new member joins after
+a synchronization point has partial achievement. Compare the guide's source
+trace with focused checked-in tests, and keep source-only interleavings distinct
+from normative HLA rules.
+
+## 2025 partial synchronization achievement before late Join review — 2026-10-16
+
+The existing synchronization guide already has a focused
+[partial-result/late-Join sequence](HLA-2025-FEDERATION-SYNCHRONIZATION-FLOW-GUIDE.md#late-joiners-change-only-an-expandable-barrier)
+and explicitly labels it source-derived. Current embedded source adds a new
+member to an expandable pending point's synchronization and announced sets
+([participant-set insertion](../../cpp/src/internal/federation/federation_registry.cpp#L250));
+the achievement path keeps the first result with `emplace` and waits until the
+result count reaches the current participant count
+([achievement gate](../../cpp/src/internal/federation/federation_registry.cpp#L305)).
+Together these source steps preserve a prior result while making the newcomer
+another required reporter. They describe the current 2025 embedded profile,
+not a normative late-Join rule.
+
+The direct registry test's omitted-set path joins its third member before any
+achievement call
+([join and expansion](../../cpp/tests/ieee1516_2025_federation_registry_synchronization_point_late_join_explicit_set_catch2.cpp#L49)).
+The public HLA_EVOKED/HLA_IMMEDIATE scenario also joins the newcomer
+([Join](../../cpp/tests/synchronization_point_catch2.cpp#L199)) before its first
+achievement for that point
+([achievement](../../cpp/tests/synchronization_point_catch2.cpp#L205)). Neither
+tests the partial-result-before-Join interleaving. The guide's existing caveat
+is accurate; no new diagram or behavioral claim was warranted. I repaired
+stale registry and Join-hook line anchors in its source table so the links now
+land on the relevant current implementations.
+
+This documentation review is limited to IEEE 1516.1-2025 evidence; no build,
+test run, CI, or Requirements Lab work was performed.
+
+Next review: inspect the 2025 process RECEIVE temporal gate only for new,
+checked-in evidence beyond the already documented route difference. If no such
+evidence exists, retain the unresolved outcome and move to another bounded
+reader gap rather than inferring parity.
+
+## 2025 process RECEIVE temporal-gate evidence recheck — 2026-10-16
+
+The existing [time-management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md)
+already separates the process route, which materializes RECEIVE passels as
+ordinary process events, from the embedded callback path's
+`receiveOrderDeliveryAllowed` gate. A current search of C++ tests for
+`enableAsynchronousDelivery` and `disableAsynchronousDelivery` did not find a
+process-endpoint fixture invoking either service. The documented process
+receive-order test covers ordinary reflection, and the process TSO cases cover
+timestamped-before-grant delivery; neither establishes a time-constrained
+process receiver's RECEIVE behavior with asynchronous delivery or a pending
+advance. No new evidence changes the existing boundary, and the guide already
+states it clearly, so no chart or prose change was warranted. No build, test,
+CI, or Requirements Lab work was performed.
+
+Next review: audit 2025 Request Attribute Value Update eligibility across the
+pinned API, embedded/process source paths, and focused tests. Explain the
+source-observed ownership/requester distinctions where useful, but keep the
+normative entitlement question unresolved without the applicable standard
+prose.
+
+## 2025 Request Attribute Value Update evidence-map link audit — 2026-10-16
+
+The existing [request-flow guide](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md)
+already handles the direct-requester entitlement question and its normative
+limit, so I did not repeat that review. A bounded content check of its evidence
+map found several line anchors that had drifted to blanks or unrelated code.
+I corrected links to the process MOM branch
+([handler](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L40)),
+process class-call setup and invocation
+([case](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L50),
+[request](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L400)),
+the process fixture's direct registry subscription
+([setup](../../cpp/tests/ieee1516_2025_connection_request_attribute_value_update_catch2.cpp#L698)),
+and the process request/Provide and later response checkpoints
+([request](../../cpp/tests/ieee1516_2025_connection_request_attribute_value_update_catch2.cpp#L903),
+[response](../../cpp/tests/ieee1516_2025_connection_request_attribute_value_update_catch2.cpp#L926)).
+I also corrected the embedded current-owner attribute projection
+([projection](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L610))
+and runtime empty-projection gate
+([gate](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1763)).
+These are documentation-reference corrections; no behavior or normative
+eligibility claim changed.
+
+This review is limited to IEEE 1516.1-2025 documentation. No build, test run,
+CI, or Requirements Lab work was performed.
+
+Next review: audit the 2025 object-class request's multi-provider fan-out.
+
+## 2025 object-class Request Attribute Value Update fan-out review — 2026-10-16
+
+The existing [request-flow guide's scope comparison](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md#what-changes-with-each-scope-in-the-embedded-profile)
+already explains that a class request expands over registered instances and
+groups requested attributes by each instance's current owner. The embedded
+planner's per-instance owner grouping is explicit
+([class owner partition](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L1047));
+the instance planner separately excludes attributes owned by the requester
+([instance owner partition](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L318)).
+The embedded class test covers two instances assigned to one provider
+([request and two callbacks](../../cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp#L176)),
+and the process test likewise covers two instances from one provider under
+both callback models
+([request and assertions](../../cpp/tests/ieee1516_2025_connection_process_class_request_attribute_value_update_catch2.cpp#L400)).
+Neither test covers a single instance whose requested attributes belong to
+multiple remote providers. The guide already labels that branch source-derived
+and the missing test; its distinction among requester-owned attributes,
+provider callbacks, and later reflection is clear. No diagram or prose change
+was warranted. This is evidence about the inspected 2025 implementation and
+tests, not a normative fan-out rule or full embedded/process parity claim. No
+build, test run, CI, or Requirements Lab work was performed.
+
+Next review: audit the 2025 embedded class-request owner-change boundary
+between provider planning and callback dispatch. Compare the pending
+requester's/provider's identity match, current-owner attribute projection,
+and empty-result suppression with the focused tests; retain the missing
+ownership-change test as an evidence gap and do not infer process-profile or
+normative retargeting behavior.
+Trace how the source groups requested attributes by current owner and whether
+the guide's existing diagram makes requester-owned attributes, provider
+callbacks, and later reflection distinct. Keep the one-object/multiple-remote-
+provider test gap explicit.
+
+## 2025 process timestamped-deletion callback identity trace — 2026-10-16
+
+The process source has two distinct producer-identity points. The outbound
+timestamped-delete message records the requesting/deleting federate
+([message construction](../../cpp/src/internal/federation/process_federation_service_object_instance_deletion.cpp#L107)).
+At receive/removal, the registry snapshot takes the object's stored
+registration producer
+([snapshot](../../cpp/src/internal/federation/federation_registry_tso_delivery.cpp#L808));
+the process removal event copies that snapshot identity
+([event construction](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L250)),
+and the callback bridge converts it to the public handle and invokes the
+removal callback
+([callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L633)).
+Thus the current process source maps the public removal-callback identity to
+the stored registrant even though its internal TSO message records the deleter.
+This is an implementation trace, not a normative HLA claim.
+
+The focused process fixture registers and deletes through the same sender
+([register](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1053),
+[delete](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1123))
+and checks that the callback producer matches the discovery producer
+([assertion](../../cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp#L1158)).
+It therefore does not test distinct registrant and delete-privilege owner
+identities. The embedded ownership-transfer assertion remains scoped to its own
+profile and test. No additional diagram was warranted: the source mapping is
+clear, but its distinct-actor process behavior is not established by the
+focused case. No build, test run, CI, or Requirements Lab work was performed.
+
+Next review: audit the 2025 active-establisher/passive-receiver subscription
+scenario against its focused source and tests. Preserve the evidence boundary
+and revise the guide only if a reader-useful distinction is established.
+
+## 2025 embedded class-request ownership-change boundary review — 2026-10-16
+
+The [2025 Request Attribute Value Update guide](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md)
+now distinguishes two source checkpoints. The final public class plan is made
+under the shared federation-management lock
+([final plan](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L552));
+the lock is released before the ambassador persists each provider/object group
+([per-group registration](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L587)).
+Registry registration rechecks the candidate and rejects it unless the current
+owner projection still equals the complete planned set
+([registration](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L718),
+[full-set check](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L763)).
+If registration fails, the public path raises `RTIinternalError` before its
+successful service-report record or callback queueing
+([failure](../../cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp#L595)).
+The request does not retain the shared lock across the per-group loop; an
+ownership-changing operation such as Confirm Divestiture uses that same lock
+([transaction boundary](../../cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp#L634)).
+Because groups are persisted one at a time and this failure path shows no
+rollback for earlier groups, the source exposes a potential partial-persistence
+robustness gap if a later group goes stale. This is not an HLA rule or a
+verified runtime outcome.
+
+After a group is persisted, callback entry consumes and matches the pending
+request identity
+([callback-entry check](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L817));
+the candidate is then recomputed for the original provider
+([current-owner projection](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L531)).
+A remaining nonempty subset can go to that provider, while an empty projection
+is suppressed at the runtime gate
+([suppression](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1763));
+the source does not retarget it to a new owner.
+
+Focused coverage does not exercise either ownership-change window. The class
+restore test registers and restores a pending request with its original owner
+([registration](../../cpp/tests/federation_registry_catch2.cpp#L274),
+[callback entry](../../cpp/tests/federation_registry_catch2.cpp#L352)).
+A separate process `HLA_IMMEDIATE` instance-request case enters the provider
+callback, then requests and cancels ownership acquisition while confirming
+that the original owner remains
+([request](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L628),
+[acquisition](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L632),
+[cancellation](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L640),
+[owner assertion](../../cpp/tests/ieee1516_2025_process_idle_immediate_ownership_cancellation_catch2.cpp#L653)).
+That is not a completed transfer, not a class request, and not evidence for the
+embedded callback-time projection. No focused test covers a stale pre-enqueue
+group, rollback of earlier persisted groups, or ownership transfer after
+class-request persistence but before callback entry.
+
+The guide's existing callback chart was expanded to show full-set persistence
+validation before the later callback-time subset check. Mermaid 12.1.0 syntax
+parsing accepted the changed chart; no render or visual review was performed.
+No build, test run, CI, or Requirements Lab work was performed.
+
+## 2025 Save/Restore: pending class-level Attribute Value Update routes — 2026-10-16
+
+Compared the public embedded class-request restore case with the internal
+regional class-request state-image case. The public case restores a request
+with the original provider and checks callback ordering after
+`federationRestored`, preserved request tag, and no duplicate callback under
+both callback models. It does not change ownership, so it cannot establish
+owner-change replay, retargeting, or process-endpoint parity.
+
+The internal registry case separately restores the pending regional request's
+class/attribute/region mapping and tag, then consumes an eligible route once.
+It verifies that a later committed disjoint requester region suppresses stale
+work and that provider resignation retires that provider's pending route. Its
+requester-departure assertion is not isolated: provider resignation occurs
+first and may already retire the request. The case creates a fresh registry
+within one test process; despite its process-restart tag, it is not an OS
+process restart or public callback test.
+
+Updated the 2025 Attribute Value Update and Federation Save/Restore guides to
+map these as separate evidence levels and make the requester-departure gap
+explicit. No diagram change was justified. No build, test rerun, CI, or
+Requirements Lab work was performed.
+
+### 2025 process regional-scope stale-work boundary review — 2026-10-16
+
+The process notification path checks current regional eligibility before
+routing. Server-queued events receive another current-state filter when the
+server dequeues them for Receive Interaction; pushed events are sent after the
+initial check and enter the client callback pipeline without a later registry
+scope check shown in the reviewed path. The public regional test couples
+HLA_EVOKED with the polling route and HLA_IMMEDIATE with pushed events in that
+fixture, but exercises ordinary transitions rather than a stale-event race.
+This is a source/test boundary, not an HLA callback-start timing guarantee.
+
+Added a branching process transport chart to the 2025 Attribute Scope guide,
+cross-linked it from the DDM guide, and corrected stale source anchors. Mermaid
+12.1.0 syntax parsing accepted the new chart; it has not been rendered or
+visually reviewed. No build, test rerun, CI, 2010 work, or Requirements Lab
+change was performed.
+
+### 2025 FOM additional-module Join observer and failure boundaries — 2026-10-16
+
+The FOM guide now distinguishes three observations that can follow an
+additional-module Join: the effective catalog changes, an eligible existing
+observer may discover the newly joined member's `HLAfederate` MOM object, and
+the federation-scoped `HLAcurrentFDD` value may be reflected. The embedded
+focused test observes the latter after an additional-module Join. The
+configured-process source path does not enqueue that federation-level
+conditional update; no focused process observer test checks it. This is a
+profile-specific source gap, not a normative callback conclusion.
+
+The source audit also found post-commit failure paths in both the embedded and
+configured-process Join handlers. Their inspected rollback resigns the new
+member but contains no restoration of a replacement definition. Existing
+failure tests use ordinary Join; the process invalid-additional-FOM test fails
+before registry commit. No test verifies the catalog after a post-commit
+failure involving additional modules. The revised post-Join chart passed
+Mermaid 12.1.0 syntax parsing, but it remains unrendered and visually
+unreviewed. No build, test rerun, CI, or Requirements Lab work was performed.
+
+### 2025 Delay Subscription Evaluation reader review — 2026-10-16
+
+The four existing DSE diagrams cover federation-switch lifetime, the
+recipient-specific eligibility state machine, process attribute recheck
+boundaries, and the high-level receive-order/TSO timing sequence. The guide
+already distinguishes sender-side validity from receiver eligibility and
+delivery, and labels the process interaction/TSO source paths separately from
+the focused process regional-attribute cases. No additional diagram was
+justified by this bounded review.
+
+Removed an unrelated cross-edition reference-profile section to keep the guide
+scoped to IEEE 1516.1-2025. No diagram changed, so its existing parser/render
+status is unchanged. Its 65 local file links and line anchors were checked
+with no invalid targets. No build, test rerun, CI, or Requirements Lab work was
+performed.
+
+### 2025 process RECEIVE temporal-gate audit — 2026-10-16
+
+The process receive-order attribute route materializes or retrieves an event
+and sends it through `ProcessFederationCallbackBridge::submitAttributeUpdate`;
+the process interaction route passes through `submitReceiveOrder`. Both
+reviewed callback-bridge paths use the process dispatcher/session without
+consulting the embedded `receiveOrderDeliveryAllowed` predicate or its
+deferred queue. Constrained-recipient state in the process service controls
+timestamped queueing, not evidence of a receive-order time gate.
+
+The existing test set covers embedded receive-order temporal gating and
+process TSO delivery separately. No focused process test combines a
+time-constrained receiver with asynchronous-delivery off/on and a pending
+advance. The public process behavior and normative applicability remain open.
+The time guide was extended with the process interaction source trace; no
+diagram changed. New source links passed validation. No build, test rerun, CI,
+or Requirements Lab work was performed.
+
+Next review: audit the 2025 Request Attribute Value Update full-set persistence
+and callback-time current-owner boundary, distinct from requester entitlement.
+Keep the process regional-attribute DDM sequence first in the visual-review
+queue; renderer retries remain paused until launch access changes.
+
+### 2025 Request Attribute Value Update ownership/persistence audit — 2026-10-16
+
+The embedded class request releases the shared federation-management lock
+after planning and performs individually locked per-provider/object
+registrations. Registration rechecks the complete current-owner projection;
+ownership work may interleave before or between registrations. Earlier pending
+records may remain persisted if a later registration fails; no rollback across
+the loop is shown, and service-report/callback submission follows successful
+registration of all groups. Keep this as an implementation-only potential
+failure, not a portable HLA transition or a tested result.
+
+Callback entry consumes and matches the pending request identity, then
+recomputes the projection for the original provider. It may deliver a reduced
+nonempty attribute subset to that provider or suppress an empty projection;
+it does not choose a replacement provider in the reviewed path. The embedded
+restore case retains the same provider/owner, and the process instance case
+cancels acquisition before transfer. No focused test covers a completed owner
+change during embedded pre-enqueue persistence or after persistence before
+callback entry. The guide was clarified; no chart was added. Changed-guide
+links were checked. No build, test rerun, CI, or Requirements Lab work was
+performed.
+
+Next review: audit the 2025 configured-process `HLAcurrentFDD` automatic
+reflection path after additional-module Join, distinct from
+membership-driven `HLAfederate` discovery and embedded behavior. Leave the
+process regional-attribute DDM sequence first in the visual queue; renderer
+retries remain paused until launch access changes.
+
+### 2025 Federation MOM `HLAcurrentFDD` process Join audit — 2026-10-16
+
+The MIM conditions the federation module list on module additions through
+Create/Join and Current FDD on modification of the Current FOM subset. In the
+configured-process service-report-store path, the Join handler commits the
+composed definition and membership, establishes the Federation MOM record,
+then plans discovery for the new member's `HLAfederate` object. The inspected
+path has no federation-object Conditional update enqueue. The automatic helper
+resolves joined-member `HLAfederate` values and is called by reporting and
+interaction-send, not Join. A direct request for the known Federation MOM
+object can project current values from the live definition.
+
+The additional-FOM process test asserts class lookup/name, not Federation MOM
+discovery or reflection; the `HLAcurrentFDD` public-observer test is
+embedded-only. The existing 2025 Federation MOM guide already separates these
+views and limitations, so no chart or explanatory paragraph was added.
+Corrected stale in-range references to the current process Join, discovery,
+member-only helper and test assertion lines, and linked directly to the MIM
+condition text. All 149 local guide links and 129 line anchors validated.
+No build, test rerun, CI, or Requirements Lab work was performed.
+
+Next review: inspect the 2025 process object-removal callback identity after
+ownership transfer. The bounded question is whether source snapshot identity
+and focused same-federate register/delete coverage support any added reader
+explanation; do not infer cross-profile parity. Keep the process
+regional-attribute DDM sequence first in the visual-review queue, with renderer
+retries paused until launch access changes.
+
+## 2025 process object-removal callback identity review — 2026-10-16
+
+The process receive-order push and pull paths and timestamped payload dispatch
+populate the public removal callback producer from the registry snapshot,
+which stores the object's registration producer. The internal TSO deletion
+message separately records its requesting federate. Focused receive-order and
+timestamped process fixtures use the same sender for registration and
+deletion; neither verifies the distinct registrant/delete-privilege-owner
+case. The ownership guide records these limits separately from the embedded
+transfer test. No process-profile parity or normative conclusion is claimed.
+
+## 2025 passive discovery cross-attribute gate follow-up — 2026-10-16
+
+A follow-up source trace of passive object discovery found that the resolver
+stores active relevance as one boolean across its non-producer
+class/attribute scan, then checks the receiver's own class/region declaration
+separately. The active-establisher entry therefore need not be for the same
+attribute as the passive receiver's entry in this source path
+([active scan](../../cpp/src/internal/federation/federation_registry.cpp#L873),
+[receiver selection](../../cpp/src/internal/federation/federation_registry.cpp#L1037)).
+The focused passive-subscription test uses one publisher and one subscriber
+([test](../../cpp/tests/passive_object_attribute_subscription_catch2.cpp#L120));
+it does not test this three-role cross-attribute case. The subscription guide
+now explains this as a source-derived consequence, not an HLA claim or process
+test result. Its Mermaid decision label changed after the last syntax pass;
+targeted syntax recheck and rendering remain pending.
+
+No build, test run, CI, or Requirements Lab work was performed.
+
+Next review: audit the 2025 process regional attribute-scope event's
+post-enqueue eligibility boundary. Compare pull receive-time rechecking with
+the pushed callback route and focused stale-event tests; keep any untested
+race source-only. Leave the process regional-attribute DDM sequence first in
+the visual-review queue and pause renderer retries until launch access changes.
+
+---
+### 2025 process regional-scope post-enqueue eligibility audit — 2026-10-16
+
+The process service rechecks current eligibility before routing each planned
+scope event. For pull delivery, `process_federation_service_receive.cpp`
+rechecks the queued attributes against current registry state when a later
+`receive_interaction` request dequeues the event. For pushed delivery,
+`process_federation_client.cpp` records the event, the client dispatcher
+submits it to `ProcessFederationCallbackBridge`, and the bridge schedules the
+public callback; the reviewed chain contains no subsequent registry
+eligibility lookup. The bridge's structural event validation is not a
+freshness check.
+
+The public process regional-unsubscribe scenario covers ordinary scope
+transitions under HLA_EVOKED and HLA_IMMEDIATE, with the fixture selecting the
+pull and pushed service paths respectively. It does not stage a mutation in
+the admission-to-observation interval, so it does not verify stale queued or
+pushed event suppression. The existing Attribute Scope guide already states
+these distinctions and the open race; no duplicate content was added. No
+normative timing guarantee or embedded/process parity is inferred. No 2010
+work, build, test rerun, CI, or Requirements Lab change was made.
+
+Next review: inspect the 2025 synchronization-point partial-achievement/
+late-Join boundary. Compare barrier membership expansion and achievement
+retention in source with the focused test's Join timing; keep the
+interleaving source-only if no test directly covers it. Preserve the
+2025-only scope and the pending process DDM visual-review priority.
+
+---
+### 2025 synchronization partial-achievement/late-Join audit — 2026-10-16
+
+The shared registry records `lateJoinExpansionAllowed` for omitted-set
+registration, inserts a newly joined member into both the participant and
+announced sets, and retains previously recorded achievements. Completion is
+checked by comparing achieved-entry count with current participant count
+([expansion flag](../../cpp/src/internal/federation/federation_registry.cpp#L188),
+[participant insertion](../../cpp/src/internal/federation/federation_registry.cpp#L250),
+[achievement fan-in](../../cpp/src/internal/federation/federation_registry.cpp#L305)).
+The configured-process Join handler invokes this same registry hook and queues
+the resulting event
+([Join hook](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L801),
+[queue helper](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L285)).
+
+The embedded public scenario joins late members before any achievement
+([Join and later first report](../../cpp/tests/synchronization_point_catch2.cpp#L199));
+the direct registry test covers expansion policy without partial results
+([focused case](../../cpp/tests/ieee1516_2025_federation_registry_synchronization_point_late_join_explicit_set_catch2.cpp#L49)).
+The process rollback case queues an announcement, fails Join, then retries
+([test boundary](../../cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp#L428)),
+but has no achievement report before that Join. Therefore the partial-result-
+before-late-Join sequence remains source-derived in both profiles; no
+normative completion rule or cross-profile parity is inferred.
+
+Corrected the synchronization guide's process evidence row to point to the
+configured-process Join expansion hook and actual queue helper rather than
+registration handling, and made the process test's missing prior-achievement
+coverage explicit. The existing source-derived sequence remains appropriate;
+no duplicate diagram was added. No 2010 work, build, test rerun, CI, or
+Requirements Lab change was made.
+
+Next review: audit the 2025 Attribute Scope Advisory switch-off evidence.
+Check whether the embedded and configured-process focused cases isolate
+switch-off as the sole suppressor of an otherwise-reportable transition.
+Keep any confounded test as an evidence gap and preserve the 2025-only scope.
+
+---
+### 2025 Attribute Scope Advisory switch-off coverage audit — 2026-10-16
+
+The embedded path checks the receiver switch before scheduling a scope
+callback ([adapter gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1208));
+the shared registry eligibility predicate returns empty while the switch is
+off ([predicate](../../cpp/src/internal/federation/federation_registry_object_instance_removal.cpp#L12)).
+The configured-process event admission and pull receive paths use that same
+predicate ([admission](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L238),
+[pull receive](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L161)).
+
+The only focused embedded switch-off scope scenario disables the switch and
+then performs the receiver's own final regional unsubscribe
+([test](../../cpp/tests/attribute_scope_advisory_catch2.cpp#L302)); the
+subscription planner separately suppresses Out for that final self-unsubscribe
+([planner](../../cpp/src/internal/federation/federation_registry_attribute_relevance.cpp#L613)).
+It therefore does not isolate the switch. The configured-process regional
+scenario sets the switch true ([setup](../../cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp#L893)).
+A scan of setter calls under `cpp/tests` found remaining false uses in
+MOM/service-report checks and Save/Restore interlock rejection, not scope
+callback suppression. Source supports switch gating for work evaluated while
+disabled; no focused test demonstrates switch-off alone suppressing an
+otherwise-reportable transition. The state after an event has already been
+pushed remains a separate test gap.
+
+Updated the Attribute Scope guide's switch note and evidence table with these
+links and boundaries; no diagram or normative wording was added. No 2010
+work, build, test rerun, CI, or Requirements Lab change was made.
+
+Next review: verify the normative basis for the 2025 Attribute Scope Advisory
+Switch and final-self-unsubscribe exception against canonical IEEE
+1516.1-2025 clause text. If authoritative text is unavailable, preserve the
+unverified normative status; do not use source/tests to fill that gap.
+
+## 2025 normative-source availability and timing-guide no-change review — 2026-10-16
+
+The official [IEEE 1516.1-2025 edition page](https://standards.ieee.org/ieee/1516.1/6688/)
+confirms the active edition and publication date, and offers purchase or
+subscription access. It does not expose the clause prose needed to verify the
+Attribute Scope Advisory Switch or final-self-unsubscribe interpretation. The
+listed downloads archive could not be inspected by the available browser
+reader, and the local pinned 2025 dependency contains API declarations rather
+than the full standard. Therefore the guide's clause 10.1.3 source comment
+remains implementation evidence only; its normative interpretation stays
+unverified.
+
+As a separate 2025 timing review, the time-management guide's receive-order
+section correctly states the embedded gate (unconstrained, asynchronous
+delivery enabled, or a pending advance), its deferred-callback behavior, and
+the two callback-model outcomes. The focused temporal-state scenario exercises
+those edges under HLA_IMMEDIATE and HLA_EVOKED. The guide separately marks the
+process callback route and lack of a process endpoint scenario as unresolved;
+the reviewed process callback bridge does not itself consult the embedded
+time-state predicate. This boundary is already clear, so no guide or diagram
+change was warranted. No normative or cross-profile parity claim is inferred.
+
+Next handoff: continue the active documentation pass using only IEEE
+1516.1-2025 material. Keep the process RECEIVE/asynchronous-delivery timing
+outcome source/test-limited until focused process evidence exists; otherwise
+select the next answerable reader gap from the 2025 guide backlog. Keep
+rendering paused until the environment permits browser launch.
+
+## 2025 configured-process object-removal producer identity — 2026-10-16
+
+The ownership guide now includes a configured-process source-only sequence for
+timestamped deletion after delete-privilege transfer. It separates the TSO
+message's deleting-requester identity from the original registrant returned by
+the receiver's registry removal snapshot and forwarded to the public callback.
+The focused embedded test observes distinct registrant and delete-privilege
+owner; focused process deletion cases use the same federate for registration
+and deletion, so they do not verify the A≠B process outcome.
+
+The new Mermaid sequence parsed with Mermaid 12.0.0 core. It has not been
+rendered or visually inspected; render retries remain paused after the prior
+Chromium launch failure. This does not update the historical local-render
+snapshot or establish GitHub rendering.
+
+## 2025 configured-process Save notification-send failure boundary — 2026-10-16
+
+The 2025 process Save handler calls the shared registry's completion transition
+before routing its terminal notifications. In pushed mode, the notification
+helper sends recipient frames sequentially and returns failure on encoding or
+send failure; the handler then produces an internal-error response. If a later
+send fails, earlier frames may already have been sent. The process client
+drains buffered pushed events before the typed Save Complete method checks the
+response status. Thus, if the requesting member's own frame is already
+buffered, a returning `HLA_IMMEDIATE` callback may precede the public
+`RTIinternalError`; under `HLA_EVOKED`, the task may remain queued for a later
+Evoke. The public adapter maps the client error after that drain. No rollback
+of the registry's resolved save state or earlier event sends is visible.
+
+The existing process Save tests cover ordinary polling/pushed success paths,
+not a partial terminal-notification send failure. This is a source-composed
+possibility, not a tested public outcome, failed-connection guarantee, or HLA
+callback-order rule. Expanded the Save/Restore guide prose without changing
+either sequence diagram, so the 24-chart visual-review count remains intact.
+
+The Attribute Scope process-event chart remains visually pending. A fresh
+Mermaid CLI 12.0.0 attempt with the explicit installed Chromium executable
+failed before image creation (process exit 3221225506); defer another attempt
+until browser launch conditions change.
+
+Next review: audit the 2025 configured-process regional class-level Request
+Attribute Value Update preflight. Compare validation ordering with provider
+expansion and focused public cases, specifically whether a late invalid region
+is shown to suppress otherwise-eligible provider work. Keep untested effects
+source-only and do not add a duplicate chart if the current guide already
+answers the reader question. No build, test, CI, 2010, or Requirements Lab
+work.
+
+## 2025 configured-process regional class-request preflight audit — 2026-10-16
+
+The registry validates all supplied request-region pairs before the
+class-request plan expands to object instances and provider groups. The
+configured-process handler returns the typed rejection before it enters the
+provider loop. The public invalid-selector case calls the API separately for
+an unknown handle, another member's region, an uncommitted region, and a
+committed region with an unavailable dimension; it asserts the four mapped
+exceptions. The fixture does not publish the object class or register an
+instance, so it does not establish an otherwise-eligible provider route whose
+suppression could be observed. The no-provider-event result therefore remains
+source-derived, not test-established, normative atomicity, or exception
+precedence.
+
+The existing RAVU flow already places whole-request validation before
+expansion. Clarified the test limit in the 2025 guide; no duplicate diagram or
+runtime/test change was warranted. No build, test, CI, 2010, or Requirements
+Lab work.
+
+Next review: audit the 2025 process three-role passive-discovery boundary.
+Trace registration and subscription through the shared cross-attribute
+active-relevance gate, then inspect public process cases for a separate active
+establisher and passive receiver on different attributes. Do not infer a
+process result from the embedded test; preserve source-only findings if no
+three-role process case exists. Keep local render retries paused until a
+supported browser launch path changes.
+
+## 2025 configured-process three-role passive-discovery evidence audit — 2026-10-16
+
+The configured-process subscription and registration handlers delegate to the
+shared 2025 registry, which owns the discovery selector. The public process
+object-subscription case exercises one member's active-to-passive declaration
+transition and unsubscribe, but creates no ordinary object and has no separate
+active establisher. It is not evidence for the three-role discovery outcome.
+Updated the subscription guide with this boundary and direct source/test
+links. No Mermaid changed; visual-review counts are unchanged. No build, test,
+CI, 2010, or Requirements Lab work.
+
+Next review: audit ordinary configured-process late subscription to an
+already-registered object, keeping RTI-owned MOM initial-value coverage
+separate from ordinary-object behavior and leaving the exact §5.8 claim open.
+Defer Attribute Scope rendering until a supported browser launch path changes.
+
+## 2025 configured-process late-subscription initial-value audit — 2026-10-16
+
+The existing profile chart and prose accurately distinguish ordinary discovery
+from initial values. The service creates an ordinary discovery event but no
+ordinary initial-value event; the separate value branch is MOM-only. Pull
+queues discovery and MOM values separately; Push stages and sends discovery
+frames before MOM-value frames. The public MOM observer is HLA_EVOKED and does
+not assert relative callback order or Push ordering. The ordinary public
+process case has no reflection observer, and the precise §5.8 interpretation
+remains open. Added the staging nuance to the guide without changing Mermaid.
+
+Next review: audit configured-process untimed Update Attribute Values failure
+mapping across local validation, remote planner rejection, and public
+exception translation. Keep timestamped behavior separate and the Attribute
+Scope visual retry deferred until browser launch conditions change.
+
+## 2025 configured-process untimed Update Attribute Values failure mapping — 2026-10-16
+
+The public process adapter validates local handle wrappers before sending the
+request. Conversion failure maps to typed `ObjectInstanceNotKnown` or
+`AttributeNotDefined`. For converted values, the shared registry planner
+distinguishes unknown object, undefined attribute, and not-owned attribute;
+however, the process service returns one generic rejected response for all
+non-applied plans. The client converts that response to
+`ProcessFederationClientError`, and the adapter surfaces `RTIinternalError`.
+The embedded source translator returns corresponding typed exceptions, but no
+normative conformance or cross-profile parity conclusion follows from this
+comparison.
+
+The focused public process test checks only successful untimed submission and
+zero recipients; remote failure behavior remains source-derived. The new chart
+passed Mermaid 12.0.0 core syntax parsing after an in-memory no-op sanitizer
+bypassed the Node DOMPurify initialization problem; it has not been rendered or
+visually reviewed. The 2025 inventory now counts 318 diagrams (180 flowcharts,
+115 sequences, 23 state diagrams), all syntax-accepted; 24 selected charts
+remain visually reviewed. No C++ build, test, CI, or Requirements Lab work.
+
+Next review: audit 2025 configured-process discovery-triggered Auto Provide.
+Trace subscription-triggered discovery, provider solicitation, Pull/Push
+delivery, callback entry, and focused public tests. Keep embedded behavior
+separate and classify any process path without direct public evidence as
+source-derived rather than normative. Keep Attribute Scope rendering paused
+until browser launch conditions change.
+
+## 2025 configured-process Auto Provide source/test boundary — 2026-10-16
+
+The existing Auto Provide guide already has a configured-process discovery and
+switch-control chart, with an explicit source-only boundary. Rechecking the
+2025 source confirms `planAutoProvideForDiscovery` is called only by the
+embedded discovery callback. The process subscription handler replans visible
+object discovery; the process discovery service commits known-object state and
+queues or sends `discoverObjectInstance`, while ordinary relevance advisories
+and RTI-owned MOM initial values are separate events. The process switch
+handler updates shared HLAautoProvide state but does not trigger solicitation.
+
+The public process discovery test records discovery only. The separate process
+switch test changes the switch and verifies stored server state. Neither
+observes `provideAttributeValueUpdate` as a result of discovery. These source
+and test results justify no added guide content or duplicate chart; they do
+not establish normative omission or process/embedded parity. Diagram count and
+visual-review count are unchanged; no build, tests, or CI were run.
+
+Next review: audit 2025 configured-process Federation MOM FOM updates on
+module-adding Create/Join. Trace the standard's conditional concept against
+process event production, the live MOM projection, and focused public
+observers. Keep any uncovered runtime result source-derived and update the
+existing guide only for a demonstrated learner gap. Keep Attribute Scope
+visual review paused until browser launch conditions change.
+
+## 2025 configured-process Federation MOM FOM update review — 2026-10-16
+
+The existing Federation MOM guide already answers the bounded question. The
+2025 MIM marks the module-designator list Conditional when Create/Join adds
+FOM modules, and `HLAcurrentFDD` Conditional when those services modify the
+Current FOM subset. The configured-process additional-module Join commits the
+composed definition and membership, establishes the execution-scoped MOM
+record, and queues discovery for the joining member's MOM object; the reviewed
+path does not enqueue a federation-level Conditional reflection. Explicit
+current-value requests project the live registry definition.
+
+The public process additional-FOM case asserts Join and class lookup/name,
+not Federation MOM attributes. The `HLAcurrentFDD` reflection case is
+embedded-profile evidence; the process joined-member MOM observer covers a
+different object and different values. The existing chart and evidence table
+already distinguish these paths, so no duplicate content was added. Keep the
+missing public process observer as an evidence gap, not a conformance finding
+or parity result. No diagram count or visual-review change; no build, tests,
+or CI.
+
+Next review: inspect the 2025 configured-process `HLAfederatesInFederation`
+projection at Join/Resign, including event production, the explicit
+current-value request, and public observer coverage. Keep source, test, and
+MIM statements separate; change the guide only for a demonstrated learner
+gap. Keep Attribute Scope visual review deferred until browser conditions
+change.
+
+## 2025 process Federation MOM membership-list review — 2026-10-16
+
+The existing Federation MOM section already distinguishes the MIM's
+Conditional membership trigger from process member-object events. The live
+Federation projection encodes the registry membership map. Process Join and
+Resign handle the affected `HLAfederate` MOM object but the reviewed paths do
+not enqueue an automatic Federation-list reflection; explicit requests use
+the current membership projection and require the requester to remain a
+member and know the Federation object.
+
+The embedded public test observes list reflections at Join and Resign. The
+configured-process resignation test checks member-object removal/rejoin
+ordering, not the Federation list, and no process observer case was found for
+either automatic or requested list values. Existing diagrams and test limits
+were sufficient, so no duplicate chart or prose was added. This is not a
+normative omission or profile-parity conclusion. No build, tests, or CI.
+
+Next review: audit the 2025 FOM-to-`DataElement` variant-record bridge across
+standard type concepts, composition/resolution, runtime construction/encoding,
+and configured-process tests. Keep the catalog-to-runtime integration gap
+explicit and do not infer process/embedded parity. Keep Attribute Scope visual
+review deferred until browser conditions change.
+
+### 2025 FOM variant-record value mapping — 2026-10-16
+
+**Question:** Does the current bridge explain what application code must do to
+translate a composed variant definition into the runtime `DataElement` map?
+
+**Evidence:** The 2025 catalog projection stores the variant discriminant type
+name, alternative names, enumerator-name strings, and payload type names. The
+pinned `HLAextendableVariantRecord` API instead accepts a typed discriminant
+prototype and runtime `DataElement` values/prototypes. The Restaurant fixture
+provides a concrete example (`DrinkType`, `Margarita = 1`, `DryMartini = 2`,
+`HasSaltRim`, `OliveCount`). The composer test checks model composition, the
+codec test constructs a map directly, and the configured-process Create test
+only checks acceptance of the Restaurant FOM; none joins these paths.
+
+**Disposition:** Added a short application-side mapping example to the 2025
+FOM composition guide. It is labeled illustrative rather than normative or
+end-to-end tested. No third diagram was needed; the existing bridge diagram
+already shows the architectural separation. No build, test, CI, 2010, or
+Requirements Lab work.
+
+**Next review:** Audit the 2025 public Update Attribute Values and Send
+Interaction value boundary: caller-side `DataElement` encoding, RTI validation
+and forwarding, receiver decoding, and configured-process framing. Amend only
+for a demonstrated learner gap; keep process/embedded evidence separate.
+
+### 2025 process Update Attribute Values payload boundary — 2026-10-16
+
+**Question:** Does the process Update Attribute Values flow make clear whether
+the RTI decodes application payloads as `DataElement`s, or only handles their
+octets?
+
+**Evidence:** The 2025 public API accepts a handle-keyed map of
+`VariableLengthData`. In the configured-process update handler, the registry
+plan is built from attribute handles; payload vectors are copied into accepted
+state and recipient events. The event codec writes the byte vectors alongside
+their handles, and the callback bridge reconstructs `VariableLengthData` values
+without a `DataElement` decode. The focused process reflection test sends
+literal three-octet value and tag arrays and asserts they arrive unchanged.
+This does not establish general payload validation or a typed end-to-end codec
+path. The process Send Interaction companion already states its ordinary
+parameter-octet boundary and notes the separate predefined `HLAsetSwitches`
+control path.
+
+**Disposition:** Added a source-bounded paragraph and direct test references to
+the 2025 process guide's receive-order update section. Kept frame decoding,
+HLA value decoding, and callback map reconstruction as separate steps. No
+diagram change or normative claim; no build, test, CI, 2010, or Requirements
+Lab work.
+
+**Next review:** Audit the 2025 predefined `HLAsetSwitches` interaction for
+parameter interpretation, switch-state update, and MOM projection across the
+existing API/source/test evidence. Keep it separate from ordinary application
+interaction fan-out and amend only for a demonstrated learner gap.
+
+### 2025 predefined HLAsetSwitches scope and parameter flow — 2026-10-16
+
+**Question:** Does the Federation MOM guide make clear that the 2025 MIM has
+two distinct `HLAsetSwitches` class paths with different state and parameter
+semantics?
+
+**Evidence:** The federation-root interaction carries `HLAautoProvide` as an
+`HLAswitch`; the joined-federate interaction carries eight `HLAswitch`
+parameters plus `HLAautomaticResignAction` as `HLAresignAction`. The pinned
+MIM defines the switch as `HLAinteger32BE` 0/1 and the resign action as
+`HLAinteger32BE` 0–5. Embedded and configured-process sources decode these
+paths separately. The member update stages recognized values and the shared
+registry checks the Service Reporting subscription interlock before mutation.
+Selected process tests cover state/getters, compatible extension parameters,
+and several malformed/interlock failures; they do not cover every combined
+failure or establish process Conditional reflection. The embedded setter test
+is recorded as failing before its switch assertions.
+
+**Disposition:** Added a 2025-only class-path comparison and flowchart to the
+existing Federation MOM guide, including special RTI consumption and current
+MOM projection. The section's 67 local paths/line anchors resolve. No ordinary
+interaction fan-out, cross-profile parity, or normative conclusion is
+inferred. No tests/build were run. Syntax and visual validation remain
+pending: the direct Mermaid core parser encounters `DOMPurify.addHook is not a
+function`, and local mmdc rendering cannot launch Chromium.
+
+**Next review:** Audit the 2025 `HLAreportMOMexception` flow for rejected
+predefined `HLAsetSwitches` adjustments: process rejection, report
+construction, recipient selection, and related embedded evidence. Keep it
+distinct from `HLAreportException`, ordinary `HLAserviceInvocation` reports,
+and public service exceptions. Amend only for a demonstrated gap; do not build
+or rerun tests.
+
+### 2025 HLAreportMOMexception and rejected HLAsetSwitches review — 2026-10-16
+
+**Question:** Does the existing 2025 Exception Reporting guide explain the
+MOM report produced when a predefined `HLAsetSwitches` request is malformed or
+rejected by a service precondition, including report recipients and how this
+differs from other failure reports?
+
+**Evidence:** The pinned MIM declares `HLAreportMOMexception` as a reliable,
+receive-order interaction on the `HLAfederate` dimension, with `HLAservice`,
+`HLAexception`, and `HLAparameterError` (plus inherited `HLAfederate`). The
+process server plans the report and recipient events before returning the
+rejection; its recipient planner applies subscription, class projection, and
+the report's subject-scoped dimension route. The embedded Send Interaction
+catch attempts the MOM report, then the independent `HLAreportException` hook
+and failed service-invocation writer. The configured-process client rejection
+branch returns before those embedded-only catch steps. Focused embedded tests
+cover malformed and precondition failures; process cases verify the typed
+payload, exception switch off, parent-class parameter projection, and selected
+callback/event modes. Neither profile's cited cases assert all report routes
+for one failure.
+
+**Disposition:** The existing guide already contains this end-to-end
+distinction, recipient boundary, source mapping, and test limits. No new flow
+or prose was warranted. The bounded Route B link check did find one stale
+embedded catch-order anchor; corrected it from line 2396 to the actual catch at
+line 2395. All 27 local Route B links now resolve. No build or tests.
+
+**Next review:** Audit the two 2025 `HLArequestFOMmoduleData` class paths and
+their module-index/report projection across the existing Federation MOM and
+FOM admission guides plus focused evidence. Keep federation/member request
+scope and returned report content distinct; amend only for a demonstrated
+reader gap. Do not build or rerun tests.
+
+### 2025 FOM module-data request/report profile boundary — 2026-10-16
+
+**Question:** Do the existing 2025 MOM guides make the distinct
+`HLArequestFOMmoduleData` paths clear, and is there evidence that the
+configured-process endpoint performs the paired report operation?
+
+**Evidence:** The MIM defines separate federation- and joined-member requests.
+Both are reliable, receive-order `Subscribe` interactions; the federation
+request takes `HLAFOMmoduleIndicator`, while the member request also inherits
+the `HLAfederate` target. The existing Federation MOM guide's flow/table and
+embedded source/tests already explain those separate module lists and report
+classes. Its federation test exercises the retained federation module list;
+the member test targets its own member and observes selected report content.
+For configured process, the public ambassador forwards the request through a
+private parameter/tag envelope. The reviewed server handler handles only the
+two `HLAsetSwitches` roots specially before using the generic published
+interaction planner. The bounded source search found no process-specific FOM
+request/report planner, and the test search found no process case for either
+scope.
+
+**Disposition:** Added a source-only process-boundary note to the existing MOM
+guide. It marks actual process outcome, report production, exact public error,
+and parity unverified; it does not claim nonconformance or infer behavior from
+the missing branch. The edited subsection's 29 local citations and anchors
+resolve. No new diagram, build, or test.
+
+**Next review:** Audit the 2025 `HLArequestMIMdata` path across the embedded
+report handler, configured-process Send Interaction route, and focused
+evidence. Compare with the existing Federation MOM guide; document only a
+demonstrated gap and keep process behavior source-bounded. Do not build or
+rerun tests.

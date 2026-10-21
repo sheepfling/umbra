@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for receive-order multi-attribute update callback cancellation. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, multi-attribute FOM, endpoint, and callback configuration. It verifies ordinary multi-attribute publication, registration, per-recipient projection, queued reflection withdrawal before HLA_EVOKED callback servicing, immediate-model delivery boundaries, later-update suppression, and standard federation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "notes": "This is an internal API-contract probe, not normative conformance evidence. It observes whether a receive-order reflect callback already pending for HLA_EVOKED callback service is withdrawn after unsubscribe; no direct IEEE 1516.1-2025 requirement guaranteeing retraction of that queued callback has been identified. The C++ source uses only standard RTIambassador and FederateAmbassador APIs plus the standard library, with the provider package, multi-attribute FOM, endpoint, and callback configuration supplied by the adapter. Passing results record provider behavior only and must not be reported as IEEE 1516.1-2025 conformance.",
   "api_surfaces": [
     {
       "id": "standard-cpp-receive-order-multi-attribute-update-cancellation",

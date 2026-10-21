@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Distinct native, portable C++, and Java three-member timed-save resignation case that actually calls Flush Queue Request. After a timed save at 5, the departing time-constrained member requests FQR at 6 and resigns before its callback is serviced. The surviving constrained member makes an ordinary TAR at 5, receives save initiation before its equal grant, and completes the save with the regulator. The departed member receives no FQR grant or save result. The adapter supplies provider, FOM, endpoint, callback model, and logical-time implementation. Six direct requirement-section pairs cover clauses 4.12, 4.19, 4.19.6, and 4.20. The focused native Catch2 case passed 41 assertions through an isolated CTest runner. Portable C++ primary and contract each passed against the installed package under integer64 and float64 time. Java compiles against the official API-only JAR; provider runtime is unverified. HLA_EVOKED public-API observation only, not a universal cross-service ordering, immediate-callback, transport, interoperability, or conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-timed-save-resigned-pending-fqr",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador requestFederationSave(time), flushQueueRequest, resignFederationExecution, timeAdvanceRequest, federateSaveBegun, federateSaveComplete; FederateAmbassador initiateFederateSave(time), timeAdvanceGrant, federationSaved",
+      "source": "third_party/ieee1516.1-2025/include/RTI and official hla.rti1516_2025 Java API",
+      "source_symbol": "IEEE 1516.1-2025 federation-save, resignation, and time-management interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_timed_save_resigned_fqr_ordinary_admission_catch2.cpp::Embedded timed save drops a resigned pending FQR before ordinary admission",
+        "packages/hla-rti-cpp-tck/src/tck_timed_save_resigned_constrained_member.cpp::scenarioTimedSaveResignedPendingFqr",
+        "packages/hla-rti-cpp-tck/src/tck_timed_save_resigned_constrained_member.cpp::scenarioTimedSaveResignedPendingFqrContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/TimedSaveResignedConstrainedMemberTck.java::runPendingFqr"
+      ]
+    }
+  ]
+}

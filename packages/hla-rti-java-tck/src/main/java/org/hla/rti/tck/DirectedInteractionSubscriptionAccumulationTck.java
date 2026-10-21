@@ -121,8 +121,9 @@ final class DirectedInteractionSubscriptionAccumulationTck {
             secondParameters, secondTag);
          JavaTckSupport.drain(subscriber);
 
-         JavaTckSupport.check(subscriberRecorder.directed.size() == 2,
-            "sequential subscriptions did not deliver exactly both selected interaction classes");
+         JavaTckSupport.check(subscriberRecorder.directed.size() == 2
+               && subscriberRecorder.nonReceiveOrderDirectedCount == 0,
+            "sequential subscriptions did not deliver exactly two receive-order directed callbacks");
          assertDelivery(subscriber, findDelivery(subscriberRecorder, subscriberFirstInteraction),
             subscriberFirstInteraction, target, subscriberFirstParameter,
             firstParameterBytes, firstTag, publisherFederate);
@@ -217,6 +218,7 @@ final class DirectedInteractionSubscriptionAccumulationTck {
    private static final class Recorder {
       private final List<Directed> directed = new ArrayList<>();
       private final List<ObjectInstanceHandle> discoveries = new ArrayList<>();
+      private volatile int nonReceiveOrderDirectedCount;
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -227,13 +229,17 @@ final class DirectedInteractionSubscriptionAccumulationTck {
                if ("discoverObjectInstance".equals(name)) {
                   discoveries.add((ObjectInstanceHandle) arguments[0]);
                } else if ("receiveDirectedInteraction".equals(name)) {
-                  ParameterHandleValueMap parameters =
-                     ((ParameterHandleValueMap) arguments[2]).clone();
-                  byte[] tag = ((byte[]) arguments[3]).clone();
-                  directed.add(new Directed((InteractionClassHandle) arguments[0],
-                     (ObjectInstanceHandle) arguments[1], parameters, tag,
-                     (TransportationTypeHandle) arguments[4],
-                     (FederateHandle) arguments[5]));
+                  if (arguments == null || arguments.length != 6) {
+                     nonReceiveOrderDirectedCount++;
+                  } else {
+                     ParameterHandleValueMap parameters =
+                        ((ParameterHandleValueMap) arguments[2]).clone();
+                     byte[] tag = ((byte[]) arguments[3]).clone();
+                     directed.add(new Directed((InteractionClassHandle) arguments[0],
+                        (ObjectInstanceHandle) arguments[1], parameters, tag,
+                        (TransportationTypeHandle) arguments[4],
+                        (FederateHandle) arguments[5]));
+                  }
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK directed subscription recorder";

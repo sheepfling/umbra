@@ -291,7 +291,7 @@ bool isRouteFreeRegionalTsoInteractionImage(FederationStateImage const& image) {
   for (auto const& recipient : retraction.recipientStates) {
     if (recipient.receivingFederateId == 0U ||
         recipient.receivingFederateId == message.producingFederateId ||
-        recipient.state > 3U ||
+        recipient.state > 4U ||
         !recipients.insert(recipient.receivingFederateId).second) {
       return false;
     }
@@ -307,6 +307,183 @@ bool isRouteFreeRegionalTsoInteractionImage(FederationStateImage const& image) {
     }
   }
   return recipients.size() == 2U;
+}
+
+// A fresh-registry identity-rebinding slice for one ordinary queued TSO
+// interaction. The durable payload, one pending recipient/retraction record,
+// and the publisher/subscriber declarations form one inseparable ledger; no
+// regions, additional message families, or unrelated transaction state are
+// admitted here.
+bool isOneQueuedTsoInteractionIdentityRebindingImage(
+    FederationStateImage const& image) {
+  if (image.members.size() != 2U ||
+      image.interactionDeclarationCount != 2U ||
+      image.interactionDeclarations.size() != 2U ||
+      image.objectInstanceCount != 0U || !image.objects.empty() ||
+      image.objectClassDeclarationCount != 0U ||
+      !image.objectClassAttributeDeclarations.empty() ||
+      image.regionCount != 0U || !image.regions.empty() ||
+      image.synchronizationPointCount != 0U ||
+      !image.synchronizationPoints.empty() ||
+      image.tsoInteractionMessageCount != 1U ||
+      image.tsoInteractionMessages.size() != 1U ||
+      !image.tsoAttributeUpdateMessages.empty() ||
+      !image.tsoObjectDeletionMessages.empty() ||
+      !image.tsoDirectedInteractionMessages.empty() ||
+      image.tsoRequestRetractionRecords.size() != 1U ||
+      image.tsoQueueEntries.size() != 1U ||
+      !image.deferredUpdateRegionAssociations.empty() ||
+      !image.pendingAttributeOwnershipQueries.empty() ||
+      !image.pendingAttributeOwnershipAssumptions.empty() ||
+      !image.queuedReceiveOrderInteractions.empty() ||
+      !image.queuedReceiveOrderAttributeUpdates.empty() ||
+      !image.reservedObjectInstanceNames.empty()) {
+    return false;
+  }
+
+  std::set<std::uint64_t> savedMemberIds;
+  for (FederationStateImageMember const& member : image.members) {
+    if (member.id == 0U || !savedMemberIds.insert(member.id).second) {
+      return false;
+    }
+  }
+
+  FederationStateImageTsoInteractionMessage const& message =
+      image.tsoInteractionMessages.front();
+  std::uint32_t const timestampOrder =
+      static_cast<std::uint32_t>(rti1516_2025::TIMESTAMP);
+  if (message.messageId == 0U ||
+      !savedMemberIds.contains(message.producingFederateId) ||
+      message.sentInteractionClassHandle == 0U ||
+      !message.timestampEncoding.has_value() ||
+      !message.sentRegionHandles.empty() ||
+      !message.sentRegionSnapshots.empty() || message.defaultRegionUsed ||
+      message.sentOrderType != timestampOrder ||
+      message.receivedOrderType != timestampOrder) {
+    return false;
+  }
+
+  std::set<std::uint64_t> parameterHandles;
+  for (std::uint64_t const handle : message.sentParameterHandles) {
+    if (handle == 0U || !parameterHandles.insert(handle).second) {
+      return false;
+    }
+  }
+  if (parameterHandles.size() != message.parameters.size()) {
+    return false;
+  }
+  for (FederationStateImageInteractionParameter const& parameter :
+       message.parameters) {
+    if (parameter.parameterHandle == 0U ||
+        !parameterHandles.contains(parameter.parameterHandle)) {
+      return false;
+    }
+  }
+
+  FederationStateImageTsoQueueEntry const& queueEntry =
+      image.tsoQueueEntries.front();
+  std::uint64_t const receiverId = queueEntry.recipientFederateId;
+  if (receiverId == 0U || receiverId == message.producingFederateId ||
+      !savedMemberIds.contains(receiverId) ||
+      queueEntry.messageId != message.messageId || queueEntry.sequence == 0U ||
+      queueEntry.phase != 0U ||
+      queueEntry.timestampEncoding != message.timestampEncoding) {
+    return false;
+  }
+
+  FederationStateImageTsoRequestRetractionRecord const& retraction =
+      image.tsoRequestRetractionRecords.front();
+  if (retraction.messageId != message.messageId ||
+      retraction.producingFederateId != message.producingFederateId ||
+      retraction.timestampEncoding != message.timestampEncoding ||
+      retraction.recipientStates.size() != 1U ||
+      retraction.retractionApplied || retraction.terminal ||
+      retraction.producerResigned ||
+      retraction.deliveryRequiredAfterConnectionLoss) {
+    return false;
+  }
+  FederationStateImageTsoRequestRetractionRecipient const& recipient =
+      retraction.recipientStates.front();
+  if (recipient.receivingFederateId != receiverId || recipient.state != 0U) {
+    return false;
+  }
+
+  std::set<std::uint64_t> declarationMemberIds;
+  bool publisherDeclarationFound = false;
+  bool receiverDeclarationFound = false;
+  for (FederationStateImageInteractionDeclaration const& declaration :
+       image.interactionDeclarations) {
+    if (!savedMemberIds.contains(declaration.federateId) ||
+        !declarationMemberIds.insert(declaration.federateId).second ||
+        !declaration.regionalSubscribedInteractionClasses.empty() ||
+        !declaration.publishedObjectClassDirectedInteractions.empty() ||
+        !declaration.subscribedObjectClassDirectedInteractions.empty() ||
+        !declaration.interactionTransportationTypes.empty() ||
+        !declaration.pendingInteractionTransportationTypeChanges.empty()) {
+      return false;
+    }
+    if (declaration.federateId == message.producingFederateId) {
+      if (declaration.publishedInteractionClasses !=
+              std::vector<std::uint64_t>{message.sentInteractionClassHandle} ||
+          !declaration.subscribedInteractionClasses.empty() ||
+          declaration.interactionOrderTypes.size() != 1U ||
+          declaration.interactionOrderTypes.front().interactionClassHandle !=
+              message.sentInteractionClassHandle ||
+          declaration.interactionOrderTypes.front().orderType != timestampOrder) {
+        return false;
+      }
+      publisherDeclarationFound = true;
+    } else if (declaration.federateId == receiverId) {
+      if (!declaration.publishedInteractionClasses.empty() ||
+          declaration.subscribedInteractionClasses.size() != 1U ||
+          declaration.subscribedInteractionClasses.front().interactionClassHandle !=
+              message.sentInteractionClassHandle ||
+          !declaration.subscribedInteractionClasses.front().active ||
+          !declaration.interactionOrderTypes.empty()) {
+        return false;
+      }
+      receiverDeclarationFound = true;
+    } else {
+      return false;
+    }
+  }
+  if (!publisherDeclarationFound || !receiverDeclarationFound ||
+      declarationMemberIds != savedMemberIds) {
+    return false;
+  }
+
+  if (image.timeStates.size() != 2U) {
+    return false;
+  }
+  std::set<std::uint64_t> temporalMemberIds;
+  bool publisherTimeStateFound = false;
+  bool receiverTimeStateFound = false;
+  for (FederationStateImageTimeState const& timeState : image.timeStates) {
+    if (!savedMemberIds.contains(timeState.federateId) ||
+        !temporalMemberIds.insert(timeState.federateId).second ||
+        (timeState.flags & 1U) == 0U ||
+        (timeState.flags & ((1U << 4U) | (1U << 5U) | (1U << 6U))) != 0U ||
+        timeState.queuedTsoCount !=
+            (timeState.federateId == receiverId ? 1U : 0U) ||
+        timeState.inTransitTsoCount != 0U || timeState.deliveredTsoCount != 0U) {
+      return false;
+    }
+    bool const regulating = (timeState.flags & (1U << 1U)) != 0U;
+    bool const constrained = (timeState.flags & (1U << 2U)) != 0U;
+    if (timeState.federateId == message.producingFederateId) {
+      if (!regulating || constrained) {
+        return false;
+      }
+      publisherTimeStateFound = true;
+    } else if (timeState.federateId == receiverId) {
+      if (regulating || !constrained) {
+        return false;
+      }
+      receiverTimeStateFound = true;
+    }
+  }
+  return publisherTimeStateFound && receiverTimeStateFound &&
+      temporalMemberIds == savedMemberIds;
 }
 
 // The next mixed declaration slice keeps one publication and ordinary
@@ -452,7 +629,7 @@ bool isRouteFreeMultipleDirectedInteractionDeclarationImage(
       std::set<std::uint64_t> recordRecipients;
       for (auto const& recipient : record.recipientStates) {
         if (recipient.receivingFederateId == 0U ||
-            recipient.state > 3U ||
+            recipient.state > 4U ||
             !recordRecipients.insert(recipient.receivingFederateId).second ||
             !directedRecipients.at(record.messageId).contains(
                 recipient.receivingFederateId)) {

@@ -140,6 +140,28 @@ void scenarioTimestampedAttributeSenderRegulationTransition(
       [&] { return publisher.recorder().timeRegulationEnabled().size() >= 1U; },
       options,
       "Timestamped sender-role transition time-regulation callback");
+  auto const regulationEnabledReports =
+      publisher.recorder().timeRegulationEnabled();
+  auto assignedPublisherTime = publisherTime.factory->makeInitial();
+  require(
+      assignedPublisherTime != nullptr,
+      "Timestamped sender-role transition could not allocate an assigned-time query target");
+  publisher.rtiAmbassador().queryLogicalTime(*assignedPublisherTime);
+  require(
+      regulationEnabledReports.size() == 1U &&
+          regulationEnabledReports.front().encoded ==
+              encodeTime(*publisherTime.initial) &&
+          encodeTime(*assignedPublisherTime) ==
+              regulationEnabledReports.front().encoded,
+      "Time Regulation Enabled did not report the assigned initial logical time");
+  auto assignedLookahead = publisherTime.factory->makeZero();
+  require(
+      assignedLookahead != nullptr,
+      "Timestamped sender-role transition could not allocate a lookahead query target");
+  publisher.rtiAmbassador().queryLookahead(*assignedLookahead);
+  require(
+      copyBytes(assignedLookahead->encode()) == copyBytes(lookahead->encode()),
+      "Enable Time Regulation did not retain the requested lookahead");
 
   std::vector<std::uint8_t> const secondValueBytes{0x54U, 0x53U, 0x4FU};
   std::vector<std::uint8_t> const secondTagBytes{0x32U};

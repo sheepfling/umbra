@@ -69,6 +69,12 @@ class ReportingFederateAmbassador final
     std::wstring value;
   };
 
+  struct FlushQueueGrantReport final {
+    std::wstring timeImplementationName;
+    std::wstring value;
+    std::wstring optimisticValue;
+  };
+
   struct ReflectionReport final {
     ObjectInstanceHandle objectInstance;
     AttributeHandleValueMap attributeValues;
@@ -127,9 +133,18 @@ class ReportingFederateAmbassador final
     callbackOrder.push_back("grant");
   }
 
+  void flushQueueGrant(
+      rti1516_2025::LogicalTime const& time,
+      rti1516_2025::LogicalTime const& optimisticTime) override {
+    flushQueueGrantReports.push_back({
+        time.implementationName(), time.toString(), optimisticTime.toString()});
+    callbackOrder.push_back("flush-grant");
+  }
+
   std::vector<ObjectInstanceHandle> discoveredObjectInstances;
   std::vector<ReflectionReport> attributeReflectionReports;
   std::vector<TimeAdvanceGrantReport> timeAdvanceGrantReports;
+  std::vector<FlushQueueGrantReport> flushQueueGrantReports;
   std::vector<std::string> callbackOrder;
 };
 
@@ -280,4 +295,217 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(receiver->disconnect());
   REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded early NMR grant eases timestamped attribute update bound",
+    "[integration][development-profile][2025][object-management][time-management][tso]"
+    "[timestamped-attribute-update-early-grant-tso-bound-easing]"
+    "[rti.service.update-attribute-values][rti.service.next-message-request]"
+    "[rti.service.time-advance-request][federate.callback.reflect-attribute-values]"
+    "[federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador requesterReports;
+  ReportingFederateAmbassador peerReports;
+  auto requester = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  unsigned char const firstValueBytes[] = {0x41U, 0x54U, 0x31U};
+  unsigned char const secondValueBytes[] = {0x41U, 0x54U, 0x32U};
+  unsigned char const tagBytes[] = {0x45U, 0x41U};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"attribute-early-grant-requester", L"publisher", federationName));
+  REQUIRE_NOTHROW(peer->joinFederationExecution(
+      L"attribute-early-grant-peer", L"publisher", federationName));
+
+  auto const soda = requester->getObjectClassHandle(fixture_hla::fom::food_drink_soda);
+  auto const flavor = requester->getAttributeHandle(soda, fixture_hla::fixture::flavor);
+  REQUIRE(soda.isValid());
+  REQUIRE(flavor.isValid());
+  AttributeHandleSet const flavorOnly{flavor};
+  REQUIRE_NOTHROW(requester->publishObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(peer->publishObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(soda, flavorOnly));
+  ObjectInstanceHandle const requesterObject = requester->registerObjectInstance(soda);
+  ObjectInstanceHandle const peerObject = peer->registerObjectInstance(soda);
+  while (requester->evokeCallback(0.0)) {
+  }
+  while (peer->evokeCallback(0.0)) {
+  }
+
+  REQUIRE_NOTHROW(requester->enableTimeConstrained());
+  while (requester->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(requester->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  while (requester->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(peer->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+  while (peer->evokeCallback(0.0)) {
+  }
+
+  AttributeHandleValueMap peerValues;
+  peerValues.emplace(flavor, VariableLengthData(firstValueBytes, sizeof(firstValueBytes)));
+  auto const incomingRetraction = peer->updateAttributeValues(
+      peerObject, peerValues, tag, rti1516_2025::HLAinteger64Time(5));
+  REQUIRE(incomingRetraction.isValid());
+  REQUIRE(requesterReports.attributeReflectionReports.empty());
+  REQUIRE_NOTHROW(requester->nextMessageRequest(rti1516_2025::HLAinteger64Time(10)));
+  REQUIRE(requesterReports.timeAdvanceGrantReports.empty());
+  REQUIRE_NOTHROW(peer->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  while (peer->evokeCallback(0.0)) {
+  }
+  while (requester->evokeCallback(0.0)) {
+  }
+
+  REQUIRE(requesterReports.attributeReflectionReports.size() == 1U);
+  auto const& incomingReport = requesterReports.attributeReflectionReports.front();
+  REQUIRE(incomingReport.objectInstance == peerObject);
+  REQUIRE(incomingReport.attributeValues.size() == 1U);
+  REQUIRE(incomingReport.attributeValues.contains(flavor));
+  REQUIRE(variableLengthDataBytes(incomingReport.attributeValues.at(flavor)) ==
+          std::vector<unsigned char>(
+              firstValueBytes, firstValueBytes + sizeof(firstValueBytes)));
+  REQUIRE(incomingReport.timeValue == L"5");
+  REQUIRE(incomingReport.sentOrderType == TIMESTAMP);
+  REQUIRE(incomingReport.receivedOrderType == TIMESTAMP);
+  REQUIRE(incomingReport.retractionSupplied);
+  REQUIRE(incomingReport.retractionValid);
+  REQUIRE(requesterReports.timeAdvanceGrantReports.size() == 1U);
+  REQUIRE(requesterReports.timeAdvanceGrantReports.front().value == L"5");
+  REQUIRE(requesterReports.callbackOrder == std::vector<std::string>{"reflect", "grant"});
+
+  rti1516_2025::HLAinteger64Time logicalTime;
+  REQUIRE_NOTHROW(requester->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+  AttributeHandleValueMap requesterValues;
+  requesterValues.emplace(flavor, VariableLengthData(secondValueBytes, sizeof(secondValueBytes)));
+  auto const outgoingRetraction = requester->updateAttributeValues(
+      requesterObject,
+      requesterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(7));
+  REQUIRE(outgoingRetraction.isValid());
+  REQUIRE_NOTHROW(requester->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+
+  REQUIRE_NOTHROW(requester->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(peer->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(requester->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded distinct FQR grant uses actual time for timestamped attribute update bound",
+    "[integration][development-profile][2025][object-management][time-management][tso]"
+    "[fqr-distinct-actual-optimistic-attribute-bound]"
+    "[rti.service.update-attribute-values][rti.service.flush-queue-request]"
+    "[rti.service.time-advance-request][federate.callback.reflect-attribute-values]"
+    "[federate.callback.flush-queue-grant]") {
+  ReportingFederateAmbassador requesterReports;
+  ReportingFederateAmbassador peerReports;
+  auto requester = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  unsigned char const incomingValueBytes[] = {0x46U, 0x51U, 0x52U, 0x41U};
+  unsigned char const outgoingValueBytes[] = {0x46U, 0x51U, 0x52U, 0x42U};
+  unsigned char const tagBytes[] = {0x46U, 0x51U, 0x52U};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"attribute-fqr-bound-requester", L"publisher", federationName));
+  REQUIRE_NOTHROW(peer->joinFederationExecution(
+      L"attribute-fqr-bound-peer", L"publisher", federationName));
+
+  auto const soda = requester->getObjectClassHandle(fixture_hla::fom::food_drink_soda);
+  auto const flavor = requester->getAttributeHandle(soda, fixture_hla::fixture::flavor);
+  REQUIRE(soda.isValid());
+  REQUIRE(flavor.isValid());
+  AttributeHandleSet const flavorOnly{flavor};
+  REQUIRE_NOTHROW(requester->publishObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(peer->publishObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(soda, flavorOnly));
+  ObjectInstanceHandle const requesterObject = requester->registerObjectInstance(soda);
+  ObjectInstanceHandle const peerObject = peer->registerObjectInstance(soda);
+  while (requester->evokeCallback(0.0)) {
+  }
+  while (peer->evokeCallback(0.0)) {
+  }
+
+  REQUIRE_NOTHROW(requester->enableTimeConstrained());
+  while (requester->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(requester->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  while (requester->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(peer->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+  while (peer->evokeCallback(0.0)) {
+  }
+
+  REQUIRE_NOTHROW(requester->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  REQUIRE_NOTHROW(peer->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  for (int pass = 0; pass != 8; ++pass) {
+    while (requester->evokeCallback(0.0)) {
+    }
+    while (peer->evokeCallback(0.0)) {
+    }
+  }
+  rti1516_2025::HLAinteger64Time logicalTime;
+  REQUIRE_NOTHROW(requester->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 4);
+  REQUIRE_NOTHROW(peer->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 4);
+  requesterReports.callbackOrder.clear();
+
+  AttributeHandleValueMap incomingValues;
+  incomingValues.emplace(
+      flavor, VariableLengthData(incomingValueBytes, sizeof(incomingValueBytes)));
+  auto const incomingRetraction = peer->updateAttributeValues(
+      peerObject, incomingValues, tag, rti1516_2025::HLAinteger64Time(7));
+  REQUIRE(incomingRetraction.isValid());
+  REQUIRE_NOTHROW(requester->flushQueueRequest(rti1516_2025::HLAinteger64Time(10)));
+  while (requester->evokeCallback(0.0)) {
+  }
+  REQUIRE(requesterReports.attributeReflectionReports.size() == 1U);
+  REQUIRE(requesterReports.attributeReflectionReports.front().timeValue == L"7");
+  REQUIRE(requesterReports.flushQueueGrantReports.size() == 1U);
+  REQUIRE(requesterReports.flushQueueGrantReports.front().value == L"5");
+  REQUIRE(requesterReports.flushQueueGrantReports.front().optimisticValue == L"7");
+  REQUIRE(requesterReports.callbackOrder == std::vector<std::string>{"reflect", "flush-grant"});
+
+  REQUIRE_NOTHROW(requester->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+  AttributeHandleValueMap outgoingValues;
+  outgoingValues.emplace(
+      flavor, VariableLengthData(outgoingValueBytes, sizeof(outgoingValueBytes)));
+  auto const outgoingRetraction = requester->updateAttributeValues(
+      requesterObject,
+      outgoingValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(outgoingRetraction.isValid());
+  REQUIRE_NOTHROW(requester->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+
+  REQUIRE_NOTHROW(requester->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(peer->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(requester->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
 }

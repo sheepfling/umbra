@@ -127,7 +127,30 @@ FederationTimeGrantDispatchResult EmbeddedFederationRegistry::reevaluateTimeAdva
   if (federation == federations_.end()) {
     return {FederationTimeGrantStatus::federation_does_not_exist, {}};
   }
-  return {FederationTimeGrantStatus::applied, scheduleEligibleTimeAdvanceGrants(federation->second)};
+  auto dispatches = scheduleEligibleTimeAdvanceGrants(federation->second);
+  auto roleEnableDispatches =
+      scheduleEligibleTimeConstrainedEnableDispatches(federation->second);
+  dispatches.insert(
+      dispatches.end(),
+      std::make_move_iterator(roleEnableDispatches.begin()),
+      std::make_move_iterator(roleEnableDispatches.end()));
+  return {FederationTimeGrantStatus::applied, std::move(dispatches)};
+}
+
+void EmbeddedFederationRegistry::completeTimeConstrainedEnableDispatch(
+    std::wstring const& federationName,
+    std::uint64_t federateId,
+    std::uint64_t generation) {
+  if (federateId == 0U || generation == 0U) {
+    return;
+  }
+  auto instrumentationScope = beginInstrumentation("completeTimeConstrainedEnableDispatch");
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation != federations_.end()) {
+    federation->second.queuedTimeConstrainedEnableDispatches.erase(
+        {federateId, generation});
+  }
 }
 
 FederationTimeGrantStatus EmbeddedFederationRegistry::beginTimeAdvanceGrant(

@@ -717,7 +717,9 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
       Credentials const* credentials);
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-  void configureFederationSaveDirectory(std::filesystem::path const& directory);
+  void configureFederationSaveDirectory(
+      std::filesystem::path const& directory,
+      bool explicitSetting);
 #endif
 
   void authorizeFederationOperationForConnectedFederate(

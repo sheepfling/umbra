@@ -10,6 +10,8 @@ void scenarioResignNoActionOwnedAttributesBoundaryPortable(Options const&, rti::
 void scenarioResignNoActionOwnedAttributesBoundaryContractPortable(Options const&, rti::CallbackModel);
 void scenarioResignDeleteObjectsThenDivestCrossObjectEffectsPortable(Options const&, rti::CallbackModel);
 void scenarioResignDeleteObjectsThenDivestCrossObjectEffectsContractPortable(Options const&, rti::CallbackModel);
+void scenarioResignDeleteThenDivestPrivilegeEpoch(Options const&, rti::CallbackModel);
+void scenarioResignDeleteThenDivestPrivilegeEpochContract(Options const&, rti::CallbackModel);
 void scenarioResignUnconditionallyDivestAttributesPreservesObjectsPortable(Options const&, rti::CallbackModel);
 void scenarioResignUnconditionallyDivestAttributesPreservesObjectsContractPortable(Options const&, rti::CallbackModel);
 void scenarioResignCancelPendingOwnershipAcquisitionsPortable(Options const&, rti::CallbackModel);

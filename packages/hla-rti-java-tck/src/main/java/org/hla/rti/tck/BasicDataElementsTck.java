@@ -333,6 +333,87 @@ final class BasicDataElementsTck {
       check(Double.doubleToLongBits(decodedDoubleLE.getValue()) == Double.doubleToLongBits(-2.5d),
          "64-bit little-endian float changed");
 
+      HLAfloat32BE float32PositiveZeroBE = encoder.createHLAfloat32BE(0.0f);
+      HLAfloat32LE float32PositiveZeroLE = encoder.createHLAfloat32LE(0.0f);
+      HLAfloat32BE float32NegativeZeroBE = encoder.createHLAfloat32BE(-0.0f);
+      HLAfloat32LE float32NegativeZeroLE = encoder.createHLAfloat32LE(-0.0f);
+      HLAfloat32BE float32PositiveInfinityBE = encoder.createHLAfloat32BE(Float.POSITIVE_INFINITY);
+      HLAfloat32LE float32PositiveInfinityLE = encoder.createHLAfloat32LE(Float.POSITIVE_INFINITY);
+      HLAfloat32BE float32NegativeInfinityBE = encoder.createHLAfloat32BE(Float.NEGATIVE_INFINITY);
+      HLAfloat32LE float32NegativeInfinityLE = encoder.createHLAfloat32LE(Float.NEGATIVE_INFINITY);
+      checkBytes(float32PositiveZeroBE.toByteArray(), 0, 0, 0, 0);
+      checkBytes(float32PositiveZeroLE.toByteArray(), 0, 0, 0, 0);
+      checkBytes(float32NegativeZeroBE.toByteArray(), 0x80, 0, 0, 0);
+      checkBytes(float32NegativeZeroLE.toByteArray(), 0, 0, 0, 0x80);
+      checkBytes(float32PositiveInfinityBE.toByteArray(), 0x7f, 0x80, 0, 0);
+      checkBytes(float32PositiveInfinityLE.toByteArray(), 0, 0, 0x80, 0x7f);
+      checkBytes(float32NegativeInfinityBE.toByteArray(), 0xff, 0x80, 0, 0);
+      checkBytes(float32NegativeInfinityLE.toByteArray(), 0, 0, 0x80, 0xff);
+
+      HLAfloat64BE float64PositiveZeroBE = encoder.createHLAfloat64BE(0.0d);
+      HLAfloat64LE float64PositiveZeroLE = encoder.createHLAfloat64LE(0.0d);
+      HLAfloat64BE float64NegativeZeroBE = encoder.createHLAfloat64BE(-0.0d);
+      HLAfloat64LE float64NegativeZeroLE = encoder.createHLAfloat64LE(-0.0d);
+      HLAfloat64BE float64PositiveInfinityBE = encoder.createHLAfloat64BE(Double.POSITIVE_INFINITY);
+      HLAfloat64LE float64PositiveInfinityLE = encoder.createHLAfloat64LE(Double.POSITIVE_INFINITY);
+      HLAfloat64BE float64NegativeInfinityBE = encoder.createHLAfloat64BE(Double.NEGATIVE_INFINITY);
+      HLAfloat64LE float64NegativeInfinityLE = encoder.createHLAfloat64LE(Double.NEGATIVE_INFINITY);
+      checkBytes(float64PositiveZeroBE.toByteArray(), 0, 0, 0, 0, 0, 0, 0, 0);
+      checkBytes(float64PositiveZeroLE.toByteArray(), 0, 0, 0, 0, 0, 0, 0, 0);
+      checkBytes(float64NegativeZeroBE.toByteArray(), 0x80, 0, 0, 0, 0, 0, 0, 0);
+      checkBytes(float64NegativeZeroLE.toByteArray(), 0, 0, 0, 0, 0, 0, 0, 0x80);
+      checkBytes(float64PositiveInfinityBE.toByteArray(), 0x7f, 0xf0, 0, 0, 0, 0, 0, 0);
+      checkBytes(float64PositiveInfinityLE.toByteArray(), 0, 0, 0, 0, 0, 0, 0xf0, 0x7f);
+      checkBytes(float64NegativeInfinityBE.toByteArray(), 0xff, 0xf0, 0, 0, 0, 0, 0, 0);
+      checkBytes(float64NegativeInfinityLE.toByteArray(), 0, 0, 0, 0, 0, 0, 0xf0, 0xff);
+
+      HLAfloat32BE float32MinSubnormalBE = encoder.createHLAfloat32BE(Float.MIN_VALUE);
+      HLAfloat32LE float32MinSubnormalLE = encoder.createHLAfloat32LE(Float.MIN_VALUE);
+      HLAfloat32BE float32MinNormalBE = encoder.createHLAfloat32BE(Float.MIN_NORMAL);
+      HLAfloat32LE float32MinNormalLE = encoder.createHLAfloat32LE(Float.MIN_NORMAL);
+      HLAfloat32BE float32MaxFiniteBE = encoder.createHLAfloat32BE(Float.MAX_VALUE);
+      HLAfloat32LE float32MaxFiniteLE = encoder.createHLAfloat32LE(Float.MAX_VALUE);
+      checkBytes(float32MinSubnormalBE.toByteArray(), 0, 0, 0, 1);
+      checkBytes(float32MinSubnormalLE.toByteArray(), 1, 0, 0, 0);
+      checkBytes(float32MinNormalBE.toByteArray(), 0, 0x80, 0, 0);
+      checkBytes(float32MinNormalLE.toByteArray(), 0, 0, 0x80, 0);
+      checkBytes(float32MaxFiniteBE.toByteArray(), 0x7f, 0x7f, 0xff, 0xff);
+      checkBytes(float32MaxFiniteLE.toByteArray(), 0xff, 0xff, 0x7f, 0x7f);
+
+      HLAfloat64BE float64MinSubnormalBE = encoder.createHLAfloat64BE(Double.MIN_VALUE);
+      HLAfloat64LE float64MinSubnormalLE = encoder.createHLAfloat64LE(Double.MIN_VALUE);
+      HLAfloat64BE float64MinNormalBE = encoder.createHLAfloat64BE(Double.MIN_NORMAL);
+      HLAfloat64LE float64MinNormalLE = encoder.createHLAfloat64LE(Double.MIN_NORMAL);
+      HLAfloat64BE float64MaxFiniteBE = encoder.createHLAfloat64BE(Double.MAX_VALUE);
+      HLAfloat64LE float64MaxFiniteLE = encoder.createHLAfloat64LE(Double.MAX_VALUE);
+      checkBytes(float64MinSubnormalBE.toByteArray(), 0, 0, 0, 0, 0, 0, 0, 1);
+      checkBytes(float64MinSubnormalLE.toByteArray(), 1, 0, 0, 0, 0, 0, 0, 0);
+      checkBytes(float64MinNormalBE.toByteArray(), 0, 0x10, 0, 0, 0, 0, 0, 0);
+      checkBytes(float64MinNormalLE.toByteArray(), 0, 0, 0, 0, 0, 0, 0x10, 0);
+      checkBytes(float64MaxFiniteBE.toByteArray(), 0x7f, 0xef, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
+      checkBytes(float64MaxFiniteLE.toByteArray(), 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xef, 0x7f);
+
+      HLAfloat32BE decodedFloat32NegativeZeroBE = encoder.createHLAfloat32BE();
+      decodedFloat32NegativeZeroBE.decode(float32NegativeZeroBE.toByteArray());
+      check(Float.floatToRawIntBits(decodedFloat32NegativeZeroBE.getValue())
+            == Float.floatToRawIntBits(-0.0f),
+         "32-bit big-endian negative zero lost its sign");
+      HLAfloat64LE decodedFloat64NegativeInfinityLE = encoder.createHLAfloat64LE();
+      decodedFloat64NegativeInfinityLE.decode(float64NegativeInfinityLE.toByteArray());
+      check(Double.doubleToRawLongBits(decodedFloat64NegativeInfinityLE.getValue())
+            == Double.doubleToRawLongBits(Double.NEGATIVE_INFINITY),
+         "64-bit little-endian negative infinity changed");
+      HLAfloat32LE decodedFloat32MinSubnormalLE = encoder.createHLAfloat32LE();
+      decodedFloat32MinSubnormalLE.decode(float32MinSubnormalLE.toByteArray());
+      check(Float.floatToRawIntBits(decodedFloat32MinSubnormalLE.getValue())
+            == Float.floatToRawIntBits(Float.MIN_VALUE),
+         "32-bit little-endian minimum subnormal changed");
+      HLAfloat64BE decodedFloat64MaxFiniteBE = encoder.createHLAfloat64BE();
+      decodedFloat64MaxFiniteBE.decode(float64MaxFiniteBE.toByteArray());
+      check(Double.doubleToRawLongBits(decodedFloat64MaxFiniteBE.getValue())
+            == Double.doubleToRawLongBits(Double.MAX_VALUE),
+         "64-bit big-endian maximum finite changed");
+
       expectFailure(() -> decodedSingleBE.decode(new byte[] {(byte) 0xc0, 0x20, 0}),
          "DecoderException", "truncated 32-bit float input was accepted");
       expectFailure(() -> decodedDoubleLE.decode(new byte[] {(byte) 0xc0, 0x04, 0, 0, 0, 0, 0}),

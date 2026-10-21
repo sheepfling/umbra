@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable TCK regional service-report float-time model</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-10-20</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Portable IEEE 1516.1-2025 regional service-report testing with HLAfloat64Time</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>Minimal typed object, dimension, and logical-time model for regional service-report tests.</description>
+        <useLimitation>NA</useLimitation>
+        <useHistory>Portable TCK validation.</useHistory>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>TckTypedObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>TckDimension</dimension>
+                </dimensions>
+                <attribute>
+                    <name>Identity</name>
+                    <dataType>HLAASCIIstring</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>At registration.</updateCondition>
+                    <valueRequired>true</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Stable object identity for regional service-report tests.</semantics>
+                </attribute>
+                <attribute>
+                    <name>IntegerValue</name>
+                    <dataType>TckInteger32</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>On change.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Second typed attribute for regional association list tests.</semantics>
+                </attribute>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <dimensions>
+        <dimension>
+            <name>TckDimension</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Unsigned region range selector.</inputDataDescription>
+            <upperBound>64</upperBound>
+            <normalization>linear (HLAcount, 0, 64)</normalization>
+            <outputDataSemantics>Portable region service-report dimension.</outputDataSemantics>
+            <value>[0..64)</value>
+        </dimension>
+    </dimensions>
+    <time>
+        <logicalTime>
+            <dataType>HLAfloat64Time</dataType>
+            <semantics>Fixture logical-time representation for the official HLAfloat64Time reference implementation.</semantics>
+        </logicalTime>
+        <logicalTimeInterval>
+            <dataType>HLAfloat64Time</dataType>
+            <semantics>Fixture logical-time interval representation for the official HLAfloat64Time reference implementation.</semantics>
+        </logicalTimeInterval>
+    </time>
+    <dataTypes>
+        <simpleDataTypes>
+            <simpleData>
+                <name>TckInteger32</name>
+                <representation>HLAinteger32BE</representation>
+                <units>NA</units>
+                <resolution>1</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>Signed 32-bit integer for the second association attribute.</semantics>
+            </simpleData>
+        </simpleDataTypes>
+    </dataTypes>
+</objectModel>

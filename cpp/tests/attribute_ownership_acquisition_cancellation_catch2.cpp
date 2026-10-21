@@ -582,3 +582,97 @@ TEST_CASE(
   REQUIRE_NOTHROW(requester->disconnect());
   REQUIRE_NOTHROW(owner->disconnect());
 }
+
+TEST_CASE(
+    "Embedded ownership tags follow the surviving acquisition and divestiture",
+    "[integration][development-profile][ownership-management]"
+    "[rti.service.attribute-ownership-acquisition]"
+    "[rti.service.attribute-ownership-divestiture-if-wanted]"
+    "[federate.callback.request-attribute-ownership-release]"
+    "[federate.callback.attribute-ownership-acquisition-notification]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador requesterReports;
+  auto owner = makeRti();
+  auto requester = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = testDataPath("attribute-update-passel-fom.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"tag-relay-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"tag-relay-requester", L"publisher", federationName));
+
+  auto const child = owner->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const attribute = owner->getAttributeHandle(
+      child, fixture_hla::fixture::reliable_base_a);
+  REQUIRE(child.isValid());
+  REQUIRE(attribute.isValid());
+  AttributeHandleSet const attributes{attribute};
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(child, attributes));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(child));
+  drainCallbacks(*requester);
+  REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(requesterReports.objectDiscoveryReports.front() == objectInstance);
+  REQUIRE_NOTHROW(requester->publishObjectClassAttributes(child, attributes));
+
+  unsigned char const ifAvailableBytes[] = {0xA1, 0x00};
+  unsigned char const acquisitionBytes[] = {0xB2, 0x01, 0x00};
+  unsigned char const divestitureBytes[] = {0xC3, 0x02, 0x00, 0xFF};
+  VariableLengthData const ifAvailableTag(
+      ifAvailableBytes, sizeof(ifAvailableBytes));
+  VariableLengthData const acquisitionTag(
+      acquisitionBytes, sizeof(acquisitionBytes));
+  VariableLengthData const divestitureTag(
+      divestitureBytes, sizeof(divestitureBytes));
+
+  // The regular acquisition overrides the earlier If Available request.
+  // Only its tag may be relayed to the owning federate.
+  REQUIRE_NOTHROW(requester->attributeOwnershipAcquisitionIfAvailable(
+      objectInstance, attributes, ifAvailableTag));
+  REQUIRE_NOTHROW(requester->attributeOwnershipAcquisition(
+      objectInstance, attributes, acquisitionTag));
+  REQUIRE_THROWS_AS(
+      requester->unpublishObjectClassAttributes(child, attributes),
+      rti1516_2025::OwnershipAcquisitionPending);
+  drainCallbacks(*owner);
+  REQUIRE(ownerReports.attributeOwnershipReleaseRequestReports.size() == 1U);
+  auto const& release = ownerReports.attributeOwnershipReleaseRequestReports.front();
+  REQUIRE(release.objectInstance == objectInstance);
+  REQUIRE(release.attributes == attributes);
+  REQUIRE(variableLengthDataBytes(release.userSuppliedTag) ==
+          std::vector<unsigned char>(
+              acquisitionBytes, acquisitionBytes + sizeof(acquisitionBytes)));
+  drainCallbacks(*requester);
+  REQUIRE(requesterReports.attributeOwnershipAcquisitionReports.empty());
+
+  AttributeHandleSet divestedAttributes;
+  REQUIRE_NOTHROW(owner->attributeOwnershipDivestitureIfWanted(
+      objectInstance, attributes, divestitureTag, divestedAttributes));
+  REQUIRE(divestedAttributes == attributes);
+  drainCallbacks(*requester);
+  REQUIRE(requesterReports.attributeOwnershipAcquisitionReports.size() == 1U);
+  auto const& acquired = requesterReports.attributeOwnershipAcquisitionReports.front();
+  REQUIRE(acquired.kind ==
+          ReportingFederateAmbassador::AttributeOwnershipAcquisitionReport::Kind::notification);
+  REQUIRE(acquired.objectInstance == objectInstance);
+  REQUIRE(acquired.attributes == attributes);
+  REQUIRE(variableLengthDataBytes(acquired.userSuppliedTag) ==
+          std::vector<unsigned char>(
+              divestitureBytes, divestitureBytes + sizeof(divestitureBytes)));
+  REQUIRE_FALSE(owner->isAttributeOwnedByFederate(objectInstance, attribute));
+  REQUIRE(requester->isAttributeOwnedByFederate(objectInstance, attribute));
+
+  REQUIRE_NOTHROW(owner->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(requester->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(requester->disconnect());
+}

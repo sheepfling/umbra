@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "A public-API translation of the native-green 50-assertion HLA_EVOKED saved-live-TSO-retraction-record case. A constrained receiver has a timestamp-six ordinary interaction queued when two members complete an untimed save. The publisher then retracts the saved designator and observes its terminal state; restoration must roll back that post-save terminal ledger. Flush Queue Request delivers the saved interaction and same public designator before its grant. Retraction becomes legal again after restore, invokes Request Retraction, and terminalizes a second time. This behavior is distinct from the existing timed-federation-save-restore scenario, which does not retract the live designator between save and restore. Isolated C++ primary/contract passed using only the installed 2026-10-20 package libraries with integer64 and float64 time. The adapter supplies provider libraries, endpoint, IEEE 1516.2-2025 interaction FOM and parameter, logical-time implementation, and HLA_EVOKED callback model. Java parity compiles against the official API-only JAR; Java provider runtime, HLA_IMMEDIATE, durable/process-boundary restore, interoperability, and conformance are unverified.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-live-tso-retraction-record",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador publishInteractionClass, subscribeInteractionClass, changeInteractionOrderType, sendInteraction, timeAdvanceRequest, requestFederationSave, federateSaveBegun, federateSaveComplete, retract, requestFederationRestore, federateRestoreComplete, flushQueueRequest; FederateAmbassador federationSaved, federationRestored, receiveInteraction, flushQueueGrant, requestRetraction",
+      "source": "official IEEE 1516.1-2025 C++ headers and hla.rti1516_2025 Java API; adapter-selected IEEE 1516.2-2025 interaction FOM",
+      "source_symbol": "IEEE 1516.1-2025 evoked timestamped interaction retraction and federation save/restore interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
+        "packages/hla-rti-cpp-tck/src/tck_restore_live_tso_retraction_record.cpp::scenarioRestoreLiveTsoRetractionRecord",
+        "packages/hla-rti-cpp-tck/src/tck_restore_live_tso_retraction_record.cpp::scenarioRestoreLiveTsoRetractionRecordContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestoreLiveTsoRetractionRecordTck.java::run"
+      ]
+    }
+  ]
+}

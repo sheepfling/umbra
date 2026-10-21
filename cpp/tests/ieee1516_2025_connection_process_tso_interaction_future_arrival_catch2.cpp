@@ -249,11 +249,9 @@ void verifyProcessTsoOrdinaryInteraction(
   std::thread server([&] {
     try {
       EmbeddedFederationRegistry registry;
-      ProcessFederationService senderService(
-          registry,
-          composedProcessDefinition(),
-          ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
-      ProcessFederationService receiverService(
+      // One service owns federation state and schedules all time requests;
+      // the sender and receiver ambassadors enter through independent sessions.
+      ProcessFederationService coordinatorService(
           registry,
           composedProcessDefinition(),
           ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
@@ -264,7 +262,7 @@ void verifyProcessTsoOrdinaryInteraction(
           [](std::wstring) { return false; });
       serverSenderConnection = senderConnection;
       ProcessTransportSession sender(senderConnection);
-      auto const senderHandler = senderService.handlerFor(sender);
+      auto const senderHandler = coordinatorService.handlerFor(sender);
       auto serveExpected = [&](ProcessTransportSession& session,
                                auto const& handler,
                                TransportServiceOperation operation,
@@ -314,7 +312,8 @@ void verifyProcessTsoOrdinaryInteraction(
           [](std::wstring) { return false; });
       serverSecondSenderConnection = secondSenderConnection;
       ProcessTransportSession secondSender(secondSenderConnection);
-      auto const secondSenderHandler = senderService.handlerFor(secondSender);
+      auto const secondSenderHandler =
+          coordinatorService.handlerFor(secondSender);
       serveExpected(
           secondSender,
           secondSenderHandler,
@@ -328,7 +327,7 @@ void verifyProcessTsoOrdinaryInteraction(
           [](std::wstring) { return false; });
       serverReceiverConnection = receiverConnection;
       ProcessTransportSession receiver(receiverConnection);
-      auto const receiverHandler = receiverService.handlerFor(receiver);
+      auto const receiverHandler = coordinatorService.handlerFor(receiver);
       serveExpected(
           receiver,
           receiverHandler,
@@ -475,9 +474,9 @@ void verifyProcessTsoOrdinaryInteraction(
           receiverHandler,
           TransportServiceOperation::resign_federation_execution,
           "The process-interaction server lost receiver Resign.");
-      senderService.detach(sender);
-      senderService.detach(secondSender);
-      receiverService.detach(receiver);
+      coordinatorService.detach(sender);
+      coordinatorService.detach(secondSender);
+      coordinatorService.detach(receiver);
       senderConnection->close();
       secondSenderConnection->close();
       receiverConnection->close();
@@ -739,7 +738,7 @@ TEST_CASE(
     "[process-time-advance-next-message-queued-focused]"
     "[process-time-advance-earlier-tso-late-arrival]"
     "[process-time-advance-independent-senders]"
-    "[process-tso-separate-service-instances]"
+    "[process-tso-independent-ingress-sessions]"
     "[rti.service.send-interaction][rti.service.next-message-request]"
     "[rti.service.next-message-request-available]"
     "[federate.callback.receive-interaction][federate.callback.time-advance-grant]"

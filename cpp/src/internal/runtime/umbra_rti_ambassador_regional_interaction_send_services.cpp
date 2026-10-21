@@ -129,6 +129,11 @@ MessageRetractionHandle UmbraRtiAmbassador::sendInteractionWithRegions(
     } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
       throw RTIinternalError(wideAscii(error.what()));
     } catch (umbra::detail::ProcessFederationClientError const& error) {
+      if (error.status() ==
+          umbra::detail::TransportServiceStatus::invalid_logical_time) {
+        throw InvalidLogicalTime(
+            L"The process federation rejected a timestamp earlier than the sender's applicable logical-time-plus-lookahead floor.");
+      }
       throw RTIinternalError(wideAscii(error.what()));
     }
 
@@ -600,6 +605,11 @@ void UmbraRtiAmbassador::sendInteractionWithRegions(
     } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
       throw RTIinternalError(wideAscii(error.what()));
     } catch (umbra::detail::ProcessFederationClientError const& error) {
+      if (error.status() ==
+          umbra::detail::TransportServiceStatus::invalid_logical_time) {
+        throw InvalidLogicalTime(
+            L"The process federation rejected a timestamp earlier than the sender's applicable logical-time-plus-lookahead floor.");
+      }
       throw RTIinternalError(wideAscii(error.what()));
     }
 

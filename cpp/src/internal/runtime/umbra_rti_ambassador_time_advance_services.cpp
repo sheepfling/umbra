@@ -114,6 +114,13 @@ void UmbraRtiAmbassador::requestProcessTimeAdvance(
 
   umbra::detail::ProcessFederationTimeAdvanceResult processResult;
   try {
+    processClient->setTimeAdvancePending(true);
+  } catch (umbra::detail::ProcessFederationClientError const& error) {
+    throw RTIinternalError(wideAscii(error.what()));
+  } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+    throw RTIinternalError(wideAscii(error.what()));
+  }
+  try {
     switch (mode) {
       case umbra::detail::FederateTimeAdvanceMode::time_advance_request:
         processResult = processClient->timeAdvanceRequest(
@@ -140,12 +147,18 @@ void UmbraRtiAmbassador::requestProcessTimeAdvance(
             L"The process endpoint does not support this temporal request through the shared adapter.");
     }
   } catch (umbra::detail::ProcessFederationServiceProtocolError const &error) {
+    processClient->setTimeAdvancePending(false);
     throw RTIinternalError(wideAscii(error.what()));
   } catch (umbra::detail::ProcessFederationClientError const &error) {
+    processClient->setTimeAdvancePending(false);
     throw RTIinternalError(wideAscii(error.what()));
   }
 
   using Status = umbra::detail::ProcessFederationTimeAdvanceStatus;
+  if (processResult.status != Status::applied &&
+      processResult.status != Status::time_advance_pending) {
+    processClient->setTimeAdvancePending(false);
+  }
   switch (processResult.status) {
       case Status::applied:
       if (reportService && reportTimeArgument) {
@@ -260,15 +273,31 @@ void UmbraRtiAmbassador::timeAdvanceRequest(LogicalTime const &time) {
 
     umbra::detail::ProcessFederationTimeAdvanceResult processResult;
     try {
+      // Publish the accepted-service window to the callback bridge before the
+      // transport round trip: a grant can arrive on the independent event
+      // stream before the request response, and the grant event closes it.
+      processClient->setTimeAdvancePending(true);
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    try {
       processResult = processClient->timeAdvanceRequest(
           std::move(federationName), federateId, std::move(requestedTime));
     } catch (umbra::detail::ProcessFederationServiceProtocolError const &error) {
+      processClient->setTimeAdvancePending(false);
       throw RTIinternalError(wideAscii(error.what()));
     } catch (umbra::detail::ProcessFederationClientError const &error) {
+      processClient->setTimeAdvancePending(false);
       throw RTIinternalError(wideAscii(error.what()));
     }
 
     using Status = umbra::detail::ProcessFederationTimeAdvanceStatus;
+    if (processResult.status != Status::applied &&
+        processResult.status != Status::time_advance_pending) {
+      processClient->setTimeAdvancePending(false);
+    }
     switch (processResult.status) {
       case Status::applied:
         appendSuccessfulVoidServiceReportToFileIfSelected(
@@ -671,15 +700,28 @@ void UmbraRtiAmbassador::timeAdvanceRequestAvailable(LogicalTime const &time) {
 
     umbra::detail::ProcessFederationTimeAdvanceResult processResult;
     try {
+      processClient->setTimeAdvancePending(true);
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    try {
       processResult = processClient->timeAdvanceRequestAvailable(
           std::move(federationName), federateId, std::move(requestedTime));
     } catch (umbra::detail::ProcessFederationServiceProtocolError const &error) {
+      processClient->setTimeAdvancePending(false);
       throw RTIinternalError(wideAscii(error.what()));
     } catch (umbra::detail::ProcessFederationClientError const &error) {
+      processClient->setTimeAdvancePending(false);
       throw RTIinternalError(wideAscii(error.what()));
     }
 
     using Status = umbra::detail::ProcessFederationTimeAdvanceStatus;
+    if (processResult.status != Status::applied &&
+        processResult.status != Status::time_advance_pending) {
+      processClient->setTimeAdvancePending(false);
+    }
     switch (processResult.status) {
       case Status::applied:
         appendSuccessfulVoidServiceReportToFileIfSelected(

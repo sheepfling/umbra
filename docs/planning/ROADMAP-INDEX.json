@@ -15,6 +15,7 @@
     "next": "OBS-133: inspect one official 2025 coordination service/callback in packages/umbra-rti-observer-umbra/src/umbra_rti_observer_umbra/commands.py, then implement explicit opt-in owner-thread mapping and real provider evidence. Default native adapter remains lifecycle-only.",
     "detail": "packages/umbra-rti-observer/FEATURE-BACKLOG.md"
   },
+  "order_type_determination_factors_2026_10_20_handoff": "Verified 2026-10-20: portable C++ NMRA primary/contract scenarios map page-185-l5-1 and page-185-l20-6 -> §8.1.6 plus page-199-l16-4 and page-199-l79-25 -> §8.11.3. The follow-on NMRA request observes timestamp 8 after the timestamp-5 cohort was acknowledged, with no repeat delivery; focused MinGW rebuild and CTest passed 2/2, JUnit reports 2 tests/0 failures/0 errors, and cpp_tck.py validates with no findings. Direct portable TCK coverage for §8.1.6 is 4/5; page-185-l14-4 remains uncovered because this NMRA case does not establish the received-message set for every time-advance service. Bounded HLA_EVOKED evidence only, not conformance. Next: audit the portable C++ TCK selection behavior for TAR, TARA, NMR, NMRA, and FQR against page-185-l14-4; add focused service-specific cases and exact mappings where evidence is missing. Do not resync the unchanged Lab.",
   "durable_pending_time_regulation_restore_2026_10_17_handoff": "Verified 2026-10-17: Added `umbra_ieee1516_2025_durable_pending_time_regulation_restore_catch2`, a focused public-API C++ case that saves one pending Enable Time Regulation request, retires the source federation/registry, creates a new filesystem store instance and registry over the same directory, and verifies exactly one Time Regulation Enabled callback at logical time 0 after restore. MinGW focused target build passed; exact CTest passed 1/1. Direct mappings: page-072-l131-32 -> §4.27; page-076-l18-2 and page-076-l162-43 -> §4.32; page-188-l87-26 -> §8.2; page-189-l162-44 -> §8.3.1. This fresh registry/store share the OS process; it is not process-restart evidence, general time-management persistence, general callback restoration, or conformance. Owner: `time-save-restore`. Next: keep pending-role durability bounded and choose any further persistence behavior only with an exact direct clause and an independent test slice.",
   "portable_tck_attribute_fdd_preferred_order_2026_10_17_handoff": "Verified 2026-10-17: Added portable C++ primary/contract scenarios and Java ID parity for the FDD-preferred object-attribute order branch: one timestamped update follows the TimeStamp-preferred attribute and one follows the Receive-preferred attribute, without either order-change service. Direct mappings are requirement-candidate-content-clauses-08-time-management-page-180-l78-23 and page-180-l84-25 -> IEEE 1516.1-2025 §8.1.4. The adapter supplied the provider, endpoint, callback model, logical-time implementation, object/attribute names, and packages/hla-rti-cpp-tck/fom/attribute-fdd-preferred-order-tck.xml. Installed-package C++ adapter gate passed CTest 4/4 (primary/contract × evoked/immediate) and direct runs 4/4; evidence: out/mgw/attribute-fdd-preferred-order-adapter-20261017.json/.xml. No RTI provider rebuild. C++ catalog/source-boundary evidence validation passed with no findings; 1,143 scenarios are promoted and 2 remain candidates. Java catalog validation and all 570-ID parity links pass; Java TCK compiles against out/java-tck/hla-rti1516-2025-api.jar. Java provider runtime remains unverified. Next: use a bounded source/catalog cross-check to select the next distinct standard-API behavior missing from both catalogs, require the installed-package C++ gate before promotion, add Java parity where the official API supports it, and do not resync Requirements Lab or rebuild the RTI provider.",
   "portable_tck_attribute_tso_receiver_order_conversion_2026_10_17_handoff": "Verified 2026-10-17: The portable C++ sent-TSO per-recipient attribute-order primary and contract scenarios pass the configured current-package adapter CTests 4/4 (evoked/immediate x primary/contract) and direct runner 4/4. They preserve payload, tag, producer, timestamp, and retraction handle; the unconstrained subscriber receives in RECEIVE order, while the constrained subscriber receives in TIMESTAMP order and its reflection precedes the grant. Direct mappings remain limited to the tested IEEE 1516.1-2025 §8.1.4 Table 3 branches (page 181 lines 118, 121, 133, and 139). Evidence: out/mgw/sent-tso-attribute-adapter-ctest-20261017.json/.xml. Both catalog rows are promoted after source-boundary/results validation. No provider rebuild. Java compiles against the official API-only JAR; Java provider runtime remains unverified. Next: continue with a bounded portable-C++ TCK gap selection, retaining direct standard mappings and installed-package adapter CTests as the promotion gate.",
@@ -45,10 +46,10 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-10-17",
+      "as_of": "2026-10-19",
       "supersedes_older_handoff_text": true,
       "latest_increment": "Reviewed (2026-10-17): Rendered and visually inspected the 2025 bounded HLA_EVOKED Evoke Multiple wait-window flow in the Callback and Service Ordering guide. The very tall enabled/disabled, queue, minimum-deadline, and after-callback maximum-deadline paths remain traceable and unclipped. It represents the current steady-clock dispatcher, not a complete §10.58 interpretation. The cited test leaves empty-queue waiting, late arrival, maximum overshoot, and public-adapter behavior untested. The visual queue is now 5. Local rendering does not verify GitHub presentation. No builds, tests, or CI.",
-      "next_concrete_review": "Continue 2025-only visual QA with the next queued chart: cross-federate pending TAR released after a regulating peer advances in the Time Management guide. Render and inspect the existing chart, update the itemized queue from 5 to 4, and retain every unreviewed item. Do not build, rerun tests, start CI, or touch the 2010 stream.",
+      "next_concrete_review": "Continue 2025-only visual QA with the first pending chart: cross-federate pending TAR released after a regulating peer advances in the Time Management guide. The latest post-reboot mmdc retry failed before creating a PNG (Chromium launch code 2147483651), so the chart is not visually reviewed and the queue remains 5. Retry when local browser rendering works; only then reduce the queue to 4. Do not build, rerun tests, start CI, or touch the 2010 stream.",
       "remaining_work": [
         "Reviewed (2026-10-17): Rendered and visually inspected the 2025 bounded HLA_EVOKED Evoke Multiple wait-window flow. Though tall, its callback-enabled, queued/empty, minimum-deadline, FIFO invocation, and post-callback maximum-deadline branches are traceable and unclipped. It explicitly uses steady-clock elapsed time, not HLA logical time. The focused test covers three prequeued tasks but not empty-queue waiting, late arrival, maximum overshoot, or the public adapter; source-bounded implementation explanation only, not complete §10.58 interpretation. Local screenshot review is not GitHub verification. Queue 6→5; no build, test, or CI.",
         "Reviewed (2026-10-17): Rendered and visually inspected the 2025 commit-triggered discovery sequence in the Data Distribution and Regions guide. The pending-bound update is separate from commit, snapshot installation/planning, callback queueing, and explicit HLA_EVOKED delivery. The cited test does not drain/assert callbacks between setRangeBounds and commitRegionModifications, so no intermediate timing claim is made. Local screenshot review is not GitHub verification. Queue 7→6; no build, test, or CI.",
@@ -101,12 +102,12 @@
       "finish_condition": "Every concrete reader gap is either explained with bounded evidence or explicitly dispositioned; unresolved normative/profile questions retain their limits; and each changed chart has an accurate syntax/render/visual status. No fixed chart count, whole-tree visual sign-off, Requirements Lab translation, build, or CI run is required."
     },
     "scope_guidance": "For this active documentation pass, work only on IEEE 1516.1-2025. Lead with portable HLA states, events, decisions, and obligations. Use Umbra C++ and existing focused tests as bounded evidence; mark implementation-only behavior and embedded/process differences explicitly. Do not infer cross-profile parity. Prefer existing evidence and avoid builds, test reruns, and CI for documentation work.",
-    "latest_verified_progress": "2026-10-17: Rendered and visually inspected the 2025 bounded HLA_EVOKED Evoke Multiple wait-window flow. Its tall elapsed-time loop remains traceable and unclipped, keeping callback completion, minimum wait, and maximum-deadline checks explicit. Inventory remains 340 diagrams across 31 2025 guides; 21 charts in this active review batch are screenshot-reviewed and 5 remain pending. GitHub rendering remains unverified. No builds, tests, CI, or C++ changes.",
-    "next_documentation_handoff": "Continue 2025-only visual QA with cross-federate pending TAR released after a regulating peer advances in the Time Management guide. Render and inspect the existing chart, update the itemized queue from 5 to 4, and retain every unreviewed item. No builds, test reruns, or CI; leave 2010 untouched.",
+    "latest_verified_progress": "2026-10-19: Bounded reader-gap reviews found the 2025 Connect/configuration and Federation MOM guides already distinguish factory versus Connect-time RID selection, local teardown versus process-host cleanup, and embedded MIM reporting versus the configured-process route whose outcome remains unverified; no duplicate chart was warranted. A post-reboot targeted mmdc retry failed before producing a PNG (Chromium launch code 2147483651), so the 2025 visual queue remains 21 screenshot-reviewed and 5 pending. No code, builds, tests, CI, 2010, or Requirements Lab work.",
+    "next_documentation_handoff": "Continue 2025-only visual QA with the first pending chart: cross-federate pending TAR released after a regulating peer advances in the Time Management guide. A post-reboot mmdc retry failed before creating a PNG (Chromium launch code 2147483651); keep the item pending and the queue at 5. Retry rendering when the browser environment works, then inspect and reduce the queue to 4 only after a real screenshot review. No builds, test reruns, or CI; leave 2010 untouched.",
     "latest_reader_review": "2026-10-17: The 2025 logical-time section now distinguishes the pinned LogicalTime/LogicalTimeInterval encode and encodedLength API from the selected factory's decode, and documents Umbra's current factory-identity checks and value copy behavior. The bundled 64-bit reference time types use BE payloads by explicit source choice; focused vectors cover float time 1.5 and integer interval 9. Both wrapper types report boundary 1, and decodeFrom uses encoded length to return the next shared-buffer cursor. These are not a universal format rule for every logical-time factory.",
     "latest_increment": "2026-10-17: The 2025 bounded HLA_EVOKED Evoke Multiple wait-window flow passed local render and screenshot review without layout change. The enabled/disabled and queued/empty paths, FIFO callback completion, minimum wait, and post-callback maximum deadline are clear; the chart uses elapsed steady-clock time, not logical time. The visual queue is now 5; the 2025 inventory remains 340 diagrams. GitHub rendering is unverified; no builds, tests, CI, or C++ changes.",
     "current_diagram_inventory": {
-      "as_of": "2026-10-17: Current scan covers 31 HLA-2025 topic guides and 340 diagrams (199 flowcharts, 118 sequences, 23 state diagrams; 332 backtick-fenced, 8 tilde-fenced). The 336 diagrams present at the last whole-tree syntax sweep passed the 2025-only local Mermaid core parser; later source-bounded/revised charts, including the Push-removal pair, observer-route chart, object/DDM chart, receive-order value-routing chart, interaction-class ancestry chart, default/regional interaction flow, embedded discovery-reentrancy flow, commit-triggered discovery sequence, and bounded Evoke Multiple wait-window flow, passed focused syntax or render checks. Twenty-one charts in the active visual-QA queue have local PNG screenshot review; 5 charts await render/screenshot review, including pending TAR, restore-time, composite, and logical-time charts. GitHub rendering and whole-tree visual review remain unverified.",
+      "as_of": "2026-10-19: Latest inventory covers 31 HLA-2025 topic guides and 340 diagrams (199 flowcharts, 118 sequences, 23 state diagrams; 332 backtick-fenced, 8 tilde-fenced). The 336 diagrams present at the last whole-tree syntax sweep passed the 2025-only local Mermaid core parser; later source-bounded/revised charts passed focused syntax or render checks. Twenty-one charts in the active visual-QA queue have local PNG screenshot review; five remain pending: cross-federate pending TAR, restore-time state/callback queues, composite shape/cursor/padding, factory selection/opaque logical-time encoding, and configured-process regional Send Interaction With Regions reporting. A post-reboot targeted mmdc retry failed before image creation (Chromium launch code 2147483651), so no visual review was added. GitHub rendering and whole-tree visual review remain unverified.",
       "scope": "2025-only inventory: 31 topic guides and 340 diagrams (199 flowcharts, 118 sequences, 23 state diagrams; 332 backtick-fenced and 8 tilde-fenced). A 336-chart whole-tree Mermaid core syntax sweep is supplemented by focused syntax/render checks for later and revised charts. Twenty-one charts in the active visual-QA queue have local render/screenshot review; five remain pending. Syntax and local screenshots do not establish whole-tree visual quality or GitHub presentation.",
       "files_with_diagrams": 31,
       "diagrams": "340",
@@ -155,7 +156,7 @@
           "visual_review": "The very tall flow remains traceable and unclipped. The callback-enabled and queued-work branches are distinct; the queued path removes FIFO work and checks the maximum only after callback completion. The empty-queue path waits until an arrival, disable, or minimum deadline, then returns false when the queue is still empty. No layout change was needed.",
           "scope": "One existing 2025 chart. The pending visual queue fell from 6 to 5; total 2025 inventory remains 340 diagrams. The cited dispatcher test covers three prequeued callbacks and FIFO completion only; it does not cover empty-queue waiting, late arrival, maximum overshoot, or the public adapter. The chart is current-source behavior, not a complete normative §10.58 interpretation. GitHub rendering is unverified; no build or test rerun. No 2010 work."
         },
-        "pending_latest_diagram": "The next queued 2025 chart covers cross-federate pending TAR released after a regulating peer advances in the Time Management guide. It passed a syntax-only Mermaid core parse but has not been rendered or visually reviewed. Five charts remain pending visual review. Continue with restore-time, composite, logical-time, and reporting charts listed in docs/design/HLA-2025-DOCUMENTATION-ROADMAP.md.",
+        "pending_latest_diagram": "The first pending 2025 chart covers cross-federate pending TAR released after a regulating peer advances in the Time Management guide. It passed a syntax-only Mermaid core parse but remains unrendered and not visually reviewed; the post-reboot mmdc retry failed before creating an image. Five charts remain pending: TAR, restore-time state/callback queues, composite shape/cursor/padding, factory selection/opaque logical-time encoding, and configured-process regional Send Interaction With Regions reporting. Do not decrement the queue without screenshot review.",
         "pending_after_latest_edit": "Current IEEE 1516.1-2025 inventory: 340 diagrams across 31 guides (199 flowcharts, 118 sequences, 23 state diagrams; 332 backtick-fenced and 8 tilde-fenced). The 336 diagrams in the last whole-tree Mermaid core sweep plus focused checks for later and revised source-bounded charts cover the current syntax inventory. Twenty-one selected charts in the active visual-QA queue have local PNG render/screenshot review; five charts remain pending, including pending TAR, restore-time state/callback-queue, and revised Data Element charts. The authoritative itemized queue and review order are in docs/design/HLA-2025-DOCUMENTATION-ROADMAP.md. GitHub presentation, whole-tree visual review, and visual sign-off remain unverified.",
         "syntax_errors_repaired": 7,
         "other_errors_after_repairs": 0,
@@ -188,8 +189,8 @@
       }
     },
     "goal": "Focus this documentation phase exclusively on IEEE 1516.1-2025. Translate durable HLA logic and infrastructure concepts discovered while implementing Umbra into reader-centered diagrams and guides. Lead with the HLA mental model and explain what federates can do, what state changes, who becomes eligible, and when effects become observable. Use Umbra source and existing focused-test results as bounded case-study evidence, not as the subject; include internals only when they explain an HLA invariant, observable consequence, or important implementation limit. Survey for real reader gaps, synthesize cross-service concepts where useful, tie normative claims to the exact standard, and label profile boundaries and evidence limits. Distinguish embedded and configured-process behavior where evidence differs. There is no diagram-count target. Reuse existing runtime evidence. Documentation work must not compete with the main implementation worker for build capacity: do not compile, rerun tests, or start CI by default. The HLA Requirements Lab is a later, separately authorized goal and remains out of scope.",
-    "verified_progress": "2026-10-17: Rendered and visually inspected the 2025 commit-triggered discovery sequence. Its pending-versus-committed region state and callback boundary remain clear and unclipped. Twenty charts in the active review batch have local screenshot review; six remain pending. GitHub rendering remains unverified; no build, test, or CI.",
-    "next_step": "Continue visual QA with the next queued 2025 chart: the bounded HLA_EVOKED Evoke Multiple wait window in the Callback and Service Ordering guide. Render and inspect the existing chart, update the itemized queue from 6 to 5, and retain every unreviewed item. No builds, test reruns, or CI; leave 2010 untouched."
+  "verified_progress": "2026-10-19: Bounded reader-gap reviews found the 2025 Connect/configuration and Federation MOM guides already distinguish factory versus Connect-time RID selection, local teardown versus process-host cleanup, and embedded MIM reporting versus the configured-process route whose outcome remains unverified; no duplicate chart was warranted. A post-reboot targeted mmdc retry failed before producing a PNG (Chromium launch code 2147483651), so the 2025 visual queue remains 21 screenshot-reviewed and 5 pending. No code, builds, tests, CI, 2010, or Requirements Lab work.",
+  "next_step": "Continue 2025-only visual QA with the first pending chart: cross-federate pending TAR released after a regulating peer advances in the Time Management guide. A post-reboot mmdc retry failed before creating a PNG; keep the item pending and the queue at 5. Retry when local browser rendering works, then inspect and reduce the queue only after a real screenshot review. No builds, test reruns, or CI; do not touch 2010 or the Requirements Lab."
   },
   "queue_action_note": "The query tool derives action_state for each open family: implementation, mapping, source-reconciliation, external-review, new-case-needed, or evidence-complete. Evidence-complete rows remain visible for traceability but are not selected as the next runnable handoff.",
   "deferred_slices": [
@@ -251,7 +252,7 @@
   "portable_tck_asynchronous_attribute_delivery_handoff": "2026-10-16: Added cpp-tck.asynchronous-attribute-delivery with Java parity java-tck.asynchronous-delivery. The standard-only C++ scenario uses adapter FOM/object class/attribute/logical-time configuration; verifies receive-order reflections stay gated while asynchronous delivery is disabled, are released on enable, are gated again by disable, and are released on re-enable with object/attribute/value/tag/producer metadata. Direct mappings: requirement-candidate-content-clauses-08-time-management-page-204-l113-31 -> §8.15.3 and requirement-candidate-content-clauses-08-time-management-page-205-l73-17 -> §8.16.5. MinGW 15.2/Ninja built the installed-package TCK; focused CTest and direct runs both passed under HLA_EVOKED/HLA_IMMEDIATE (4 successful executions). Artifact: out/mgw/cpp-tck-async-attribute-mingw-20261016/results.json. C++ catalog evidence validation, Java catalog/source/API validation, and the full C++/Java scenario parity audit pass; no Java provider-runtime execution is claimed. Next: choose another standard-API gap with an exact canonical requirement mapping; do not expand this into timestamped delivery or provider-internal timing behavior without separate normative evidence.",
   "portable_tck_asynchronous_tso_equal_cutoff_handoff": "2026-10-17: Corrected the existing parity pair cpp-tck.asynchronous-delivery-tso-exclusion / java-tck.asynchronous-delivery-tso-exclusion to map the TAR inclusive equal-time boundary to §8.14.4(d): two timestamp-5 interactions precede TAR(5)'s grant, no additional time-5/time-6 callback appears after it, and timestamp 6 stays pending until TAR(6). The adjacent native TARA strict-less-than case's page-204 l86 candidate maps to §8.14.4(e); both candidates had been incorrectly labeled §8.15.3, which is only Enable Asynchronous Delivery preconditions. RL-343 records the paired Requirements Lab subsection attribution defect. MinGW/Ninja primary and contract-twin focused CTests and direct runs previously passed under HLA_EVOKED/HLA_IMMEDIATE (8 successful executions). Java provider runtime and provider rebuild/install remain unverified. The embedded equal-time TAR case passed 1/1 with 40 assertions and the strict TARA case passed 1/1 with 24 assertions. No TSO asynchronous-dispatch behavior is claimed. Next: choose a distinct confirmed unmapped time-management or save/restore behavior with an exact 2025 clause, and implement it as a focused C++ lane.",
   "active_handoff_note": "2026-10-17: MOM extension-parameter behavior remains verified at 11.4.1 (39 assertions), and public receive-order save/restore replay remains mapped only to its 4.1.2 post-restore-delivery subclaim (37 assertions). Re-enabled the retained four-member TSO regional-attribute/no-action restore case: focused MinGW CTest passed both registrations and direct Catch2 passed 129 assertions; its indexed lane has one mapped test, 38 direct requirement-section pairs, and 21 canonical 2025 sections. The default-region TSO attribute save/restore case passes focused MinGW CTest and direct Catch2 (76 assertions) using a short save directory rooted at the process working directory. Directed TSO restore now passes after fixing Windows long-path handling in durable save-envelope filenames: bounded hashed filename components avoid MAX_PATH directory-entry failures, while legacy names remain readable; the filesystem save tests were corrected to assert the actual .json.tmp/.json.commit protocol. Focused MinGW CTest passed 5/5, including default-region restore, directed restore, no-action restore, and durable-save admission/uniqueness. No-TSO cross-endpoint NMR/NMRA/TARA scheduling is already tested under HLA_IMMEDIATE and HLA_EVOKED; do not duplicate it. The FQR(10) case with timestamp 12 queued before invocation remains mapped to §8.12; arrivals after FQR returns but before an evoked callback begins have no established normative cutoff, so that test is explicitly internal-only and has no normative mapping. `restore-discard-pre-execution-undelivered-message` is now a separate public §4.1.2 case with direct mapping to requirement-candidate-content-clauses-04-federation-management-page-044-l54-17; MinGW CTest passed five repeats plus the latest exact run, with 57 direct assertions and the plan/roadmap lane checks passing. The suspected future TSO NMR/NMRA transport gap was already implemented through the authoritative service architecture; elevated MinGW CTests passed the cross-service late-arrival case (1/1) and both separate-ingress-proxy cases (2/2), so do not duplicate this code or claim independent federation authorities. The portable C++ TCK already contains timestamped object-deletion core and future NMR/NMRA scenarios; the process-only timestamped-delete case is not a substitute and no duplicate TCK scenario is needed. The asynchronous-TSO audit found no §8.15 requirement for asynchronous dispatch; corrected page-204 candidate l74 to §8.14.4(d) and candidate l86 to §8.14.4(e) across the C++/Java TCK catalogs, Catch2 traceability, and local contract, and logged the source-heading defect as RL-343. The equal-time TAR test passes 1/1 with 40 assertions and the strict TARA test passes 1/1 with 24; no TSO asynchronous-delivery claim is made. Next handoff: select one concrete uncovered save/restore or time-management behavior from the bounded roadmap, establish its exact 2025 clause and existing coverage first, then implement a single focused C++ lane. No Requirements Lab resync or conformance claim.",
-  "latest_verified_slice": "2026-10-17: Focused MinGW evidence passes for process DSE default-region and ordinary nonregional HLA_IMMEDIATE cases and HLA_EVOKED ordinary nonregional case (32 assertions each; direct mappings only page-187 l25/l40/l46 -> section 8.1.8), process no-TSO NMR/NMRA/TARA scheduling under HLA_IMMEDIATE (77 assertions) and HLA_EVOKED (87 assertions), and the FQR queued-TSO case after adding its direct Clause 8.12 mapping. Process loopback tests require local loopback access. Live coverage before the mapping update: 1,654 Catch2 cases, 1,544 mapped, 110 explicitly unmapped, 0 unclassified, 1,652 source-located (2 unlocated), and 1,131 unique direct requirement-section pairs across 2,220 requirements (50.9%). No provider conformance, external interoperability, or Requirements Lab validation is claimed.",
+  "latest_verified_slice": "Verified 2026-10-19: independent-process attribute delivery is now covered separately under both NMR and NMRA through one authoritative ProcessFederationServiceHost. The NMR(10)/timestamp-5 case passed its MinGW CTest once plus five repeats and maps page-197 l20-3 -> §8.10.2; the NMRA(10)/timestamp-5 case passed once plus five repeats and maps page-198 l177-52 -> §8.11 and page-199 l40-12 -> §8.11.3. Both use distinct sender/receiver OS processes and verify discovery, reflection, grant-at-5 callback order and attribute metadata. Receive-order event pushing is enabled only for these attribute fixtures. Coordinator topology is implementation evidence, not normative; independent authorities, arbitrary watermarks, other producer families, interoperability, validation, and conformance are not claimed. Next: use bounded roadmap queries to choose one distinct 1516.1-2025 gap; do not resync the unchanged Requirements Lab.",
   "portable_tck_time_constrained_enable_galt_equality_handoff": "2026-10-16: Added a pure adapter-backed C++ scenario/contract pair and Java parity ID for the existing §8.6.3 GALT-equality behavior. The first installed-package failure came from a stale archive, not the focused process test: built only the missing 2010 archive target and installed a fresh isolated package whose libumbra_rti.a SHA-256 (4310618de21517949f5ca7a7178c27d2e86eced408a8d3b970557b4cbd30af52) matches the in-tree process-test archive. Both C++ catalog entries are now promoted after the portable scenario and contract twin each passed evoked and immediate callback modes; focused promotion evidence validation and the 518-ID Java/C++ parity audit pass. The §8.6.3 process test also passes 1/1. Java API-source compilation passes, but its catalog entry remains unsupported pending provider runtime evidence. Evidence: out/mgw/cpp-tck-time-constrained-galt-equality-fresh-evidence-20261016/candidate-matrix.json; fresh package: out/mgw/umbra-process-galt-install-20261016; focused CTest: out/mgw/cpp-tck-time-constrained-galt-fresh-20261016. The next handoff is the bounded portable-TCK family lane query recorded in portable_tck_base_subscription_attribute_scope_handoff. No Requirements Lab resync or conformance claim.",
   "portable_tck_time_constrained_enable_galt_equality_followup": "2026-10-16: Resolved the stale-install discrepancy without broad provider rebuilding: compiled the missing umbra_rti_2010 target (12 build steps), installed to the isolated out/mgw/umbra-process-galt-install-20261016 prefix, and verified its archive hash and size exactly match out/mgw/process-time-constrained-galt/libumbra_rti.a. Fresh MinGW TCK build against that package passed the GALT-equality scenario and contract twin in both evoked and immediate modes; both are promoted after focused evidence validation. Java parity now directly maps requirement-candidate-content-clauses-08-time-management-page-192-l72-20 -> hla-1516.1-2025:clause-8.6.3, and the runner records the same requirement ID. The adjacent time-bounds-query pair and Java parity now directly map page-206-l29-4 -> clause-8.18.1 (Query GALT) and page-207-l112-28 -> clause-8.19.3 (Query LITS); its primary and contract twin passed installed-package evoked and immediate runs (4/4). Java API-source compilation, catalog validation, parity audit, mapping check, and focused diff checks pass; no Java provider runtime evidence is claimed. The README now matches the promoted C++ evidence. Evidence: out/mgw/cpp-tck-time-constrained-galt-equality-fresh-evidence-20261016/candidate-matrix.json and out/mgw/tck-dse-ro-regional-20261016/time-bounds-queries-verified-20261016.json. Next: select another distinct standard-API scenario using its exact C++ source and installed-package evidence, then reconcile Java semantics/mapping without treating Catch2 gap output as portable-TCK coverage. No provider rebuild or Requirements Lab resync in this follow-up.",
   "portable_tck_base_subscription_attribute_scope_handoff": "2026-10-16: Translated the existing standard C++ declaration test into a portable subscription-scope scenario: a valid attribute handle declared only by a derived object class must raise AttributeNotDefined when supplied to subscribeObjectClassAttributes for the base class; the contract twin verifies valid base and derived subscriptions as positive controls. Uses the adapter-supplied known-class FOM and class/attribute names; no Umbra fixture identifiers. Direct mapping: requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27 -> hla-1516.1-2025:clause-5.8. C++ scenario and contract passed evoked and immediate callbacks against the fresh installed package (4/4); focused promotion evidence validation has no findings, so both C++ catalog entries are promoted. Java 2025 API source compilation, Java catalog validation, and the 518-ID parity audit pass; Java remains unsupported pending provider runtime evidence. Evidence: out/mgw/cpp-tck-base-subscription-scope-fresh-evidence-20261016/candidate-matrix.json; CTest/build: out/mgw/cpp-tck-time-constrained-galt-fresh-20261016; Java compile: out/java-tck/base-subscription-attribute-scope-compile-20261016. Next run python tools/query_rti_work.py lanes --family portable-cpp-tck-2025 --focused --summary --compact --limit 12 to select the next mapped portable slice. No provider rebuild or Requirements Lab resync.",
@@ -261,37 +262,160 @@
   "portable_tck_tso_ownership_transfer_mapping_2026_10_17_handoff": "Verified 2026-10-17: Existing standard-API C++ ownership-transfer primary/contract scenarios pass the current installed-package adapter CTests 4/4 and direct runner 4/4 across evoked/immediate callbacks; evidence: out/mgw/timestamped-attribute-ownership-transfer-adapter-ctest-20261017.json/.xml. Added the matching 12 exact Requirements Lab-to-IEEE 1516.1-2025 pairs to both portable C++ rows and Java parity row: §§6.10, 6.11, 6.11.1, 7, 7.2, and 8.1.4. The mapping note limits the cross-service divestiture/reflection observation to the directly mapped statements. C++ catalog/evidence validation, Java catalog validation, and all 569 Java-ID parity links pass. Java provider runtime remains unverified; C++ installed-package results are not Java or cross-provider evidence. Next: select one distinct existing portable C++ scenario by bounded catalog/trace queries, verify its exact source-backed mappings and adapter evidence, then translate/update Java parity only where its source makes the same assertions. No provider rebuild or Requirements Lab resync.",
   "portable_tck_object_removal_multi_recipient_2026_10_17_handoff": "Verified 2026-10-17: The ordinary object-removal multi-recipient C++ primary/contract pair passed current installed-package adapter CTests 4/4 and direct runs 4/4 across evoked/immediate callbacks; Ninja reported no build work and the provider was not rebuilt. Added exact mappings for ordinary Delete Object Instance (§6.16), tag handling (§6.16.4), and Remove Object Instance callback delivery (§6.17.1) to both C++ rows and Java parity. Kept two-recipient FIFO ordering and no-owner-loopback as supplementary observations. Corrected both C++ source pointers to tck_object_removal_fanout_scenarios.cpp. Evidence: out/mgw/object-removal-multi-recipient-adapter-ctest-20261017.json/.xml. Java source uses the official API, but Java provider runtime remains unverified. Next: choose the next distinct standard behavior only after bounded catalog/source trace, and gate its primary/contract pair against the installed package before promotion; no Requirements Lab resync or provider rebuild.",
   "active_handoff": {
-    "state": "in_progress",
     "family": "portable-cpp-tck-2025",
-    "id": "timestamped-attribute-reflect-region-designator-callback-snapshot",
-    "plan_id": "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot",
-    "mapping_seed_plan_id": "umbra-cpp-ddm-tso-reflect-attribute-region-designator-callback-snapshot",
-    "additional_plan_ids": [],
-    "test_case": "Portable timestamped attribute reflection preserves callback-visible conveyed region designators as send-time snapshots",
-    "lane": "object-ddm-ownership",
-    "source_location": "packages/hla-rti-cpp-tck/src/tck_timestamped_attribute_reflect_region_snapshot.cpp",
-    "source_target": "packages/hla-rti-cpp-tck/src/tck_timestamped_attribute_reflect_region_snapshot.cpp; packages/hla-rti-cpp-tck/src/tck_harness.hpp; packages/hla-rti-cpp-tck/CMakeLists.txt; packages/hla-rti-cpp-tck/src/tck_main_scenarios.hpp; packages/hla-rti-cpp-tck/src/portable_tck.cpp; packages/hla-rti-cpp-tck/src/main.cpp; packages/hla-rti-cpp-tck/fom/ddm-multi-attribute-tck.xml; compliance/catalogs/cpp-tck-scenario-catalog.json",
+    "id": "portable-tck-service-report-callback-model-table5-r013-2026-10-20",
+    "plan_id": "cpp-tck.pending-negotiated-ownership-package-filesystem-restore",
+    "mapping_seed_plan_id": "cpp-tck.pending-negotiated-ownership-package-filesystem-restore",
+    "mapping_seed_policy": "Map only Table 5 row r013 (requirement-candidate-table-5-p295-r013) to §11.5.1: use the public HLAreportServiceFile MOM value to read the joined federate's initial record and verify its CallbackModel enumeration against HLA_EVOKED or HLA_IMMEDIATE. Preserve the existing HLAreportServiceFile -> §11.5.2 mapping; do not generalize to other Table 5 rows or all of §11.5.1.",
+    "test_case": "Portable C++ TCK reads each joined federate's initial report record through its public HLAreportServiceFile value and checks CallbackModel encoding",
+    "lane": "portable-tck-mom-service-report-file-callback-model",
+    "source_location": "packages/hla-rti-cpp-tck/src/pending_negotiated_restore_tck.cpp:549",
+    "source_target": "packages/hla-rti-cpp-tck/src/pending_negotiated_restore_tck.cpp; compliance/catalogs/cpp-tck-scenario-catalog.json; docs/planning/ROADMAP-INDEX.json",
     "ctest_target": "hla_rti_cpp_tck",
-    "ctest_filter": "^hla_rti_cpp_tck\\.cpp_tck_timestamped_attribute_reflect_region_designator_callback_snapshot(_contract)?\\.evoked$",
+    "ctest_filter": "^hla_rti_cpp_tck\\.cpp_tck_pending_negotiated_ownership_package_filesystem_restore\\.(evoked|immediate)$",
     "requirement_ids": [
-      "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30"
+      "requirement-candidate-table-5-p295-r013",
+      "requirement-candidate-content-clauses-11-management-object-model-page-293-l119-39"
     ],
-    "canonical_section": "hla-1516.1-2025:clause-9.1.8",
-    "objective": "Translate the verified standard callback-copy stability behavior into the portable C++ TCK, proving the receiver's conveyed designator remains queryable at send-time bounds after the publisher changes its source region.",
+    "canonical_section": "hla-1516.1-2025:clause-11.5.1",
+    "standard_sections": [
+      "hla-1516.1-2025:clause-11.5.1",
+      "hla-1516.1-2025:clause-11.5.2"
+    ],
+    "state": "verified",
+    "objective": "Close the exact portable C++ TCK mapping for the CallbackModel initial-record enum while retaining the separate public report-file attribute mapping and avoiding section-wide claims.",
     "acceptance": [
-      "Use only the official IEEE 1516.1-2025 C++ API in the portable scenario; provider, endpoint, callback model, FOM, class, attribute, dimension, and logical-time representation remain adapter inputs.",
-      "Run only HLA_EVOKED because the scenario queries and mutates regions during callback servicing.",
-      "Map only requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30 -> IEEE 1516.1-2025 §9.1.8; timestamp/order/retraction metadata and setup are supplemental.",
-      "Build the TCK target, run focused current-package CTests and direct execution against installed package binaries, and keep the catalog rows candidate until both succeed. No provider rebuild or cross-provider conformance claim."
+      "Use one bounded TCK-gap query to select exact requirements and source-backed C++ behaviors.",
+      "Observe the report file through the standard HLAreportServiceFile MOM attribute and check only the Table 5 CallbackModel enumeration.",
+      "Run the installed-package C++ scenario for HLAinteger64Time and HLAfloat64Time in both callback models and retain JSON/JUnit evidence.",
+      "Keep Java parity/provider runtime and conformance claims separate unless independently evidenced."
     ],
     "commands": {
-      "focused_build": "cmake --build <build-dir> --target hla_rti_cpp_tck",
-      "focused_ctest": "ctest --test-dir <build-dir> -R timestamped_attribute_reflect_region_designator_callback_snapshot --output-on-failure",
-      "catalog_check": "python tools/cpp_tck.py"
+      "next_case_query": "python tools/query_rti_work.py tck-gaps requirement-candidate-table-5-p295-r001 --limit 1 --verbose",
+      "next_case_detail": "python tools/query_rti_work.py requirement requirement-candidate-table-5-p295-r001 --summary --compact",
+      "integer_ctest_and_direct": "python tools/run_cpp_tck.py --package-prefix out/mgw/tce-stored-tso-verified-install-20261020 --build-directory out/mgw/cpp-tck-tce-stored-tso-verification-mingw-20261020 --generator Ninja --cxx-compiler C:/Users/peanu/scoop/apps/gcc/current/bin/g++.exe --scenario-set all --scenario cpp-tck.pending-negotiated-ownership-package-filesystem-restore --callback-model both --time-implementation HLAinteger64Time --results out/mgw/cpp-tck-tce-stored-tso-verification-mingw-20261020/service-report-callback-model-table5-r013-int-20261020.json --junit out/mgw/cpp-tck-tce-stored-tso-verification-mingw-20261020/service-report-callback-model-table5-r013-int-20261020.xml",
+      "float_ctest_and_direct": "python tools/run_cpp_tck.py --package-prefix out/mgw/tce-stored-tso-verified-install-20261020 --build-directory out/mgw/cpp-tck-service-report-object-attribute-publication-float-mingw-20261020 --generator Ninja --cxx-compiler C:/Users/peanu/scoop/apps/gcc/current/bin/g++.exe --scenario-set all --scenario cpp-tck.pending-negotiated-ownership-package-filesystem-restore --callback-model both --time-implementation HLAfloat64Time --results out/mgw/cpp-tck-service-report-object-attribute-publication-float-mingw-20261020/service-report-callback-model-table5-r013-float64-20261020.json --junit out/mgw/cpp-tck-service-report-object-attribute-publication-float-mingw-20261020/service-report-callback-model-table5-r013-float64-20261020.xml",
+      "integer_evidence_validation": "python tools/cpp_tck.py --results out/mgw/cpp-tck-tce-stored-tso-verification-mingw-20261020/service-report-callback-model-table5-r013-int-20261020.json --promotion promoted --scenario cpp-tck.pending-negotiated-ownership-package-filesystem-restore",
+      "float_evidence_validation": "python tools/cpp_tck.py --results out/mgw/cpp-tck-service-report-object-attribute-publication-float-mingw-20261020/service-report-callback-model-table5-r013-float64-20261020.json --promotion promoted --scenario cpp-tck.pending-negotiated-ownership-package-filesystem-restore",
+      "diff_check": "git diff --check -- packages/hla-rti-cpp-tck/src/pending_negotiated_restore_tck.cpp compliance/catalogs/cpp-tck-scenario-catalog.json docs/planning/ROADMAP-INDEX.json"
     },
-      "next_action": "Verified 2026-10-17: Strengthened the existing per-attribute active/passive subscription scenario: after A-active/B-passive, the subscriber invokes empty-set active and passive Subscribe Object Class Attributes services, then confirms the next update still reflects A only. This verifies the empty-set no-op in both directions: B remains passive despite the active indicator, and A remains active despite the passive indicator (page-096-l123-38 -> §5.8). The scenario also exercises invocation-selected modes (page-096-l117-36) and preservation of unselected subscriptions during mode changes (page-096-l129-40). Primary and contract scenarios passed all four focused installed-package CTests and all four direct runs under evoked/immediate callbacks; direct evidence: out/mgw/attribute-empty-subscription-mode-20261017-r2.json/.xml. Java source compiles against the official IEEE 1516.1-2025 API-only JAR; both catalogs and parity audit validate all 574 Java IDs. Java provider runtime remains unverified. No provider rebuild or Requirements Lab resync. Next handoff: use bounded requirement/lane queries to select another directly mapped standard behavior with a green installed-package gate. Keep the DDM callback-region candidate unpromoted until a newer installed package provides valid callback-snapshot handles."
+    "next_action": "Verified 2026-10-20: the portable C++ package scenario now resolves each joined federate's public HLAreportServiceFile value and verifies the initial record's CallbackModel text against the selected HLA_EVOKED/HLA_IMMEDIATE mode. Installed-package MinGW/Ninja CTest passed 2/2 and direct execution passed for each of HLAinteger64Time and HLAfloat64Time; both candidate evidence validations have no findings. The C++ catalog maps only Table 5 row r013 -> §11.5.1 plus the existing HLAreportServiceFile value -> §11.5.2. The Java parity case does not assert r013; no Java provider, interoperability, validation, or conformance claim. Next inspect Table 5 row r001 AdditionalSettingsResultCode against its exact serializer and public Connect surface; determine whether a portable C++ scenario can observe the required text encoding before adding a mapping. Do not resync unchanged Requirements Lab inputs."
   },
   "parallel_implementation_lanes": [
+    {
+      "id": "restore-member-identity-rebinding",
+      "state": "verified",
+      "family": "time-save-restore",
+      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
+      "canonical_section": "hla-1516.1-2025:clause-4.1.2",
+      "canonical_sections": [
+        "hla-1516.1-2025:clause-4.1.2",
+        "hla-1516.1-2025:clause-4.11"
+      ],
+      "source_target": "cpp/src/internal/federation/federation_registry_restore_control.cpp; cpp/src/internal/federation/federation_registry_restore_declarations.cpp; cpp/src/internal/federation/federation_registry_state_image_interaction_validation.cpp; cpp/src/internal/federation/federation_registry_state_image_restore.cpp; cpp/tests/ieee1516_2025_restore_member_identity_rebinding_catch2.cpp; cpp/tests/ieee1516_2025_restore_object_region_association_catch2.cpp; cpp/tests/ieee1516_2025_restore_synchronization_point_rebinding_catch2.cpp; cpp/tests/ieee1516_2025_restore_ownership_transaction_rebinding_catch2.cpp; cpp/tests/ieee1516_2025_restore_queued_tso_identity_rebinding_catch2.cpp; cmake/catch2_executable_targets.cmake; cmake/ieee1516_2025_restore_member_identity_rebinding_catch2.cmake; cmake/ieee1516_2025_restore_object_region_association_catch2.cmake; cmake/ieee1516_2025_restore_synchronization_point_rebinding_catch2.cmake; cmake/ieee1516_2025_restore_ownership_transaction_rebinding_catch2.cmake; compliance/requirements-lab/catch2-test-plan.json",
+      "file_owner": "Rebind bounded member/time/declaration state, route-free object graphs, one object-region association, one standalone explicit synchronization point, one pending regular ownership transaction, and one queued ordinary TSO interaction with its queue/retraction ledger to same-type live federates after both fresh-registry and process-local restore",
+      "test_case": "Embedded public fresh-registry restore rebinds one queued timestamped interaction by member identity",
+      "next_check": "Verified 2026-10-19: the dedicated MinGW restore target builds; the fresh-registry queued-TSO case passes with 89 assertions and the process-local snapshot identity case passes with 83; the focused 12-case restore-member-identity-rebinding CTest label passes 12/12. Both admit one ordinary queued timestamped interaction plus matching producer/recipient, queue, retraction, and publisher/subscriber ledgers, rebinding identities through the same type-preserving mapping. The process-local save uses TAR(2), keeping timestamp 7 queued without persisting a pending TAR. Direct mapping remains limited to the page-44 same-type count/interchangeability statements -> §4.1.2 under RL-347; callbacks/retraction are restoration oracles, and the exact Flush Queue grant/GALT value is not asserted. Next: use the bounded ready query for the next distinct implementation slice; the authoritative-coordinator NMR/NMRA case is now separately verified. Full restore and conformance remain unclaimed."
+    },
+    {
+      "id": "time-constrained-disable-tso-to-ro",
+      "state": "verified",
+      "family": "time-save-restore",
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-193-l61-13",
+      "canonical_section": "hla-1516.1-2025:clause-8.7",
+      "source_target": "cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp; cpp/src/internal/runtime/umbra_rti_ambassador_tso_receive_order_delivery.cpp; cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp; cpp/tests/available_time_advance_inclusive_galt_catch2.cpp; cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp; cpp/tests/timestamped_object_deletion_retraction_catch2.cpp; cpp/tests/ieee1516_2025_connection_process_tso_ingress_proxy_catch2.cpp; cpp/tests/process_federation_service_probe.cpp",
+      "file_owner": "Disable Time Constrained queued TSO-to-RO payload behavior across embedded families and the one-authority process interaction path",
+      "test_case": "Disable Time Constrained delivers queued and subsequent TSO as receive order",
+      "next_check": "Verified 2026-10-19: five focused MinGW CTests pass: embedded interaction (40 assertions), process interaction (2 parent markers plus child callback checks), attribute update (39), directed interaction (42), and object deletion (31), totaling 154 parent assertions. The process interaction case additionally passed six consecutive exact executions after adding the ordered Query GALT callback-queue barrier; its child verifies metadata-preserving receive-order conversion and no grant. Queued TSO payload cases map page-193 l61-13 -> §8.7 under RL-346. The separate process timestamped attribute-update NMR and NMRA lanes are now verified; use the bounded ready query for the next slice. No full-lane, validation, or conformance claim."
+    },
+    {
+      "id": "process-tso-attribute-update-nmra-authoritative-coordinator",
+      "state": "verified",
+      "family": "time-save-restore",
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-198-l177-52",
+      "canonical_section": "hla-1516.1-2025:clause-8.11.3",
+      "source_target": "cpp/tests/ieee1516_2025_connection_process_tso_ingress_proxy_catch2.cpp; cpp/tests/process_federation_service_probe.cpp",
+      "file_owner": "independent-process timestamped attribute update delivered before NMRA grant through one authoritative coordinator",
+      "test_case": "Independent RTI client processes deliver a late TSO attribute update before NMRA grant through one authoritative coordinator",
+      "next_check": "Verified 2026-10-19: MinGW connection target built; exact focused CTest passed 1/1 plus five consecutive repeats with local loopback. Distinct sender/receiver OS processes use one coordinator; callback order is discovery, timestamped reflection, grant at 5 after NMRA(10), with object/attribute/producer/value/tag/time/order preserved. The fixture explicitly enables receive-order event pushing only for this attribute case. Direct mappings are page-198 l177-52 -> §8.11 and page-199 l40-12 -> §8.11.3. One-authority topology is not normative; no NMR, arbitrary watermarks, other producer families, validation, interoperability, or conformance is implied."
+    },
+    {
+      "id": "process-tso-attribute-update-nmr-authoritative-coordinator",
+      "state": "verified",
+      "family": "time-save-restore",
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
+      "canonical_section": "hla-1516.1-2025:clause-8.10.2",
+      "source_target": "cpp/tests/ieee1516_2025_connection_process_tso_ingress_proxy_catch2.cpp; cpp/tests/process_federation_service_probe.cpp",
+      "file_owner": "independent-process timestamped attribute update delivered before NMR grant through one authoritative coordinator",
+      "test_case": "Independent RTI client processes deliver a late TSO attribute update before NMR grant through one authoritative coordinator",
+      "next_check": "The MinGW connection target builds and the exact loopback-enabled HLA_EVOKED CTest passes once plus five consecutive repeats. Distinct sender/receiver OS processes use one coordinator; discovery, timestamp-5 reflection, and grant 5 arrive in D-R-G order with metadata preserved after NMR(10). Direct mapping is requirement-candidate-content-clauses-08-time-management-page-197-l20-3 -> §8.10.2 only. The one-authority topology is not normative; no NMRA, other producers, external interoperability, validation, or conformance is implied."
+    },
+    {
+      "id": "time-regulation-enable-tso-cutoff",
+      "state": "verified",
+      "family": "time-save-restore",
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l76-19",
+      "canonical_section": "hla-1516.1-2025:clause-8.3.4",
+      "source_target": "cpp/tests/available_time_advance_inclusive_galt_catch2.cpp",
+      "file_owner": "embedded time-constrained Enable Time Regulation TSO cutoff and equal-boundary preservation",
+      "test_case": "Time Regulation enable suppresses TSO below its assigned federation time",
+      "next_check": "Verified by 39 HLA_EVOKED assertions: queue TSO(5) and TSO(8), enable regulation at the implicit assigned time 8, assert only TSO(8) is delivered. Exact focused MinGW CTest passed 1/1; the pre-existing equal-boundary implicit-advance case was revised and its focused CTest passed. Direct mapping: page 190 l76 -> IEEE 1516.1-2025 §8.3.4. This is embedded behavior evidence only; process/transport arrivals, other service families, alternate logical times, interoperability, validation, and conformance remain unclaimed."
+    },
+    {
+      "id": "tce-transition-stored-tso",
+      "state": "verified",
+      "family": "time-save-restore",
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l93-27",
+      "canonical_section": "hla-1516.1-2025:clause-8.6",
+      "source_target": "cpp/src/internal/runtime/umbra_rti_ambassador_timestamped_interaction_send.cpp; cpp/src/internal/federation/process_federation_service_interaction_send.cpp; cpp/tests/available_time_advance_inclusive_galt_catch2.cpp",
+      "file_owner": "embedded and process timestamped Send Interaction recipient selection across pending Enable Time Constrained",
+      "test_case": "Time Constrained transition preserves queued TSO at or beyond logical time",
+      "next_check": "Verified 2026-10-20: this requirement has the embedded Send Interaction case, separately scoped timestamped attribute and directed-interaction cases, and a portable C++ TCK primary/contract pair for queued TSO during Enable Time Constrained. The portable TCE lane (GALT equality, regulating-federate current time, stored TSO, and pre-transition RECEIVE delivery including an event equal to current time) passed 16/16 installed-package MinGW CTests across HLA_EVOKED/HLA_IMMEDIATE. Evidence: out/mgw/tck-tara-future-delete-current-20261020/time-constrained-enable-equal-boundary-lane-20261020.json/.xml. Keep producer-family and process coverage separate; this remains development/TCK evidence, not conformance. Next: verify the exact 2025 clause scope for asynchronous delivery of eligible TSO before implementing additional callbacks."
+    },
+    {
+      "id": "tce-transition-stored-tso-attribute",
+      "state": "verified",
+      "family": "time-save-restore",
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l93-27",
+      "canonical_section": "hla-1516.1-2025:clause-8.6",
+      "source_target": "cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp; cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp; cpp/tests/ieee1516_2025_optional_timestamp_preferred_tso_attribute_catch2.cpp",
+      "file_owner": "embedded and process timestamped Update Attribute Values recipient selection across pending Enable Time Constrained",
+      "test_case": "Time Constrained transition retains a timestamped attribute update as TSO",
+      "next_check": "Verified by 57 HLA_EVOKED assertions; the exact MinGW CTest and adjacent optional-timestamp test both pass. A timestamp-preferred update sent while Enable Time Constrained is pending remains undelivered through the role callback, then arrives as TIMESTAMP before grant 6. Direct mapping: page 192 l93-27 -> §8.6. The behavioral test exercises the embedded path only; process/network arrival remains a separate companion test, and other timestamped service families are not covered."
+    },
+    {
+      "id": "tce-transition-stored-tso-attribute-process",
+      "state": "verified",
+      "family": "time-save-restore",
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l93-27",
+      "canonical_section": "hla-1516.1-2025:clause-8.6",
+      "source_target": "cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp; cpp/tests/ieee1516_2025_connection_tso_attribute_before_grant_catch2.cpp",
+      "file_owner": "process-boundary timestamped attribute-update fixture sequence and queued delivery across pending Enable Time Constrained",
+      "test_case": "RTIambassadors keep a process attribute update timestamped while Time Constrained is pending",
+      "next_check": "Verified by exact focused MinGW CTest 1/1 on 2026-10-19. The process test sends one timestamped attribute passel while Time Constrained is pending, preserves it through the role callback, and verifies timestamp delivery before grant 6. Direct mapping is page-192 l93-27 -> IEEE 1516.1-2025 §8.6. This is one process attribute-update route only; other timestamped service families and conformance are not implied."
+    },
+    {
+      "id": "tce-transition-stored-tso-directed-interaction",
+      "state": "verified",
+      "family": "time-save-restore",
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l93-27",
+      "canonical_section": "hla-1516.1-2025:clause-8.6",
+      "source_target": "cpp/src/internal/runtime/umbra_rti_ambassador_directed_interaction_services.cpp; cpp/src/internal/federation/process_federation_service_interaction_send.cpp; cpp/tests/timestamped_directed_interaction_tar_nmr_catch2.cpp",
+      "file_owner": "embedded and process timestamped Send Directed Interaction recipient selection across pending Enable Time Constrained",
+      "test_case": "Embedded timestamped directed interaction remains TSO while Time Constrained enable is pending",
+      "next_check": "Verified by 60 HLA_EVOKED assertions and exact focused MinGW CTest (1/1): a timestamped directed interaction sent during pending Enable Time Constrained does not arrive as RECEIVE through the role callback and later arrives as TIMESTAMP before grant 6. Direct mapping: page 192 l93-27 -> §8.6. This row is embedded-only; its process-boundary companion is independently mapped and verified. Do not imply transport coverage from this embedded case or coverage of other timestamped service families."
+    },
+    {
+      "id": "tce-transition-stored-tso-directed-interaction-process",
+      "state": "verified",
+      "family": "time-save-restore",
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l93-27",
+      "canonical_section": "hla-1516.1-2025:clause-8.6",
+      "source_target": "cpp/src/internal/federation/process_federation_service_interaction_send.cpp; cpp/tests/ieee1516_2025_connection_tso_directed_interaction_callback_gating_catch2.cpp",
+      "file_owner": "process-boundary directed-interaction pending-TCE fixture sequence and timestamped delivery at the eligible GALT boundary",
+      "test_case": "RTIambassadors retain a process directed TSO while Enable Time Constrained is pending",
+      "next_check": "Verified by exact focused MinGW CTest 1/1 on 2026-10-19, with 70 HLA_EVOKED assertions. The fixture sends the directed TSO at time 6, requests receiver TAR(6) at sender-derived GALT 6, observes no premature receive-order delivery through the Time Constrained Enabled callback, then verifies timestamp-order delivery before grant 6. Direct mapping is page-192 l93-27 -> IEEE 1516.1-2025 §8.6. This is one process directed-interaction route only; the process attribute-update lane is separately mapped and verified, and other timestamped service families remain out of scope."
+    },
     {
       "id": "nmra-grant-time-selection",
       "state": "verified",
@@ -523,8 +647,8 @@
       "mapping_disposition": "internal-only; no normative mapping",
       "source_target": "cpp/tests/ieee1516_2025_connection_process_tso_interaction_retraction_before_callback_catch2.cpp",
       "file_owner": "public process-mode ordinary timestamped interaction retraction before receiver callback servicing",
-      "test_case": "RTIambassadors suppress a retracted pushed timestamped interaction before callback delivery",
-      "next_check": "Verified 2026-10-16: MinGW target `umbra_ieee1516_2025_connection_catch2` builds in `out/mgw/embedded`; the exact elevated loopback CTest selector passes 1/1 (0.26 sec, 10-second timeout), and direct Catch2 reports 20 assertions. The pre-callback suppression path remains internal-only with no normative mapping. Do not add a duplicate received-message case: `umbra-cpp-process-endpoint-directed-interaction-callback-integration` already verifies delivery followed by Retract and exactly one Request Retraction callback under HLA_EVOKED/HLA_IMMEDIATE, mapped directly to requirement-candidate-content-clauses-08-time-management-page-210-l21-3 -> §8.22.3. Next handoff: identify a genuinely new portable C++ TCK behavior with a direct 2025 mapping. The bounded family gap sample page-096-l57-16 is already represented by five promoted catalog scenarios; `gaps --family` is matrix inventory, not a ready-task list. Compare any next candidate with the scenario catalog before implementation. `ready --family portable-cpp-tck-2025` currently reports no executable candidate."
+      "test_case": "RTIambassadors handle pulled timestamped interaction retraction around callback entry",
+      "next_check": "Verified 2026-10-20: the exact public process-pull test passes 31 assertions using a fresh MinGW-linked executable under local loopback. It checks retraction before polling, after polling but before callback entry, and after callback entry. The case remains internal-only with no normative mapping. Mixed-fanout acceptance with an unconstrained pull recipient and a constrained queued recipient remains open under GitHub #4."
     },
     {
       "id": "timestamped-attribute-update-time-constraints",
@@ -1585,23 +1709,32 @@
       "id": "time-constrained-enable-galt-embedded",
       "state": "verified",
       "family": "time-save-restore",
-      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l72-20",
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l84-24",
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-192-l72-20",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l84-24"
+      ],
       "canonical_section": "hla-1516.1-2025:clause-8.6.3",
       "source_target": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp; cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp; cpp/tests/available_time_advance_inclusive_galt_catch2.cpp",
       "file_owner": "embedded Time Constrained enable GALT gate and focused public case",
-      "test_case": "Time Constrained enable is released when GALT equals current logical time",
-      "next_check": "The focused MinGW target passes. At requester current time 5, no role-enable callback is eligible with GALT 1; regulator time 4 makes GALT exactly 5 and queues one callback; a second regulator grant at time 5 does not duplicate it. The requester observes one Time Constrained Enabled callback at time 5 after evoking callbacks. Existing process-endpoint evidence separately covers release after GALT advances beyond current time. The mapping remains only to §8.6.3; candidate truncation is tracked as RL-334."
+      "test_case": "Time Constrained enable waits until GALT exceeds current logical time",
+      "next_check": "The focused MinGW target passes with 25 assertions. At requester current time 5, no role-enable callback is eligible with GALT 1 or at equality GALT=5; regulator time 5 advances GALT to 6 and queues one callback, observed at logical time 5 after evoking callbacks. The case directly maps the strict boundary to requirement l84-24 / §8.6.3. Process-endpoint evidence separately verifies the same boundary under both callback models. Candidate truncation remains tracked as RL-334."
     },
     {
       "id": "time-constrained-enable-galt-process",
       "state": "verified",
       "family": "time-save-restore",
-      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l72-20",
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l84-24",
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-192-l72-20",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l78-22",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l84-24"
+      ],
       "canonical_section": "hla-1516.1-2025:clause-8.6.3",
       "source_target": "cpp/src/internal/federation/process_federation_service_time_management.cpp; cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp; cpp/tests/ieee1516_2025_connection_process_query_time_bounds_multi_federate_catch2.cpp",
       "file_owner": "process endpoint Time Constrained enable GALT gate and callback event path",
-      "test_case": "Process Time Constrained Enabled is released when GALT reaches or exceeds current logical time",
-      "next_check": "The dedicated process MinGW target passes. The public case has four generated scenarios: current-time 5 with GALT initially 1, delayed equality at 5, and immediate enable with GALT already 6, each under HLA_IMMEDIATE and HLA_EVOKED. It confirms one callback at time 5 and no duplicate as GALT advances. The row maps only the bounded §8.6.3 behavior; candidate truncation is tracked as RL-334. Additional role combinations and conformance remain separate."
+      "test_case": "Process Time Constrained Enabled waits until GALT exceeds current logical time",
+      "next_check": "The focused MinGW process CTest and direct Catch2 run pass with 82 assertions across four callback/GALT combinations. With current time 5 and GALT 1, no callback occurs at equality GALT=5; one callback at time 5 occurs only after GALT reaches 6. The immediate-enable path with initial GALT 6 also passes. This maps l84-24 to §8.6.3; candidate truncation remains tracked as RL-334. Additional role combinations and conformance remain separate."
     },
     {
       "id": "tar-post-grant-tso-cutoff",
@@ -1859,6 +1992,39 @@
       "next_check": "Verified: the MinGW target builds and the exact focused CTest passes 1/1 with 26 assertions. NMR waits at GALT equality and is released only after GALT rises; NMRA waits above GALT and is released at the inclusive boundary. This gap was already implemented and mapped, so no duplicate code or test was added."
     },
     {
+      "id": "process-no-tso-authoritative-coordinator-nmr-nmra-tara",
+      "state": "verified",
+      "family": "transport-and-conformance",
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-195-l110-31",
+      "canonical_section": "hla-1516.1-2025:clause-8.9",
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+        "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l63-17",
+        "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+        "requirement-candidate-content-clauses-08-time-management-page-195-l110-31",
+        "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
+        "requirement-candidate-content-clauses-08-time-management-page-197-l50-13",
+        "requirement-candidate-content-clauses-08-time-management-page-198-l177-52",
+        "requirement-candidate-content-clauses-08-time-management-page-199-l40-12"
+      ],
+      "canonical_sections": [
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.5.5",
+        "hla-1516.1-2025:clause-8.6.3",
+        "hla-1516.1-2025:clause-8.8.3",
+        "hla-1516.1-2025:clause-8.9",
+        "hla-1516.1-2025:clause-8.10.2",
+        "hla-1516.1-2025:clause-8.11",
+        "hla-1516.1-2025:clause-8.11.3"
+      ],
+      "mapping_disposition": "Direct mappings cover time-regulation/constrained setup, TAR, NMR, NMRA, and TARA grant behavior. The no-TSO premise and one-authoritative-coordinator topology are test setup and implementation evidence; neither prescribes normative deployment architecture.",
+      "source_target": "cpp/tests/ieee1516_2025_connection_process_tso_ingress_proxy_catch2.cpp:1333",
+      "file_owner": "independent public RTI client processes exercise no-TSO cross-federate NMR/NMRA/TARA grants through one authoritative coordinator",
+      "test_case": "Independent client processes coordinate no-TSO NMR, NMRA, and TARA grants through one authoritative coordinator",
+      "next_check": "Verified 2026-10-19: the MinGW connection target builds and the focused loopback CTest passes 1/1. With no TSO queued, NMR(5) waits at GALT 5 then grants after TAR(1) raises GALT to 6; NMRA(7) waits at GALT 6 then grants at 7 after TAR(2); TARA(8) waits at GALT 7 then grants at 8 after TAR(3). The case has 9 direct requirement-section pairs across 8 clauses. This is private implementation evidence only. Next add a distinct process-boundary timestamped TARA-arrival case; do not claim general transport conformance."
+    },
+    {
       "id": "process-tso-proxy-subprocess-timestamped-delete-arrival",
       "state": "verified",
       "family": "transport-and-conformance",
@@ -2107,7 +2273,7 @@
       "source_target": "cpp/tests/ieee1516_2025_connection_time_advance_federation_scheduler_catch2.cpp",
       "file_owner": "two-federate no-TSO NMR, NMRA, and TARA grant scheduling under HLA_IMMEDIATE",
       "test_case": "RTIambassadors coordinate deferred process NMR, NMRA, and TARA through the no-TSO federation scheduler under HLA_IMMEDIATE",
-      "next_check": "Verified: exact MinGW CTest passes 1/1 with 77 assertions after allowing local loopback. No-TSO NMR(5), NMRA(5), and TARA(5) remain pending until the regulating peer advances; both grants then report time 5. Nine direct requirement-section pairs are recorded across §§8.2, 8.5.5, 8.6.3, 8.8.3, 8.9, 8.10.2, 8.11, and 8.11.3. This does not imply TSO-arrival coordination or conformance."
+      "next_check": "Prior allowed-loopback evidence: exact MinGW CTest passes 1/1 with 77 assertions. No-TSO NMR(5), NMRA(5), and TARA(5) remain pending until the regulating peer advances; both grants then report time 5. Nine direct requirement-section pairs are recorded across §§8.2, 8.5.5, 8.6.3, 8.8.3, 8.9, 8.10.2, 8.11, and 8.11.3. A current restricted-host rerun is blocked before scheduler assertions by initial connect error WSAEACCES 10013. The fixture now closes the listener, joins the accept thread, then destroys the listener, so the failed rerun exits without the prior teardown crash. Rerun the exact selector on a loopback-enabled host; this does not imply TSO-arrival coordination or conformance."
     },
     {
       "id": "process-no-tso-cross-federate-nmr-nmra-evoked",
@@ -2286,8 +2452,34 @@
       "file_owner": "public durable restore of one pending Enable Time Constrained request",
       "test_case": "Fresh-registry restore completes one saved pending Time Constrained request",
       "next_check": "Verified 2026-10-17: MinGW target build and focused CTest passed 1/1; direct Catch2 passed 24 assertions. The case maps directly to page-072-l131-32 -> §4.27, page-076-l162-43 -> §4.32, page-191-l73-17 -> §8.5.5, and page-192-l63-17 -> §8.6.3. It proves one pending time-constrained callback survives a fresh filesystem store/registry in the same OS process; it does not prove process restart or general time-management persistence."
+    },
+    {
+      "id": "tce-transition-pre-enable-ro-delivery",
+      "state": "verified",
+      "family": "time-save-restore",
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l99-29",
+      "canonical_section": "hla-1516.1-2025:clause-8.6",
+      "source_target": "cpp/tests/available_time_advance_inclusive_galt_catch2.cpp",
+      "file_owner": "public TCE transition test for a timestamped message delivered as RO before the enable callback",
+      "test_case": "Time Constrained transition preserves the receive-order boundary for queued interactions",
+      "next_check": "Verified 2026-10-19: focused MinGW target builds and the exact CTest passes 1/1. The pre-transition timestamped interaction is received as RECEIVE before the Time Constrained Enabled callback; a separate post-transition message arrives as TIMESTAMP before the grant. Direct mapping is only page-192 l99-29 -> §8.6. Page-192 l93-27, queued TSO delivered in TSO at the transition, remains unmapped because this case does not create that queue cohort. Development-profile evidence only, not conformance."
+    },
+    {
+      "id": "disable-time-regulation-converts-timestamped-send-to-ro",
+      "state": "verified",
+      "family": "time-save-restore",
+      "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-190-l106-26",
+      "canonical_section": "hla-1516.1-2025:clause-8.4",
+      "source_target": "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp",
+      "file_owner": "public post-disable timestamped Send Interaction order conversion",
+      "test_case": "Disable Time Regulation converts timestamped sends to receive order",
+      "next_check": "Verified 2026-10-19: focused MinGW target builds and the exact CTest passes 1/1. After disabling time regulation, the timestamped Send Interaction call succeeds and the public callback reports sentOrderType=RECEIVE and receivedOrderType=RECEIVE. Direct mapping is page-190 l106-26 -> §8.4. Umbra surfaces this through the timestamped callback shape; callback-shape conformance and other timestamped service families remain unclaimed."
     }
   ],
+  "process_tso_authoritative_coordinator_ingress_2026_10_19_handoff": "Verified 2026-10-19: Added `umbra-cpp-process-tso-authoritative-coordinator-ingress-os-process`, with a separate authoritative federation/time coordinator and sender/receiver RTIambassadors running inside distinct child processes. The MinGW connection Catch2 target builds, and the focused coordinator-ingress CTest lane passes 2/2 with loopback enabled (the new NMR/NMRA case plus the registry-free ingress baseline). Direct mappings cover only observed behavior: page-178 l138-43 -> §8, page-197 l20-3 and l50-13 -> §8.10.2, page-198 l177-52 -> §8.11, and page-199 l40-12 -> §8.11.3. The process harness now waits for a complete valid port marker rather than failing on a transient partial read. This validates one process-routing implementation, not a normative topology. The separate direct-authority comparison remains unverified because its restricted run hit Winsock 10013 before behavior assertions; that is not a behavior result. No peer authority exchange, general wire-watermark protocol, interoperability, validation, or conformance claim. Next: select a distinct direct 2025 behavior while keeping the selected one-coordinator architecture.",
+  "process_tso_authoritative_coordinator_tara_future_arrival_2026_10_20_handoff": "Verified 2026-10-20: Added `umbra-cpp-process-tso-authoritative-coordinator-tara-future-arrival`, a public HLA_EVOKED C++ process case with a separate authoritative service, regulating sender, and constrained receiver. TARA(6) is submitted before the sender transmits TSO(5); after sender TAR(6), the receiver observes the timestamped interaction before grant 6, with class, payload, tag, sent/received order, and retraction evidence checked. The isolated MinGW connection target built and the exact CTest passed 1/1 using loopback. Direct mappings: page-180 l93-28 -> §8.1.4, page-195 l110-31 -> §8.9, page-204 l86-25 -> §8.14.4(e). One coordinator is an implementation choice. No Requirements Lab resync, independent authority, broad wire-watermark, interoperability, validation, or conformance claim. Next: select a distinct direct 2025 gap without generalizing this route.",
+  "process_tso_authoritative_coordinator_tara_attribute_update_2026_10_20_handoff": "Verified 2026-10-20: Added `umbra-cpp-process-tso-authoritative-coordinator-tara-attribute-update-future-arrival`, a public HLA_EVOKED C++ process case with a separate authoritative service, sender, and constrained receiver. The receiver submits TARA(6) before the sender issues timestamped Update Attribute Values at time 5 and advances to 6. The exact loopback-enabled MinGW CTest passed 1/1; the receiver observes one Reflect Attribute Values callback before grant 6 and verifies object/attribute identity, producer, value, tag, sent/received TIMESTAMP order, timestamp, and valid retraction handle. Direct mappings are limited to page-120 l83-22 and l110-31 -> §6.10, page-180 l93-28 -> §8.1.4, page-195 l110-31 -> §8.9, and page-204 l86-25 -> §8.14.4. One authority is implementation evidence, not a normative topology. No other timestamped service family, independent authorities, arbitrary watermark protocol, interoperability, validation, or conformance claim. Next: select a distinct timestamped service family with its own direct 2025 mapping; do not generalize this attribute-update/TARA path.",
+  "process_tso_directed_authoritative_coordinator_tara_2026_10_20_handoff": "Verified 2026-10-20: Added the distinct directed-interaction TARA process case in `umbra-cpp-process-tso-directed-authoritative-coordinator-tara-future-arrival`. Separate sender and receiver RTI processes use one authoritative coordinator; receiver TARA(6) is pending before sender Send Directed Interaction at timestamp 5, and the receiver checks the target, TakeOrder class, empty standard-FOM parameter map, user tag, timestamped sent/received order, timestamp 5, valid retraction metadata, and delivery before grant 6. The isolated MinGW connection target built and the exact loopback-enabled CTest passed 1/1. Direct mappings are limited to page-127 l37-11 -> §6.14.3, page-128 l83-23 -> §6.15.1, page-180 l93-28 -> §8.1.4, page-195 l110-31 -> §8.9, and page-204 l86-25 -> §8.14.4(e). One coordinator is implementation evidence, not normative topology. No other service family, independent authority, arbitrary watermark protocol, interoperability, validation, or conformance claim. Next: use a bounded case query to select the next directly mapped 2025 process-time behavior, without generalizing to other TSO service families or future network arrivals.",
   "last_completed_handoff": {
     "state": "complete",
     "family": "time-save-restore",
@@ -2380,10 +2572,10 @@
     "current_counts": {
       "catch2_actionable_cases_without_cpp_source_location": 0,
       "catch2_cases_without_cpp_source_location": 1,
-      "catch2_cases_without_lab_requirement_mapping": 111,
+      "catch2_cases_without_lab_requirement_mapping": 118,
       "catch2_planned_cases": 0,
-      "catch2_plan_cases": 1665,
-      "catch2_unmapped_explicit_disposition": 111,
+      "catch2_plan_cases": 1709,
+      "catch2_unmapped_explicit_disposition": 118,
       "catch2_unmapped_unclassified": 0,
       "ddm_sent_region_designators_2025_lane_cases": 1,
       "ddm_sent_region_designators_2025_lane_mapped_cases": 1,
@@ -2534,21 +2726,21 @@
     },
     "current_snapshot": {
       "source": "python tools/query_rti_work.py dashboard --summary --compact",
-      "plan_cases": 1665,
-      "catch2_plan_cases": 1665,
-      "mapped_cases": 1554,
-      "unmapped_cases": 111,
-      "catch2_cases_without_lab_requirement_mapping": 111,
-      "explicit_unmapped_cases": 111,
-      "catch2_unmapped_explicit_disposition": 111,
+      "plan_cases": 1709,
+      "catch2_plan_cases": 1709,
+      "mapped_cases": 1591,
+      "unmapped_cases": 118,
+      "catch2_cases_without_lab_requirement_mapping": 118,
+      "explicit_unmapped_cases": 118,
+      "catch2_unmapped_explicit_disposition": 118,
       "unclassified_unmapped_cases": 0,
       "source_unlocated_cases": 1,
       "source_unlocated_actionable_cases": 0,
       "planned_cases": 0,
       "source_only_cases": 0,
-      "direct_requirement_section_pairs": 1137,
+      "direct_requirement_section_pairs": 1178,
       "standard_requirement_total": 2220,
-      "standard_requirement_coverage_percent": 51.22,
+      "standard_requirement_coverage_percent": 52.93,
       "service_report_store_cases": 21,
       "service_report_store_mapped_cases": 14,
       "ddm_sent_region_designators_2025_lane_cases": 1,
@@ -2563,18 +2755,18 @@
       "per_federate_discovered_class_lane_mapped_cases": 1
     },
     "latest_completed_slice": {
-      "lane": "ddm-conveyed-region-designator-tso-reflect-snapshot",
-      "owner": "object-ddm-ownership",
-      "plan_id": "umbra-cpp-ddm-tso-reflect-attribute-region-designator-callback-snapshot",
-      "test_case": "Embedded 2025 timestamped conveyed region designators remain callback snapshots during Reflect Attribute Values",
-      "source_location": "cpp/tests/ddm_conveyed_region_designator_tso_reflect_snapshot_lifetime_catch2.cpp:174",
-      "primary_lane": "object-ddm-ownership",
-      "focus_lane": "ddm-conveyed-region-designator-tso-reflect-snapshot",
-      "assertions": 51,
-      "requirements": 1,
-      "standard_sections": 1,
-      "api_surfaces": 10,
-      "next_action": "Verified 2026-10-17: isolated MinGW target umbra_ddm_conveyed_region_designator_snapshot_catch2 builds and all four focused snapshot CTests pass (46, 47, 44, and 51 assertions); the new lane mapping check passes. The timestamped embedded Reflect Attribute Values case mutates the publisher source range inside the callback and confirms the conveyed copy remains queryable and stable. It maps only page-225 l96 -> §9.1.8. Configured-process callback copies remain open. Development-profile evidence only, not validation or conformance."
+      "lane": "process-tso-directed-authoritative-coordinator-os-process",
+      "owner": "transport-and-conformance",
+      "plan_id": "umbra-cpp-process-tso-directed-interaction-nmra-authoritative-coordinator",
+      "test_case": "Independent RTI client processes deliver a late directed TSO before NMRA grant through one authoritative coordinator",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_tso_ingress_proxy_catch2.cpp:889",
+      "primary_lane": "process-tso-directed-authoritative-coordinator-os-process",
+      "focus_lane": "process-tso-directed-authoritative-coordinator-os-process",
+      "assertions": 2,
+      "requirements": 4,
+      "standard_sections": 4,
+      "api_surfaces": 22,
+      "next_action": "Verified 2026-10-19: the MinGW connection target built; HLA_EVOKED NMR and NMRA directed-TSO process cases passed 2/2 and then twice each alongside the ordinary-interaction NMRA baseline. The discovered target and timestamp-5 directed callback precede grant 5 with message metadata checked. Direct mappings are §§6.14.3, 6.15.1, 8.10.2, 8.11, and 8.11.3. One authoritative coordinator is implementation evidence only. Next: select one distinct uncovered 2025 service family through a bounded source/lane query; do not infer interoperability or conformance."
     },
     "previous_slice": {
       "lane": "tso-timestamped-interaction-sender-regulation-order",
@@ -2723,6 +2915,11 @@
     },
     "lane_owners": {
       "time-constrained-enable-galt-embedded": "time-save-restore",
+      "time-regulation-enable-actual-lookahead-tso-send": "time-save-restore",
+      "modify-lookahead-increase-and-gradual-decrease": "time-save-restore",
+      "modify-lookahead-attribute-update-boundary": "time-save-restore",
+      "modify-lookahead-delete-object-boundary": "time-save-restore",
+      "time-constrained-disable-tso-to-ro": "time-save-restore",
       "time-constrained-enable-galt-process": "time-save-restore",
       "federation-restore-failure-result-status": "time-save-restore",
       "save-queued-ro-attribute-update-push-restart": "time-save-restore",
@@ -2730,6 +2927,7 @@
       "tar-post-grant-tso-cutoff": "time-save-restore",
       "tso-tara-queued-equal-boundary": "time-save-restore",
       "tso-send-request-boundary": "time-save-restore",
+      "tso-send-at-granted-time-zero-lookahead": "time-save-restore",
       "process-tso-cross-endpoint-arrival-coordination": "transport-and-conformance",
       "process-service-report-send-interaction-success-interaction": "mom-after-base-services",
       "process-service-report-send-interaction-success-file-destination-selection": "mom-after-base-services",
@@ -2767,6 +2965,7 @@
       "nmr-lits-below-galt-immediate-grant": "time-save-restore",
       "fqr-postgrant-lower-tso-retraction": "time-save-restore",
       "fqr-postgrant-delivery-cutoff": "time-save-restore",
+      "fqr-delivered-tso-grant-boundary": "time-save-restore",
       "tar-strict-delivery-cutoff": "time-save-restore",
       "process-service-report-next-message-request-available-pending-failure": "mom-after-base-services",
       "process-service-report-next-message-request-available-backward-failure": "mom-after-base-services",
@@ -2956,6 +3155,9 @@
       "process-time-advance-time-constrained-pending": "transport-and-conformance",
       "process-time-advance-malformed-encoding": "transport-and-conformance",
       "process-time-advance-federation-scheduler": "transport-and-conformance",
+      "process-no-tso-cross-federate-grant-coordinator-os-process": "transport-and-conformance",
+      "process-tso-delete-object-nmr-authoritative-coordinator-os-process": "transport-and-conformance",
+      "process-tso-delete-object-nmra-authoritative-coordinator-os-process": "transport-and-conformance",
       "process-no-tso-cross-federate-nmr-nmra-immediate": "transport-and-conformance",
       "process-no-tso-cross-federate-nmr-nmra-evoked": "transport-and-conformance",
       "process-delayed-nonregional-attribute-evoked": "transport-and-conformance",
@@ -3326,6 +3528,12 @@
         "catch2_target": "umbra_timestamped_send_interaction_retraction_catch2",
         "ctest_filter": "^umbra\\.timestamped_send_interaction_retraction\\.catch2\\.Embedded zero-lookahead TAR rejects TSO timestamps at its request boundary$",
         "ctest_label": "tso-send-request-boundary",
+        "source": "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp"
+      },
+      "tso-send-at-granted-time-zero-lookahead": {
+        "catch2_target": "umbra_timestamped_send_interaction_retraction_catch2",
+        "ctest_filter": "^umbra\\.timestamped_send_interaction_retraction\\.catch2\\.Embedded zero-lookahead TSO send at granted time is permitted$",
+        "ctest_label": "tso-send-at-granted-time-zero-lookahead",
         "source": "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp"
       },
       "object-class-request-provider-response": {
@@ -5860,6 +6068,12 @@
         "ctest_label": "fqr-postgrant-lower-tso-retraction",
         "source": "cpp/tests/flush_queue_future_input_catch2.cpp"
       },
+      "fqr-delivered-tso-grant-boundary": {
+        "catch2_target": "umbra_flush_queue_future_input_catch2",
+        "ctest_filter": "^umbra\\.flush_queue_future_input\\.catch2\\.Embedded Flush Queue grant accounts for a prequeued TSO timestamp$",
+        "ctest_label": "fqr-delivered-tso-grant-boundary",
+        "source": "cpp/tests/flush_queue_future_input_catch2.cpp"
+      },
       "time-advance-request-logical-time-gating": {
         "catch2_target": "umbra_ieee1516_2025_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch$",
@@ -5916,13 +6130,19 @@
       },
       "time-constrained-enable-galt-embedded": {
         "catch2_target": "umbra_available_time_advance_inclusive_galt_catch2",
-        "ctest_filter": "^umbra\\.available_time_advance_inclusive_galt\\.catch2\\.Time Constrained enable is released when GALT equals current logical time$",
+        "ctest_filter": "^umbra\\.available_time_advance_inclusive_galt\\.catch2\\.Time Constrained enable waits until GALT exceeds current logical time$",
         "ctest_label": "time-management",
         "source": "cpp/tests/available_time_advance_inclusive_galt_catch2.cpp"
       },
+      "time-constrained-disable-tso-to-ro": {
+        "catch2_target": "umbra_available_time_advance_inclusive_galt_catch2",
+        "ctest_filter": "^umbra\\.available_time_advance_inclusive_galt\\.catch2\\.Disable Time Constrained delivers queued and subsequent TSO as receive order$",
+        "ctest_label": "time-constrained-disable-tso-to-ro",
+        "source": "cpp/tests/available_time_advance_inclusive_galt_catch2.cpp"
+      },
       "time-constrained-enable-galt-process": {
-        "catch2_target": "umbra_process_time_constrained_galt_catch2",
-        "ctest_filter": "^umbra\\.process_time_constrained_galt\\.catch2\\.Process Time Constrained Enabled is released when GALT reaches or exceeds current logical time$",
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.Process Time Constrained Enabled waits until GALT exceeds current logical time$",
         "ctest_label": "process-time-constrained-enable-galt",
         "source": "cpp/tests/ieee1516_2025_connection_process_query_time_bounds_multi_federate_catch2.cpp"
       },
@@ -6296,6 +6516,24 @@
         "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors coordinate deferred process NMR, NMRA, and TARA through the no-TSO federation scheduler under HLA_EVOKED$",
         "ctest_label": "process-boundary",
         "source": "cpp/tests/ieee1516_2025_connection_time_advance_federation_scheduler_catch2.cpp"
+      },
+      "process-no-tso-cross-federate-grant-coordinator-os-process": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.Independent client processes coordinate no-TSO NMR, NMRA, and TARA grants through one authoritative coordinator$",
+        "ctest_label": "process-no-tso-cross-federate-grant-coordinator-os-process",
+        "source": "cpp/tests/ieee1516_2025_connection_process_tso_ingress_proxy_catch2.cpp"
+      },
+      "process-tso-delete-object-nmr-authoritative-coordinator-os-process": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.Independent client processes deliver a timestamped object deletion before NMR grant through one authoritative coordinator$",
+        "ctest_label": "process-tso-delete-object-nmr-authoritative-coordinator-os-process",
+        "source": "cpp/tests/ieee1516_2025_connection_process_tso_ingress_proxy_catch2.cpp"
+      },
+      "process-tso-delete-object-nmra-authoritative-coordinator-os-process": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.Independent client processes deliver a timestamped object deletion before NMRA grant through one authoritative coordinator$",
+        "ctest_label": "process-tso-delete-object-nmra-authoritative-coordinator-os-process",
+        "source": "cpp/tests/ieee1516_2025_connection_process_tso_ingress_proxy_catch2.cpp"
       },
       "process-delayed-nonregional-attribute-evoked": {
         "catch2_target": "umbra_process_delayed_regional_attribute_catch2",
@@ -6781,10 +7019,12 @@
       }
     },
     "lane_assertion_counts": {
-      "time-constrained-enable-galt-embedded": 24,
-      "time-constrained-enable-galt-process": 77,
+      "time-constrained-enable-galt-embedded": 25,
+      "time-constrained-disable-tso-to-ro": 154,
+      "time-constrained-enable-galt-process": 82,
       "tso-tara-queued-equal-boundary": 30,
       "tso-send-request-boundary": 29,
+      "tso-send-at-granted-time-zero-lookahead": 32,
       "process-boundary": 6959,
       "process-boundary-federation-lifecycle": 19,
       "process-unpublish-object-class-attributes": 32,
@@ -20332,7 +20572,27 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-8"
       ],
-      "requirements_lab_api_surface_status": "FederationTimeBoundsCalculator is a private temporal-coordination seam and is not exported as a standalone Requirements-Lab API surface; the selected GALT lower-bound and future-incoming LITS requirements are crosswalk anchors for incorporating in-transit, delivered, and queued TSO timestamps",
+      "requirements_lab_api_surface_status": "FederationTimeBoundsCalculator is a private temporal-coordination seam and is not exported as a standalone Requirements-Lab API surface; the selected GALT and future-incoming LITS requirements are crosswalk anchors for queued and in-transit TSO. Callback-acknowledged history is excluded because it cannot arrive after acknowledgement. This remains private foundation evidence, not conformance evidence.",
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-federation-time-bounds-acknowledged-tso-galt-frontier-internal",
+      "test_query": "Acknowledged TSO stops capping GALT while an in-transit TSO still blocks",
+      "lane_queries": [
+        "unit",
+        "internal-only",
+        "no-normative-mapping",
+        "kernel",
+        "time-management",
+        "federation-time",
+        "galt",
+        "lits",
+        "lane.acknowledged-tso-galt-frontier-foundation"
+      ],
+      "source_location": "cpp/tests/federation_time_bounds_catch2.cpp:247",
+      "assertions": 8,
+      "standard_sections": [],
+      "requirements_lab_api_surface_status": "Internal private-calculator unit test, explicitly without a normative mapping. The public TAR regression carries the bounded §8.1.6/§8.8 crosswalk; this unit case is not public API or conformance evidence.",
       "status": "implemented-private-foundation-not-conformance-evidence"
     },
     {
@@ -30834,6 +31094,331 @@
   ],
   "items": [
     {
+      "id": "github-issue-1-tso-delete-producer-knowledge",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Fix TSO deletion producer knowledge timing (GitHub #1)",
+      "roadmap_anchor": "The GitHub #1 TSO deletion producer-knowledge issue is tracked in focused",
+      "query_tags": [
+        "timestamped-delete-producer-knowledge",
+        "github-issue-1"
+      ],
+      "focused_lane_tags": [
+        "timestamped-delete-producer-knowledge"
+      ],
+      "next_action": "Verified 2026-10-20: focused embedded regressions cover no-recipient, receive-order recipient removal, and immediate regulation disable; the public process-endpoint case passes 278 assertions across HLA_EVOKED/HLA_IMMEDIATE, including those same boundaries. The process lane now has a dedicated plan row with direct §6.16.4 mapping; lane mapping checks pass. Producer state remains until its time boundary or immediate regulation disable. This is development-profile evidence, not conformance."
+    },
+    {
+      "id": "github-issue-2-fqr-undefined-galt-nrg",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Apply NRG to FQR when GALT is undefined (GitHub #2)",
+      "roadmap_anchor": "Focused lane anchor: Apply NRG to FQR when GALT is undefined.",
+      "query_tags": [
+        "fqr-undefined-galt-nrg",
+        "flush-queue-request-optimistic-time",
+        "github-issue-2"
+      ],
+      "focused_lane_tags": [
+        "fqr-undefined-galt-nrg"
+      ],
+      "next_action": "Verified 2026-10-20: the public C++ regression reproduced the NRG-disabled defect before the fix in both empty-queue and queued-TSO cases (actual grants 10 and 5), then passed all four combinations after the FQG calculator capped actual grant at current time only when GALT is undefined and NRG is disabled; OLT remains 10/5. MinGW target build and exact CTest pass, with direct mappings to IEEE 1516.1-2025 §§8.1.6 and 8.13. GitHub #3's embedded callback-frontier slice is verified separately. GitHub #6 is now resolved as an explicitly documented embedded/process arrival-policy difference, not a normative parity requirement. This is development-profile evidence, not conformance."
+    },
+    {
+      "id": "github-issue-3-fqr-delivered-callback-frontier",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Derive embedded FQG times from callbacks actually delivered (GitHub #3)",
+      "roadmap_anchor": "Focused lane anchor: FQG derives grant times from callback-started TSO deliveries.",
+      "query_tags": [
+        "fqr-delivered-tso-frontier",
+        "fqr-olt-minimum-delivered-tso",
+        "github-issue-3"
+      ],
+      "focused_lane_tags": [
+        "fqr-delivered-tso-frontier"
+      ],
+      "next_action": "Verified 2026-10-20: a public C++ HLA_EVOKED regression failed before the fix because suppressed candidate timestamp 5 lowered OLT despite only timestamp 7 being delivered. The embedded dispatcher now waits until delivery callbacks have begun, then computes both FQG values from the surviving delivered frontier plus current GALT/NRG constraints. Four focused scenarios pass: earliest suppressed, all suppressed, independent GALT bound, and retraction before callback dispatch. Direct OLT mapping: page-202 l107-29 -> §8.13. Actual grant examples are bounded implementation evidence, not a universal standard formula. GitHub #6's process comparison is now recorded as a policy difference with no normative parity claim. This is development-profile evidence, not conformance."
+    },
+    {
+      "id": "github-issue-4-process-pull-interaction-retraction",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Complete process pull-path interaction retraction acceptance (GitHub #4)",
+      "roadmap_anchor": "GitHub #4 process pull-path interaction retraction is tracked in focused lane",
+      "query_tags": ["process-tso-in-transit-interaction-retraction-before-callback", "github-issue-4"],
+      "focused_lane_tags": ["process-tso-in-transit-interaction-retraction-before-callback"],
+      "next_action": "Verified 2026-10-21: the focused MinGW public process-pull case passes 53 assertions for retraction before polling, after polling but before callback entry, after callback entry, and mixed fanout to one unconstrained pull recipient plus one constrained queued recipient. A missing TIMESTAMP order marker was fixed to preserve delivery acknowledgement. The constrained recipient's Resign-before-Retract path also confirms no queued interaction or Request Retraction callback escapes after resignation. Attribute and object-removal Resign families are covered by the paired #5 public test. Keep this C++ evidence internal-only with zero requirement/API/section mapping; it is not conformance evidence."
+    },
+    {
+      "id": "github-issue-5-resign-retraction-route-pruning",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Prune process retraction routes and callbacks on Resign (GitHub #5)",
+      "roadmap_anchor": "GitHub #5 Resign cleanup is covered for interaction, attribute-update, and object-removal callback families",
+      "query_tags": ["process-tso-in-transit-interaction-retraction-before-callback", "process-tso-resign-retraction", "github-issue-5"],
+      "focused_lane_tags": ["process-tso-in-transit-interaction-retraction-before-callback", "process-tso-resign-retraction"],
+      "next_action": "Verified 2026-10-21: the interaction route public case passes 53 assertions and covers retraction before polling, before callback entry, after callback entry, mixed fanout, and Resign-before-Retract. The paired public case passes 34 assertions for timestamped attribute reflection and object removal queued before Resign; later Retract causes no stale callback after rejoin. Together these cover the issue's three requested event families. Keep evidence internal-only with zero normative mapping; this is not a claim about every event type or conformance."
+    },
+    {
+      "id": "github-issue-6-fqr-arrival-boundary-process-parity",
+      "status": "complete",
+      "kind": "specification-and-evidence",
+      "priority": 1,
+      "title": "Resolve FQR arrival boundary and record process policy (GitHub #6)",
+      "roadmap_anchor": "GitHub #6 is resolved as an explicitly tested embedded/process policy difference; no normative arrival cutoff or parity is asserted",
+      "query_tags": ["fqr-arrival-boundary", "process-fqr-parity", "github-issue-6"],
+      "focused_lane_tags": ["fqr-arrival-boundary", "process-fqr-arrival-boundary"],
+      "next_action": "Verified 2026-10-21 against the pinned Requirements Lab transcription of §§8.12–8.14: queued-message delivery, OLT inputs, and the no-future-TSO-below-actual-grant outcome are specified; a transport-arrival/HLA_EVOKED callback-start cutoff and cross-profile parity are not. The paired public C++ scenario passes in both profiles: embedded delivers surviving timestamp 9 before FQG (actual/OLT 5/9); process accepts FQR before late arrivals (actual/OLT 5/10, no late callback in that FQR). Timestamp 12 is retracted before callback entry. The process regular Send Interaction route also rejects timestamp 4 against the sender's current-time-plus-lookahead floor of 5. This closes the specification investigation and records implementation policy only; it is not a conformance claim or a guarantee for all TSO producer families. Next handoff: resume the prioritized open C++ implementation lane with `python tools/query_rti_work.py resume`; do not resync the unchanged Requirements Lab."
+    },
+    {
+      "id": "restore-member-identity-rebinding",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Restore saved federate state to live members by federate type",
+      "roadmap_anchor": "A live federate can restore the saved state of any federate of the same type",
+      "query_tags": [
+        "restore-member-identity-rebinding",
+        "time-save-restore"
+      ],
+      "focused_lane_tags": [
+        "restore-member-identity-rebinding"
+      ],
+      "next_action": "Verified 2026-10-19: the focused MinGW restore-member-identity-rebinding label ran 12/12 tests green (1,147 indexed assertions). The cases cover member/time rebinding, mismatch rejection, route-free declarations, named object graphs, object-region association, explicit synchronization, pending ownership, queued TSO identity, and process-local snapshot identity. The three direct mappings are limited to the represented Clause 4.1.2/4.11 statements; these selected public cases are development-profile evidence, not general save/restore or conformance. No previewable uncovered requirement remains in this family's mapped subsections; do not reopen it without new evidence. Next: continue the bounded C++ TCK 2025 lane with `python tools/query_rti_work.py work portable-cpp-tck-2025 --summary --compact`."
+    },
+    {
+      "id": "tce-transition-stored-tso",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Preserve timestamp order for queued Send Interaction messages across Enable Time Constrained",
+      "roadmap_anchor": "Preserve queued TSO order across a pending Time Constrained transition",
+      "query_tags": [
+        "tce-transition-stored-tso"
+      ],
+      "focused_lane_tags": [
+        "tce-transition-stored-tso"
+      ],
+      "next_action": "Verified 2026-10-20 against a fresh MinGW-installed package whose libumbra_rti.a hash matches the build archive: the portable C++ TCK primary/contract pair for timestamped Send Interaction retained across pending Enable Time Constrained (page-192-l93-27 -> §8.6) passes 4/4 installed-package CTests across HLA_EVOKED/HLA_IMMEDIATE; cpp_tck.py promotion validation is clean. Keep this scoped to the interaction producer path; the separate pre-transition RECEIVE case maps page-192-l99-29 -> §8.6. Review of the pinned 2025 text confirms asynchronous-delivery scope is receive-order only: §8.15.3 enables received RO delivery in Time Advancing or Time Granted; §8.16.5 limits RO delivery for time-constrained federates to Time Advancing. These clauses do not establish asynchronous TSO delivery. Bounded experimental evidence only, not conformance or Java-runtime validation. Next handoff: continue the active process-nmr-tso-attribute-update-authoritative-coordinator lane; do not resync the unchanged Lab."
+    },
+    {
+      "id": "tce-transition-stored-tso-attribute",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Preserve queued TSO for timestamp-preferred attribute updates across Enable Time Constrained",
+      "roadmap_anchor": "Preserve queued timestamped Update Attribute Values as TSO",
+      "query_tags": [
+        "tce-transition-stored-tso-attribute"
+      ],
+      "focused_lane_tags": [
+        "tce-transition-stored-tso-attribute"
+      ],
+      "next_action": "Verified 2026-10-20: the 57-assertion HLA_EVOKED public C++ case and optional-timestamp companion cover the embedded attribute route. The portable C++ TCK primary/contract pair for timestamp-preferred Update Attribute Values admitted while Enable Time Constrained is pending maps page-192-l93-27 -> §8.6 and passes fresh installed-package MinGW CTests 4/4 across HLA_EVOKED/HLA_IMMEDIATE. The process-boundary companion is tracked by tce-transition-stored-tso-attribute-process; no duplicate is pending. This is bounded experimental evidence, not conformance or Java-runtime validation. Next handoff: continue the active process-nmr-tso-attribute-update-authoritative-coordinator lane; do not resync the unchanged Lab."
+    },
+    {
+      "id": "tce-transition-stored-tso-directed-interaction",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Preserve queued TSO for timestamped directed interactions across Enable Time Constrained",
+      "roadmap_anchor": "Preserve queued timestamped directed interactions as TSO across a",
+      "query_tags": [
+        "tce-transition-stored-tso-directed-interaction"
+      ],
+      "focused_lane_tags": [
+        "tce-transition-stored-tso-directed-interaction"
+      ],
+      "next_action": "Verified by a 60-assertion HLA_EVOKED public C++ case and focused MinGW CTest 1/1. A timestamped directed interaction sent while Enable Time Constrained is pending remains undelivered through the role callback and arrives with TIMESTAMP order before grant 6. Direct mapping is page-192 l93-27 -> IEEE 1516.1-2025 §8.6. This is embedded-only evidence; the separately mapped process-boundary companion is also verified. Do not imply transport coverage from this embedded case or coverage of other timestamped service families."
+    },
+    {
+      "id": "tce-transition-stored-tso-attribute-process",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Verify process-boundary timestamped attribute updates across Enable Time Constrained",
+      "roadmap_anchor": "Verify the process-boundary timestamped attribute-update companion",
+      "query_tags": ["tce-transition-stored-tso-attribute-process"],
+      "focused_lane_tags": ["tce-transition-stored-tso-attribute-process"],
+      "next_action": "Verified by exact focused MinGW CTest 1/1 on 2026-10-19 after removing empty receiver polls that disagreed with the strict fixture. Keep the evidence limited to this process-boundary attribute-update route and its single §8.6 mapping."
+    },
+    {
+      "id": "tce-transition-stored-tso-directed-interaction-process",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Verify process-boundary timestamped directed interactions across Enable Time Constrained",
+      "roadmap_anchor": "Verify the process-boundary timestamped directed-interaction companion",
+      "query_tags": ["tce-transition-stored-tso-directed-interaction-process"],
+      "focused_lane_tags": ["tce-transition-stored-tso-directed-interaction-process"],
+      "next_action": "Verified by exact focused MinGW CTest 1/1. The fixture now sends directed TSO and receiver TAR at the eligible timestamp-6 boundary and no longer expects an unsupported receive-interaction poll. Keep the evidence limited to this process directed-interaction path and do not imply coverage of other timestamped families, validation, or conformance."
+    },
+    {
+      "id": "time-constrained-disable-tso-to-ro",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Deliver queued and subsequent TSO in receive order after Disable Time Constrained",
+      "roadmap_anchor": "Disable Time Constrained converts the joined federate's TSO stream to receive order",
+      "query_tags": ["time-constrained-disable-tso-to-ro"],
+      "focused_lane_tags": ["time-constrained-disable-tso-to-ro"],
+      "next_action": "Verified five focused HLA_EVOKED Catch2 cases with 154 parent assertions: embedded and process interactions, attribute update, directed interaction, and object deletion. The process interaction case passed six consecutive exact executions after adding the ordered Query GALT callback-queue barrier; its child validates untimed callback metadata and absence of a grant. Queued payload cases map page-193 l61-13 -> §8.7 under RL-346. The portable C++ TCK now also has a directed-interaction pair for this lane; installed-package MinGW/Ninja CTest and direct matrices pass 4/4 each for both HLAinteger64Time and HLAfloat64Time. This evidence remains family-scoped; the matching Java catalog case is not provider-runtime evidence. The separate process timestamped attribute-update NMR and NMRA cases are verified. No conformance claim is made."
+    },
+    {
+      "id": "process-tso-attribute-update-nmra-authoritative-coordinator",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Deliver a late process timestamped attribute update before the NMRA grant",
+      "roadmap_anchor": "Independent HLA_EVOKED clients route timestamped attribute update through one authoritative coordinator",
+      "query_tags": ["process-tso-attribute-update-nmra-authoritative-coordinator"],
+      "focused_lane_tags": ["process-tso-attribute-update-nmra-authoritative-coordinator"],
+      "next_action": "Verified 2026-10-19: MinGW connection target built; exact focused CTest passed once plus five consecutive loopback-enabled repeats. Separate sender/receiver OS processes use one ProcessFederationServiceHost. After NMRA(10), timestamp-5 attribute update callbacks arrive discovery/reflection/grant with metadata intact. Direct mappings: page-198 l177-52 -> §8.11 and page-199 l40-12 -> §8.11.3. The one-coordinator topology is not normative; no NMR, independent-authority, arbitrary watermark, other producer-family, validation, interoperability, or conformance claim. Next: use the bounded ready query to select a distinct uncovered 2025 behavior."
+    },
+    {
+      "id": "process-tso-attribute-update-nmr-authoritative-coordinator",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Deliver a late process timestamped attribute update before the NMR grant",
+      "roadmap_anchor": "Independent HLA_EVOKED clients route timestamped attribute update through one authoritative coordinator for NMR",
+      "query_tags": ["process-tso-attribute-update-nmr-authoritative-coordinator"],
+      "focused_lane_tags": ["process-tso-attribute-update-nmr-authoritative-coordinator"],
+      "next_action": "Verified 2026-10-19: MinGW connection target built; exact focused CTest passed once plus five consecutive loopback-enabled repeats. Separate sender/receiver OS processes use one ProcessFederationServiceHost. After NMR(10), the timestamp-5 attribute update callbacks arrive discovery/reflection/grant at 5 with tested metadata intact. Direct mapping: page-197 l20-3 -> §8.10.2 for the NMR message-before-grant rule only. The coordinator topology is not normative; no NMRA, independent-authority, arbitrary watermark, other producer-family, validation, interoperability, or conformance claim."
+    },
+    {
+      "id": "process-tcd-disable-tso-to-ro",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Route queued TSO to receive order after Disable Time Constrained across client processes",
+      "roadmap_anchor": "Process-boundary Disable Time Constrained drains queued TSO through receive order",
+      "query_tags": ["time-constrained-disable-tso-to-ro"],
+      "focused_lane_tags": ["time-constrained-disable-tso-to-ro", "process-boundary"],
+      "next_action": "Verified 2026-10-19: the exact focused MinGW CTest passed once plus five consecutive repeats with independent sender/receiver client processes and one authoritative coordinator. Sender completion plus receiver Query GALT establishes the already-sent TSO frame entered the HLA_EVOKED queue before disable; the child then verifies one untimed callback with class/producer/payload/tag preserved and no grant. Direct mapping is page-193 l61-13 -> §8.7 under RL-346. This is implementation-topology evidence only; the separate timestamped attribute-update NMR and NMRA process cases are now verified. Use the bounded ready query for the next distinct lane."
+    },
+    {
+      "id": "tcd-disable-attribute-to-ro",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Deliver queued timestamped attribute updates as receive order after Disable Time Constrained",
+      "roadmap_anchor": "Disable Time Constrained converts a queued timestamped attribute update to untimed reflection",
+      "query_tags": ["time-constrained-disable-tso-to-ro"],
+      "focused_lane_tags": ["time-constrained-disable-tso-to-ro"],
+      "next_action": "The embedded HLA_EVOKED MinGW CTest passed 1/1 and direct Catch2 passed 39 assertions. The queued timestamped Update Attribute Values call returns before disable; one untimed Reflect Attribute Values callback preserves object, producer, attribute value, and tag, with no timed reflection or grant. Direct mapping: page-193 l61-13 -> §8.7 under RL-346. Keep process parity and other TSO families separate; do not claim validation or conformance."
+    },
+    {
+      "id": "tcd-disable-directed-interaction-to-ro",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Deliver queued timestamped directed interactions as receive order after Disable Time Constrained",
+      "roadmap_anchor": "Disable Time Constrained converts a queued timestamped directed interaction to receive order",
+      "query_tags": ["time-constrained-disable-tso-to-ro"],
+      "focused_lane_tags": ["time-constrained-disable-tso-to-ro"],
+      "next_action": "The embedded HLA_EVOKED MinGW CTest passed 1/1 and direct Catch2 passed 42 assertions. A known-target timestamped directed interaction queued before disable is delivered once through the untimed callback with target, producer, tag, and reliable transport metadata preserved; no timed callback or grant occurs. Direct mapping: page-193 l61-13 -> §8.7 under RL-346; setup and metadata checks do not add normative mappings. Next: separately test queued timestamped object deletion. No process parity, validation, or conformance claim."
+    },
+    {
+      "id": "tcd-disable-object-deletion-to-ro",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Deliver queued timestamped object deletions as receive order after Disable Time Constrained",
+      "roadmap_anchor": "Disable Time Constrained converts a queued timestamped object deletion to untimed removal",
+      "query_tags": ["time-constrained-disable-tso-to-ro"],
+      "focused_lane_tags": ["time-constrained-disable-tso-to-ro"],
+      "next_action": "The embedded HLA_EVOKED MinGW CTest passed 1/1 and direct Catch2 passed 31 assertions. A valid timestamped Delete Object Instance is queued before disable; the receiver observes one untimed Remove Object Instance with object, producer, and tag preserved, without timestamped removal or a grant. Direct mapping: page-193 l61-13 -> §8.7 under RL-346; no deletion-specific normative mapping is added. Next resolve the already-in-transit callback boundary. No process parity, validation, or conformance claim."
+    },
+    {
+      "id": "process-tso-authoritative-coordinator-tara-future-arrival",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Deliver a future timestamped interaction before TARA grant across independent client processes",
+      "roadmap_anchor": "Independent client processes deliver future timestamped interactions before TARA grants through one authoritative coordinator",
+      "query_tags": [
+        "process-tso-authoritative-coordinator-tara-future-arrival"
+      ],
+      "focused_lane_tags": [
+        "process-tso-authoritative-coordinator-tara-future-arrival"
+      ],
+      "next_action": "Verified 2026-10-20: the MinGW connection target built and the exact HLA_EVOKED CTest passed 1/1 with loopback enabled. Independent sender and constrained receiver OS processes use one authoritative ProcessFederationServiceHost. The receiver submits TARA(6), the sender then sends an ordinary timestamped interaction at 5 and advances to 6, and the receiver observes one Receive Interaction before TAG 6 with the tested class, payload, tag, TIMESTAMP orders, and retraction handle intact. Direct mappings are page-180 l93-28 -> §8.1.4, page-195 l110-31 -> §8.9, and page-204 l86-25 -> §8.14.4(e). One authority is an implementation choice; no other service family, equal-time route, independent authorities, arbitrary watermark protocol, interoperability, validation, or conformance is claimed. Next: continue only with a distinct directly mapped behavior; do not infer broad network-arrival guarantees from this one TARA/interaction route."
+    },
+    {
+      "id": "process-tso-authoritative-coordinator-tara-attribute-update-future-arrival",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Deliver future timestamped attribute updates before TARA grants across independent client processes",
+      "roadmap_anchor": "Independent client processes deliver future timestamped attribute updates before TARA grants through one authoritative coordinator",
+      "query_tags": [
+        "process-tso-authoritative-coordinator-tara-attribute-update-future-arrival"
+      ],
+      "focused_lane_tags": [
+        "process-tso-authoritative-coordinator-tara-attribute-update-future-arrival"
+      ],
+      "next_action": "Verified 2026-10-20: the MinGW connection target built and the exact loopback-enabled HLA_EVOKED CTest passed 1/1. The receiver's pending TARA(6) preceded a separate-process timestamped Update Attribute Values send at 5; after the sender advanced to 6, one reflection at 5 preceded grant 6 with attribute, object, producer, value, tag, TIMESTAMP-order, and retraction metadata checked. Direct mappings: page-120 l83-22 and l110-31 -> §6.10, page-180 l93-28 -> §8.1.4, page-195 l110-31 -> §8.9, page-204 l86-25 -> §8.14.4. This is one attribute-update route through one authoritative coordinator, not broad timestamped-service, topology, interoperability, validation, or conformance evidence. Next: select a distinct timestamped service family with its own direct 2025 mapping."
+    },
+    {
+      "id": "process-tso-directed-authoritative-coordinator-tara-future-arrival",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Deliver timestamped directed interactions before TARA grants across separate client processes",
+      "roadmap_anchor": "Independent client processes deliver timestamped directed interactions before pending TARA grants through one authoritative coordinator",
+      "query_tags": [
+        "process-tso-directed-authoritative-coordinator-tara-future-arrival"
+      ],
+      "focused_lane_tags": [
+        "process-tso-directed-authoritative-coordinator-tara-future-arrival"
+      ],
+      "next_action": "Verified 2026-10-20: the isolated MinGW connection target built and the exact loopback-enabled HLA_EVOKED CTest passed 1/1. The separate-process directed interaction at time 5 reached the target and its callback preceded TARA grant 6 with the checked target, class, empty parameter map, tag, timestamped order, and retraction metadata. Direct mappings are §§6.14.3, 6.15.1, 8.1.4, 8.9, and 8.14.4(e). Keep this limited to this directed-interaction route. Next: use a bounded case query to select a distinct directly mapped 2025 process-time behavior; do not infer other service-family or general network-watermark coverage."
+    },
+    {
+      "id": "process-tso-authoritative-coordinator-ingress-os-process",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Forward registry-free process ingress time state to one authoritative coordinator",
+      "roadmap_anchor": "Registry-free ingress processes forward time state to one authoritative coordinator",
+      "query_tags": [
+        "process-tso-authoritative-coordinator-ingress-os-process"
+      ],
+      "focused_lane_tags": [
+        "process-tso-authoritative-coordinator-ingress-os-process"
+      ],
+      "next_action": "Verified 2026-10-19: the MinGW connection target built and the exact new coordinator-ingress Catch2 case passed 1/1 with loopback access enabled. Two regulating senders and one constrained receiver used three registry-free ingress OS processes; one authoritative federation/time-service process owned state. Both NMR and NMRA delivered timestamp 5 before grant 5 after timestamp 8 was admitted. Direct mapping is limited to page-178 l138-43 -> §8, page-197 l20-3 and l50-13 -> §8.10.2, page-198 l177-52 -> §8.11, and page-199 l40-12 -> §8.11.3. RTIambassadors remain in the Catch2 process; topology is implementation evidence only. The existing direct-authority and proxy baseline tests hit Winsock 10013 at local connect under restricted execution and were not retried; this is environment-blocked evidence, not a behavior failure. Next: if comparison is needed, run those two exact cases with loopback enabled; otherwise choose a distinct directly mapped 2025 behavior. No independent authorities, arbitrary network watermarks, interoperability, Requirements Lab validation, or conformance claim."
+    },
+    {
+      "id": "process-tso-independent-process-nmra-authoritative-coordinator",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Verify late TSO delivery before NMRA grant across separate client processes",
+      "roadmap_anchor": "Route process-boundary NMRA and TSO delivery through one authoritative coordinator",
+      "query_tags": ["process-tso-cross-endpoint-arrival-coordination"],
+      "focused_lane_tags": ["process-tso-cross-endpoint-arrival-coordination"],
+      "next_action": "The HLA_EVOKED MinGW CTest passed 1/1 with sender, receiver, and coordinator in distinct OS processes after allowing local loopback; direct mappings are §§8.11 and 8.11.3. This establishes one process NMRA interaction route only. NMR, independent authorities, arbitrary network watermarks, other TSO families, validation, and conformance remain separate."
+    },
+    {
+      "id": "process-tso-directed-interaction-authoritative-coordinator",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Deliver timestamped directed interactions before NMR and NMRA grants across separate client processes",
+      "roadmap_anchor": "Timestamped directed interaction delivery through the authoritative process time coordinator",
+      "query_tags": ["process-tso-directed-authoritative-coordinator-os-process"],
+      "focused_lane_tags": ["process-tso-directed-authoritative-coordinator-os-process"],
+      "next_action": "Verified 2026-10-19: the MinGW connection target built and exact HLA_EVOKED process CTests passed 2/2 for pending NMR(10) and NMRA(10). Separate client processes routed a timestamp-5 directed TakeOrder to the discovered Server object through one authoritative coordinator; each callback preceded grant 5 with target, tag, timestamp/order, producer, and retraction metadata checked. Direct mappings are §§6.14.3, 6.15.1, 8.10.2, 8.11, and 8.11.3. The coordinator topology is implementation evidence only. Next: use a bounded source/lane query to select a distinct uncovered timestamped service family; do not duplicate ordinary interaction/attribute/delete process cases or generalize this evidence to interoperability or conformance."
+    },
+    {
       "id": "tar-post-grant-tso-cutoff",
       "status": "complete",
       "kind": "runtime-and-evidence",
@@ -30847,6 +31432,78 @@
         "tar-post-grant-tso-cutoff"
       ],
       "next_action": "The public HLA_EVOKED case and focused MinGW target pass with 44 assertions. It verifies the §8.9.5 no-future-TSO-at-or-below-grant promise for late timestamp-4 and timestamp-5 interactions after TAR(5), when the receiver later advances to 6. Keep this strict TAR cutoff distinct from TARA's strict-less-than cutoff, future-arrival transport coordination, other timestamped service families, and conformance."
+    },
+    {
+      "id": "tar-acknowledged-tso-galt-release",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Release the time frontier after acknowledged TSO so safe TAR can grant",
+      "roadmap_anchor": "Acknowledged callbacks are not pending-message GALT constraints",
+      "query_tags": [
+        "tar-acknowledged-tso-galt-release"
+      ],
+      "focused_lane_tags": [
+        "tar-acknowledged-tso-galt-release",
+        "acknowledged-tso-galt-frontier-foundation"
+      ],
+      "next_action": "Verified 2026-10-20 in the current MinGW trees: the embedded TAR(4) public CTest passes 1/1, the authoritative-coordinator process CTest passes 1/1 with loopback permission, and the private calculator test passes 1/1. The embedded case checks the timestamp-3 callback exactly once before grant 4 after regulator TAG(5)/lookahead 1; the process case checks timestamp-3 and equal-target timestamp-4 callbacks before TAR(4) grants at 4 after sender TAG(5)/lookahead 1. The two mapped public Catch2 cases map directly to §8.1.6 and §8.8; the internal calculator test is explicitly unmapped. The tests assert safe TAR outcome and callback order, not an exact GALT value or formula. The separate TAR(6) equality case remains distinct. This is implementation evidence, not validation, interoperability, or conformance. Both the §8.1.2 zero-lookahead TAR send-boundary pair and the §8.10.2 future-NMR attribute-update pair are now promoted with focused installed-package evidence. Next handoff: use one bounded `ready --family portable-cpp-tck-2025 --summary --compact` query to select the next direct-mapped C++ behavior; do not resync the unchanged Lab."
+    },
+    {
+      "id": "tso-send-request-boundary",
+      "status": "complete",
+      "kind": "portable-tck-and-evidence",
+      "priority": 1,
+      "title": "Enforce zero-lookahead TAR timestamped-send request boundary",
+      "roadmap_anchor": "During zero-lookahead TAR, reject a TSO at the requested time.",
+      "query_tags": ["tso-send-request-boundary"],
+      "focused_lane_tags": ["tso-send-request-boundary"],
+      "requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-178-l45-12"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.2"],
+      "next_action": "Verified: the portable C++ primary/contract pair passes installed-package MinGW CTest 2/2 under HLA_EVOKED; the embedded Catch2 case passes MinGW CTest 1/1; the lane check finds one mapped public case; and `cpp_tck.py --promotion promoted` reports no findings for the pair. RL-312 records page-178 extraction artifacts; scope is only the zero-lookahead TAR no-send-at-or-below-request rule, not adjacent Table 1 columns, GALT formula, Java runtime, or conformance. Evidence: `out/mgw/cpp-tck-tce-stored-tso-verification-mingw-20261020/zero-lookahead-tar-send-boundary-current-source.json/.xml`."
+    },
+    {
+      "id": "portable-tck-timestamped-attribute-update-future-nmr-arrival",
+      "status": "complete",
+      "kind": "portable-tck-and-evidence",
+      "priority": 1,
+      "title": "Cover a future timestamped attribute update arriving during pending NMR",
+      "roadmap_anchor": "Future timestamped attribute update during pending NMR",
+      "query_tags": [],
+      "focused_lane_tags": [],
+      "requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-197-l20-3"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.10.2"],
+      "next_action": "Verified: the primary/contract pair passes installed-package MinGW CTest 4/4 across HLA_EVOKED/HLA_IMMEDIATE, and focused `cpp_tck.py` promotion validation has no findings. Direct mapping is limited to one timestamped Update Attribute Values message arriving after NMR(10) and its reflection preceding TAG(7), page 197 l20-3 -> §8.10.2. Other timestamped producer services, independent transport arrivals, Java provider runtime, and conformance are not claimed. Evidence: `out/mgw/cpp-tck-tce-stored-tso-verification-mingw-20261020/future-nmr-attribute-update-current-source.json/.xml`."
+    },
+    {
+      "id": "tso-send-at-granted-time-zero-lookahead",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Permit equal-time TSO after a zero-lookahead grant",
+      "roadmap_anchor": "A federate may send at its granted time when actual lookahead is zero",
+      "query_tags": [
+        "tso-send-at-granted-time-zero-lookahead"
+      ],
+      "focused_lane_tags": [
+        "tso-send-at-granted-time-zero-lookahead"
+      ],
+      "next_action": "Verified: the public HLA_EVOKED case grants the publisher to 5 with zero actual lookahead, accepts TSO(5) after that grant, advances the sender to 6, and observes the queued interaction before receiver TAR(5). The common sender validator now preserves an exclusive boundary while advancing but allows equality after a completed zero-lookahead grant. Direct mapping: requirement-candidate-content-clauses-08-time-management-page-195-l119-34 -> §8.9. Do not claim that all messages timestamped T must be delivered before a grant at T; this case tests only post-grant send acceptance and a separately queued message. Development-profile evidence, not validation or conformance. Next: verify the same allowance through the authoritative process endpoint."
+    },
+    {
+      "id": "tso-tara-queued-pregrant-arrival",
+      "status": "complete",
+      "kind": "runtime-and-evidence",
+      "priority": 1,
+      "title": "Deliver queued TSO before TARA grant without a stale GALT cap",
+      "roadmap_anchor": "A queued timestamp below pending TARA must be delivered before its grant",
+      "query_tags": [
+        "tso-tara-queued-pregrant-arrival"
+      ],
+      "focused_lane_tags": [
+        "tso-tara-queued-pregrant-arrival"
+      ],
+      "next_action": "Verified 2026-10-19: the dedicated MinGW target and embedded HLA_EVOKED CTest passed; the separate authoritative-process TARA object-deletion CTest also passed once local loopback was enabled. The embedded sequence starts TARA(6), then queues timestamp 5 and advances the producer frontier; Receive Interaction(5) precedes grant 6. Its direct mapping is limited to page 204 l86 -> §8.14.4(e); the process deletion route has its own mapped evidence. Neither case establishes arbitrary future transport arrivals, independent authorities, interoperability, or conformance. Next: continue with the bounded C++ TCK 2025 lane via `python tools/query_rti_work.py work portable-cpp-tck-2025 --summary --compact`."
     },
     {
       "id": "fqr-timed-save-crossed-boundary-callback-ordering",
@@ -30898,15 +31555,15 @@
       "status": "complete",
       "kind": "runtime-and-evidence",
       "priority": 1,
-      "title": "Use actual grant time for post-FQR TSO send constraints",
-      "roadmap_anchor": "Use actual grant time for post-FQR TSO send bound",
+      "title": "Use optimistic grant time for post-FQR TSO send constraints",
+      "roadmap_anchor": "Focused lane anchor: Use optimistic grant time for the post-FQR TSO send floor.",
       "query_tags": [
         "fqr-distinct-actual-optimistic-tso-bound-easing"
       ],
       "focused_lane_tags": [
-        "fqr-distinct-actual-optimistic-tso-bound-easing"
+        "fqr-optimistic-time-tso-send-floor"
       ],
-      "next_action": "The 43-assertion public C++ test passed its updated exact selector and maps §8.1.5 l106-31. It accepts Send Interaction and timestamped Request Federation Save at 6 after FQR actual 5 / optimistic 7, rejects save at 5, and rejects subsequent TAR(6). Separate attribute, delete, directed, and regional cases pass; next isolate pending timed-save callback timing."
+      "next_action": "Corrected the public C++ case after checking pinned §8.13: with actual FQG 5, OLT 7, and lookahead 1, Send Interaction at 6 is rejected and at 8 is accepted; TAR(6) is also rejected below OLT. Direct mappings are §8.1.5 for the actual-time-plus-lookahead precondition and §8.13 for the post-FQG OLT floor. This corrects a stale actual-time-only test claim; next audit sibling producer-service tests before extending the rule to their lanes."
     },
     {
       "id": "fqr-distinct-actual-optimistic-delete-bound",
@@ -31586,7 +32243,8 @@
         "ddm-conveyed-region-designator-snapshot-lifetime",
         "ddm-process-conveyed-region-designator-callback-snapshot",
         "ddm-conveyed-region-designator-tso-snapshot-lifetime",
-        "ddm-conveyed-region-designator-tso-reflect-snapshot"
+        "ddm-conveyed-region-designator-tso-reflect-snapshot",
+        "ddm-process-tso-region-callback-snapshot"
       ],
       "next_task": "Project the verified process HLA_IMMEDIATE regional DSE and resign-fence behavior through the installed 2025 C++ package after serial integration.",
       "next_action": "The integrated process DDM target and five focused CTests pass; the callback-resign race case also passed ten repeats. The §8.1.8 delivery-eligibility linearization point is callback-task admission: service claim and subscription/range recheck are atomic under the service mutex. The HLA_EVOKED receive-fence case (41 assertions) and HLA_IMMEDIATE callback-task-admission case (51 assertions) now both pass their exact elevated MinGW loopback CTests, 1/1 each; this clears the prior Windows 10013 pre-join sandbox block without a fixture workaround. These are selected development-profile behaviors only; keep general §§6.11, 8.1.8, and 9.8 conformance separate.",
@@ -31613,7 +32271,7 @@
       "priority": 1,
       "title": "Complete time management, ownership management, and save/restore",
       "roadmap_anchor": "Time management, ownership management, and save/restore.",
-      "current_focus": "The embedded NMR plus queued-TSO save/restore intersection passes under HLA_EVOKED and HLA_IMMEDIATE: an accepted timestamp-5 interaction retargets NMR(10), metadata replays after restore, and Receive Interaction precedes restored TAG(5); this is one mapped 220-assertion development-profile case, not general temporal persistence. Clause 8.12/8.12.3 requires delivery of the messages queued in the RTI for an FQR invocation, which the focused prequeued timestamp-12/FQR(10) case verifies. The clause does not state a cutoff for messages arriving after invocation but before an HLA_EVOKED callback starts; keep that late-input edge implementation-only and unmapped. The distinct NMRA Available boundary with a timestamped interaction in the saved queue is covered by `umbra-cpp-restore-pending-tso-nmra-integration` (224 assertions). The process spine already has no-TSO cross-endpoint NMR/NMRA/TARA tests and TSO NMR/NMRA late-arrival/separate-ingress tests; do not duplicate those lanes. The async-delivery evidence is limited to receive-order callbacks and TAR equal-time cutoff; no normative asynchronous-TSO dispatch requirement is claimed. The new `nmra-message-set` lane closes page 199 l16-4, bringing the six §8.11.3 requirement candidates to 6/6 mapped. Remaining scope is broader producer-family and temporal save/restore coverage; these selected slices do not establish general time-management persistence or conformance.",
+      "current_focus": "The embedded NMR plus queued-TSO save/restore intersection passes under HLA_EVOKED and HLA_IMMEDIATE: an accepted timestamp-5 interaction retargets NMR(10), metadata replays after restore, and Receive Interaction precedes restored TAG(5); this is one mapped 220-assertion development-profile case, not general temporal persistence. Clause 8.12/8.12.3 requires delivery of the messages queued in the RTI for an FQR invocation. The focused prequeued timestamp-12/FQR(10) case verifies delivery of a TSO later than the request; the new fqr-delivered-tso-grant-boundary case verifies prequeued TSO(9) bounds FQR(10) to actual and optimistic time 9 after the sole regulator advances to 12, with interaction before FQG. The clause does not state a cutoff for messages arriving after invocation but before an HLA_EVOKED callback starts; keep that late-input edge implementation-only and unmapped. The distinct NMRA Available boundary with a timestamped interaction in the saved queue is covered by umbra-cpp-restore-pending-tso-nmra-integration (224 assertions). The process spine already has no-TSO cross-endpoint NMR/NMRA/TARA tests and TSO NMR/NMRA late-arrival/separate-ingress tests; do not duplicate those lanes. The async-delivery evidence is limited to receive-order callbacks and TAR equal-time cutoff; no normative asynchronous-TSO dispatch requirement is claimed. The new nmra-message-set lane closes page 199 l16-4, bringing the six §8.11.3 requirement candidates to 6/6 mapped. Remaining scope is broader producer-family and temporal save/restore coverage; these selected slices do not establish general time-management persistence or conformance.",
       "next_work_id": "transport-and-conformance",
       "next_work_status": "in-progress",
       "next_work_query": "The focused process-boundary C++ spine is green at 63 mapped/source-located cases and 2,497 indexed Catch2 assertions; the process TSO interaction-before-grant slice is 60 HLA_EVOKED assertions mapped to 15 Requirements-Lab anchors and nine canonical 2025 sections; query `process-tso-interaction-before-grant`. Query the exact completed public object-discovery endpoint slice with `python tools/query_rti_work.py trace \"RTIambassador delivers object discovery through a configured process endpoint\" --summary --compact`. The dimension/transportation reverse-lookup slice is now indexed with 16 assertions, six Requirements-Lab anchors, three canonical 2025 sections, and four official C++ API surfaces; the separate reverse-FOM error matrix adds 16 assertions with the same six anchors and three clauses; the connection configuration block, handle baselines, callback-route receive-order, immediate-callback reentrancy, callback-disable, evoked one-at-a-time, concurrent-serialization, disabled-backlog, Evoke Multiple FIFO, evoked-disabled-pending, callback-session-close, callback-session concurrent-invocation, callback-session active-close, callback instrumentation, transport instrumentation, and DimensionHandle seams are now explicitly indexed; the RPR full-family object-registration and custom-payload compatibility slices, the official FederateHandle SDK-consumability/encoding baselines, the private federate lifecycle state-machine slices, and the initial-grant/NMR/Available/Flush-Queue time-state boundaries are now indexed; the accepted time-role MOM vector is indexed with 99 assertions and 24 Lab anchors; the float64 timed-save provider-time scheduling vector is indexed with 38 assertions and 11 Lab anchors; the federation-save resignation-recovery vector is indexed with 18 assertions and 8 Lab anchors; the restore-failure vector is indexed with 29 assertions and 11 Lab anchors; the service-report save/restore MOM vector is indexed with 46 assertions and 18 requirement anchors; the regional-unpublish update-region lifetime vector is indexed with 17 assertions and 18 requirement anchors; the regional-receive-order deletion update-region lifetime vector is indexed with 17 assertions and 20 requirement anchors; the final-object-removal region-release vector is indexed with 27 assertions and 21 requirement anchors; the associated-region discovery vector is indexed with 42 assertions and 22 requirement anchors; the Join advisory-switch seed vector is indexed with 16 assertions and 13 requirement anchors; the Join-time explicit NoAction automatic-resign vector is indexed with 7 assertions and 9 requirement anchors; the order and transportation MOM service-classification vector is indexed with 66 assertions and 19 requirement anchors; the joined-federate MOM/FOM-module snapshot vector is indexed with 12 assertions and 6 requirement anchors; the joined-federate MOM report-file identity save/restore vector is indexed with 46 assertions and 18 requirement anchors; the joined-federate MOM regional discovery vector is indexed with 124 assertions and 17 requirement anchors; the restored-baseline regional provider-response vector is indexed with 44 assertions and 20 requirement anchors; the timestamped Delete Object Instance retraction slice is green with 49 HLA_EVOKED assertions at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1168` and 26 requirement anchors; its queue drain after Enable Time Regulation reaches deletion/retraction/removal ordering. Keep it bounded to development-profile evidence and use the exact trace before promotion. The mapped known-class-disabled attribute-relevance case at `cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp:320` is green with 35 HLA_EVOKED assertions, 18 Requirements-Lab anchors, 13 canonical 2025 sections, and 18 official C++ API surfaces; its source-derived known-class subscription consequence remains bounded. The paired static known-class-enabled case at `cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp:417` is also green with 30 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 13 canonical 2025 sections, and 17 official C++ API surfaces; its known-class suppression consequence remains a source-derived refinement. The mapped update-rate passive-regional-subscription case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26114` is green with 43 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 12 canonical 2025 sections, and 21 official C++ API surfaces; its passive-regional filtering consequence remains bounded. The mapped custom-transportation handle stability case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26086` is green with 21 HLA_EVOKED assertions, 12 Requirements-Lab anchors, 11 canonical 2025 sections, and 8 official C++ API surfaces; query its exact title or `transportation-handle-stability`. The mapped restored-baseline timestamped Update Attribute Values MOM interaction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1401` is green with 125 HLA_EVOKED/HLA_IMMEDIATE assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 13 official C++ API surfaces; query its exact title or `restored-baseline-copy`. The mapped restored-baseline regional Provide Attribute Value Update case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1560` is green with 251 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 21 official C++ API surfaces; query its exact title or `restored-baseline-copy`. The mapped three-dimensional regional object-attribute overlap case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:29106` is green with 57 HLA_EVOKED assertions, 10 Requirements-Lab anchors, 10 canonical 2025 sections, and 24 official C++ API surfaces; query its exact title or `complete-overlap`. The m43 restored-baseline regional Request Attribute Value Update solicitation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1862` is green with 58 HLA_EVOKED assertions, 9 Requirements-Lab anchors, 7 canonical 2025 sections, and 20 official C++ API surfaces; its filtering and current-export traceability gap remain bounded. The m44 restored-baseline timestamped regional Update Attribute Values MOM interaction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2324` is green with 138 HLA_EVOKED/HLA_IMMEDIATE assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 30 official C++ API surfaces; its regional setup and RL-152 conditional-failure boundary remain bounded. The m45 restored-baseline timestamped Update Attribute Values file-failure case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2726` is green with 218 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 15 official C++ API surfaces; its filesystem-sink conditional-failure boundary remains bounded by RL-152. The m49 pre-delivery acquisition-cancellation race at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:32246` is green with 33 HLA_EVOKED assertions; its stale internal owner work items are drained while the public confirmation and release callback streams remain empty. The m50 disabled Auto Provide discovery-only baseline at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33639` is green with 21 HLA_EVOKED assertions and proves discovery remains delivered while provider callbacks stay suppressed. The m51 Federation Synchronized-after-resignation service-report case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36574` is green with 23 HLA_EVOKED assertions and verifies the completion record before the remaining federate callback. The m52 terminal TSO-designator case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:37238` is green with 40 HLA_EVOKED assertions and verifies five returned designators terminalize across TAR, TARA, NMR, NMRA, and FQR boundaries without recipient fanout. The m53 timestamped Update Attribute Values queue/retraction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:37940` is green with 68 HLA_EVOKED assertions and verifies an internal MOM-queue drain before Time Regulation Enabled, pre-grant retraction at timestamp 6, and reliable/best-effort timestamp-7 reflections before the matching grant. The m54 mixed update-rate subscription case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38240` is green with 37 HLA_EVOKED assertions and is mapped to 8 Requirements-Lab anchors and 2 canonical 2025 sections. The m55 federation-teardown update-rate-history case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38336` is green with 46 HLA_EVOKED assertions and is mapped to 9 Requirements-Lab anchors and 5 canonical 2025 sections. The m56 regional best-effort attribute-rate case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38474` is green with 47 HLA_EVOKED assertions and is mapped to 19 Requirements-Lab anchors and 11 canonical 2025 sections. The m57 regional best-effort timestamped-rate case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38618` is green with 57 HLA_EVOKED assertions and maps to 30 Requirements-Lab anchors and 19 canonical 2025 sections; it verifies exact regional overlap, timestamped Low-rate admission at time 2, and suppression at time 3 through the matching grant. The completed m58 directed-interaction Delay Subscription Evaluation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39913` is green with 120 assertions, three Requirements-Lab anchors, and one canonical Section 8.1.10 mapping. The m59 timestamped directed-interaction Delay Subscription Evaluation case is green in its focused C++ target at cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp:129 with 166 assertions under HLA_EVOKED and HLA_IMMEDIATE; query its m59 mapping and keep it bounded to Section 8.1.10 development-profile evidence. The m60 timestamped directed-interaction TSO/retraction case is green in its focused C++ target at cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp:150 with 56 HLA_EVOKED assertions; query its m60 mapping and keep TSO/retraction evidence bounded to the mapped 2025 clauses. The completed m61 immediate timestamped directed-interaction source-resignation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:41424` is green with 45 HLA_EVOKED assertions. The m62 #if 0 malformed transport-loss declaration at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:42462` is indexed as a disabled source artifact with no executable assertions or normative evidence. The completed m63 evoked regional-interaction source-region snapshot case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48684` is green with 42 HLA_EVOKED assertions; the next source-backed action is the unplanned timestamped regional interaction TSO/retraction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54336`, emitted by `next --pointer`; the source-only queue is ordered by numeric declaration line. Keep package evidence, protected review, interoperability, and conformance promotion separate without rescanning the unchanged Requirements Lab.",
@@ -31749,6 +32407,10 @@
         "time-constrained-enable-galt-embedded",
         "time-constrained-enable-galt-process",
         "time-advance-request-logical-time-gating",
+        "time-regulation-enable-actual-lookahead-tso-send",
+        "modify-lookahead-increase-and-gradual-decrease",
+        "modify-lookahead-attribute-update-boundary",
+        "modify-lookahead-delete-object-boundary",
         "flush-queue-grant-logical-time-gating",
         "restore-pending-flush-queue-request",
         "restore-pending-time-advance-requests",
@@ -31765,6 +32427,7 @@
         "nmr-request-below-galt-immediate-grant",
         "nmr-lits-below-galt-immediate-grant",
         "fqr-postgrant-lower-tso-retraction",
+        "fqr-delivered-tso-grant-boundary",
         "no-tso-cross-federate-tara-galt-boundary",
         "nmra-no-pregrant-tso-floor",
         "nmra-grant-time-selection",
@@ -31779,10 +32442,16 @@
       ],
       "query_tags": [
         "time-management",
+        "time-regulation-enable-actual-lookahead-tso-send",
+        "modify-lookahead-increase-and-gradual-decrease",
+        "modify-lookahead-attribute-update-boundary",
+        "modify-lookahead-delete-object-boundary",
         "nmra-grant-time-selection",
         "nmra-message-set",
+        "tar-inclusive-target-delivery",
         "tag-no-future-tso-below-grant",
         "fqr-all-queued-tso",
+        "fqr-delivered-tso-grant-boundary",
         "no-tso-cross-federate-grant-scheduler",
         "save-restore",
         "public-save-queued-ro-interaction",
@@ -31965,7 +32634,7 @@
         "delete-object-instance-preferred-order",
         "durable-pending-time-regulation-restore"
       ],
-      "next_action": "The bounded public time-management lane now covers TAR/TARA/NMR/NMRA, future TSO arrivals admitted from multiple sender sessions, and two registry-free ingress proxy hosts in separate OS processes forwarding to one authoritative ProcessFederationService; the focused MinGW tests pass. This closes the stated future network/transport-arrival gap for the supported one-authority architecture. IEEE 1516.1 specifies observable grant/delivery behavior, not a multi-authority deployment protocol, so do not add peer watermark coordination as an inferred normative requirement. FQR's queued set is defined at service invocation; the post-submission smaller-timestamp case remains implementation evidence, with no callback-start cutoff specified. §§8.15.3/8.16.5 govern asynchronous-delivery switch gates, not asynchronous TSO callbacks; existing §8.1.5 cases cover the TSO gate. Selected save/restore snapshots do not establish general time-management persistence."
+      "next_action": "Verified 2026-10-20: cross-checked requirement-candidate-content-clauses-08-time-management-page-194-l27-5 against the page-194 heading order and added a local §8.8 override under RL-328 (the pinned Lab export says §8.8.3). Expanded the public HLA_EVOKED TAR case to queue an RO interaction plus TSO timestamps 5, 6, and 11; TAR(6) delivers the RO callback and timestamps 5/6 before grant, leaving 11 for TAR(12). The Modify Lookahead interaction, Update Attribute Values, and Delete Object Instance cases now each verify service-specific send admission across immediate increases and gradual decreases. Their focused MinGW target passes 4/4; the Delete Object Instance case has 48 assertions and its lane check maps six direct pairs to §§8.20.4 and 8.15.3. The interaction lane (two cases/seven pairs), attribute-update lane (one/six), and delete lane (one/six) all pass mapping checks. Next: add the independent-process counterpart for timestamped Delete Object Instance at modified-lookahead boundaries through the authoritative coordinator, and keep its process evidence separate from these embedded cases. No Lab resync or full-suite scan."
     },
     {
       "id": "flush-queue-request-optimistic-time",
@@ -32645,11 +33314,28 @@
         "directed-interaction-subscription-kind",
         "standard-service-exception-precedence",
         "hla-federation-multi-federate-multi-execution",
-        "untimed-save-time-constrained-admission"
+        "untimed-save-time-constrained-admission",
+        "restore-resignation-callback-lifetime",
+        "restore-pending-time-advance",
+        "restore-pending-time-advance-immediate",
+        "restore-pending-time-advance-requests",
+        "restore-pending-tso-nmr",
+        "restore-pending-tso-nmra",
+        "restore-pending-tso-nmra-attribute-update",
+        "restore-pending-tso-nmra-delete",
+        "restore-mixed-tso-four-member",
+        "restore-terminal-tso-attribute",
+        "restore-terminal-tso-interaction",
+        "restore-terminal-tso-directed-interaction",
+        "restore-time-window-state",
+        "restore-deferred-lookahead",
+        "restore-multi-pending-time-advance",
+        "restore-pending-request-rescheduling",
+        "restore-pending-flush-queue-immediate"
       ],
       "current_handoff": "Verified 2026-10-16: fresh installed-package evidence includes regional-attribute-value-update-response-recheck, regional-auto-provide-response/overlap, regional-auto-provide-multi-source, regional-auto-provide-callback-control, and regional-auto-provide-multi-provider in addition to preceding regional lifecycle/interaction slices. The response-recheck pair passed four focused CTest cases plus direct runs under both callback models. Four Auto Provide pairs passed sixteen focused CTest cases and direct runs under both models: scoped response/reflection, stale solicitation suppression after subscription movement, separate source-attribute routing to separate regional subscribers, callback disable/enable gating of discovery and requests, and multi-provider request/response after ownership transfer. This turn also directly validated the promoted regional-interaction subscription-replacement, passive-transition, default-region-routing, and receive-order regional-attribute DSE pairs: primary and contract twin each passed under HLA_EVOKED and HLA_IMMEDIATE against the existing installed MinGW executable with adapter FOM/DDM inputs. The DSE pair checks callback-boundary re-evaluation, not D2 process callback-task-admission linearization. C++/Java catalog-source parity was checked for new interaction routing cases; Java provider runtime remains unverified. Temporary result JSON was inspected and removed. No provider build/configure/install was performed. Adapter-configured Auto Provide FOM, class/attributes, and DDM dimensions remain inputs, not portable-source dependencies. C++ result and Java catalog/source validators passed; private-implementation source checks were clean. Results: out/mgw/tck-dse-ro-regional-20261016/regional-attribute-value-update-response-recheck-verified-20261016.json, regional-auto-provide-response-overlap-verified-20261016.json, regional-auto-provide-multi-source-verified-20261016.json, regional-auto-provide-callback-control-verified-20261016.json, and regional-auto-provide-multi-provider-verified-20261016.json. This follow-up verified `default-region-interaction-routing` and `regional-boundaries` in eight focused CTest cases and direct runs under both callback models, with C++ result and Java catalog/source validation; both portable bodies are free of private implementation references. Artifact: out/mgw/tck-dse-ro-regional-20261016/default-region-interaction-and-regional-boundaries-verified-20261016.json. Java parity IDs remain linked; no Java provider-runtime execution or provider rebuild is claimed. Further installed-package gates: timestamped regional attribute association replacement (existing artifact, focused C++ validator passes), ordinary custom-transport regional attribute delivery, ordinary custom-transport regional interaction delivery, timestamped custom-transport regional interaction delivery, and multi-region interaction routing. Each newly run pair passed four focused CTests and direct evoked/immediate executions; C++ result and Java catalog/source validation passed, and portable-source private-reference checks were clean. Artifacts: out/mgw/tck-dse-ro-regional-20261016/timestamped-regional-attribute-association-replacement-verified-20261016.json, custom-transportation-regional-attribute-delivery-verified-20261016.json, custom-transportation-regional-interaction-delivery-verified-20261016.json, custom-transportation-timestamped-regional-interaction-delivery-verified-20261016.json, and multi-region-interaction-routing-verified-20261016.json. No provider rebuild or Java provider-runtime execution is claimed; contracts remain experimental public-API evidence, not conformance claims.",
       "latest_parallel_validation": "2026-10-16: Existing installed MinGW package was exercised without configure/build/install. Seven promoted regional scenario/contract pairs passed under both callback models: timed regional save/restore, timed default-region save/restore, multi-region routing, zero-dimensional routing, regional multi-attribute update, three-dimensional overlap, and timed regional attribute negotiated-ownership continuation after restore. The final ownership pair first skipped all four runs with the wrong fixture, then passed all four after supplying the adapter's required multi-attribute ownership FOM/class/attributes plus dimensional FOM; the corrected evidence used HLAinteger64Time. Earlier checks also passed default-region routing, passive transition, subscription replacement, receive-order regional-attribute DSE, and the Annex C conflict Catch2 test; exact Annex lane check is 1 explicitly internal unmapped case, 0 unclassified. C++/Java catalog-source parity was checked; Java provider runtime was not run. Temporary TCK results were inspected and removed. Experimental evidence only, not conformance. D2 process immediate Catch2 behavior remains unverified because Windows socket 10013 blocks loopback connect before behavior.",
-      "next_action": "Verified 2026-10-17: The adapter-backed named-registration multi-recipient primary and contract scenarios directly map page-118-l70-19 -> IEEE 1516.1-2025 §6.8.4, with installed-package evidence passing both callback models (4/4). Surveyed page-118-l49-12: its exact requirement is equality between joined federates using different language APIs. Existing C++ and Java handle tests run separately; no prebuilt Java provider bridge/native artifacts are available. The local JNI builder adds the full C++ source tree and links umbra::rti, while its native bridge directly includes Umbra internal runtime and handle headers. Building it would rebuild the provider; linking current headers against a stale installed archive would be ABI-sensitive. Defer this mixed-language slice rather than competing with core implementation work or weakening the test. Next handoff: select a distinct standard C++ API behavior with an existing green installed-package gate, confirm its exact direct mapping and adapter inputs, then add Java API-only parity where supported. Hold l49-12 until a prebuilt Java provider or mixed-language adapter can join C++ and Java federates in one execution and exchange handles through standard HLA attributes or parameters. Keep the DDM callback-region snapshot unpromoted until an installed package accepts valid callback-snapshot handles."
+      "next_action": "Verified 2026-10-21: Native umbra-cpp-restore-live-tso-interaction-multi-recipient-integration passed 116 assertions. Promoted cpp-tck.restore-live-tso-interaction-multi-recipient primary/contract and java-tck.restore-live-tso-interaction-multi-recipient parity. Isolated portable C++ primary/contract passed against only installed 2026-10-20 package libraries with HLAinteger64Time and HLAfloat64Time. Official-header source and dispatcher syntax, official API-only Java compilation, catalog/parity checks, 11 direct mappings for the native case, and HLA_EVOKED-only CTest registration passed. The scenario restores one saved parameter-bearing TSO and live retraction handle for two constrained recipients; their FQR deliveries and Request Retraction callbacks remain independent and ordered. Current catalog counts: 1310 promoted C++ and 655 Java IDs. Java provider runtime and full runner CTest remain unverified; draft live TSO object deletion remains unpromoted due installed-package FQG-five versus native-six mismatch. No provider rebuild or Requirements Lab resync. Next: native umbra-cpp-restore-live-tso-attribute-update-multi-recipient-integration passed 99 assertions; inspect its source at cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp:4, give it a focused lane tag, gate a portable C++ translation against the installed package, then add Java parity only if green. Durable/process-boundary restore, interoperability, full CTest, Java provider runtime, and conformance remain open."
     },
     {
       "id": "portable-java-tck-2025",
@@ -32659,7 +33345,7 @@
       "title": "Expand the portable Java TCK using only the IEEE 1516.1-2025 API",
       "roadmap_anchor": "Portable Java TCK (2025)",
       "query_tags": [],
-      "next_action": "Verified 2026-10-17: Paired C++/Java no-applicable-subscription cases cover a receiver that discovers a known target through ordinary attribute subscription but has no directed-interaction subscription; after send and bounded callback servicing, neither directed nor ordinary interaction callbacks fire. Direct mapping remains requirement-candidate-content-clauses-05-declaration-management-page-101-l14-2 -> IEEE 1516.1-2025 §5.12 only, with no ownership, universal-selector, timestamped, or regional inference. The C++ scenario passed against the installed package under evoked and immediate callback models; source-boundary/results validation passed with no findings, and the C++ catalog scenario is promoted. Evidence: out/mgw/directed-no-applicable-subscription-run-20261017.json. Additional Java parity source now covers the §6.10.5/§8.1.5 timestamped attribute update cutoff: reject 14 and accept 15/16 while TAR(10) is pending with lookahead 5. It compiles against the official API-only 1516.1-2025 JAR and Java catalog/parity validation passes; Java provider runtime remains unsupported/unverified. The C++ pair is promoted after 4/4 verified CTests and 4/4 direct callback-model runs against the installed package. Next handoff: use a bounded catalog/source cross-check to select a distinct standard-API behavior absent from both portable catalogs, require a green installed-package C++ baseline, then add Java parity where the official API supports it; do not rebuild the RTI or resync Requirements Lab."
+      "next_action": "Gate result 2026-10-21: No Java parity was added for saved live timestamped object deletion because the isolated portable C++ installed-package gate failed: post-restore Flush Queue Grant is five epsilon, while the native case expects six. The draft C++ source remains unregistered and unpromoted; Java catalog remains at 649 IDs with no parity gap. The last green Java slice is java-tck.restore-pending-flush-queue-immediate, which compiles against the pinned API-only JAR but has no provider-runtime execution. Next: inspect the native-green restore-control object snapshot case and add Java parity only after a corresponding portable C++ installed-package gate passes. No interoperability or conformance claim."
     }
   ],
   "portable_tck_attribute_scope_advisories_parity_handoff": "2026-10-16: Verified cpp-tck.attribute-scope-advisories and its contract against the installed package under HLA_EVOKED/HLA_IMMEDIATE (4/4 CTests and 4/4 direct runs; no provider rebuild). Both assert no Attributes Out Of Scope callback when a federate removes its own final regional subscription; direct mapping page-098-l41-12 -> §5.9.4, with §10.1.3 explaining the implicit-out-of-scope exception. Java parity now matches and compiles against the pinned API. C++ catalog validates 1082 promoted scenarios; Java 534 IDs resolve in parity audit. Java provider runtime remains unverified; no conformance claim. Next: choose the next promoted C++ behavior with an API-only Java parity opportunity and verify its direct standard mapping before translating assertions.",

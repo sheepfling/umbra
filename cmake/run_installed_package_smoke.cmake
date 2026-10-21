@@ -25,7 +25,7 @@ function(umbra_run_checked stage)
 endfunction()
 
 # CTest does not build target dependencies before invoking a test.  The
-# package install exports all of these static targets, so explicitly build
+# package install exports all of these runtime targets, so explicitly build
 # the complete installed library set before calling `cmake --install`.  This
 # keeps the package smoke reproducible whether it follows a full build or a
 # focused Catch2 target build.
@@ -77,6 +77,20 @@ if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
   list(APPEND install_command --config "${UMBRA_CONFIGURATION}")
 endif()
 umbra_run_checked("install package" ${install_command})
+
+if(NOT DEFINED UMBRA_INSTALL_INCLUDEDIR OR "${UMBRA_INSTALL_INCLUDEDIR}" STREQUAL "")
+  set(UMBRA_INSTALL_INCLUDEDIR include)
+endif()
+set(installed_rti_header "${install_prefix}/${UMBRA_INSTALL_INCLUDEDIR}/RTI/RTI1516.h")
+if(NOT EXISTS "${installed_rti_header}")
+  message(FATAL_ERROR
+    "Installed package does not provide the common RTI/ header directory: ${installed_rti_header}"
+  )
+endif()
+
+if(NOT DEFINED UMBRA_EXPECT_SHARED_LIBRARIES)
+  set(UMBRA_EXPECT_SHARED_LIBRARIES OFF)
+endif()
 
 # Validate the installed profile manifest before compiling the downstream
 # consumer.  The manifest is the reproducible record of which optional runtime
@@ -146,12 +160,33 @@ set(configure_command
   -S "${UMBRA_SOURCE_DIRECTORY}/cmake/package-smoke"
   -B "${consumer_binary_directory}"
   "-DCMAKE_PREFIX_PATH=${install_prefix}"
+  "-DUMBRA_PACKAGE_EXPECT_SHARED_LIBRARIES=${UMBRA_EXPECT_SHARED_LIBRARIES}"
 )
 if(DEFINED UMBRA_GENERATOR AND NOT "${UMBRA_GENERATOR}" STREQUAL "")
   list(APPEND configure_command -G "${UMBRA_GENERATOR}")
 endif()
 if(DEFINED UMBRA_GENERATOR_PLATFORM AND NOT "${UMBRA_GENERATOR_PLATFORM}" STREQUAL "")
   list(APPEND configure_command -A "${UMBRA_GENERATOR_PLATFORM}")
+endif()
+if(DEFINED UMBRA_CATCH2_SOURCE_DIRECTORY AND
+   NOT "${UMBRA_CATCH2_SOURCE_DIRECTORY}" STREQUAL "")
+  list(APPEND configure_command
+    "-DUMBRA_PACKAGE_CATCH2_SOURCE_DIRECTORY=${UMBRA_CATCH2_SOURCE_DIRECTORY}"
+  )
+elseif(DEFINED UMBRA_CATCH2_DIR AND
+       NOT "${UMBRA_CATCH2_DIR}" STREQUAL "" AND
+       NOT "${UMBRA_CATCH2_DIR}" MATCHES "-NOTFOUND$")
+  list(APPEND configure_command "-DUMBRA_PACKAGE_CATCH2_DIR=${UMBRA_CATCH2_DIR}")
+endif()
+if(DEFINED UMBRA_EXPECT_PROCESS_PROFILE AND
+   "${UMBRA_EXPECT_PROCESS_PROFILE}" STREQUAL "ON")
+  if((DEFINED UMBRA_CATCH2_SOURCE_DIRECTORY AND
+      NOT "${UMBRA_CATCH2_SOURCE_DIRECTORY}" STREQUAL "") OR
+     (DEFINED UMBRA_CATCH2_DIR AND
+      NOT "${UMBRA_CATCH2_DIR}" STREQUAL "" AND
+      NOT "${UMBRA_CATCH2_DIR}" MATCHES "-NOTFOUND$"))
+    list(APPEND configure_command "-DUMBRA_PACKAGE_SUBSCRIPTION_DISCOVERY_SMOKE=ON")
+  endif()
 endif()
 if(DEFINED UMBRA_EXPECT_PROCESS_PROFILE AND
    "${UMBRA_EXPECT_PROCESS_PROFILE}" STREQUAL "ON")
@@ -202,6 +237,32 @@ file(MAKE_DIRECTORY "${consumer_binary_directory}/Testing")
 list(APPEND ctest_command --output-junit "${package_junit_artifact}")
 if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
   list(APPEND ctest_command -C "${UMBRA_CONFIGURATION}")
+endif()
+if(UMBRA_EXPECT_SHARED_LIBRARIES)
+  # This profile's package proof is deliberately bounded to the downstream
+  # executable that links and loads all three installed shared artifacts.
+  # Other package behavior lanes remain independently exercised by the normal
+  # package test profile and are not evidence for dynamic-library packaging.
+  list(APPEND ctest_command -R "^umbra_rti_package_consumer$")
+  if(NOT DEFINED UMBRA_INSTALL_BINDIR OR "${UMBRA_INSTALL_BINDIR}" STREQUAL "")
+    set(UMBRA_INSTALL_BINDIR bin)
+  endif()
+  if(NOT DEFINED UMBRA_INSTALL_LIBDIR OR "${UMBRA_INSTALL_LIBDIR}" STREQUAL "")
+    set(UMBRA_INSTALL_LIBDIR lib)
+  endif()
+  set(installed_runtime_directory "${install_prefix}/${UMBRA_INSTALL_BINDIR}")
+  set(installed_library_directory "${install_prefix}/${UMBRA_INSTALL_LIBDIR}")
+  if(WIN32)
+    set(ENV{PATH} "${installed_runtime_directory};$ENV{PATH}")
+  elseif(APPLE)
+    set(ENV{DYLD_LIBRARY_PATH}
+      "${installed_runtime_directory}:${installed_library_directory}:$ENV{DYLD_LIBRARY_PATH}"
+    )
+  else()
+    set(ENV{LD_LIBRARY_PATH}
+      "${installed_runtime_directory}:${installed_library_directory}:$ENV{LD_LIBRARY_PATH}"
+    )
+  endif()
 endif()
 umbra_run_checked("run downstream consumer tests" ${ctest_command})
 

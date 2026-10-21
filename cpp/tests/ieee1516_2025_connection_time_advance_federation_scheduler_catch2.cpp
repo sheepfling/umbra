@@ -715,11 +715,12 @@ void verifyProcessTimeAdvanceFederationScheduler(
     }
   }
   if (listener) {
-    listener.reset();
+    listener->close();
   }
   if (server.joinable()) {
     server.join();
   }
+  listener.reset();
   if (clientError) {
     std::rethrow_exception(clientError);
   }
@@ -730,6 +731,17 @@ TEST_CASE(
     "RTIambassadors coordinate deferred process time advances through the federation scheduler",
     "[integration][foundation][time-management][time-role][time-advance][transport][process-boundary][public-endpoint][multi-federate][scheduler][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.time-advance-request][federate.callback.time-advance-grant][process-time-advance-federation-scheduler]") {
   verifyProcessTimeAdvanceFederationScheduler(ProcessTimeAdvanceRequestKind::tar);
+}
+
+TEST_CASE(
+    "RTIambassadors coordinate deferred process TAR through the no-TSO federation scheduler under HLA_IMMEDIATE",
+    "[integration][foundation][time-management][time-role][time-advance][transport]"
+    "[process-boundary][public-endpoint][multi-federate][scheduler]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.time-advance-request][federate.callback.time-advance-grant]"
+    "[process-time-advance-federation-scheduler][process-no-tso-cross-federate-tar-immediate][HLA_IMMEDIATE][2025]") {
+  verifyProcessTimeAdvanceFederationScheduler(
+      ProcessTimeAdvanceRequestKind::tar, HLA_IMMEDIATE);
 }
 
 TEST_CASE(
@@ -755,11 +767,12 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "RTIambassadors coordinate deferred process NMR and NMRA through the no-TSO federation scheduler under HLA_IMMEDIATE",
+    "RTIambassadors coordinate deferred process NMR, NMRA, and TARA through the no-TSO federation scheduler under HLA_IMMEDIATE",
     "[integration][foundation][time-management][time-role][time-advance][transport]"
     "[process-boundary][public-endpoint][multi-federate][scheduler]"
     "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
     "[rti.service.next-message-request][rti.service.next-message-request-available]"
+    "[rti.service.time-advance-request-available]"
     "[rti.service.time-advance-request][federate.callback.time-advance-grant]"
     "[process-time-advance-federation-scheduler][process-no-tso-cross-federate-nmr-nmra-immediate][HLA_IMMEDIATE][2025]") {
   SECTION("NMR") {
@@ -769,6 +782,33 @@ TEST_CASE(
   SECTION("NMRA") {
     verifyProcessTimeAdvanceFederationScheduler(
         ProcessTimeAdvanceRequestKind::nmra, HLA_IMMEDIATE);
+  }
+  SECTION("TARA") {
+    verifyProcessTimeAdvanceFederationScheduler(
+        ProcessTimeAdvanceRequestKind::tara, HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "RTIambassadors coordinate deferred process NMR, NMRA, and TARA through the no-TSO federation scheduler under HLA_EVOKED",
+    "[integration][foundation][time-management][time-role][time-advance][transport]"
+    "[process-boundary][public-endpoint][multi-federate][scheduler]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.next-message-request][rti.service.next-message-request-available]"
+    "[rti.service.time-advance-request-available]"
+    "[rti.service.time-advance-request][federate.callback.time-advance-grant]"
+    "[process-time-advance-federation-scheduler][process-no-tso-cross-federate-nmr-nmra-evoked][HLA_EVOKED][2025]") {
+  SECTION("NMR") {
+    verifyProcessTimeAdvanceFederationScheduler(
+        ProcessTimeAdvanceRequestKind::nmr, HLA_EVOKED);
+  }
+  SECTION("NMRA") {
+    verifyProcessTimeAdvanceFederationScheduler(
+        ProcessTimeAdvanceRequestKind::nmra, HLA_EVOKED);
+  }
+  SECTION("TARA") {
+    verifyProcessTimeAdvanceFederationScheduler(
+        ProcessTimeAdvanceRequestKind::tara, HLA_EVOKED);
   }
 }
 

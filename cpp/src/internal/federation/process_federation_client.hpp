@@ -984,6 +984,10 @@ class ProcessFederationClient final {
       std::shared_ptr<CallbackDispatcher> dispatcher,
       std::shared_ptr<rti1516_2025::umbra_binding_detail::CallbackSession>
           callbackSession);
+  [[nodiscard]] ProcessFederationAsynchronousDeliveryStatus
+  setAsynchronousDeliveryEnabled(bool enabled);
+  void setTimeConstrainedEnabled(bool enabled);
+  void setTimeAdvancePending(bool pending);
   void installAttributeOwnershipReleaseClaimHandler();
 
   [[nodiscard]] bool evokeOne(std::chrono::milliseconds minimumWait);
@@ -1038,8 +1042,16 @@ class ProcessFederationClient final {
     ProcessFederationLogicalTime grantedTime;
     ProcessFederationLogicalTime optimisticTime;
   };
+  struct PendingTimeRegulationEnabled final {
+    ProcessFederationLogicalTime enabledTime;
+  };
+  struct PendingTimeConstrainedEnabled final {
+    ProcessFederationLogicalTime enabledTime;
+  };
   [[nodiscard]] PendingFlushQueueGrant receivePushedFlushQueueGrant();
   void acknowledgeTsoDelivery(std::uint64_t messageId);
+  void acknowledgePushedAttributeUpdate(std::uint64_t deliveryId);
+  void sendPushedAttributeUpdateAcknowledgement(std::uint64_t deliveryId);
   void deferTsoDeliveryAcknowledgement(std::uint64_t messageId);
   void flushDeferredTsoDeliveryAcknowledgements();
   [[nodiscard]] std::shared_ptr<ProcessFederationCallbackBridge> requireCallbackBridge() const;
@@ -1104,6 +1116,8 @@ class ProcessFederationClient final {
       ProcessFederationRestoreEvent,
       ProcessFederationLogicalTime,
       PendingFlushQueueGrant,
+      PendingTimeRegulationEnabled,
+      PendingTimeConstrainedEnabled,
       PendingRequestRetraction>;
   // One FIFO preserves the order of heterogeneous pushed frames. Keeping a
   // single draining owner avoids taking a second lock across the dispatcher;
@@ -1115,7 +1129,7 @@ class ProcessFederationClient final {
   // still awaiting its response.  Queue its delivery acknowledgement until
   // that outer response has been consumed so the single process stream never
   // carries nested request/response identities.
-  std::deque<std::uint64_t> deferredTsoDeliveryAcknowledgements_;
+  std::deque<std::pair<std::uint64_t, bool>> deferredDeliveryAcknowledgements_;
   // The process profile currently owns one joined-federate lifetime per
   // client.  Retain its identity so callback completion can acknowledge the
   // federation-owned TSO entry without exposing a second public handle.

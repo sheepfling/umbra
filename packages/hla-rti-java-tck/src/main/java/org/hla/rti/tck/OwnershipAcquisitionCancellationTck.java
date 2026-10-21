@@ -22,7 +22,8 @@ final class OwnershipAcquisitionCancellationTck {
    private OwnershipAcquisitionCancellationTck() { }
 
    static void run(RtiFactory factory, String fom, String objectClassName,
-         String attributeName, CallbackModel callbackModel) throws Exception {
+         String attributeName, String secondAttributeName,
+         CallbackModel callbackModel) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador requester = factory.getRtiAmbassador();
       Recorder ownerRecorder = new Recorder();
@@ -56,19 +57,35 @@ final class OwnershipAcquisitionCancellationTck {
          ownerClass = owner.getObjectClassHandle(objectClassName);
          requesterClass = requester.getObjectClassHandle(objectClassName);
          AttributeHandle ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName);
+         AttributeHandle ownerSecondAttribute = owner.getAttributeHandle(
+            ownerClass, secondAttributeName);
          AttributeHandle requesterAttribute = requester.getAttributeHandle(
             requesterClass, attributeName);
+         AttributeHandle requesterSecondAttribute = requester.getAttributeHandle(
+            requesterClass, secondAttributeName);
          JavaTckSupport.check(ownerClass != null && requesterClass != null
-               && ownerAttribute != null && requesterAttribute != null,
-            "adapter FOM did not resolve the ownership cancellation class and attribute");
-         AttributeHandleSet ownerAttributeSet = JavaTckSupport.attributeSet(owner, ownerAttribute);
+               && ownerAttribute != null && ownerSecondAttribute != null
+               && requesterAttribute != null && requesterSecondAttribute != null
+               && !ownerAttribute.equals(ownerSecondAttribute)
+               && !requesterAttribute.equals(requesterSecondAttribute),
+            "adapter FOM did not resolve two distinct ownership cancellation attributes");
+         AttributeHandleSet ownerAttributeSet = JavaTckSupport.attributeSet(
+            owner, ownerAttribute, ownerSecondAttribute);
          AttributeHandleSet requesterAttributeSet = JavaTckSupport.attributeSet(
-            requester, requesterAttribute);
+            requester, requesterAttribute, requesterSecondAttribute);
          ownerAttributes = ownerAttributeSet;
          requesterAttributes = requesterAttributeSet;
 
          owner.publishObjectClassAttributes(ownerClass, ownerAttributeSet);
          ownerPublished = true;
+         ObjectInstanceHandle undiscoveredObject = owner.registerObjectInstance(ownerClass);
+         JavaTckSupport.check(undiscoveredObject != null,
+            "ownership cancellation unknown-object setup returned a null handle");
+         JavaTckSupport.expectFailure(
+            () -> requester.cancelAttributeOwnershipAcquisition(
+               undiscoveredObject, requesterAttributeSet),
+            "ObjectInstanceNotKnown",
+            "canceling acquisition for an object not discovered by this federate");
          requester.subscribeObjectClassAttributes(requesterClass, requesterAttributeSet);
          requesterSubscribed = true;
          ObjectInstanceHandle registeredObject = owner.registerObjectInstance(ownerClass);
@@ -91,6 +108,14 @@ final class OwnershipAcquisitionCancellationTck {
             () -> owner.cancelAttributeOwnershipAcquisition(registeredObject, ownerAttributeSet),
             "AttributeAlreadyOwned", "canceling acquisition for an owned attribute");
 
+         requester.attributeOwnershipAcquisitionIfAvailable(
+            registeredObject, requesterAttributeSet, acquisitionTag);
+         JavaTckSupport.expectFailure(
+            () -> requester.cancelAttributeOwnershipAcquisition(
+               registeredObject, requesterAttributeSet),
+            "AttributeAcquisitionWasNotRequested",
+            "canceling an If Available request as a regular acquisition");
+
          ownerRecorder.clearOwnershipEvents();
          requesterRecorder.clearOwnershipEvents();
          requester.attributeOwnershipAcquisition(
@@ -99,6 +124,20 @@ final class OwnershipAcquisitionCancellationTck {
          if (callbackModel == CallbackModel.HLA_EVOKED) {
             JavaTckSupport.check(requesterRecorder.cancellations.isEmpty(),
                "evoked ownership-cancellation callback ran before callback servicing");
+            ObjectClassHandle pendingClass = requesterClass;
+            JavaTckSupport.expectFailure(
+               () -> requester.unpublishObjectClassAttributes(
+                  pendingClass, requesterAttributeSet),
+               "OwnershipAcquisitionPending",
+               "unpublishing before ownership-cancellation confirmation");
+            JavaTckSupport.expectFailure(
+               () -> requester.attributeOwnershipAcquisitionIfAvailable(
+                  registeredObject, requesterAttributeSet, acquisitionTag),
+               "AttributeAlreadyBeingAcquired",
+               "requesting If Available while regular cancellation is pending");
+            JavaTckSupport.drain(owner);
+            JavaTckSupport.check(ownerRecorder.releaseRequests.isEmpty(),
+               "canceled acquisition delivered a stale owner-side release request");
          }
          await(requester, callbackModel, () -> !requesterRecorder.cancellations.isEmpty(),
             "ownership acquisition cancellation confirmation");
@@ -113,13 +152,25 @@ final class OwnershipAcquisitionCancellationTck {
             "ownership acquisition cancellation returned the wrong object or attribute set");
          JavaTckSupport.check(requesterRecorder.acquisitions.isEmpty()
                && owner.isAttributeOwnedByFederate(registeredObject, ownerAttribute)
-               && !requester.isAttributeOwnedByFederate(registeredObject, requesterAttribute),
+               && owner.isAttributeOwnedByFederate(registeredObject, ownerSecondAttribute)
+               && !requester.isAttributeOwnedByFederate(registeredObject, requesterAttribute)
+               && !requester.isAttributeOwnedByFederate(
+                  registeredObject, requesterSecondAttribute),
             "canceled acquisition transferred ownership or delivered acquisition notification");
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            JavaTckSupport.check(requesterRecorder.unavailable.isEmpty(),
+               "regular acquisition did not supersede a pending If Available callback");
+            JavaTckSupport.drain(owner);
+            JavaTckSupport.check(ownerRecorder.releaseRequests.isEmpty(),
+               "confirmed cancellation left a stale owner-side release request");
+         }
          JavaTckSupport.expectFailure(
             () -> requester.cancelAttributeOwnershipAcquisition(
                registeredObject, requesterAttributeSet),
             "AttributeAcquisitionWasNotRequested",
             "repeating ownership cancellation after its confirmation");
+         requester.unpublishObjectClassAttributes(requesterClass, requesterAttributeSet);
+         requesterPublished = false;
       } finally {
          if (requesterJoined && requesterPublished && requesterClass != null
                && requesterAttributes != null) {
@@ -176,6 +227,8 @@ final class OwnershipAcquisitionCancellationTck {
       private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> cancellations = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> acquisitions = new CopyOnWriteArrayList<>();
+      private final List<OwnershipEvent> unavailable = new CopyOnWriteArrayList<>();
+      private final List<OwnershipEvent> releaseRequests = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -193,6 +246,14 @@ final class OwnershipAcquisitionCancellationTck {
                      && arguments != null && arguments.length >= 2) {
                   acquisitions.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
                      (AttributeHandleSet) arguments[1]));
+               } else if ("attributeOwnershipUnavailable".equals(name)
+                     && arguments != null && arguments.length >= 2) {
+                  unavailable.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
+                     (AttributeHandleSet) arguments[1]));
+               } else if ("requestAttributeOwnershipRelease".equals(name)
+                     && arguments != null && arguments.length >= 2) {
+                  releaseRequests.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
+                     (AttributeHandleSet) arguments[1]));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK ownership cancellation callbacks";
@@ -208,6 +269,8 @@ final class OwnershipAcquisitionCancellationTck {
       private void clearOwnershipEvents() {
          cancellations.clear();
          acquisitions.clear();
+         unavailable.clear();
+         releaseRequests.clear();
       }
    }
 }

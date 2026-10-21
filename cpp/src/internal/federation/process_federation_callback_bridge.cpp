@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <condition_variable>
+#include <deque>
 #include <memory>
 #include <utility>
 
@@ -1176,6 +1177,136 @@ struct ProcessFederationCallbackBridge::DeferredAttributeUpdateState final {
   }
 };
 
+struct ProcessFederationCallbackBridge::AsynchronousReceiveOrderDeliveryState final {
+  using Callback = std::function<void(rti1516_2025::FederateAmbassador&)>;
+
+  std::mutex mutex;
+  std::deque<Callback> deferred;
+  bool timeConstrained = false;
+  bool asynchronousDeliveryEnabled = false;
+  bool timeAdvancePending = false;
+  bool closed = false;
+  std::uint64_t timeConstrainedDisableGeneration = 0U;
+
+  std::uint64_t disableGeneration() {
+    std::scoped_lock lock(mutex);
+    return timeConstrainedDisableGeneration;
+  }
+
+  bool wasDisabledAfter(std::uint64_t submittedGeneration) {
+    std::scoped_lock lock(mutex);
+    return timeConstrainedDisableGeneration != submittedGeneration;
+  }
+
+  bool deferIfBlocked(bool timestamped, Callback& callback) {
+    std::scoped_lock lock(mutex);
+    if (closed) {
+      return true;
+    }
+    if (!timestamped && timeConstrained && !asynchronousDeliveryEnabled &&
+        !timeAdvancePending) {
+      deferred.push_back(std::move(callback));
+      return true;
+    }
+    return false;
+  }
+
+  ProcessFederationAsynchronousDeliveryStatus setAsynchronousDeliveryEnabled(
+      bool enabled) {
+    std::scoped_lock lock(mutex);
+    if (asynchronousDeliveryEnabled == enabled) {
+      return enabled
+          ? ProcessFederationAsynchronousDeliveryStatus::already_enabled
+          : ProcessFederationAsynchronousDeliveryStatus::already_disabled;
+    }
+    asynchronousDeliveryEnabled = enabled;
+    return ProcessFederationAsynchronousDeliveryStatus::applied;
+  }
+
+  void setTimeConstrainedEnabled(bool enabled) {
+    std::scoped_lock lock(mutex);
+    if (timeConstrained && !enabled) {
+      ++timeConstrainedDisableGeneration;
+    }
+    timeConstrained = enabled;
+  }
+
+  void setTimeAdvancePending(bool pending) {
+    std::scoped_lock lock(mutex);
+    timeAdvancePending = pending;
+  }
+
+  std::deque<Callback> takeEligible() {
+    std::scoped_lock lock(mutex);
+    if (closed || (timeConstrained && !asynchronousDeliveryEnabled &&
+                   !timeAdvancePending)) {
+      return {};
+    }
+    auto eligible = std::move(deferred);
+    deferred.clear();
+    return eligible;
+  }
+
+  void close() noexcept {
+    std::scoped_lock lock(mutex);
+    closed = true;
+    deferred.clear();
+  }
+};
+
+namespace {
+
+void submitAsynchronousReceiveOrderCallback(
+    std::shared_ptr<CallbackDispatcher> const& dispatcher,
+    std::shared_ptr<rti1516_2025::umbra_binding_detail::CallbackSession> const& session,
+    std::shared_ptr<ProcessFederationCallbackBridge::AsynchronousReceiveOrderDeliveryState>
+        const& deliveryState,
+    bool timestamped,
+    ProcessFederationCallbackBridge::AsynchronousReceiveOrderDeliveryState::Callback
+        callback) {
+  dispatcher->submit([
+      session,
+      deliveryState,
+      timestamped,
+      callback = std::move(callback)]() mutable {
+    session->invoke([
+        deliveryState,
+        timestamped,
+        callback = std::move(callback)](
+            rti1516_2025::FederateAmbassador& recipient) mutable {
+      if (deliveryState->deferIfBlocked(timestamped, callback)) {
+        return;
+      }
+      callback(recipient);
+    });
+  });
+}
+
+void releaseEligibleAsynchronousReceiveOrderCallbacks(
+    std::shared_ptr<CallbackDispatcher> const& dispatcher,
+    std::shared_ptr<rti1516_2025::umbra_binding_detail::CallbackSession> const& session,
+    std::shared_ptr<ProcessFederationCallbackBridge::AsynchronousReceiveOrderDeliveryState>
+        const& deliveryState) {
+  auto callbacks = deliveryState->takeEligible();
+  for (auto& callback : callbacks) {
+    submitAsynchronousReceiveOrderCallback(
+        dispatcher, session, deliveryState, false, std::move(callback));
+  }
+}
+
+void setTimeConstrainedDeliveryState(
+    std::shared_ptr<CallbackDispatcher> const& dispatcher,
+    std::shared_ptr<rti1516_2025::umbra_binding_detail::CallbackSession> const& session,
+    std::shared_ptr<ProcessFederationCallbackBridge::AsynchronousReceiveOrderDeliveryState>
+        const& deliveryState,
+    bool enabled) {
+  deliveryState->setTimeConstrainedEnabled(enabled);
+  releaseEligibleAsynchronousReceiveOrderCallbacks(
+      dispatcher, session, deliveryState);
+}
+
+}  // namespace
+
 ProcessFederationCallbackBridge::ProcessFederationCallbackBridge(
     rti1516_2025::FederateAmbassador& recipient,
     CallbackDispatchModel model)
@@ -1186,7 +1317,9 @@ ProcessFederationCallbackBridge::ProcessFederationCallbackBridge(
       exceptionReportProjection_(
           std::make_shared<ExceptionReportProjectionState>()),
       deferredAttributeUpdate_(
-          std::make_shared<DeferredAttributeUpdateState>()) {}
+          std::make_shared<DeferredAttributeUpdateState>()),
+      asynchronousReceiveOrderDelivery_(
+          std::make_shared<AsynchronousReceiveOrderDeliveryState>()) {}
 
 ProcessFederationCallbackBridge::ProcessFederationCallbackBridge(
     std::shared_ptr<CallbackDispatcher> dispatcher,
@@ -1197,7 +1330,9 @@ ProcessFederationCallbackBridge::ProcessFederationCallbackBridge(
       exceptionReportProjection_(
           std::make_shared<ExceptionReportProjectionState>()),
       deferredAttributeUpdate_(
-          std::make_shared<DeferredAttributeUpdateState>()) {
+          std::make_shared<DeferredAttributeUpdateState>()),
+      asynchronousReceiveOrderDelivery_(
+          std::make_shared<AsynchronousReceiveOrderDeliveryState>()) {
   if (!dispatcher_ || !callbackSession_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge requires the runtime callback controls.");
@@ -1222,19 +1357,29 @@ void ProcessFederationCallbackBridge::submitReceiveOrder(
     retractionStates_[*event.retractionMessageId] = retractionState;
   }
   auto const tsoCompletion = tsoDeliveryCompletion_;
+  auto const tsoCallbackAccepted = tsoCallbackAccepted_;
   auto const exceptionReportProjection = exceptionReportProjection_;
   auto const projectionGeneration = exceptionReportProjection->currentGeneration();
-  // Immediate timestamped removals retain a private retraction identity so a
-  // producer can suppress a not-yet-started callback, but they have no TSO
-  // queue entry to acknowledge. Only a grant-boundary TIMESTAMP receive
-  // crosses the coordinator's in-transit completion fence.
+  auto const asynchronousReceiveOrderDelivery = asynchronousReceiveOrderDelivery_;
+  auto const timestamped = event.timestamp.has_value();
+  auto const timeConstrainedDisableGeneration =
+      asynchronousReceiveOrderDelivery->disableGeneration();
+  // A private id on an untimestamped event marks a queued TSO payload that
+  // Disable Time Constrained converted to receive order. Ordinary timestamped
+  // messages cross the same completion fence only with TIMESTAMP receive
+  // order; immediate timestamp probes have no private id.
   auto const tsoMessageId =
-      event.receivedOrderType &&
-              *event.receivedOrderType == rti1516_2025::TIMESTAMP
+      event.retractionMessageId &&
+              (!timestamped ||
+               (event.receivedOrderType &&
+                *event.receivedOrderType == rti1516_2025::TIMESTAMP))
           ? event.retractionMessageId
           : std::optional<std::uint64_t>{};
   dispatcher_->submit(
       [session,
+       asynchronousReceiveOrderDelivery,
+       timestamped,
+       timeConstrainedDisableGeneration,
        retractionState = std::move(retractionState),
        tsoCompletion,
        exceptionReportProjection,
@@ -1271,34 +1416,134 @@ void ProcessFederationCallbackBridge::submitReceiveOrder(
           }
           event = std::move(*projected);
         }
-        session->invoke(
+        auto callbackEvent = std::make_shared<ProcessFederationInteractionEvent>(
+            std::move(event));
+        AsynchronousReceiveOrderDeliveryState::Callback callback =
             [exceptionReportProjection,
              projectionGeneration,
-             event = std::move(event)](
+             retractionState,
+             tsoCompletion,
+             tsoMessageId,
+             callbackEvent](
+                            rti1516_2025::FederateAmbassador& recipient) mutable {
+          bool suppressCallback = false;
+          bool acknowledgeSuppressed = false;
+          if (retractionState) {
+            std::scoped_lock lock(retractionState->mutex);
+            if (retractionState->recipientResigned) {
+              suppressCallback = true;
+            } else if (retractionState->retractionRequested) {
+              suppressCallback = true;
+              if (!retractionState->deliveryAcknowledged) {
+                retractionState->deliveryAcknowledged = true;
+                acknowledgeSuppressed = true;
+              }
+            } else {
+              retractionState->callbackStarted = true;
+            }
+          }
+          if (suppressCallback) {
+            if (acknowledgeSuppressed && tsoCompletion && tsoMessageId) {
+              tsoCompletion(*tsoMessageId);
+            }
+            return;
+          }
+          // Session entry can wait behind another callback after project
+          // retires its client lease. Revalidate at callback admission so
+          // resignation also suppresses that prepared-but-not-entered
+          // report. Once admitted, an already-started callback may finish;
+          // no projection/client lock is held across user callback code.
+          if (callbackEvent->exceptionReportFederateId &&
+              !exceptionReportProjection->admitCallback(projectionGeneration)) {
+            return;
+          }
+          deliverReceiveOrder(*callbackEvent, recipient);
+
+          bool acknowledge = false;
+          if (retractionState) {
+            std::scoped_lock lock(retractionState->mutex);
+            if (!retractionState->deliveryAcknowledged) {
+              retractionState->deliveryAcknowledged = true;
+              acknowledge = true;
+            }
+          }
+          if (acknowledge && tsoCompletion && tsoMessageId) {
+            tsoCompletion(*tsoMessageId);
+          }
+        };
+        session->invoke(
+            [asynchronousReceiveOrderDelivery,
+             timestamped,
+             timeConstrainedDisableGeneration,
+             callbackEvent,
+             callback = std::move(callback)](
                 rti1516_2025::FederateAmbassador& recipient) mutable {
-              // Session entry can wait behind another callback after project
-              // retires its client lease. Revalidate at callback admission so
-              // resignation also suppresses that prepared-but-not-entered
-              // report. Once admitted, an already-started callback may finish;
-              // no projection/client lock is held across user callback code.
-              if (event.exceptionReportFederateId &&
-                  !exceptionReportProjection->admitCallback(projectionGeneration)) {
+              // A queued timestamped message that has not crossed the
+              // FederateAmbassador boundary when Time Constrained is disabled
+              // becomes receive-order work. Keep the callback in its original
+              // dispatcher slot; changing only this event's delivery form
+              // preserves the process callback FIFO and its payload identity.
+              bool convertedToReceiveOrder = false;
+              if (timestamped && callbackEvent->retractionMessageId &&
+                  asynchronousReceiveOrderDelivery->wasDisabledAfter(
+                      timeConstrainedDisableGeneration)) {
+                callbackEvent->timestamp.reset();
+                callbackEvent->sentOrderType.reset();
+                callbackEvent->receivedOrderType.reset();
+                convertedToReceiveOrder = true;
+              }
+              if ((!timestamped || convertedToReceiveOrder) &&
+                  asynchronousReceiveOrderDelivery->deferIfBlocked(
+                      false, callback)) {
                 return;
               }
-              deliverReceiveOrder(event, recipient);
+              callback(recipient);
             });
-        bool acknowledge = false;
-        if (retractionState) {
-          std::scoped_lock lock(retractionState->mutex);
-          if (!retractionState->deliveryAcknowledged) {
-            retractionState->deliveryAcknowledged = true;
-            acknowledge = true;
-          }
-        }
-        if (acknowledge && tsoCompletion && tsoMessageId) {
-          tsoCompletion(*tsoMessageId);
-        }
       });
+  // This per-instance hook exists only to let internal integration tests
+  // establish queue admission without evoking the callback (which would itself
+  // cross the boundary being tested). Normal runtime construction leaves it
+  // empty.
+  if (timestamped && tsoMessageId && tsoCallbackAccepted) {
+    tsoCallbackAccepted(*tsoMessageId);
+  }
+}
+
+ProcessFederationAsynchronousDeliveryStatus
+ProcessFederationCallbackBridge::setAsynchronousDeliveryEnabled(bool enabled) {
+  if (isClosed() || !dispatcher_ || !callbackSession_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  auto const status =
+      asynchronousReceiveOrderDelivery_->setAsynchronousDeliveryEnabled(enabled);
+  if (status == ProcessFederationAsynchronousDeliveryStatus::applied && enabled) {
+    releaseEligibleAsynchronousReceiveOrderCallbacks(
+        dispatcher_, callbackSession_, asynchronousReceiveOrderDelivery_);
+  }
+  return status;
+}
+
+void ProcessFederationCallbackBridge::setTimeConstrainedEnabled(bool enabled) {
+  if (isClosed() || !dispatcher_ || !callbackSession_) {
+    return;
+  }
+  setTimeConstrainedDeliveryState(
+      dispatcher_,
+      callbackSession_,
+      asynchronousReceiveOrderDelivery_,
+      enabled);
+}
+
+void ProcessFederationCallbackBridge::setTimeAdvancePending(bool pending) {
+  if (isClosed() || !dispatcher_ || !callbackSession_) {
+    return;
+  }
+  asynchronousReceiveOrderDelivery_->setTimeAdvancePending(pending);
+  if (pending) {
+    releaseEligibleAsynchronousReceiveOrderCallbacks(
+        dispatcher_, callbackSession_, asynchronousReceiveOrderDelivery_);
+  }
 }
 
 void ProcessFederationCallbackBridge::submitRequestRetraction(
@@ -1327,7 +1572,8 @@ void ProcessFederationCallbackBridge::submitRequestRetraction(
   }
   if (retractionState) {
     std::scoped_lock lock(retractionState->mutex);
-    if (retractionState->retractionRequested) {
+    if (retractionState->recipientResigned ||
+        retractionState->retractionRequested) {
       return;
     }
     retractionState->retractionRequested = true;
@@ -1338,8 +1584,11 @@ void ProcessFederationCallbackBridge::submitRequestRetraction(
     if (callbackMayDeliver) {
       retractionState->retractionCallbackQueued = true;
     } else if (!retractionState->deliveryAcknowledged) {
-      retractionState->deliveryAcknowledged = true;
-      acknowledgeSuppressed = true;
+      if (!retractionState->groupedTsoAttributeCallbacks ||
+          retractionState->finalTsoAttributeCallbackSubmitted) {
+        retractionState->deliveryAcknowledged = true;
+        acknowledgeSuppressed = true;
+      }
     }
   } else {
     // Without a tracked timestamped interaction there is no callback that
@@ -1359,7 +1608,14 @@ void ProcessFederationCallbackBridge::submitRequestRetraction(
        messageId,
        retractionState = std::move(retractionState)]() mutable {
         session->invoke(
-            [messageId](rti1516_2025::FederateAmbassador& recipient) {
+            [messageId, retractionState](
+                rti1516_2025::FederateAmbassador& recipient) {
+              if (retractionState) {
+                std::scoped_lock lock(retractionState->mutex);
+                if (retractionState->recipientResigned) {
+                  return;
+                }
+              }
               deliverRequestRetraction(messageId, recipient);
             });
       });
@@ -1374,53 +1630,126 @@ void ProcessFederationCallbackBridge::submitAttributeUpdate(
   }
   std::shared_ptr<RetractionState> retractionState;
   if (event.retractionMessageId) {
-    retractionState = std::make_shared<RetractionState>();
-    std::scoped_lock lock(retractionMutex_);
-    retractionStates_[*event.retractionMessageId] = retractionState;
+    auto const groupedTsoAttributeCallback =
+        event.tsoCallbackGroupPosition !=
+        ProcessFederationTsoAttributeUpdateCallbackGroupPosition::ungrouped;
+    {
+      std::scoped_lock lock(retractionMutex_);
+      if (groupedTsoAttributeCallback) {
+        auto& state = retractionStates_[*event.retractionMessageId];
+        if (!state) {
+          state = std::make_shared<RetractionState>();
+        }
+        retractionState = state;
+      } else {
+        retractionState = std::make_shared<RetractionState>();
+        retractionStates_[*event.retractionMessageId] = retractionState;
+      }
+    }
+    if (groupedTsoAttributeCallback) {
+      std::scoped_lock lock(retractionState->mutex);
+      retractionState->groupedTsoAttributeCallbacks = true;
+      if (event.tsoCallbackGroupPosition ==
+          ProcessFederationTsoAttributeUpdateCallbackGroupPosition::final) {
+        retractionState->finalTsoAttributeCallbackSubmitted = true;
+      }
+    }
   }
   auto const tsoCompletion = tsoDeliveryCompletion_;
   auto const tsoMessageId = event.retractionMessageId;
+  auto const tsoAcknowledgementBoundary =
+      event.tsoCallbackGroupPosition !=
+      ProcessFederationTsoAttributeUpdateCallbackGroupPosition::more;
+  auto const pushCompletion = pushAttributeDeliveryCompletion_;
+  auto const pushDeliveryId = event.pushDeliveryId;
   dispatcher_->submit(
       [session,
        retractionState = std::move(retractionState),
        tsoCompletion,
        tsoMessageId,
+       tsoAcknowledgementBoundary,
+       pushCompletion,
+       pushDeliveryId,
        event = std::move(event)]() mutable {
         bool suppressCallback = false;
         bool acknowledgeSuppressed = false;
         if (retractionState) {
           std::scoped_lock lock(retractionState->mutex);
-          if (retractionState->retractionRequested) {
+          if (retractionState->recipientResigned) {
             suppressCallback = true;
-            if (!retractionState->deliveryAcknowledged) {
+          } else if (retractionState->retractionRequested) {
+            suppressCallback = true;
+            if (!retractionState->deliveryAcknowledged &&
+                tsoAcknowledgementBoundary) {
               retractionState->deliveryAcknowledged = true;
               acknowledgeSuppressed = true;
             }
-          } else {
-            retractionState->callbackStarted = true;
           }
         }
         if (suppressCallback) {
-          if (acknowledgeSuppressed && tsoCompletion && tsoMessageId) {
+          if (acknowledgeSuppressed && tsoCompletion && tsoMessageId &&
+              tsoAcknowledgementBoundary) {
             tsoCompletion(*tsoMessageId);
+          }
+          if (pushCompletion && pushDeliveryId != 0U) {
+            pushCompletion(pushDeliveryId);
           }
           return;
         }
+        bool suppressAtCallbackEntry = false;
+        bool acknowledgeAtCallbackEntry = false;
         session->invoke(
-            [event = std::move(event)](
+            [retractionState,
+             tsoAcknowledgementBoundary,
+             &suppressAtCallbackEntry,
+             &acknowledgeAtCallbackEntry,
+             event = std::move(event)](
                 rti1516_2025::FederateAmbassador& recipient) mutable {
+              if (retractionState) {
+                std::scoped_lock lock(retractionState->mutex);
+                if (retractionState->recipientResigned) {
+                  suppressAtCallbackEntry = true;
+                } else if (retractionState->retractionRequested) {
+                  suppressAtCallbackEntry = true;
+                  if (!retractionState->deliveryAcknowledged &&
+                      tsoAcknowledgementBoundary) {
+                    retractionState->deliveryAcknowledged = true;
+                    acknowledgeAtCallbackEntry = true;
+                  }
+                } else {
+                  retractionState->callbackStarted = true;
+                }
+              }
+              if (suppressAtCallbackEntry) {
+                return;
+              }
               deliverAttributeUpdate(event, recipient);
             });
+        if (suppressAtCallbackEntry) {
+          if (acknowledgeAtCallbackEntry && tsoCompletion && tsoMessageId &&
+              tsoAcknowledgementBoundary) {
+            tsoCompletion(*tsoMessageId);
+          }
+          if (pushCompletion && pushDeliveryId != 0U) {
+            pushCompletion(pushDeliveryId);
+          }
+          return;
+        }
         bool acknowledge = false;
         if (retractionState) {
           std::scoped_lock lock(retractionState->mutex);
-          if (!retractionState->deliveryAcknowledged) {
+          if (!retractionState->deliveryAcknowledged &&
+              tsoAcknowledgementBoundary) {
             retractionState->deliveryAcknowledged = true;
             acknowledge = true;
           }
         }
-        if (acknowledge && tsoCompletion && tsoMessageId) {
+        if (acknowledge && tsoCompletion && tsoMessageId &&
+            tsoAcknowledgementBoundary) {
           tsoCompletion(*tsoMessageId);
+        }
+        if (pushCompletion && pushDeliveryId != 0U) {
+          pushCompletion(pushDeliveryId);
         }
       });
 }
@@ -1623,13 +1952,14 @@ void ProcessFederationCallbackBridge::submitObjectInstanceRemoval(
     retractionStates_[*event.retractionMessageId] = retractionState;
   }
   auto const tsoCompletion = tsoDeliveryCompletion_;
-  // Immediate timestamped removals retain a private retraction identity so a
-  // producer can suppress a not-yet-started callback, but they have no TSO
-  // queue entry to acknowledge. Only a grant-boundary TIMESTAMP receive
-  // crosses the coordinator's in-transit completion fence.
+  // A private id on an untimestamped removal marks a queued TSO deletion
+  // converted to receive order; it still must acknowledge the coordinator's
+  // in-transit entry without exposing a retraction parameter to the callback.
   auto const tsoMessageId =
-      event.receivedOrderType &&
-              *event.receivedOrderType == rti1516_2025::TIMESTAMP
+      event.retractionMessageId &&
+              (!event.timestamp ||
+               (event.receivedOrderType &&
+                *event.receivedOrderType == rti1516_2025::TIMESTAMP))
           ? event.retractionMessageId
           : std::optional<std::uint64_t>{};
   dispatcher_->submit(
@@ -1642,14 +1972,14 @@ void ProcessFederationCallbackBridge::submitObjectInstanceRemoval(
         bool acknowledgeSuppressed = false;
         if (retractionState) {
           std::scoped_lock lock(retractionState->mutex);
-          if (retractionState->retractionRequested) {
+          if (retractionState->recipientResigned) {
+            suppressCallback = true;
+          } else if (retractionState->retractionRequested) {
             suppressCallback = true;
             if (!retractionState->deliveryAcknowledged) {
               retractionState->deliveryAcknowledged = true;
               acknowledgeSuppressed = true;
             }
-          } else {
-            retractionState->callbackStarted = true;
           }
         }
         if (suppressCallback) {
@@ -1658,11 +1988,40 @@ void ProcessFederationCallbackBridge::submitObjectInstanceRemoval(
           }
           return;
         }
+        bool suppressAtCallbackEntry = false;
+        bool acknowledgeAtCallbackEntry = false;
         session->invoke(
-            [event = std::move(event)](
+            [retractionState,
+             &suppressAtCallbackEntry,
+             &acknowledgeAtCallbackEntry,
+             event = std::move(event)](
                 rti1516_2025::FederateAmbassador& recipient) mutable {
+              if (retractionState) {
+                std::scoped_lock lock(retractionState->mutex);
+                if (retractionState->recipientResigned) {
+                  suppressAtCallbackEntry = true;
+                } else if (retractionState->retractionRequested) {
+                  suppressAtCallbackEntry = true;
+                  if (!retractionState->deliveryAcknowledged) {
+                    retractionState->deliveryAcknowledged = true;
+                    acknowledgeAtCallbackEntry = true;
+                  }
+                } else {
+                  retractionState->callbackStarted = true;
+                }
+              }
+              if (suppressAtCallbackEntry) {
+                return;
+              }
               deliverObjectInstanceRemoval(event, recipient);
             });
+        if (suppressAtCallbackEntry && acknowledgeAtCallbackEntry &&
+            tsoCompletion && tsoMessageId) {
+          tsoCompletion(*tsoMessageId);
+        }
+        if (suppressAtCallbackEntry) {
+          return;
+        }
         bool acknowledge = false;
         if (retractionState) {
           std::scoped_lock lock(retractionState->mutex);
@@ -1920,16 +2279,22 @@ void ProcessFederationCallbackBridge::submitTimeConstrainedEnabled(
     ProcessFederationLogicalTime event) {
   auto const session = callbackSession_;
   auto const completion = timeConstrainedEnabledCompletion_;
+  auto const dispatcher = dispatcher_;
+  auto const deliveryState = asynchronousReceiveOrderDelivery_;
   if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
   dispatcher_->submit(
-      [session, completion, event = std::move(event)]() mutable {
+      [session, dispatcher, deliveryState, completion,
+       event = std::move(event)]() mutable {
         session->invoke(
-            [completion, event = std::move(event)](
+            [dispatcher, session, deliveryState, completion,
+             event = std::move(event)](
                 rti1516_2025::FederateAmbassador& recipient) mutable {
               auto enabledTime = decodeRoleEnableTime(event);
+              setTimeConstrainedDeliveryState(
+                  dispatcher, session, deliveryState, true);
               recipient.timeConstrainedEnabled(*enabledTime);
               if (completion) {
                 completion();
@@ -1950,6 +2315,16 @@ void ProcessFederationCallbackBridge::setTsoDeliveryCompletionHandler(
   tsoDeliveryCompletion_ = std::move(handler);
 }
 
+void ProcessFederationCallbackBridge::setTsoCallbackAcceptedHandler(
+    TsoCallbackAcceptedHandler handler) {
+  tsoCallbackAccepted_ = std::move(handler);
+}
+
+void ProcessFederationCallbackBridge::setPushAttributeDeliveryCompletionHandler(
+    PushAttributeDeliveryCompletionHandler handler) {
+  pushAttributeDeliveryCompletion_ = std::move(handler);
+}
+
 void ProcessFederationCallbackBridge::setExceptionReportProjectionHandler(
     ExceptionReportProjectionHandler handler) {
   std::scoped_lock lock(exceptionReportProjection_->mutex);
@@ -1965,6 +2340,7 @@ void ProcessFederationCallbackBridge::cancelExceptionReportProjections() noexcep
 void ProcessFederationCallbackBridge::submitTimeAdvanceGrant(
     ProcessFederationLogicalTime event) {
   auto const session = callbackSession_;
+  asynchronousReceiveOrderDelivery_->setTimeAdvancePending(false);
   if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
@@ -1984,6 +2360,7 @@ void ProcessFederationCallbackBridge::submitFlushQueueGrant(
     ProcessFederationLogicalTime grantedTime,
     ProcessFederationLogicalTime optimisticTime) {
   auto const session = callbackSession_;
+  asynchronousReceiveOrderDelivery_->setTimeAdvancePending(false);
   if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
@@ -2041,6 +2418,7 @@ void ProcessFederationCallbackBridge::close() noexcept {
   // the client's stream transaction mutex.
   exceptionReportProjection_->cancel(true);
   deferredAttributeUpdate_->cancel(true);
+  asynchronousReceiveOrderDelivery_->close();
   {
     std::scoped_lock lock(retractionMutex_);
     retractionStates_.clear();

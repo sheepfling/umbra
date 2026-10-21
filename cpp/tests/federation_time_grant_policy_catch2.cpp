@@ -61,7 +61,7 @@ HLAinteger64Time const& asIntegerTime(
 }  // namespace
 
 TEST_CASE(
-    "No-TSO TAR grant policy applies the strict defined-GALT boundary",
+    "TAR grant policy applies the strict GALT boundary at a queued TSO frontier",
     "[unit][kernel][time-management][galt][time-advance-grant]") {
   FederationTimeAdvanceGrantPolicy policy;
   auto requester = pendingRequester(true, 2, 5);
@@ -72,6 +72,11 @@ TEST_CASE(
       FederationTimeAdvanceGrantStatus::wait_for_galt);
   REQUIRE(
       policy.decide(requester, definedBounds(4)).status ==
+      FederationTimeAdvanceGrantStatus::wait_for_galt);
+  auto queuedBoundary = definedBounds(5);
+  queuedBoundary.galtIsTsoBoundary = true;
+  REQUIRE(
+      policy.decide(requester, queuedBoundary).status ==
       FederationTimeAdvanceGrantStatus::wait_for_galt);
 }
 

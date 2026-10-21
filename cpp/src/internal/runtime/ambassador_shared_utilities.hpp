@@ -390,7 +390,9 @@ void submitAmbassadorReceiveOrderCallback(
     umbra::detail::FederateCallbackRoute callbackRoute,
     std::wstring federationName,
     std::uint64_t receivingFederateId,
-    umbra::detail::FederateCallbackInvocation invocation);
+    umbra::detail::FederateCallbackInvocation invocation,
+    std::optional<umbra::detail::FederationStateImageReceiveOrderInteraction>
+        pendingInteraction = std::nullopt);
 void queueMomFederationSynchronizationPointsReport(
     std::wstring federationName,
     umbra::detail::MomFederationSynchronizationPointsReportPlan report);
@@ -498,7 +500,8 @@ void submitAmbassadorFederationRestoreNotifications(
     std::vector<umbra::detail::FederationRestoreNotification> notifications);
 void validateAmbassadorTsoTimestamp(
     umbra::detail::FederateTimeSnapshot const& timeSnapshot,
-    LogicalTime const& timestamp);
+    LogicalTime const& timestamp,
+    bool applyOptimisticTimeFloor = true);
 VariableLengthData makeAmbassadorVariableLengthData(
     std::vector<unsigned char> const& bytes);
 void submitAmbassadorTimeAdvanceGrantDispatches(
@@ -512,6 +515,10 @@ void queueAmbassadorRequestRetraction(
     std::uint64_t messageId);
 void flushAmbassadorAsynchronousReceiveCallbacks(
     std::shared_ptr<umbra::detail::FederateTimeState> const& timeState);
+void queueAmbassadorTsoPayloadsAsReceiveOrder(
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId,
+    std::vector<umbra::detail::TsoPayloadDelivery> deliveries);
 std::shared_ptr<LogicalTime> cloneAmbassadorReferenceLogicalTime(
     std::wstring const& implementationName,
     LogicalTime const& time);

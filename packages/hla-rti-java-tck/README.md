@@ -199,8 +199,9 @@ name properties. It saves an owner/unowned split, changes the live owner,
 restores the saved state, then checks federate-owned, unowned, and RTI-owned
 MOM query results through the standard callbacks.
 The `java-tck.auto-provide` case verifies the configured standard Auto Provide
-switch, object discovery, and one provider callback carrying both subscribed
-attributes and an empty tag under either callback model.
+switch and two object discoveries, first with Attribute Scope Advisory disabled
+and then enabled. Each discovery yields one provider callback carrying the same
+two subscribed attributes and an empty tag under either callback model.
 The `java-tck.auto-provide-disabled-explicit-request` case verifies discovery
 continues with Auto Provide disabled, while explicit object- and class-scoped
 value requests each produce one callback preserving their supplied tag.
@@ -616,9 +617,50 @@ publisher. Keep it unsupported by default until run against a Java provider.
 
 The opt-in `java-tck.time-constrained-enable-galt-equality` scenario compiles
 against the pinned IEEE 1516.1-2025 Java API. It checks that constrained-enable
-notification follows the GALT equality boundary; provider-runtime execution
-remains pending, and the paired C++ installed-package immediate-callback case
-is not yet green.
+notification follows the GALT equality boundary and that a later advance is
+held at the regulating peer's GALT. Its paired C++ installed-package case
+passes both callback models; Java provider-runtime execution remains pending.
+
+The opt-in `java-tck.time-constrained-disable-queued-interaction-to-ro` scenario
+uses only the standard API and adapter-supplied FOM, logical-time implementation,
+and callback model. It checks the untimed receive-order callback for a queued
+future interaction after disabling Time Constrained, then the receive-order
+metadata of a subsequent timestamped send. The paired C++ installed-package
+case passes both time implementations and callback models. Java compiles against
+the official API jar but remains unsupported by default until provider-runtime
+verification.
+
+The opt-in `java-tck.time-constrained-disable-queued-attribute-to-ro` scenario
+uses only the official API and adapter-supplied FOM, logical-time implementation,
+and callback model. It checks untimed receive-order reflection of a queued
+future update after disabling Time Constrained, then the receive-order metadata
+of a subsequent timestamped update. The paired C++ installed-package case
+passes both time implementations and callback models. Java compiles against
+the official API jar but remains unsupported by default until provider-runtime
+verification.
+
+The opt-in `java-tck.time-constrained-disable-queued-deletion-to-ro` scenario
+uses two adapter-FOM objects to check the untimed receive-order removal of a
+queued future deletion after disabling Time Constrained, followed by a separate
+timestamped deletion whose received order is RECEIVE. Its C++ pair passes both
+time implementations and callback models. Java compiles against the official
+API jar but remains unsupported by default until provider-runtime verification.
+
+The opt-in `java-tck.time-constrained-disable-queued-directed-to-ro` scenario
+checks that a queued future directed interaction arrives through the untimed
+receive-order callback after disabling Time Constrained, then checks a later
+timestamped directed send retains its time with receivedOrder=RECEIVE. Its C++
+pair passes both time implementations and callback models. Java compiles against
+the official API jar but remains unsupported until provider-runtime verification.
+
+The opt-in `java-tck.service-report-associate-regions-for-updates` scenario
+checks the standard Table 5 `AttributeRegionAssociation` report value for one
+successful `AssociateRegionsForUpdates` call. Supply `hla.rti.tck.fom`,
+`hla.rti.tck.modelFom`, and `hla.rti.tck.mim` as adapter FOM/MIM paths, plus
+the matching typed object/attribute, dimension, time, and callback settings.
+Its C++ primary and contract pass the focused installed-package gate with
+`HLAinteger64Time`; Java compiles against the official API jar but awaits
+provider-runtime verification.
 
 The opt-in `java-tck.ordinary-multi-attribute-value-update-request-response`
 scenario uses the adapter-supplied multi-attribute FOM and names. It exercises

@@ -325,6 +325,9 @@ enum class TransportServiceOperation : std::uint16_t {
   // Exception reporting is an independent execution-member switch. Keep
   // its controls distinct from service-report and report-to-file switches.
   get_exception_reporting_switch = 134U,
+  // A receiver confirms callback entry for an ordinary pushed RO attribute
+  // event. Kept separate from TSO delivery/retraction acknowledgements.
+  acknowledge_push_attribute_update = 146U,
   set_exception_reporting_switch = 135U,
   // Public service exceptions may originate in the binding as well as the
   // process service. The service owns reporting eligibility and routing.

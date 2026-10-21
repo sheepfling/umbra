@@ -1,6 +1,7 @@
 #pragma once
 
 #include "internal/fom/fom_validation.hpp"
+#include "internal/federation/federation_state_image.hpp"
 #include "internal/observability/mom_service_report_encoding.hpp"
 #include "internal/time/federation_time_coordinator.hpp"
 
@@ -43,7 +44,13 @@ using FederateCallbackInvocation =
 struct FederateCallbackRoute final {
   std::function<void(FederateCallbackInvocation)> submit;
   std::function<void(FederateCallbackInvocation)> receiveOrderSubmit;
+  std::function<void(
+      FederateCallbackInvocation,
+      std::optional<FederationStateImageReceiveOrderInteraction>)>
+      receiveOrderInteractionSubmit;
   std::function<std::size_t()> pendingReceiveOrderCount;
+  std::function<std::vector<FederationStateImageReceiveOrderInteraction>()>
+      pendingReceiveOrderInteractions;
 
   FederateCallbackRoute() = default;
 
@@ -69,6 +76,16 @@ struct FederateCallbackRoute final {
       // that route rather than being silently discarded; production routes
       // install receiveOrderSubmit so they can add their queue accounting.
       submit(std::move(invocation));
+    }
+  }
+
+  void enqueueReceiveOrderInteraction(
+      FederateCallbackInvocation invocation,
+      std::optional<FederationStateImageReceiveOrderInteraction> pending) const {
+    if (pending && receiveOrderInteractionSubmit) {
+      receiveOrderInteractionSubmit(std::move(invocation), std::move(pending));
+    } else {
+      enqueueReceiveOrder(std::move(invocation));
     }
   }
 
@@ -437,6 +454,7 @@ enum class FederationRestoreControlStatus {
   snapshot_not_found,
   membership_mismatch,
   callback_route_missing,
+  restore_failed,
 };
 
 enum class FederationRestoreNotificationKind {
@@ -562,6 +580,10 @@ struct FederationRestoreControlResult {
   // rebuilds each callback against the current recipient route.
   std::vector<AttributeOwnershipAssumptionRecipient>
       attributeOwnershipAssumptionWorkItems;
+  std::vector<FederationStateImageReceiveOrderInteraction>
+      restoredQueuedReceiveOrderInteractions;
+  std::vector<FederationStateImageReceiveOrderAttributeUpdate>
+      restoredQueuedReceiveOrderAttributeUpdates;
 };
 
 // Resign-action work is returned as generic callback routes so the registry
@@ -1873,6 +1895,10 @@ struct ReceiveOrderInteractionRecipient {
   // See ReceiveOrderAttributeUpdateRecipient::conveyRegionDesignatorSets.
   bool conveyRegionDesignatorSets = false;
   InteractionCallbackRoute callbackRoute;
+  // Reserved MOM report endpoints can supply an RTI-owned update region.
+  // Preserve its committed snapshot until callback-scoped copies are created.
+  std::set<std::uint64_t> sentRegionHandles;
+  std::map<std::uint64_t, RegionSpecificationSnapshot> sentRegionSnapshots;
 };
 
 struct ReceiveOrderInteractionPlan {

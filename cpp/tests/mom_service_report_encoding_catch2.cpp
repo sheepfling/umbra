@@ -133,6 +133,10 @@ TEST_CASE(
 
   rti1516_2025::HLAplainTextPassword credential(L"p\u00E4ss");
   auto const value = formatMomCredentials(credential);
+  REQUIRE(value.find(L"\"Type\":\"HLAplainTextPassword\"") !=
+      std::wstring::npos);
+  REQUIRE(value.find(L"\"Data\":\"AAAABABwAOQAcwBz\"") !=
+      std::wstring::npos);
   REQUIRE(value ==
       L"{\"Type\":\"HLAplainTextPassword\",\"Data\":\"AAAABABwAOQAcwBz\"}");
 

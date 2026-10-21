@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable Pending TSO Object TCK</name>
+        <type>FOM</type>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>TckObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <attribute>
+                    <name>Value</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>On change</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Portable timestamped attribute replay payload.</semantics>
+                </attribute>
+                <attribute>
+                    <name>Name</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>At registration.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAbestEffort</transportation>
+                    <order>Receive</order>
+                    <semantics>Portable second attribute for object removal setup.</semantics>
+                </attribute>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <switches>
+        <autoProvide isEnabled="true"/>
+        <nonRegulatedGrant isEnabled="true"/>
+    </switches>
+</objectModel>

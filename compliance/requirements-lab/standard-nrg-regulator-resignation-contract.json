@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable public-API translation of the verified native sole-regulator resignation witness. The adapter supplies a complete FOM with the standard nonRegulatedGrant switch enabled, a logical-time implementation, endpoint and callback model. A constrained receiver requests a strict TAR at the defined GALT boundary and receives no grant while the sole time regulator remains joined. After that regulator resigns, the receiver obtains one Time Advance Grant at the requested time. The switch is read through the official getter; no private scheduler or registry observation is used. Direct mappings are the native page-058-l112-33 resignation candidate to IEEE 1516.1-2025 clause 4.12, page-188-l87-26 to clause 8.2, page-189-l162-44 to clause 8.3.1, page-194-l21-3 and page-194-l69-19 to clause 8.8.3, and the switch declaration candidate sections-semantic-clause-4b-page-067-l50-4 to IEEE 1516.2-2025 clause 4.13.3. Other native setup mappings and a general NRG scheduling proof are not claimed. Official-header C++ primary and contract passed twice in evoked and immediate models against installed package libraries; Java parity compiles against the official API-only JAR but has no provider-runtime result.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-nrg-regulator-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador getNonRegulatedGrantSwitch, enableTimeConstrained, enableTimeRegulation, queryGALT, timeAdvanceRequest, resignFederationExecution with FederateAmbassador timeConstrainedEnabled, timeRegulationEnabled, timeAdvanceGrant",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador time-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_nrg_regulator_resignation.cpp::scenarioNrgRegulatorResignation",
+        "packages/hla-rti-cpp-tck/src/tck_nrg_regulator_resignation.cpp::scenarioNrgRegulatorResignationContract"
+      ]
+    }
+  ]
+}

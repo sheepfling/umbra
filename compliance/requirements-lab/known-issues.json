@@ -1713,6 +1713,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
         "requirement-candidate-content-clauses-08-time-management-page-192-l63-17",
         "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+        "requirement-candidate-content-clauses-08-time-management-page-194-l27-5",
         "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
         "requirement-candidate-content-clauses-08-time-management-page-207-l112-28",
         "requirement-candidate-content-clauses-10-support-services-page-286-l20-3"
@@ -1749,6 +1750,449 @@
       "reproduction": "Compare requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1 in topics/ieee/hla-1516.1-2025/semantic/requirements.json with the page-165 heading sequence in semantic/content-blocks.json: the introduction occurs before 7.10.1, while 7.10.6 Reference state charts appears at the bottom.",
       "verification": "The pinned requirement record and reconstructed semantic page establish the heading order. The canonical PDF was not independently checked in this turn; this is a Lab source-attribution issue, not IEEE errata or conformance evidence.",
       "detected": "2026-10-15"
+    },
+    {
+      "id": "RL-330",
+      "status": "open",
+      "kind": "semantic-extraction-clause-boundary",
+      "title": "Page-180 mixed-passel message rule inherits later 8.1.4 heading",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l9-1",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l21-5",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l27-7",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l39-11",
+        "requirement-candidate-content-clauses-08-time-management-page-180-l45-13"
+      ],
+      "exported_clause": "8.1.4",
+      "normative_clause": "8.1.3",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/08-time-management-page-180.tex",
+        "lines": "9-68",
+        "page": 180
+      },
+      "symptom": "Five page-180 candidates before the 8.1.4 Message order type heading are exported as 8.1.4 despite appearing under 8.1.3 Messages. The l27-7 separate-passel-message rule is a useful complete candidate; l9-1 is introductory and l21-5, l39-11, and l45-13 are incomplete statement fragments.",
+      "impact": "A mixed-order C++ test can be misattributed to the message-order-type subsection. The four other records can appear as actionable unmapped 8.1.4 requirements even though they are not independently testable statements.",
+      "workaround": "Preserve pinned IDs and export. Use a local canonical 8.1.3 crosswalk for these five records; count direct evidence only for the complete l27-7 rule. Do not invent test claims for fragments, resynchronize unchanged Lab inputs, or claim IEEE errata or conformance.",
+      "reproduction": "Compare the five candidates' 8.1.4 attribution in pinned semantic/requirements.json with semantic/content-block-content-15161-page-180.tex: the 8.1.3 heading is at line 10, the affected text runs through line 68, and the 8.1.4 heading is at line 70.",
+      "verification": "The pinned reconstructed page establishes heading order. The canonical PDF was not independently checked in this turn.",
+      "detected": "2026-10-15"
+    },
+    {
+      "id": "RL-331",
+      "status": "open",
+      "kind": "semantic-extraction-clause-boundary",
+      "title": "Page-153 acquisition and privilege rules inherit later 7.1.4 heading",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l15-4",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l30-9",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l36-11",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l45-14",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l60-19",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l75-24",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l84-26",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l87-27",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l96-30",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l99-31",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l108-34",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l111-35"
+      ],
+      "exported_clause": "7.1.4",
+      "normative_clause": "7.1.2.2 (first six IDs); 7.1.3 (last six IDs)",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/07-ownership-management-page-153.tex",
+        "lines": "15-111",
+        "page": 153
+      },
+      "symptom": "Twelve page-153 candidates are exported under 7.1.4 User-supplied tags: six acquisition-continuation records above the 7.1.3 heading, and six privilege-to-delete records under 7.1.3 but above the later 7.1.4 heading. Only the two post-heading tag candidates on this page belong to 7.1.4.",
+      "impact": "Ownership tests using these IDs can falsely inflate tag-subsection coverage while failing to represent acquisition or privilege-to-delete rules in their actual subsections.",
+      "workaround": "Preserve the pinned candidate IDs and export; map the first six listed IDs to canonical 7.1.2.2 and the last six to 7.1.3. Use the two true post-heading tag candidates for tag-relay tests. Do not resynchronize unchanged Lab inputs.",
+      "reproduction": "Compare the twelve candidates' 7.1.4 attribution in pinned semantic/requirements.json with semantic/content-block-content-15161-page-153.tex and the preceding page-152 7.1.2.2 heading: acquisition continuation precedes 7.1.3 at page-153 line 85; privilege text precedes 7.1.4 at line 121.",
+      "verification": "The pinned reconstructed page establishes heading order. The canonical PDF was not independently checked in this turn; this is a Lab attribution issue, not IEEE errata or conformance evidence.",
+      "detected": "2026-10-15"
+    },
+    {
+      "id": "RL-333",
+      "status": "open",
+      "kind": "semantic-extraction-incomplete-statement",
+      "title": "Page-192 Time Constrained Enabled precondition ends mid-sentence",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-192-l69-19"
+      ],
+      "exported_clause": "8.6.3",
+      "normative_clause": "8.6.3",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/08-time-management-page-192.tex",
+        "lines": "69-71",
+        "page": 192
+      },
+      "symptom": "The candidate statement ends at 'the joined federate’s' and omits the continuation 'current logical time' from the next page-layout block.",
+      "impact": "The candidate alone does not state the required argument value. A developer using only the requirement query cannot tell that the precondition requires equality with the joined federate's current logical time.",
+      "workaround": "Keep the stable candidate ID and map evidence to §8.6.3 only after checking the complete page-level source. Do not resynchronize unchanged Lab inputs or treat the fragment as independent evidence without its continuation.",
+      "reproduction": "Query requirement-candidate-content-clauses-08-time-management-page-192-l69-19 in the pinned requirement export; compare its statement with the Time Constrained Enabled text in semantic/content-blocks.json sequence 192, where the following HLAFixedBlock contains 'current logical time.'",
+      "verification": "Confirmed against the pinned Requirements Lab semantic requirement and page-192 layout block. No canonical-PDF or IEEE errata claim is made.",
+      "detected": "2026-10-16"
+    },
+    {
+      "id": "RL-334",
+      "status": "open",
+      "kind": "semantic-extraction-incomplete-statement",
+      "title": "Page-192 smallest-feasible-time requirement ends mid-sentence",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-192-l72-20"
+      ],
+      "exported_clause": "8.6.3",
+      "normative_clause": "8.6.3",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/08-time-management-page-192.tex",
+        "lines": "72-77",
+        "page": 192
+      },
+      "symptom": "The candidate statement ends at 'for which all other constraints necessary to' and omits the rest of the smallest-feasible-logical-time condition.",
+      "impact": "The requirement query does not identify the constraints or delivery obligation that complete this time-management rule; implementers must reconstruct it from the full page-level semantic source.",
+      "workaround": "Keep the stable candidate ID and map focused behavior only to §8.6.3 after checking the full page-level source. Do not resynchronize unchanged Lab inputs or infer omitted detail from this fragment alone.",
+      "reproduction": "Query requirement-candidate-content-clauses-08-time-management-page-192-l72-20 in the pinned requirement export; compare with the complete page-192 Time Constrained Enabled block in semantic/content-blocks.json sequence 192.",
+      "verification": "Confirmed from the pinned requirement candidate and page-192 layout block. This is a Requirements Lab extraction/usability defect, not IEEE errata or a conformance finding.",
+      "detected": "2026-10-16"
+    },
+    {
+      "id": "RL-335",
+      "status": "open",
+      "kind": "semantic-extraction-split-statement",
+      "title": "Page-197 Time Advance Grant result statement is split mid-sentence",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-197-l98-29",
+        "requirement-candidate-content-clauses-08-time-management-page-197-l104-31"
+      ],
+      "exported_clause": "8.10.2",
+      "normative_clause": "8.10.2",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/08-time-management-page-197.tex",
+        "lines": "98-110",
+        "page": 197
+      },
+      "symptom": "The page-197 l98 candidate ends with 'or to the'; l104 begins 'specified logical time if no TSO messages were delivered' and then includes additional no-future-TSO and GALT grant conditions.",
+      "impact": "The standalone candidate text is incomplete, while the continuation candidate bundles several obligations. A reader of isolated requirement query results can miss the full grant-time selection rule or conflate separate follow-on conditions.",
+      "workaround": "Retain both stable IDs and read page-197 content-blocks sequence 197. Map the grant-value branches to l98 only; assess the no-future-TSO and GALT conditions separately from l104. Do not count the fragments as independent duplicate obligations or infer missing text from the truncated statement.",
+      "reproduction": "Query requirement-candidate-content-clauses-08-time-management-page-197-l98-29 and requirement-candidate-content-clauses-08-time-management-page-197-l104-31 in the pinned export; compare their statements with the complete Time Advance Grant block in semantic/content-blocks.json sequence 197.",
+      "verification": "Confirmed against the pinned requirements.json records and the full page-197 source layout block. This is a Requirements Lab extraction/usability defect, not IEEE errata or a conformance finding. No Lab resync was performed.",
+      "detected": "2026-10-16"
+    },
+    {
+      "id": "RL-337",
+      "status": "open",
+      "kind": "semantic-extraction-split-statement",
+      "title": "Page-200 Flush Queue Request delivery and grant rule is split across fragments",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-200-l131-38",
+        "requirement-candidate-content-clauses-08-time-management-page-200-l134-39",
+        "requirement-candidate-content-clauses-08-time-management-page-200-l140-41",
+        "requirement-candidate-content-clauses-08-time-management-page-200-l164-49",
+        "requirement-candidate-content-clauses-08-time-management-page-200-l170-51"
+      ],
+      "exported_clause": "8.12",
+      "normative_clause": "8.12",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "output/semantic/content-block-content-15161-page-200.tex",
+        "lines": "33-44",
+        "page": 200
+      },
+      "symptom": "The l131 candidate ends at 'the joined federate'; l134 starts 'will receive' and ends at 'smaller timestamps'; l140 starts 'could arrive' and announces the smallest-of grant rule without its three listed operands. The l164 optimistic-time candidate ends at 'advancing the' and l170 supplies its sentence tail. The complete reconstructed page-200 §8.12 paragraphs and list run continuously through semantic content-block lines 34-44.",
+      "impact": "No individual candidate states the full queued-TSO delivery rule, the request/GALT/delivered-timestamp minimum for actual grant time, or the complete optimistic-time relation. Treating one fragment as the whole requirement can overstate a test's FQR coverage or suggest an unsupported cutoff for TSO input arriving after request acceptance but before the evoked grant callback.",
+      "workaround": "Preserve the stable IDs and pinned export. Read the five fragments with the full page-200 §8.12 semantic block, including its three list items, and the page-201 continuation before planning a focused case. Map only the specific proven subclaim; do not infer a mandatory inclusion/exclusion cutoff for future TSO arrivals or resynchronize unchanged Lab inputs.",
+      "reproduction": "Compare the five candidate statements in topics/ieee/hla-1516.1-2025/semantic/requirements.json with output/semantic/content-block-content-15161-page-200.tex lines 33-44. The latter preserves the complete delivery paragraph, smallest-of list, and optimistic-logical-time paragraph that the candidate records split or omit.",
+      "verification": "Confirmed against the local pinned 2025 Requirements Lab candidate records and full reconstructed semantic page. This is a candidate-extraction/usability defect, not a claim that the full clause specifies the exact post-acceptance arrival cutoff, IEEE errata, or conformance. The canonical PDF was not independently checked and no Lab resync was performed.",
+      "detected": "2026-10-16"
+    },
+    {
+      "id": "RL-339",
+      "status": "open",
+      "kind": "semantic-extraction-clause-boundary",
+      "title": "Page-203 time-management candidates inherit §8.14.3 across service boundaries",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-203-l47-12",
+        "requirement-candidate-content-clauses-08-time-management-page-203-l68-19",
+        "requirement-candidate-content-clauses-08-time-management-page-203-l95-25",
+        "requirement-candidate-content-clauses-08-time-management-page-203-l104-28",
+        "requirement-candidate-content-clauses-08-time-management-page-203-l113-31"
+      ],
+      "exported_clause": "8.14.3",
+      "normative_clause": "8.13.4 for page-203 l47 and l68; 8.14 for page-203 l95, l104, and l113",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "output/semantic/content-block-content-15161-page-203.tex",
+        "lines": "13-50",
+        "page": 203
+      },
+      "symptom": "The l47 and l68 candidates describe Flush Queue Grant postconditions under the page's §8.13.4 heading. The l95, l104, and l113 candidates describe the Time Advance Grant result paragraph immediately under the §8.14 service heading. All five are assigned to §8.14.3, whose heading is Preconditions.",
+      "impact": "A forward gap query groups unrelated obligations under §8.14.3, obscures the FQG postconditions, and can lead test plans to map Flush Queue Grant or Time Advance Grant behavior to the Preconditions subsection rather than the correct normative paragraph.",
+      "workaround": "Preserve the stable Lab IDs and exported §8.14.3 label in the issue record. For test mappings, use the pinned page-203 heading context: map l47 and l68 only to §8.13.4 and l95/l104/l113 only to §8.14. Do not edit the Lab export or infer that these obligations belong to §8.14.3; no resync is warranted while inputs are unchanged.",
+      "reproduction": "python tools/query_rti_work.py gaps --document hla-1516.1-2025 --family time-save-restore --clause clause-8.14 --limit 8 --compact; compare each candidate's source line in semantic/requirements.json with output/semantic/content-block-content-15161-page-203.tex headings 8.13.4 and 8.14.",
+      "verification": "Compared all five pinned semantic requirement records with the complete page-203 source block. The source headings place l47 and l68 in §8.13.4 and l95/l104/l113 in the §8.14 service description, not §8.14.3 Preconditions. The l68 candidate was identified during the 2026-10-20 FQR issue review and added to this still-open issue because it is the same unresolved page-boundary defect, not a recurrence of a previously fixed issue. This is a Requirements Lab extraction defect, not IEEE errata or a conformance finding. No Lab resync was performed.",
+      "detected": "2026-10-16"
+    },
+    {
+      "id": "RL-340",
+      "status": "open",
+      "kind": "semantic-extraction-subsection-boundary",
+      "title": "Pages 229 and 231 DDM invalid-region requirements are assigned to postconditions/reference-state subsections",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l146-44",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-231-l100-28"
+      ],
+      "exported_clause": "9.5.4 for page-229 l146; 9.6.6 for page-231 l100",
+      "normative_clause": "9.5.3 for page-229 l146; 9.6.3 for page-231 l100",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "output/semantic/content-block-content-15161-page-229.tex; output/semantic/content-block-content-15161-page-231.tex",
+        "lines": "page-229 preconditions j; page-231 preconditions j",
+        "page": "229 and 231"
+      },
+      "symptom": "The page-229 l146 candidate says an invalid supplied region designator causes Invalid region, but it appears under §9.5.3 Preconditions; the next heading is §9.5.4 Postconditions. The page-231 l100 candidate states the same precondition under §9.6.3, while the exported mapping assigns it to §9.6.6 Reference state charts.",
+      "impact": "Clause-level gap reports hide these two public API validation behaviors under unrelated subsections and can produce inaccurate test traceability if the exported subsection is copied without checking the pinned full-text page context.",
+      "workaround": "Keep both stable requirement IDs. For test evidence, map page-229 l146 to §9.5.3 and page-231 l100 to §9.6.3 using the pinned page headings. Do not edit or resynchronize the Requirements Lab export unless its upstream inputs change.",
+      "reproduction": "Run python tools/query_rti_work.py requirement requirement-candidate-content-clauses-09-data-distribution-management-page-229-l146-44 --compact and the corresponding page-231-l100-28 query; compare their section labels with the full semantic page blocks, where the invalid-region preconditions occur under §9.5.3 and §9.6.3 respectively.",
+      "verification": "Compared both pinned candidate records with semantic/content-elements.json and the page-level order of headings and statements. Both invalid-region statements are preconditions, not postconditions/reference-state charts. This is a Requirements Lab subsection-boundary extraction defect, not IEEE errata or a conformance finding. No Lab resync was performed.",
+      "detected": "2026-10-16"
+    },
+    {
+      "id": "RL-341",
+      "status": "open",
+      "kind": "semantic-extraction-page-boundary",
+      "title": "Update-region ownership-loss postcondition is attributed to Register Object Instance",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l20-5"
+      ],
+      "exported_clause": "9.5.4",
+      "normative_clause": "9.6",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-229.tex; topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-230.tex",
+        "lines": "page-229 candidate l20; page-230 Associate Regions For Updates text",
+        "page": "229 and 230"
+      },
+      "symptom": "The requirement says an update-region association is lost when a joined federate loses ownership and is not restored on later reacquisition. The semantic page places that paragraph under the §9.6 Associate Regions For Updates service, but the candidate is exported as §9.5.4 Postconditions for Register Object Instance With Regions.",
+      "impact": "Requirement-gap and trace queries assign an ownership-sensitive DDM rule to the wrong service family, which can misdirect implementation and make section-level coverage misleading.",
+      "workaround": "Keep the immutable requirement ID. For source-backed test traceability, map page-229 l20 to §9.6 using the page-230 service heading. Do not change the Requirements Lab export or infer a conformance defect.",
+      "reproduction": "Run python tools/query_rti_work.py requirement requirement-candidate-content-clauses-09-data-distribution-management-page-229-l20-5 --compact; compare the candidate with output/semantic/content-block-content-15161-page-229.tex and page-230.tex, where the paragraph is under the §9.6 heading.",
+      "verification": "Compared the pinned semantic candidate with both complete page blocks: page 229 carries the §9.5 headings while the ownership-loss/reacquisition paragraph continues before the §9.6 heading on page 230. The complete page-230 source then clearly identifies it as part of Associate Regions For Updates. This is a Requirements Lab page-boundary extraction defect, not IEEE errata or a conformance finding. No Lab resync was performed.",
+      "detected": "2026-10-16"
+    },
+    {
+      "id": "RL-342",
+      "status": "open",
+      "kind": "semantic-extraction-subsection-boundary",
+      "title": "Page-44 saved-message restore requirement is exported only under Clause 4",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-044-l54-17"
+      ],
+      "exported_clause": "4",
+      "normative_clause": "4.1.2",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "output/semantic/content-block-content-15161-page-043.tex; output/semantic/content-block-content-15161-page-044.tex",
+        "lines": "page-043 heading clause:4.1.2; page-044 lines 57-64",
+        "page": "43-44"
+      },
+      "symptom": "The candidate for saved-message delivery after restore is exported under Clause 4 without the canonical subsection. The full 2025 page-43 source anchors the save/restore discussion at §4.1.2; the page-44 saved-message paragraph continues under that heading and precedes the next §4.1.3 heading.",
+      "impact": "A direct test mapping copied from the exported clause can only point to Clause 4, hiding the precise save/restore subsection and making focused coverage harder to query.",
+      "workaround": "Preserve the stable Lab ID and exported Clause 4 label. Use the source-backed local crosswalk to §4.1.2 for the saved-message delivery statement; do not modify or resynchronize the Requirements Lab export unless its upstream inputs change.",
+      "reproduction": "Run `python tools/query_rti_work.py requirement requirement-candidate-content-clauses-04-federation-management-page-044-l54-17`; compare the exported Clause 4 result with page-43's §4.1.2 heading and page-44 lines 57-64 in the pinned 2025 semantic source.",
+      "verification": "Verified the full IEEE 1516.1-2025 semantic source: page-43 content-block anchor and bookmark are clause:4.1.2 / '4.1.2 Federation execution save and restore'; page-44 lines 57-64 state that after restore completes the RTI delivers related saved RO/TSO messages, before the following 4.1.3 heading. This is a Requirements Lab subsection-attribution gap, not IEEE errata or a conformance finding. No Lab resync was performed.",
+      "detected": "2026-10-17"
+    },
+    {
+      "id": "RL-343",
+      "status": "open",
+      "kind": "semantic-extraction-subsection-boundary",
+      "title": "Page-204 TSO delivery cutoffs are exported under asynchronous-delivery preconditions",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-204-l74-21",
+        "requirement-candidate-content-clauses-08-time-management-page-204-l86-25"
+      ],
+      "exported_clause": "8.15.3",
+      "normative_clause": "8.14.4(d)",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "topics/ieee/hla-1516.1-2025/semantic/content-blocks.json",
+        "lines": "content-15161-page-204: §8.14.4(d) and (e) precede the §8.15 service heading; §8.15.3 is Preconditions",
+        "page": 204
+      },
+      "symptom": "The page-204 l74 candidate says no additional TSO messages with timestamps less than or equal to the supplied logical time shall be delivered after TAR/NMR; the l86 candidate says none with timestamps less than the supplied time shall be delivered after TARA/NMRA. The full page places these postconditions under §8.14.4(d) and (e), respectively. Both candidates are exported as §8.15.3, which is the Preconditions subsection of Enable Asynchronous Delivery and contains no TSO-delivery postcondition.",
+      "impact": "Gap queries and test maps can misattribute a TAR/NMR time-management guarantee to asynchronous delivery, obscuring the actual time-advance boundary and suggesting an unsupported relationship between asynchronous delivery and TSO callbacks.",
+      "workaround": "Preserve both stable Lab IDs and the exported §8.15.3 values in the issue record. For source-backed test traceability, map the page-204 equal-time TAR/NMR cutoff to §8.14.4(d) and the strict-less-than TARA/NMRA cutoff to §8.14.4(e). Keep §8.15 limited to its receive-order asynchronous-delivery behavior; do not infer asynchronous TSO dispatch. Do not edit or resynchronize the Lab export unless its upstream inputs change.",
+      "reproduction": "Run `python tools/query_rti_work.py requirement requirement-candidate-content-clauses-08-time-management-page-204-l74-21 --summary` and the equivalent query for `requirement-candidate-content-clauses-08-time-management-page-204-l86-25`; compare both labels with `topics/ieee/hla-1516.1-2025/semantic/content-blocks.json`, record `content-15161-page-204`, where §8.14.4(d)/(e) precede the §8.15 heading and §8.15.3 Preconditions.",
+      "verification": "Inspected the complete pinned page-204 semantic content block. Items 8.14.4(d) and (e) state the inclusive TAR/NMR and strict-less-than TARA/NMRA post-grant cutoffs, respectively; the next service heading is §8.15 Enable Asynchronous Delivery, whose §8.15.3 subsection lists only preconditions. The existing equal-time TAR and strict-less-than TARA cases are supported by §8.14.4(d)/(e); this is a Requirements Lab subsection-attribution defect, not IEEE errata or a conformance finding. No Lab resync was performed.",
+      "detected": "2026-10-17"
+    },
+    {
+      "id": "RL-344",
+      "status": "open",
+      "kind": "semantic-extraction-subsection-boundary",
+      "title": "Page-62 failed synchronization-registration no-effect rule is assigned to the following service",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-062-l28-6"
+      ],
+      "exported_clause": "4.16",
+      "normative_clause": "4.15",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "topics/ieee/hla-1516.1-2025/semantic/content-blocks.json",
+        "lines": "content-15161-page-062: failed Register Federation Synchronization Point indication and no-effect rule precede the 4.16 Announce Synchronization Point heading",
+        "page": 62
+      },
+      "symptom": "The candidate states that a synchronization-point registration attempt ending with a negative success indicator has no other effect on the federation execution, but the export assigns it to §4.16. The complete page places the statement in the Register Federation Synchronization Point service flow; the §4.16 Announce Synchronization Point heading begins after the §4.15 reference-state-chart material.",
+      "impact": "Requirement-gap and test-mapping queries can attribute failed registration semantics to the subsequent Announce service instead of Register Federation Synchronization Point, obscuring whether a rejected registration leaves federation state unchanged.",
+      "workaround": "Preserve the stable Lab requirement ID and exported §4.16 value in this issue. A source-backed test may map this behavior to §4.15 only when it directly asserts that the failed registration has no federation side effect. Do not mutate or resynchronize the pinned Lab export unless its upstream inputs change.",
+      "reproduction": "Run `python tools/query_rti_work.py requirement requirement-candidate-content-clauses-04-federation-management-page-062-l28-6 --summary --compact`; then inspect `topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-062.tex` around the failed-registration/no-effect paragraph and the following §4.16 heading.",
+      "verification": "The query reports exported `hla-1516.1-2025:clause-4.16`. The page-62 semantic source places the negative-registration/no-effect statement in the Register Federation Synchronization Point service flow and introduces §4.16 Announce Synchronization Point only afterward. This is a Lab subsection-attribution defect, not IEEE errata or a conformance finding. No Lab resync was performed.",
+      "detected": "2026-10-17"
+    },
+    {
+      "id": "RL-345",
+      "status": "open",
+      "kind": "semantic-extraction-subsection-boundary",
+      "title": "Page-225 region-designator copy-lifetime guarantee is assigned to §9.1.8 instead of §9.1.7",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30"
+      ],
+      "exported_clause": "9.1.8",
+      "normative_clause": "9.1.7",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "topics/ieee/hla-1516.1-2025/semantic/content-blocks.json",
+        "lines": "content-15161-page-225: region-copy lifetime guarantee follows the §9.1.7 Convey Region Designator Sets Switch material and precedes the §9.1.8 Allow Relaxed DDM heading",
+        "page": 225
+      },
+      "symptom": "The candidate requirement concerns the conveyed Region-designator copy remaining intact until the receiving Reflect Attribute Values or Receive Interaction invocation completes, including while the source region changes. The page-225 semantic layout places this guarantee under §9.1.7, Convey Region Designator Sets Switch; the §9.1.8 Allow Relaxed DDM heading begins afterward, but the exported record assigns clause 9.1.8.",
+      "impact": "Requirement-gap and test-mapping queries can place the copy-lifetime guarantee under relaxed DDM instead of the switch that conveys Region designator sets. This creates a false subsection crosswalk even when the callback-snapshot behavior itself is correctly tested.",
+      "workaround": "Preserve the stable Lab requirement ID and exported §9.1.8 value in this issue. For source-backed traceability, map the page-225 copy-lifetime behavior to §9.1.7. Do not rewrite or resynchronize the pinned Lab export unless its upstream inputs change.",
+      "reproduction": "Run `python tools/query_rti_work.py requirement requirement-candidate-content-clauses-09-data-distribution-management-page-225-l96-30 --summary --compact`; then inspect `content-15161-page-225` around the region-copy lifetime paragraph, the §9.1.7 Convey Region Designator Sets Switch material, and the following §9.1.8 Allow Relaxed DDM heading.",
+      "verification": "An independent review of the complete page-225 semantic layout found the region-copy lifetime guarantee before the §9.1.8 heading and under the §9.1.7 switch discussion. The focused timestamped callback-snapshot test exercises the switch and checks the original region bounds after the publisher mutates its source region. This is a Requirements Lab subsection-attribution defect, not IEEE errata or conformance evidence. No Lab resync was performed.",
+      "detected": "2026-10-19"
+    },
+    {
+      "id": "RL-346",
+      "status": "open",
+      "kind": "semantic-extraction-subsection-boundary",
+      "title": "Page-193 time-constrained requirements are assigned to Disable Time Constrained exceptions",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-193-l31-6",
+        "requirement-candidate-content-clauses-08-time-management-page-193-l34-7",
+        "requirement-candidate-content-clauses-08-time-management-page-193-l61-13"
+      ],
+      "exported_clause": "8.7.5",
+      "normative_clause": "8.6.4 (first two requirements); 8.7 service description (third requirement)",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-193.tex",
+        "lines": "page 193 semantic flow: the first two statements are under §8.6.4 Postconditions; the Disable Time Constrained description is under §8.7 before its numbered subsections",
+        "page": 193
+      },
+      "symptom": "All three candidate records are exported as §8.7.5 Exceptions. The page-193 semantic flow places the GALT-bounded logical-time postcondition and specified-time update under §8.6.4 Postconditions of Enable Time Constrained. The requirement that enqueued and subsequent TSO messages be delivered as RO appears in the §8.7 Disable Time Constrained service description, before §8.7.1–§8.7.5 begin.",
+      "impact": "Gap queries and test mappings can attribute time-constrained enable postconditions and disable-service behavior to the Disable Time Constrained exception list, producing false subsection traceability and hiding which temporal transition is actually covered.",
+      "workaround": "Preserve the stable Lab requirement IDs and exported §8.7.5 values in this issue. For source-backed mappings, map the first two requirements to §8.6.4 and the TSO-to-RO behavior to the §8.7 service description. Do not mutate or resynchronize the pinned Lab export unless its upstream inputs change.",
+      "reproduction": "Run `python tools/query_rti_work.py requirement` for each affected requirement ID, then inspect `topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-193.tex` around the §8.6.4 postconditions, the §8.7 Disable Time Constrained service description, and the later §8.7.5 Exceptions heading.",
+      "verification": "The requirement queries report `hla-1516.1-2025:clause-8.7.5` for all three IDs. The complete page-193 semantic flow places the first two statements in §8.6.4 Postconditions and the third in the §8.7 Disable Time Constrained service description; §8.7.5 is introduced later as Exceptions. This is a Requirements Lab subsection-attribution defect, not IEEE errata or a conformance finding. No Lab resync was performed.",
+      "detected": "2026-10-19"
+    },
+    {
+      "id": "RL-347",
+      "status": "open",
+      "kind": "semantic-extraction-subsection-boundary",
+      "title": "Page-44 federate-type restore requirements continue to export only under Clause 4",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-044-l72-23",
+        "requirement-candidate-content-clauses-04-federation-management-page-044-l78-25"
+      ],
+      "exported_clause": "4",
+      "normative_clause": "4.1.2",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-043.tex; topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-044.tex",
+        "lines": "page-043 heading clause:4.1.2 Federation execution save and restore; page-044 per-federate-type count and same-type interchangeability statements precede the next §4.1.3 heading",
+        "page": "43-44"
+      },
+      "symptom": "The candidates for equal per-federate-type membership counts and same-type restore interchangeability are exported only under Clause 4. The complete 2025 source places both statements in the continuing §4.1.2 Federation execution save and restore discussion.",
+      "impact": "Requirement queries and generated test maps lose the exact save/restore subsection. This repeats the page-44 broad-clause export pattern recorded for a separate saved-message candidate in RL-342, now observed on two additional stable requirement IDs.",
+      "workaround": "Preserve the stable Lab IDs and exported Clause 4 value. Map these two candidates to §4.1.2 using the source-backed local crosswalk; do not resynchronize the Requirements Lab unless upstream inputs change.",
+      "reproduction": "Run `python tools/query_rti_work.py requirement` for both affected IDs; compare the Clause 4 result with page-43's §4.1.2 heading and the page-44 per-type count/interchangeability paragraphs before the §4.1.3 heading.",
+      "verification": "The page-44 source states that restored per-federate-type counts shall match and that a federate can use the state saved by another federate of that type. The source paragraphs continue the page-43 §4.1.2 save/restore discussion. The pinned Lab still exports both candidates as Clause 4; the local test-plan overrides preserve the IDs and record §4.1.2. This is a Requirements Lab subsection-attribution defect, not IEEE errata or conformance evidence. No Lab resync was performed.",
+      "detected": "2026-10-19"
+    },
+    {
+      "id": "RL-348",
+      "status": "open",
+      "kind": "semantic-extraction-subsection-boundary",
+      "title": "Page-57 federate-type join requirement is exported only under Clause 4",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5"
+      ],
+      "exported_clause": "4",
+      "normative_clause": "4.11",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-057.tex",
+        "lines": "page-057 §4.11 Join Federation Execution service description: the federate-type argument distinguishes categories for save and restore, before §4.11.1–§4.11.4",
+        "page": 57
+      },
+      "symptom": "The Join Federation Execution requirement that the federate-type argument distinguish save/restore categories is exported under Clause 4 without the service subsection. The source places it in the §4.11 service description, before its numbered argument, precondition, and postcondition subsections.",
+      "impact": "A direct map copied from the Lab export cannot distinguish the Join Federation Execution service rule from unrelated federation-management requirements and can incorrectly attribute the statement to §4.11.4 Postconditions.",
+      "workaround": "Preserve the stable Lab ID and exported Clause 4 value. Use a source-backed local override to §4.11 Join Federation Execution service description; do not mutate or resynchronize the pinned Lab export unless its inputs change.",
+      "reproduction": "Run `python tools/query_rti_work.py requirement requirement-candidate-content-clauses-04-federation-management-page-057-l32-5`; inspect page 57 at the §4.11 Join Federation Execution heading and its service-description paragraph before §4.11.1.",
+      "verification": "The complete page-57 semantic flow places the save/restore federate-type sentence in the §4.11 Join Federation Execution service description. The pinned Lab candidate is exported only under Clause 4; the local test-plan override records §4.11. This is a Requirements Lab subsection-attribution defect, not IEEE errata or conformance evidence. No Lab resync was performed.",
+      "detected": "2026-10-19"
+    },
+    {
+      "id": "RL-349",
+      "status": "open",
+      "kind": "semantic-extraction-subsection-boundary",
+      "title": "Page-202 Flush Queue Grant result is assigned to §8.13.3 preconditions",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-202-l107-29"
+      ],
+      "exported_clause": "8.13.3",
+      "normative_clause": "8.13",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "topics/ieee/hla-1516.1-2025/semantic/content-blocks.json",
+        "lines": "content-15161-page-202 layout_body: Flush Queue Grant result paragraph after the §8.13 heading and before §8.13.1 through §8.13.3",
+        "page": 202
+      },
+      "symptom": "The candidate states that the Flush Queue Grant logical-time argument is the advanced logical time and that OLT is the minimum of the Flush Queue Request time and timestamps of TSO messages delivered in response. In the complete page-202 source, this result paragraph follows the §8.13 Flush Queue Grant service heading and precedes the numbered supplied-argument, returned-argument, and precondition subsections, but the candidate is exported as §8.13.3 Preconditions.",
+      "impact": "Requirement-gap reports and test mappings can place the normative OLT result under preconditions, obscuring the exact service result and misleading subsection-level coverage accounting.",
+      "workaround": "Preserve the stable Lab requirement ID. For source-backed test traceability, map page-202 l107 to §8.13, the Flush Queue Grant service description. Do not change or resynchronize the Lab export unless its inputs change.",
+      "reproduction": "Run python tools/query_rti_work.py requirement requirement-candidate-content-clauses-08-time-management-page-202-l107-29 --summary --compact; compare the exported §8.13.3 mapping with content-15161-page-202 in topics/ieee/hla-1516.1-2025/semantic/content-blocks.json, where the OLT paragraph precedes §8.13.1–§8.13.3.",
+      "verification": "The pinned page-202 semantic source places the complete OLT result paragraph immediately under the §8.13 Flush Queue Grant heading; §8.13.3 Preconditions begins later. The Lab candidate is therefore locally crosswalked to §8.13. This is a Requirements Lab subsection-attribution defect, not IEEE errata or conformance evidence. No Lab resync was performed.",
+      "detected": "2026-10-20"
+    },
+    {
+      "id": "RL-350",
+      "status": "open",
+      "kind": "semantic-extraction-subsection-boundary",
+      "title": "Page-182 optimistic Flush Queue lookahead rule is exported only under Clause 8",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-182-l73-23"
+      ],
+      "exported_clause": "8",
+      "normative_clause": "8.1.5",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "topics/ieee/hla-1516.1-2025/semantic/content-blocks.json",
+        "lines": "content-15161-page-182 layout_body: FQG optimistic-lookahead restriction under §8.1.5 before the §8.1.6 heading",
+        "page": 182
+      },
+      "symptom": "The candidate says that after Flush Queue Grant a time-regulating federate cannot send a TSO message below its optimistic logical time plus its optimistic lookahead. The page-182 source places this rule under §8.1.5 Time-regulating joined federates, but the Lab exports it only under broad Clause 8.",
+      "impact": "The broad export prevents precise querying and can leave the FQG post-grant timestamp floor absent from subsection-level coverage even when a focused API test exercises it.",
+      "workaround": "Preserve the stable Lab requirement ID and broad exported Clause 8. For source-backed test traceability, map this statement to §8.1.5 using the page-182 heading context. Do not modify or resynchronize the Lab export unless its inputs change.",
+      "reproduction": "Run python tools/query_rti_work.py requirement requirement-candidate-content-clauses-08-time-management-page-182-l73-23 --summary --compact; inspect content-15161-page-182 in topics/ieee/hla-1516.1-2025/semantic/content-blocks.json around the §8.1.5 text and the following §8.1.6 heading.",
+      "verification": "The page-182 semantic layout places the optimistic-time-plus-lookahead restriction under §8.1.5, before the separate §8.1.6 Time-constrained joined federates heading. The Lab record is exported only as Clause 8; the local test mapping uses §8.1.5. This is a Requirements Lab subsection-attribution defect, not IEEE errata or conformance evidence. No Lab resync was performed.",
+      "detected": "2026-10-20"
     }
   ]
 }

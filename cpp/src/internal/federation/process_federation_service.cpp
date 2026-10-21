@@ -33,6 +33,60 @@
 
 namespace umbra::detail {
 using process_federation_payload::parameterVector;
+
+ProcessTsoCallbackRegionDesignatorCopyLease::
+    ProcessTsoCallbackRegionDesignatorCopyLease(
+        EmbeddedFederationRegistry& registry,
+        std::wstring federationName,
+        std::uint64_t receivingFederateId)
+    : registry_(&registry),
+      federationName_(std::move(federationName)),
+      receivingFederateId_(receivingFederateId) {}
+
+ProcessTsoCallbackRegionDesignatorCopyLease::
+    ProcessTsoCallbackRegionDesignatorCopyLease(
+        ProcessTsoCallbackRegionDesignatorCopyLease&& other) noexcept
+    : registry_(std::exchange(other.registry_, nullptr)),
+      federationName_(std::move(other.federationName_)),
+      receivingFederateId_(std::exchange(other.receivingFederateId_, 0U)),
+      copiesByPassel_(std::move(other.copiesByPassel_)) {}
+
+ProcessTsoCallbackRegionDesignatorCopyLease::~
+    ProcessTsoCallbackRegionDesignatorCopyLease() {
+  release();
+}
+
+void ProcessTsoCallbackRegionDesignatorCopyLease::reserve(std::size_t count) {
+  copiesByPassel_.reserve(count);
+}
+
+CallbackRegionDesignatorCopyMap const&
+ProcessTsoCallbackRegionDesignatorCopyLease::add(
+    CallbackRegionDesignatorCopyMap copies) {
+  copiesByPassel_.push_back(std::move(copies));
+  return copiesByPassel_.back();
+}
+
+bool ProcessTsoCallbackRegionDesignatorCopyLease::empty() const noexcept {
+  return copiesByPassel_.empty();
+}
+
+void ProcessTsoCallbackRegionDesignatorCopyLease::release() noexcept {
+  if (registry_ == nullptr) {
+    return;
+  }
+  for (auto const& copies : copiesByPassel_) {
+    try {
+      registry_->releaseCallbackScopedRegionDesignatorCopies(
+          federationName_, receivingFederateId_, copies);
+    } catch (...) {
+      // Teardown must not replace an in-flight service or callback exception.
+    }
+  }
+  copiesByPassel_.clear();
+  registry_ = nullptr;
+}
+
 ProcessFederationService::ProcessFederationService(
     EmbeddedFederationRegistry& registry,
     FederationDefinition federationDefinition,
@@ -76,6 +130,17 @@ void ProcessFederationService::detach(ProcessTransportSession& session) noexcept
   if (found == sessions_.end()) {
     return;
   }
+  if (found->second.federationName) {
+    if (!found->second.activeCallbackRegionDesignatorCopies.empty()) {
+      registry_.releaseCallbackScopedRegionDesignatorCopies(
+          *found->second.federationName,
+          found->second.federateId,
+          found->second.activeCallbackRegionDesignatorCopies);
+      found->second.activeCallbackRegionDesignatorCopies.clear();
+    }
+    // Erasing the session-owned leases releases every pending TSO copy.
+    found->second.pendingTsoAttributeCallbackRegionDesignatorCopies.clear();
+  }
   if (found->second.federateId != 0U) {
     sessionsByFederateId_.erase(found->second.federateId);
   }
@@ -111,6 +176,27 @@ TransportServiceMessage ProcessFederationService::handleAcknowledgeTsoDelivery(
     return rejected(request);
   }
 
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state != sessions_.end() &&
+        state->second.federationName.has_value() &&
+        *state->second.federationName == acknowledgement.federationName &&
+        state->second.federateId == acknowledgement.receivingFederateId) {
+      auto const pending = state->second
+                               .pendingTsoAttributeCallbackRegionDesignatorCopies
+                               .find(acknowledgement.messageId);
+      if (pending != state->second
+                         .pendingTsoAttributeCallbackRegionDesignatorCopies
+                         .end()) {
+        // The lease destructor retires all passel copies after the callback
+        // acknowledgement has crossed the process boundary.
+        state->second.pendingTsoAttributeCallbackRegionDesignatorCopies.erase(
+            pending);
+      }
+    }
+  }
+
   ProcessFederationTsoDeliveryAcknowledgementResult result;
   switch (delivery.delivery.status) {
     case FederationTsoDeliveryStatus::applied:
@@ -130,10 +216,40 @@ TransportServiceMessage ProcessFederationService::handleAcknowledgeTsoDelivery(
     case FederationTsoDeliveryStatus::invalid_boundary:
       return internalError(request);
   }
+  auto const scheduled = registry_.reevaluateTimeAdvanceGrants(
+      acknowledgement.federationName);
+  if (scheduled.status != FederationTimeGrantStatus::applied) {
+    return internalError(request);
+  }
+  dispatchTimeAdvanceGrants(
+      acknowledgement.federationName,
+      scheduled.dispatches);
   return responseFor(
       request,
       TransportServiceStatus::ok,
       encodeProcessFederationTsoDeliveryAcknowledgementResult(result));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleAcknowledgePushAttributeUpdate(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const acknowledgement =
+      decodeProcessFederationAcknowledgeTsoDeliveryRequest(request.payload);
+  if (acknowledgement.messageId == 0U) {
+    return rejected(request);
+  }
+  std::scoped_lock lock(mutex_);
+  auto const state = sessions_.find(&session);
+  if (state == sessions_.end() || !state->second.federationName ||
+      *state->second.federationName != acknowledgement.federationName ||
+      state->second.federateId != acknowledgement.receivingFederateId ||
+      !registry_.memberById(
+          acknowledgement.federationName, acknowledgement.receivingFederateId)) {
+    return rejected(request);
+  }
+  state->second.pendingPushedAttributeUpdates.erase(acknowledgement.messageId);
+  return responseFor(request, TransportServiceStatus::ok, {});
 }
 
 TransportServiceMessage ProcessFederationService::handleReceiveAttributeUpdate(

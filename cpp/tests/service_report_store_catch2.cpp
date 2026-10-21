@@ -299,6 +299,74 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Filesystem service-report log records use adjacent JSON objects and the shared argument format",
+    "[development-profile][mom][service-reporting][service-report-store]"
+    "[service-report-file][filesystem][service-report-log-format][2025]") {
+  using umbra::detail::MomArgumentType;
+  using umbra::detail::MomServiceArgument;
+
+  auto const directory = temporaryDirectory();
+  std::error_code cleanupError;
+  std::filesystem::remove_all(directory, cleanupError);
+  REQUIRE_FALSE(cleanupError);
+
+  umbra::detail::MomServiceReportInitialRecord initialFields;
+  initialFields.callbackModel = L"HLA_EVOKED";
+  initialFields.rtiAddress = L"in-process";
+  initialFields.federationName = L"service-report-json-format";
+  initialFields.federateName = L"format-federate";
+  initialFields.federateType = L"format-test";
+  auto recordDescriptor = descriptor();
+  recordDescriptor.initialRecord =
+      umbra::detail::formatMomServiceReportInitialRecord(initialFields);
+
+  std::vector<MomServiceArgument> const arguments{
+      {MomArgumentType::interaction_class_handle,
+       L"Interaction class designator",
+       umbra::detail::formatMomString(L"HLAinteractionRoot.Example")},
+      {MomArgumentType::order_type,
+       L"Order type",
+       umbra::detail::formatMomOrderType(rti1516_2025::TIMESTAMP)},
+  };
+  auto const firstRecord =
+      umbra::detail::formatMomSuccessfulVoidServiceReportRecord(
+          17U, L"ChangeInteractionOrderType", arguments);
+  auto const secondRecord = umbra::detail::formatMomFailedServiceReportRecord(
+      18U, L"ChangeInteractionOrderType", arguments, L"Expected test failure");
+  REQUIRE(firstRecord.starts_with(L"{"));
+  REQUIRE(firstRecord.ends_with(L"}"));
+  REQUIRE(secondRecord.starts_with(L"{"));
+  REQUIRE(secondRecord.ends_with(L"}"));
+  REQUIRE(firstRecord.find(
+              umbra::detail::formatMomServiceArgumentRecord(arguments.front())) !=
+          std::wstring::npos);
+
+  umbra::detail::FilesystemServiceReportStore store(directory);
+  auto writer = store.createForJoinedFederate(recordDescriptor);
+  writer->append(firstRecord);
+  writer->append(secondRecord);
+  auto const actual = readTextFile(writer->location());
+  std::wstring const expectedWide =
+      recordDescriptor.initialRecord + firstRecord + secondRecord;
+  REQUIRE(std::all_of(
+      expectedWide.begin(), expectedWide.end(),
+      [](wchar_t const character) { return character <= 0x7FU; }));
+  std::string expected;
+  expected.reserve(expectedWide.size());
+  for (auto const character : expectedWide) {
+    expected.push_back(static_cast<char>(character));
+  }
+  REQUIRE(actual == expected);
+  REQUIRE(actual.find("\"CallbackModel\":\"HLA_EVOKED\"") !=
+          std::string::npos);
+  REQUIRE(actual.find("}{") != std::string::npos);
+
+  std::error_code ignored;
+  std::filesystem::remove_all(directory, ignored);
+  REQUIRE_FALSE(ignored);
+}
+
+TEST_CASE(
     "Filesystem service-report stores preserve Unicode log text as UTF-8",
     "[mom][service-report-store][service-reporting][unit]") {
   auto const directory = temporaryDirectory();

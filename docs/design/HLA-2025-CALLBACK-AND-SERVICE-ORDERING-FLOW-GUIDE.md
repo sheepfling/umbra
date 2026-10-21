@@ -160,6 +160,55 @@ This is the current dispatcher model at a high level. Important qualifications:
   order across different federates, RTI sessions, or independent callback
   routes.
 
+### Enable Callbacks changes state before an immediate backlog can throw
+
+In the current 2025 adapter, `enableCallbacks` sets the callback-enabled
+switch before the dispatcher tries to drain pending work. Under
+`HLA_IMMEDIATE`, if this call owns the drain, callbacks run inline on the
+Enable Callbacks stack. The dispatcher removes each task before invocation;
+if one throws, that task is consumed, later tasks remain queued, and the
+immediate-drainer election is cleared before the exception propagates. The
+dispatcher does not roll back the enabled switch (unless callback code itself
+changed it). Under `HLA_EVOKED`, enabling opens the gate but does not invoke the
+queued task; an Evoke call later claims it, and an escaping exception follows
+the [ordinary callback exception boundary](#if-an-exception-escapes-a-callback-task).
+
+```mermaid
+flowchart TD
+  A[Callbacks disabled with FIFO tasks pending] --> B[Enable Callbacks sets enabled true]
+  B --> C{Callback model}
+  C -->|HLA_IMMEDIATE| D{Does this call own the immediate drain?}
+  D -->|No| E[Return while the elected drainer handles queued work]
+  D -->|Yes| F[Remove the next task before invocation]
+  F --> G{Does the callback throw?}
+  G -->|No| H[Continue draining while enabled work remains]
+  G -->|Yes| I[Consume the failed task and leave later tasks queued]
+  I --> J[Clear drainer election and propagate from the active stack]
+  J --> K[No dispatcher rollback of enabled state]
+  C -->|HLA_EVOKED| L[Enable returns without invoking queued work]
+  L --> M[Evoke Callback later claims the next task]
+  M --> N{Does the callback throw?}
+  N -->|No| O[Return through the normal Evoke path]
+  N -->|Yes| P[Consume the failed task and leave later tasks queued]
+  P --> Q[Propagate from Evoke; no dispatcher rollback of enabled state]
+```
+
+The `HLA_IMMEDIATE` exception path applies only when Enable Callbacks becomes
+the drainer; if another thread already owns it, the exception follows that
+drainer's active call stack instead. The 2025 API declaration for
+[`enableCallbacks`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2283)
+lists `SaveInProgress`, `RestoreInProgress`, and `RTIinternalError`; the
+possible propagation of an application callback exception through an inline
+enable is source-derived here, not a conclusion about the normative service
+outcome. The [adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L115)
+calls `setEnabled(true)` directly; the [dispatcher state update](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L82)
+precedes its [exception cleanup and rethrow](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L245).
+Existing [dispatcher tests](../../cpp/tests/callback_dispatcher_catch2.cpp#L189)
+cover a successful immediate enable/drain and stopping the backlog by
+disabling from a callback; they do not test a throwing callback during Enable
+or Evoke. This is 2025 implementation evidence only, not evidence of 2010
+behavior or profile parity.
+
 ## HLA_EVOKED: the application owns the drain point
 
 ```mermaid
@@ -202,6 +251,49 @@ The Boolean result is also not the callback itself: in the current dispatcher
 it reports whether work remains pending after the invocation/window. Tests
 cover the one-at-a-time and FIFO cases. Do not interpret a true result as
 “another callback already ran.”
+
+### The bounded drain uses elapsed time, not HLA logical time
+
+The 2025 adapter converts the two approximate-second arguments to millisecond
+durations. The dispatcher clamps negative durations to zero and raises the
+maximum to at least the minimum. It then measures the window with
+`std::chrono::steady_clock`; this is a callback-service wait window, not a
+federation logical-time boundary.
+
+```mermaid
+flowchart TD
+  A["Evoke Multiple Callbacks(minimum, maximum)"] --> B["Convert arguments to durations<br/>Clamp minimum and maximum; maximum is at least minimum"]
+  B --> C["Start steady-clock window<br/>Record minimum and maximum deadlines"]
+  C --> D{"Callbacks enabled?"}
+  D -->|No| P["Return whether callbacks remain pending"]
+  D -->|Yes| E{"Callback queued?"}
+  E -->|Yes| F["Remove next FIFO task<br/>Invoke callback to completion"]
+  F --> G{"Maximum deadline reached<br/>after callback returns?"}
+  G -->|Yes| P
+  G -->|No| D
+  E -->|No| H{"Minimum deadline reached?"}
+  H -->|Yes| I["Return false<br/>No callback remains pending"]
+  H -->|No| J["Wait for callback arrival,<br/>disable, or minimum deadline"]
+  J --> D
+```
+
+This is the current dispatcher path, not a complete statement of IEEE
+1516.1-2025 §10.58. In particular, the dispatcher checks the maximum deadline
+only after a callback invocation returns. A callback already in progress is
+not interrupted when that deadline passes; it can finish beyond the requested
+maximum. If a callback throws, that task has already been removed and is not
+retried; the [callback exception boundary](#if-an-exception-escapes-a-callback-task)
+covers that separate outcome.
+
+The [focused dispatcher test](../../cpp/tests/callback_dispatcher_catch2.cpp#L302)
+starts with three callbacks already queued, calls `evokeMultiple(1ms, 25ms)`,
+and checks FIFO completion and a false pending-work result. It does not test
+waiting on an initially empty queue, a late callback arrival, maximum-deadline
+overshoot, or the public API adapter. The [pinned API declaration](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2273),
+[2025 adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp#L74),
+and [dispatcher implementation](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L192)
+bound the explanation to this source path. Use the licensed standard text to
+make claims about the normative meaning of the approximate wait arguments.
 
 ## HLA_IMMEDIATE: callback work can be on the service stack
 
@@ -572,6 +664,96 @@ callback, and no combined exception-report/service-report failure schedule was
 run or tested here. The embedded `Send Interaction` case below remains a
 separate producer-side path.
 
+##### Mutating process wrapper: final `Synchronization Point Achieved`
+
+The lookup example above is read-only. A configured-process
+`synchronizationPointAchieved` shows why the service-specific state boundary
+matters. When the achievement that completes an announced synchronization set
+arrives, the registry records that result, plans `FederationSynchronized`
+notifications for the set, and erases the completed point before the process
+service returns its correlated response. In push mode, the service sends
+notification frames before returning that response. The client buffers those
+frames, matches the response, releases its exchange lock, and only then drains
+the pushed events.
+
+Assuming the completing federate still has a notification route and this is
+the next buffered event, its own `federationSynchronized` callback can throw
+under `HLA_IMMEDIATE` while that service's client request drains the frame.
+The process client has received the successful response, but its request does
+not return the decoded result. The RTI adapter's outer `catch (Exception
+const&)` attempts `HLAreportException` and rethrows; this wrapper does not show
+a compensating registry transition or a failed-service-invocation report, and
+its successful service-report-file append occurs later, so that append is
+skipped. In `HLA_EVOKED`, bridge submission queues the callback instead: the
+service wrapper can finish and append its successful service report, while a
+later Evoke call is where the callback exception may escape. This trace assumes
+the pushed frame and correlated success response are delivered; if sending a
+notification frame fails, the service handler has a separate error-after-
+registry-transition path that this callback-exception chart does not cover.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor F as Final member in the synchronization set
+  participant A as 2025 RTI adapter
+  participant C as Process client
+  participant S as Process service
+  participant R as Federation registry
+  participant B as Callback bridge
+
+  F->>A: synchronizationPointAchieved
+  A->>C: Send correlated request
+  C->>S: synchronization_point_achieved
+  S->>R: Record final achievement and plan completion
+  R->>R: Erase completed point and build notification plan
+  S-->>C: Push FederationSynchronized event frame
+  S-->>C: Return successful correlated response
+  C->>C: Match response and release exchange lock
+  C->>B: Drain buffered event
+  alt HLA_IMMEDIATE
+    B->>F: federationSynchronized inline
+    F--xB: FederateInternalError
+    B--xC: Callback exception escapes event drain
+    C--xA: Request throws after response with no result returned
+    A->>A: Attempt HLAreportException, then rethrow
+    Note over A: Success service-report append is not reached
+    Note over R: Completed point is not rolled back
+  else HLA_EVOKED
+    B-->>C: Queue callback task
+    C-->>A: Request returns applied result
+    A->>A: Append successful service report
+    A-->>F: synchronizationPointAchieved returns
+    F->>A: evokeCallback
+    A->>B: Claim queued task
+    B->>F: federationSynchronized
+    F--xB: Callback exception exits Evoke
+    Note over R: Completed point remains committed
+  end
+```
+
+This is a current-source case study, not a normative exception or rollback
+rule. The 2025 API declaration lists
+[`synchronizationPointAchieved`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L288)
+with `SynchronizationPointLabelNotAnnounced`, `SaveInProgress`,
+`RestoreInProgress`, `FederateNotExecutionMember`, `NotConnected`, and
+`RTIinternalError`; the callback declaration separately lists
+[`FederateInternalError` for `federationSynchronized`](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L93).
+Do not infer a normative service outcome from this implementation trace.
+Source anchors: [registry records achievement](../../cpp/src/internal/federation/federation_registry.cpp#L305)
+and [erases the completed point](../../cpp/src/internal/federation/federation_registry.cpp#L340),
+[process request handler's registry transition](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L261)
+and [notification enqueue before response](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L288),
+[pushed notification send](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L406),
+[response/unlock boundary](../../cpp/src/internal/federation/process_federation_client.cpp#L610)
+and [subsequent callback drain](../../cpp/src/internal/federation/process_federation_client.cpp#L614),
+[public wrapper's success-report append](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1324),
+and [outer exception catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1390).
+The public [HLA_IMMEDIATE process test](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L871)
+puts the receiver in the explicit set and observes its completion callback
+after achievement, but the callback does not throw and the test does not
+assert callback-before-return or exception-after-commit behavior. No focused
+test establishes the throwing-callback outcome.
+
 ### Embedded `Send Interaction`: accepted effects precede callback failure
 
 This sequence is a source-derived embedded 2025 case, not a normative
@@ -643,6 +825,13 @@ observed adapter paths; it is not a process/embedded parity claim or a 2010
 description. Callback-model timing remains as described in the HLA_IMMEDIATE
 and HLA_EVOKED sections above.
 
+For configured-process Push delivery, a closed pushed-event stream can trigger
+this local path through the client reader, while the server-side recipient
+worker independently handles its closed session. The [joined-federate MOM
+guide](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md#transport-closure-can-start-another-process-loss-pass)
+traces that specific send-failure cascade; this chart starts at the general
+transport-failure boundary and does not impose an order between those paths.
+
 ```mermaid
 flowchart TD
   Loss["Transport failure for a joined federate"] --> Backend{"2025 adapter path"}
@@ -678,6 +867,41 @@ record-before-callback behavior, but a recorded local run failed during
 assertions. The cited tests do not inject an exception from
 `connectionLost`; neither that catch behavior nor a process-profile callback
 scenario is claimed as runtime-tested.
+
+### `ConnectionLost` and survivor Remove callbacks are separate streams
+
+The flow above follows the departing ambassador's local terminal callback. A
+surviving federate that knew the departed member's RTI-owned `HLAfederate`
+object has a separate `Remove Object Instance` callback; see the [joined-federate MOM lifecycle](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md#resignation-removes-visibility-before-forgetting-the-snapshot).
+On the embedded path, the adapter submits those planned removals before it
+submits the departing ambassador's local `ConnectionLost` task. The recipient
+removal queue notes that HLA_IMMEDIATE may enter the survivor's callback
+synchronously ([membership-loss submissions](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L431),
+[removal callback queue](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L1418),
+[local terminal callback](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L440)).
+That is implementation submission order, not a general HLA ordering rule.
+
+With HLA_EVOKED, work is pending in the respective federates' callback
+dispatchers and each application controls when it evokes its own work. The
+configured-process service enqueues survivor removal events through its
+session queues, while connection loss of the departed session is handled by
+the service host; these are separate transport paths
+([process removal dispatch](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L66),
+[host loss handling](../../cpp/src/internal/federation/process_federation_service_host.cpp#L160)).
+Neither the pinned [2025 `connectionLost` declaration](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L42)
+and [`federateResigned` declaration](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L67)
+nor the focused tests establish a relative invocation order. The embedded
+HLA_EVOKED service-report [test source](../../cpp/tests/ieee1516_2025_service_report_catch2.cpp#L537)
+asserts only the departing ambassador's `ConnectionLost` callback; the
+joined-federate MOM tests observe removal on
+explicit Resign, not forced loss. Keep the cross-federate order unresolved
+until the authorized standard text or a focused public case directly addresses
+it.
+
+The catch-all described for the departing ambassador's local `connectionLost`
+callback does not contain a survivor's `removeObjectInstance` exception. That
+callback follows its own removal-queue and registry path; see the [forced-loss
+Remove callback failure boundary](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md#a-throwing-remove-callback-does-not-roll-back-the-callback-time-transition).
 
 ## Process-profile Resign and queued callback work
 
@@ -1015,7 +1239,7 @@ the synchronization-event example above. Its process recipient-session cache
 survives receiver Resign until session detach, while the callback bridge gates
 the public callback on per-message delivery state rather than current
 membership. The source trace, focused-test boundary, and explicit
-implementation-only caveat are in the [2025 TSO retraction guide](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md#process-receiver-resign-after-the-original-attribute-update).
+implementation-only caveat are in the [2025 TSO retraction guide](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md#process-receiver-resign-after-a-cached-tso-attribute-delivery).
 
 ## Evidence map: implementation versus exercised scenarios
 
@@ -1049,4 +1273,6 @@ post-Resign regression test are absent. It also does not merge 2010 and 2025
 callback semantics. Those require their own exact-standard and source/test
 surveys.
 
-Next: audit the 2025 [Object and Interaction Information Flow guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md) at the object-discovery versus first-attribute-reflection boundary for a newly known object. Use the exact pinned authority available in the checkout and bounded embedded/process source and focused tests; distinguish normative callback sequence from implementation commit points and evidence gaps. Revise or add a diagram only for a concrete reader gap. Keep 2010 separate; no build, test rerun, CI, or Requirements Lab edit.
+Rechecked 2026-10-17: the current process discovery source now plans ordinary selected values after a new discovery, and the focused public late-subscription test source asserts discovery plus the selected stored value under both callback-model sections ([source](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L90), [test](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L652)). The process implementation is modified in the current worktree; this documentation review did not build or run the case, so it records source shape and test assertions, not a passing result. The RTI-owned MOM branch remains separate. The already-known-object/value-only scenario and licensed §5.8 interpretation remain open; no normative or cross-profile parity conclusion is warranted.
+
+Next, the 2025 total/directed interaction-send report survey is complete; the existing [send-report section](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#mom-interaction-send-reports-separate-total-sends-from-the-directed-subset) already explains the MIM shape, sender-ledger boundary, and evidence limits, so no duplicate chart was needed. Resume the four pending 2025 diagrams in the [visual-QA backlog](HLA-BEHAVIOR-FLOW-GUIDES.md#pending-validation) once a safe browser render is available. Documentation-only and 2025-only; no builds, tests, or CI.

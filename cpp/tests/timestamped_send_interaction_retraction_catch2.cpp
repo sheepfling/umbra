@@ -408,6 +408,102 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded zero-lookahead TSO send at granted time is permitted",
+    "[integration][development-profile][interaction-management][time-management]"
+    "[timestamped-interaction][tso][tso-send-at-granted-time-zero-lookahead]"
+    "[rti.service.send-interaction][rti.service.time-advance-request]"
+    "[federate.callback.receive-interaction][federate.callback.time-advance-grant]"
+    "[requirement:hla-1516.1-2025:clause-8.9][2025]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName() + L"-post-grant-zero-lookahead";
+  auto const fomModule = resourcePath("parameter-handle-provider-fom.xml").wstring();
+  std::vector<unsigned char> const identifierBytes{0xB5U, 0x05U};
+  std::vector<unsigned char> const tagBytes{0xB5U, 0x06U};
+  VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      fomModule,
+      standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"tso-post-grant-publisher",
+      L"publisher",
+      federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"tso-post-grant-receiver",
+      L"subscriber",
+      federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      fixture_hla::fom::parameter_fixture_child_interaction);
+  auto const identifier = publisher->getParameterHandle(
+      interactionClass,
+      fixture_hla::fixture::identifier);
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(identifier.isValid());
+  ParameterHandleValueMap parameterValues;
+  parameterValues.emplace(
+      identifier,
+      VariableLengthData(identifierBytes.data(), identifierBytes.size()));
+
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  drainCallbacks(*receiver);
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(0)));
+  drainCallbacks(*publisher);
+
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(5)));
+  drainCallbacks(*publisher);
+  REQUIRE(publisherReports.timeAdvanceGrantCount == 1U);
+
+  // IEEE 1516.1-2025 §8.9 permits the just-granted federate to send at T
+  // when its actual lookahead is zero. This does not assert that every
+  // equal-T message must be delivered before a grant at T.
+  auto const equalGrantedTimeMessage = publisher->sendInteraction(
+      interactionClass,
+      parameterValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(5));
+  REQUIRE(equalGrantedTimeMessage.isValid());
+  REQUIRE(receiverReports.timestampedInteractionReports.empty());
+
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(6)));
+  drainCallbacks(*publisher);
+  REQUIRE(publisherReports.timeAdvanceGrantCount == 2U);
+
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(5)));
+  drainCallbacks(*receiver);
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"interaction", "grant"});
+  REQUIRE(receiverReports.timestampedInteractionReports.size() == 1U);
+  auto const& report = receiverReports.timestampedInteractionReports.front();
+  CHECK(report.timeValue == L"5");
+  CHECK(report.sentOrderType == TIMESTAMP);
+  CHECK(report.receivedOrderType == TIMESTAMP);
+  CHECK(report.retractionValid);
+  CHECK(variableLengthDataBytes(report.userSuppliedTag) == tagBytes);
+  CHECK(receiverReports.timeAdvanceGrantCount == 1U);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
     "Embedded TARA delivers a queued equal-time TSO before its grant",
     "[integration][development-profile][interaction-management][time-management]"
     "[timestamped-interaction][tso][tso-tara-queued-equal-boundary]"

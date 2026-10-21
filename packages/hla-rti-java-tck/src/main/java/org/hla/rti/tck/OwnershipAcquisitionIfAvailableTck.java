@@ -23,7 +23,8 @@ final class OwnershipAcquisitionIfAvailableTck {
    private OwnershipAcquisitionIfAvailableTck() { }
 
    static void run(RtiFactory factory, String fom, String objectClassName,
-         String attributeName, CallbackModel callbackModel) throws Exception {
+         String attributeName, String secondaryAttributeName,
+         CallbackModel callbackModel) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador requester = factory.getRtiAmbassador();
       Recorder ownerRecorder = new Recorder();
@@ -36,11 +37,13 @@ final class OwnershipAcquisitionIfAvailableTck {
       boolean requesterJoined = false;
       boolean ownerPublished = false;
       boolean requesterPublished = false;
+      boolean requesterSecondaryPublished = false;
       boolean requesterSubscribed = false;
       ObjectClassHandle ownerClass = null;
       ObjectClassHandle requesterClass = null;
       AttributeHandleSet ownerAttributes = null;
       AttributeHandleSet requesterAttributes = null;
+      AttributeHandleSet requesterSecondaryAttributes = null;
       try {
          owner.connect(ownerRecorder.proxy(), callbackModel);
          ownerConnected = true;
@@ -56,10 +59,17 @@ final class OwnershipAcquisitionIfAvailableTck {
          ownerClass = owner.getObjectClassHandle(objectClassName);
          requesterClass = requester.getObjectClassHandle(objectClassName);
          AttributeHandle ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName);
+         AttributeHandle ownerSecondaryAttribute = owner.getAttributeHandle(
+            ownerClass, secondaryAttributeName);
          AttributeHandle requesterAttribute = requester.getAttributeHandle(
             requesterClass, attributeName);
+         AttributeHandle requesterSecondaryAttribute = requester.getAttributeHandle(
+            requesterClass, secondaryAttributeName);
          JavaTckSupport.check(ownerClass != null && requesterClass != null
-               && ownerAttribute != null && requesterAttribute != null,
+               && ownerAttribute != null && ownerSecondaryAttribute != null
+               && requesterAttribute != null
+               && requesterSecondaryAttribute != null
+               && !requesterSecondaryAttribute.equals(requesterAttribute),
             "adapter FOM did not resolve the If Available ownership handles");
          ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
          requesterAttributes = JavaTckSupport.attributeSet(requester, requesterAttribute);
@@ -83,18 +93,61 @@ final class OwnershipAcquisitionIfAvailableTck {
                && !requester.isAttributeOwnedByFederate(availableObject, requesterAttribute),
             "ownership setup did not leave both attributes with their registering federate");
 
+         ObjectInstanceHandle unknownObject =
+            JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
+         AttributeHandle undefinedAttribute =
+            JavaTckSupport.invalidHandle(AttributeHandle.class);
+         AttributeHandleSet undefinedAttributes =
+            JavaTckSupport.attributeSet(requester, undefinedAttribute);
+         byte[] preconditionTag = new byte[0];
+         AttributeHandleSet unpublishedAttributes =
+            JavaTckSupport.attributeSet(requester, requesterSecondaryAttribute);
+         JavaTckSupport.expectFailure(
+            () -> requester.attributeOwnershipAcquisitionIfAvailable(
+               unavailableObject, unpublishedAttributes, preconditionTag),
+            "AttributeNotPublished", "If Available request for an unpublished attribute");
+         JavaTckSupport.expectFailure(
+            () -> requester.attributeOwnershipAcquisitionIfAvailable(
+               unknownObject, requestedAttributes, preconditionTag),
+            "ObjectInstanceNotKnown", "If Available request for an unknown object instance");
+         JavaTckSupport.expectFailure(
+            () -> requester.attributeOwnershipAcquisitionIfAvailable(
+               unavailableObject, undefinedAttributes, preconditionTag),
+            "AttributeNotDefined", "If Available request for an undefined attribute");
+         requester.unpublishObjectClassAttributes(requesterClass, requesterAttributes);
+         requesterPublished = false;
+         JavaTckSupport.expectFailure(
+            () -> requester.attributeOwnershipAcquisitionIfAvailable(
+               unavailableObject, requestedAttributes, preconditionTag),
+            "ObjectClassNotPublished", "If Available request without class publication");
+         requester.publishObjectClassAttributes(requesterClass, requesterAttributes);
+         requesterPublished = true;
+
          byte[] unavailableTag = new byte[] {0x51, (byte) 0xa7, 0x0c};
+         ownerRecorder.clearOwnershipEvents();
          requesterRecorder.clearOwnershipEvents();
          requester.attributeOwnershipAcquisitionIfAvailable(
             unavailableObject, requesterAttributes, unavailableTag);
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            requester.attributeOwnershipAcquisitionIfAvailable(
+               unavailableObject, requesterAttributes, unavailableTag);
+         }
          await(requester, callbackModel, () -> !requesterRecorder.unavailable.isEmpty(),
             "If Available unavailable callback");
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            JavaTckSupport.drain(requester);
+            JavaTckSupport.check(requesterRecorder.unavailable.size() == 1,
+               "repeating a pending If Available request produced another unavailable callback");
+         }
          checkEvent(requesterRecorder.unavailable.get(0), unavailableObject,
             requesterAttributes, unavailableTag, "If Available unavailable callback");
          JavaTckSupport.check(requesterRecorder.acquisitions.isEmpty()
                && owner.isAttributeOwnedByFederate(unavailableObject, ownerAttribute)
                && !requester.isAttributeOwnedByFederate(unavailableObject, requesterAttribute),
             "unavailable If Available request changed ownership");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
+         JavaTckSupport.check(ownerRecorder.releaseRequests.isEmpty(),
+            "unavailable If Available request asked the owner to release its attribute");
 
          ownerRecorder.clearOwnershipEvents();
          requesterRecorder.clearOwnershipEvents();
@@ -126,6 +179,64 @@ final class OwnershipAcquisitionIfAvailableTck {
          JavaTckSupport.check(!requester.isAttributeOwnedByFederate(
                availableObject, requesterAttribute),
             "If Available ownership cleanup did not divest the acquired attribute");
+
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            requesterSecondaryAttributes = JavaTckSupport.attributeSet(
+               requester, requesterSecondaryAttribute);
+            AttributeHandleSet requesterBoth = JavaTckSupport.attributeSet(
+               requester, requesterAttribute, requesterSecondaryAttribute);
+            requester.publishObjectClassAttributes(requesterClass, requesterBoth);
+            requesterSecondaryPublished = true;
+            ObjectInstanceHandle mixedObject = owner.registerObjectInstance(ownerClass);
+            await(requester, callbackModel,
+               () -> requesterRecorder.discoveries.contains(mixedObject),
+               "If Available mixed-repeat object discovery");
+            owner.unconditionalAttributeOwnershipDivestiture(
+               mixedObject, ownerAttributes, new byte[0]);
+            JavaTckSupport.check(!owner.isAttributeOwnedByFederate(
+                  mixedObject, ownerAttribute)
+                  && !owner.isAttributeOwnedByFederate(
+                     mixedObject, ownerSecondaryAttribute),
+               "If Available mixed-repeat setup did not leave both attributes unowned");
+
+            requesterRecorder.clearOwnershipEvents();
+            requester.attributeOwnershipAcquisitionIfAvailable(
+               mixedObject, requesterAttributes, acquisitionTag);
+            requester.attributeOwnershipAcquisitionIfAvailable(
+               mixedObject, requesterBoth, acquisitionTag);
+            await(requester, callbackModel,
+               () -> requesterRecorder.acquisitions.size() >= 2
+                  || (requesterRecorder.acquisitions.size() == 1
+                     && requesterBoth.equals(requesterRecorder.acquisitions.get(0).attributes)),
+               "If Available mixed-repeat acquisition notifications");
+            JavaTckSupport.drain(requester);
+            JavaTckSupport.check(requesterRecorder.unavailable.isEmpty()
+                  && requesterRecorder.acquisitions.size() <= 2,
+               "If Available mixed repeat produced unavailable or duplicate notifications");
+            if (requesterRecorder.acquisitions.size() == 1) {
+               checkEvent(requesterRecorder.acquisitions.get(0), mixedObject,
+                  requesterBoth, acquisitionTag, "If Available combined mixed-repeat callback");
+            } else {
+               OwnershipEvent first = requesterRecorder.acquisitions.get(0);
+               OwnershipEvent second = requesterRecorder.acquisitions.get(1);
+               JavaTckSupport.check(first.attributes.equals(requesterAttributes)
+                     || first.attributes.equals(requesterSecondaryAttributes),
+                  "If Available mixed-repeat first callback did not identify one attribute");
+               checkEvent(first, mixedObject, first.attributes.equals(requesterAttributes)
+                     ? requesterAttributes : requesterSecondaryAttributes,
+                  acquisitionTag, "If Available mixed-repeat first callback");
+               checkEvent(second, mixedObject, first.attributes.equals(requesterAttributes)
+                     ? requesterSecondaryAttributes : requesterAttributes,
+                  acquisitionTag, "If Available mixed-repeat second callback");
+            }
+            JavaTckSupport.check(requester.isAttributeOwnedByFederate(
+                  mixedObject, requesterAttribute)
+                  && requester.isAttributeOwnedByFederate(
+                     mixedObject, requesterSecondaryAttribute),
+               "If Available mixed repeat did not acquire both eligible attributes");
+            requester.unconditionalAttributeOwnershipDivestiture(
+               mixedObject, requesterBoth, new byte[0]);
+         }
       } finally {
          if (requesterJoined && requesterSubscribed && requesterClass != null
                && requesterAttributes != null) {
@@ -135,6 +246,12 @@ final class OwnershipAcquisitionIfAvailableTck {
          if (requesterJoined && requesterPublished && requesterClass != null
                && requesterAttributes != null) {
             try { requester.unpublishObjectClassAttributes(requesterClass, requesterAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (requesterJoined && requesterSecondaryPublished && requesterClass != null
+               && requesterSecondaryAttributes != null) {
+            try { requester.unpublishObjectClassAttributes(
+               requesterClass, requesterSecondaryAttributes); }
             catch (Exception ignored) { }
          }
          if (ownerJoined && ownerPublished && ownerClass != null && ownerAttributes != null) {
@@ -192,6 +309,7 @@ final class OwnershipAcquisitionIfAvailableTck {
       private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> acquisitions = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> unavailable = new CopyOnWriteArrayList<>();
+      private final List<OwnershipEvent> releaseRequests = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -207,6 +325,9 @@ final class OwnershipAcquisitionIfAvailableTck {
                } else if ("attributeOwnershipUnavailable".equals(name)
                      && arguments != null && arguments.length == 3) {
                   unavailable.add(event(arguments));
+               } else if ("requestAttributeOwnershipRelease".equals(name)
+                     && arguments != null && arguments.length == 3) {
+                  releaseRequests.add(event(arguments));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK If Available ownership callbacks";
@@ -222,6 +343,7 @@ final class OwnershipAcquisitionIfAvailableTck {
       private void clearOwnershipEvents() {
          acquisitions.clear();
          unavailable.clear();
+         releaseRequests.clear();
       }
 
       private static OwnershipEvent event(Object[] arguments) {

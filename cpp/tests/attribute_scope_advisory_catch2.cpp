@@ -32,7 +32,7 @@ using rti1516_2025::RTIambassadorFactory;
 using rti1516_2025::RangeBounds;
 using rti1516_2025::RegionHandleSet;
 
-class ScopeFederateAmbassador final : public NullFederateAmbassador {
+class ScopeFederateAmbassador : public NullFederateAmbassador {
  public:
   struct DiscoveryReport {
     ObjectInstanceHandle objectInstance;
@@ -329,6 +329,430 @@ TEST_CASE(
     REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
     REQUIRE_NOTHROW(owner->disconnect());
     REQUIRE_NOTHROW(subscriber->disconnect());
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(HLA_IMMEDIATE);
+  }
+}
+
+class TransferScopeFederateAmbassador final : public ScopeFederateAmbassador {
+ public:
+  struct ReflectionReport {
+    ObjectInstanceHandle objectInstance;
+    rti1516_2025::AttributeHandleValueMap attributeValues;
+  };
+
+  void reflectAttributeValues(
+      ObjectInstanceHandle const& objectInstance,
+      rti1516_2025::AttributeHandleValueMap const& attributeValues,
+      rti1516_2025::VariableLengthData const&,
+      rti1516_2025::TransportationTypeHandle const&,
+      FederateHandle const&,
+      RegionHandleSet const*) override {
+    reflections.push_back({objectInstance, attributeValues});
+  }
+
+  std::vector<ReflectionReport> reflections;
+};
+
+TEST_CASE(
+    "Embedded ownership transfer keeps a regionally subscribed attribute continuously in scope",
+    "[integration][development-profile][2025][ownership-management][ddm]"
+    "[ownership-continuous-scope-transfer][attribute-scope-advisory]"
+    "[rti.service.negotiated-attribute-ownership-divestiture]"
+    "[rti.service.attribute-ownership-divestiture-if-wanted]"
+    "[federate.callback.attributes-in-scope]"
+    "[federate.callback.attributes-out-of-scope]") {
+  auto runTransfer = [](CallbackModel callbackModel, bool negotiated) {
+    ScopeFederateAmbassador ownerReports;
+    ScopeFederateAmbassador successorReports;
+    TransferScopeFederateAmbassador subscriberReports;
+    auto owner = makeRti();
+    auto successor = makeRti();
+    auto subscriber = makeRti();
+    auto const federationName = nextFederationName();
+    auto const fomModule = resourcePath("regional-ownership-fanout-fom.xml").wstring();
+
+    REQUIRE_NOTHROW(owner->connect(ownerReports, callbackModel));
+    REQUIRE_NOTHROW(successor->connect(successorReports, callbackModel));
+    REQUIRE_NOTHROW(subscriber->connect(subscriberReports, callbackModel));
+    REQUIRE_NOTHROW(owner->createFederationExecution(
+        federationName, fomModule, L"HLAinteger64Time"));
+    REQUIRE_NOTHROW(owner->joinFederationExecution(
+        L"continuous-scope-owner", L"scope-owner", federationName));
+    REQUIRE_NOTHROW(successor->joinFederationExecution(
+        L"continuous-scope-successor", L"scope-owner", federationName));
+    REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+        L"continuous-scope-subscriber", L"scope-subscriber", federationName));
+
+    auto const objectClass = owner->getObjectClassHandle(
+        L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
+    auto const attribute = owner->getAttributeHandle(objectClass, L"ProviderAValue");
+    auto const dimension = owner->getDimensionHandle(L"UmbraRegionX");
+    REQUIRE(objectClass.isValid());
+    REQUIRE(attribute.isValid());
+    REQUIRE(dimension.isValid());
+    AttributeHandleSet const attributes{attribute};
+    REQUIRE_NOTHROW(owner->publishObjectClassAttributes(objectClass, attributes));
+    REQUIRE_NOTHROW(successor->publishObjectClassAttributes(objectClass, attributes));
+    REQUIRE_NOTHROW(successor->subscribeObjectClassAttributes(objectClass, attributes));
+
+    auto const ownerRegion = owner->createRegion(DimensionHandleSet{dimension});
+    auto const successorRegion = successor->createRegion(DimensionHandleSet{dimension});
+    auto const subscriberRegion = subscriber->createRegion(DimensionHandleSet{dimension});
+    REQUIRE_NOTHROW(setRegionBounds(*owner, ownerRegion, dimension, 0UL, 2UL));
+    REQUIRE_NOTHROW(setRegionBounds(*successor, successorRegion, dimension, 0UL, 2UL));
+    REQUIRE_NOTHROW(setRegionBounds(*subscriber, subscriberRegion, dimension, 0UL, 2UL));
+    AttributeHandleSetRegionHandleSetPairVector const ownerPair{{
+        attributes, RegionHandleSet{ownerRegion},
+    }};
+    AttributeHandleSetRegionHandleSetPairVector const successorPair{{
+        attributes, RegionHandleSet{successorRegion},
+    }};
+    AttributeHandleSetRegionHandleSetPairVector const subscriberPair{{
+        attributes, RegionHandleSet{subscriberRegion},
+    }};
+    REQUIRE_NOTHROW(subscriber->setAttributeScopeAdvisorySwitch(true));
+    REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+        objectClass, subscriberPair, true));
+
+    ObjectInstanceHandle objectInstance;
+    REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstanceWithRegions(
+        objectClass, ownerPair));
+    auto drain = [&](RTIambassador& rti) {
+      if (callbackModel == HLA_EVOKED) {
+        while (rti.evokeMultipleCallbacks(0.0, 0.0)) {
+        }
+      }
+    };
+    drain(*successor);
+    drain(*subscriber);
+    REQUIRE(successorReports.discoveries.size() == 1U);
+    REQUIRE(subscriberReports.discoveries.size() == 1U);
+    REQUIRE(successorReports.discoveries.front().objectInstance == objectInstance);
+    REQUIRE(subscriberReports.discoveries.front().objectInstance == objectInstance);
+    REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, attribute));
+    REQUIRE_FALSE(successor->isAttributeOwnedByFederate(objectInstance, attribute));
+    subscriberReports.inScope.clear();
+    subscriberReports.outOfScope.clear();
+
+    rti1516_2025::VariableLengthData const tag;
+    unsigned char const originalValue[] = {0x11};
+    rti1516_2025::AttributeHandleValueMap originalValues;
+    originalValues.emplace(
+        attribute,
+        rti1516_2025::VariableLengthData(originalValue, sizeof(originalValue)));
+    REQUIRE_NOTHROW(owner->updateAttributeValues(
+        objectInstance, originalValues, tag));
+    drain(*subscriber);
+    REQUIRE(subscriberReports.reflections.size() == 1U);
+    REQUIRE(subscriberReports.reflections.front().objectInstance == objectInstance);
+    REQUIRE(subscriberReports.reflections.front().attributeValues.contains(attribute));
+    subscriberReports.reflections.clear();
+
+    if (negotiated) {
+      REQUIRE_NOTHROW(successor->attributeOwnershipAcquisition(
+          objectInstance, attributes, tag));
+      REQUIRE_NOTHROW(owner->negotiatedAttributeOwnershipDivestiture(
+          objectInstance, attributes, tag));
+      drain(*owner);
+      drain(*subscriber);
+      REQUIRE(subscriberReports.outOfScope.empty());
+      REQUIRE_NOTHROW(owner->confirmDivestiture(
+          objectInstance, attributes, tag));
+    } else {
+      REQUIRE_NOTHROW(successor->attributeOwnershipAcquisition(
+          objectInstance, attributes, tag));
+      AttributeHandleSet divested;
+      REQUIRE_NOTHROW(owner->attributeOwnershipDivestitureIfWanted(
+          objectInstance, attributes, tag, divested));
+      REQUIRE(divested == attributes);
+    }
+    drain(*owner);
+    drain(*successor);
+    drain(*subscriber);
+    REQUIRE_FALSE(owner->isAttributeOwnedByFederate(objectInstance, attribute));
+    REQUIRE(successor->isAttributeOwnedByFederate(objectInstance, attribute));
+    REQUIRE(subscriberReports.outOfScope.empty());
+    REQUIRE(subscriberReports.inScope.empty());
+
+    unsigned char const successorValue[] = {0x22};
+    rti1516_2025::AttributeHandleValueMap successorValues;
+    successorValues.emplace(
+        attribute,
+        rti1516_2025::VariableLengthData(successorValue, sizeof(successorValue)));
+    REQUIRE_NOTHROW(successor->updateAttributeValues(
+        objectInstance, successorValues, tag));
+    drain(*subscriber);
+    REQUIRE(subscriberReports.reflections.size() == 1U);
+    REQUIRE(subscriberReports.reflections.front().objectInstance == objectInstance);
+    REQUIRE(subscriberReports.reflections.front().attributeValues.contains(attribute));
+    REQUIRE(subscriberReports.outOfScope.empty());
+    REQUIRE(subscriberReports.inScope.empty());
+
+    // A subsequent real regional scope transition proves that the observer's
+    // advisory switch and callback path were live during the transfer.
+    REQUIRE_NOTHROW(successor->associateRegionsForUpdates(
+        objectInstance, successorPair));
+    drain(*subscriber);
+    REQUIRE(subscriberReports.outOfScope.empty());
+    REQUIRE(subscriberReports.inScope.empty());
+    REQUIRE_NOTHROW(setRegionBounds(
+        *subscriber, subscriberRegion, dimension, 5UL, 7UL));
+    drain(*subscriber);
+    REQUIRE(subscriberReports.outOfScope.size() == 1U);
+    REQUIRE(subscriberReports.outOfScope.front().objectInstance == objectInstance);
+    REQUIRE(subscriberReports.outOfScope.front().attributes == attributes);
+    subscriberReports.outOfScope.clear();
+    REQUIRE_NOTHROW(setRegionBounds(
+        *subscriber, subscriberRegion, dimension, 0UL, 2UL));
+    drain(*subscriber);
+    REQUIRE(subscriberReports.inScope.size() == 1U);
+    REQUIRE(subscriberReports.inScope.front().objectInstance == objectInstance);
+    REQUIRE(subscriberReports.inScope.front().attributes == attributes);
+
+    REQUIRE_NOTHROW(subscriber->setAttributeScopeAdvisorySwitch(false));
+    REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributesWithRegions(
+        objectClass, subscriberPair));
+    REQUIRE_NOTHROW(successor->unsubscribeObjectClassAttributes(
+        objectClass, attributes));
+    REQUIRE_NOTHROW(successor->unassociateRegionsForUpdates(
+        objectInstance, successorPair));
+    REQUIRE_NOTHROW(owner->deleteObjectInstance(objectInstance, tag));
+    REQUIRE_NOTHROW(subscriber->deleteRegion(subscriberRegion));
+    REQUIRE_NOTHROW(successor->deleteRegion(successorRegion));
+    REQUIRE_NOTHROW(owner->deleteRegion(ownerRegion));
+    REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(successor->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(subscriber->disconnect());
+    REQUIRE_NOTHROW(successor->disconnect());
+    REQUIRE_NOTHROW(owner->disconnect());
+  };
+
+  SECTION("Negotiated Divestiture under HLA_EVOKED") {
+    runTransfer(HLA_EVOKED, true);
+  }
+  SECTION("Negotiated Divestiture under HLA_IMMEDIATE") {
+    runTransfer(HLA_IMMEDIATE, true);
+  }
+  SECTION("Divestiture If Wanted under HLA_EVOKED") {
+    runTransfer(HLA_EVOKED, false);
+  }
+  SECTION("Divestiture If Wanted under HLA_IMMEDIATE") {
+    runTransfer(HLA_IMMEDIATE, false);
+  }
+}
+
+TEST_CASE(
+    "Associate Regions For Updates rejects a stale region without changing existing associations",
+    "[integration][development-profile][2025][federation-management][object-management][ddm]"
+    "[ddm-associate-regions-update-invalid-region-2025]"
+    "[rti.service.associate-regions-for-updates]"
+    "[rti.service.commit-region-modifications]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[federate.callback.attributes-out-of-scope]") {
+  auto runScenario = [](CallbackModel const callbackModel) {
+    ScopeFederateAmbassador ownerReports;
+    ScopeFederateAmbassador subscriberReports;
+    auto owner = makeRti();
+    auto subscriber = makeRti();
+    auto const federationName = nextFederationName();
+    auto const fomModule = resourcePath("regional-ownership-fanout-fom.xml").wstring();
+
+    REQUIRE_NOTHROW(owner->connect(ownerReports, callbackModel));
+    REQUIRE_NOTHROW(subscriber->connect(subscriberReports, callbackModel));
+    REQUIRE_NOTHROW(owner->createFederationExecution(
+        federationName, fomModule, L"HLAinteger64Time"));
+    REQUIRE_NOTHROW(owner->joinFederationExecution(
+        L"stale-association-owner", L"stale-association-owner", federationName));
+    REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+        L"stale-association-subscriber", L"stale-association-subscriber", federationName));
+
+    auto const objectClass = owner->getObjectClassHandle(
+        L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
+    auto const attribute = owner->getAttributeHandle(objectClass, L"ProviderAValue");
+    auto const dimension = owner->getDimensionHandle(L"UmbraRegionX");
+    REQUIRE(objectClass.isValid());
+    REQUIRE(attribute.isValid());
+    REQUIRE(dimension.isValid());
+    AttributeHandleSet const attributes{attribute};
+    REQUIRE_NOTHROW(owner->publishObjectClassAttributes(objectClass, attributes));
+
+    auto const ownerRegion = owner->createRegion(DimensionHandleSet{dimension});
+    auto const staleRegion = owner->createRegion(DimensionHandleSet{dimension});
+    auto const subscriberRegion = subscriber->createRegion(DimensionHandleSet{dimension});
+    REQUIRE_NOTHROW(setRegionBounds(*owner, ownerRegion, dimension, 0UL, 2UL));
+    REQUIRE_NOTHROW(setRegionBounds(*owner, staleRegion, dimension, 0UL, 2UL));
+    REQUIRE_NOTHROW(setRegionBounds(*subscriber, subscriberRegion, dimension, 0UL, 2UL));
+    AttributeHandleSetRegionHandleSetPairVector const ownerPair{{
+        attributes, RegionHandleSet{ownerRegion},
+    }};
+    AttributeHandleSetRegionHandleSetPairVector const stalePair{{
+        attributes, RegionHandleSet{staleRegion},
+    }};
+    AttributeHandleSetRegionHandleSetPairVector const subscriberPair{{
+        attributes, RegionHandleSet{subscriberRegion},
+    }};
+
+    // Keep a live association on the object, but make the second designator a
+    // stale handle so the failed call must leave that live association intact.
+    REQUIRE_NOTHROW(owner->deleteRegion(staleRegion));
+    REQUIRE_NOTHROW(subscriber->setAttributeScopeAdvisorySwitch(true));
+    REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+        objectClass, subscriberPair, true));
+    ObjectInstanceHandle objectInstance;
+    REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstanceWithRegions(
+        objectClass, ownerPair));
+
+    auto drain = [&](RTIambassador& rti) {
+      if (callbackModel == HLA_EVOKED) {
+        while (rti.evokeMultipleCallbacks(0.0, 0.0)) {
+        }
+      }
+    };
+    drain(*subscriber);
+    REQUIRE(subscriberReports.discoveries.size() == 1U);
+    REQUIRE(subscriberReports.discoveries.front().objectInstance == objectInstance);
+    subscriberReports.inScope.clear();
+    subscriberReports.outOfScope.clear();
+
+    REQUIRE_THROWS_AS(
+        owner->associateRegionsForUpdates(objectInstance, stalePair),
+        rti1516_2025::InvalidRegion);
+
+    // If the failed call disturbed the original association, moving its live
+    // region away from the subscription would not take this attribute out of
+    // scope.
+    REQUIRE_NOTHROW(setRegionBounds(*owner, ownerRegion, dimension, 5UL, 7UL));
+    drain(*subscriber);
+    REQUIRE(subscriberReports.inScope.empty());
+    REQUIRE(subscriberReports.outOfScope.size() == 1U);
+    REQUIRE(subscriberReports.outOfScope.front().objectInstance == objectInstance);
+    REQUIRE(subscriberReports.outOfScope.front().attributes == attributes);
+
+    REQUIRE_NOTHROW(subscriber->setAttributeScopeAdvisorySwitch(false));
+    REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributesWithRegions(
+        objectClass, subscriberPair));
+    REQUIRE_NOTHROW(owner->unassociateRegionsForUpdates(objectInstance, ownerPair));
+    REQUIRE_NOTHROW(owner->deleteObjectInstance(objectInstance, rti1516_2025::VariableLengthData{}));
+    REQUIRE_NOTHROW(subscriber->deleteRegion(subscriberRegion));
+    REQUIRE_NOTHROW(owner->deleteRegion(ownerRegion));
+    REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(subscriber->disconnect());
+    REQUIRE_NOTHROW(owner->disconnect());
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "Associate Regions For Updates leaves an existing region association unchanged when repeated",
+    "[integration][development-profile][2025][federation-management][object-management][ddm]"
+    "[ddm-associate-regions-duplicate-association-idempotent-2025]"
+    "[rti.service.associate-regions-for-updates]"
+    "[rti.service.unassociate-regions-for-updates]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[federate.callback.attributes-out-of-scope]") {
+  auto runScenario = [](CallbackModel const callbackModel) {
+    ScopeFederateAmbassador ownerReports;
+    ScopeFederateAmbassador subscriberReports;
+    auto owner = makeRti();
+    auto subscriber = makeRti();
+    auto const federationName = nextFederationName();
+    auto const fomModule = resourcePath("regional-ownership-fanout-fom.xml").wstring();
+
+    REQUIRE_NOTHROW(owner->connect(ownerReports, callbackModel));
+    REQUIRE_NOTHROW(subscriber->connect(subscriberReports, callbackModel));
+    REQUIRE_NOTHROW(owner->createFederationExecution(
+        federationName, fomModule, L"HLAinteger64Time"));
+    REQUIRE_NOTHROW(owner->joinFederationExecution(
+        L"duplicate-association-owner", L"duplicate-association-owner", federationName));
+    REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+        L"duplicate-association-subscriber", L"duplicate-association-subscriber", federationName));
+
+    auto const objectClass = owner->getObjectClassHandle(
+        L"HLAobjectRoot.UmbraRegionalOwnershipFanout");
+    auto const attribute = owner->getAttributeHandle(objectClass, L"ProviderAValue");
+    auto const dimension = owner->getDimensionHandle(L"UmbraRegionX");
+    REQUIRE(objectClass.isValid());
+    REQUIRE(attribute.isValid());
+    REQUIRE(dimension.isValid());
+    AttributeHandleSet const attributes{attribute};
+    REQUIRE_NOTHROW(owner->publishObjectClassAttributes(objectClass, attributes));
+
+    auto const overlappingRegion = owner->createRegion(DimensionHandleSet{dimension});
+    auto const disjointRegion = owner->createRegion(DimensionHandleSet{dimension});
+    auto const subscriberRegion = subscriber->createRegion(DimensionHandleSet{dimension});
+    REQUIRE_NOTHROW(setRegionBounds(*owner, overlappingRegion, dimension, 0UL, 2UL));
+    REQUIRE_NOTHROW(setRegionBounds(*owner, disjointRegion, dimension, 5UL, 7UL));
+    REQUIRE_NOTHROW(setRegionBounds(*subscriber, subscriberRegion, dimension, 0UL, 2UL));
+    AttributeHandleSetRegionHandleSetPairVector const overlappingPair{{
+        attributes, RegionHandleSet{overlappingRegion},
+    }};
+    AttributeHandleSetRegionHandleSetPairVector const disjointPair{{
+        attributes, RegionHandleSet{disjointRegion},
+    }};
+    AttributeHandleSetRegionHandleSetPairVector const subscriberPair{{
+        attributes, RegionHandleSet{subscriberRegion},
+    }};
+
+    REQUIRE_NOTHROW(subscriber->setAttributeScopeAdvisorySwitch(true));
+    REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+        objectClass, subscriberPair, true));
+    ObjectInstanceHandle objectInstance;
+    REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstanceWithRegions(
+        objectClass, overlappingPair));
+
+    auto drainSubscriber = [&] {
+      if (callbackModel == HLA_EVOKED) {
+        while (subscriber->evokeMultipleCallbacks(0.0, 0.0)) {
+        }
+      }
+    };
+    drainSubscriber();
+    REQUIRE(subscriberReports.discoveries.size() == 1U);
+    REQUIRE(subscriberReports.discoveries.front().objectInstance == objectInstance);
+    subscriberReports.inScope.clear();
+    subscriberReports.outOfScope.clear();
+
+    // Registration already associates the overlapping region. Repeating that
+    // association must not leave an extra association behind when removed once.
+    REQUIRE_NOTHROW(owner->associateRegionsForUpdates(objectInstance, overlappingPair));
+    REQUIRE_NOTHROW(owner->associateRegionsForUpdates(objectInstance, disjointPair));
+    REQUIRE_NOTHROW(owner->unassociateRegionsForUpdates(objectInstance, overlappingPair));
+    drainSubscriber();
+    REQUIRE(subscriberReports.inScope.empty());
+    REQUIRE(subscriberReports.outOfScope.size() == 1U);
+    REQUIRE(subscriberReports.outOfScope.front().objectInstance == objectInstance);
+    REQUIRE(subscriberReports.outOfScope.front().attributes == attributes);
+
+    REQUIRE_NOTHROW(subscriber->setAttributeScopeAdvisorySwitch(false));
+    REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributesWithRegions(
+        objectClass, subscriberPair));
+    REQUIRE_NOTHROW(owner->unassociateRegionsForUpdates(objectInstance, disjointPair));
+    REQUIRE_NOTHROW(owner->deleteObjectInstance(
+        objectInstance, rti1516_2025::VariableLengthData{}));
+    REQUIRE_NOTHROW(subscriber->deleteRegion(subscriberRegion));
+    REQUIRE_NOTHROW(owner->deleteRegion(disjointRegion));
+    REQUIRE_NOTHROW(owner->deleteRegion(overlappingRegion));
+    REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(subscriber->disconnect());
+    REQUIRE_NOTHROW(owner->disconnect());
   };
 
   SECTION("HLA_EVOKED") {

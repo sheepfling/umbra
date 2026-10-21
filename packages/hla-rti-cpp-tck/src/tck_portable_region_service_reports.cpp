@@ -541,19 +541,29 @@ void scenarioServiceReportCommitRegionModifications(
       "CommitRegionModifications service-report testing requires a positive adapter dimension upper bound");
   auto const region = subject.rtiAmbassador().createRegion(
       rti::DimensionHandleSet{dimension});
+  auto const secondRegion = subject.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{dimension});
   require(
-      region.isValid(),
-      "CommitRegionModifications service-report setup returned an invalid region handle");
+      region.isValid() && secondRegion.isValid() && region != secondRegion,
+      "CommitRegionModifications service-report setup returned invalid or duplicate region handles");
   subject.rtiAmbassador().setRangeBounds(
       region,
       dimension,
       rti::RangeBounds{0UL, upperBound});
+  subject.rtiAmbassador().setRangeBounds(
+      secondRegion,
+      dimension,
+      rti::RangeBounds{0UL, upperBound});
+  rti::RegionHandleSet const regions{region, secondRegion};
+  require(
+      regions.size() == 2U,
+      "CommitRegionModifications service-report fixture did not retain two distinct regions");
   require(
       !subject.rtiAmbassador().getSendServiceReportsToFileSwitch(),
       "CommitRegionModifications service-report test could not select MOM delivery");
 
   subject.rtiAmbassador().setServiceReportingSwitch(true);
-  subject.rtiAmbassador().commitRegionModifications(rti::RegionHandleSet{region});
+  subject.rtiAmbassador().commitRegionModifications(regions);
   waitFor(
       subject,
       observer,
@@ -565,8 +575,16 @@ void scenarioServiceReportCommitRegionModifications(
       reports.size() == 1U,
       "CommitRegionModifications delivered an unexpected number of service reports");
   auto const& report = reports.front();
-  auto const regionSetText =
-      std::wstring{L"[\""} + region.toString() + L"\"]";
+  std::wstring regionSetText{L"["};
+  bool firstRegion = true;
+  for (auto const& regionHandle : regions) {
+    if (!firstRegion) {
+      regionSetText += L",";
+    }
+    firstRegion = false;
+    regionSetText += L"\"" + regionHandle.toString() + L"\"";
+  }
+  regionSetText += L"]";
   requirePortableServiceReport(
       observer,
       report,
@@ -586,12 +604,17 @@ void scenarioServiceReportCommitRegionModifications(
 
   subject.rtiAmbassador().setServiceReportingSwitch(false);
   auto const committedBounds = subject.rtiAmbassador().getRangeBounds(region, dimension);
+  auto const secondCommittedBounds =
+      subject.rtiAmbassador().getRangeBounds(secondRegion, dimension);
   require(
       committedBounds.getLowerBound() == 0UL &&
-          committedBounds.getUpperBound() == upperBound,
-      "CommitRegionModifications did not commit the adapter-valid bounds");
+          committedBounds.getUpperBound() == upperBound &&
+          secondCommittedBounds.getLowerBound() == 0UL &&
+          secondCommittedBounds.getUpperBound() == upperBound,
+      "CommitRegionModifications did not commit bounds for both adapter-valid regions");
   observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
   subject.rtiAmbassador().deleteRegion(region);
+  subject.rtiAmbassador().deleteRegion(secondRegion);
   subject.resign(rti::NO_ACTION);
   observer.resign(rti::NO_ACTION);
   subject.rtiAmbassador().destroyFederationExecution(federation);
@@ -1027,6 +1050,206 @@ void scenarioRegionRangeDimensionValidationContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioRegionRangeDimensionValidation(options, model);
+}
+
+void scenarioServiceReportAssociateRegionsForUpdates(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Associate Regions for Updates service-report testing requires an adapter-supplied P0 FOM");
+  require(
+      !options.modelFom.empty(),
+      "Associate Regions for Updates service-report testing requires an adapter-supplied FOM");
+  require(
+      !options.mimFom.empty(),
+      "Associate Regions for Updates service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-associate-regions-subject");
+  Session observer(options, model, "service-report-associate-regions-observer");
+  auto const federation =
+      federationName(options, "service-report-associate-regions-for-updates");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{
+          options.fom.wstring(),
+          options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-associate-regions-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-associate-regions-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Associate Regions for Updates service-report lookup returned an invalid interaction handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber",
+             L"HLAfederate"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(
+          reportClass,
+          name);
+      require(
+          parameter.isValid(),
+          "Associate Regions for Updates service-report lookup returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const objectClass = subject.rtiAmbassador().getObjectClassHandle(
+      options.typedObjectClassName);
+  auto const attribute = subject.rtiAmbassador().getAttributeHandle(
+      objectClass,
+      options.typedIdentityAttributeName);
+  auto const secondAttribute = subject.rtiAmbassador().getAttributeHandle(
+      objectClass,
+      options.typedIntegerAttributeName);
+  auto const dimension = subject.rtiAmbassador().getDimensionHandle(
+      options.fomDimensionName);
+  require(
+      objectClass.isValid() && attribute.isValid() &&
+          secondAttribute.isValid() && attribute != secondAttribute &&
+          dimension.isValid(),
+      "Associate Regions for Updates service-report setup returned an invalid FOM handle");
+  rti::AttributeHandleSet const attributes{attribute};
+  rti::AttributeHandleSet const secondAttributes{secondAttribute};
+  subject.rtiAmbassador().publishObjectClassAttributes(
+      objectClass,
+      rti::AttributeHandleSet{attribute, secondAttribute});
+
+  auto const dimensionUpperBound =
+      subject.rtiAmbassador().getDimensionUpperBound(dimension);
+  require(
+      dimensionUpperBound > 0UL,
+      "Associate Regions for Updates service-report testing requires a positive dimension upper bound");
+  auto const region = subject.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{dimension});
+  auto const secondRegion = subject.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{dimension});
+  require(
+      region.isValid() && secondRegion.isValid() && region != secondRegion,
+      "Associate Regions for Updates service-report setup returned invalid or duplicate region handles");
+  subject.rtiAmbassador().setRangeBounds(
+      region,
+      dimension,
+      rti::RangeBounds{0UL, dimensionUpperBound});
+  subject.rtiAmbassador().setRangeBounds(
+      secondRegion,
+      dimension,
+      rti::RangeBounds{0UL, dimensionUpperBound});
+  subject.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{region, secondRegion});
+  auto const object = subject.rtiAmbassador().registerObjectInstance(objectClass);
+  require(
+      object.isValid(),
+      "Associate Regions for Updates service-report setup returned an invalid object handle");
+
+  require(
+      !subject.rtiAmbassador().getSendServiceReportsToFileSwitch(),
+      "Associate Regions for Updates service-report test could not select MOM delivery");
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  rti::AttributeHandleSetRegionHandleSetPairVector const association{
+      {attributes, rti::RegionHandleSet{region}},
+      {secondAttributes, rti::RegionHandleSet{secondRegion}},
+  };
+  subject.rtiAmbassador().associateRegionsForUpdates(object, association);
+
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() >= 1U; },
+      options,
+      "Associate Regions for Updates service-report callback");
+  auto const reports = observer.recorder().interactions();
+  require(
+      reports.size() == 1U,
+      "Associate Regions for Updates delivered an unexpected number of service reports");
+  auto const& report = reports.front();
+  require(
+      report.interaction == reportClass,
+      "Associate Regions for Updates service report used the wrong interaction class");
+  require(
+      report.parameters.size() == reportParameters.size(),
+      "Associate Regions for Updates service report had an unexpected parameter count");
+  require(
+      report.tag.empty() && !report.producer.isValid() &&
+          !report.regions.has_value(),
+      "Associate Regions for Updates service report carried application metadata");
+  require(
+      report.transportation ==
+          observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable"),
+      "Associate Regions for Updates service report did not use reliable transportation");
+  require(
+      observer.rtiAmbassador().decodeFederateHandle(
+          report.parameters.at(reportParameters.at(7U))) ==
+          subject.federateHandle(),
+      "Associate Regions for Updates service report identified the wrong federate");
+
+  auto const quoted = [](std::wstring const& value) {
+    return std::wstring{L"\""} + value + L"\"";
+  };
+  auto const associationValue =
+      std::wstring{L"[{\"attributeHandleSet\":["} +
+      quoted(attribute.toString()) +
+      L"],\"regionHandleSet\":[" + quoted(region.toString()) +
+      L"]},{\"attributeHandleSet\":[" +
+      quoted(secondAttribute.toString()) +
+      L"],\"regionHandleSet\":[" + quoted(secondRegion.toString()) + L"]}]";
+  requirePortableServiceReport(
+      observer,
+      report,
+      reportClass,
+      reportParameters,
+      L"AssociateRegionsForUpdates",
+      {{37, L"Object instance designator", quoted(object.toString())},
+       {4,
+        L"Collection of attribute designator set and region designator set pairs",
+        associationValue}},
+      {34, L"", L"null"},
+      0,
+      "Associate Regions for Updates service report",
+      5);
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().unassociateRegionsForUpdates(object, association);
+  subject.rtiAmbassador().deleteRegion(region);
+  subject.rtiAmbassador().deleteRegion(secondRegion);
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  observer.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportAssociateRegionsForUpdatesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportAssociateRegionsForUpdates(options, model);
 }
 
 }  // namespace hla_rti_cpp_tck::detail

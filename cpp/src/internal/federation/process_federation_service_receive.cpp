@@ -89,6 +89,13 @@ TransportServiceMessage ProcessFederationService::handleReceiveInteraction(
             receiveRequest.receivingFederateId)) {
       return rejected(request);
     }
+    if (!state->second.activeCallbackRegionDesignatorCopies.empty()) {
+      registry_.releaseCallbackScopedRegionDesignatorCopies(
+          receiveRequest.federationName,
+          receiveRequest.receivingFederateId,
+          state->second.activeCallbackRegionDesignatorCopies);
+      state->second.activeCallbackRegionDesignatorCopies.clear();
+    }
     if (!state->second.synchronizationPointAnnouncementEvents.empty()) {
       result.synchronizationPointAnnouncementEvent = std::move(
           state->second.synchronizationPointAnnouncementEvents.front());
@@ -537,7 +544,48 @@ TransportServiceMessage ProcessFederationService::handleReceiveInteraction(
         }
       }
     }
+    if (result.event && !result.event->timestamp &&
+        result.event->sentRegionHandles &&
+        !result.event->sentRegionHandles->empty()) {
+      if (result.event->sentRegionSnapshots.empty()) {
+        return internalError(request);
+      }
+      std::map<std::uint64_t, std::uint64_t> copiedRegionHandles;
+      auto const copyStatus = registry_.createCallbackScopedRegionDesignatorCopies(
+          receiveRequest.federationName,
+          receiveRequest.receivingFederateId,
+          *result.event->sentRegionHandles,
+          result.event->sentRegionSnapshots,
+          copiedRegionHandles);
+      if (copyStatus != RegionServiceStatus::applied) {
+        return internalError(request);
+      }
+      std::set<std::uint64_t> conveyedCopyHandles;
+      for (auto const& [sourceRegionHandle, copiedRegionHandle] :
+           copiedRegionHandles) {
+        static_cast<void>(sourceRegionHandle);
+        conveyedCopyHandles.insert(copiedRegionHandle);
+      }
+      result.event->sentRegionHandles = std::move(conveyedCopyHandles);
+      result.event->sentRegionSnapshots.clear();
+      state->second.activeCallbackRegionDesignatorCopies =
+          std::move(copiedRegionHandles);
+    }
   }
+  if (result.event && result.event->retractionMessageId &&
+      result.event->timestamp) {
+    // Pull-mode TSO interactions cross the process service boundary when the
+    // receiver polls them. Reserve that delivery before returning the event so
+    // a later Retract can distinguish a callback that has started from one
+    // that is still queued in the client's callback dispatcher.
+    if (!registry_.beginTsoInteractionCallback(
+            receiveRequest.federationName,
+            receiveRequest.receivingFederateId,
+            *result.event->retractionMessageId)) {
+      result.event.reset();
+    }
+  }
+
   if (!acquisitionFollowups.empty() &&
       !enqueueAttributeOwnershipAcquisitionWorkItems(
           receiveRequest.federationName,

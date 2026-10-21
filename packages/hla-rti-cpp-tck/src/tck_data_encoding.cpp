@@ -397,6 +397,182 @@ void verifyBasicDataElementsContract() {
   decodedFloat64.decode(float64Be.encode());
   require(decodedFloat64.get() == -2.5, "HLAfloat64BE did not round-trip");
 
+  auto const positiveInfinity32 = std::numeric_limits<float>::infinity();
+  auto const negativeInfinity32 = -positiveInfinity32;
+  auto const positiveInfinity64 = std::numeric_limits<double>::infinity();
+  auto const negativeInfinity64 = -positiveInfinity64;
+  rti::HLAfloat32BE float32PositiveZeroBe{0.0F};
+  rti::HLAfloat32LE float32PositiveZeroLe{0.0F};
+  rti::HLAfloat32BE float32NegativeZeroBe{-0.0F};
+  rti::HLAfloat32LE float32NegativeZeroLe{-0.0F};
+  rti::HLAfloat32BE float32PositiveInfinityBe{positiveInfinity32};
+  rti::HLAfloat32LE float32PositiveInfinityLe{positiveInfinity32};
+  rti::HLAfloat32BE float32NegativeInfinityBe{negativeInfinity32};
+  rti::HLAfloat32LE float32NegativeInfinityLe{negativeInfinity32};
+  requireEncodedBytes(
+      float32PositiveZeroBe,
+      {0U, 0U, 0U, 0U},
+      "HLAfloat32BE positive zero");
+  requireEncodedBytes(
+      float32PositiveZeroLe,
+      {0U, 0U, 0U, 0U},
+      "HLAfloat32LE positive zero");
+  requireEncodedBytes(
+      float32NegativeZeroBe,
+      {0x80U, 0U, 0U, 0U},
+      "HLAfloat32BE negative zero");
+  requireEncodedBytes(
+      float32NegativeZeroLe,
+      {0U, 0U, 0U, 0x80U},
+      "HLAfloat32LE negative zero");
+  requireEncodedBytes(
+      float32PositiveInfinityBe,
+      {0x7fU, 0x80U, 0U, 0U},
+      "HLAfloat32BE positive infinity");
+  requireEncodedBytes(
+      float32PositiveInfinityLe,
+      {0U, 0U, 0x80U, 0x7fU},
+      "HLAfloat32LE positive infinity");
+  requireEncodedBytes(
+      float32NegativeInfinityBe,
+      {0xffU, 0x80U, 0U, 0U},
+      "HLAfloat32BE negative infinity");
+  requireEncodedBytes(
+      float32NegativeInfinityLe,
+      {0U, 0U, 0x80U, 0xffU},
+      "HLAfloat32LE negative infinity");
+
+  rti::HLAfloat64BE float64PositiveZeroBe{0.0};
+  rti::HLAfloat64LE float64PositiveZeroLe{0.0};
+  rti::HLAfloat64BE float64NegativeZeroBe{-0.0};
+  rti::HLAfloat64LE float64NegativeZeroLe{-0.0};
+  rti::HLAfloat64BE float64PositiveInfinityBe{positiveInfinity64};
+  rti::HLAfloat64LE float64PositiveInfinityLe{positiveInfinity64};
+  rti::HLAfloat64BE float64NegativeInfinityBe{negativeInfinity64};
+  rti::HLAfloat64LE float64NegativeInfinityLe{negativeInfinity64};
+  requireEncodedBytes(
+      float64PositiveZeroBe,
+      {0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U},
+      "HLAfloat64BE positive zero");
+  requireEncodedBytes(
+      float64PositiveZeroLe,
+      {0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U},
+      "HLAfloat64LE positive zero");
+  requireEncodedBytes(
+      float64NegativeZeroBe,
+      {0x80U, 0U, 0U, 0U, 0U, 0U, 0U, 0U},
+      "HLAfloat64BE negative zero");
+  requireEncodedBytes(
+      float64NegativeZeroLe,
+      {0U, 0U, 0U, 0U, 0U, 0U, 0U, 0x80U},
+      "HLAfloat64LE negative zero");
+  requireEncodedBytes(
+      float64PositiveInfinityBe,
+      {0x7fU, 0xf0U, 0U, 0U, 0U, 0U, 0U, 0U},
+      "HLAfloat64BE positive infinity");
+  requireEncodedBytes(
+      float64PositiveInfinityLe,
+      {0U, 0U, 0U, 0U, 0U, 0U, 0xf0U, 0x7fU},
+      "HLAfloat64LE positive infinity");
+  requireEncodedBytes(
+      float64NegativeInfinityBe,
+      {0xffU, 0xf0U, 0U, 0U, 0U, 0U, 0U, 0U},
+      "HLAfloat64BE negative infinity");
+  requireEncodedBytes(
+      float64NegativeInfinityLe,
+      {0U, 0U, 0U, 0U, 0U, 0U, 0xf0U, 0xffU},
+      "HLAfloat64LE negative infinity");
+
+  auto const minSubnormal32 = std::numeric_limits<float>::denorm_min();
+  auto const minNormal32 = std::numeric_limits<float>::min();
+  auto const maxFinite32 = std::numeric_limits<float>::max();
+  rti::HLAfloat32BE float32MinSubnormalBe{minSubnormal32};
+  rti::HLAfloat32LE float32MinSubnormalLe{minSubnormal32};
+  rti::HLAfloat32BE float32MinNormalBe{minNormal32};
+  rti::HLAfloat32LE float32MinNormalLe{minNormal32};
+  rti::HLAfloat32BE float32MaxFiniteBe{maxFinite32};
+  rti::HLAfloat32LE float32MaxFiniteLe{maxFinite32};
+  requireEncodedBytes(
+      float32MinSubnormalBe,
+      {0U, 0U, 0U, 1U},
+      "HLAfloat32BE minimum positive subnormal");
+  requireEncodedBytes(
+      float32MinSubnormalLe,
+      {1U, 0U, 0U, 0U},
+      "HLAfloat32LE minimum positive subnormal");
+  requireEncodedBytes(
+      float32MinNormalBe,
+      {0U, 0x80U, 0U, 0U},
+      "HLAfloat32BE minimum positive normal");
+  requireEncodedBytes(
+      float32MinNormalLe,
+      {0U, 0U, 0x80U, 0U},
+      "HLAfloat32LE minimum positive normal");
+  requireEncodedBytes(
+      float32MaxFiniteBe,
+      {0x7fU, 0x7fU, 0xffU, 0xffU},
+      "HLAfloat32BE maximum finite");
+  requireEncodedBytes(
+      float32MaxFiniteLe,
+      {0xffU, 0xffU, 0x7fU, 0x7fU},
+      "HLAfloat32LE maximum finite");
+
+  auto const minSubnormal64 = std::numeric_limits<double>::denorm_min();
+  auto const minNormal64 = std::numeric_limits<double>::min();
+  auto const maxFinite64 = std::numeric_limits<double>::max();
+  rti::HLAfloat64BE float64MinSubnormalBe{minSubnormal64};
+  rti::HLAfloat64LE float64MinSubnormalLe{minSubnormal64};
+  rti::HLAfloat64BE float64MinNormalBe{minNormal64};
+  rti::HLAfloat64LE float64MinNormalLe{minNormal64};
+  rti::HLAfloat64BE float64MaxFiniteBe{maxFinite64};
+  rti::HLAfloat64LE float64MaxFiniteLe{maxFinite64};
+  requireEncodedBytes(
+      float64MinSubnormalBe,
+      {0U, 0U, 0U, 0U, 0U, 0U, 0U, 1U},
+      "HLAfloat64BE minimum positive subnormal");
+  requireEncodedBytes(
+      float64MinSubnormalLe,
+      {1U, 0U, 0U, 0U, 0U, 0U, 0U, 0U},
+      "HLAfloat64LE minimum positive subnormal");
+  requireEncodedBytes(
+      float64MinNormalBe,
+      {0U, 0x10U, 0U, 0U, 0U, 0U, 0U, 0U},
+      "HLAfloat64BE minimum positive normal");
+  requireEncodedBytes(
+      float64MinNormalLe,
+      {0U, 0U, 0U, 0U, 0U, 0U, 0x10U, 0U},
+      "HLAfloat64LE minimum positive normal");
+  requireEncodedBytes(
+      float64MaxFiniteBe,
+      {0x7fU, 0xefU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU},
+      "HLAfloat64BE maximum finite");
+  requireEncodedBytes(
+      float64MaxFiniteLe,
+      {0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0xefU, 0x7fU},
+      "HLAfloat64LE maximum finite");
+
+  rti::HLAfloat32BE decodedFloat32NegativeZero;
+  decodedFloat32NegativeZero.decode(float32NegativeZeroBe.encode());
+  requireEncodedBytes(
+      decodedFloat32NegativeZero,
+      {0x80U, 0U, 0U, 0U},
+      "HLAfloat32BE negative-zero round-trip");
+  rti::HLAfloat64LE decodedFloat64NegativeInfinity;
+  decodedFloat64NegativeInfinity.decode(float64NegativeInfinityLe.encode());
+  require(
+      decodedFloat64NegativeInfinity.get() == negativeInfinity64,
+      "HLAfloat64LE negative infinity did not round-trip");
+  rti::HLAfloat32LE decodedFloat32MinSubnormal;
+  decodedFloat32MinSubnormal.decode(float32MinSubnormalLe.encode());
+  require(
+      decodedFloat32MinSubnormal.get() == minSubnormal32,
+      "HLAfloat32LE minimum positive subnormal did not round-trip");
+  rti::HLAfloat64BE decodedFloat64MaxFinite;
+  decodedFloat64MaxFinite.decode(float64MaxFiniteBe.encode());
+  require(
+      decodedFloat64MaxFinite.get() == maxFinite64,
+      "HLAfloat64BE maximum finite did not round-trip");
+
   rti::HLAASCIIchar asciiCharacter{'A'};
   rti::HLAASCIIstring asciiString{std::string{"A\0Z", 3U}};
   requireEncodedBytes(asciiCharacter, {0x41U}, "HLAASCIIchar");

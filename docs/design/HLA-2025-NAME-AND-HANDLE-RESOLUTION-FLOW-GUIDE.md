@@ -246,6 +246,16 @@ coordinate so a point range `[value, value + 1)` cannot overflow. This is
 current Umbra behavior, not a claim that the private mixing algorithm is
 standardized.
 
+Keep the dimension category attached to each normalized value. The federate,
+object-class, interaction-class, and object-instance operations are not one
+global handle-number namespace just because they share the `unsigned long`
+return type. Umbra feeds a category-specific discriminator into a shared mixing
+helper, but does not reserve disjoint numeric ranges across categories. The
+focused test checks point-range validity and agreement for the same typed
+designator across ambassadors; it does not establish cross-category uniqueness.
+Do not use cross-category numeric equality or inequality as a handle-identity
+test.
+
 ```mermaid
 flowchart TD
     A["normalizeServiceGroup(group)"] --> B["Require connection and joined membership"]
@@ -350,6 +360,7 @@ Umbra implementation paths:
 - [2025 typed-handle normalization paths and endpoint-specific ordering](../../cpp/src/internal/runtime/umbra_rti_ambassador_handle_normalization.cpp#L115)
 - [Execution-scoped coordinate stability across restore](../../cpp/src/internal/federation/federation_registry.hpp#L780)
 - [Execution-scoped normalized-value mapping and point-range bound](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L614)
+- [Category-specific normalization inputs](../../cpp/src/internal/federation/federation_registry_constants.hpp#L26), [typed mapping calls](../../cpp/src/internal/federation/federation_registry_catalog_queries.cpp#L113), and [shared point-coordinate reducer](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L615)
 - [Process service handle-normalization registry dispatch](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L86)
 - [Dimension name lookup](../../cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp#L238)
 - [Typed internal ObjectClassHandle boundary](../../cpp/src/internal/handles/object_class_handle.hpp#L9)
@@ -369,7 +380,7 @@ change does not claim to have run the tests):
 - [Configured process-endpoint object/interaction class name-handle round trips](../../cpp/tests/ieee1516_2025_connection_reverse_fom_lookup_catch2.cpp#L459)
 - [Transportation lookup](../../cpp/tests/transportation_type_lookup_catch2.cpp#L50) and [order enum lookup](../../cpp/tests/order_type_lookup_catch2.cpp#L49)
 - [Public handle encoding round-trip and malformed-data tests](../../cpp/tests/object_class_handle_catch2.cpp#L43)
-- [Embedded 2025 normalized DDM-coordinate behavior](../../cpp/tests/handle_normalization_catch2.cpp#L60)
+- [Embedded 2025 normalized DDM-coordinate behavior](../../cpp/tests/handle_normalization_catch2.cpp#L144): point-range validity and same-category agreement across ambassadors, without a cross-category uniqueness assertion
 - [Configured-process 2025 handle-normalization path](../../cpp/tests/ieee1516_2025_connection_handle_normalization_catch2.cpp#L459)
 - [Normalization service-report return arguments](../../cpp/tests/ieee1516_2025_support_handle_normalization_service_report_return_arguments_catch2.cpp#L5)
 

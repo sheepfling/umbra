@@ -7,6 +7,7 @@
 #include <RTI/RTI1516.h>
 
 #include <atomic>
+#include <cstddef>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -101,6 +102,39 @@ class ReportingFederateAmbassador final
   std::vector<ObjectInstanceHandle> objectDiscoveryReports;
   std::vector<DirectedInteractionReport> directedInteractionReports;
   std::vector<ObjectInstanceHandle> objectRemovalReports;
+};
+
+class DirectedTransportationFederateAmbassador final
+    : public rti1516_2025::NullFederateAmbassador {
+ public:
+  void confirmInteractionTransportationTypeChange(
+      InteractionClassHandle const& interactionClass,
+      TransportationTypeHandle const& transportationType) override {
+    confirmedInteractionClass = interactionClass;
+    confirmedTransportationType = transportationType;
+    ++transportationChangeConfirmations;
+  }
+
+  void receiveDirectedInteraction(
+      InteractionClassHandle const& interactionClass,
+      ObjectInstanceHandle const& objectInstance,
+      ParameterHandleValueMap const&,
+      VariableLengthData const&,
+      TransportationTypeHandle const& transportationType,
+      FederateHandle const&) override {
+    receivedInteractionClass = interactionClass;
+    receivedObjectInstance = objectInstance;
+    receivedTransportationType = transportationType;
+    ++directedInteractionReceipts;
+  }
+
+  std::size_t transportationChangeConfirmations = 0U;
+  InteractionClassHandle confirmedInteractionClass;
+  TransportationTypeHandle confirmedTransportationType;
+  std::size_t directedInteractionReceipts = 0U;
+  InteractionClassHandle receivedInteractionClass;
+  ObjectInstanceHandle receivedObjectInstance;
+  TransportationTypeHandle receivedTransportationType;
 };
 
 std::unique_ptr<RTIambassador> makeRti() {
@@ -313,6 +347,83 @@ TEST_CASE(
   REQUIRE_NOTHROW(subscriber->disconnect());
   REQUIRE_NOTHROW(immediate->disconnect());
   REQUIRE_NOTHROW(unsubscribed->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Send Directed Interaction reports the sender's committed transportation type",
+    "[integration][development-profile][interaction-management][directed]"
+    "[directed-interaction-transportation-argument][2025]"
+    "[rti.service.request-interaction-transportation-type-change]"
+    "[rti.service.send-directed-interaction]"
+    "[federate.callback.confirm-interaction-transportation-type-change]"
+    "[federate.callback.receive-directed-interaction]") {
+  DirectedTransportationFederateAmbassador publisherReports;
+  DirectedTransportationFederateAmbassador subscriberReports;
+  auto publisher = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const objectConsumer = testDataPath(
+      "directed-interaction-object-consumer-fom.xml").wstring();
+  auto const interactionProvider = testDataPath(
+      "directed-interaction-interaction-provider-fom.xml").wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{objectConsumer, interactionProvider},
+      standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"directed-transportation-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"directed-transportation-subscriber", L"subscriber", federationName));
+
+  auto const objectClass = publisher->getObjectClassHandle(
+      fixture_hla::fom::directed_fixture_object);
+  auto const marker = publisher->getAttributeHandle(
+      objectClass, fixture_hla::fixture::directed_target_marker);
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      fixture_hla::fom::directed_fixture_interaction);
+  auto const bestEffort = publisher->getTransportationTypeHandle(
+      standard_hla::mom::best_effort);
+  REQUIRE(objectClass.isValid());
+  REQUIRE(marker.isValid());
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(bestEffort.isValid());
+
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(publisher->publishObjectClassDirectedInteractions(
+      objectClass, InteractionClassHandleSet{interactionClass}));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassDirectedInteractions(
+      objectClass, InteractionClassHandleSet{interactionClass}, true));
+  auto const target = publisher->registerObjectInstance(objectClass);
+  REQUIRE(target.isValid());
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+
+  REQUIRE_NOTHROW(publisher->requestInteractionTransportationTypeChange(
+      interactionClass, bestEffort));
+  while (publisher->evokeCallback(0.0)) {
+  }
+  REQUIRE(publisherReports.transportationChangeConfirmations == 1U);
+  REQUIRE(publisherReports.confirmedInteractionClass == interactionClass);
+  REQUIRE(publisherReports.confirmedTransportationType == bestEffort);
+
+  REQUIRE_NOTHROW(publisher->sendDirectedInteraction(
+      interactionClass, target, ParameterHandleValueMap{}, VariableLengthData{}));
+  static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.directedInteractionReceipts == 1U);
+  REQUIRE(subscriberReports.receivedInteractionClass == interactionClass);
+  REQUIRE(subscriberReports.receivedObjectInstance == target);
+  REQUIRE(subscriberReports.receivedTransportationType == bestEffort);
+
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(publisher->disconnect());
+  REQUIRE_NOTHROW(subscriber->disconnect());
 }
 
 TEST_CASE(

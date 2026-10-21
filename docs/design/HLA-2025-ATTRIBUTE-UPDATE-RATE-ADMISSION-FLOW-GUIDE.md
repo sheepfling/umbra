@@ -141,6 +141,77 @@ also contains the subscription generation, so a newly created subscription
 generation starts with fresh history; resignation and federation teardown
 erase only the corresponding history prefixes.
 
+### Subscription mutations can start a new rate-history epoch
+
+In the embedded 2025 implementation, `subscriptionGeneration` belongs to the
+receiving federate's declaration bundle, and the admission key combines that
+generation with federation, receiver, object, and attribute identity. A new
+generation changes the key used by later eligible values; the generation
+transition itself is not an attribute value sample. Other subscription effects,
+such as discovery and its initial-value path, remain separate.
+The retained-pair side of the empty-inner-region case is detailed in the
+[subscription-state guide](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md#a-sourcetest-boundary-around-the-empty-region-case).
+
+```mermaid
+flowchart TD
+  CALL["Accepted subscription declaration call"] --> KIND{"Which mutation path?"}
+  KIND -->|"Ordinary subscribe"| BUMP["Advance receiver subscription generation"]
+  KIND -->|"Ordinary unsubscribe"| ORDREC{"Receiver and class declaration records exist?"}
+  ORDREC -->|Yes| BUMP
+  ORDREC -->|No| SAME["Keep current generation"]
+  KIND -->|"Regional subscribe"| REGIONMAP{"Outer attribute-to-region map empty?"}
+  REGIONMAP -->|Yes| SAME
+  REGIONMAP -->|No| REGPAIRS["Process entries;<br/>an empty inner set adds no pair; retain existing pairs"]
+  REGPAIRS --> BUMP
+  KIND -->|"Regional unsubscribe"| REMOVED{"Did this call remove a stored pair?"}
+  REMOVED -->|Yes| BUMP
+  REMOVED -->|No| SAME
+  BUMP --> NEWKEY["Future key includes the new receiver generation"]
+  SAME --> OLDKEY["Future key keeps the current generation"]
+  NEWKEY --> FIRST["First eligible positive-rate best-effort value<br/>has no prior timestamp under this key"]
+  OLDKEY --> PRIOR["Apply the elapsed-time test to this key's history, if any"]
+```
+
+This chart records the current embedded source paths, not the normative meaning
+of a declaration service. Ordinary Subscribe assigns a new generation on its
+successful mutation path; ordinary Unsubscribe does so when the receiver and
+class records exist. Regional Subscribe returns without advancing the
+generation only when the outer attribute-to-region map is empty; a nonempty map
+advances it even if an entry's inner region set is empty. That entry adds no
+new pair and leaves any existing pairs unchanged. Regional Unsubscribe advances
+it only if at least one stored pair was removed. Because the generation is
+receiver-wide, a changed generation also changes the history key for that
+receiver's other objects and attributes.
+
+Generation changes rotate the lookup key; they do not erase older gate entries.
+`UpdateRateGate` stores the last-admission timestamp by key, while the observed
+prefix cleanup is attached to receiver departure and federation teardown. An
+old generation's timestamp can therefore remain cached but is no longer
+selected by the current generation. This is a 2025 embedded storage detail,
+not an HLA requirement; no focused test measures retained-entry growth. See
+the [gate's keyed storage](../../cpp/src/internal/time/update_rate_gate.cpp#L24),
+[receiver cleanup](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L113),
+and [federation cleanup](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1928).
+
+The source chain is visible in the [ordinary subscribe/unsubscribe
+mutator](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L261),
+the [regional subscribe mutator](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L422),
+and [regional unsubscribe mutator](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L582),
+the receiver declaration record's [generation field](../../cpp/src/internal/federation/federation_registry.hpp#L2345),
+the [admission-key builder](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L96),
+and the [rate gate](../../cpp/src/internal/time/update_rate_gate.cpp#L9). The
+private [gate unit case](../../cpp/tests/ieee1516_2025_update_rate_gate_unit_catch2.cpp#L40)
+shows that a different generation key starts with no prior timestamp, but it
+does not invoke a subscription service. The public
+[empty-regional-set case](../../cpp/tests/passive_object_attribute_subscription_catch2.cpp#L249)
+asserts retained regional delivery state after a call with an empty inner
+region set; it does not measure rate history before and after that call. The
+combined conclusion—that this call starts fresh gate history—is therefore a
+source/test-derived implementation inference, not an end-to-end observation or
+a normative result. The test's comment interpreting §9.8.4 as a no-op is not an
+independent check of the licensed clause text. Keep that no-op/conformance
+question open until an authorized copy of §9.8.4 is reviewed.
+
 This is a best-effort admission filter, not a timer that schedules a suppressed
 value for later delivery and not a measurement of the producer's sustained
 rate. If every value in a passel is filtered, that passel does not produce a

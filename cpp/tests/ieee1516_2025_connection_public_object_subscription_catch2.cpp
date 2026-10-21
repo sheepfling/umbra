@@ -649,5 +649,369 @@ TEST_CASE(
   }
 }
 
+TEST_CASE(
+    "RTIambassador reflects stored subscribed values for an object discovered by a configured-process subscription",
+    "[integration][foundation][declaration-management][object-management][transport][process-boundary][public-endpoint][process-late-subscription-initial-reflection][2025][rti.service.subscribe-object-class-attributes][federate.callback.reflect-attribute-values]") {
+  auto runScenario = [](CallbackModel callbackModel) {
+    class RecordingFederateAmbassador final : public NullFederateAmbassador {
+     public:
+      void discoverObjectInstance(
+          rti1516_2025::ObjectInstanceHandle const& objectInstance,
+          rti1516_2025::ObjectClassHandle const& objectClass,
+          std::wstring const&,
+          rti1516_2025::FederateHandle const&) override {
+        ++discoveryCount;
+        discoveredObject = objectInstance;
+        discoveredClass = objectClass;
+      }
+
+      void reflectAttributeValues(
+          rti1516_2025::ObjectInstanceHandle const& objectInstance,
+          rti1516_2025::AttributeHandleValueMap const& attributes,
+          rti1516_2025::VariableLengthData const&,
+          rti1516_2025::TransportationTypeHandle const& transportationType,
+          rti1516_2025::FederateHandle const& producingFederate,
+          rti1516_2025::RegionHandleSet const*) override {
+        ++reflectionCount;
+        reflectedObject = objectInstance;
+        reflectedAttributeCount = attributes.size();
+        reflectedTransportation = transportationType;
+        reflectedProducer = producingFederate;
+        reflectedValues.clear();
+        for (auto const& [attribute, value] : attributes) {
+          std::vector<std::uint8_t> bytes(value.size());
+          if (!bytes.empty()) {
+            auto const* data = static_cast<std::uint8_t const*>(value.data());
+            if (data != nullptr) {
+              std::copy(data, data + bytes.size(), bytes.begin());
+            }
+          }
+          reflectedValues.emplace(attribute, std::move(bytes));
+        }
+      }
+
+      std::size_t discoveryCount = 0U;
+      std::size_t reflectionCount = 0U;
+      std::size_t reflectedAttributeCount = 0U;
+      rti1516_2025::ObjectInstanceHandle discoveredObject;
+      rti1516_2025::ObjectClassHandle discoveredClass;
+      rti1516_2025::ObjectInstanceHandle reflectedObject;
+      rti1516_2025::TransportationTypeHandle reflectedTransportation;
+      rti1516_2025::FederateHandle reflectedProducer;
+      std::map<rti1516_2025::AttributeHandle, std::vector<std::uint8_t>>
+          reflectedValues;
+    } receiverFederate;
+
+    auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+    REQUIRE(listener);
+    auto const port = listener->address().port;
+    REQUIRE(port != 0U);
+
+    constexpr wchar_t const* federationName =
+        L"public-process-late-subscription-reflection";
+    constexpr char const* objectClassName = "HLAobjectRoot.Employee.Server";
+    constexpr char const* nameAttributeName = "Name";
+    constexpr char const* efficiencyAttributeName = "Efficiency";
+    constexpr wchar_t const* objectClassNameWide =
+        L"HLAobjectRoot.Employee.Server";
+    constexpr wchar_t const* nameAttributeNameWide = L"Name";
+    constexpr wchar_t const* efficiencyAttributeNameWide = L"Efficiency";
+    std::exception_ptr serverError;
+    std::thread server([&] {
+      try {
+        EmbeddedFederationRegistry registry;
+        ProcessFederationService service(
+            registry,
+            composedProcessDefinition(),
+            ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
+        auto senderConnection = listener->accept(
+            nullptr,
+            {"public-process-late-subscription-server", 0x9A11U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        ProcessTransportSession sender(senderConnection);
+        auto senderHandler = service.handlerFor(sender);
+        auto serveExpected = [&](ProcessTransportSession& session,
+                                 auto const& handler,
+                                 TransportServiceOperation operation,
+                                 char const* message) {
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation != operation) {
+                      throw std::runtime_error(message);
+                    }
+                    return handler(request);
+                  })) {
+            throw std::runtime_error(message);
+          }
+        };
+
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::create_federation_execution,
+            "The late-subscription process server lost Create.");
+        auto const objectClass = registry.objectClassHandleFor(
+            federationName, objectClassName);
+        auto const nameAttribute = registry.attributeHandleFor(
+            federationName, objectClassName, nameAttributeName);
+        auto const efficiencyAttribute = registry.attributeHandleFor(
+            federationName, objectClassName, efficiencyAttributeName);
+        if (!objectClass || !nameAttribute || !efficiencyAttribute) {
+          throw std::runtime_error(
+              "The late-subscription process server could not resolve its FOM handles.");
+        }
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::join_federation_execution,
+            "The late-subscription process server lost sender Join.");
+
+        auto receiverConnection = listener->accept(
+            nullptr,
+            {"public-process-late-subscription-server", 0x9A12U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        ProcessTransportSession receiver(receiverConnection);
+        auto receiverHandler = service.handlerFor(receiver);
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::join_federation_execution,
+            "The late-subscription process server lost receiver Join.");
+
+        for (auto const operation : {
+                 TransportServiceOperation::get_object_class_handle,
+                 TransportServiceOperation::get_attribute_handle,
+                 TransportServiceOperation::get_attribute_handle,
+                 TransportServiceOperation::publish_object_class_attributes,
+                 TransportServiceOperation::register_object_instance,
+                 TransportServiceOperation::update_attribute_values}) {
+          serveExpected(
+              sender,
+              senderHandler,
+              operation,
+              "The late-subscription process server lost a sender service.");
+        }
+        for (auto const operation : {
+                 TransportServiceOperation::get_object_class_handle,
+                 TransportServiceOperation::get_attribute_handle,
+                 TransportServiceOperation::get_attribute_handle,
+                 TransportServiceOperation::subscribe_object_class_attributes}) {
+          serveExpected(
+              receiver,
+              receiverHandler,
+              operation,
+              "The late-subscription process server lost a receiver service.");
+        }
+        if (callbackModel == HLA_IMMEDIATE) {
+          serveExpected(
+              receiver,
+              receiverHandler,
+              TransportServiceOperation::get_object_class_handle,
+              "The late-subscription process server lost immediate callback polling.");
+        } else {
+          // The discovery and initial reflection are separate receive-order
+          // events after this late subscription.
+          serveExpected(
+              receiver,
+              receiverHandler,
+              TransportServiceOperation::receive_interaction,
+              "The late-subscription process server lost the discovery receive.");
+          serveExpected(
+              receiver,
+              receiverHandler,
+              TransportServiceOperation::receive_interaction,
+              "The late-subscription process server lost the initial-reflection receive.");
+        }
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::resign_federation_execution,
+            "The late-subscription process server lost sender Resign.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::resign_federation_execution,
+            "The late-subscription process server lost receiver Resign.");
+        service.detach(sender);
+        service.detach(receiver);
+        senderConnection->close();
+        receiverConnection->close();
+      } catch (...) {
+        serverError = std::current_exception();
+      }
+    });
+
+    TestFederateAmbassador senderFederate;
+    auto senderRti = makeRti();
+    auto receiverRti = makeRti();
+    auto configuration = RtiConfiguration::createConfiguration()
+                             .withConfigurationName(
+                                 L"public-process-late-subscription-client")
+                             .withRtiAddress(
+                                 L"tcp://127.0.0.1:" + std::to_wstring(port));
+    auto narrowExceptionText = [](std::wstring const& text) {
+      return std::string(text.begin(), text.end());
+    };
+    std::exception_ptr clientError;
+    bool senderJoined = false;
+    bool receiverJoined = false;
+    try {
+      try {
+        auto const connection = senderRti->connect(
+            senderFederate, callbackModel, configuration);
+        if (!connection.addressUsed) {
+          throw std::runtime_error(
+              "The sender process connection did not use its configured address.");
+        }
+      } catch (rti1516_2025::Exception const& exception) {
+        throw std::runtime_error(
+            narrowExceptionText(exception.name()) + ": " +
+            narrowExceptionText(exception.what()));
+      }
+      senderRti->createFederationExecution(federationName, L"server-owned-fom.xml");
+      auto const senderHandle = senderRti->joinFederationExecution(
+          L"public-process-late-subscription-sender",
+          L"public-process-late-subscription-type",
+          federationName);
+      senderJoined = true;
+      try {
+        auto const connection = receiverRti->connect(
+            receiverFederate, callbackModel, configuration);
+        if (!connection.addressUsed) {
+          throw std::runtime_error(
+              "The receiver process connection did not use its configured address.");
+        }
+      } catch (rti1516_2025::Exception const& exception) {
+        throw std::runtime_error(
+            narrowExceptionText(exception.name()) + ": " +
+            narrowExceptionText(exception.what()));
+      }
+      receiverRti->joinFederationExecution(
+          L"public-process-late-subscription-receiver",
+          L"public-process-late-subscription-type",
+          federationName);
+      receiverJoined = true;
+
+      auto const senderClass = senderRti->getObjectClassHandle(objectClassNameWide);
+      auto const senderName = senderRti->getAttributeHandle(
+          senderClass, nameAttributeNameWide);
+      auto const senderEfficiency = senderRti->getAttributeHandle(
+          senderClass, efficiencyAttributeNameWide);
+      REQUIRE(senderClass.isValid());
+      REQUIRE(senderName.isValid());
+      REQUIRE(senderEfficiency.isValid());
+      senderRti->publishObjectClassAttributes(
+          senderClass, rti1516_2025::AttributeHandleSet{senderName, senderEfficiency});
+      auto const objectInstance = senderRti->registerObjectInstance(senderClass);
+      REQUIRE(objectInstance.isValid());
+      std::array<std::uint8_t, 4U> const nameValue{0x4E, 0x41, 0x4D, 0x45};
+      std::array<std::uint8_t, 4U> const efficiencyValue{0x45, 0x46, 0x46, 0x59};
+      REQUIRE_NOTHROW(senderRti->updateAttributeValues(
+          objectInstance,
+          AttributeHandleValueMap{
+              {senderName, VariableLengthData(nameValue.data(), nameValue.size())},
+              {senderEfficiency,
+               VariableLengthData(efficiencyValue.data(), efficiencyValue.size())}},
+          VariableLengthData{}));
+
+      auto const receiverClass = receiverRti->getObjectClassHandle(objectClassNameWide);
+      auto const receiverName = receiverRti->getAttributeHandle(
+          receiverClass, nameAttributeNameWide);
+      auto const receiverEfficiency = receiverRti->getAttributeHandle(
+          receiverClass, efficiencyAttributeNameWide);
+      REQUIRE(receiverClass.isValid());
+      REQUIRE(receiverName.isValid());
+      REQUIRE(receiverEfficiency.isValid());
+      REQUIRE_NOTHROW(receiverRti->subscribeObjectClassAttributes(
+          receiverClass, rti1516_2025::AttributeHandleSet{receiverName}));
+      if (callbackModel == HLA_IMMEDIATE) {
+        static_cast<void>(receiverRti->getObjectClassHandle(objectClassNameWide));
+      } else {
+        auto evokeUntil = [&](auto const& observed, char const* message) {
+          constexpr unsigned int maximumAttempts = 100U;
+          for (unsigned int attempt = 0U;
+               attempt < maximumAttempts && !observed(); ++attempt) {
+            static_cast<void>(receiverRti->evokeCallback(0.02));
+          }
+          if (!observed()) {
+            throw std::runtime_error(message);
+          }
+        };
+        evokeUntil(
+            [&] { return receiverFederate.discoveryCount == 1U; },
+            "The configured-process subscription did not discover the stored object.");
+        evokeUntil(
+            [&] { return receiverFederate.reflectionCount == 1U; },
+            "The configured-process subscription did not reflect the stored value.");
+      }
+
+      REQUIRE(receiverFederate.discoveryCount == 1U);
+      REQUIRE(receiverFederate.reflectionCount == 1U);
+      REQUIRE(receiverFederate.discoveredObject == objectInstance);
+      REQUIRE(receiverFederate.discoveredClass == receiverClass);
+      REQUIRE(receiverFederate.reflectedObject == objectInstance);
+      REQUIRE(receiverFederate.reflectedProducer == senderHandle);
+      REQUIRE(receiverFederate.reflectedTransportation.isValid());
+      REQUIRE(receiverFederate.reflectedAttributeCount == 1U);
+      REQUIRE(receiverFederate.reflectedValues.size() == 1U);
+      REQUIRE(receiverFederate.reflectedValues.contains(receiverName));
+      REQUIRE_FALSE(receiverFederate.reflectedValues.contains(receiverEfficiency));
+      REQUIRE(receiverFederate.reflectedValues.at(receiverName) ==
+              std::vector<std::uint8_t>{0x4E, 0x41, 0x4D, 0x45});
+
+      senderRti->resignFederationExecution(DELETE_OBJECTS);
+      senderJoined = false;
+      receiverRti->resignFederationExecution(NO_ACTION);
+      receiverJoined = false;
+      senderRti->disconnect();
+      receiverRti->disconnect();
+    } catch (...) {
+      clientError = std::current_exception();
+      if (senderJoined) {
+        try {
+          senderRti->resignFederationExecution(DELETE_OBJECTS);
+        } catch (...) {
+        }
+      }
+      if (receiverJoined) {
+        try {
+          receiverRti->resignFederationExecution(NO_ACTION);
+        } catch (...) {
+        }
+      }
+      try {
+        senderRti->disconnect();
+      } catch (...) {
+      }
+      try {
+        receiverRti->disconnect();
+      } catch (...) {
+      }
+    }
+    listener->close();
+    if (server.joinable()) {
+      server.join();
+    }
+    if (clientError) {
+      std::rethrow_exception(clientError);
+    }
+    if (serverError) {
+      std::rethrow_exception(serverError);
+    }
+    REQUIRE_FALSE(senderJoined);
+    REQUIRE_FALSE(receiverJoined);
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(HLA_IMMEDIATE);
+  }
+}
+
 #endif
 #endif

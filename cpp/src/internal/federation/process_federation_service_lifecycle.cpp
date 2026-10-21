@@ -59,12 +59,24 @@ void ProcessFederationService::clearJoinedFederateSessionState(
       ++position;
     }
   }
+  if (state->second.federationName &&
+      !state->second.activeCallbackRegionDesignatorCopies.empty()) {
+    registry_.releaseCallbackScopedRegionDesignatorCopies(
+        *state->second.federationName,
+        federateId,
+        state->second.activeCallbackRegionDesignatorCopies);
+    state->second.activeCallbackRegionDesignatorCopies.clear();
+  }
+  // Clearing the session-owned leases releases all outstanding TSO region
+  // copies before this joined-federate identity is reset.
+  state->second.pendingTsoAttributeCallbackRegionDesignatorCopies.clear();
   state->second.federationName.reset();
   state->second.federateId = 0U;
   if (state->second.timeState) {
     state->second.timeState->deactivate();
   }
   state->second.timeState.reset();
+  state->second.pendingTimeConstrainedEnableGeneration.reset();
   state->second.serviceReportWriter.reset();
   state->second.serviceReportLocation.clear();
   state->second.interactionEvents.clear();
@@ -357,13 +369,36 @@ TransportServiceMessage ProcessFederationService::handleJoin(
       switch (beginStatus) {
         case FederationTimeGrantStatus::time_advance_not_pending:
         case FederationTimeGrantStatus::stale_generation:
-        case FederationTimeGrantStatus::grant_not_ready:
         case FederationTimeGrantStatus::federate_not_member:
         case FederationTimeGrantStatus::federation_does_not_exist:
           // A resignation, restore, or competing re-evaluation may have
           // invalidated a queued dispatch. The registry deliberately fences
           // that work; do not manufacture a callback for stale state.
           return;
+        case FederationTimeGrantStatus::grant_not_ready: {
+          auto const pendingSnapshot = timeState->snapshot();
+          if (pendingSnapshot.advanceMode !=
+                  FederateTimeAdvanceMode::time_advance_request ||
+              !pendingSnapshot.requestedTime) {
+            return;
+          }
+          // An ordinary TAR can be blocked exactly at a queued TSO timestamp.
+          // Deliver the pre-grant set while the request remains pending; its
+          // callback acknowledgement re-evaluates strict TAR/GALT eligibility.
+          dispatchTsoInteractionPayloads(
+              federationName,
+              federateId,
+              *pendingSnapshot.requestedTime,
+              true);
+          auto const reevaluated =
+              registry_.reevaluateTimeAdvanceGrants(federationName);
+          if (reevaluated.status == FederationTimeGrantStatus::applied) {
+            dispatchTimeAdvanceGrants(
+                federationName,
+                reevaluated.dispatches);
+          }
+          return;
+        }
         case FederationTimeGrantStatus::inconsistent_temporal_state:
           throw std::runtime_error(
               "The process federation time-grant scheduler lost temporal state.");
@@ -378,6 +413,9 @@ TransportServiceMessage ProcessFederationService::handleJoin(
         throw std::runtime_error(
             "The process federation time-grant state has no usable delivery boundary.");
       }
+      bool const implicitRegulationAdvance =
+          pendingSnapshot.timeRegulationPending &&
+          pendingSnapshot.pendingTimeRegulationGeneration == generation;
       if (pendingSnapshot.advanceMode == FederateTimeAdvanceMode::flush_queue_request) {
         if (!pendingSnapshot.currentTime ||
             pendingSnapshot.currentTime->implementationName() !=
@@ -421,12 +459,13 @@ TransportServiceMessage ProcessFederationService::handleJoin(
 
         // Keep the state in Time Advancing while all queued TSO payloads cross
         // the process callback boundary, then commit the two-value FQR state
-        // immediately before publishing the matching event. Flush Queue
-        // Request uses the caller-supplied frontier for delivery admission;
-        // the calculated actual and optimistic values describe the resulting
-        // grant and must not be used to suppress payloads admitted by FQR.
+        // immediately before publishing the matching event. Section 8.12
+        // flushes every TSO message queued for this federate, including those
+        // later than the supplied request time; the final boundary admits the
+        // complete queued set while the calculation still determines grant
+        // and optimistic times.
         dispatchTsoInteractionPayloads(
-            federationName, federateId, *pendingSnapshot.requestedTime, true);
+            federationName, federateId, *finalTime, true);
         auto flushResult = timeState->grantFlushQueue(
             generation,
             std::move(flushQueueCalculation.grantedTime),
@@ -439,6 +478,10 @@ TransportServiceMessage ProcessFederationService::handleJoin(
           registry_.applyTsoObjectDeletionProducerTimeBoundary(
               federationName, federateId, *grantedTime);
         }
+        static_cast<void>(registry_.retireStaleTsoRecipientMessages(
+            federationName,
+            federateId,
+            *timeState->currentTime()));
         auto encodedGrant = encodeProcessLogicalTime(timeState->currentTime());
         if (!encodedGrant) {
           throw std::runtime_error(
@@ -565,8 +608,12 @@ TransportServiceMessage ProcessFederationService::handleJoin(
             "The process federation could not enqueue the remaining timestamped save notifications.");
       }
 
-      auto const grantedTime = timeState->grant(generation);
+      auto grantedTime = timeState->grant(generation);
+      if (implicitRegulationAdvance) {
+        grantedTime = timeState->grantTimeRegulation(generation);
+      }
       registry_.applyTsoObjectDeletionProducerTimeBoundary(
+          federationName, federateId, *grantedTime);
       auto encodedGrant = encodeProcessLogicalTime(grantedTime);
       if (!encodedGrant) {
         throw std::runtime_error(
@@ -575,6 +622,7 @@ TransportServiceMessage ProcessFederationService::handleJoin(
       ProcessFederationTimeAdvanceResult eventResult;
       eventResult.status = ProcessFederationTimeAdvanceStatus::applied;
       eventResult.grantedTime = std::move(encodedGrant);
+      eventResult.regulationEnabled = implicitRegulationAdvance;
       ProcessTransportSession eventSession(processConnection);
       if (!eventSession.send(
               TransportServiceMessage{

@@ -16,6 +16,10 @@ void scenarioServiceReportDeleteRegion(Options const&, rti::CallbackModel);
 void scenarioServiceReportDeleteRegionContract(Options const&, rti::CallbackModel);
 void scenarioServiceReportCreateRegion(Options const&, rti::CallbackModel);
 void scenarioServiceReportCreateRegionContract(Options const&, rti::CallbackModel);
+void scenarioServiceReportAssociateRegionsForUpdates(
+    Options const&, rti::CallbackModel);
+void scenarioServiceReportAssociateRegionsForUpdatesContract(
+    Options const&, rti::CallbackModel);
 void scenarioRegionRangeValidation(Options const&, rti::CallbackModel);
 void scenarioRegionRangeValidationContract(Options const&, rti::CallbackModel);
 void scenarioRegionRangeDimensionValidation(Options const&, rti::CallbackModel);

@@ -16,7 +16,7 @@ bool ProcessFederationService::enqueueObjectInstanceDiscoveries(
       pushedEvents;
   std::vector<std::pair<ProcessTransportSession*,
                         ProcessFederationAttributeUpdateEvent>>
-      pushedMomAttributeEvents;
+      pushedInitialAttributeEvents;
   std::vector<AttributeRelevanceAdvisoryRecipient> initialAdvisories;
   for (auto const& planned : discoveries) {
     ProcessTransportSession* receivingSession = nullptr;
@@ -87,6 +87,40 @@ bool ProcessFederationService::enqueueObjectInstanceDiscoveries(
         snapshot->producingFederateId,
         planned.rtiOwnedMomObject};
 
+    std::vector<ProcessFederationAttributeUpdateEvent> initialAttributeValues;
+    if (!planned.rtiOwnedMomObject) {
+      auto const initialReflections = registry_
+          .planInitialObjectInstanceAttributeReflectionsForDiscovery(
+              federationName,
+              planned.receivingFederateId,
+              planned.objectInstanceHandle);
+      initialAttributeValues.reserve(initialReflections.size());
+      for (auto const& initialReflection : initialReflections) {
+        ProcessFederationAttributeUpdateEvent values;
+        values.producingFederateId = planned.producingFederateId;
+        values.receivingFederateId = planned.receivingFederateId;
+        values.objectInstanceHandle = planned.objectInstanceHandle;
+        values.transportationName = initialReflection.transportationName;
+        values.attributeValues.reserve(initialReflection.attributeValues.size());
+        for (auto const& [attributeHandle, encodedValue] :
+             initialReflection.attributeValues) {
+          std::vector<std::uint8_t> bytes(encodedValue.size());
+          if (!bytes.empty()) {
+            auto const* data = static_cast<std::uint8_t const*>(
+                encodedValue.data());
+            if (data == nullptr) {
+              return false;
+            }
+            std::copy(data, data + bytes.size(), bytes.begin());
+          }
+          values.attributeValues.emplace_back(attributeHandle, std::move(bytes));
+        }
+        if (!values.attributeValues.empty()) {
+          initialAttributeValues.push_back(std::move(values));
+        }
+      }
+    }
+
     // A joined-federate MOM discovery is immediately followed by its
     // subscribed initial values.  Keep that ordering on both pull and push
     // process seams; the public callback bridge then projects an invalid
@@ -129,8 +163,12 @@ bool ProcessFederationService::enqueueObjectInstanceDiscoveries(
     if (options_.pushReceiveOrderEvents) {
       pushedEvents.emplace_back(receivingSession, std::move(event));
       if (initialMomValues) {
-        pushedMomAttributeEvents.emplace_back(
+        pushedInitialAttributeEvents.emplace_back(
             receivingSession, std::move(*initialMomValues));
+      }
+      for (auto& values : initialAttributeValues) {
+        pushedInitialAttributeEvents.emplace_back(
+            receivingSession, std::move(values));
       }
       if (planned.rtiOwnedMomObject &&
           options_.failAfterJoinedFederateMomDiscoveryQueuedForTesting &&
@@ -153,6 +191,9 @@ bool ProcessFederationService::enqueueObjectInstanceDiscoveries(
       state->second.objectInstanceDiscoveryEvents.push_back(std::move(event));
       if (initialMomValues) {
         state->second.attributeUpdateEvents.push_back(std::move(*initialMomValues));
+      }
+      for (auto& values : initialAttributeValues) {
+        state->second.attributeUpdateEvents.push_back(std::move(values));
       }
     }
     if (planned.rtiOwnedMomObject &&
@@ -182,7 +223,7 @@ bool ProcessFederationService::enqueueObjectInstanceDiscoveries(
       return false;
     }
   }
-  for (auto const& pushedEvent : pushedMomAttributeEvents) {
+  for (auto const& pushedEvent : pushedInitialAttributeEvents) {
     if (pushedEvent.first == nullptr || !pushedEvent.first->send(
             TransportServiceMessage{
                 TransportServiceMessageKind::event,

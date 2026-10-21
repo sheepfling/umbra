@@ -435,20 +435,16 @@ The direct case passed from the existing binary; aggregate rebuild/discovery is
 still behind the documented source-integrity gate. Regional/future-input,
 save/restore, transport, and conformance remain separate lanes.
 
-The next no-TSO scheduler slice has an exact title/source/requirement handle:
+No-TSO cross-federate scheduling now has a focused public NMR/NMRA case:
 
-    python tools/query_rti_work.py focus no-tso-galt-scheduler --summary --compact --limit 8
-    python tools/query_rti_work.py trace "Embedded constrained TAR waits for GALT and is released by a regulator advance" --summary --compact
-    python tools/query_rti_work.py matrix "Embedded constrained TAR waits for GALT and is released by a regulator advance" --summary --compact
-    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded constrained TAR waits for GALT and is released by a regulator advance$" --output-on-failure
+    python tools/query_rti_work.py focus no-tso-cross-federate-grant-scheduler --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.available_time_advance_inclusive_galt\.catch2\.Embedded no-TSO NMR and NMRA grants wait on cross-federate GALT$" --output-on-failure
 
-It maps Time Advance Request, Enable Time Regulation, Enable Time Constrained,
-and Time Advance Grant to two clause-8 Lab candidates and has 30
-`HLA_EVOKED` assertions. The case holds a constrained TAR at GALT until the
-regulator advances; NRG/undefined-GALT, timestamped ordering, alternate
-advance modes, save/restore, transport, and conformance remain separate. The
-aggregate source gate is reported by `focus`; use the exact title for direct
-execution while the known federation-management source integrity issue remains.
+Its 26 `HLA_EVOKED` assertions prove strict NMR waiting at GALT equality and
+NMRA waiting above GALT then granting at the inclusive boundary. No TSO is
+queued in this case. Separate process cases cover NMR, NMRA, and TARA; future
+timestamped process arrivals, alternate producer families, save/restore,
+transport conformance, and interoperability remain distinct evidence lanes.
 
 The read-only Query GALT/Query LITS bounds slice is a separate exact handle:
 

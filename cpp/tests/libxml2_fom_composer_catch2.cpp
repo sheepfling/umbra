@@ -785,6 +785,35 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "The FDD catalog makes HLAprivilegeToDeleteObject available on every object class",
+    "[unit][fom][composition][ownership-management]"
+    "[privilege-to-delete-available-on-every-composed-object-class]"
+    "[privilege-to-delete]") {
+  auto result = composer().compose({
+      validated(resourcePath("mim/HLAstandardMIM-2025.xml"), FomModuleKind::mim,
+                L"urn:umbra:test:mim"),
+      validated(resourcePath("examples/RestaurantFOMmodule-2025.xml"), FomModuleKind::fom,
+                L"urn:umbra:test:restaurant"),
+  });
+
+  CAPTURE(result.diagnostics);
+  REQUIRE(result.status == FomCompositionStatus::valid);
+  REQUIRE(result.catalog);
+  auto const objectClassNames = result.catalog->objectClassNames();
+  REQUIRE_FALSE(objectClassNames.empty());
+
+  // The 2025 privilege is declared at HLAobjectRoot and must remain available
+  // through effective inheritance for every standard and supplied FOM class.
+  for (auto const& objectClassName : objectClassNames) {
+    CAPTURE(objectClassName);
+    auto const effective =
+        result.catalog->effectiveObjectClassAttributes(objectClassName);
+    REQUIRE(effective);
+    REQUIRE(effective->contains("HLAprivilegeToDeleteObject"));
+  }
+}
+
+TEST_CASE(
     "The FDD materializer retains the complete 2025 support-switch table",
     "[unit][fom][switches]") {
   std::vector<PrevalidatedFomModule> modules{
@@ -2322,4 +2351,35 @@ TEST_CASE(
       coordinator.prepareAdditionalModules(*prepared.definition, {extension});
   REQUIRE(incompatibleAdditional.status == FederationPreparationStatus::inconsistent_fom);
   REQUIRE_FALSE(incompatibleAdditional.definition);
+}
+
+TEST_CASE(
+    "Federation creation orders the MIM before each supplied FOM module",
+    "[unit][fom][federation-management][fom-mim-first-initialization]") {
+  LibXml2FomValidator validator;
+  auto materializer = composer();
+  ReferenceLogicalTimeSelector selector;
+  FederationManagementCoordinator coordinator(
+      validator,
+      materializer,
+      selector,
+      {
+          resourcePath("mim/HLAstandardMIM-2025.xml"),
+          resourcePath("schemas/IEEE1516-DIF-2025.xsd"),
+      });
+
+  std::wstring const restaurant = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  auto const prepared = coordinator.prepareCreate(
+      {restaurant, restaurant}, std::nullopt, L"HLAinteger64Time");
+  CAPTURE(prepared.diagnostics);
+  REQUIRE(prepared.accepted());
+  REQUIRE(prepared.definition);
+  auto const& modules = prepared.definition->fomModules;
+  REQUIRE(modules.size() == 3U);
+  CHECK(modules[0].kind == FomModuleKind::mim);
+  CHECK(modules[0].designator == L"HLAstandardMIM");
+  CHECK(modules[1].kind == FomModuleKind::fom);
+  CHECK(modules[1].designator == restaurant);
+  CHECK(modules[2].kind == FomModuleKind::fom);
+  CHECK(modules[2].designator == restaurant);
 }

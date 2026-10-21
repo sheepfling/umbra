@@ -8,11 +8,52 @@
 #include <umbra/embedded_profile_configuration.hpp>
 
 #include <array>
+#include <cstdint>
 #include <cstring>
 #include <filesystem>
+#include <iomanip>
+#include <iostream>
 #include <memory>
+#include <string>
 
-int main() {
+namespace {
+
+std::uint64_t providerIdentityFingerprint(std::wstring const& name,
+                                          std::wstring const& version) {
+  std::uint64_t hash = 14695981039346656037ULL;
+  auto append = [&hash](std::wstring const& value) {
+    for (wchar_t character : value) {
+      auto codeUnit = static_cast<std::uint32_t>(character);
+      for (unsigned int byte = 0; byte < sizeof(wchar_t); ++byte) {
+        hash ^= static_cast<std::uint8_t>(codeUnit & 0xffU);
+        hash *= 1099511628211ULL;
+        codeUnit >>= 8U;
+      }
+    }
+    hash ^= 0xffU;
+    hash *= 1099511628211ULL;
+  };
+  append(name);
+  append(version);
+  return hash;
+}
+
+}  // namespace
+
+int main(int argc, char** argv) {
+  if (argc == 2 && std::strcmp(argv[1], "--provider-identity") == 0) {
+    auto const name = rti1516_2025::rtiName();
+    auto const version = rti1516_2025::rtiVersion();
+    if (name.empty() || version.empty()) {
+      return 13;
+    }
+    std::cout << std::hex << providerIdentityFingerprint(name, version) << '\n';
+    return 0;
+  }
+  if (argc != 1) {
+    return 64;
+  }
+
   using rti1516_2025::Octet;
   using rti1516_2025::VariableLengthData;
 

@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include <algorithm>
 #include <atomic>
@@ -128,6 +129,36 @@ class ProcessTimeFederateAmbassador final : public NullFederateAmbassador {
   std::wstring flushQueueGrantOptimisticImplementation;
   std::int64_t flushQueueGrantValue = -1;
   std::int64_t flushQueueGrantOptimisticValue = -1;
+};
+
+class ProcessConstrainedEnableWaitFederateAmbassador final
+    : public NullFederateAmbassador {
+ public:
+  void timeAdvanceGrant(
+      rti1516_2025::LogicalTime const& time) override {
+    if (auto const* integerTime =
+            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+      grantedTime.store(integerTime->getTime(), std::memory_order_release);
+    }
+    grantCount.fetch_add(1U, std::memory_order_acq_rel);
+  }
+
+  void timeConstrainedEnabled(
+      rti1516_2025::LogicalTime const& time) override {
+    if (auto const* integerTime =
+            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+      enabledTime.store(integerTime->getTime(), std::memory_order_release);
+    }
+    callbackCount.fetch_add(1U, std::memory_order_acq_rel);
+    changed.notify_all();
+  }
+
+  std::atomic_size_t callbackCount{0U};
+  std::atomic<std::int64_t> enabledTime{-1};
+  std::atomic_size_t grantCount{0U};
+  std::atomic<std::int64_t> grantedTime{-1};
+  std::mutex mutex;
+  std::condition_variable changed;
 };
 
 class ProcessSynchronizationFederateAmbassador final
@@ -772,6 +803,226 @@ TEST_CASE(
     std::rethrow_exception(clientError);
   }
   REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "Process Time Constrained Enabled waits until GALT exceeds current logical time",
+    "[integration][foundation][time-management][time-constrained][galt][process-boundary][public-endpoint][callback-immediate][callback-evoked][rti.service.enable-time-constrained][federate.callback.time-constrained-enabled][requirement:hla-1516.1-2025:clause-8.6.3][2025]") {
+  auto const callbackModel = GENERATE(HLA_IMMEDIATE, HLA_EVOKED);
+  auto const startWithSufficientGalt = GENERATE(false, true);
+  constexpr wchar_t const* federationName =
+      L"process-time-constrained-enable-galt-execution";
+  auto const serviceReportDirectory = temporaryServiceReportDirectory();
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    std::vector<std::unique_ptr<ProcessTransportSession>> sessions;
+    std::vector<std::thread> workers;
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options{true};
+      options.serviceReportDirectory = serviceReportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      std::array<umbra::detail::TransportEndpointIdentity, 2> identities{{
+          {"process-time-constrained-galt-server", 0x9321U},
+          {"process-time-constrained-galt-server", 0x9322U},
+      }};
+      for (auto const& identity : identities) {
+        auto connection = listener->accept(
+            nullptr, identity,
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        auto session = std::make_unique<ProcessTransportSession>(connection);
+        auto* sessionPointer = session.get();
+        auto handler = service.handlerFor(*sessionPointer);
+        sessions.push_back(std::move(session));
+        workers.emplace_back([&service, sessionPointer, handler, &serverError] {
+          try {
+            while (umbra::test::servePrimaryProcessRequest(
+                *sessionPointer, handler)) {
+            }
+            service.detach(*sessionPointer);
+          } catch (...) {
+            serverError = std::current_exception();
+          }
+        });
+      }
+      for (auto& worker : workers) {
+        worker.join();
+      }
+      for (auto& session : sessions) {
+        if (session->connection()) {
+          session->connection()->close();
+        }
+      }
+    } catch (...) {
+      serverError = std::current_exception();
+      listener->close();
+      for (auto& session : sessions) {
+        if (session->connection()) {
+          session->connection()->close();
+        }
+      }
+      for (auto& worker : workers) {
+        if (worker.joinable()) {
+          worker.join();
+        }
+      }
+    }
+  });
+
+  auto regulator = makeRti();
+  auto target = makeRti();
+  ProcessTimeFederateAmbassador regulatorFederate;
+  ProcessConstrainedEnableWaitFederateAmbassador targetFederate;
+  auto configurationFor = [port](std::wstring name) {
+    return RtiConfiguration::createConfiguration()
+        .withConfigurationName(std::move(name))
+        .withRtiAddress(L"tcp://127.0.0.1:" + std::to_wstring(port));
+  };
+  bool regulatorJoined = false;
+  bool targetJoined = false;
+  try {
+    try {
+      auto const connectResult = regulator->connect(
+          regulatorFederate, HLA_IMMEDIATE,
+          configurationFor(L"process-time-constrained-galt-regulator"));
+      REQUIRE(connectResult.addressUsed);
+    } catch (rti1516_2025::Exception const& error) {
+      auto const message = error.name() + L": " + error.what();
+      FAIL(std::string(message.begin(), message.end()));
+    }
+    REQUIRE_NOTHROW(regulator->createFederationExecution(
+        federationName, L"server-owned-fom.xml"));
+    REQUIRE(regulator->joinFederationExecution(
+        L"process-time-constrained-galt-regulator", federationName)
+                .isValid());
+    regulatorJoined = true;
+    REQUIRE_NOTHROW(regulator->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+
+    REQUIRE(target->connect(
+        targetFederate, callbackModel,
+        configurationFor(L"process-time-constrained-galt-target"))
+                .addressUsed);
+    REQUIRE(target->joinFederationExecution(
+        L"process-time-constrained-galt-target", federationName)
+                .isValid());
+    targetJoined = true;
+
+    if (startWithSufficientGalt) {
+      // Establish GALT=6 before the target asks to enable at current time 5.
+      REQUIRE_NOTHROW(regulator->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(5)));
+    }
+
+    // An unconstrained federate may advance independently. The generated
+    // cases exercise both GALT below 5 and GALT already above 5.
+    REQUIRE_NOTHROW(target->timeAdvanceRequest(
+        rti1516_2025::HLAinteger64Time(5)));
+    if (callbackModel == HLA_EVOKED) {
+      auto const grantDeadline = std::chrono::steady_clock::now() +
+                                 std::chrono::seconds(3);
+      while (targetFederate.grantCount.load(std::memory_order_acquire) == 0U &&
+             std::chrono::steady_clock::now() < grantDeadline) {
+        static_cast<void>(target->evokeCallback(0.01));
+      }
+      REQUIRE(targetFederate.grantCount.load(std::memory_order_acquire) == 1U);
+      REQUIRE(targetFederate.grantedTime.load(std::memory_order_acquire) == 5);
+    }
+    REQUIRE_NOTHROW(target->enableTimeConstrained());
+    if (startWithSufficientGalt) {
+      if (callbackModel == HLA_EVOKED) {
+        auto const enableDeadline = std::chrono::steady_clock::now() +
+                                    std::chrono::seconds(3);
+        while (targetFederate.callbackCount.load(std::memory_order_acquire) == 0U &&
+               std::chrono::steady_clock::now() < enableDeadline) {
+          static_cast<void>(target->evokeCallback(0.01));
+        }
+      }
+      REQUIRE(targetFederate.enabledTime.load(std::memory_order_acquire) == 5);
+      REQUIRE(targetFederate.callbackCount.load(std::memory_order_acquire) == 1U);
+      // Increasing GALT after an immediately eligible callback is one-shot.
+      REQUIRE_NOTHROW(regulator->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(6)));
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE_FALSE(target->evokeCallback(0.0));
+      }
+    } else {
+      REQUIRE(targetFederate.callbackCount.load(std::memory_order_acquire) == 0U);
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE_FALSE(target->evokeCallback(0.0));
+      }
+
+      // Advancing the time-regulating peer to 4 moves GALT to 5, equal to the
+      // target's current time. Equality is not enough: the pending role must
+      // remain disabled until GALT advances beyond the current time.
+      REQUIRE_NOTHROW(regulator->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(4)));
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE_FALSE(target->evokeCallback(0.0));
+      }
+      REQUIRE(targetFederate.callbackCount.load(std::memory_order_acquire) == 0U);
+
+      // Advancing the regulator to 5 moves GALT to 6. The RTI may now enable
+      // time-constrained at the target's unchanged logical time 5.
+      REQUIRE_NOTHROW(regulator->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(5)));
+      if (callbackModel == HLA_EVOKED) {
+        auto const enableDeadline = std::chrono::steady_clock::now() +
+                                   std::chrono::seconds(3);
+        while (targetFederate.callbackCount.load(std::memory_order_acquire) == 0U &&
+               std::chrono::steady_clock::now() < enableDeadline) {
+          static_cast<void>(target->evokeCallback(0.01));
+        }
+        REQUIRE(targetFederate.callbackCount.load(std::memory_order_acquire) == 1U);
+      } else {
+        std::unique_lock lock(targetFederate.mutex);
+        REQUIRE(targetFederate.changed.wait_for(
+            lock, std::chrono::seconds(3), [&] {
+              return targetFederate.callbackCount.load(
+                         std::memory_order_acquire) == 1U;
+            }));
+      }
+      REQUIRE(targetFederate.enabledTime.load(std::memory_order_acquire) == 5);
+      REQUIRE(targetFederate.callbackCount.load(std::memory_order_acquire) == 1U);
+      // Advancing GALT again must not enqueue a duplicate callback.
+      REQUIRE_NOTHROW(regulator->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(6)));
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE_FALSE(target->evokeCallback(0.0));
+      }
+      REQUIRE(targetFederate.callbackCount.load(std::memory_order_acquire) == 1U);
+    }
+  } catch (...) {
+    auto const testFailure = std::current_exception();
+    if (targetJoined) {
+      try { target->resignFederationExecution(DELETE_OBJECTS); } catch (...) {}
+    }
+    if (regulatorJoined) {
+      try { regulator->resignFederationExecution(DELETE_OBJECTS); } catch (...) {}
+    }
+    try { target->disconnect(); } catch (...) {}
+    try { regulator->disconnect(); } catch (...) {}
+    listener->close();
+    server.join();
+    std::rethrow_exception(testFailure);
+  }
+  REQUIRE_NOTHROW(target->resignFederationExecution(DELETE_OBJECTS));
+  targetJoined = false;
+  REQUIRE_NOTHROW(regulator->resignFederationExecution(DELETE_OBJECTS));
+  regulatorJoined = false;
+  target->disconnect();
+  regulator->disconnect();
+  server.join();
+  if (serverError) {
+    std::rethrow_exception(serverError);
+  }
 }
 #endif
 #endif

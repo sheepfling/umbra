@@ -40,6 +40,7 @@ EXPECTED_ADAPTER_MANAGED_SKIPS = {
 }
 STANDARD_HEADERS = {
     "algorithm",
+    "array",
     "atomic",
     "chrono",
     "cmath",
@@ -53,6 +54,7 @@ STANDARD_HEADERS = {
     "future",
     "functional",
     "iostream",
+    "iterator",
     "limits",
     "map",
     "memory",
@@ -69,6 +71,7 @@ STANDARD_HEADERS = {
     "vector",
 }
 API_CONTRACT_ONLY_CLASSIFICATION = "api-contract-only-not-normative-conformance"
+STANDARD_CALLBACK_MODELS = ("evoked", "immediate")
 PLATFORM_INCLUDES = {
     ("service_report_creation_failure_tck.cpp", "windows.h"),
 }
@@ -85,6 +88,7 @@ LOCAL_TCK_HEADERS = {
     "tck_federation_mom_save_status.hpp",
     "tck_factory_identity.hpp",
     "tck_timestamped_interaction_boundary_scenarios.hpp",
+    "tck_flush_queue_nonlimiting_galt_scenarios.hpp",
     "tck_joined_federate_mom_state_save_restore.hpp",
     "tck_joined_federate_mom_galt_lits_periodic.hpp",
     "tck_joined_federate_mom_tso_length_periodic.hpp",
@@ -130,6 +134,44 @@ LOCAL_TCK_HEADERS = {
     "tck_portable_member_control_scenarios.hpp",
     "tck_transport_order_scenarios.hpp",
     "tck_attribute_relevance_scenarios.hpp",
+    "tck_nrg_regulator_resignation.hpp",
+    "tck_nrg_disabled_regulator_activation.hpp",
+    "tck_constrained_tar_disable_release.hpp",
+    "tck_save_active_callback_resignation.hpp",
+    "tck_timed_save_fqr_callback_resignation.hpp",
+    "tck_timed_save_tara_callback_resignation.hpp",
+    "tck_timed_save_nmra_callback_resignation.hpp",
+    "tck_timed_save_mixed_fqr_tar.hpp",
+    "tck_timed_save_ordinary_before_fqr.hpp",
+    "tck_timed_save_all_advance_modes.hpp",
+    "tck_timed_save_per_member_tso.hpp",
+    "tck_timed_save_flush_queue_admission.hpp",
+    "tck_timed_save_available_admission.hpp",
+    "tck_timed_save_next_message_admission.hpp",
+    "tck_timed_save_available_next_message_member_admission.hpp",
+    "tck_timed_save_resigned_constrained_member.hpp",
+    "tck_restore_pending_flush_queue_request.hpp",
+    "tck_restore_resignation_callback_lifetime.hpp",
+    "tck_restore_pending_time_advance.hpp",
+    "tck_restore_pending_advance_modes.hpp",
+    "tck_restore_pending_tso_nmr.hpp",
+    "tck_restore_pending_tso_nmra_attribute.hpp",
+    "tck_restore_pending_tso_nmra_delete.hpp",
+    "tck_restore_mixed_tso_four_member.hpp",
+    "tck_restore_terminal_tso_attribute.hpp",
+    "tck_restore_terminal_tso_interaction.hpp",
+    "tck_restore_terminal_tso_directed_interaction.hpp",
+    "tck_restore_time_window_state.hpp",
+    "tck_restore_deferred_lookahead.hpp",
+    "tck_restore_multi_pending_time_advance.hpp",
+    "tck_restore_pending_flush_queue_immediate.hpp",
+    "tck_restore_object_snapshot_status.hpp",
+    "tck_restore_tso_retraction_uniqueness.hpp",
+    "tck_restore_tso_directed_multi_recipient.hpp",
+    "tck_restore_live_tso_retraction_record.hpp",
+    "tck_restore_live_tso_directed_interaction.hpp",
+    "tck_restore_live_tso_interaction_multi_recipient.hpp",
+    "tck_restore_live_tso_object_deletion.hpp",  # Draft source; not catalog-promoted.
     "tck_joined_federate_mom_reflections_received_counts.hpp",
     "tck_main_scenarios.hpp",
     "tck_regional_auto_provide_scenarios.hpp",
@@ -156,6 +198,11 @@ LOCAL_TCK_HEADERS = {
     "tck_attribute_subscription_mode_transitions.hpp",
     "tck_nmr_future_timestamped_object_deletion.hpp",
     "tck_nmra_future_timestamped_object_deletion.hpp",
+    "tck_tara_future_timestamped_object_deletion.hpp",
+    "tck_portable_scenario_runner.hpp",
+    "tck_timestamped_attribute_tara_router.hpp",
+    "tck_timestamped_object_deletion_router.hpp",
+    "tck_timestamped_attribute_pending_tara.hpp",
     "tck_named_update_rate_subscription.hpp",
     "tck_default_rate_no_reduction.hpp",
     "tck_accumulating_attribute_subscriptions.hpp",
@@ -217,6 +264,11 @@ SCENARIO_INVENTORY_PATTERN = re.compile(
 
 def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def callback_models_for_scenario(scenario: dict[str, Any]) -> tuple[str, ...]:
+    models = scenario.get("callback_models", STANDARD_CALLBACK_MODELS)
+    return tuple(models)
 
 
 def load_catalog(path: Path) -> dict[str, Any]:
@@ -292,6 +344,24 @@ def load_catalog(path: Path) -> dict[str, Any]:
             raise ValueError(f"{scenario['id']} has invalid default_status")
         if scenario["promotion"] not in {"promoted", "candidate"}:
             raise ValueError(f"{scenario['id']} has invalid promotion")
+        callback_models = scenario.get("callback_models", list(STANDARD_CALLBACK_MODELS))
+        if (
+            not isinstance(callback_models, list)
+            or not callback_models
+            or any(
+                not isinstance(model, str) or model not in STANDARD_CALLBACK_MODELS
+                for model in callback_models
+            )
+            or len(callback_models) != len(set(callback_models))
+        ):
+            raise ValueError(f"{scenario['id']} has invalid callback_models")
+        if set(callback_models) != set(STANDARD_CALLBACK_MODELS):
+            scope_note = scenario.get("callback_model_scope_note")
+            if not isinstance(scope_note, str) or not scope_note.strip():
+                raise ValueError(
+                    f"{scenario['id']} needs a callback_model_scope_note when its "
+                    "evidence is limited to one callback model"
+                )
         for reference in scenario["contract_refs"]:
             contract = ROOT / "compliance" / "requirements-lab" / reference
             if not contract.is_file():
@@ -410,22 +480,27 @@ def validate_sources() -> list[str]:
 
 
 def scenario_inventory() -> list[str]:
-    main_source = (SOURCE_ROOT / "src" / "main.cpp").read_text(encoding="utf-8")
+    source_root = SOURCE_ROOT / "src"
+    main_path = source_root / "main.cpp"
+    main_source = main_path.read_text(encoding="utf-8")
     match = SCENARIO_INVENTORY_PATTERN.search(main_source)
     if match is None:
         return []
     main_inventory = re.findall(r'"([^"]+)"', match.group("body"))
     inventory = list(main_inventory)
-    shim_path = SOURCE_ROOT / "src" / "portable_tck.cpp"
-    if shim_path.is_file():
-        shim_source = shim_path.read_text(encoding="utf-8")
-        shim_inventory = re.findall(
-            r'constexpr\s+char\s+\w+\[\]\s*=\s*"([^"]+)"',
-            shim_source,
-        )
-        inventory.extend(
-            scenario_id for scenario_id in shim_inventory if scenario_id not in main_inventory
-        )
+    # Scenario routers can live in cohesive source files outside the main
+    # inventory declaration. Include their portable IDs so extracting a route
+    # does not make catalog validation report a false missing-inventory error.
+    scenario_id_pattern = re.compile(
+        r'constexpr\s+char\s+\w+\[\]\s*=\s*"(cpp-tck\.[^"]+)"'
+    )
+    for path in sorted(source_root.rglob("*.cpp")):
+        if path == main_path:
+            continue
+        source_text = path.read_text(encoding="utf-8")
+        for scenario_id in scenario_id_pattern.findall(source_text):
+            if scenario_id not in inventory:
+                inventory.append(scenario_id)
     return inventory
 
 
@@ -528,7 +603,8 @@ def validate_results(
                     "scenario(s) do not belong to requested promotion set: "
                     + ", ".join(wrong_promotion)
                 )
-    expected = {item["runner_id"] for item in selected}
+    scenario_by_runner = {item["runner_id"]: item for item in selected}
+    expected = set(scenario_by_runner)
     actual = {item.get("id") for item in records}
     missing = sorted(expected - actual)
     if missing:
@@ -544,14 +620,22 @@ def validate_results(
             findings.append(f"evidence has invalid callback model: {result}")
         if result.get("id") not in expected:
             continue
+        allowed_models = callback_models_for_scenario(
+            scenario_by_runner[result["id"]]
+        )
+        if result.get("callback_model") not in allowed_models:
+            findings.append(
+                "evidence uses an undeclared callback model for "
+                f"{result.get('id')}: {result.get('callback_model')}"
+            )
         key = (result.get("id"), result.get("callback_model"))
         if key in seen:
             findings.append(f"evidence contains duplicate scenario result: {key}")
         seen.add(key)
     expected_keys = {
         (scenario_id, callback_model)
-        for scenario_id in expected
-        for callback_model in ("evoked", "immediate")
+        for scenario_id, scenario in scenario_by_runner.items()
+        for callback_model in callback_models_for_scenario(scenario)
     }
     missing_keys = sorted(expected_keys - seen)
     if missing_keys:
@@ -579,7 +663,7 @@ def main() -> int:
         "--promotion",
         choices=("all", "promoted", "candidate"),
         default="all",
-        help="Evidence set to validate; promoted requires passing evoked and immediate results",
+        help="Evidence set to validate; promoted requires passing results for each declared callback model",
     )
     parser.add_argument(
         "--scenario",

@@ -172,7 +172,8 @@ TEST_CASE(
     "[change-default-attribute-order-type][change-interaction-order-type]"
     "[rti.service.change-attribute-order-type]"
     "[rti.service.change-default-attribute-order-type]"
-    "[rti.service.change-interaction-order-type][2025]") {
+    "[rti.service.change-interaction-order-type]"
+    "[requirement:hla-1516.1-2025:clause-8.1.4][2025]") {
   OrderControlFederateAmbassador publisherReports;
   OrderControlFederateAmbassador receiverReports;
   auto publisher = makeRti();
@@ -213,6 +214,12 @@ TEST_CASE(
             std::vector<std::string>{"turnUpdatesOnForObjectInstance"});
     REQUIRE_FALSE(publisher->evokeCallback(0.0));
     publisherReports.callbackNames.clear();
+  };
+  auto evokeUntil = [](auto& ambassador, auto&& ready) {
+    for (int pass = 0; pass != 128 && !ready(); ++pass) {
+      static_cast<void>(ambassador.evokeCallback(0.01));
+    }
+    REQUIRE(ready());
   };
 
   REQUIRE_THROWS_AS(
@@ -266,7 +273,9 @@ TEST_CASE(
       defaultReceiveObject, values, tag, rti1516_2025::HLAinteger64Time(6)));
   REQUIRE_NOTHROW(publisher->updateAttributeValues(
       unchangedReceiveObject, values, tag, rti1516_2025::HLAinteger64Time(6)));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  evokeUntil(*receiver, [&] {
+    return receiverReports.attributeReflectionReports.size() >= 1U;
+  });
 
   REQUIRE(receiverReports.attributeReflectionReports.size() == 1);
   REQUIRE(receiverReports.attributeReflectionReports.front().sentOrderType == RECEIVE);
@@ -276,7 +285,9 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  evokeUntil(*receiver, [&] {
+    return receiverReports.attributeReflectionReports.size() >= 3U;
+  });
   REQUIRE(receiverReports.attributeReflectionReports.size() == 3);
   std::size_t timestampedReflectionCount = 0;
   for (auto const& report : receiverReports.attributeReflectionReports) {
@@ -297,7 +308,9 @@ TEST_CASE(
       tag,
       rti1516_2025::HLAinteger64Time(8));
   REQUIRE_FALSE(retraction.isValid());
-  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  evokeUntil(*receiver, [&] {
+    return receiverReports.timestampedInteractionReports.size() >= 1U;
+  });
   REQUIRE(receiverReports.timestampedInteractionReports.size() == 1);
   auto const& interactionReport = receiverReports.timestampedInteractionReports.front();
   REQUIRE(interactionReport.sentOrderType == RECEIVE);

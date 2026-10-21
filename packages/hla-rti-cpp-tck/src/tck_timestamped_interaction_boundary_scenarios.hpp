@@ -10,6 +10,18 @@ void scenarioTimestampedInteractionMixedAdvances(Options const&, rti::CallbackMo
 void scenarioTimestampedInteractionMixedAdvancesContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTaraEqualBoundary(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTaraEqualBoundaryContract(Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTaraQueuedEqualBoundary(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTaraQueuedEqualBoundaryContract(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionZeroLookaheadSendAtGrant(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionZeroLookaheadSendAtGrantContract(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionZeroLookaheadTarSendBoundary(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryContract(
+    Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTaraStrictTimestampCutoff(
     Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarEqualBoundary(Options const&, rti::CallbackModel);
@@ -26,6 +38,18 @@ void scenarioTimestampedInteractionMixedAdvancesContractPortable(
 void scenarioTimestampedInteractionTaraEqualBoundaryPortable(
     Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTaraEqualBoundaryContractPortable(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTaraQueuedEqualBoundaryPortable(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTaraQueuedEqualBoundaryContractPortable(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionZeroLookaheadSendAtGrantPortable(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionZeroLookaheadSendAtGrantContractPortable(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryPortable(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryContractPortable(
     Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarEqualBoundaryPortable(
     Options const&, rti::CallbackModel);

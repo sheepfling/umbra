@@ -370,19 +370,29 @@ class Recorder final : public rti::FederateAmbassador {
   }
 
   void initiateFederateSave(std::wstring const& label) override {
-    std::lock_guard<std::mutex> lock(mutex_);
-    federateSaveInitiations_.push_back(label);
-    callbackOrder_.push_back("federate-save-initiate");
+    std::function<void()> hook;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      federateSaveInitiations_.push_back(label);
+      callbackOrder_.push_back("federate-save-initiate");
+      hook = federateSaveInitiateHook_;
+    }
+    if (hook) hook();
   }
 
   void initiateFederateSave(
       std::wstring const& label,
       rti::LogicalTime const& time) override {
-    std::lock_guard<std::mutex> lock(mutex_);
-    federateSaveInitiations_.push_back(label);
-    federateSaveTimes_.push_back(
-        LogicalTimeRecord{copyBytes(time.encode()), time.toString()});
-    callbackOrder_.push_back("federate-save-initiate");
+    std::function<void()> hook;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      federateSaveInitiations_.push_back(label);
+      federateSaveTimes_.push_back(
+          LogicalTimeRecord{copyBytes(time.encode()), time.toString()});
+      callbackOrder_.push_back("federate-save-initiate");
+      hook = federateSaveInitiateHook_;
+    }
+    if (hook) hook();
   }
 
   void federationSaved() override {
@@ -612,6 +622,7 @@ class Recorder final : public rti::FederateAmbassador {
     };
     timedInteractions_.push_back(std::move(record));
     callbackOrder_.push_back("interaction");
+    timeConstrainedEnablementOrder_.push_back("interaction");
     timeRegulationEnablementOrder_.push_back("interaction");
   }
 
@@ -886,6 +897,7 @@ class Recorder final : public rti::FederateAmbassador {
     std::lock_guard<std::mutex> lock(mutex_);
     timeConstrainedEnabled_.push_back(
         LogicalTimeRecord{copyBytes(time.encode()), time.toString()});
+    timeConstrainedEnablementOrder_.push_back("time-constrained-enabled");
   }
 
   void flushQueueGrant(
@@ -1259,6 +1271,11 @@ class Recorder final : public rti::FederateAmbassador {
     return timeConstrainedEnabled_;
   }
 
+  std::vector<std::string> timeConstrainedEnablementOrder() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return timeConstrainedEnablementOrder_;
+  }
+
   std::vector<LogicalTimeRecord> timeAdvanceGrants() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return timeAdvanceGrants_;
@@ -1332,6 +1349,12 @@ class Recorder final : public rti::FederateAmbassador {
       std::function<void(rti::RegionHandleSet const*)> hook) {
     std::lock_guard<std::mutex> lock(mutex_);
     timedReflectionHook_ = std::move(hook);
+  }
+
+
+  void setFederateSaveInitiateHook(std::function<void()> hook) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    federateSaveInitiateHook_ = std::move(hook);
   }
 
   std::optional<OwnershipEventRecord> ownershipAcquisitionCancellation() const {
@@ -1444,6 +1467,7 @@ class Recorder final : public rti::FederateAmbassador {
     std::lock_guard<std::mutex> lock(mutex_);
     timeRegulationEnabled_.clear();
     timeConstrainedEnabled_.clear();
+    timeConstrainedEnablementOrder_.clear();
     timeAdvanceGrants_.clear();
     timeRegulationEnablementOrder_.clear();
   }
@@ -1532,6 +1556,7 @@ class Recorder final : public rti::FederateAmbassador {
   std::vector<LogicalTimeRecord> timeRegulationEnabled_;
   std::vector<std::string> timeRegulationEnablementOrder_;
   std::vector<LogicalTimeRecord> timeConstrainedEnabled_;
+  std::vector<std::string> timeConstrainedEnablementOrder_;
   std::vector<LogicalTimeRecord> timeAdvanceGrants_;
   std::vector<RetractionRecord> retractions_;
   std::vector<AttributeTransportationConfirmationRecord>
@@ -1568,6 +1593,7 @@ class Recorder final : public rti::FederateAmbassador {
       rti::AttributeHandleSet const&,
       rti::VariableLengthData const&)> ownershipReleaseHook_;
   std::function<void(rti::RegionHandleSet const*)> timedReflectionHook_;
+  std::function<void()> federateSaveInitiateHook_;
   std::optional<OwnershipEventRecord> ownershipAcquisitionCancellation_;
   std::optional<OwnershipEventRecord> ownershipNotOwned_;
   std::vector<OwnershipEventRecord> ownershipNotOwnedEvents_;

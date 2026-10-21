@@ -415,3 +415,105 @@ TEST_CASE(
   REQUIRE_NOTHROW(subscriber->disconnect());
   REQUIRE_NOTHROW(publisher->disconnect());
 }
+
+TEST_CASE(
+    "Embedded regional interaction delivery requires overlap in every shared dimension",
+    "[integration][development-profile][federation-management][interaction-management]"
+    "[ddm][regional-interaction][multidimensional-pairwise-overlap]"
+    "[rti.service.create-region][rti.service.set-range-bounds]"
+    "[rti.service.commit-region-modifications][rti.service.publish-interaction-class]"
+    "[rti.service.subscribe-interaction-class-with-regions]"
+    "[rti.service.send-interaction-with-regions]"
+    "[federate.callback.receive-interaction][callback-evoked][2025]") {
+  NullFederateAmbassador publisherCallbacks;
+  InteractionReceiver subscriberCallbacks;
+  auto publisher = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" /
+                          "tests" / "data" /
+                          "two-dimensional-regional-interaction-fom.xml")
+                             .wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherCallbacks, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberCallbacks, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"pairwise-overlap-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"pairwise-overlap-subscriber", L"subscriber", federationName));
+
+  auto const interactionName = L"HLAinteractionRoot.UmbraTwoDimensionalRegionInteraction";
+  auto const publisherInteraction = publisher->getInteractionClassHandle(interactionName);
+  auto const subscriberInteraction = subscriber->getInteractionClassHandle(interactionName);
+  auto const publisherX = publisher->getDimensionHandle(L"UmbraRegionX");
+  auto const publisherY = publisher->getDimensionHandle(L"UmbraRegionY");
+  auto const subscriberX = subscriber->getDimensionHandle(L"UmbraRegionX");
+  auto const subscriberY = subscriber->getDimensionHandle(L"UmbraRegionY");
+  REQUIRE(publisherInteraction.isValid());
+  REQUIRE(subscriberInteraction.isValid());
+  REQUIRE(publisherX.isValid());
+  REQUIRE(publisherY.isValid());
+  REQUIRE(subscriberX.isValid());
+  REQUIRE(subscriberY.isValid());
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(publisherInteraction));
+
+  auto const sourceRegion = publisher->createRegion(
+      DimensionHandleSet{publisherX, publisherY});
+  auto const subscriptionRegion = subscriber->createRegion(
+      DimensionHandleSet{subscriberX, subscriberY});
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      sourceRegion, publisherX, RangeBounds(0UL, 6UL)));
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      sourceRegion, publisherY, RangeBounds(0UL, 4UL)));
+  REQUIRE_NOTHROW(subscriber->setRangeBounds(
+      subscriptionRegion, subscriberX, RangeBounds(2UL, 8UL)));
+  REQUIRE_NOTHROW(subscriber->setRangeBounds(
+      subscriptionRegion, subscriberY, RangeBounds(5UL, 9UL)));
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(
+      RegionHandleSet{sourceRegion}));
+  REQUIRE_NOTHROW(subscriber->commitRegionModifications(
+      RegionHandleSet{subscriptionRegion}));
+  REQUIRE_NOTHROW(subscriber->subscribeInteractionClassWithRegions(
+      subscriberInteraction, RegionHandleSet{subscriptionRegion}));
+
+  ParameterHandleValueMap const parameters;
+  unsigned char const disjointTagBytes[] = {'d', 'i', 's', 'j', 'o', 'i', 'n', 't'};
+  REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
+      publisherInteraction,
+      parameters,
+      RegionHandleSet{sourceRegion},
+      VariableLengthData(disjointTagBytes, sizeof(disjointTagBytes))));
+  drain(*subscriber);
+  // X overlaps, but Y is disjoint: [0, 4) and [5, 9). Under §9.1.4 this
+  // pair cannot qualify because every shared-dimension range pair must overlap.
+  REQUIRE(subscriberCallbacks.received.empty());
+
+  REQUIRE_NOTHROW(subscriber->setRangeBounds(
+      subscriptionRegion, subscriberY, RangeBounds(3UL, 8UL)));
+  REQUIRE_NOTHROW(subscriber->commitRegionModifications(
+      RegionHandleSet{subscriptionRegion}));
+  unsigned char const overlappingTagBytes[] = {'o', 'v', 'e', 'r', 'l', 'a', 'p'};
+  REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
+      publisherInteraction,
+      parameters,
+      RegionHandleSet{sourceRegion},
+      VariableLengthData(overlappingTagBytes, sizeof(overlappingTagBytes))));
+  drain(*subscriber);
+  REQUIRE(subscriberCallbacks.received.size() == 1U);
+  REQUIRE(subscriberCallbacks.received.front().interactionClass == subscriberInteraction);
+  REQUIRE(hasTag(
+      subscriberCallbacks.received.front().userSuppliedTag, "overlap"));
+
+  REQUIRE_NOTHROW(subscriber->unsubscribeInteractionClassWithRegions(
+      subscriberInteraction, RegionHandleSet{subscriptionRegion}));
+  REQUIRE_NOTHROW(subscriber->deleteRegion(subscriptionRegion));
+  REQUIRE_NOTHROW(publisher->deleteRegion(sourceRegion));
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(subscriber->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}

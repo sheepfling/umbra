@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ primary/contract and Java parity translate the independently green native 130-assertion four-member HLA_EVOKED mixed-TSO save/restore case. A named object carries a timestamp-7 update and timestamp-8 deletion while a second sender issues a timestamp-7 interaction; both recipients are time constrained. The four-member save captures queued messages and retraction ledgers. Pre-restore retractions terminalize the three designators. After restore, each recipient's Flush Queue Request releases its own saved callbacks before its grant; the three designators again produce public Request Retraction callbacks and terminal errors. The adapter supplies the installed provider, endpoint, IEEE 1516.2-2025 FOM with object/attribute and interaction/parameter, logical-time implementation, and HLA_EVOKED callback configuration. Both portable languages explicitly select TIMESTAMP order through standard services because a conforming FOM may default to RECEIVE. Twenty-four direct requirement-section pairs cover eighteen clauses. Isolated portable C++ primary/contract passed against an installed package using HLAinteger64Time and HLAfloat64Time. Java compiles against the official API-only JAR; Java provider runtime and HLA_IMMEDIATE are unverified. No interoperability, general temporal-persistence, or conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-mixed-tso-four-member",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador reserveObjectInstanceName, registerObjectInstance, publish/subscribe object class attributes and interaction class, changeDefaultAttributeOrderType, changeInteractionOrderType, enableTimeConstrained, enableTimeRegulation, updateAttributeValues, sendInteraction, deleteObjectInstance, timeAdvanceRequest, requestFederationSave, federateSaveBegun, federateSaveComplete, requestFederationRestore, federateRestoreComplete, flushQueueRequest, retract; FederateAmbassador discoverObjectInstance, reflectAttributeValues, receiveInteraction, removeObjectInstance, requestRetraction, flushQueueGrant",
+      "source": "official IEEE 1516.1-2025 C++ headers and hla.rti1516_2025 Java API; adapter-selected IEEE 1516.2-2025 FOM",
+      "source_symbol": "IEEE 1516.1-2025 mixed timestamped object/interaction save and restore interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_mixed_tso_four_member_restore_integration_catch2.cpp::Embedded federation restore composes a saved timestamped object update and interaction across four members",
+        "packages/hla-rti-cpp-tck/src/tck_restore_mixed_tso_four_member.cpp::scenarioRestoreMixedTsoFourMember",
+        "packages/hla-rti-cpp-tck/src/tck_restore_mixed_tso_four_member.cpp::scenarioRestoreMixedTsoFourMemberContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestoreMixedTsoFourMemberTck.java::run"
+      ]
+    }
+  ]
+}

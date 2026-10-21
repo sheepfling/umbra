@@ -291,3 +291,114 @@ TEST_CASE(
   REQUIRE_NOTHROW(owner->disconnect());
   REQUIRE_NOTHROW(requester->disconnect());
 }
+
+TEST_CASE(
+    "Embedded negotiated divestiture waits for an acquirer before relinquishing ownership",
+    "[integration][development-profile][federation-management]"
+    "[ownership-management][negotiated-divestiture-no-accepter-retains-owner]"
+    "[rti.service.negotiated-attribute-ownership-divestiture]"
+    "[rti.service.attribute-ownership-acquisition]"
+    "[rti.service.confirm-divestiture]"
+    "[federate.callback.request-divestiture-confirmation]"
+    "[federate.callback.attribute-ownership-acquisition-notification]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador requesterReports;
+  auto owner = makeRti();
+  auto requester = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "attribute-update-passel-fom.xml")
+                             .wstring();
+  unsigned char const acquisitionTagBytes[] = {0xA7, 0x31};
+  unsigned char const divestitureTagBytes[] = {0xD7, 0x31};
+  unsigned char const confirmationTagBytes[] = {0xE7, 0x31};
+  VariableLengthData const acquisitionTag(
+      acquisitionTagBytes, sizeof(acquisitionTagBytes));
+  VariableLengthData const divestitureTag(
+      divestitureTagBytes, sizeof(divestitureTagBytes));
+  VariableLengthData const confirmationTag(
+      confirmationTagBytes, sizeof(confirmationTagBytes));
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      fomModule,
+      standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"negotiated-no-accepter-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"negotiated-no-accepter-requester", L"publisher", federationName));
+
+  auto const objectClass = owner->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const attribute = owner->getAttributeHandle(
+      objectClass,
+      fixture_hla::fixture::reliable_base_a);
+  AttributeHandleSet const attributes{attribute};
+  REQUIRE(objectClass.isValid());
+  REQUIRE(attribute.isValid());
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(
+      objectClass, attributes));
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(
+      objectClass, attributes));
+  REQUIRE_NOTHROW(requester->publishObjectClassAttributes(
+      objectClass, attributes));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(objectClass));
+  REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
+
+  // The owner has announced that it is willing to divest, but no joined
+  // federate has accepted the attributes yet; ownership must remain unchanged.
+  REQUIRE_NOTHROW(owner->negotiatedAttributeOwnershipDivestiture(
+      objectInstance, attributes, divestitureTag));
+  REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, attribute));
+  REQUIRE_FALSE(requester->isAttributeOwnedByFederate(objectInstance, attribute));
+  drainCallbacks(*owner);
+  REQUIRE(ownerReports.divestitureConfirmationReports.empty());
+  REQUIRE(requesterReports.attributeOwnershipAcquisitionReports.empty());
+
+  // Once a joined federate accepts, the owner receives the confirmation
+  // request and ownership changes only when it confirms that request.
+  REQUIRE_NOTHROW(requester->attributeOwnershipAcquisition(
+      objectInstance, attributes, acquisitionTag));
+  drainCallbacks(*owner);
+  REQUIRE(ownerReports.divestitureConfirmationReports.size() == 1U);
+  REQUIRE(ownerReports.divestitureConfirmationReports.front().objectInstance ==
+          objectInstance);
+  REQUIRE(ownerReports.divestitureConfirmationReports.front().attributes ==
+          attributes);
+  REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, attribute));
+  REQUIRE_FALSE(requester->isAttributeOwnedByFederate(objectInstance, attribute));
+
+  REQUIRE_NOTHROW(owner->confirmDivestiture(
+      objectInstance, attributes, confirmationTag));
+  REQUIRE_FALSE(owner->isAttributeOwnedByFederate(objectInstance, attribute));
+  REQUIRE(requester->isAttributeOwnedByFederate(objectInstance, attribute));
+  drainCallbacks(*requester);
+  REQUIRE(requesterReports.attributeOwnershipAcquisitionReports.size() == 1U);
+  REQUIRE(requesterReports.attributeOwnershipAcquisitionReports.front().objectInstance ==
+          objectInstance);
+  REQUIRE(requesterReports.attributeOwnershipAcquisitionReports.front().attributes ==
+          attributes);
+  REQUIRE(variableLengthDataBytes(
+              requesterReports.attributeOwnershipAcquisitionReports.front().userSuppliedTag) ==
+          std::vector<unsigned char>(
+              confirmationTagBytes,
+              confirmationTagBytes + sizeof(confirmationTagBytes)));
+
+  REQUIRE_NOTHROW(requester->unpublishObjectClassAttributes(
+      objectClass, attributes));
+  REQUIRE_NOTHROW(owner->unpublishObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(requester->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(requester->disconnect());
+}

@@ -1,6 +1,7 @@
 # Shared IEEE 1516.1-2025 connection-suite sources used by both Catch2 targets.
 set(UMBRA_IEEE1516_2025_CONNECTION_TEST_SOURCES
   cpp/tests/ieee1516_2025_connection_catch2.cpp
+  cpp/tests/ieee1516_2025_service_reporting_switch_fdd_default_catch2.cpp
   cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp
   cpp/tests/ieee1516_2025_connection_interaction_transportation_catch2.cpp
   cpp/tests/ieee1516_2025_connection_regional_interaction_transportation_override_catch2.cpp
@@ -35,6 +36,9 @@ set(UMBRA_IEEE1516_2025_CONNECTION_TEST_SOURCES
   cpp/tests/ieee1516_2025_connection_regional_attribute_relevance_catch2.cpp
   cpp/tests/ieee1516_2025_connection_directed_interaction_callback_catch2.cpp
   cpp/tests/ieee1516_2025_connection_process_object_retraction_callback_gate_catch2.cpp
+  cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_catch2.cpp
+  cpp/tests/ieee1516_2025_connection_process_asynchronous_delivery_evoked_catch2.cpp
+  cpp/tests/ieee1516_2025_connection_process_tso_cross_service_late_arrival_catch2.cpp
   cpp/tests/ieee1516_2025_connection_process_tso_interaction_retraction_before_callback_catch2.cpp
   cpp/tests/ieee1516_2025_connection_tso_attribute_before_grant_catch2.cpp
   cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_set_switches_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp

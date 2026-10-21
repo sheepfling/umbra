@@ -316,6 +316,103 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded NMR grant below request eases the subsequent TSO timestamp bound",
+    "[integration][development-profile][interaction-management][time-management]"
+    "[nmr-early-grant-tso-bound-easing][rti.service.next-message-request]"
+    "[rti.service.send-interaction][rti.service.time-advance-request]"
+    "[federate.callback.receive-interaction][federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador regulatingReports;
+  ReportingFederateAmbassador peerReports;
+  auto regulating = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = sourcePath(std::filesystem::path("cpp") / "tests" / "data" /
+                                    "parameter-handle-provider-fom.xml")
+                             .wstring();
+  unsigned char const firstPayload[] = {0x51U};
+  unsigned char const secondPayload[] = {0x52U};
+  unsigned char const tagBytes[] = {0x4EU, 0x4DU, 0x52U, 0x2DU, 0x45U};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(regulating->connect(regulatingReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(regulating->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(regulating->joinFederationExecution(
+      L"nmr-early-grant-regulating", L"publisher", federationName));
+  REQUIRE_NOTHROW(peer->joinFederationExecution(
+      L"nmr-early-grant-peer", L"publisher", federationName));
+
+  auto const interactionClass = regulating->getInteractionClassHandle(
+      fixture_hla::fom::parameter_fixture_child_interaction);
+  auto const identifier = regulating->getParameterHandle(
+      interactionClass, fixture_hla::fixture::identifier);
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(identifier.isValid());
+  REQUIRE_NOTHROW(regulating->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(peer->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(regulating->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(peer->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(regulating->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(regulating->enableTimeConstrained());
+  drainCallbacks(*regulating);
+  REQUIRE_NOTHROW(regulating->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  drainCallbacks(*regulating);
+  REQUIRE_NOTHROW(peer->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  drainCallbacks(*peer);
+
+  ParameterHandleValueMap firstValues;
+  firstValues.emplace(
+      identifier, VariableLengthData(firstPayload, sizeof(firstPayload)));
+  auto const incoming = peer->sendInteraction(
+      interactionClass,
+      firstValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(5));
+  REQUIRE(incoming.isValid());
+
+  // While Time Advancing, a TSO send is bounded against request 10 plus
+  // lookahead 1. The queued timestamp-5 message permits the NMR grant at 5.
+  REQUIRE_NOTHROW(regulating->nextMessageRequest(
+      rti1516_2025::HLAinteger64Time(10)));
+  REQUIRE(regulatingReports.timeAdvanceGrantReports.empty());
+  REQUIRE_NOTHROW(peer->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  drainCallbacks(*peer);
+  drainCallbacks(*regulating);
+  REQUIRE(regulatingReports.timeAdvanceGrantReports.size() == 1U);
+  REQUIRE(regulatingReports.timeAdvanceGrantReports.front().value == L"5");
+  REQUIRE(regulatingReports.timestampedInteractionReports.size() == 1U);
+  REQUIRE(regulatingReports.callbackOrder ==
+      std::vector<std::string>{"interaction", "grant"});
+
+  rti1516_2025::HLAinteger64Time logicalTime;
+  REQUIRE_NOTHROW(regulating->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+
+  ParameterHandleValueMap secondValues;
+  secondValues.emplace(
+      identifier, VariableLengthData(secondPayload, sizeof(secondPayload)));
+  auto const outgoing = regulating->sendInteraction(
+      interactionClass,
+      secondValues,
+      tag,
+      rti1516_2025::HLAinteger64Time(7));
+  REQUIRE(outgoing.isValid());
+  REQUIRE(regulatingReports.timeAdvanceGrantReports.front().value == L"5");
+  REQUIRE_NOTHROW(regulating->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+
+  REQUIRE_NOTHROW(regulating->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(peer->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(regulating->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(regulating->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
+}
+
+TEST_CASE(
     "Embedded Next Message Request retargets to a TSO queued after submission",
     "[integration][development-profile][interaction-management][time-management]"
     "[next-message-request][dynamic-future-input]"

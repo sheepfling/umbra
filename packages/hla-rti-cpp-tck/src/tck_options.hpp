@@ -131,6 +131,8 @@ struct Options {
   bool requireCustomTransportation = false;
   std::wstring logicalTimeImplementationName;
   int timeoutMilliseconds = 5000;
+  std::filesystem::path ownershipExtensionFom;
+  std::wstring ownershipAddedAttributeName = L"AddedAfterRegistration";
 };
 
 }  // namespace hla_rti_cpp_tck::detail

@@ -225,14 +225,54 @@ transaction and before an RTI-assigned federate name is selected. For the
 unnamed Join overload, the API has no requested name to authorize, so Umbra
 passes an empty string; the authorizer does not receive the later assigned
 name. The [shared result mappers](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L139)
-and [connected-operation credential snapshots and gates](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2536)
-show these implementation boundaries; the [Join-specific helper](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2561)
+and [connected-operation credential snapshots and gates](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2606)
+show these implementation boundaries; the [Join-specific helper](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2631)
 shows the same boundary for federate authorization.
 
 The source places these checks before both the embedded and process branches.
 The focused operation tests use Umbra's embedded test seam; this source order
 does not establish process-endpoint authorization parity or an end-to-end
 process test result.
+
+### Disconnect ends this source-level credential scope
+
+Connect stores the supplied credential value in the connection snapshot and
+installs a configured authorizer only when connection setup commits. In the
+selected 2025 implementation, Disconnect is rejected while the ambassador is
+joined; once the not-joined Disconnect transition succeeds, Umbra resets both
+the authorizer and the entire connection snapshot. A later Connect constructs
+a new snapshot from that call's credentials (or leaves it empty) and resolves
+its authorizer again. This describes Umbra's connection-lifetime state, not a
+standard-mandated credential-retention policy.
+
+```mermaid
+flowchart TD
+  D["not_connected"] -->|"Connect authorization and setup succeed"| N["not_joined: credential snapshot<br/>+ optional authorizer"]
+  N -->|"Create / Destroy"| G["If configured, gate copies connection credential<br/>or supplies HLAnoCredentials"]
+  G --> N
+  N -->|"Join"| JG["If configured, Join gate uses the same<br/>connection credential snapshot"]
+  JG -->|"Join succeeds"| J["joined: same connection snapshot"]
+  JG -->|"Join fails"| N
+  J -->|"Resign succeeds"| N
+  J -->|"Disconnect while joined"| R["Reject: FederateIsExecutionMember;<br/>connection snapshot remains"]
+  R --> J
+  N -->|"Disconnect while not_joined"| X["Transition to not_connected;<br/>reset authorizer and connection snapshot"]
+  X --> D
+```
+
+The reset follows the successful lifecycle transition and occurs under the
+ambassador/authorizer synchronization used by the implementation. The
+[Connect credential snapshot](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L167)
+is prepared before the [connection lifecycle commit](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L267);
+the [Disconnect precondition](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2498)
+rejects joined state, then its [cleanup path](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2515)
+resets the authorizer and clears the snapshot. The selected [authorization cases](../../cpp/tests/ieee1516_2025_authorization_catch2.cpp#L536)
+use Disconnect for cleanup but do not assert which credentials a second
+Connect on the same ambassador would present. Treat that reconnect outcome as
+source-derived and not independently tested. The [connection guide's ordered
+teardown map](HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md#3-disconnect-requires-an-unjoined-connection-and-tears-down-in-order)
+covers callback and transport cleanup; this smaller map isolates credential
+and authorizer lifetime.
 
 ## What the focused cases establish
 
@@ -283,7 +323,7 @@ authorizer, and Create cases are also limited to their stated scenarios.
 | Reference-authorizer decisions and password codec | [Reference authorizer](../../cpp/src/ieee1516_2025_authorization.cpp#L56), [password decode/encode](../../cpp/src/ieee1516_2025_authorization.cpp#L175), [encoded-payload tests](../../cpp/tests/ieee1516_2025_authorization_catch2.cpp#L389), [reference decision tests](../../cpp/tests/ieee1516_2025_authorization_catch2.cpp#L463) |
 | Public 2025 authorization contract and result codes | [`Authorizer`](../../third_party/ieee1516.1-2025/include/RTI/auth/Authorizer.h#L24), [`AuthorizationResult`](../../third_party/ieee1516.1-2025/include/RTI/auth/AuthorizationResult.h#L16) |
 | RID profile selection and reference-authorizer construction | [RID loader](../../cpp/src/internal/runtime/rti_initialization_data.cpp#L196) |
-| Connect authorization and connection commit | [Connect authorization gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L115), [connection commit](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L264), [Connect result mapping](../../cpp/src/internal/runtime/ambassador_connection_support.cpp#L140) |
+| Connect authorization and connection commit | [Connect authorization gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L115), [credential snapshot](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L166), [connection lifecycle commit](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L267), [Connect result mapping](../../cpp/src/internal/runtime/ambassador_connection_support.cpp#L140) |
 | Create, Create-With-MIM, Destroy, and Join gate placement | [Create](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L129), [Create-With-MIM](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L203), [Destroy](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L263), [Join](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L345) |
 | Unit, Connect, and factory cases | [Authorization tests](../../cpp/tests/ieee1516_2025_authorization_catch2.cpp#L389) |
 

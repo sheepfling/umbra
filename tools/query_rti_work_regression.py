@@ -242,7 +242,7 @@ MAPPED_CORE_CASES = {
     },
     "Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch": {
         "mapping_id": "rti.service.time-advance-request",
-        "requirements": 8,
+        "requirements": 9,
         "sections": {
             "hla-1516.1-2025:clause-8",
             "hla-1516.1-2025:clause-8.1.2",
@@ -269,8 +269,9 @@ MAPPED_CORE_CASES = {
     },
     "Embedded Modify Lookahead applies increases immediately and decreases gradually": {
         "mapping_id": "rti.service.modify-lookahead",
-        "requirements": 5,
+        "requirements": 6,
         "sections": {
+            "hla-1516.1-2025:clause-8.15.3",
             "hla-1516.1-2025:clause-8.20.4",
         },
         "source_location": "cpp/tests/ieee1516_2025_modify_lookahead_increase_and_gradual_decrease_catch2.cpp:4",
@@ -330,13 +331,15 @@ MAPPED_CORE_CASES = {
     },
     "Embedded Flush Queue Request flushes queued TSO and reports optimistic time": {
         "mapping_id": "rti.service.flush-queue-request",
-        "requirements": 5,
+        "requirements": 9,
         "sections": {
+            "hla-1516.1-2025:clause-8",
             "hla-1516.1-2025:clause-8.12",
             "hla-1516.1-2025:clause-8.12.3",
+            "hla-1516.1-2025:clause-8.13.3",
         },
-        "source_location": "cpp/tests/flush_queue_request_optimistic_time_catch2.cpp:140",
-        "assertions": 58,
+        "source_location": "cpp/tests/flush_queue_request_optimistic_time_catch2.cpp:157",
+        "assertions": 70,
     },
     "Embedded constrained TAR waits for GALT and is released by a regulator advance": {
         "mapping_id": "m70.embedded-constrained-tar-galt-regulator-advance",
@@ -421,8 +424,8 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8.3.1",
             "hla-1516.1-2025:clause-8.8.3",
         },
-        "source_location": "cpp/tests/ieee1516_2025_connection_time_regulation_pending_catch2.cpp:458",
-        "assertions": 14,
+        "source_location": "cpp/tests/ieee1516_2025_connection_time_regulation_pending_catch2.cpp:514",
+        "assertions": 15,
     },
     "RTIambassador rejects a process time advance while time constrained enable is pending": {
         "mapping_id": "time-management.process.time-advance-time-constrained-pending",
@@ -942,6 +945,18 @@ def assert_bounded_discovery_output() -> None:
         if not any(test.get("requirements") for test in machine["tests"]):
             raise AssertionError(f"{command} removed full JSON requirement records")
 
+    family_pointer = json.loads(
+        run("next", "--family", "portable-cpp-tck-2025", "--pointer", "--json")
+    )
+    pointer_items = family_pointer.get("items", [])
+    if (
+        len(pointer_items) != 1
+        or pointer_items[0].get("id") != "portable-cpp-tck-2025"
+    ):
+        raise AssertionError(
+            "next --family --pointer returned the global pointer instead of the selected family"
+        )
+
     for arguments, line_limit, character_limit in (
         (("roadmap",), 60, 12000),
         (("plan",), 60, 10000),
@@ -1180,6 +1195,7 @@ def assert_bounded_discovery_output() -> None:
         "completed",
         "closed",
         "done",
+        "verified",
     }:
         if f"family_selection: {active_handoff_family}" not in scoped_ready:
             raise AssertionError("completed active handoff did not fall back to bounded family selection")
@@ -1213,6 +1229,7 @@ def assert_bounded_discovery_output() -> None:
         "completed",
         "closed",
         "done",
+        "verified",
     }:
         if "matrix_requirements=" not in scoped_ready or "matrix_sections=" not in scoped_ready:
             raise AssertionError("bounded family selection lost its on-demand matrix handles")
@@ -1273,9 +1290,11 @@ def main() -> int:
         r"\b(?:add_executable|umbra_add_[A-Za-z0-9_]*catch2_target)"
         r"\s*\(\s*([A-Za-z_][A-Za-z0-9_-]*)"
     )
-    cmake_sources = [REPOSITORY_ROOT / "CMakeLists.txt", *(
-        REPOSITORY_ROOT / "cmake"
-    ).rglob("*.cmake")]
+    cmake_sources = [
+        REPOSITORY_ROOT / "CMakeLists.txt",
+        *(REPOSITORY_ROOT / "cmake").rglob("*.cmake"),
+        *(REPOSITORY_ROOT / "packages").rglob("CMakeLists.txt"),
+    ]
     declared_executables = {
         target
         for cmake_source in cmake_sources
@@ -1283,23 +1302,20 @@ def main() -> int:
             cmake_source.read_text(encoding="utf-8")
         )
     }
-    if (
-        handoff_target
-        and declared_active_handoff.get("family") != "portable-cpp-tck-2025"
-        and handoff_target not in declared_executables
-    ):
+    if handoff_target and handoff_target not in declared_executables:
         raise AssertionError(f"active handoff names an undeclared CMake target: {handoff_target}")
     if declared_active_handoff.get("family") == "portable-cpp-tck-2025":
-        if (
-            handoff_target != declared_active_handoff.get("plan_id")
-            or (declared_active_handoff.get("commands") or {}).get("scenario")
-            != handoff_target
-        ):
+        scenario_id = declared_active_handoff.get("plan_id")
+        scenario_command = (declared_active_handoff.get("commands") or {}).get("scenario")
+        if not scenario_id or scenario_command != scenario_id:
             raise AssertionError(
-                "portable C++ TCK handoffs must identify the proposed scenario consistently"
+                "portable C++ TCK handoffs must identify the scenario separately from its CMake target"
             )
     plan = query_rti_work.load_json(query_rti_work.DEFAULT_PLAN)
     bundle = query_rti_work.load_json(query_rti_work.DEFAULT_BUNDLE)
+    cpp_tck_catalog = query_rti_work.load_json(
+        query_rti_work.DEFAULT_CPP_TCK_CATALOG
+    )
     standard_requirements = query_rti_work.load_standard_requirements(bundle)
     contract_links = query_rti_work.load_contract_links(
         query_rti_work.DEFAULT_CONTRACT_DIRECTORY
@@ -1368,7 +1384,7 @@ def main() -> int:
     handoff_is_completed = (
         isinstance(declared_handoff, dict)
         and str(declared_handoff.get("state") or "").casefold()
-        in {"complete", "completed", "closed", "done"}
+        in {"complete", "completed", "closed", "done", "verified"}
     )
     if isinstance(handoff_plan, dict) and not handoff_is_completed:
         if (
@@ -1502,7 +1518,8 @@ def main() -> int:
             active_handoff is not None
             or (
                 isinstance(ready_handoff, dict)
-                and ready_handoff.get("plan_id") == handoff_plan.get("id")
+                and ready_handoff.get("plan_id")
+                == (handoff_plan.get("id") if isinstance(handoff_plan, dict) else handoff_plan_id)
             )
         ):
             raise AssertionError("completed active handoff was reoffered as next work")
@@ -1619,6 +1636,7 @@ def main() -> int:
     if (
         isinstance(declared_handoff, dict)
         and declared_handoff.get("family") == "portable-cpp-tck-2025"
+        and not handoff_is_completed
     ):
         tck_handoff = query_rti_work.ready_slice(
             index,
@@ -1980,8 +1998,8 @@ def main() -> int:
         "umbra-cpp-custom-transportation-type-control-integration",
         "umbra-cpp-focused-attribute-transportation-type-control-integration",
         "umbra-cpp-process-endpoint-transportation-interaction-integration",
-        "umbra-cpp-process-endpoint-transportation-regional-interaction-integration",
-        "umbra-cpp-process-endpoint-transportation-timestamped-regional-interaction-integration",
+        "umbra-cpp-process-endpoint-regional-interaction-transportation-override-integration",
+        "umbra-cpp-process-tso-regional-interaction-transportation-override-integration",
     }
     if superseded is None or set(superseded.get("replacement_plan_ids", [])) != expected_replacements:
         raise AssertionError("superseded transportation aggregate lost replacement plan ids")
@@ -2416,7 +2434,10 @@ def main() -> int:
             resume_next.get("family_choice_command") or ""
         ):
             raise AssertionError("compact resume card omitted family-choice command")
-        if resume_next.get("family_options_remaining") != 1:
+        expected_remaining_families = max(
+            0, int(resume_next.get("family_queue_count", 0)) - 1
+        )
+        if resume_next.get("family_options_remaining") != expected_remaining_families:
             raise AssertionError("compact resume family-choice count drifted")
         if "gap_preview" in options[0] or "gap_preview" in resume_next:
             raise AssertionError(
@@ -2658,6 +2679,27 @@ def main() -> int:
         raise AssertionError(
             "family-scoped clause-9.1.3.2 gap counts drifted"
         )
+    family_gap_covered_elsewhere = query_rti_work.requirement_gap_inventory(
+        standard_requirements,
+        tests,
+        index=index,
+        family="portable-cpp-tck-2025",
+        query="requirement-candidate-content-clauses-04-federation-management-page-038-l21-4",
+        limit=2,
+    )
+    family_gap_records = family_gap_covered_elsewhere.get("requirements", [])
+    if (
+        family_gap_covered_elsewhere.get("coverage_scope") != "family-local"
+        or family_gap_covered_elsewhere.get("uncovered_requirement_count") != 1
+        or family_gap_covered_elsewhere.get("globally_covered_requirement_count") != 1
+        or family_gap_covered_elsewhere.get("globally_uncovered_requirement_count") != 0
+        or len(family_gap_records) != 1
+        or family_gap_records[0].get("coverage_scope") != "family-local"
+        or family_gap_records[0].get("global_coverage") != "covered"
+    ):
+        raise AssertionError(
+            "family-local gap failed to distinguish coverage by another family"
+        )
     gap_summary = query_rti_work.requirement_gap_summary_data(gaps)
     if gap_summary.get("shown_requirement_count") != 0 or gap_summary.get(
         "requirements"
@@ -2665,10 +2707,70 @@ def main() -> int:
         raise AssertionError(
             "gap summary expanded full requirement records instead of staying bounded"
         )
+    tck_nmra_gaps = query_rti_work.cpp_tck_requirement_gap_inventory(
+        standard_requirements,
+        cpp_tck_catalog,
+        tests,
+        document="hla-1516.1-2025",
+        clause="clause-8.11.3",
+        limit=0,
+    )
+    if (
+        tck_nmra_gaps.get("coverage_scope")
+        != "cpp-tck-direct-requirement-mappings"
+        or tck_nmra_gaps.get("total_requirement_count") != 6
+        or tck_nmra_gaps.get("mapped_requirement_count") != 6
+        or tck_nmra_gaps.get("uncovered_requirement_count") != 0
+        or tck_nmra_gaps.get("promoted_requirement_count") != 4
+        or tck_nmra_gaps.get("candidate_only_requirement_count") != 2
+        or tck_nmra_gaps.get("invalid_mapping_count") != 0
+        or tck_nmra_gaps.get("section_disagreement_count") != 0
+    ):
+        raise AssertionError(
+            "portable TCK §8.11.3 direct-mapping inventory drifted"
+        )
+    tck_galt_requirement = query_rti_work.cpp_tck_requirement_gap_inventory(
+        standard_requirements,
+        cpp_tck_catalog,
+        tests,
+        query="requirement-candidate-content-clauses-08-time-management-page-192-l84-24",
+        limit=0,
+    )
+    if (
+        tck_galt_requirement.get("total_requirement_count") != 1
+        or tck_galt_requirement.get("mapped_requirement_count") != 1
+        or tck_galt_requirement.get("uncovered_requirement_count") != 0
+        or tck_galt_requirement.get("promoted_requirement_count") != 1
+        or tck_galt_requirement.get("section_disagreement_count") != 0
+    ):
+        raise AssertionError(
+            "portable TCK GALT-equality requirement mapping drifted"
+        )
+    tck_galt_summary = query_rti_work.cpp_tck_requirement_gap_summary_data(
+        tck_galt_requirement
+    )
+    if (
+        tck_galt_summary.get("shown_requirement_count") != 0
+        or tck_galt_summary.get("requirements") != []
+    ):
+        raise AssertionError(
+            "portable TCK gap summary expanded requirement records"
+        )
+    now_covered_lookup = query_rti_work.requirement_gap_inventory(
+        standard_requirements,
+        tests,
+        query="requirement-candidate-table-5-p296-r007",
+        limit=20,
+    )
+    if (
+        now_covered_lookup.get("uncovered_requirement_count") != 0
+        or now_covered_lookup.get("globally_covered_requirement_count") != 1
+    ):
+        raise AssertionError("exactly covered requirement lookup drifted")
     uncovered_lookup = query_rti_work.requirement_gap_inventory(
         standard_requirements,
         tests,
-        query="requirement-candidate-content-clauses-11-management-object-model-page-294-l14-4",
+        query="requirement-candidate-table-5-p296-r011",
         limit=20,
     )
     if uncovered_lookup.get("uncovered_requirement_count") != 1:
@@ -2681,7 +2783,7 @@ def main() -> int:
     if (
         uncovered_record.get("coverage") != "uncovered"
         or uncovered_record.get("standard_section")
-        != "hla-1516.1-2025:clause-11.5.2.1"
+        != "hla-1516.1-2025:clause-11.5.1"
         or not uncovered_record.get("statement")
         or not isinstance(uncovered_source, dict)
         or not uncovered_source.get("path")
@@ -3221,8 +3323,8 @@ def main() -> int:
     if (
         process_service_report_focus.get("mapped_test_count") != 2
         or process_service_report_focus.get("assertion_count") != 125
-        or process_service_report_focus.get("standard_section_count") != 13
-        or process_service_report_focus.get("requirement_section_pair_count") != 15
+        or process_service_report_focus.get("standard_section_count") != 14
+        or process_service_report_focus.get("requirement_section_pair_count") != 16
     ):
         raise AssertionError("process service-report switch-cycle lane mapping drifted")
     process_service_report_multifederate_focus = query_rti_work.focused_lane_result(
@@ -3288,8 +3390,8 @@ def main() -> int:
     if (
         process_mom_set_switches_focus.get("mapped_test_count") != 1
         or process_mom_set_switches_focus.get("assertion_count") != 57
-        or process_mom_set_switches_focus.get("standard_section_count") != 2
-        or process_mom_set_switches_focus.get("requirement_section_pair_count") != 2
+        or process_mom_set_switches_focus.get("standard_section_count") != 3
+        or process_mom_set_switches_focus.get("requirement_section_pair_count") != 3
     ):
         raise AssertionError("process MOM set-switches lane mapping drifted")
     process_mom_set_switches = next(
@@ -3312,11 +3414,13 @@ def main() -> int:
         != [
             "requirement-candidate-content-clauses-11-management-object-model-page-290-l36-11",
             "requirement-candidate-content-clauses-11-management-object-model-page-291-l146-48",
+            "requirement-source-refinement-mom-service-reporting",
         ]
         or process_mom_set_switches.get("standard_sections")
         != [
             "hla-1516.1-2025:clause-11.4.1",
             "hla-1516.1-2025:clause-11.4.2",
+            "hla-1516.1-2025:clause-11.6",
         ]
         or len(process_mom_set_switches.get("selected_cpp_api_surface_ids", [])) != 17
     ):
@@ -3341,10 +3445,10 @@ def main() -> int:
         index, tests, "process-mom-service-report-interlock", limit=0
     )
     if (
-        process_mom_service_report_interlock_focus.get("mapped_test_count") != 1
+        process_mom_service_report_interlock_focus.get("mapped_test_count") != 2
         or process_mom_service_report_interlock_focus.get("assertion_count") != 18
-        or process_mom_service_report_interlock_focus.get("standard_section_count") != 4
-        or process_mom_service_report_interlock_focus.get("requirement_section_pair_count") != 4
+        or process_mom_service_report_interlock_focus.get("standard_section_count") != 5
+        or process_mom_service_report_interlock_focus.get("requirement_section_pair_count") != 5
     ):
         raise AssertionError("process MOM service-report interlock lane mapping drifted")
     process_mom_service_report_interlock = next(
@@ -3360,7 +3464,7 @@ def main() -> int:
         raise AssertionError("process MOM service-report interlock plan row is absent")
     if (
         query_rti_work.source_location_text(process_mom_service_report_interlock)
-        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:1294"
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:1376"
         or process_mom_service_report_interlock.get("traceability_state")
         != "requirements-mapped"
         or process_mom_service_report_interlock.get("lab_requirement_ids")
@@ -3713,7 +3817,7 @@ def main() -> int:
     if (
         query_rti_work.source_location_text(process_sync_explicit)
         != "cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp:457"
-        or process_sync_explicit.get("assertions") != 27
+        or process_sync_explicit.get("assertions") != 23
         or process_sync_explicit.get("primary_lane")
         != "process-synchronization-point-explicit-failure"
         or len(process_sync_explicit.get("lab_requirement_ids", [])) != 9
@@ -3727,7 +3831,7 @@ def main() -> int:
     if (
         process_sync_explicit_focus.get("lane_state") != "complete"
         or process_sync_explicit_focus.get("mapped_test_count") != 1
-        or process_sync_explicit_focus.get("assertion_count") != 27
+        or process_sync_explicit_focus.get("assertion_count") != 23
         or process_sync_explicit_focus.get("requirement_count") != 9
         or process_sync_explicit_focus.get("standard_section_count") != 6
         or process_sync_explicit_focus.get("requirement_section_pair_count") != 9
@@ -3750,7 +3854,7 @@ def main() -> int:
         raise AssertionError("immediate explicit synchronization-point plan row is absent")
     if (
         query_rti_work.source_location_text(process_sync_explicit_immediate)
-        != "cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp:674"
+        != "cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp:678"
         or process_sync_explicit_immediate.get("assertions") != 23
         or process_sync_explicit_immediate.get("primary_lane")
         != "process-synchronization-point-explicit-failure-immediate"
@@ -4155,8 +4259,23 @@ def main() -> int:
         ),
         None,
     )
+    callback_model_log_format = next(
+        (
+            test
+            for test in callback_model_encoding
+            if test.get("id") == "umbra-cpp-service-report-log-format-concatenation"
+        ),
+        None,
+    )
     if (
-        callback_model_encoding
+        len(callback_model_encoding) != 1
+        or not isinstance(callback_model_log_format, dict)
+        or "requirement-candidate-table-5-p295-r013"
+        not in callback_model_log_format.get("lab_requirement_ids", [])
+        or "hla-1516.1-2025:clause-11.5.1"
+        not in callback_model_log_format.get("standard_sections", [])
+        or "not a public-API conformance test"
+        not in str(callback_model_log_format.get("requirements_lab_api_surface_status"))
         or not isinstance(initial_record_encoding, dict)
         or initial_record_encoding.get("lab_requirement_ids")
         != [
@@ -4268,13 +4387,13 @@ def main() -> int:
         raise AssertionError("evoked synchronization save/restore plan row is absent")
     if (
         query_rti_work.source_location_text(evoked_sync_restore)
-        != "cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp:569"
-        or evoked_sync_restore.get("assertions") != 39
+        != "cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp:851"
+        or evoked_sync_restore.get("assertions") != 48
         or evoked_sync_restore.get("primary_lane")
         != "evoked-synchronization-save-restore"
         or evoked_sync_restore.get("callback_models") != ["HLA_EVOKED"]
-        or len(evoked_sync_restore.get("lab_requirement_ids", [])) != 8
-        or len(evoked_sync_restore.get("standard_sections", [])) != 8
+        or len(evoked_sync_restore.get("lab_requirement_ids", [])) != 9
+        or len(evoked_sync_restore.get("standard_sections", [])) != 9
         or len(evoked_sync_restore.get("selected_cpp_api_surface_ids", [])) != 17
     ):
         raise AssertionError("evoked synchronization save/restore mapping drifted")
@@ -4285,9 +4404,9 @@ def main() -> int:
         evoked_sync_restore_focus.get("lane_state") != "complete"
         or evoked_sync_restore_focus.get("mapped_test_count") != 1
         or evoked_sync_restore_focus.get("assertion_count") != 39
-        or evoked_sync_restore_focus.get("requirement_count") != 8
-        or evoked_sync_restore_focus.get("standard_section_count") != 8
-        or evoked_sync_restore_focus.get("requirement_section_pair_count") != 8
+        or evoked_sync_restore_focus.get("requirement_count") != 9
+        or evoked_sync_restore_focus.get("standard_section_count") != 9
+        or evoked_sync_restore_focus.get("requirement_section_pair_count") != 9
         or evoked_sync_restore_focus.get("lane_handles", {}).get("catch2_target")
         != "umbra_ieee1516_2025_catch2"
         or "Embedded evoked federation restore reconstitutes"
@@ -4639,9 +4758,9 @@ def main() -> int:
         raise AssertionError("process-boundary CTest execution baseline drifted")
     if process_handles.get("junit_ctest_execution_count") != 119:
         raise AssertionError("process-boundary JUnit CTest scope baseline drifted")
-    if process_handles.get("junit_testcase_count") != 214:
+    if process_handles.get("junit_testcase_count") != 471:
         raise AssertionError("process-boundary JUnit testcase baseline drifted")
-    if process_handles.get("junit_assertion_count") != 5458:
+    if process_handles.get("junit_assertion_count") != 17918:
         raise AssertionError("process-boundary JUnit assertion baseline drifted")
     if process_handles.get("junit_failures") != 0:
         raise AssertionError("process-boundary JUnit report is not green")
@@ -6627,9 +6746,9 @@ def main() -> int:
         cancellation_focus.get("lane_state") != "complete"
         or cancellation_focus.get("mapped_test_count") != 1
         or cancellation_focus.get("assertion_count") != 51
-        or cancellation_focus.get("requirement_count") != 18
-        or cancellation_focus.get("standard_section_count") != 4
-        or cancellation_focus.get("requirement_section_pair_count") != 18
+        or cancellation_focus.get("requirement_count") != 20
+        or cancellation_focus.get("standard_section_count") != 5
+        or cancellation_focus.get("requirement_section_pair_count") != 20
     ):
         raise AssertionError("attribute-ownership acquisition cancellation lane card drifted")
     cancellation_handles = cancellation_focus.get("lane_handles")
@@ -6672,9 +6791,9 @@ def main() -> int:
         acquisition_release_focus.get("lane_state") != "complete"
         or acquisition_release_focus.get("mapped_test_count") != 1
         or acquisition_release_focus.get("assertion_count") != 73
-        or acquisition_release_focus.get("requirement_count") != 9
-        or acquisition_release_focus.get("standard_section_count") != 4
-        or acquisition_release_focus.get("requirement_section_pair_count") != 9
+        or acquisition_release_focus.get("requirement_count") != 15
+        or acquisition_release_focus.get("standard_section_count") != 5
+        or acquisition_release_focus.get("requirement_section_pair_count") != 15
     ):
         raise AssertionError("attribute-ownership acquisition release lane card drifted")
     acquisition_release_handles = acquisition_release_focus.get("lane_handles")
@@ -7247,11 +7366,11 @@ def main() -> int:
     )
     if timestamped_regional_focus.get("lane_state") != "complete":
         raise AssertionError("focused timestamped regional process lane is not complete")
-    if timestamped_regional_focus.get("mapped_test_count") != 3:
+    if timestamped_regional_focus.get("mapped_test_count") != 6:
         raise AssertionError("focused timestamped regional process mapped count drifted")
     if timestamped_regional_focus.get("assertion_count") != 71:
         raise AssertionError("focused timestamped regional process lane assertion total drifted")
-    if timestamped_regional_focus.get("recorded_assertion_count") != 207:
+    if timestamped_regional_focus.get("recorded_assertion_count") != 453:
         raise AssertionError("focused timestamped regional process recorded assertion total drifted")
     if timestamped_regional_focus.get("requirement_count") != 32:
         raise AssertionError("focused timestamped regional process requirement total drifted")
@@ -7691,7 +7810,7 @@ def main() -> int:
     )
     if process_next_message_queued_focus.get("lane_state") != "complete":
         raise AssertionError("focused process queued-TSO lane is not complete")
-    if process_next_message_queued_focus.get("mapped_test_count") != 13:
+    if process_next_message_queued_focus.get("mapped_test_count") != 16:
         raise AssertionError("focused process queued-TSO mapped count drifted")
     if process_next_message_queued_focus.get("assertion_count") != 543:
         raise AssertionError("focused process queued-TSO lane assertion total drifted")
@@ -8847,7 +8966,7 @@ def main() -> int:
     )
     if service_reporting_interlock_focus.get("lane_state") != "complete":
         raise AssertionError("focused service-reporting interlock lane is not complete")
-    if service_reporting_interlock_focus.get("mapped_test_count") != 1:
+    if service_reporting_interlock_focus.get("mapped_test_count") != 2:
         raise AssertionError("focused service-reporting interlock mapped count drifted")
     if service_reporting_interlock_focus.get("assertion_count") != 41:
         raise AssertionError("focused service-reporting interlock assertion total drifted")
@@ -12909,6 +13028,23 @@ def main() -> int:
     )
     if not parsed_broad_search.any_term:
         raise AssertionError("explicit broad search escape hatch is unavailable")
+    parsed_tck_gaps = query_rti_work.build_parser().parse_args(
+        [
+            "tck-gaps",
+            "--document",
+            "hla-1516.1-2025",
+            "--clause",
+            "clause-8.6",
+            "--summary",
+        ]
+    )
+    if (
+        parsed_tck_gaps.command != "tck-gaps"
+        or parsed_tck_gaps.document != "hla-1516.1-2025"
+        or parsed_tck_gaps.clause != "clause-8.6"
+        or not parsed_tck_gaps.summary
+    ):
+        raise AssertionError("portable TCK direct-gap query parser drifted")
 
     # The implementation plan is a second source of navigation context, not
     # another prose search surface.  Protect the heading-only filter so a

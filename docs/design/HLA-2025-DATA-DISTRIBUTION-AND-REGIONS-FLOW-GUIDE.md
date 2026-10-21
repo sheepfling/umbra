@@ -60,6 +60,46 @@ with object-class attribute or interaction-class subscriptions. The DDM
 decision is based on the committed region specifications used by those
 service paths.
 
+### Shared geometry, different service state
+
+Both paths use class-available dimensions, committed region bounds, and
+overlap, but they attach source and receiver state to different HLA services.
+Treat this as a comparison of the 2025 API surfaces and the bounded paths
+documented below, not as one shared recipient algorithm:
+
+| Question | Object-attribute update | Interaction send |
+| --- | --- | --- |
+| Where does source scope come from? | `associateRegionsForUpdates` associates regions with an object's attributes (§9.6); the inspected path uses the default source realization when an attribute has no explicit association ([API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1526), [detailed path](#object-attributes-source-association-discovery-relevance-and-updates)). | `sendInteractionWithRegions` supplies regions for that send (§9.12); ordinary `sendInteraction` uses the default realization in the inspected path ([API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1631), [detailed path](#interactions-explicit-and-default-region-paths)). |
+| Where does receiver scope come from? | Object-class and attribute-to-region pairs in `subscribeObjectClassAttributesWithRegions` (§9.8). | Interaction-class regions in `subscribeInteractionClassWithRegions` (§9.10). |
+| What is selected? | Relevant attributes are projected for each known or newly discoverable object; discovery, scope advice, and value reflection are separate effects. | Each interaction send is evaluated for each receiver; an eligible send yields `receiveInteraction`, not object discovery. |
+| What must not be conflated? | A new or changed region can affect object visibility and attribute relevance independently of a publisher's next value update. | A region set belongs to one send, not to an object/attribute association. In the focused embedded TSO case, replacing the subscription suppressed rather than retargeted the accepted send ([bounded case](#a-replacement-regional-interaction-subscription-does-not-retarget-queued-tso-work)). |
+
+The API declares the receiver-side services separately as well:
+[`subscribeObjectClassAttributesWithRegions` (§9.8)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1559)
+and
+[`subscribeInteractionClassWithRegions` (§9.10)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1595).
+The detailed object and interaction flows below retain the path-specific
+dimension, default-region, delivery, and timestamped-work rules.
+
+```mermaid
+flowchart TB
+  subgraph OBJECTS["Object-attribute path"]
+    OS["Per-object, per-attribute source association<br/>or default source realization"] --> OR["Object-class / attribute<br/>receiver subscription regions"]
+    OR --> OQ{"Attribute-specific<br/>source/receiver projection qualifies?"}
+    OQ -->|Yes| OV["Eligible attribute update may reflect<br/>Discovery and scope effects are separate"]
+    OQ -->|No| ON["No matching attribute delivery"]
+  end
+  subgraph INTERACTIONS["Interaction path"]
+    IS["Per-send region set<br/>or ordinary-send default realization"] --> IR["Interaction-class<br/>receiver subscription regions"]
+    IR --> IQ{"This send qualifies<br/>for this receiver?"}
+    IQ -->|Yes| IV["Receive Interaction"]
+    IQ -->|No| IN["No interaction callback"]
+  end
+  COMMON["Shared geometry: class dimensions,<br/>committed bounds, and overlap.<br/>Selection rules remain path-specific."]
+  COMMON -.-> OQ
+  COMMON -.-> IQ
+```
+
 ## From FOM dimensions to runtime region scope
 
 This is a conceptual bridge between the model and DDM, not a required
@@ -114,7 +154,7 @@ required preconditions and effects.
 | Which dimensions and bounds are available or selected? | [`getAvailableDimensionsForObjectClass` §10.21](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1891), [`getAvailableDimensionsForInteractionClass` §10.22](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1901), [`getDimensionUpperBound` §10.25](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1931), [`getDimensionHandleSet` §10.26](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1943), [`getRangeBounds` §10.27](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1956), and [`setRangeBounds` §10.28](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1972). |
 | Where do object attributes get source regions and receiver interest? | [`registerObjectInstanceWithRegions` §9.5](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1487), [`associateRegionsForUpdates` / `unassociateRegionsForUpdates` §§9.6–9.7](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1526), and [`subscribeObjectClassAttributesWithRegions` / `unsubscribeObjectClassAttributesWithRegions` §§9.8–9.9](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1559). |
 | Where do interactions get source regions and receiver interest? | [`subscribeInteractionClassWithRegions` / `unsubscribeInteractionClassWithRegions` §§9.10–9.11](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1595) and [`sendInteractionWithRegions` §9.12](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1631). |
-| Where is a region used for provider solicitation rather than receiver selection? | [`requestAttributeValueUpdateWithRegions` §9.13](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1672); its distinct role is explained in [regional request scope](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md#regional-request-scope-is-not-response-ddm). |
+| Where is a region used for provider solicitation rather than receiver selection? | [`requestAttributeValueUpdateWithRegions` §9.13](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1672); its distinct role is explained in [regional request scope](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md#regional-request-scope-is-not-response-ddm), and its configured-process route is traced in the [regional class-request sequence](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md#configured-process-path-region-check-before-event-routing). |
 
 The class-availability query informs application choices; it does not create
 a region. In the public API, `createRegion` accepts a `DimensionHandleSet`
@@ -329,6 +369,30 @@ source-only; do not infer process-endpoint or 2010 parity. For how discovery
 and attribute projection differ from other ancestry paths, see the object
 information guide's [cross-path class ancestry map](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#class-ancestry-has-different-jobs-in-different-paths).
 
+#### Worked source-only trace: parent subscription, child object
+
+This hypothetical separates three questions that are easy to collapse:
+whether each region fits its own class context, whether the declarations are
+considered while walking class ancestry, and whether their committed
+realizations overlap. It composes current embedded source paths; it is not a
+focused test or a normative example.
+
+| Stage | Example state | Current embedded source path |
+| --- | --- | --- |
+| Class context | `Base` declares attribute `A` and dimension `D`; `Child` inherits `D` and adds dimension `E`. Available dimensions are `{D}` for `Base` and `{D, E}` for `Child`. | The dimension query collects associations on the selected class and its parents ([helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L531)). |
+| Admission | The receiver subscribes to `Base/A` with a committed region over `{D}`. The publisher registers a `Child` object and associates `A` with a committed source region over `{D, E}`. | Subscription and registration check each region's dimension set against the available set of the class named by that service ([subscription](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L465), [registration](../../cpp/src/internal/federation/federation_registry_object_instance_registration.cpp#L245)). |
+| Discovery | With an active non-producer declaration and overlapping committed ranges on shared dimension `D`, the discovery planner walks from registered class `Child` to `Base` and can consider the `Base/A` declaration. | The active-relevance and per-receiver class walks are in the [discovery resolver](../../cpp/src/internal/federation/federation_registry.cpp#L830); overlap uses committed region snapshots ([overlap helper](../../cpp/src/internal/federation/federation_registry_regions.cpp#L611)). |
+| Receiver knowledge and later value | If `Base/A` is the closest qualifying receiver declaration, the receiver's known class is `Base`. A later reflection is projected through that saved class, so child-only attributes are not made visible by the publisher's `Child` registration. | The receiver walk saves the qualifying class in the [discovery resolver](../../cpp/src/internal/federation/federation_registry.cpp#L830); later per-recipient filtering starts from that class in the [attribute update planner](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L55). |
+
+The [child-object/base-subscription test](../../cpp/tests/subscribe_object_class_attributes_discovery_catch2.cpp#L297)
+covers the nearest-known-class result without regions. The
+[three-dimensional regional test](../../cpp/tests/three_dimensional_regional_object_attribute_overlap_catch2.cpp#L110)
+covers inherited dimensions and overlap while registering and subscribing at
+the same class. The inspected 2025 process regional cases also use the same
+class for publisher and receiver. These components do not establish the
+combined parent-subscription/child-object callback outcome; keep that result
+as an embedded source inference, not process evidence or an HLA requirement.
+
 ### 2025 process-endpoint boundary for regional objects
 
 The process endpoint adds a session and event-transport boundary around the
@@ -382,9 +446,12 @@ plan. Subscription-triggered discovery is planned only on subscribe,
 and is routed before the returned scope changes and advisories. Association
 changes route discoveries before scope changes and advisories as well. The
 process-specific [discovery router](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L11),
-[scope-event router](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L116),
+[scope-event router](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L207),
 and [advisory router](../../cpp/src/internal/federation/process_federation_service_attribute_relevance_advisories.cpp#L11)
 are separate from the registry's recipient decision.
+The process scope route has distinct polling-queue and pushed-event stale-work
+checkpoints; see the [Attribute Scope Advisory process-path note](HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md#process-event-transport-has-two-stale-work-checkpoints)
+for the bounded source evidence and missing race-test boundary.
 
 Three focused [initial-discovery](../../cpp/tests/ieee1516_2025_connection_regional_attribute_relevance_initial_discovery_catch2.cpp#L458),
 [subscription-transition](../../cpp/tests/ieee1516_2025_connection_regional_attribute_relevance_subscription_transition_catch2.cpp#L457),
@@ -406,18 +473,22 @@ make no 2010 inference.
 
 ### Interaction-class ancestry: available context and declaration lookup
 
-For a selected interaction class, the current embedded 2025 source has two
-different parent-chain uses. The first computes the dimension context used to
-validate a regional declaration or send. The second is a later delivery
-lookup: after a separate interaction-relevance gate, each receiver's
-candidate class starts at the sent class and walks toward its parents. At each
-candidate, the planner checks declarations keyed to that exact class; a
-regional candidate must also overlap the source region. Thus a parent-keyed
-regional declaration can be *considered* for a send on a descendant class in
-this source path; the walk does not search downward from a parent send to
-child-keyed declarations. Neither direction means declarations are copied
-between class keys, and neither is here claimed as a normative inheritance
-rule.
+For a selected interaction class, the tested 2025 baseline has two different
+parent-chain uses. The first computes the dimension context used to validate a
+regional declaration or send. The second is a later delivery lookup: after a
+separate interaction-relevance gate, each receiver's candidate class starts
+at the sent class and walks toward its parents. At each candidate, the planner
+checks declarations keyed to that exact class; a regional candidate must also
+overlap the source region. Thus a parent-keyed regional declaration can be
+*considered* for a send on a descendant class in this source path; the walk
+does not search downward from a parent send to child-keyed declarations.
+Neither direction means declarations are copied between class keys, and
+neither is here claimed as a normative inheritance rule. In the inspected
+embedded planner, an eligible ordinary/default route is checked before the
+regional route at each class candidate. A disjoint With Regions declaration
+does not by itself suppress that ordinary route; regional overlap is considered
+when the ordinary route does not qualify. The flow below records the current
+source and focused-test behavior, not a normative inheritance rule.
 
 An ordinary embedded receive-order case now exercises the nonregional
 candidate walk for one receiver: a descendant send reports the base when only
@@ -452,20 +523,38 @@ flowchart TD
     SV --> RG{"Separate global active-subscription relevance gate succeeds?"}
     RG -->|No| Stop["No recipient candidate is planned"]
     RG -->|Yes| Candidate["For this receiver, begin candidate walk at S"]
-    Candidate --> Regional{"Regional declaration keyed at this candidate?"}
+    Candidate --> Ordinary{"Eligible ordinary/default route at this candidate?"}
+    Ordinary -->|Yes| OrdinaryEligible["Select this candidate through its ordinary/default route"]
+    Ordinary -->|No| Regional{"Regional declaration keyed at this candidate?"}
     Regional -->|Yes| Overlap{"Does a candidate region overlap the source region?"}
-    Overlap -->|Yes| Eligible["This is the closest eligible received class"]
+    Overlap -->|Yes| RegionalEligible["Select this candidate through its regional route"]
     Overlap -->|No| Parent["Try the candidate's parent class"]
-    Regional -->|No| Ordinary{"Eligible ordinary subscription keyed here?"}
-    Ordinary -->|Yes| Eligible
-    Ordinary -->|No| Parent
+    Regional -->|No| Parent
     Parent --> Candidate
-    Eligible --> Projection["Set planned received class and parameter projection;<br/>later delivery gates still apply"]
+    OrdinaryEligible --> Projection["Set planned received class and parameter projection;<br/>later delivery gates still apply"]
+    RegionalEligible --> Projection
   end
 ```
 
-The chart is an **embedded 2025 source map**, not a normative flowchart or a
-process-profile/2010 claim. It isolates class/DDM lookup and omits publication
+**Bounded 2025 source/test evidence; not a normative rule.** The current
+[embedded recipient planner](../../cpp/src/internal/federation/federation_registry.cpp#L1520)
+checks an eligible ordinary/default route before falling back to a regional
+declaration at that class candidate. The updated focused test expects a mixed
+receiver to receive an explicit-source interaction through its ordinary
+subscription despite a disjoint regional declaration
+([focused case](../../cpp/tests/ieee1516_2025_default_region_interaction_routing_catch2.cpp#L5),
+[assertion](../../cpp/tests/ieee1516_2025_default_region_interaction_routing_catch2.cpp#L88));
+the focused CTest passed 1/1 with 50 assertions in the current MinGW build. The
+second embedded fixture now expresses the same expectation
+([case](../../cpp/tests/default_region_interaction_routing_catch2.cpp#L90),
+[assertion](../../cpp/tests/default_region_interaction_routing_catch2.cpp#L197)).
+This is one exercised embedded scenario, not broad DDM coverage or process
+parity. The exact normative interpretation of IEEE 1516.1-2025 §9.1.5 remains
+unverified until its authorized text is reviewed; neither source comments nor
+test mappings establish that interpretation.
+
+The chart is an **embedded 2025 test/source map**, not a normative flowchart or
+a process-profile claim. It isolates class/DDM lookup and omits publication
 and other service preconditions, sender self-exclusion, order/transport, and
 later callback-dispatch gates. The API entry points are
 `getAvailableDimensionsForInteractionClass`
@@ -500,6 +589,72 @@ and the [regional case's selected class](../../cpp/tests/ieee1516_2025_regional_
 Keep both cross-class consequences explicitly source-only until a focused
 case or the applicable licensed standard text establishes more; do not
 transfer the object-case test result to interactions.
+
+#### Additional-module Join: retained regional interaction declarations
+
+For the embedded 2025 source path, an additional-module Join prepares a new
+composed definition and reconciles the existing interaction-class, parameter,
+and dimension handle directories before swapping the replacement definition
+and directories with the new membership
+([preparation](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L298),
+[commit](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L605),
+[interaction handles](../../cpp/src/internal/handles/interaction_class_handle_directory.cpp#L10),
+[parameter handles](../../cpp/src/internal/handles/parameter_handle_directory.cpp#L35),
+[dimension handles](../../cpp/src/internal/handles/dimension_handle_directory.cpp#L9)).
+The per-federate interaction-declaration map is separate from those catalog
+directories and is not rewritten by that swap
+([declaration state](../../cpp/src/internal/federation/federation_registry.hpp#L2255)).
+Regional entries remain keyed by the exact interaction-class handle supplied
+when the declaration was made
+([regional write](../../cpp/src/internal/federation/federation_registry_directed_interactions.cpp#L651));
+Join does not copy a parent declaration onto a newly available descendant.
+
+A later regional send uses the current catalog in two distinct decisions.
+The send's source regions are checked against dimensions currently available
+to the sent class and its parents
+([dimension-context check](../../cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp#L82)).
+Recipient selection then starts at the sent class, checks that exact class's
+ordinary/regional declarations and region overlap, and walks toward parent
+classes when no candidate is eligible
+([recipient planner](../../cpp/src/internal/federation/federation_registry.cpp#L1421),
+[candidate walk](../../cpp/src/internal/federation/federation_registry.cpp#L1512),
+[region-overlap check](../../cpp/src/internal/federation/federation_registry.cpp#L1568),
+[parent step](../../cpp/src/internal/federation/federation_registry.cpp#L1611)).
+Consequently, this source path can consider a retained parent-class regional
+subscription for a later send on an added descendant class. That is a
+source-derived lookup result—not a copied subscription, a normative
+inheritance claim, or a guarantee that every later callback is delivered;
+relevance, sender exclusion, and callback-dispatch gates remain separate.
+
+The evidence is deliberately narrower. The additional-module dimension test
+observes a new interaction class and its dimension through lookup while also
+checking an existing dimension handle; it does not preserve a regional
+interaction declaration or send on the new class
+([test](../../cpp/tests/dimension_lookup_catch2.cpp#L129)). The focused
+regional receive-order test subscribes and sends on the same
+`MainCourseServed` class without an additional-module Join
+([test](../../cpp/tests/ieee1516_2025_regional_interaction_subscription_receive_order_catch2.cpp#L50)).
+No focused case combines Join, a retained parent-keyed regional subscription,
+and a later descendant send. Keep this as an embedded 2025 source trace, not
+process or 2010 parity evidence. The existing [interaction ancestry map](#interaction-class-ancestry-available-context-and-declaration-lookup)
+already diagrams the send-time lookup, so a second chart would repeat it.
+
+The configured process profile keeps a separate transport and callback
+boundary, but its additional-FOM Join passes the prepared definition to
+`joinWithDefinitionAndTimeState`, its regional-subscription handler delegates
+to the registry declaration methods, and receive-order sends pass the class
+and optional source regions to `planReceiveOrderInteraction`
+([process Join](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L589),
+[regional declaration handler](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L31),
+[send planner call](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389)).
+This is source-level reuse of the registry's catalog and recipient-planning
+logic, not an end-to-end process-parity result. The reviewed public process
+multi-recipient case joins without additional modules and exercises per-
+receiver overlap, but not this added-class combination
+([test](../../cpp/tests/ieee1516_2025_connection_multi_recipient_regional_interaction_catch2.cpp#L917)).
+No focused process test in this bounded review combines additional-module
+Join, a retained parent-keyed regional subscription, and a send on the added
+descendant.
 
 The embedded lookup case later admits an additional module containing a
 separate class and dimension, then observes the new dimension through lookup
@@ -539,8 +694,11 @@ flowchart TD
 
 The source path behind this distinction is specific and useful: the
 [composer](../../cpp/src/internal/fom/libxml2_fom_composer.cpp#L804)
-merges dimension references; the successful additional-module Join swaps in
-the replacement definition and reconciled handle directories
+merges dimension references; additional-module Join copies and
+[reconciles the existing dimension-handle directory](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L316)
+against the replacement catalog via the
+[dimension directory](../../cpp/src/internal/handles/dimension_handle_directory.cpp#L9),
+then swaps the replacement definition and prepared directories together
 ([registry commit](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L601));
 `createRegion` stores the exact dimension-handle set supplied by the
 application ([region creation](../../cpp/src/internal/federation/federation_registry_regions.cpp#L31));
@@ -558,6 +716,31 @@ tests a new class/dimension and stable prior handle. The focused cases reviewed
 here do not extend an existing class's dimension list or keep a region alive
 across that extension. Do not present the diagram's untested branch as
 normative HLA behavior or as verified process-endpoint behavior.
+
+#### Dimension-context admission is not later regional delivery
+
+If a same-class dimension association is added, a later regional object
+subscription validates its regions against the class's then-current available
+dimensions and stores entries under the supplied class/attribute/region keys.
+A later update-region association performs the corresponding current-context
+check for the registered object class and stores source regions separately per
+object/attribute. Neither request changes the dimension set captured by a
+region that already exists; nor does passing either context check establish
+that the two sides overlap or that a callback will result. A later update uses
+the committed source and receiver region snapshots in the separate object
+discovery/value path. See [object-class ancestry, regional discovery, and value
+projection](#object-class-ancestry-regional-discovery-and-value-projection)
+and [receive-order routing after regional overlap changes](#receive-order-value-routing-after-regional-overlap-changes).
+
+The source checks and state writes are in [regional subscription admission](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L465),
+[update-region association admission](../../cpp/src/internal/federation/federation_registry_update_region_associations.cpp#L46),
+and [committed-snapshot overlap](../../cpp/src/internal/federation/federation_registry_regions.cpp#L611).
+This combined Join-to-delivery path remains source-only: the additional-module
+dimension test adds a separate class, while the focused [three-dimensional
+regional object case](../../cpp/tests/three_dimensional_regional_object_attribute_overlap_catch2.cpp#L111)
+tests overlap without a later Join. No focused test extends an existing
+class's dimension set, retains its old regions, submits new regional
+subscription/association state, and observes a later update.
 
 ## Interaction regions must fit the class's available dimensions
 
@@ -803,6 +986,11 @@ For the broader object-knowledge/removal route, see the
 the [2025 time-management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md) and
 [TSO retraction guide](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md) cover the
 surrounding timestamped callback and retraction timeline.
+The selected embedded receive-order delete also invalidates pending ownership
+work at acceptance, while update-region references follow the separate object-
+record purge gates above. See the [accepted-delete ownership flow](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md#accepted-object-deletion-invalidates-pending-ownership-work);
+these are distinct implementation lifetimes, not one combined callback-order
+rule.
 
 In the current 2025 C++ path:
 
@@ -1051,30 +1239,40 @@ There are two different public effects that are easy to conflate:
   the value update itself and not a replacement for subscription or overlap
   filtering.
 
+### A committed range change can discover an existing object
+
 ```mermaid
 sequenceDiagram
   autonumber
   actor P as Object publisher
-  participant RTI as 2025 RTI
+  participant RTI as Embedded 2025 RTI
+  participant Q as Subscriber HLA_EVOKED callback queue
   actor S as Regional subscriber
 
   P->>RTI: Register object with source region A
   Note over RTI: A and the subscriber's committed region B are disjoint
   RTI-->>S: No Discover Object Instance callback yet
-  S->>RTI: Set Range Bounds on B, then commit B
-  RTI->>RTI: Recompute committed-region overlap and object discovery
-  RTI-->>S: Discover Object Instance when B enters overlap
-  RTI-->>P: Turn Updates On advisory if enabled and attribute relevance changed
-  P->>RTI: Update Attribute Values
-  RTI->>RTI: Apply current per-attribute scope filtering
-  RTI-->>S: Reflect Attribute Values if the attribute is in scope
+  S->>RTI: setRangeBounds(B, [0,1])
+  RTI->>RTI: Store B's pending bounds
+  Note over RTI,S: Source-derived: overlap still uses B's prior committed bounds
+  S->>RTI: commitRegionModifications(B)
+  RTI->>RTI: Install committed B and plan discovery
+  RTI->>Q: Queue Discover Object Instance
+  S->>RTI: evokeCallback()
+  Q-->>S: discoverObjectInstance
 ```
 
 The focused
-[commit-triggered discovery case](../../cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp)
+[commit-triggered discovery case](../../cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp#L389)
 starts with a disjoint source and receiver range, observes no discovery, then
-commits the receiver's moved range and observes one discovery without another
-registration or subscription call. The adjacent
+calls `setRangeBounds` followed by `commitRegionModifications` and observes one
+discovery without another registration or subscription call. It does not drain
+or assert callbacks between those two calls. The [region registry](../../cpp/src/internal/federation/federation_registry_regions.cpp#L540)
+stores the Set value as pending; the [commit transaction](../../cpp/src/internal/federation/federation_registry_regions.cpp#L154)
+installs the committed snapshot and the [adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp#L734)
+queues planned discovery afterward. This is evidence for the embedded 2025
+implementation path, not a portable callback-timing rule or a process-endpoint
+result. The adjacent
 [association-triggered discovery case](../../cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp)
 shows the other boundary: adding a second overlapping update-region
 association makes an existing object discoverable. A separate 2025
@@ -1148,6 +1346,57 @@ process-endpoint parity. The chart is therefore bounded to the named scenario,
 and the environment-specific result remains a follow-up rather than a settled
 implementation guarantee.
 
+### Process-boundary case: send-time source snapshot, receive-time receiver projection
+
+The embedded flow above does not establish the configured process endpoint's
+attribute route. A focused process case exposes a useful two-time distinction:
+the accepted update keeps the producer's committed source-region realization
+from the `Update Attribute Values` call, while a later process receive boundary
+checks the receiver's then-current regional declaration and committed range.
+The process registry planner captures the source snapshot
+([planner](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L93));
+the service carries available region context through its receive-order route
+([event planning](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L210),
+[receive-boundary projection](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L39)).
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor P as Publisher
+  participant RTI as Configured 2025 process endpoint
+  actor S as Regional subscriber
+
+  P->>RTI: Update D2 while S has no matching declaration
+  Note over P,RTI: D2 uses committed source region A
+  Note over S,RTI: S's current range overlaps A
+  alt DSE enabled
+    RTI->>RTI: Save A and retain S as a route-only candidate
+  else DSE disabled
+    RTI->>RTI: No late candidate for initially ineligible S
+  end
+  P->>RTI: Mutate live source region A to disjoint A2
+  S->>RTI: Add matching regional declaration before delivery
+  S->>RTI: Reach EVOKED receive / IMMEDIATE regional-push boundary
+  alt Candidate exists and current receiver projection overlaps saved A
+    RTI->>RTI: Recheck attributes against A and current S state
+    RTI-->>S: Reflect D2
+  else No candidate or current receiver projection fails
+    RTI-->>S: Suppress D2
+  end
+```
+
+The [process DSE case](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L523)
+checks the enabled/disabled receive-order path under `HLA_EVOKED` and
+`HLA_IMMEDIATE`. For D2, the receiver adds its declaration after the send and
+the publisher mutates its live region; the enabled case reflects using the
+accepted source snapshot. A later D3 update is initially eligible but is
+suppressed in both switch modes when the receiver moves out of overlap before
+the receive boundary. Thus the tested process route does not freeze the
+receiver's future scope. This is selected 2025 process source/test evidence,
+not a normative DDM algorithm, complete process coverage, or embedded/process
+parity. The [DSE guide](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#receive-order-tso-and-callback-model-are-separate-axes)
+details the separate process delivery lanes and their test limits.
+
 ## Interactions: explicit and default-region paths
 
 This section and its diagrams cover ordinary `sendInteraction` and
@@ -1186,31 +1435,35 @@ flowchart TD
   B -->|Ordinary sendInteraction| D[Use the implicit default-region source realization]
   B -->|Regional send with empty set| Z[No-send operation<br/>no ordinary default-region fallback]
   B -->|Regional send with non-empty set| C[Use explicit committed source regions]
-  C --> E{Does receiver have an effective explicit regional subscription?}
+  C --> E{Ordinary/default route eligible?}
   D --> E
-  E -->|Yes| F[Compare against its committed regional subscription]
-  E -->|No| G[Compare against the ordinary default-region subscription]
-  F --> H{Do the applicable regions overlap?}
-  G --> H
-  H -->|Yes| I[Deliver Receive Interaction callback]
-  H -->|No| J[Suppress this regional delivery]
+  E -->|Yes| F[Select ordinary/default route]
+  E -->|No| G{Effective explicit regional subscription?}
+  G -->|Yes| H[Compare committed regions]
+  G -->|No| J[Suppress this regional delivery]
+  H --> I{Do the regions overlap?}
+  I -->|Yes| K[Deliver Receive Interaction callback]
+  I -->|No| J
 ```
 
-The diagram describes the tested 2025 interaction path, not an edition-
-independent rule. It is intentionally separate from the object-attribute
-planner described above. A useful focused case is
+The diagram describes the current embedded 2025 source/test path, not an
+edition-independent rule. It is intentionally separate from the object-
+attribute planner described above. The focused case is
 [default-region interaction routing](../../cpp/tests/ieee1516_2025_default_region_interaction_routing_catch2.cpp):
 
-- An explicit source region reaches an overlapping regional subscriber and is
-  suppressed for a mixed receiver whose explicit regional subscription is
-  disjoint, even though it retains an ordinary subscription.
-- Once the explicit regional subscription is removed, the ordinary
-  subscription again uses the default region and qualifies for the explicit
-  source region.
+- An explicit source region reaches an overlapping regional subscriber. A
+  mixed receiver with an ordinary subscription also receives through its
+  ordinary/default route when its separate regional declaration is disjoint.
+- Removing that disjoint regional declaration leaves the ordinary/default
+  route eligible; it does not create that route or restore it from suppression.
 - An ordinary **sendInteraction** uses the implicit full-range source region.
   With Convey Region Designator Sets enabled, the callback can report that a
   region set was supplied and that the set is empty. That empty designator set
   is not the same thing as a non-empty explicit region set.
+
+The focused embedded CTest passed 1/1 (50 assertions) against the current
+worktree. This result is bounded to the named case; it does not establish
+process-profile behavior or the normative meaning of §9.1.5.
 
 The default region is an RTI-provided realization, not a region handle the
 application creates. In the current registry it represents the full range for
@@ -1218,6 +1471,39 @@ every FDD dimension. See the
 [default-region overlap helper](../../cpp/src/internal/federation/federation_registry_regions.cpp)
 and
 [regional interaction subscription services](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_subscription.cpp).
+
+### Routing and conveyed sender-region metadata are separate decisions
+
+Interaction routing first selects an eligible receiver. In the embedded 2025
+callback path, the receiver's Convey Region Designator Sets switch then gates
+whether `receiveInteraction` gets an optional sent-region set. With the switch
+enabled, an explicit regional send conveys its source-region handles; an
+ordinary send using the implicit default region conveys a supplied empty set.
+The switch is read after recipient projection and does not participate in the
+overlap decision. This is a source-derived embedded behavior, not a claim about
+every HLA implementation or a complete normative interpretation.
+
+```mermaid
+flowchart TD
+  A["Embedded interaction recipient selected"] --> B{"Receiver's Convey Region Designator Sets switch enabled?"}
+  B -->|"No"| C["Callback omits the optional sent-region set"]
+  B -->|"Yes"| D{"Source realization used"}
+  D -->|"Explicit non-empty source regions"| E["Callback receives a supplied set of source-region handles"]
+  D -->|"Implicit RTI default region"| F["Callback receives a supplied empty set"]
+```
+
+The public 2025 API exposes both the switch and the optional callback argument
+([switch](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2125),
+[`receiveInteraction`](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L264)).
+The embedded [callback assembly](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp#L118)
+checks the switch after resolving the recipient projection. The working-tree
+[regional interaction test source](../../cpp/tests/default_region_interaction_routing_catch2.cpp#L267)
+asserts that an enabled receiver gets the explicit source-region set
+([assertions](../../cpp/tests/default_region_interaction_routing_catch2.cpp#L344));
+the ordinary default-region case separately asserts a supplied empty set
+([assertions](../../cpp/tests/default_region_interaction_routing_catch2.cpp#L241)).
+These are source assertions, not a test run in this documentation pass. The
+switch-off branch is source-only in this evidence set.
 
 ### Process-endpoint fan-out: evaluate each receiver separately
 
@@ -1279,6 +1565,29 @@ eligibility. Its ordinary-send case also checks the conveyed empty designator
 set. It does not exercise process transport or the process test's four-way
 callback-model × strict/relaxed-DDM matrix. These are complementary test
 scenarios, not evidence of embedded/process parity.
+
+The configured-process regional send path calls the shared registry's
+`planReceiveOrderInteraction`; the regional service operation forwards through
+the same handler. The shared planner's recipient walk therefore supplies the
+candidate received class and parameter projection used by this process path.
+Before constructing a process event, the service re-resolves a deferred
+candidate when necessary, then stores that recipient-specific class and
+parameter list in the event ([planner call](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389),
+[sent-class-to-parent candidate walk](../../cpp/src/internal/federation/federation_registry.cpp#L1512),
+[deferred-candidate resolution](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L512),
+[event construction](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L537),
+[regional-operation forwarding](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L631)).
+This is a source-path connection, not an independent process-side matching
+algorithm or a claim that every interleaving has been tested.
+
+The focused multi-recipient process case uses the same interaction class for
+the sender and both receivers, and asserts that class in both callbacks
+([exact-class setup](../../cpp/tests/ieee1516_2025_connection_multi_recipient_regional_interaction_catch2.cpp#L946),
+[callback assertions](../../cpp/tests/ieee1516_2025_connection_multi_recipient_regional_interaction_catch2.cpp#L1088)).
+It establishes per-recipient regional selection for that setup, not parent-
+subscription/descendant-send promotion or parameter pruning at an ancestor.
+Keep those cross-class regional process outcomes source-traced but not
+focused-test-established; this does not add a normative inheritance rule.
 
 ## Keep time and DDM as separate filters
 

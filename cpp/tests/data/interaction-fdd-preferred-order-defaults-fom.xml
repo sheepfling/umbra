@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <interactionClass>
+                <name>UmbraFddPreferredTimestampedInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>TimeStamp</order>
+                <semantics>Fixture for the FDD preferred TSO order default.</semantics>
+                <parameter>
+                    <name>Value</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <semantics>Test value.</semantics>
+                </parameter>
+            </interactionClass>
+            <interactionClass>
+                <name>UmbraFddPreferredReceiveInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>Receive</order>
+                <semantics>Fixture for the FDD preferred receive-order default.</semantics>
+                <parameter>
+                    <name>Value</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <semantics>Test value.</semantics>
+                </parameter>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+</objectModel>

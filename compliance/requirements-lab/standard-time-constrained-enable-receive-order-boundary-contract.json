@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-evidence-not-conformance-evidence",
+  "notes": "The portable C++ scenario maps page-192 l99 directly to canonical §8.6. It sends a timestamped interaction while the receiver is unconstrained, requests Enable Time Constrained, and verifies the callback retains RECEIVE received-order and occurs before Time Constrained Enabled. A later timestamped interaction is delivered with TIMESTAMP received-order before the receiver's TAR(2) grant. The scenario does not prescribe a GALT formula, imply complete time-management coverage, or claim provider conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-time-constrained-enable-receive-order-boundary",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::enableTimeRegulation, sendInteraction, enableTimeConstrained, timeAdvanceRequest, disableTimeConstrained, disableTimeRegulation; FederateAmbassador::timeRegulationEnabled, receiveInteraction, timeConstrainedEnabled, timeAdvanceGrant",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador; FederateAmbassador",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_time_constrained_enable_scenarios.cpp::scenarioTimeConstrainedEnableReceiveOrderBoundary",
+        "packages/hla-rti-cpp-tck/src/tck_time_constrained_enable_scenarios.cpp::scenarioTimeConstrainedEnableReceiveOrderBoundaryContract"
+      ]
+    }
+  ]
+}

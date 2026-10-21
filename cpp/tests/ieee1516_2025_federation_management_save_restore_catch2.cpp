@@ -1,6 +1,7 @@
 #include "ieee1516_2025_federation_management_test_support.hpp"
 #include "ieee1516_2025_public_federation_restore_test_support.hpp"
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
+#include "internal/runtime/ambassador_connection_support.hpp"
 
 TEST_CASE(
     "Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
@@ -126,6 +127,122 @@ TEST_CASE(
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(receiver->disconnect());
   REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timed save after distinct FQR grant is delivered before the crossing time grant",
+    "[integration][development-profile][2025][federation-management][time-management]"
+    "[fqr-timed-save-crossed-boundary-callback-ordering]"
+    "[rti.service.request-federation-save][rti.service.time-advance-request]"
+    "[rti.service.flush-queue-request]"
+    "[federate.callback.initiate-federate-save][federate.callback.time-advance-grant]"
+    "[federate.callback.receive-interaction]") {
+  ReportingFederateAmbassador regulatingReports;
+  ReportingFederateAmbassador peerReports;
+  auto regulating = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" /
+                          "tests" /
+                          "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+  unsigned char const valueBytes[] = {0x46U, 0x51U, 0x52U, 0x53U};
+  unsigned char const tagBytes[] = {0x53U, 0x41U, 0x56U, 0x45U};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+  auto const drain = [](RTIambassador& ambassador) {
+    while (ambassador.evokeCallback(0.0)) {
+    }
+  };
+
+  REQUIRE_NOTHROW(regulating->connect(regulatingReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(regulating->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(regulating->joinFederationExecution(
+      L"fqr-timed-save-regulating", L"publisher", federationName));
+  REQUIRE_NOTHROW(peer->joinFederationExecution(
+      L"fqr-timed-save-peer", L"publisher", federationName));
+
+  auto const interactionClass = regulating->getInteractionClassHandle(
+      fixture_hla::fom::parameter_fixture_child_interaction);
+  auto const identifier = regulating->getParameterHandle(
+      interactionClass, fixture_hla::fixture::identifier);
+  REQUIRE_NOTHROW(regulating->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(peer->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(regulating->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(peer->changeInteractionOrderType(interactionClass, TIMESTAMP));
+  REQUIRE_NOTHROW(regulating->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(regulating->enableTimeConstrained());
+  drain(*regulating);
+  REQUIRE_NOTHROW(regulating->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  drain(*regulating);
+  REQUIRE_NOTHROW(peer->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  drain(*peer);
+
+  REQUIRE_NOTHROW(regulating->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  REQUIRE_NOTHROW(peer->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  drain(*regulating);
+  drain(*peer);
+
+  ParameterHandleValueMap incomingValues;
+  incomingValues.emplace(identifier, VariableLengthData(valueBytes, sizeof(valueBytes)));
+  REQUIRE(peer->sendInteraction(
+              interactionClass,
+              incomingValues,
+              tag,
+              rti1516_2025::HLAinteger64Time(7))
+              .isValid());
+  REQUIRE_NOTHROW(regulating->flushQueueRequest(
+      rti1516_2025::HLAinteger64Time(10)));
+  drain(*regulating);
+  REQUIRE(regulatingReports.flushQueueGrantReports.size() == 1U);
+  REQUIRE(regulatingReports.flushQueueGrantReports.front().value == L"5");
+  REQUIRE(regulatingReports.flushQueueGrantReports.front().optimisticValue == L"7");
+
+  rti1516_2025::HLAinteger64Time logicalTime;
+  REQUIRE_NOTHROW(regulating->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+  REQUIRE_NOTHROW(regulating->requestFederationSave(
+      L"fqr-save-crossed-at-six", rti1516_2025::HLAinteger64Time(6)));
+  REQUIRE(regulatingReports.initiateFederateSaveReports.empty());
+  REQUIRE(regulatingReports.timeAdvanceGrantReports.size() == 1U);
+
+  // The request is legal at actual time 5 although the distinct FQR grant
+  // reported optimistic time 7.  Advancing to 7 crosses the save timestamp;
+  // require initiation to be observed before the matching grant callback.
+  REQUIRE_NOTHROW(regulating->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(7)));
+  REQUIRE_NOTHROW(peer->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(7)));
+  drain(*peer);
+  drain(*regulating);
+  REQUIRE(regulatingReports.timestampedSaveInitiationReports.size() == 1U);
+  REQUIRE(regulatingReports.timestampedSaveInitiationReports.front().label ==
+          L"fqr-save-crossed-at-six");
+  REQUIRE(regulatingReports.timestampedSaveInitiationReports.front().timeValue == L"6");
+  REQUIRE(regulatingReports.timeAdvanceGrantReports.size() == 2U);
+  REQUIRE(regulatingReports.callbackOrder ==
+          std::vector<std::string>{
+              "grant", "interaction", "flush-grant", "save-initiate", "grant"});
+
+  // Keep the outstanding save bounded and cleanly terminate both members;
+  // this case asserts initiation ordering, not save-image completion.
+  REQUIRE_NOTHROW(regulating->federateSaveBegun());
+  REQUIRE_NOTHROW(peer->federateSaveBegun());
+  REQUIRE_NOTHROW(regulating->federateSaveComplete());
+  REQUIRE_NOTHROW(peer->federateSaveComplete());
+  drain(*regulating);
+  drain(*peer);
+  REQUIRE(regulatingReports.federationSavedReportCount == 1U);
+  REQUIRE(peerReports.federationSavedReportCount == 1U);
+
+  REQUIRE_NOTHROW(regulating->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(regulating->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(regulating->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
 }
 
 TEST_CASE(
@@ -293,6 +410,23 @@ TEST_CASE(
       ownerHandle = owner->joinFederationExecution(L"restore-owner", L"owner", federationName));
   REQUIRE_NOTHROW(
       peerHandle = peer->joinFederationExecution(L"restore-peer", L"peer", federationName));
+  auto const requireRestoreStatusFor = [](
+      rti1516_2025::FederateRestoreStatusVector const& statuses,
+      FederateHandle const& preRestoreHandle,
+      FederateHandle const& postRestoreHandle,
+      rti1516_2025::RestoreStatus expectedStatus) {
+    bool found = false;
+    for (rti1516_2025::FederateRestoreStatus const& descriptor : statuses) {
+      if (descriptor.preRestoreHandle != preRestoreHandle) {
+        continue;
+      }
+      REQUIRE_FALSE(found);
+      found = true;
+      REQUIRE(descriptor.postRestoreHandle == postRestoreHandle);
+      REQUIRE(descriptor.status == expectedStatus);
+    }
+    REQUIRE(found);
+  };
 
   // Establish a completed, restorable image before adding any object state.
   REQUIRE_NOTHROW(owner->requestFederationSave(L"object-baseline"));
@@ -331,6 +465,17 @@ TEST_CASE(
   REQUIRE(ownerReports.federationRestoreStatusReports.back().statuses.size() == 2);
   REQUIRE(ownerReports.federationRestoreStatusReports.back().statuses[0].status ==
           rti1516_2025::FEDERATE_RESTORING);
+  auto const& restoringStatuses = ownerReports.federationRestoreStatusReports.back().statuses;
+  requireRestoreStatusFor(
+      restoringStatuses,
+      ownerHandle,
+      ownerHandle,
+      rti1516_2025::FEDERATE_RESTORING);
+  requireRestoreStatusFor(
+      restoringStatuses,
+      peerHandle,
+      peerHandle,
+      rti1516_2025::FEDERATE_RESTORING);
 
   REQUIRE_NOTHROW(owner->federateRestoreComplete());
   REQUIRE(ownerReports.federationRestoredReportCount == 0);
@@ -348,12 +493,19 @@ TEST_CASE(
       owner->getKnownObjectClassHandle(mutatedObject),
       rti1516_2025::ObjectInstanceNotKnown);
   REQUIRE_NOTHROW(owner->queryFederationRestoreStatus());
-  REQUIRE(ownerReports.federationRestoreStatusReports.back().statuses.size() == 2);
-  REQUIRE(ownerReports.federationRestoreStatusReports.back().statuses[0].status ==
-          rti1516_2025::NO_RESTORE_IN_PROGRESS);
-  REQUIRE_FALSE(ownerReports.federationRestoreStatusReports.back().statuses[0]
-                   .postRestoreHandle
-                   .isValid());
+  auto const& idleStatuses = ownerReports.federationRestoreStatusReports.back().statuses;
+  REQUIRE(idleStatuses.size() == 2);
+  FederateHandle const noPostRestoreHandle;
+  requireRestoreStatusFor(
+      idleStatuses,
+      ownerHandle,
+      noPostRestoreHandle,
+      rti1516_2025::NO_RESTORE_IN_PROGRESS);
+  requireRestoreStatusFor(
+      idleStatuses,
+      peerHandle,
+      noPostRestoreHandle,
+      rti1516_2025::NO_RESTORE_IN_PROGRESS);
 
   REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
@@ -616,6 +768,7 @@ TEST_CASE(
 TEST_CASE(
     "Embedded evoked federation restore drops queued callbacks for a resigning participant",
     "[integration][development-profile][federation-management][save-restore][callbacks]"
+    "[restore-resignation-callback-lifetime]"
     "[rti.service.request-federation-save][rti.service.federate-save-begun]"
     "[rti.service.federate-save-complete][rti.service.request-federation-restore]"
     "[rti.service.resign-federation-execution]"
@@ -712,6 +865,12 @@ TEST_CASE(
     "[federate.callback.initiate-federate-restore]"
     "[federate.callback.federation-restored]"
     "[federate.callback.federation-synchronized]") {
+  bool saveDirectorySettingApplied = false;
+  auto const defaultSaveDirectory =
+      rti1516_2025::umbra_binding_detail::configuredAmbassadorFederationSaveDirectory(
+          nullptr,
+          saveDirectorySettingApplied);
+  REQUIRE_FALSE(saveDirectorySettingApplied);
   ReportingFederateAmbassador reports;
   auto rti = makeRti();
   auto const federationName = nextFederationName();
@@ -760,6 +919,13 @@ TEST_CASE(
   REQUIRE(reports.federationSavedReportCount == 0U);
   drain();
   REQUIRE(reports.federationSavedReportCount == 1U);
+  auto const persisted =
+      umbra::detail::FilesystemFederationSaveCommitStore(defaultSaveDirectory)
+          .load(federationName, saveLabel);
+  REQUIRE(persisted.has_value());
+  REQUIRE(persisted->federationName == federationName);
+  REQUIRE(persisted->label == saveLabel);
+  REQUIRE_FALSE(persisted->stateImage.empty());
 
   // Complete the live point after the save.  Restore must replace this live
   // completion with the announced-but-unachieved state from the image.
@@ -794,5 +960,14 @@ TEST_CASE(
 
   REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  // The save is required to outlive the federation execution itself, not
+  // merely the live registry entry used to create it.
+  auto const persistedAfterDestroy =
+      umbra::detail::FilesystemFederationSaveCommitStore(defaultSaveDirectory)
+          .load(federationName, saveLabel);
+  REQUIRE(persistedAfterDestroy.has_value());
+  REQUIRE(persistedAfterDestroy->federationName == federationName);
+  REQUIRE(persistedAfterDestroy->label == saveLabel);
+  REQUIRE(persistedAfterDestroy->stateImage == persisted->stateImage);
   REQUIRE_NOTHROW(rti->disconnect());
 }

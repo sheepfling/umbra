@@ -294,6 +294,60 @@ stateDiagram-v2
   Registered --> Registered: save/restore object state
 ```
 
+### A saved reservation remains attached to its federate in the tested profile
+
+The state chart above says a reservation survives save/restore. This focused
+public-API case adds an important ownership detail: in the tested embedded
+profile, the restored claim remains with its original federate identity. A
+peer's failed reservation attempt does not transfer the claim; the owner must
+release it before the peer can obtain it. The test also checks that the
+old owner can no longer release the name after the peer successfully reserves
+it.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Owner as Federate A (original owner)
+  actor Peer as Federate B
+  participant RTI as 2025 embedded RTI
+
+  Owner->>RTI: reserveObjectInstanceName(name)
+  RTI-->>Owner: objectInstanceNameReservationSucceeded(name)
+  Owner->>RTI: requestFederationSave(label)
+  Owner->>RTI: federateSaveBegun()
+  Peer->>RTI: federateSaveBegun()
+  Owner->>RTI: federateSaveComplete()
+  Peer->>RTI: federateSaveComplete()
+  Note over RTI: Saved image contains this name and Federate A's owner ID.
+  Note over Owner,Peer: Fresh registry and execution, both rejoin with their original handles.
+  Owner->>RTI: requestFederationRestore(label)
+  RTI-->>Owner: requestFederationRestoreSucceeded(label)
+  Owner->>RTI: federateRestoreComplete()
+  Peer->>RTI: federateRestoreComplete()
+  Peer->>RTI: releaseObjectInstanceName(name)
+  RTI-->>Peer: ObjectInstanceNameNotReserved
+  Peer->>RTI: reserveObjectInstanceName(name)
+  RTI-->>Peer: objectInstanceNameReservationFailed(name)
+  Owner->>RTI: releaseObjectInstanceName(name)
+  Peer->>RTI: reserveObjectInstanceName(name)
+  RTI-->>Peer: objectInstanceNameReservationSucceeded(name)
+  Owner->>RTI: releaseObjectInstanceName(name)
+  RTI-->>Owner: ObjectInstanceNameNotReserved
+```
+
+This sequence is bounded to the [two-federate fresh-registry test](../../cpp/tests/ieee1516_2025_public_fresh_registry_object_name_reservations_restore_catch2.cpp#L128)
+using `HLA_IMMEDIATE` and a filesystem-backed save store. Its “fresh registry”
+is recreated within one test process; the test does not establish behavior
+across an operating-system process restart. It also does not establish a
+normative save/restore rule: exact clause meaning still requires the licensed
+standard text. The test checks callback reports after its follow-up immediate-
+dispatch helper, not a universal callback-entry position relative to the
+service return. The
+[state-image capture](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L300)
+and [restore validation](../../cpp/src/internal/federation/federation_registry_state_image_restore.cpp#L284)
+show how this current embedded implementation preserves and reattaches the
+saved owner identity.
+
 The final `Registered → Available` edge is the global object/name-purge
 endpoint, not a receiver merely forgetting its copy. In the current embedded
 2025 implementation, `localDeleteObjectInstance` removes only the caller's
@@ -353,6 +407,23 @@ implementation route differs:
   the configured endpoint and callback models. It does not establish identical
   internal timing or report-file ordering across both paths.
 
+### Process reservation-to-discovery evidence boundary
+
+The configured-process source composes the reservation and peer-discovery
+steps, but the focused public tests cover them in separate scenarios. This
+distinction matters when reading the combined lifecycle above:
+
+| Segment | Source and focused test | What the evidence establishes—and does not |
+| --- | --- | --- |
+| Reservation outcome to owner callback | The [process service returns the registry outcome](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L520); the [2025 adapter queues the official callback locally](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_name_reservation.cpp#L14). The [named-registration process test](../../cpp/tests/ieee1516_2025_connection_named_object_registration_catch2.cpp#L457) exercises the success callback under `HLA_EVOKED` and `HLA_IMMEDIATE`. | The test uses one client session. It verifies the owner's reservation callback and later named registration, but has no peer federate and does not observe `discoverObjectInstance`. |
+| Successful named registration to peer discovery | The [process registration handler](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L464) passes the optional requested name to the [shared registry commit path](../../cpp/src/internal/federation/federation_registry_object_instance_registration.cpp#L197), then plans and [enqueues eligible discoveries](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L11); the [process callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L621) invokes the API callback. The separate [process discovery test](../../cpp/tests/ieee1516_2025_connection_object_discovery_catch2.cpp#L457) observes discovery under both callback models after an unnamed registration. | Source shows discovery planning follows an applied registration result, including the named-registration route. The discovery test does not use a reserved name, so no single focused test covers reservation, named commit, and peer discovery end to end. |
+
+The process registration handler schedules discovery work before it constructs
+the registration response, but these focused tests do not assert relative
+observation order between the owner's returned handle and a peer's discovery
+callback. Keep that cross-session timing unspecified here; the source call
+order is not a portable HLA ordering rule.
+
 ## Edition boundary: a 2010 FOM is not a 2010 RTI flow
 
 The repository has a test named “The 2025 API registers objects from an IEEE
@@ -372,6 +443,7 @@ state machine.
 | Bulk per-name reservation results and all-or-nothing release validation | [`umbra_rti_ambassador_multiple_object_instance_name_reservation.cpp`](../../cpp/src/internal/runtime/umbra_rti_ambassador_multiple_object_instance_name_reservation.cpp#L15), [`federation_registry_object_instance_registration.cpp`](../../cpp/src/internal/federation/federation_registry_object_instance_registration.cpp#L15) |
 | Callback-model delivery point in the current Umbra path | [Federate callback route and inline-dispatch note](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L952), [dispatcher submit/drain](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122), [process callback-model scenario](../../cpp/tests/ieee1516_2025_connection_named_object_registration_catch2.cpp#L762) |
 | Reservation ownership, generated-name avoidance, and consumption after registration commit | [`federation_registry_object_instance_registration.cpp`](../../cpp/src/internal/federation/federation_registry_object_instance_registration.cpp#L276) |
+| Saved reservation identity and public two-federate ownership after restore | [State-image capture](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L300), [restore validation](../../cpp/src/internal/federation/federation_registry_state_image_restore.cpp#L284), [fresh-registry public test](../../cpp/tests/ieee1516_2025_public_fresh_registry_object_name_reservations_restore_catch2.cpp#L128) |
 | Embedded validation, HLA_EVOKED queued outcomes, partial bulk reserve, atomic bulk release, generated-name skip, resignation | [`object_instance_name_reservation_catch2.cpp`](../../cpp/tests/object_instance_name_reservation_catch2.cpp#L95) |
 | Failed named registration keeps reservation; named and regional registration | [`object_instance_named_registration_catch2.cpp`](../../cpp/tests/object_instance_named_registration_catch2.cpp#L93) |
 | Process-endpoint reservation/release and named registration under HLA_EVOKED and HLA_IMMEDIATE | [`ieee1516_2025_connection_named_object_registration_catch2.cpp`](../../cpp/tests/ieee1516_2025_connection_named_object_registration_catch2.cpp#L457) |

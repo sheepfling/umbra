@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This portable C++ TCK scenario uses only IEEE 1516.1 RTIambassador and FederateAmbassador interfaces and the C++ standard library. The adapter supplies the provider package, FOM, endpoint, callback model, and logical-time implementation. It checks ordinary and timestamped Update Attribute Values at one receiver and distinguishes the corresponding reflection callback overloads without provider-specific names, headers, registries, or behavior.",
+  "notes": "These portable C++ TCK scenarios use only IEEE 1516.1 RTIambassador and FederateAmbassador interfaces and the C++ standard library. The adapter supplies the provider package, FOM, endpoint, callback model, and logical-time implementation. The order-classification case checks ordinary and timestamped Update Attribute Values at one receiver; its FDD-preferred-order scenario also calls the no-time overload for a TSO-preferred attribute while the publisher regulates and observes ordinary reflection. The recipient-conversion case checks one timestamped update reported as RECEIVE to an unconstrained recipient and TIMESTAMP to a constrained recipient. The new optional-timestamp branch is C++-only for now; these scenarios distinguish standard reflection callback metadata without provider-specific names, headers, registries, or behavior.",
   "api_surfaces": [
     {
       "id": "standard-cpp-attribute-update-message-order-classification",
@@ -14,7 +14,11 @@
       "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador object-management and time-management declarations",
       "tests": [
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeUpdateOrderClassification",
-        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeUpdateOrderClassificationContract"
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeUpdateOrderClassificationContract",
+        "packages/hla-rti-cpp-tck/src/tck_attribute_fdd_preferred_order_default.cpp::scenarioAttributeFddPreferredOrderDefault",
+        "packages/hla-rti-cpp-tck/src/tck_attribute_fdd_preferred_order_default.cpp::scenarioAttributeFddPreferredOrderDefaultContract",
+        "packages/hla-rti-cpp-tck/src/tck_sent_tso_per_recipient_order_conversion.cpp::scenarioSentTsoAttributePerRecipientOrderConversion",
+        "packages/hla-rti-cpp-tck/src/tck_sent_tso_per_recipient_order_conversion.cpp::scenarioSentTsoAttributePerRecipientOrderConversionContract"
       ]
     }
   ]

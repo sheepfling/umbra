@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The portable C++ TCK checks that a negotiated divestiture with no acquirer leaves ownership with the offeror and does not request divestiture confirmation; when a joined federate later requests the attribute, the owner receives a standard confirmation request and ownership changes only after Confirm Divestiture. Direct pinned mappings are page-155-l164-45 and page-155-l167-46 -> IEEE 1516.1-2025 §7.3, and page-151-l27-8 -> §7.1.2.1. Tag and callback metadata are supplemental public-API observations. Both C++ primary and contract passed against the current-source installed package under evoked and immediate callback models (4/4); Java parity compiles against the official API-only JAR but has no provider-runtime evidence. The adapter supplies provider, endpoint, FOM, callback model, logical-time implementation, and object/attribute names. This is not a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-negotiated-divestiture-no-accepter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador negotiatedAttributeOwnershipDivestiture, attributeOwnershipAcquisition, confirmDivestiture, isAttributeOwnedByFederate and standard ownership callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioNegotiatedDivestitureNoAccepter",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioNegotiatedDivestitureNoAccepterContract"
+      ]
+    }
+  ]
+}

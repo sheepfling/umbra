@@ -74,6 +74,44 @@ void scenarioAttributeFddPreferredOrderDefault(
   rti::VariableLengthData receiveBytes(receiveValue.data(), receiveValue.size());
   rti::VariableLengthData timestampTagData(timestampTag.data(), timestampTag.size());
   rti::VariableLengthData receiveTagData(receiveTag.data(), receiveTag.size());
+  std::vector<std::uint8_t> const optionalTimestampValue{0x4FU, 0x50U, 0x54U};
+  std::vector<std::uint8_t> const optionalTimestampTag{'R', 'O'};
+  rti::VariableLengthData optionalTimestampBytes(
+      optionalTimestampValue.data(), optionalTimestampValue.size());
+  rti::VariableLengthData optionalTimestampTagData(
+      optionalTimestampTag.data(), optionalTimestampTag.size());
+  rti::AttributeHandleValueMap optionalTimestampValues;
+  optionalTimestampValues.emplace(senderTimestampAttribute, optionalTimestampBytes);
+  // The publisher is regulating and this attribute is TSO-preferred by the
+  // adapter FOM, but the timestamp remains optional. Without a timestamp the
+  // same attribute follows the ordinary receive-order callback path.
+  sender.rtiAmbassador().updateAttributeValues(
+      object, optionalTimestampValues, optionalTimestampTagData);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().reflections().size() == 1U; },
+      options,
+      "no-time update for a TSO-preferred FDD attribute");
+  auto const optionalTimestampDeliveries = receiver.recorder().reflections();
+  require(
+      optionalTimestampDeliveries.size() == 1U &&
+          optionalTimestampDeliveries.front().object == object &&
+          optionalTimestampDeliveries.front().values.size() == 1U &&
+          optionalTimestampDeliveries.front().values.count(
+              receiverTimestampAttribute) == 1U &&
+          copyBytes(optionalTimestampDeliveries.front().values.at(
+              receiverTimestampAttribute)) == optionalTimestampValue &&
+          optionalTimestampDeliveries.front().tag == optionalTimestampTag &&
+          optionalTimestampDeliveries.front().producer == sender.federateHandle() &&
+          optionalTimestampDeliveries.front().transportation.isValid(),
+      "no-time TSO-preferred update did not produce the ordinary reflection");
+  require(
+      !receiver.rtiAmbassador()
+           .getTransportationTypeName(
+               optionalTimestampDeliveries.front().transportation)
+           .empty(),
+      "no-time TSO-preferred reflection returned an unresolvable transportation type");
+
   rti::AttributeHandleValueMap timestampValues;
   timestampValues.emplace(senderTimestampAttribute, timestampBytes);
   rti::AttributeHandleValueMap receiveValues;
@@ -104,9 +142,9 @@ void scenarioAttributeFddPreferredOrderDefault(
         return delivery.values.count(receiverReceiveAttribute) == 1U;
       });
   require(
-      receiver.recorder().reflections().empty() && deliveries.size() == 2U &&
+      receiver.recorder().reflections().size() == 1U && deliveries.size() == 2U &&
           timestampDelivery != deliveries.end() && receiveDelivery != deliveries.end(),
-      "FDD-preferred updates did not produce exactly two timestamp-bearing reflections");
+      "FDD-preferred timestamped updates did not produce exactly two timestamp-bearing reflections alongside the optional-timestamp RO reflection");
   auto const checkDelivery = [&](TimedReflectionRecord const& delivery,
                                  rti::AttributeHandle const& attribute,
                                  std::vector<std::uint8_t> const& expectedValue,
@@ -155,7 +193,7 @@ void scenarioAttributeFddPreferredOrderDefault(
   auto const callbackOrder = receiver.recorder().callbackOrder();
   require(
       std::count(callbackOrder.begin(), callbackOrder.end(), "reflect") == 2,
-      "FDD-preferred updates did not produce exactly two reflection callbacks");
+      "FDD-preferred timestamped updates did not produce exactly two timestamped reflection callbacks");
 
   sender.rtiAmbassador().disableTimeRegulation();
   receiver.rtiAmbassador().unsubscribeObjectClassAttributes(

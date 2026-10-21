@@ -2122,3 +2122,217 @@ TEST_CASE(
 
 
 #endif
+
+TEST_CASE(
+    "Embedded regular acquisition requires the attribute published at the known class",
+    "[integration][development-profile][ownership-management]"
+    "[ownership-attribute-publication-eligibility]"
+    "[rti.service.attribute-ownership-acquisition]"
+    "[rti.service.attribute-ownership-divestiture-if-wanted]"
+    "[federate.callback.attribute-ownership-acquisition-notification]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador requesterReports;
+  auto owner = makeRti();
+  auto requester = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("attribute-update-passel-fom.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"publication-eligibility-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"publication-eligibility-requester", L"publisher", federationName));
+
+  auto const child = owner->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const desiredAttribute = owner->getAttributeHandle(
+      child, fixture_hla::fixture::reliable_base_a);
+  auto const differentAttribute = owner->getAttributeHandle(
+      child, fixture_hla::fixture::unowned_child);
+  REQUIRE(child.isValid());
+  REQUIRE(desiredAttribute.isValid());
+  REQUIRE(differentAttribute.isValid());
+  AttributeHandleSet const desiredAttributes{desiredAttribute};
+  AttributeHandleSet const differentAttributes{differentAttribute};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(
+      child, desiredAttributes));
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(
+      child, desiredAttributes));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(child));
+  REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(requesterReports.objectDiscoveryReports.front().objectInstance ==
+          objectInstance);
+  REQUIRE(requester->getKnownObjectClassHandle(objectInstance) == child);
+
+  unsigned char const acquisitionTagBytes[] = {0xA1, 0x00, 0x25};
+  VariableLengthData const acquisitionTag(
+      acquisitionTagBytes, sizeof(acquisitionTagBytes));
+  REQUIRE_THROWS_AS(
+      requester->attributeOwnershipAcquisition(
+          objectInstance, desiredAttributes, acquisitionTag),
+      rti1516_2025::ObjectClassNotPublished);
+  REQUIRE(owner->isAttributeOwnedByFederate(
+      objectInstance, desiredAttribute));
+  REQUIRE_FALSE(requester->isAttributeOwnedByFederate(
+      objectInstance, desiredAttribute));
+
+  // The class is now published, but this ordinary attribute is not.
+  REQUIRE_NOTHROW(requester->publishObjectClassAttributes(
+      child, differentAttributes));
+  REQUIRE_THROWS_AS(
+      requester->attributeOwnershipAcquisition(
+          objectInstance, desiredAttributes, acquisitionTag),
+      rti1516_2025::AttributeNotPublished);
+  REQUIRE(owner->isAttributeOwnedByFederate(
+      objectInstance, desiredAttribute));
+  REQUIRE_FALSE(requester->isAttributeOwnedByFederate(
+      objectInstance, desiredAttribute));
+  REQUIRE(requesterReports.acquisitionReports.empty());
+
+  // Publication at the known child class admits the same request and lets
+  // the owner transfer only the requested instance attribute.
+  REQUIRE_NOTHROW(requester->publishObjectClassAttributes(
+      child, desiredAttributes));
+  REQUIRE_NOTHROW(requester->attributeOwnershipAcquisition(
+      objectInstance, desiredAttributes, acquisitionTag));
+  AttributeHandleSet divestedAttributes;
+  VariableLengthData const divestitureTag;
+  REQUIRE_NOTHROW(owner->attributeOwnershipDivestitureIfWanted(
+      objectInstance, desiredAttributes, divestitureTag, divestedAttributes));
+  REQUIRE(divestedAttributes == desiredAttributes);
+  REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(requesterReports.acquisitionReports.size() == 1U);
+  auto const& acquired = requesterReports.acquisitionReports.front();
+  REQUIRE(acquired.kind ==
+          ReportingFederateAmbassador::AcquisitionReport::Kind::notification);
+  REQUIRE(acquired.objectInstance == objectInstance);
+  REQUIRE(acquired.attributes == desiredAttributes);
+  REQUIRE_FALSE(owner->isAttributeOwnedByFederate(
+      objectInstance, desiredAttribute));
+  REQUIRE(requester->isAttributeOwnedByFederate(
+      objectInstance, desiredAttribute));
+
+  VariableLengthData const deletionTag;
+  REQUIRE_NOTHROW(owner->deleteObjectInstance(objectInstance, deletionTag));
+  REQUIRE_NOTHROW(requester->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded divestiture if wanted returns only transferred attributes and concludes the rest",
+    "[integration][development-profile][2025][ownership-management]"
+    "[ownership-divestiture-if-wanted-return-set]"
+    "[rti.service.attribute-ownership-acquisition]"
+    "[rti.service.attribute-ownership-divestiture-if-wanted]"
+    "[federate.callback.attribute-ownership-acquisition-notification]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador requesterReports;
+  auto owner = makeRti();
+  auto requester = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("attribute-update-passel-fom.xml").wstring();
+  unsigned char const acquisitionTagBytes[] = {0xD1U, 0xF2U};
+  VariableLengthData const acquisitionTag(
+      acquisitionTagBytes, sizeof(acquisitionTagBytes));
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"divestiture-return-set-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"divestiture-return-set-requester", L"publisher", federationName));
+
+  auto const child = owner->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const acquiredIfWanted = owner->getAttributeHandle(
+      child, fixture_hla::fixture::reliable_base_a);
+  auto const notInitiallyWanted = owner->getAttributeHandle(
+      child, fixture_hla::fixture::reliable_base_b);
+  REQUIRE(child.isValid());
+  REQUIRE(acquiredIfWanted.isValid());
+  REQUIRE(notInitiallyWanted.isValid());
+  AttributeHandleSet const bothAttributes{
+      acquiredIfWanted, notInitiallyWanted};
+  AttributeHandleSet const wantedFirstAttribute{acquiredIfWanted};
+  AttributeHandleSet const wantedSecondAttribute{notInitiallyWanted};
+
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(child, bothAttributes));
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(child, bothAttributes));
+  REQUIRE_NOTHROW(requester->publishObjectClassAttributes(child, bothAttributes));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(child));
+  REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
+
+  // With no acquisition pending, neither attribute is divested; the empty
+  // return set is the complete result of this call.
+  AttributeHandleSet divestedAttributes;
+  VariableLengthData const divestitureTag;
+  REQUIRE_NOTHROW(owner->attributeOwnershipDivestitureIfWanted(
+      objectInstance, bothAttributes, divestitureTag, divestedAttributes));
+  REQUIRE(divestedAttributes.empty());
+  REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, acquiredIfWanted));
+  REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, notInitiallyWanted));
+
+  REQUIRE_NOTHROW(requester->attributeOwnershipAcquisition(
+      objectInstance, wantedFirstAttribute, acquisitionTag));
+  REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, acquiredIfWanted));
+  REQUIRE_FALSE(requester->isAttributeOwnedByFederate(
+      objectInstance, acquiredIfWanted));
+
+  // The return set identifies precisely what was divested. The unreturned
+  // attribute remains owned and was not kept as a deferred request.
+  divestedAttributes.clear();
+  REQUIRE_NOTHROW(owner->attributeOwnershipDivestitureIfWanted(
+      objectInstance, bothAttributes, divestitureTag, divestedAttributes));
+  REQUIRE(divestedAttributes == wantedFirstAttribute);
+  REQUIRE_FALSE(owner->isAttributeOwnedByFederate(objectInstance, acquiredIfWanted));
+  REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, notInitiallyWanted));
+  REQUIRE_FALSE(requester->isAttributeOwnedByFederate(
+      objectInstance, notInitiallyWanted));
+  REQUIRE(requester->isAttributeOwnedByFederate(objectInstance, acquiredIfWanted));
+  REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(requesterReports.acquisitionReports.size() == 1U);
+  REQUIRE(requesterReports.acquisitionReports.front().attributes ==
+          wantedFirstAttribute);
+
+  // The prior If Wanted call concluded its request for the unreturned
+  // attribute: this later acquisition remains pending until a new call.
+  REQUIRE_NOTHROW(requester->attributeOwnershipAcquisition(
+      objectInstance, wantedSecondAttribute, acquisitionTag));
+  REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, notInitiallyWanted));
+  REQUIRE_FALSE(requester->isAttributeOwnedByFederate(
+      objectInstance, notInitiallyWanted));
+  divestedAttributes.clear();
+  REQUIRE_NOTHROW(owner->attributeOwnershipDivestitureIfWanted(
+      objectInstance,
+      wantedSecondAttribute,
+      divestitureTag,
+      divestedAttributes));
+  REQUIRE(divestedAttributes == wantedSecondAttribute);
+  REQUIRE_FALSE(owner->isAttributeOwnedByFederate(objectInstance, notInitiallyWanted));
+  REQUIRE(requester->isAttributeOwnedByFederate(objectInstance, notInitiallyWanted));
+  REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(requesterReports.acquisitionReports.size() == 2U);
+  REQUIRE(requesterReports.acquisitionReports.back().attributes ==
+          wantedSecondAttribute);
+
+  REQUIRE_NOTHROW(owner->deleteObjectInstance(objectInstance, VariableLengthData{}));
+  REQUIRE_NOTHROW(requester->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}

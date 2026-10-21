@@ -6,6 +6,7 @@
 #include "internal/handles/transportation_type_handle.hpp"
 #include "internal/observability/mom_service_report_encoding.hpp"
 #include "internal/runtime/ambassador_shared_utilities.hpp"
+#include "internal/runtime/callback_region_designator_copies.hpp"
 
 #include <RTI/FederateAmbassador.h>
 #include <RTI/encoding/BasicDataElements.h>
@@ -342,13 +343,33 @@ void queueAmbassadorMomServiceReportInteraction(
       auto const parameterValues = ambassadorProjectInteractionParameterValues(
           sentParameters,
           projection->receivedParameterHandles);
+      CallbackRegionDesignatorCopies callbackRegionDesignatorCopies(
+          federationName,
+          receivingFederateId);
+      std::optional<RegionHandleSet> optionalSentRegions;
+      if (projection->conveyRegionDesignatorSets) {
+        if (projection->sentRegionHandles.empty() ||
+            projection->sentRegionSnapshots.empty()) {
+          throw RTIinternalError(
+              L"An HLAreportServiceInvocation recipient has no RTI update-region snapshot.");
+        }
+        optionalSentRegions.emplace();
+        auto const copyStatus = callbackRegionDesignatorCopies.create(
+            projection->sentRegionHandles,
+            projection->sentRegionSnapshots,
+            *optionalSentRegions);
+        if (copyStatus != umbra::detail::RegionServiceStatus::applied) {
+          throw RTIinternalError(
+              L"The RTI could not create callback-scoped MOM report region designators.");
+        }
+      }
       recipient.receiveInteraction(
           makeInteractionClassHandle(projection->receivedInteractionClassHandle),
           parameterValues,
           VariableLengthData{},
           transportationType,
           FederateHandle{},
-          nullptr);
+          optionalSentRegions ? &*optionalSentRegions : nullptr);
     });
   }
 }

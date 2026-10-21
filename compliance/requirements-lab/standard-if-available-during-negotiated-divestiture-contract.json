@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "IEEE 1516.1-2025 public-API evoked-ordering scenario: a published requester queues Attribute Ownership Acquisition If Available for an owner-held attribute, the owner begins negotiated divestiture, and the owner receives a confirmation request identifying the requester. Ownership remains with the owner until Confirm Divestiture returns; then it transfers immediately before the requester's acquisition callback is evoked, and that callback carries the confirmation tag. Pinned native page-152-l101-32 maps to §7.1.2.2 positive eligibility; page-151-l132-43 maps only the negotiated-divestiture transfer branch of §7.1.2.1. Immediate callback mode resolves the If Available request at a different boundary and is explicitly skipped, not treated as passing or conformance. The adapter supplies provider, endpoint, FOM and names, HLA_EVOKED, and logical-time implementation. Installed-package C++ primary/contract passed 2/2 evoked; Java parity compiles against the official API-only JAR without provider-runtime evidence.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-if-available-during-negotiated-divestiture",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador attributeOwnershipAcquisitionIfAvailable, negotiatedAttributeOwnershipDivestiture, confirmDivestiture, isAttributeOwnedByFederate and FederateAmbassador requestDivestitureConfirmation, attributeOwnershipAcquisitionNotification",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_if_available_negotiated.cpp::scenarioIfAvailableDuringNegotiatedDivestiture",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_if_available_negotiated.cpp::scenarioIfAvailableDuringNegotiatedDivestitureContract"
+      ]
+    }
+  ]
+}

@@ -8,6 +8,7 @@
 #include "internal/fom/hla_names.hpp"
 #include "internal/observability/mom_service_report_encoding.hpp"
 #include "internal/runtime/ambassador_shared_utilities.hpp"
+#include "internal/runtime/callback_region_designator_copies.hpp"
 #include "internal/runtime/utf8_string.hpp"
 #include "internal/runtime/umbra_rti_ambassador_service_failure_translation.hpp"
 
@@ -821,13 +822,22 @@ void queueAmbassadorReceiveOrderAttributeUpdate(
             return;
           }
         }
+        CallbackRegionDesignatorCopies callbackRegionDesignatorCopies(
+            federationName, receivingFederateId);
         std::optional<RegionHandleSet> optionalSentRegions;
         if (projection->conveyRegionDesignatorSets &&
             (sentRegionHandles || defaultRegionUsed)) {
           optionalSentRegions.emplace();
-          if (sentRegionHandles) {
-            for (std::uint64_t const regionHandle : *sentRegionHandles) {
-              optionalSentRegions->insert(makeRegionHandle(regionHandle));
+          if (sentRegionHandles && !sentRegionHandles->empty()) {
+            if (!sentRegionSnapshots) {
+              throw RTIinternalError(
+                  L"A regional Reflect Attribute Values callback has no send-time region snapshots.");
+            }
+            auto const copyStatus = callbackRegionDesignatorCopies.create(
+                *sentRegionHandles, *sentRegionSnapshots, *optionalSentRegions);
+            if (copyStatus != umbra::detail::RegionServiceStatus::applied) {
+              throw RTIinternalError(
+                  L"The RTI could not create callback-scoped region designator copies.");
             }
           }
         }

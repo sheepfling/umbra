@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "A bounded two-member slice of the independently green 62-assertion native restore-control case. Under HLA_IMMEDIATE, a completed baseline save precedes object registration and discovery. During restore, status descriptors retain each pre-restore handle, identify the same current post-restore handle, and report FEDERATE_RESTORING. The first Federate Restore Complete cannot finish the federation; the second yields Federation Restored, removes the post-save object, and leaves idle descriptors with null post-restore handles and NO_RESTORE_IN_PROGRESS. C++ primary and contract were linked only against the installed 2026-10-20 package and passed with HLAinteger64Time and HLAfloat64Time. The adapter supplies provider libraries, endpoint, IEEE 1516.2-2025 FOM object class/attribute, time implementation, and immediate callback model. Java parity compiles against the official API-only JAR; Java provider runtime, HLA_EVOKED for this direct-callback case, durable restore, interoperability, and conformance are unverified.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-object-snapshot-status",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador requestFederationSave, federateSaveBegun, federateSaveComplete, publishObjectClassAttributes, subscribeObjectClassAttributes, registerObjectInstance, requestFederationRestore, queryFederationRestoreStatus, federateRestoreComplete, getKnownObjectClassHandle; FederateAmbassador initiateFederateSave, federationSaved, discoverObjectInstance, federationRestoreBegun, initiateFederateRestore, federationRestoreStatusResponse, federationRestored",
+      "source": "official IEEE 1516.1-2025 C++ headers and hla.rti1516_2025 Java API; adapter-selected IEEE 1516.2-2025 object FOM",
+      "source_symbol": "IEEE 1516.1-2025 immediate-callback two-member federation save/restore status interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp::Embedded federation restore rolls back a saved object-management snapshot",
+        "packages/hla-rti-cpp-tck/src/tck_restore_object_snapshot_status.cpp::scenarioRestoreObjectSnapshotStatus",
+        "packages/hla-rti-cpp-tck/src/tck_restore_object_snapshot_status.cpp::scenarioRestoreObjectSnapshotStatusContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestoreObjectSnapshotStatusTck.java::run"
+      ]
+    }
+  ]
+}

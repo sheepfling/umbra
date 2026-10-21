@@ -71,8 +71,8 @@ void scenarioServiceReportAttributeUpdate(Options const& options, rti::CallbackM
   observer.recorder().clearInteraction();
 
   subject.rtiAmbassador().setServiceReportingSwitch(true);
-  std::vector<std::uint8_t> const valueBytes{0x55U, 0x41U, 0x56U};
-  std::vector<std::uint8_t> const tagBytes{0x55U, 0x41U, 0x56U};
+  std::vector<std::uint8_t> const valueBytes{0x01U, 0x02U};
+  std::vector<std::uint8_t> const tagBytes{0x03U, 0x04U, 0x05U};
   rti::AttributeHandleValueMap values;
   values.emplace(
       attribute,
@@ -129,6 +129,31 @@ void scenarioServiceReportAttributeUpdate(Options const& options, rti::CallbackM
   require(
       serial.get() == 0,
       "First service-report attribute-update did not use serial number zero");
+
+  rti::HLAfixedRecord argumentPrototype;
+  argumentPrototype.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  rti::HLAvariableArray suppliedArguments{argumentPrototype};
+  suppliedArguments.decode(report.parameters.at(reportParameters.at(3U)));
+  require(
+      suppliedArguments.size() == 4U,
+      "Service-report attribute-update returned an unexpected supplied-argument count");
+  auto const& attributeValueArgument = dynamic_cast<rti::HLAfixedRecord const&>(
+      suppliedArguments.get(1U));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(attributeValueArgument.get(0U)).get() == 2,
+      "Service-report attribute-update returned the wrong AttributeHandleValueMap type");
+  require(
+      dynamic_cast<rti::HLAunicodeString const&>(attributeValueArgument.get(1U)).get() ==
+          L"Constrained set of attribute designator and value pairs",
+      "Service-report attribute-update returned the wrong AttributeHandleValueMap name");
+  std::wstring const expectedAttributeValueMap =
+      std::wstring{L"{\""} + attribute.toString() + L"\":\"AQI=\"}";
+  require(
+      dynamic_cast<rti::HLAunicodeString const&>(attributeValueArgument.get(2U)).get() ==
+          expectedAttributeValueMap,
+      "Service-report attribute-update did not encode the binary attribute value as Base64");
 
   observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
   subject.rtiAmbassador().setServiceReportingSwitch(false);

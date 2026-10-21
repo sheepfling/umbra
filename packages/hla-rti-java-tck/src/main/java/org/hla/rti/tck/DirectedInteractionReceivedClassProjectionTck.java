@@ -34,6 +34,7 @@ final class DirectedInteractionReceivedClassProjectionTck {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador superclassSubscriber = factory.getRtiAmbassador();
       RTIambassador sentClassSubscriber = factory.getRtiAmbassador();
+      Recorder publisherRecorder = new Recorder();
       Recorder superclassRecorder = new Recorder();
       Recorder sentClassRecorder = new Recorder();
       String federation = "java-tck-directed-received-class-projection-" + UUID.randomUUID();
@@ -45,7 +46,7 @@ final class DirectedInteractionReceivedClassProjectionTck {
       boolean superclassJoined = false;
       boolean sentClassJoined = false;
       try {
-         publisher.connect(new Recorder().proxy(), callbackModel);
+         publisher.connect(publisherRecorder.proxy(), callbackModel);
          publisherConnected = true;
          superclassSubscriber.connect(superclassRecorder.proxy(), callbackModel);
          superclassConnected = true;
@@ -128,6 +129,7 @@ final class DirectedInteractionReceivedClassProjectionTck {
          InteractionClassHandleSet sentClassSelection = JavaTckSupport.interactionSet(
             sentClassSubscriber, sentClassDerivedInteraction);
          publisher.publishObjectClassDirectedInteractions(publisherObjectClass, published);
+         publisher.subscribeObjectClassDirectedInteractions(publisherObjectClass, published);
          superclassSubscriber.subscribeObjectClassDirectedInteractions(
             superclassObjectClass, superclassSelection);
          sentClassSubscriber.subscribeObjectClassDirectedInteractions(
@@ -147,10 +149,33 @@ final class DirectedInteractionReceivedClassProjectionTck {
          parameters.put(publisherDerivedBaseParameter, baseValue);
          parameters.put(publisherDerivedParameter, derivedValue);
          byte[] tag = new byte[] {0x44, 0x49, 0x52, 0x50};
-         publisher.sendDirectedInteraction(
-            publisherDerivedInteraction, target, parameters, tag);
+
+         // This parameter is defined on the derived class, not available to
+         // the base class used for the attempted directed send.
+         ParameterHandleValueMap unavailableParameters =
+            publisher.getParameterHandleValueMapFactory().create(2);
+         unavailableParameters.put(publisherBaseParameter, baseValue);
+         unavailableParameters.put(publisherDerivedParameter, derivedValue);
+         JavaTckSupport.expectFailure(
+            () -> publisher.sendDirectedInteraction(
+               publisherBaseInteraction, target, unavailableParameters, tag),
+            "InteractionParameterNotDefined",
+            "directed send using a parameter unavailable to its interaction class");
+         JavaTckSupport.drain(publisher);
          JavaTckSupport.drain(superclassSubscriber);
          JavaTckSupport.drain(sentClassSubscriber);
+         JavaTckSupport.check(publisherRecorder.directed.isEmpty()
+               && superclassRecorder.directed.isEmpty()
+               && sentClassRecorder.directed.isEmpty(),
+            "rejected directed send delivered an interaction callback");
+
+         publisher.sendDirectedInteraction(
+            publisherDerivedInteraction, target, parameters, tag);
+         JavaTckSupport.drain(publisher);
+         JavaTckSupport.drain(superclassSubscriber);
+         JavaTckSupport.drain(sentClassSubscriber);
+         JavaTckSupport.check(publisherRecorder.directed.isEmpty(),
+            "directed sender received its own interaction despite a matching subscription");
 
          JavaTckSupport.check(superclassRecorder.directed.size() == 1,
             "superclass subscriber did not receive exactly one directed interaction");
@@ -167,6 +192,8 @@ final class DirectedInteractionReceivedClassProjectionTck {
             superclassObjectClass, superclassSelection);
          sentClassSubscriber.unsubscribeObjectClassDirectedInteractions(
             sentClassObjectClass, sentClassSelection);
+         publisher.unsubscribeObjectClassDirectedInteractions(
+            publisherObjectClass, published);
          superclassSubscriber.unsubscribeObjectClassAttributes(
             superclassObjectClass, superclassAttributes);
          sentClassSubscriber.unsubscribeObjectClassAttributes(

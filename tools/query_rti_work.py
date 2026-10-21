@@ -1311,6 +1311,13 @@ def requirement_gap_inventory(
         )
     )
 
+    globally_covered_ids = {
+        requirement_id
+        for test in tests
+        for requirement_id in strings(test.get("lab_requirement_ids"))
+        if requirement_id in standard_requirements
+    }
+
     grouped: defaultdict[str, dict[str, Any]] = defaultdict(
         lambda: {
             "standard_section": None,
@@ -1319,6 +1326,8 @@ def requirement_gap_inventory(
             "total_requirement_count": 0,
             "covered_requirement_count": 0,
             "uncovered_requirement_count": 0,
+            "globally_covered_requirement_count": 0,
+            "globally_uncovered_requirement_count": 0,
             "uncovered_requirement_ids": [],
         }
     )
@@ -1333,6 +1342,10 @@ def requirement_gap_inventory(
         row["document_id"] = document_id
         row["clause_id"] = clause_id
         row["total_requirement_count"] += 1
+        if requirement.get("id") in globally_covered_ids:
+            row["globally_covered_requirement_count"] += 1
+        else:
+            row["globally_uncovered_requirement_count"] += 1
         if requirement.get("id") in covered_ids:
             row["covered_requirement_count"] += 1
         else:
@@ -1365,6 +1378,10 @@ def requirement_gap_inventory(
         return {
             "id": identifier,
             "coverage": "uncovered",
+            "coverage_scope": "family-local" if family else "global",
+            "global_coverage": (
+                "covered" if identifier in globally_covered_ids else "uncovered"
+            ),
             "document_id": document_id,
             "clause": requirement.get("clause"),
             "clause_id": clause_id,
@@ -1394,15 +1411,22 @@ def requirement_gap_inventory(
     covered_count = sum(
         requirement.get("id") in covered_ids for requirement in filtered
     )
+    globally_covered_count = sum(
+        requirement.get("id") in globally_covered_ids
+        for requirement in filtered
+    )
     return {
         "query": query,
         "document": document,
         "clause": clause,
         "coverage_kind": coverage_kind,
         "family": family,
+        "coverage_scope": "family-local" if family else "global",
         "total_requirement_count": total_count,
         "covered_requirement_count": covered_count,
         "uncovered_requirement_count": len(uncovered),
+        "globally_covered_requirement_count": globally_covered_count,
+        "globally_uncovered_requirement_count": total_count - globally_covered_count,
         "coverage_percent": (
             round((covered_count / total_count) * 100, 2) if total_count else 0.0
         ),
@@ -1411,6 +1435,328 @@ def requirement_gap_inventory(
         "shown_requirement_count": len(shown_requirements),
         "groups": shown_groups,
         "requirements": [requirement_record(requirement) for requirement in shown_requirements],
+    }
+
+
+def cpp_tck_requirement_gap_inventory(
+    standard_requirements: dict[str, dict[str, Any]],
+    catalog: dict[str, Any],
+    tests: list[dict[str, Any]],
+    *,
+    query: str | None = None,
+    document: str | None = None,
+    clause: str | None = None,
+    coverage_kind: str | None = None,
+    limit: int = 20,
+) -> dict[str, Any]:
+    """Find pinned requirements absent from direct C++ TCK catalog mappings.
+
+    This is intentionally separate from ``gaps``: that command measures the
+    Catch2 plan, while this view measures only explicit Lab requirement IDs
+    in ``cpp-tck-scenario-catalog.json``. Candidate catalog rows count as
+    represented, but are reported separately from promoted rows. Catalog
+    subsection disagreements are surfaced separately because a catalog may
+    carry a source-backed crosswalk beyond the exported clause field.
+    """
+
+    if catalog.get("kind") != "portable-cpp-tck-catalog":
+        raise ValueError("catalog is not a portable C++ TCK scenario catalog")
+    rows = catalog.get("scenarios")
+    if not isinstance(rows, list):
+        raise ValueError("portable C++ TCK catalog scenarios must be an array")
+
+    scenarios = [
+        row
+        for row in rows
+        if isinstance(row, dict)
+        and isinstance(row.get("id"), str)
+        and row["id"].startswith("cpp-tck.")
+    ]
+    mapped_promoted: set[str] = set()
+    mapped_candidate: set[str] = set()
+    mapped_other: set[str] = set()
+    mapping_sections_by_id: defaultdict[str, set[str]] = defaultdict(set)
+    invalid_mappings: list[dict[str, Any]] = []
+    invalid_mapping_count = 0
+    non_lab_mapping_count = 0
+    section_disagreement_count_by_requirement: Counter[str] = Counter()
+    section_disagreements: list[dict[str, Any]] = []
+    direct_mapping_count = 0
+
+    for scenario in scenarios:
+        scenario_id = str(scenario.get("id"))
+        promotion = str(scenario.get("promotion") or "").casefold()
+        mappings = scenario.get("requirement_mappings", [])
+        if not isinstance(mappings, list):
+            mappings = []
+        for mapping in mappings:
+            if not isinstance(mapping, dict):
+                continue
+            requirement_id = mapping.get("requirement_id") or mapping.get(
+                "lab_requirement_id"
+            )
+            section = mapping.get("standard_section")
+            if not isinstance(requirement_id, str) or not requirement_id:
+                continue
+            standard = standard_requirements.get(requirement_id)
+            if standard is None:
+                # The catalog also carries its separate cpp-1516.* API
+                # requirement vocabulary. Those IDs are not Lab requirement
+                # IDs and must neither close a Lab gap nor be misreported as
+                # broken Lab references.
+                if not requirement_id.startswith("cpp-"):
+                    invalid_mapping_count += 1
+                    if len(invalid_mappings) < 20:
+                        invalid_mappings.append(
+                            {
+                                "scenario_id": scenario_id,
+                                "requirement_id": requirement_id,
+                                "catalog_section": section,
+                                "expected_section": None,
+                            }
+                        )
+                else:
+                    non_lab_mapping_count += 1
+                continue
+            if not isinstance(section, str) or not section:
+                invalid_mapping_count += 1
+                if len(invalid_mappings) < 20:
+                    invalid_mappings.append(
+                        {
+                            "scenario_id": scenario_id,
+                            "requirement_id": requirement_id,
+                            "catalog_section": section,
+                            "expected_section": (
+                                f"{standard.get('document_id')}:{standard.get('clause_id')}"
+                            ),
+                        }
+                    )
+                continue
+            expected_section = (
+                f"{standard.get('document_id')}:{standard.get('clause_id')}"
+            )
+            if section != expected_section:
+                section_disagreement_count_by_requirement[requirement_id] += 1
+                if len(section_disagreements) < 20:
+                    section_disagreements.append(
+                        {
+                            "scenario_id": scenario_id,
+                            "requirement_id": requirement_id,
+                            "catalog_section": section,
+                            "expected_section": expected_section,
+                        }
+                    )
+            direct_mapping_count += 1
+            mapping_sections_by_id[requirement_id].add(section)
+            if promotion == "promoted":
+                mapped_promoted.add(requirement_id)
+            elif promotion == "candidate":
+                mapped_candidate.add(requirement_id)
+            else:
+                mapped_other.add(requirement_id)
+
+    def matches(requirement: dict[str, Any]) -> bool:
+        document_id = str(requirement.get("document_id") or "")
+        clause_id = str(requirement.get("clause_id") or "")
+        requirement_id = str(requirement.get("id") or "")
+        if document and document.casefold() not in document_id.casefold():
+            return False
+        if clause:
+            folded_clause = clause.casefold()
+            requirement_clause_matches = (
+                folded_clause in clause_id.casefold()
+                or folded_clause
+                in str(requirement.get("clause") or "").casefold()
+            )
+            catalog_clause_matches = any(
+                folded_clause in section.casefold()
+                for section in mapping_sections_by_id.get(requirement_id, set())
+            )
+            if not requirement_clause_matches and not catalog_clause_matches:
+                return False
+        if coverage_kind and str(requirement.get("coverage_kind") or "").casefold() != coverage_kind.casefold():
+            return False
+        if not query:
+            return True
+        source = requirement.get("source")
+        source_path = source.get("path") if isinstance(source, dict) else None
+        values = (
+            requirement.get("id"),
+            requirement.get("title"),
+            requirement.get("statement"),
+            requirement.get("machine_statement"),
+            requirement.get("document_id"),
+            requirement.get("clause"),
+            requirement.get("clause_id"),
+            f"{document_id}:{clause_id}" if document_id and clause_id else None,
+            requirement.get("kind"),
+            requirement.get("coverage_kind"),
+            requirement.get("semantic_group_id"),
+            *strings(requirement.get("transition_ids")),
+            source_path,
+        )
+        folded = query.casefold()
+        return any(
+            isinstance(value, str) and folded in value.casefold()
+            for value in values
+        )
+
+    filtered = [
+        requirement
+        for requirement in standard_requirements.values()
+        if matches(requirement)
+    ]
+    filtered_ids = {
+        str(requirement.get("id"))
+        for requirement in filtered
+        if isinstance(requirement.get("id"), str)
+    }
+    filtered.sort(
+        key=lambda requirement: (
+            str(requirement.get("document_id") or ""),
+            str(requirement.get("clause_id") or ""),
+            int(requirement.get("ordinal") or 0),
+            str(requirement.get("id") or ""),
+        )
+    )
+    mapped_ids = mapped_promoted | mapped_candidate | mapped_other
+    uncovered = [
+        requirement
+        for requirement in filtered
+        if requirement.get("id") not in mapped_ids
+    ]
+
+    catch2_cases: defaultdict[str, list[dict[str, Any]]] = defaultdict(list)
+    for test in tests:
+        test_id = test.get("id")
+        if not isinstance(test_id, str):
+            continue
+        for requirement_id in strings(test.get("lab_requirement_ids")):
+            catch2_cases[requirement_id].append(
+                {
+                    "case_id": test_id,
+                    "test_case": test.get("test_case"),
+                    "source_location": source_location_text(test),
+                }
+            )
+
+    groups: defaultdict[str, dict[str, Any]] = defaultdict(
+        lambda: {
+            "standard_section": None,
+            "total_requirement_count": 0,
+            "mapped_requirement_count": 0,
+            "promoted_requirement_count": 0,
+            "candidate_only_requirement_count": 0,
+            "uncovered_requirement_count": 0,
+            "uncovered_requirement_ids": [],
+        }
+    )
+    for requirement in filtered:
+        document_id = requirement.get("document_id")
+        clause_id = requirement.get("clause_id")
+        requirement_id = requirement.get("id")
+        if not isinstance(document_id, str) or not isinstance(clause_id, str):
+            continue
+        section = f"{document_id}:{clause_id}"
+        group = groups[section]
+        group["standard_section"] = section
+        group["total_requirement_count"] += 1
+        if requirement_id in mapped_ids:
+            group["mapped_requirement_count"] += 1
+        else:
+            group["uncovered_requirement_count"] += 1
+            if len(group["uncovered_requirement_ids"]) < 8:
+                group["uncovered_requirement_ids"].append(requirement_id)
+        if requirement_id in mapped_promoted:
+            group["promoted_requirement_count"] += 1
+        elif requirement_id in mapped_candidate:
+            group["candidate_only_requirement_count"] += 1
+    shown_groups = sorted(
+        (group for group in groups.values() if group["uncovered_requirement_count"]),
+        key=lambda group: (
+            -group["uncovered_requirement_count"],
+            str(group.get("standard_section") or ""),
+        ),
+    )
+    requested_limit = max(limit, 0)
+    shown_requirements = (
+        uncovered if requested_limit == 0 else uncovered[:requested_limit]
+    )
+    group_limit = 20 if requested_limit == 0 else max(1, min(20, requested_limit))
+
+    requirement_records: list[dict[str, Any]] = []
+    for requirement in shown_requirements:
+        requirement_id = requirement.get("id")
+        case_rows = catch2_cases.get(requirement_id, [])
+        document_id = requirement.get("document_id")
+        clause_id = requirement.get("clause_id")
+        requirement_records.append(
+            {
+                "id": requirement_id,
+                "coverage": "unmapped-in-cpp-tck-catalog",
+                "document_id": document_id,
+                "clause": requirement.get("clause"),
+                "clause_id": clause_id,
+                "standard_section": (
+                    f"{document_id}:{clause_id}"
+                    if document_id and clause_id
+                    else None
+                ),
+                "title": requirement.get("title"),
+                "statement": requirement.get("statement"),
+                "source": requirement.get("source"),
+                "catch2_case_count": len(case_rows),
+                "catch2_cases": case_rows[:3],
+                "catch2_requirement_query": (
+                    f"python tools/query_rti_work.py requirement {requirement_id} "
+                    "--summary --compact"
+                    if isinstance(requirement_id, str)
+                    else None
+                ),
+            }
+        )
+
+    total_count = len(filtered)
+    mapped_count = sum(requirement.get("id") in mapped_ids for requirement in filtered)
+    return {
+        "query": query,
+        "document": document,
+        "clause": clause,
+        "coverage_kind": coverage_kind,
+        "coverage_scope": "cpp-tck-direct-requirement-mappings",
+        "scenario_count": len(scenarios),
+        "direct_mapping_count": direct_mapping_count,
+        "total_requirement_count": total_count,
+        "mapped_requirement_count": mapped_count,
+        "promoted_requirement_count": sum(
+            requirement.get("id") in mapped_promoted for requirement in filtered
+        ),
+        "candidate_only_requirement_count": sum(
+            requirement.get("id") in mapped_candidate
+            and requirement.get("id") not in mapped_promoted
+            for requirement in filtered
+        ),
+        "uncovered_requirement_count": len(uncovered),
+        "coverage_percent": round((mapped_count / total_count) * 100, 2)
+        if total_count
+        else 0.0,
+        "non_lab_mapping_count": non_lab_mapping_count,
+        "invalid_mapping_count": invalid_mapping_count,
+        "invalid_mappings": invalid_mappings,
+        "section_disagreement_count": sum(
+            section_disagreement_count_by_requirement.get(requirement_id, 0)
+            for requirement_id in filtered_ids
+        ),
+        "section_disagreements": [
+            finding
+            for finding in section_disagreements
+            if finding.get("requirement_id") in filtered_ids
+        ],
+        "group_count": len(shown_groups),
+        "shown_group_count": min(len(shown_groups), group_limit),
+        "shown_requirement_count": len(requirement_records),
+        "groups": shown_groups[:group_limit],
+        "requirements": requirement_records,
     }
 
 
@@ -1424,6 +1770,17 @@ def requirement_gap_summary_data(result: dict[str, Any]) -> dict[str, Any]:
 
     summary = dict(result)
     summary["requirements"] = []
+    summary["shown_requirement_count"] = 0
+    return summary
+
+
+def cpp_tck_requirement_gap_summary_data(result: dict[str, Any]) -> dict[str, Any]:
+    """Return TCK subsection aggregates without expanding requirement records."""
+
+    summary = dict(result)
+    summary["requirements"] = []
+    summary["invalid_mappings"] = []
+    summary["section_disagreements"] = []
     summary["shown_requirement_count"] = 0
     return summary
 
@@ -2024,15 +2381,18 @@ def mapped_test(
         requirement_view(identifier, standard_requirements, contract_links)
         for identifier in requirement_ids
     ]
-    standards = [
-        requirement["standard"]
-        for requirement in requirements
-        if requirement.get("standard") is not None
-    ]
+    mapping_view = {
+        "requirements": requirements,
+        "requirement_section_mapping_overrides": test.get(
+            "requirement_section_mapping_overrides"
+        ) or [],
+    }
+    requirement_mappings = requirement_section_mapping_rows(mapping_view)
     clauses = {
-        f"{standard.get('document_id')}:{standard.get('clause_id')}"
-        for standard in standards
-        if standard.get("document_id") and standard.get("clause_id")
+        row["standard_section"]
+        for row in requirement_mappings
+        if isinstance(row.get("standard_section"), str)
+        and row.get("standard_section")
     }
     # Keep the two useful views together: ``standard_clauses`` is the exact
     # requirement-to-subsection join, while ``standard_sections`` also keeps
@@ -2100,6 +2460,9 @@ def mapped_test(
         "replacement_plan_ids": strings(test.get("replacement_plan_ids")),
         "next_action": test.get("next_action"),
         "requirements": requirements,
+        "requirement_section_mapping_overrides": test.get(
+            "requirement_section_mapping_overrides"
+        ) or [],
         "lab_requirement_ids": requirement_ids,
         "standard_clauses": requirement_clauses,
         "standard_sections": all_sections,
@@ -7167,6 +7530,7 @@ def indexed_active_handoff_record(
         "completed",
         "closed",
         "done",
+        "verified",
     }:
         return None
     family_id = card.get("family")
@@ -7307,6 +7671,53 @@ def indexed_active_handoff_record(
                         api_id = api_surface.get("requirements_lab_api_surface_id")
                         if isinstance(api_id, str) and api_id:
                             api_surfaces.add(api_id)
+            # Portable-TCK catalog rows carry their own explicit Lab ID to
+            # canonical-section pairs.  A referenced API contract may contain
+            # only API-surface data, so relying on requirement-reference
+            # contracts alone drops valid, catalog-declared mappings and makes
+            # the indexed active handoff appear unavailable.
+            for source in (scenario, companion):
+                if not isinstance(source, dict):
+                    continue
+                for mapping in source.get("requirement_mappings", []):
+                    if not isinstance(mapping, dict):
+                        continue
+                    lab_id = mapping.get("requirement_id") or mapping.get(
+                        "lab_requirement_id"
+                    )
+                    section = mapping.get("standard_section")
+                    if not isinstance(lab_id, str) or not lab_id:
+                        continue
+                    if not isinstance(section, str) or ":" not in section:
+                        continue
+                    document_id, clause_id = section.split(":", 1)
+                    if not document_id or not clause_id:
+                        continue
+                    previous = requirement_rows.get(lab_id)
+                    if (
+                        isinstance(previous, dict)
+                        and previous.get("standard_section") != section
+                    ):
+                        return {
+                            "found": False,
+                            "state": "unavailable",
+                            "reason": (
+                                "portable C++ TCK catalog and requirement contract "
+                                f"disagree for {lab_id}"
+                            ),
+                            "active_handoff_id": card.get("id"),
+                        }
+                    requirement_rows.setdefault(
+                        lab_id,
+                        {
+                            "lab_requirement_id": lab_id,
+                            "standard_section": section,
+                            "document_id": document_id,
+                            "clause_id": clause_id,
+                            "title": mapping.get("title"),
+                            "unresolved": False,
+                        },
+                    )
             pairs = sorted(
                 requirement_rows.values(),
                 key=lambda row: (row["lab_requirement_id"], row["standard_section"]),
@@ -7320,11 +7731,18 @@ def indexed_active_handoff_record(
                     if isinstance(raw_commands, dict)
                     else {}
                 )
+                quoted_requirement_id = json.dumps(
+                    requirement_ids[0], ensure_ascii=False
+                )
+                quoted_standard_section = json.dumps(
+                    standard_sections[0], ensure_ascii=False
+                )
                 return {
                     "found": True,
                     "runnable": True,
                     "handoff_kind": "portable-tck-verification",
-                    "state": str(card.get("state") or "verification-needed"),
+                    "state": "active-handoff",
+                    "status": str(card.get("state") or "verification-needed"),
                     "active_handoff_id": card.get("id"),
                     "family_id": family_id,
                     "plan_id": card.get("plan_id"),
@@ -7344,6 +7762,14 @@ def indexed_active_handoff_record(
                     "api_surfaces": sorted(api_surfaces),
                     "requirement_section_pairs": pairs,
                     "requirement_section_pair_count": len(pairs),
+                    "matrix_requirement_command": (
+                        "python tools/query_rti_work.py matrix "
+                        f"{quoted_requirement_id} --group-by requirement --summary --compact"
+                    ),
+                    "matrix_section_command": (
+                        "python tools/query_rti_work.py matrix "
+                        f"{quoted_standard_section} --group-by section --summary --compact"
+                    ),
                     "next_action": card.get("objective"),
                     "acceptance": card.get("acceptance", []),
                     "commands": commands,
@@ -8090,20 +8516,47 @@ def trace_requirement_row(requirement: dict[str, Any]) -> dict[str, Any]:
             "lab_requirement_id": requirement.get("lab_requirement_id"),
             "unresolved": True,
         }
+    mapping = requirement.get("section_mapping")
+    mapping = mapping if isinstance(mapping, dict) else None
     source = standard.get("source")
     source_value = source if isinstance(source, dict) else None
-    return {
+    row = {
         "lab_requirement_id": requirement.get("lab_requirement_id"),
-        "document_id": standard.get("document_id"),
-        "clause": standard.get("clause"),
-        "clause_id": standard.get("clause_id"),
-        "title": standard.get("title"),
+        "document_id": (
+            mapping.get("document_id")
+            if mapping is not None
+            else standard.get("document_id")
+        ),
+        "clause": (
+            mapping.get("clause")
+            if mapping is not None
+            else standard.get("clause")
+        ),
+        "clause_id": (
+            mapping.get("clause_id")
+            if mapping is not None
+            else standard.get("clause_id")
+        ),
+        "title": (
+            mapping.get("title")
+            if mapping is not None
+            else standard.get("title")
+        ),
         "statement": standard.get("statement") or standard.get("machine_statement"),
         "kind": standard.get("kind"),
         "coverage_kind": standard.get("coverage_kind"),
         "source": source_value,
         "unresolved": False,
     }
+    if mapping is not None and mapping.get("requirements_lab_issue_id"):
+        row["exported_standard_section"] = mapping.get(
+            "exported_standard_section"
+        )
+        row["requirements_lab_issue_id"] = mapping.get(
+            "requirements_lab_issue_id"
+        )
+        row["mapping_basis"] = mapping.get("mapping_basis")
+    return row
 
 
 def requirement_section_mapping_rows(
@@ -8112,21 +8565,67 @@ def requirement_section_mapping_rows(
     """Return the direct Lab-requirement to canonical subsection pairs.
 
     The Catch2 plan stores requirement selections while the 2025 subsection is
-    resolved from the pinned CorpusBundle.  Keep that join in one helper so
-    every bounded query (not only ``matrix``) can expose the same relationship
-    without asking a caller to infer it by zipping two independently ordered
-    arrays.
+    resolved from the pinned CorpusBundle. Source-verified export defects may
+    specify a per-requirement override in
+    ``requirement_section_mapping_overrides``; the returned row preserves the
+    exported section and issue id so this exception is visible and auditable.
+    Keep that join in one helper so every bounded query (not only ``matrix``)
+    can expose the same relationship without asking a caller to infer it by
+    zipping two independently ordered arrays.
     """
+
+    overrides: dict[str, dict[str, Any]] = {}
+    for override in test.get("requirement_section_mapping_overrides", []) or []:
+        if not isinstance(override, dict):
+            continue
+        requirement_id = override.get("lab_requirement_id")
+        section = override.get("standard_section")
+        if (
+            not isinstance(requirement_id, str)
+            or not requirement_id
+            or not isinstance(section, str)
+            or ":" not in section
+        ):
+            continue
+        document_id, clause_id = section.split(":", 1)
+        if not document_id or not clause_id:
+            continue
+        overrides[requirement_id] = {
+            **override,
+            "document_id": document_id,
+            "clause_id": clause_id,
+        }
 
     rows: list[dict[str, Any]] = []
     for requirement in test.get("requirements", []):
         if not isinstance(requirement, dict):
             continue
+        requirement_id = requirement.get("lab_requirement_id")
         standard = requirement.get("standard")
+        override = overrides.get(requirement_id)
         if not isinstance(standard, dict):
+            if override is not None:
+                rows.append(
+                    {
+                        "lab_requirement_id": requirement_id,
+                        "standard_section": override["standard_section"],
+                        "document_id": override["document_id"],
+                        "clause_id": override["clause_id"],
+                        "title": override.get("title"),
+                        "clause": override.get("clause")
+                        or override["clause_id"].removeprefix("clause-"),
+                        "exported_standard_section": None,
+                        "requirements_lab_issue_id": override.get(
+                            "requirements_lab_issue_id"
+                        ),
+                        "mapping_basis": override.get("basis"),
+                        "unresolved": False,
+                    }
+                )
+                continue
             rows.append(
                 {
-                    "lab_requirement_id": requirement.get("lab_requirement_id"),
+                    "lab_requirement_id": requirement_id,
                     "standard_section": None,
                     "document_id": None,
                     "clause_id": None,
@@ -8137,7 +8636,7 @@ def requirement_section_mapping_rows(
             continue
         document_id = standard.get("document_id")
         clause_id = standard.get("clause_id")
-        section = (
+        exported_section = (
             f"{document_id}:{clause_id}"
             if isinstance(document_id, str)
             and document_id
@@ -8145,13 +8644,47 @@ def requirement_section_mapping_rows(
             and clause_id
             else None
         )
+        section = (
+            override["standard_section"]
+            if override is not None
+            else exported_section
+        )
+        resolved_document_id = (
+            override["document_id"]
+            if override is not None
+            else document_id
+        )
+        resolved_clause_id = (
+            override["clause_id"] if override is not None else clause_id
+        )
         rows.append(
             {
-                "lab_requirement_id": requirement.get("lab_requirement_id"),
+                "lab_requirement_id": requirement_id,
                 "standard_section": section,
-                "document_id": document_id,
-                "clause_id": clause_id,
-                "title": standard.get("title"),
+                "document_id": resolved_document_id,
+                "clause_id": resolved_clause_id,
+                "title": (
+                    override.get("title")
+                    if override is not None
+                    else standard.get("title")
+                ),
+                "clause": (
+                    override.get("clause")
+                    or override["clause_id"].removeprefix("clause-")
+                    if override is not None
+                    else standard.get("clause")
+                ),
+                "exported_standard_section": (
+                    exported_section if override is not None else None
+                ),
+                "requirements_lab_issue_id": (
+                    override.get("requirements_lab_issue_id")
+                    if override is not None
+                    else None
+                ),
+                "mapping_basis": (
+                    override.get("basis") if override is not None else None
+                ),
                 "unresolved": section is None,
             }
         )
@@ -8372,6 +8905,11 @@ def trace_record(
         for requirement in test.get("requirements", [])
         if isinstance(requirement, dict)
     ]
+    section_mappings_by_requirement = {
+        row.get("lab_requirement_id"): row
+        for row in requirement_section_mapping_rows(test)
+        if isinstance(row, dict) and row.get("lab_requirement_id")
+    }
     if match_kind == "requirement":
         requirements = [
             requirement
@@ -8381,20 +8919,32 @@ def trace_record(
     elif match_kind == "section":
         requirements = [
             requirement
-                for requirement in requirements
-            if isinstance(requirement.get("standard"), dict)
+            for requirement in requirements
+            if isinstance(
+                section_mappings_by_requirement.get(
+                    requirement.get("lab_requirement_id")
+                ),
+                dict,
+            )
             and trace_section_match(
-                ":".join(
-                    str(value)
-                    for value in (
-                        requirement["standard"].get("document_id"),
-                        requirement["standard"].get("clause_id"),
-                    )
-                    if value
+                str(
+                    section_mappings_by_requirement[
+                        requirement.get("lab_requirement_id")
+                    ].get("standard_section")
+                    or ""
                 ),
                 query,
             )
         ]
+    trace_requirements = []
+    for requirement in requirements:
+        mapping = section_mappings_by_requirement.get(
+            requirement.get("lab_requirement_id")
+        )
+        trace_requirement = dict(requirement)
+        if isinstance(mapping, dict):
+            trace_requirement["section_mapping"] = mapping
+        trace_requirements.append(trace_requirement)
     roadmap_items = roadmap_links_for_test(index, test) if index is not None else []
     roadmap_owner = primary_roadmap_link(roadmap_items)
     return {
@@ -8426,7 +8976,8 @@ def trace_record(
         ),
         "matched_requirement_count": len(requirements),
         "requirement_mappings": [
-            trace_requirement_row(requirement) for requirement in requirements
+            trace_requirement_row(requirement)
+            for requirement in trace_requirements
         ],
     }
 
@@ -8740,11 +9291,20 @@ def text_trace(record: dict[str, Any], summary: bool = False) -> str:
             for value in (mapping.get("document_id"), mapping.get("clause_id"))
             if value
         ) or "<unmapped section>"
+        override_note = ""
+        issue_id = mapping.get("requirements_lab_issue_id")
+        if issue_id:
+            exported = mapping.get("exported_standard_section") or "<unresolved>"
+            override_note = (
+                f" (source-backed override; Lab export={exported}; issue={issue_id})"
+            )
         if summary:
-            lines.append(f"    - {requirement_id} -> {section}")
+            lines.append(f"    - {requirement_id} -> {section}{override_note}")
         else:
             title = mapping.get("title") or ""
-            lines.append(f"    - {requirement_id} -> {section}; {title}")
+            lines.append(
+                f"    - {requirement_id} -> {section}; {title}{override_note}"
+            )
             statement = mapping.get("statement")
             if isinstance(statement, str) and statement.strip():
                 lines.append(f"      statement: {compact_prose(statement, 220)}")
@@ -9680,6 +10240,50 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     add_output_flags(gaps)
+    tck_gaps = subcommands.add_parser(
+        "tck-gaps",
+        help=(
+            "list pinned 2025 requirements without a direct portable C++ TCK "
+            "catalog mapping, with existing Catch2 case pointers"
+        ),
+    )
+    tck_gaps.add_argument(
+        "query",
+        nargs="?",
+        help=(
+            "optional case-insensitive requirement id, title, statement, "
+            "document, clause, or canonical document:clause filter"
+        ),
+    )
+    tck_gaps.add_argument(
+        "--catalog",
+        type=Path,
+        default=DEFAULT_CPP_TCK_CATALOG,
+        help="portable C++ TCK scenario catalog to inspect",
+    )
+    tck_gaps.add_argument(
+        "--document",
+        help="limit to a 2025 document id such as hla-1516.1-2025",
+    )
+    tck_gaps.add_argument(
+        "--clause",
+        help="limit to a clause or subsection such as clause-8.11.3",
+    )
+    tck_gaps.add_argument(
+        "--coverage-kind",
+        choices=("cross-cutting", "document-wide", "transition"),
+        help="limit to one pinned corpus coverage kind",
+    )
+    tck_gaps.add_argument(
+        "--limit",
+        type=int,
+        default=20,
+        help=(
+            "maximum uncovered requirement records to print (default: 20; "
+            "use 0 for all records; subsection groups stay capped at 20)"
+        ),
+    )
+    add_output_flags(tck_gaps)
     contract_drift = subcommands.add_parser(
         "contract-drift",
         help=(
@@ -10014,6 +10618,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    # Keep bounded query commands usable in Windows PowerShell sessions whose
+    # legacy console encoding cannot represent section marks or arrows.
+    sys.stdout.reconfigure(errors="backslashreplace")
     arguments = build_parser().parse_args()
     discovery_commands = {"requirement", "section", "search"}
     if arguments.command in discovery_commands | {"roadmap"}:
@@ -11439,6 +12046,20 @@ def main() -> int:
             )
             if item.get("status") == "open"
         ]
+        if arguments.family:
+            requested_family = arguments.family.strip().casefold()
+            open_items = [
+                item
+                for item in open_items
+                if isinstance(item.get("id"), str)
+                and item["id"].casefold() == requested_family
+            ]
+            if not open_items:
+                print(
+                    "No open roadmap family matches: "
+                    f"{arguments.family}"
+                )
+                return 1
         selected_items = open_items if arguments.all else open_items[:1]
         if not selected_items:
             print("No open indexed roadmap items.")
@@ -12209,7 +12830,7 @@ def main() -> int:
             print(f"planned_queue_remaining: {planned_queue}{suffix}")
         if result.get("next_action"):
             print(f"next_action: {compact_prose(result['next_action'], 360)}")
-        if result.get("mapping_seed_plan_id"):
+        if result.get("mapping_seed_plan_id") and not arguments.compact:
             print(
                 "mapping_seed: "
                 f"{result['mapping_seed_plan_id']} "
@@ -13227,6 +13848,129 @@ def main() -> int:
                 print("\n".join(f"- {identifier}" for identifier in unresolved[:20]))
         return 0
 
+    if arguments.command == "tck-gaps":
+        if arguments.limit < 0:
+            message = "tck-gaps --limit must be non-negative"
+            if arguments.json:
+                print(json.dumps({"found": False, "error": message}, indent=2))
+            else:
+                print(message, file=sys.stderr)
+            return 2
+        try:
+            catalog = load_json(arguments.catalog)
+            result = cpp_tck_requirement_gap_inventory(
+                standard_requirements,
+                catalog,
+                tests,
+                query=arguments.query,
+                document=arguments.document,
+                clause=arguments.clause,
+                coverage_kind=arguments.coverage_kind,
+                limit=arguments.limit,
+            )
+        except (ValueError, OSError) as error:
+            print(f"query_rti_work: {error}", file=sys.stderr)
+            return 2
+
+        if arguments.json:
+            if arguments.summary:
+                result = cpp_tck_requirement_gap_summary_data(result)
+            print(json.dumps(result, indent=2, sort_keys=True))
+            return 0
+
+        scope = []
+        for label, value in (
+            ("query", arguments.query),
+            ("document", arguments.document),
+            ("clause", arguments.clause),
+            ("coverage_kind", arguments.coverage_kind),
+        ):
+            if value:
+                scope.append(f"{label}={value!r}")
+        scope_text = f" ({', '.join(scope)})" if scope else ""
+        print(
+            "Portable C++ TCK direct requirement coverage" + scope_text + ": "
+            f"{result['mapped_requirement_count']} of "
+            f"{result['total_requirement_count']} mapped "
+            f"({result['coverage_percent']:.2f}%); "
+            f"{result['uncovered_requirement_count']} absent from direct catalog mappings; "
+            f"{result['promoted_requirement_count']} promoted, "
+            f"{result['candidate_only_requirement_count']} candidate-only; "
+            f"{result['invalid_mapping_count']} unresolved Lab mapping(s); "
+            f"{result['section_disagreement_count']} section crosswalk review(s); "
+            f"{result['non_lab_mapping_count']} non-Lab references catalog-wide"
+        )
+        groups = result.get("groups", [])
+        if groups:
+            suffix = (
+                f"; showing {len(groups)} of {result['group_count']} subsections"
+                if result["shown_group_count"] < result["group_count"]
+                else ""
+            )
+            print("C++ TCK-unmapped subsections" + suffix + ":")
+            for group in groups:
+                print(
+                    f"- {group['standard_section']}: "
+                    f"{group['uncovered_requirement_count']} absent / "
+                    f"{group['total_requirement_count']} total; "
+                    f"direct={group['mapped_requirement_count']}, "
+                    f"promoted={group['promoted_requirement_count']}, "
+                    f"candidate-only={group['candidate_only_requirement_count']}; "
+                    f"sample={', '.join(group.get('uncovered_requirement_ids', []))}"
+                )
+        if not (arguments.summary or arguments.compact):
+            requirements = result.get("requirements", [])
+            if requirements:
+                suffix = (
+                    f"; showing {len(requirements)} of "
+                    f"{result['uncovered_requirement_count']} records"
+                    if result["shown_requirement_count"]
+                    < result["uncovered_requirement_count"]
+                    else ""
+                )
+                print("Requirement records" + suffix + ":")
+                for requirement in requirements:
+                    print(
+                        f"- {requirement['id']} -> "
+                        f"{requirement.get('standard_section') or '<unresolved>'}: "
+                        f"{compact_prose(requirement.get('title'), 160)}; "
+                        f"mapped Catch2 cases={requirement['catch2_case_count']}"
+                    )
+                    if requirement.get("catch2_requirement_query"):
+                        print(f"  catch2={requirement['catch2_requirement_query']}")
+                    source = requirement.get("source")
+                    if isinstance(source, dict) and source.get("path"):
+                        line = source.get("line")
+                        location = f"{source['path']}:{line}" if line else source["path"]
+                        print(f"  standard_source={location}")
+                    for case in requirement.get("catch2_cases", []):
+                        print(
+                            f"  - {case.get('case_id')}: {case.get('test_case')} "
+                            f"({case.get('source_location') or 'source unlocated'})"
+                        )
+                    if requirement.get("statement"):
+                        print(
+                            "  statement="
+                            + compact_prose(requirement.get("statement"), 320)
+                        )
+        if result["invalid_mapping_count"] and not arguments.summary:
+            print("Unresolved Lab catalog mappings:")
+            for finding in result.get("invalid_mappings", []):
+                print(
+                    f"- {finding.get('scenario_id')}: {finding.get('requirement_id')} "
+                    f"catalog={finding.get('catalog_section')!r}, "
+                    f"expected={finding.get('expected_section')!r}"
+                )
+        if result["section_disagreement_count"] and not arguments.summary:
+            print("Catalog subsection crosswalk reviews (not counted as uncovered IDs):")
+            for finding in result.get("section_disagreements", []):
+                print(
+                    f"- {finding.get('scenario_id')}: {finding.get('requirement_id')} "
+                    f"catalog={finding.get('catalog_section')!r}, "
+                    f"exported/crosswalk={finding.get('expected_section')!r}"
+                )
+        return 0
+
     if arguments.command == "gaps":
         if arguments.limit < 0:
             message = "gaps --limit must be non-negative"
@@ -13276,15 +14020,24 @@ def main() -> int:
             if value:
                 scope.append(f"{label}={value!r}")
         scope_text = f" ({', '.join(scope)})" if scope else ""
-        print(
-            "2025 requirement gaps"
-            + scope_text
-            + ": "
-            f"{result['uncovered_requirement_count']} uncovered of "
-            f"{result['total_requirement_count']} filtered; "
-            f"{result['covered_requirement_count']} covered "
-            f"({result['coverage_percent']:.2f}% mapped)"
-        )
+        if arguments.family:
+            coverage_text = (
+                f"this family maps {result['covered_requirement_count']} of "
+                f"{result['total_requirement_count']} filtered requirements "
+                f"({result['coverage_percent']:.2f}%); "
+                f"{result['uncovered_requirement_count']} are not mapped to this family; "
+                f"across all families, "
+                f"{result['globally_covered_requirement_count']} covered and "
+                f"{result['globally_uncovered_requirement_count']} uncovered"
+            )
+        else:
+            coverage_text = (
+                f"{result['uncovered_requirement_count']} globally uncovered of "
+                f"{result['total_requirement_count']} filtered; "
+                f"{result['covered_requirement_count']} globally covered "
+                f"({result['coverage_percent']:.2f}% mapped)"
+            )
+        print("2025 requirement gaps" + scope_text + ": " + coverage_text)
         groups = result.get("groups", [])
         if groups:
             suffix = (
@@ -13292,12 +14045,28 @@ def main() -> int:
                 if result["shown_group_count"] < result["group_count"]
                 else ""
             )
-            print("Uncovered subsections" + suffix + ":")
+            heading = (
+                "Family-local uncovered subsections"
+                if arguments.family
+                else "Globally uncovered subsections"
+            )
+            print(heading + suffix + ":")
             for group in groups:
+                global_coverage = (
+                    f"; globally {group['globally_covered_requirement_count']} covered / "
+                    f"{group['globally_uncovered_requirement_count']} uncovered"
+                    if arguments.family
+                    else ""
+                )
+                local_coverage_label = (
+                    "family-covered" if arguments.family else "globally-covered"
+                )
                 print(
                     f"- {group['standard_section']}: "
                     f"{group['uncovered_requirement_count']} uncovered / "
                     f"{group['total_requirement_count']} total; "
+                    f"{local_coverage_label}={group['covered_requirement_count']}"
+                    f"{global_coverage}; "
                     f"sample={', '.join(group.get('uncovered_requirement_ids', []))}"
                 )
         requirements = [] if arguments.summary else result.get("requirements", [])
@@ -13319,6 +14088,11 @@ def main() -> int:
                 print(
                     f"- {requirement.get('id')} -> {requirement.get('standard_section')} "
                     f"({source_text}) {title}"
+                    + (
+                        f" [global coverage: {requirement.get('global_coverage')}]"
+                        if arguments.family
+                        else ""
+                    )
                 )
                 if requirement.get("requirement_query"):
                     print(f"  query={requirement['requirement_query']}")

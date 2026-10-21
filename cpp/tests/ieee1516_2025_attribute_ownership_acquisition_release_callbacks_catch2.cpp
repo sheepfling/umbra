@@ -9,7 +9,8 @@ TEST_CASE(
     "[rti.service.attribute-ownership-release-denied]"
     "[federate.callback.attribute-ownership-acquisition-notification]"
     "[federate.callback.attribute-ownership-unavailable]"
-    "[attribute-ownership-acquisition-release-callback]") {
+    "[attribute-ownership-acquisition-release-callback]"
+    "[ownership-acquisition-service-selection]") {
   TestFederateAmbassador unjoinedFederate;
   ReportingFederateAmbassador ownerReports;
   ReportingFederateAmbassador requesterReports;

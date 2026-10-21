@@ -75,17 +75,48 @@ FederationTimeBounds FederationTimeBoundsCalculator::calculate(
 
   bool hasOtherRegulator = false;
   std::shared_ptr<rti1516_2025::LogicalTime const> earliestFutureIncoming;
-  auto considerMessage = [&](TsoQueuedMessage const& message, bool future) {
+  bool const implicitRegulationAdvance = requester->time.timeRegulationPending &&
+      requester->time.timeAdvancePending &&
+      requester->time.advanceMode ==
+          FederateTimeAdvanceMode::time_advance_request_available;
+  auto considerPendingMessage = [&](TsoQueuedMessage const& message) {
     if (message.recipientFederateId != requestingFederateId || !message.timestamp ||
         message.timestamp->isInitial() || message.timestamp->isFinal() ||
         message.timestamp->implementationName() != execution.definition.logicalTimeImplementationName) {
       return false;
     }
-    // A delivered message can remain in the snapshot until the next grant so
-    // the coordinator can expose its ordering/retraction boundary. Once the
-    // recipient's current logical time has reached that timestamp, it must no
-    // longer hold GALT at the old boundary for a subsequent advance.
-    if (!future && requester->time.currentTime) {
+    if (!earliestFutureIncoming || *message.timestamp < *earliestFutureIncoming) {
+      earliestFutureIncoming = message.timestamp;
+    }
+    // A TSO strictly below a TAR target is part of its pre-grant delivery set
+    // and must not hold the request below that target. A TSO exactly at the
+    // TAR target remains a GALT boundary so the coordinator can deliver it
+    // before an equal-time TAG. TARA instead removes timestamps at or below
+    // its request from this bound. The service's delivery dispatch still
+    // delivers each admitted message before invoking TAG.
+    if (requester->time.timeAdvancePending &&
+        requester->time.requestedTime &&
+        (requester->time.advanceMode ==
+             FederateTimeAdvanceMode::time_advance_request ||
+         requester->time.advanceMode ==
+             FederateTimeAdvanceMode::time_advance_request_available)) {
+      try {
+        bool const deliveredBeforeGrant =
+            requester->time.advanceMode ==
+                    FederateTimeAdvanceMode::time_advance_request
+                ? *message.timestamp < *requester->time.requestedTime
+                : *message.timestamp <= *requester->time.requestedTime;
+        if (deliveredBeforeGrant) {
+          return true;
+        }
+      } catch (rti1516_2025::Exception const&) {
+        return false;
+      }
+    }
+    // A message at or behind the recipient's completed logical time is stale
+    // for future delivery, even if its transport phase still reports it as
+    // in-transit. It must not hold GALT below a subsequent advance target.
+    if (requester->time.currentTime) {
       try {
         if (*message.timestamp <= *requester->time.currentTime) {
           return true;
@@ -94,32 +125,32 @@ FederationTimeBounds FederationTimeBoundsCalculator::calculate(
         return false;
       }
     }
-    if (future && (!earliestFutureIncoming || *message.timestamp < *earliestFutureIncoming)) {
-      earliestFutureIncoming = message.timestamp;
+    // The implicit Available advance must deliver every already queued TSO
+    // below its target before Time Regulation Enabled. Those local payloads
+    // are delivery work, not a lower grant bound; the other regulators still
+    // provide the actual GALT while LITS retains the earliest queued input.
+    if (implicitRegulationAdvance) {
+      return true;
     }
-    if (!future && (!result.galt || *message.timestamp < *result.galt)) {
-      result.galt = message.timestamp;
-      result.galtIsTsoBoundary = true;
-    }
-    if (future && (!result.galt || *message.timestamp < *result.galt)) {
+    if (!result.galt || *message.timestamp < *result.galt) {
       result.galt = message.timestamp;
       result.galtIsTsoBoundary = true;
     }
     return true;
   };
   try {
-    for (auto const& message : requester->deliveredTsoMessagesSinceLastAdvance) {
-      if (!considerMessage(message, false)) {
-        return result;
-      }
-    }
+    // A delivered entry is callback-acknowledgement history, not an incoming
+    // delivery frontier. Only queued or in-transit TSO can still arrive after
+    // this snapshot; pending pre-grant records are delivered before TAG, while
+    // retaining an acknowledged timestamp here can pin GALT below a later
+    // safe grant indefinitely.
     for (auto const& message : requester->inTransitTsoMessages) {
-      if (!considerMessage(message, true)) {
+      if (!considerPendingMessage(message)) {
         return result;
       }
     }
     for (auto const& message : requester->queuedTsoMessages) {
-      if (!considerMessage(message, true)) {
+      if (!considerPendingMessage(message)) {
         return result;
       }
     }

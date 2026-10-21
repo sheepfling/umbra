@@ -5,7 +5,10 @@
 #include "internal/handles/parameter_handle.hpp"
 #include "internal/handles/region_handle.hpp"
 #include "internal/handles/transportation_type_handle.hpp"
+#include "internal/federation/process_federation_service_protocol.hpp"
+#include "internal/encoding/variable_length_data_2025.hpp"
 #include "internal/runtime/ambassador_shared_utilities.hpp"
+#include "internal/runtime/callback_region_designator_copies.hpp"
 #include "internal/runtime/umbra_rti_ambassador_service_failure_translation.hpp"
 
 #include <RTI/FederateAmbassador.h>
@@ -48,10 +51,30 @@ void queueAmbassadorReceiveOrderInteraction(
         L"The ordinary Receive Interaction callback path requires a joined-federate producer.");
   }
   std::vector<std::uint64_t> sentParameterHandles;
+  std::vector<umbra::detail::ProcessFederationInteractionParameterValue>
+      savedParameterValues;
   sentParameterHandles.reserve(sentParameters.size());
+  savedParameterValues.reserve(sentParameters.size());
   for (auto const & [parameterHandle, parameterValue] : sentParameters) {
-    static_cast<void>(parameterValue);
     sentParameterHandles.push_back(parameterHandle);
+    savedParameterValues.emplace_back(
+        parameterHandle,
+        umbra::detail::variable_length_data_2025::copyBytes(parameterValue));
+  }
+
+  std::optional<umbra::detail::FederationStateImageReceiveOrderInteraction>
+      pendingInteraction;
+  if (!sentRegionHandles && !defaultRegionUsed && !regionOverrides) {
+    auto const payload = umbra::detail::encodeProcessFederationInteractionEnvelope({
+        std::move(savedParameterValues),
+        umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag)});
+    pendingInteraction.emplace();
+    pendingInteraction->producingFederateId = *producingFederateId;
+    pendingInteraction->receivingFederateId = receivingFederateId;
+    pendingInteraction->interactionClassHandle = sentInteractionClassHandle;
+    pendingInteraction->parameterHandles = sentParameterHandles;
+    pendingInteraction->payload.assign(payload.begin(), payload.end());
+    pendingInteraction->transportationName = transportationName;
   }
 
   submitAmbassadorReceiveOrderCallback(
@@ -93,13 +116,22 @@ void queueAmbassadorReceiveOrderInteraction(
     ParameterHandleValueMap parameterValues = ambassadorProjectInteractionParameterValues(
         sentParameters,
         projection->receivedParameterHandles);
+    CallbackRegionDesignatorCopies callbackRegionDesignatorCopies(
+        federationName, receivingFederateId);
     std::optional<RegionHandleSet> optionalSentRegions;
     if (projection->conveyRegionDesignatorSets &&
         (sentRegionHandles || defaultRegionUsed)) {
       optionalSentRegions.emplace();
-      if (sentRegionHandles) {
-        for (std::uint64_t const regionHandle : *sentRegionHandles) {
-          optionalSentRegions->insert(makeRegionHandle(regionHandle));
+      if (sentRegionHandles && !sentRegionHandles->empty()) {
+        if (!regionOverrides) {
+          throw RTIinternalError(
+              L"A regional Receive Interaction has no send-time region snapshots.");
+        }
+        auto const copyStatus = callbackRegionDesignatorCopies.create(
+            *sentRegionHandles, *regionOverrides, *optionalSentRegions);
+        if (copyStatus != umbra::detail::RegionServiceStatus::applied) {
+          throw RTIinternalError(
+              L"The RTI could not create callback-scoped region designator copies.");
         }
       }
     }
@@ -116,7 +148,7 @@ void queueAmbassadorReceiveOrderInteraction(
         transportationType,
         makeFederateHandle(producingFederateId),
         optionalSentRegions ? &*optionalSentRegions : nullptr);
-  });
+  }, std::move(pendingInteraction));
 }
 
 void queueAmbassadorReceiveOrderDirectedInteraction(

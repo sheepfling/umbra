@@ -12,12 +12,105 @@ namespace umbra::detail {
 
 using process_federation_payload::parameterVector;
 
+std::optional<ProcessFederationAttributeUpdateEvent>
+projectProcessTsoAttributeUpdatePasselToCallback(
+    EmbeddedFederationRegistry& registry,
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId,
+    TsoAttributeUpdateMessage const& message,
+    TsoAttributeUpdatePassel const& passel,
+    ReceiveOrderAttributeUpdateRecipient const& projection,
+    ProcessTsoCallbackRegionDesignatorCopyLease& callbackRegionCopies,
+    bool asReceiveOrder) {
+  if (!asReceiveOrder && !message.timestamp) {
+    throw std::runtime_error(
+        "The process federation encountered a timestamped attribute update without a timestamp.");
+  }
+
+  ProcessFederationAttributeUpdateEvent event;
+  event.producingFederateId = message.producingFederateId;
+  event.receivingFederateId = receivingFederateId;
+  event.objectInstanceHandle = message.objectInstanceHandle;
+  event.transportationName = passel.transportationName;
+  event.defaultRegionUsed = passel.defaultRegionUsed;
+  if (projection.conveyRegionDesignatorSets &&
+      (!passel.sentRegionHandles.empty() || passel.defaultRegionUsed)) {
+    if (passel.sentRegionHandles.empty()) {
+      event.sentRegionHandles = passel.sentRegionHandles;
+    } else {
+      CallbackRegionDesignatorCopyMap copies;
+      auto const copyStatus = registry.createCallbackScopedRegionDesignatorCopies(
+          federationName,
+          receivingFederateId,
+          passel.sentRegionHandles,
+          passel.sentRegionSnapshots,
+          copies);
+      if (copyStatus != RegionServiceStatus::applied) {
+        throw std::runtime_error(
+            "The process federation could not create timestamped callback region designator copies.");
+      }
+      auto const& callbackCopies = callbackRegionCopies.add(std::move(copies));
+      std::set<std::uint64_t> conveyedCopyHandles;
+      for (auto const& [sourceRegionHandle, copiedRegionHandle] :
+           callbackCopies) {
+        static_cast<void>(sourceRegionHandle);
+        conveyedCopyHandles.insert(copiedRegionHandle);
+      }
+      event.sentRegionHandles = std::move(conveyedCopyHandles);
+    }
+  }
+  if (!asReceiveOrder) {
+    event.timestamp = encodeProcessLogicalTime(message.timestamp);
+  }
+  event.retractionMessageId = message.messageId;
+  if (message.userSuppliedTag.size() != 0U) {
+    auto const* data = static_cast<std::uint8_t const*>(
+        message.userSuppliedTag.data());
+    if (data == nullptr) {
+      throw std::runtime_error(
+          "The process federation could not copy a timestamped attribute tag.");
+    }
+    event.userSuppliedTag.assign(
+        data, data + message.userSuppliedTag.size());
+  }
+
+  for (auto const attributeHandle : passel.sentAttributeHandles) {
+    if (!projection.receivedAttributeHandles.contains(attributeHandle)) {
+      continue;
+    }
+    auto const value = std::find_if(
+        message.attributes.begin(),
+        message.attributes.end(),
+        [attributeHandle](TsoAttributeValue const& candidate) {
+          return candidate.first == attributeHandle;
+        });
+    if (value == message.attributes.end()) {
+      continue;
+    }
+    std::vector<std::uint8_t> bytes(value->second.size());
+    if (!bytes.empty()) {
+      auto const* data = static_cast<std::uint8_t const*>(value->second.data());
+      if (data == nullptr) {
+        throw std::runtime_error(
+            "The process federation could not copy a timestamped attribute value.");
+      }
+      std::copy(data, data + bytes.size(), bytes.begin());
+    }
+    event.attributeValues.emplace_back(attributeHandle, std::move(bytes));
+  }
+  if (event.attributeValues.empty()) {
+    return std::nullopt;
+  }
+  return event;
+}
+
 void ProcessFederationService::dispatchTsoAttributeUpdateDelivery(
     std::wstring const &federationName,
     std::uint64_t receivingFederateId,
-    TsoAttributeUpdateDelivery const &attribute) {
+    TsoAttributeUpdateDelivery const &attribute,
+    bool asReceiveOrder) {
   auto const &message = attribute.message;
-  if (!message.timestamp) {
+  if (!asReceiveOrder && !message.timestamp) {
     throw std::runtime_error(
         "The process federation encountered a timestamped attribute update without a timestamp.");
   }
@@ -58,8 +151,12 @@ void ProcessFederationService::dispatchTsoAttributeUpdateDelivery(
   }
 
   std::vector<ProcessFederationAttributeUpdateEvent> events;
+  ProcessTsoCallbackRegionDesignatorCopyLease callbackRegionCopies(
+      registry_, federationName, receivingFederateId);
   auto const passels = message.passelsByRecipient.find(receivingFederateId);
   if (passels != message.passelsByRecipient.end()) {
+    events.reserve(passels->second.size());
+    callbackRegionCopies.reserve(passels->second.size());
     for (auto const &passel : passels->second) {
       auto projection = registry_.receiveOrderAttributeUpdateRecipientFor(
           federationName,
@@ -74,65 +171,34 @@ void ProcessFederationService::dispatchTsoAttributeUpdateDelivery(
       if (!projection) {
         continue;
       }
-      ProcessFederationAttributeUpdateEvent event;
-      event.producingFederateId = message.producingFederateId;
-      event.receivingFederateId = receivingFederateId;
-      event.objectInstanceHandle = message.objectInstanceHandle;
-      event.transportationName = passel.transportationName;
-      event.defaultRegionUsed = passel.defaultRegionUsed;
-      if (projection->conveyRegionDesignatorSets &&
-          (!passel.sentRegionHandles.empty() || passel.defaultRegionUsed)) {
-        event.sentRegionHandles = passel.sentRegionHandles;
-      }
-      event.timestamp = encodeProcessLogicalTime(message.timestamp);
-      event.retractionMessageId = message.messageId;
-      if (message.userSuppliedTag.size() != 0U) {
-        auto const *data = static_cast<std::uint8_t const *>(
-            message.userSuppliedTag.data());
-        if (data == nullptr) {
-          throw std::runtime_error(
-              "The process federation could not copy a timestamped attribute tag.");
-        }
-        event.userSuppliedTag.assign(
-            data,
-            data + message.userSuppliedTag.size());
-      }
-      for (auto const attributeHandle : passel.sentAttributeHandles) {
-        if (!projection->receivedAttributeHandles.contains(attributeHandle)) {
-          continue;
-        }
-        auto const value = std::find_if(
-            message.attributes.begin(),
-            message.attributes.end(),
-            [attributeHandle](TsoAttributeValue const &candidate) {
-              return candidate.first == attributeHandle;
-            });
-        if (value == message.attributes.end()) {
-          continue;
-        }
-        std::vector<std::uint8_t> bytes(value->second.size());
-        if (!bytes.empty()) {
-          auto const *data = static_cast<std::uint8_t const *>(
-              value->second.data());
-          if (data == nullptr) {
-            throw std::runtime_error(
-                "The process federation could not copy a timestamped attribute value.");
-          }
-          std::copy(data, data + bytes.size(), bytes.begin());
-        }
-        event.attributeValues.emplace_back(attributeHandle, std::move(bytes));
-      }
-      if (!event.attributeValues.empty()) {
-        events.push_back(std::move(event));
+      auto event = projectProcessTsoAttributeUpdatePasselToCallback(
+          registry_,
+          federationName,
+          receivingFederateId,
+          message,
+          passel,
+          *projection,
+          callbackRegionCopies,
+          asReceiveOrder);
+      if (event) {
+        events.push_back(std::move(*event));
       }
     }
+  }
+
+  for (std::size_t index = 0U; index < events.size(); ++index) {
+    events[index].tsoCallbackGroupPosition =
+        index + 1U == events.size()
+            ? ProcessFederationTsoAttributeUpdateCallbackGroupPosition::final
+            : ProcessFederationTsoAttributeUpdateCallbackGroupPosition::more;
   }
 
   if (events.empty() ||
       !registry_.beginTsoAttributeUpdateCallback(
           federationName,
           receivingFederateId,
-          message.messageId)) {
+          message.messageId,
+          asReceiveOrder)) {
     static_cast<void>(registry_.finishTsoRecipientCallbackSuppressed(
         federationName,
         receivingFederateId,
@@ -140,6 +206,29 @@ void ProcessFederationService::dispatchTsoAttributeUpdateDelivery(
     completeDelivery();
     return;
   }
+
+  if (!callbackRegionCopies.empty()) {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(receivingSession);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != federationName ||
+        state->second.federateId != receivingFederateId) {
+      throw std::runtime_error(
+          "The process federation lost the timestamped attribute recipient before retaining its callback region copies.");
+    }
+    auto const [pending, inserted] = state->second
+                                         .pendingTsoAttributeCallbackRegionDesignatorCopies
+                                         .try_emplace(
+                                             message.messageId,
+                                             std::move(callbackRegionCopies));
+    static_cast<void>(pending);
+    if (!inserted) {
+      throw std::runtime_error(
+          "The process federation already retains timestamped callback region copies for this message.");
+    }
+  }
+
   for (auto &event : events) {
     if (!receivingSession->send(TransportServiceMessage{
             TransportServiceMessageKind::event,
@@ -164,9 +253,10 @@ void ProcessFederationService::dispatchTsoAttributeUpdateDelivery(
 void ProcessFederationService::dispatchTsoInteractionDelivery(
     std::wstring const &federationName,
     std::uint64_t receivingFederateId,
-    TsoInteractionDelivery const &interaction) {
+    TsoInteractionDelivery const &interaction,
+    bool asReceiveOrder) {
   auto const &message = interaction.message;
-  if (!message.timestamp) {
+  if (!asReceiveOrder && !message.timestamp) {
     throw std::runtime_error(
         "The process federation encountered a timestamped interaction without a timestamp.");
   }
@@ -217,7 +307,8 @@ void ProcessFederationService::dispatchTsoInteractionDelivery(
   if (!projection || !registry_.beginTsoInteractionCallback(
                          federationName,
                          receivingFederateId,
-                         message.messageId)) {
+                         message.messageId,
+                         asReceiveOrder)) {
     static_cast<void>(registry_.finishTsoRecipientCallbackSuppressed(
         federationName,
         receivingFederateId,
@@ -253,10 +344,13 @@ void ProcessFederationService::dispatchTsoInteractionDelivery(
     envelope.parameterValues.emplace_back(parameterHandle, std::move(bytes));
   }
 
-  auto const timestamp = encodeProcessLogicalTime(message.timestamp);
-  if (!timestamp) {
-    throw std::runtime_error(
-        "The process federation could not encode a timestamped interaction time.");
+  std::optional<ProcessFederationLogicalTime> timestamp;
+  if (!asReceiveOrder) {
+    timestamp = encodeProcessLogicalTime(message.timestamp);
+    if (!timestamp) {
+      throw std::runtime_error(
+          "The process federation could not encode a timestamped interaction time.");
+    }
   }
   ProcessFederationInteractionEvent event{
       message.producingFederateId,
@@ -268,8 +362,10 @@ void ProcessFederationService::dispatchTsoInteractionDelivery(
       std::move(timestamp),
       std::nullopt,
       message.messageId};
-  event.sentOrderType = rti1516_2025::TIMESTAMP;
-  event.receivedOrderType = rti1516_2025::TIMESTAMP;
+  if (!asReceiveOrder) {
+    event.sentOrderType = rti1516_2025::TIMESTAMP;
+    event.receivedOrderType = rti1516_2025::TIMESTAMP;
+  }
   event.defaultRegionUsed =
       projection->conveyRegionDesignatorSets && message.defaultRegionUsed;
   if (projection->conveyRegionDesignatorSets &&

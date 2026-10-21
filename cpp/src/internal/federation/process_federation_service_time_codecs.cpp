@@ -410,7 +410,7 @@ encodeProcessFederationEnableTimeRegulationResult(
   }
   bool const applied =
       result.status == ProcessFederationTimeEnableStatus::applied;
-  if (result.enabledTime.has_value() != applied) {
+  if (result.enabledTime && !applied) {
     throw ProcessFederationServiceProtocolError(
         "A process time-regulation result has an invalid enabled-time marker.");
   }
@@ -447,11 +447,11 @@ decodeProcessFederationEnableTimeRegulationResult(
   result.status = static_cast<ProcessFederationTimeEnableStatus>(rawStatus);
   bool const applied =
       result.status == ProcessFederationTimeEnableStatus::applied;
-  if ((marker != 0U) != applied) {
+  if (marker != 0U && !applied) {
     throw ProcessFederationServiceProtocolError(
         "A process time-regulation result has an inconsistent enabled-time marker.");
   }
-  if (marker != 0U) {
+  if (marker == 1U) {
     ProcessFederationLogicalTime enabledTime;
     enabledTime.implementationName = reader.wideString();
     enabledTime.encoding = reader.bytes();
@@ -476,13 +476,17 @@ encodeProcessFederationEnableTimeConstrainedResult(
   }
   bool const applied =
       result.status == ProcessFederationTimeEnableStatus::applied;
-  if (result.enabledTime.has_value() != applied) {
+  if ((applied &&
+       (result.enabledTime.has_value() == result.awaitingGalt)) ||
+      (!applied &&
+       (result.enabledTime.has_value() || result.awaitingGalt))) {
     throw ProcessFederationServiceProtocolError(
         "A process time-constrained result has an invalid enabled-time marker.");
   }
   PayloadWriter writer;
   writer.unsigned8(status);
-  writer.unsigned8(result.enabledTime.has_value() ? 1U : 0U);
+  writer.unsigned8(
+      result.enabledTime ? 1U : (result.awaitingGalt ? 2U : 0U));
   if (result.enabledTime) {
     if (result.enabledTime->implementationName.empty()) {
       throw ProcessFederationServiceProtocolError(
@@ -505,7 +509,7 @@ decodeProcessFederationEnableTimeConstrainedResult(
         "A process time-constrained result has an unknown status.");
   }
   auto const marker = reader.unsigned8();
-  if (marker > 1U) {
+  if (marker > 2U) {
     throw ProcessFederationServiceProtocolError(
         "A process time-constrained result has an invalid enabled-time marker.");
   }
@@ -517,7 +521,8 @@ decodeProcessFederationEnableTimeConstrainedResult(
     throw ProcessFederationServiceProtocolError(
         "A process time-constrained result has an inconsistent enabled-time marker.");
   }
-  if (marker != 0U) {
+  result.awaitingGalt = marker == 2U;
+  if (marker == 1U) {
     ProcessFederationLogicalTime enabledTime;
     enabledTime.implementationName = reader.wideString();
     enabledTime.encoding = reader.bytes();
@@ -583,6 +588,17 @@ std::vector<std::uint8_t> encodeProcessFederationTimeAdvanceResult(
     throw ProcessFederationServiceProtocolError(
         "A process Flush Queue Grant uses mismatched logical-time implementations.");
   }
+  if (result.regulationEnabled &&
+      (!applied || !result.grantedTime || result.optimisticTime)) {
+    throw ProcessFederationServiceProtocolError(
+        "An implicit regulation grant has an invalid callback marker.");
+  }
+  if (result.constrainedEnabled &&
+      (!applied || !result.grantedTime || result.optimisticTime ||
+       result.regulationEnabled)) {
+    throw ProcessFederationServiceProtocolError(
+        "A deferred constrained-enable event has an invalid callback marker.");
+  }
   PayloadWriter writer;
   writer.unsigned8(status);
   writer.unsigned8(result.grantedTime.has_value() ? 1U : 0U);
@@ -600,6 +616,10 @@ std::vector<std::uint8_t> encodeProcessFederationTimeAdvanceResult(
     writer.unsigned8(1U);
     writer.wideString(result.optimisticTime->implementationName);
     writer.bytes(result.optimisticTime->encoding);
+  } else if (result.regulationEnabled) {
+    writer.unsigned8(2U);
+  } else if (result.constrainedEnabled) {
+    writer.unsigned8(3U);
   }
   return std::move(writer).finish();
 }
@@ -638,20 +658,25 @@ ProcessFederationTimeAdvanceResult decodeProcessFederationTimeAdvanceResult(
   }
   if (reader.remaining() != 0U) {
     auto const optimisticMarker = reader.unsigned8();
-    if (optimisticMarker != 1U || !result.grantedTime || !applied) {
+    if (optimisticMarker == 2U && result.grantedTime && applied) {
+      result.regulationEnabled = true;
+    } else if (optimisticMarker == 3U && result.grantedTime && applied) {
+      result.constrainedEnabled = true;
+    } else if (optimisticMarker != 1U || !result.grantedTime || !applied) {
       throw ProcessFederationServiceProtocolError(
           "A process Flush Queue Grant has an invalid optimistic-time marker.");
+    } else {
+      ProcessFederationLogicalTime optimisticTime;
+      optimisticTime.implementationName = reader.wideString();
+      optimisticTime.encoding = reader.bytes();
+      if (optimisticTime.implementationName.empty() ||
+          optimisticTime.implementationName !=
+              result.grantedTime->implementationName) {
+        throw ProcessFederationServiceProtocolError(
+            "A process Flush Queue Grant uses an invalid optimistic logical time.");
+      }
+      result.optimisticTime = std::move(optimisticTime);
     }
-    ProcessFederationLogicalTime optimisticTime;
-    optimisticTime.implementationName = reader.wideString();
-    optimisticTime.encoding = reader.bytes();
-    if (optimisticTime.implementationName.empty() ||
-        optimisticTime.implementationName !=
-            result.grantedTime->implementationName) {
-      throw ProcessFederationServiceProtocolError(
-          "A process Flush Queue Grant uses an invalid optimistic logical time.");
-    }
-    result.optimisticTime = std::move(optimisticTime);
   }
   reader.finish();
   return result;

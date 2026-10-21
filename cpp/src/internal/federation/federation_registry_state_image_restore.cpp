@@ -169,6 +169,8 @@ void EmbeddedFederationRegistry::restoreControlAndTimeFromStateImage(
     restoredTime.nextGeneration = savedTime.nextGeneration;
     restoredTime.minimumTimestampIsExclusive =
         (savedTime.flags & (1U << 7U)) != 0U;
+    restoredTime.allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant =
+        (savedTime.flags & (1U << 8U)) != 0U;
     restoredTime.currentTime = decodeLogicalTimeEncoding(
         image.logicalTimeImplementationName,
         savedTime.currentTimeEncoding);
@@ -951,6 +953,9 @@ void EmbeddedFederationRegistry::restoreFederationFromSnapshot(
   target.tsoObjectDeletionReconstitutionRecords =
       snapshot.tsoObjectDeletionReconstitutionRecords;
   target.tsoDirectedInteractionMessages = snapshot.tsoDirectedInteractionMessages;
+  target.queuedReceiveOrderInteractions = snapshot.queuedReceiveOrderInteractions;
+  target.queuedReceiveOrderAttributeUpdates =
+      snapshot.queuedReceiveOrderAttributeUpdates;
   // A queued grant callback belongs to the pre-restore execution. Replace
   // that work with the fresh live-route dispatches prepared above instead of
   // copying a stale std::function from the saved federation image.

@@ -711,5 +711,71 @@ TEST_CASE(
   }
 }
 
+TEST_CASE(
+    "RTIambassador rejects a stale region during 2025 object registration without partial registration",
+    "[integration][foundation][data-distribution-management][object-management]"
+    "[ddm-register-regions-invalid-region-2025][invalid-region][stale-region]"
+    "[rti.service.register-object-instance-with-regions]") {
+  static std::atomic_uint64_t nextFederation{0U};
+  auto const federationName = L"stale-region-object-registration-" +
+      std::to_wstring(nextFederation.fetch_add(1U, std::memory_order_relaxed));
+  constexpr wchar_t const* federateName = L"stale-region-registration-owner";
+  constexpr wchar_t const* objectName = L"Stale-Region-Registration-Object";
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  REQUIRE_NOTHROW(rti->connect(federate, HLA_EVOKED));
+  REQUIRE_NOTHROW(rti->createFederationExecution(
+      federationName,
+      processResourcePath("examples/RestaurantFOMmodule-2025.xml").wstring(),
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(
+      rti->joinFederationExecution(federateName, L"owner", federationName));
+
+  auto const objectClass =
+      rti->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+  auto const flavor = rti->getAttributeHandle(objectClass, L"Flavor");
+  auto const dimension = rti->getDimensionHandle(L"SodaFlavor");
+  REQUIRE(objectClass.isValid());
+  REQUIRE(flavor.isValid());
+  REQUIRE(dimension.isValid());
+  REQUIRE_NOTHROW(rti->publishObjectClassAttributes(
+      objectClass, rti1516_2025::AttributeHandleSet{flavor}));
+
+  auto const staleRegion =
+      rti->createRegion(rti1516_2025::DimensionHandleSet{dimension});
+  REQUIRE(staleRegion.isValid());
+  REQUIRE_NOTHROW(rti->deleteRegion(staleRegion));
+  REQUIRE_NOTHROW(rti->reserveObjectInstanceName(objectName));
+
+  rti1516_2025::AttributeHandleSetRegionHandleSetPairVector const invalidPair{{
+      rti1516_2025::AttributeHandleSet{flavor},
+      rti1516_2025::RegionHandleSet{staleRegion},
+  }};
+  REQUIRE_THROWS_AS(
+      rti->registerObjectInstanceWithRegions(objectClass, invalidPair, objectName),
+      rti1516_2025::InvalidRegion);
+  REQUIRE_THROWS_AS(
+      rti->getObjectInstanceHandle(objectName),
+      rti1516_2025::ObjectInstanceNotKnown);
+
+  // The failed registration must leave the reservation available and the
+  // instance name reusable; a valid retry must register exactly once.
+  REQUIRE_NOTHROW(rti->releaseObjectInstanceName(objectName));
+  REQUIRE_NOTHROW(rti->reserveObjectInstanceName(objectName));
+  rti1516_2025::AttributeHandleSetRegionHandleSetPairVector const defaultRegionPair{{
+      rti1516_2025::AttributeHandleSet{flavor},
+      rti1516_2025::RegionHandleSet{},
+  }};
+  auto const objectInstance = rti->registerObjectInstanceWithRegions(
+      objectClass, defaultRegionPair, objectName);
+  REQUIRE(objectInstance.isValid());
+  REQUIRE(rti->getObjectInstanceHandle(objectName) == objectInstance);
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
 #endif
 #endif

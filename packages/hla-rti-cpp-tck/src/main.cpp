@@ -97,6 +97,8 @@
 #include "tck_custom_transportation_interaction_scenarios.hpp"
 
 namespace hla_rti_cpp_tck::detail {
+void scenarioTimestampedDirectedZeroLookaheadSendAtGrant(
+    Options const&, rti::CallbackModel);
 void scenarioSentTsoAttributePerRecipientOrderConversion(Options const&,
                                                          rti::CallbackModel);
 void scenarioSentTsoAttributePerRecipientOrderConversionContract(
@@ -109,6 +111,26 @@ void scenarioTarQueuedTsoBeforeGrant(Options const&, rti::CallbackModel);
 void scenarioTarQueuedTsoBeforeGrantContract(Options const&, rti::CallbackModel);
 void scenarioNmrLitsBelowGaltImmediateGrant(Options const&, rti::CallbackModel);
 void scenarioNmrLitsBelowGaltImmediateGrantContract(Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedEnableRetainsQueuedTsoAttribute(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedEnableRetainsQueuedTsoAttributeContract(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedInteractionToReceiveOrder(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedInteractionToReceiveOrderContract(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedAttributeToReceiveOrder(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedAttributeToReceiveOrderContract(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedDeletionToReceiveOrder(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedDeletionToReceiveOrderContract(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrder(
+    Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
+    Options const&, rti::CallbackModel);
 }
 #include "tck_lookup_lifecycle_scenarios.hpp"
 #include "tck_fom_module_scenarios.hpp"
@@ -10558,87 +10580,6 @@ void scenarioResignCancelNegotiatedPendingContract(
 
 
 
-void scenarioAutoProvide(
-    Options const& options,
-    rti::CallbackModel model) {
-  require(
-      !options.autoProvideFom.empty(),
-      "Auto Provide testing requires an adapter-supplied Auto Provide FOM");
-  Session owner(options, model, "owner");
-  Session requester(options, model, "requester");
-  auto const federation = federationName(options, "auto-provide");
-  connectAndJoin(owner, requester, options, federation, options.autoProvideFom);
-
-  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
-      options.autoProvideObjectClassName);
-  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
-      options.autoProvideObjectClassName);
-  auto const ownerFirst = owner.rtiAmbassador().getAttributeHandle(
-      ownerClass, options.autoProvideFirstAttributeName);
-  auto const ownerSecond = owner.rtiAmbassador().getAttributeHandle(
-      ownerClass, options.autoProvideSecondAttributeName);
-  auto const requesterFirst = requester.rtiAmbassador().getAttributeHandle(
-      requesterClass, options.autoProvideFirstAttributeName);
-  auto const requesterSecond = requester.rtiAmbassador().getAttributeHandle(
-      requesterClass, options.autoProvideSecondAttributeName);
-  require(
-      ownerClass.isValid() && requesterClass.isValid() && ownerFirst.isValid() &&
-          ownerSecond.isValid() && requesterFirst.isValid() && requesterSecond.isValid(),
-      "Auto Provide handle lookup returned an invalid handle");
-  require(
-      owner.rtiAmbassador().getAutoProvideSwitch() &&
-          requester.rtiAmbassador().getAutoProvideSwitch(),
-      "Auto Provide FOM did not enable the standard Auto Provide switch");
-
-  rti::AttributeHandleSet ownerAttributes{ownerFirst, ownerSecond};
-  rti::AttributeHandleSet requesterAttributes{requesterFirst, requesterSecond};
-  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
-  requester.rtiAmbassador().subscribeObjectClassAttributes(
-      requesterClass, requesterAttributes, true, L"");
-  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
-  require(object.isValid(), "Auto Provide registration returned an invalid object handle");
-
-  waitFor(
-      owner,
-      requester,
-      [&] {
-        return owner.recorder().providedUpdates().size() >= 1U &&
-            requester.recorder().discovery().present;
-      },
-      options,
-      "Auto Provide discovery and solicitation");
-  auto const providedUpdates = owner.recorder().providedUpdates();
-  require(
-      providedUpdates.size() == 1U,
-      "Auto Provide solicited more than one provider callback");
-  auto const& provided = providedUpdates.front();
-  require(
-      provided.object == object && provided.attributes == ownerAttributes &&
-          provided.tag.empty(),
-      "Auto Provide callback returned the wrong object, attributes, or tag");
-  auto const discovery = requester.recorder().discovery();
-  require(
-      discovery.object == object && discovery.objectClass == requesterClass,
-      "Auto Provide discovery returned the wrong object or object class");
-
-  requester.rtiAmbassador().unsubscribeObjectClassAttributes(
-      requesterClass, requesterAttributes);
-  requester.resign(rti::NO_ACTION);
-  owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
-  owner.rtiAmbassador().destroyFederationExecution(federation);
-  requester.disconnect();
-  owner.disconnect();
-}
-
-void scenarioAutoProvideContract(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioAutoProvide(options, model);
-}
-
-
-
-
 void scenarioAttributeScopeAdvisories(
     Options const& options,
     rti::CallbackModel model) {
@@ -19717,6 +19658,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-directed-interaction-reenable",
       "cpp-tck.timestamped-directed-interaction-regulation-reenable",
       "cpp-tck.timestamped-directed-interaction-subscription-kind",
+      "cpp-tck.timestamped-directed-zero-lookahead-tar-send-boundary",
+      "cpp-tck.timestamped-directed-zero-lookahead-send-at-grant",
       "cpp-tck.timestamped-directed-interaction-source-resignation",
       "cpp-tck.timestamped-directed-interaction-source-resignation-fanout",
       "cpp-tck.timestamped-directed-interaction-source-resignation-contract",
@@ -19815,8 +19758,26 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.send-message-time-state-preservation-granted-contract",
       "cpp-tck.available-time-advances-inclusive-galt",
       "cpp-tck.available-time-advances-inclusive-galt-contract",
+      "cpp-tck.tar-acknowledged-tso-galt-release",
+      "cpp-tck.tar-acknowledged-tso-galt-release-contract",
       "cpp-tck.time-constrained-enable-galt-equality",
       "cpp-tck.time-constrained-enable-galt-equality-contract",
+      "cpp-tck.time-constrained-enable-regulating-federate-current-time",
+      "cpp-tck.time-constrained-enable-regulating-federate-current-time-contract",
+      "cpp-tck.time-constrained-enable-retains-queued-tso",
+      "cpp-tck.time-constrained-enable-retains-queued-tso-contract",
+      "cpp-tck.time-constrained-enable-retains-queued-tso-attribute",
+      "cpp-tck.time-constrained-enable-retains-queued-tso-attribute-contract",
+      "cpp-tck.time-constrained-enable-receive-order-boundary",
+      "cpp-tck.time-constrained-enable-receive-order-boundary-contract",
+      "cpp-tck.time-constrained-disable-queued-interaction-to-ro",
+      "cpp-tck.time-constrained-disable-queued-interaction-to-ro-contract",
+      "cpp-tck.time-constrained-disable-queued-attribute-to-ro",
+      "cpp-tck.time-constrained-disable-queued-attribute-to-ro-contract",
+      "cpp-tck.time-constrained-disable-queued-deletion-to-ro",
+      "cpp-tck.time-constrained-disable-queued-deletion-to-ro-contract",
+      "cpp-tck.time-constrained-disable-queued-directed-to-ro",
+      "cpp-tck.time-constrained-disable-queued-directed-to-ro-contract",
       "cpp-tck.time-regulation-implicit-advance",
       "cpp-tck.time-regulation-implicit-advance-contract",
       "cpp-tck.time-bounds-queries",
@@ -19965,6 +19926,10 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.if-available-ownership-restore-unavailable-callback",
       "cpp-tck.federation-save-restore",
       "cpp-tck.federation-save-restore-interlocks",
+      "cpp-tck.save-active-callback-resignation-guard",
+      "cpp-tck.save-active-callback-resignation-guard-contract",
+      "cpp-tck.timed-save-active-callback-resignation-guard",
+      "cpp-tck.timed-save-active-callback-resignation-guard-contract",
       "cpp-tck.fqr-timed-federation-save-callback",
       "cpp-tck.fqr-timed-federation-save-callback-contract",
       "cpp-tck.timed-federation-save-restore",
@@ -20141,6 +20106,8 @@ void printHelp() {
       "  --three-dimensional-dimension NAME\n"
       "                                Repeat; three-dimensional DDM dimension name\n"
       "  --additional-fom FILE         Repeat; extension FOM module supplied by the adapter\n"
+      "  --ownership-extension-fom FILE  FOM adding an attribute to the adapter object class at join\n"
+      "  --ownership-added-attribute NAME  Name of that newly merged attribute\n"
       "  --invalid-fom FILE            Repeat; invalid FOM input supplied by the adapter\n"
       "  --standard-invalid-fom FILE  Repeat; standard-invalid FOM input supplied by the adapter\n"
       "  --callback-model both|evoked|immediate\n"
@@ -20300,6 +20267,12 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--additional-fom") {
       requireValue(index, argc, argv, argument);
       options.additionalFomModules.emplace_back(argv[++index]);
+    } else if (argument == "--ownership-extension-fom") {
+      requireValue(index, argc, argv, argument);
+      options.ownershipExtensionFom = argv[++index];
+    } else if (argument == "--ownership-added-attribute") {
+      requireValue(index, argc, argv, argument);
+      options.ownershipAddedAttributeName = toWide(argv[++index]);
     } else if (argument == "--invalid-fom") {
       requireValue(index, argc, argv, argument);
       options.invalidFomModules.emplace_back(argv[++index]);
@@ -21504,6 +21477,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-interaction-tar-equal-boundary-contract") {
     return scenarioTimestampedInteractionTarEqualBoundaryContract;
   }
+  if (id == "cpp-tck.timestamped-interaction-zero-lookahead-tar-send-boundary-contract") {
+    return scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryContract;
+  }
   if (id == "cpp-tck.timestamped-interaction-tar-post-grant-cutoff-contract") {
     return scenarioTimestampedInteractionTarPostGrantCutoffContract;
   }
@@ -21600,6 +21576,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-interaction-tar-equal-boundary") {
     return scenarioTimestampedInteractionTarEqualBoundary;
   }
+  if (id == "cpp-tck.timestamped-interaction-zero-lookahead-tar-send-boundary") {
+    return scenarioTimestampedInteractionZeroLookaheadTarSendBoundary;
+  }
   if (id == "cpp-tck.timestamped-interaction-tar-post-grant-cutoff") {
     return scenarioTimestampedInteractionTarPostGrantCutoff;
   }
@@ -21641,6 +21620,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.timestamped-directed-interaction-subscription-kind") {
     return scenarioTimestampedDirectedInteractionSubscriptionKind;
+  }
+  if (id == "cpp-tck.timestamped-directed-zero-lookahead-tar-send-boundary") {
+    return scenarioTimestampedDirectedZeroLookaheadTarSendBoundary;
+  }
+  if (id == "cpp-tck.timestamped-directed-zero-lookahead-send-at-grant") {
+    return scenarioTimestampedDirectedZeroLookaheadSendAtGrant;
   }
   if (id == "cpp-tck.timestamped-directed-interaction-source-resignation") {
     return scenarioTimestampedDirectedInteractionSourceResignation;
@@ -21927,6 +21912,18 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.nmra-no-pregrant-tso-floor-contract") {
     return scenarioNmraNoPregrantTsoFloorContract;
   }
+  if (id == "cpp-tck.nmra-received-tso-actual-lookahead-floor") {
+    return scenarioNmraReceivedTsoActualLookaheadFloor;
+  }
+  if (id == "cpp-tck.nmra-received-tso-actual-lookahead-floor-contract") {
+    return scenarioNmraReceivedTsoActualLookaheadFloorContract;
+  }
+  if (id == "cpp-tck.nmra-ro-earliest-tso-cohort") {
+    return scenarioNmraQueuedRoAndEarliestTsoCohort;
+  }
+  if (id == "cpp-tck.nmra-ro-earliest-tso-cohort-contract") {
+    return scenarioNmraQueuedRoAndEarliestTsoCohortContract;
+  }
   if (id == "cpp-tck.send-message-time-state-preservation-granted") {
     return scenarioSendMessageTimeStatePreservationGranted;
   }
@@ -21939,11 +21936,65 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.available-time-advances-inclusive-galt-contract") {
     return scenarioAvailableTimeAdvancesInclusiveGaltContract;
   }
+  if (id == "cpp-tck.tar-acknowledged-tso-galt-release") {
+    return scenarioTarAcknowledgedTsoGaltRelease;
+  }
+  if (id == "cpp-tck.tar-acknowledged-tso-galt-release-contract") {
+    return scenarioTarAcknowledgedTsoGaltReleaseContract;
+  }
   if (id == "cpp-tck.time-constrained-enable-galt-equality") {
     return scenarioTimeConstrainedEnableAtGaltEquality;
   }
   if (id == "cpp-tck.time-constrained-enable-galt-equality-contract") {
     return scenarioTimeConstrainedEnableAtGaltEqualityContract;
+  }
+  if (id == "cpp-tck.time-constrained-enable-regulating-federate-current-time") {
+    return scenarioTimeConstrainedEnableRegulatingFederateCurrentTime;
+  }
+  if (id == "cpp-tck.time-constrained-enable-regulating-federate-current-time-contract") {
+    return scenarioTimeConstrainedEnableRegulatingFederateCurrentTimeContract;
+  }
+  if (id == "cpp-tck.time-constrained-enable-retains-queued-tso") {
+    return scenarioTimeConstrainedEnableRetainsQueuedTso;
+  }
+  if (id == "cpp-tck.time-constrained-enable-retains-queued-tso-contract") {
+    return scenarioTimeConstrainedEnableRetainsQueuedTsoContract;
+  }
+  if (id == "cpp-tck.time-constrained-enable-retains-queued-tso-attribute") {
+    return scenarioTimeConstrainedEnableRetainsQueuedTsoAttribute;
+  }
+  if (id == "cpp-tck.time-constrained-enable-retains-queued-tso-attribute-contract") {
+    return scenarioTimeConstrainedEnableRetainsQueuedTsoAttributeContract;
+  }
+  if (id == "cpp-tck.time-constrained-enable-receive-order-boundary") {
+    return scenarioTimeConstrainedEnableReceiveOrderBoundary;
+  }
+  if (id == "cpp-tck.time-constrained-enable-receive-order-boundary-contract") {
+    return scenarioTimeConstrainedEnableReceiveOrderBoundaryContract;
+  }
+  if (id == "cpp-tck.time-constrained-disable-queued-interaction-to-ro") {
+    return scenarioTimeConstrainedDisableQueuedInteractionToReceiveOrder;
+  }
+  if (id == "cpp-tck.time-constrained-disable-queued-interaction-to-ro-contract") {
+    return scenarioTimeConstrainedDisableQueuedInteractionToReceiveOrderContract;
+  }
+  if (id == "cpp-tck.time-constrained-disable-queued-attribute-to-ro") {
+    return scenarioTimeConstrainedDisableQueuedAttributeToReceiveOrder;
+  }
+  if (id == "cpp-tck.time-constrained-disable-queued-attribute-to-ro-contract") {
+    return scenarioTimeConstrainedDisableQueuedAttributeToReceiveOrderContract;
+  }
+  if (id == "cpp-tck.time-constrained-disable-queued-deletion-to-ro") {
+    return scenarioTimeConstrainedDisableQueuedDeletionToReceiveOrder;
+  }
+  if (id == "cpp-tck.time-constrained-disable-queued-deletion-to-ro-contract") {
+    return scenarioTimeConstrainedDisableQueuedDeletionToReceiveOrderContract;
+  }
+  if (id == "cpp-tck.time-constrained-disable-queued-directed-to-ro") {
+    return scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrder;
+  }
+  if (id == "cpp-tck.time-constrained-disable-queued-directed-to-ro-contract") {
+    return scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract;
   }
   if (id == "cpp-tck.time-regulation-implicit-advance") {
     return scenarioTimeRegulationImplicitAdvance;
@@ -22887,6 +22938,10 @@ void writeResults(
          << jsonEscape(options.knownClassFom.string()) << "\",\n"
          << "  \"known_class_disabled_fom\": \""
          << jsonEscape(options.knownClassDisabledFom.string()) << "\",\n"
+         << "  \"ownership_extension_fom\": \""
+         << jsonEscape(options.ownershipExtensionFom.string()) << "\",\n"
+         << "  \"ownership_added_attribute\": \""
+         << jsonEscape(toNarrow(options.ownershipAddedAttributeName)) << "\",\n"
          << "  \"ddm_dimensions\": [";
   for (std::size_t index = 0U; index < options.ddmDimensionNames.size(); ++index) {
     if (index != 0U) {
@@ -23369,6 +23424,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-directed-interaction-reenable" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-regulation-reenable" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-subscription-kind" ||
+                  scenario == "cpp-tck.timestamped-directed-zero-lookahead-tar-send-boundary" ||
+                  scenario == "cpp-tck.timestamped-directed-zero-lookahead-send-at-grant" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-reenable-contract" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-regulation-reenable-contract" ||
                   scenario == "cpp-tck.timestamped-directed-interaction-source-resignation" ||
@@ -23455,10 +23512,26 @@ int run(Options const& options) {
                   scenario == "cpp-tck.send-message-time-state-preservation-granted-contract" ||
                   scenario == "cpp-tck.time-constrained-enable-galt-equality" ||
                   scenario == "cpp-tck.time-constrained-enable-galt-equality-contract" ||
+                  scenario == "cpp-tck.time-constrained-enable-regulating-federate-current-time" ||
+                  scenario == "cpp-tck.time-constrained-enable-regulating-federate-current-time-contract" ||
+                  scenario == "cpp-tck.time-constrained-enable-retains-queued-tso" ||
+                  scenario == "cpp-tck.time-constrained-enable-retains-queued-tso-contract" ||
+                  scenario == "cpp-tck.time-constrained-enable-retains-queued-tso-attribute" ||
+                  scenario == "cpp-tck.time-constrained-enable-retains-queued-tso-attribute-contract" ||
+                  scenario == "cpp-tck.time-constrained-enable-receive-order-boundary" ||
+                  scenario == "cpp-tck.time-constrained-enable-receive-order-boundary-contract" ||
+                  scenario == "cpp-tck.time-constrained-disable-queued-interaction-to-ro" ||
+                  scenario == "cpp-tck.time-constrained-disable-queued-interaction-to-ro-contract" ||
+                  scenario == "cpp-tck.time-constrained-disable-queued-attribute-to-ro" ||
+                  scenario == "cpp-tck.time-constrained-disable-queued-attribute-to-ro-contract" ||
+                  scenario == "cpp-tck.time-constrained-disable-queued-deletion-to-ro" ||
+                  scenario == "cpp-tck.time-constrained-disable-queued-deletion-to-ro-contract" ||
                   scenario == "cpp-tck.time-regulation-implicit-advance" ||
                   scenario == "cpp-tck.time-regulation-implicit-advance-contract" ||
                   scenario == "cpp-tck.available-time-advances-inclusive-galt" ||
                   scenario == "cpp-tck.available-time-advances-inclusive-galt-contract" ||
+                  scenario == "cpp-tck.tar-acknowledged-tso-galt-release" ||
+                  scenario == "cpp-tck.tar-acknowledged-tso-galt-release-contract" ||
                   scenario == "cpp-tck.time-bounds-queries" ||
                   scenario == "cpp-tck.time-bounds-queries-contract" ||
                   scenario == "cpp-tck.query-lits-source-resignation" ||

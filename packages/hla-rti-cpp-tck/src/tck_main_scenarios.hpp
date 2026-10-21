@@ -109,6 +109,8 @@ void scenarioAttributeUpdate(Options const&, rti::CallbackModel);
 void scenarioAttributeValueRequest(Options const&, rti::CallbackModel);
 void scenarioAvailableTimeAdvancesInclusiveGalt(Options const&, rti::CallbackModel);
 void scenarioAvailableTimeAdvancesInclusiveGaltContract(Options const&, rti::CallbackModel);
+void scenarioTarAcknowledgedTsoGaltRelease(Options const&, rti::CallbackModel);
+void scenarioTarAcknowledgedTsoGaltReleaseContract(Options const&, rti::CallbackModel);
 void scenarioCallbackReentrancy(Options const&, rti::CallbackModel);
 void scenarioCallbackReentrancyContract(Options const&, rti::CallbackModel);
 void scenarioConnection(Options const&, rti::CallbackModel);
@@ -126,6 +128,7 @@ void scenarioInteraction(Options const&, rti::CallbackModel);
 void scenarioLogicalTimeDataElementsContract(Options const&, rti::CallbackModel);
 void scenarioMalformedInputsContract(Options const&, rti::CallbackModel);
 void scenarioMomTransportationTypeChangeRequest(Options const&, rti::CallbackModel);
+void scenarioFqrNonTimeConstrainedInTransitTso(Options const&, rti::CallbackModel);
 void scenarioNextMessageRequest(Options const&, rti::CallbackModel);
 void scenarioNextMessageRequestContract(Options const&, rti::CallbackModel);
 void scenarioNmrNoPregrantTsoFloor(Options const&, rti::CallbackModel);
@@ -142,6 +145,12 @@ void scenarioNmrRequestBelowGaltImmediateGrant(Options const&, rti::CallbackMode
 void scenarioNmrRequestBelowGaltImmediateGrantContract(Options const&, rti::CallbackModel);
 void scenarioNmraNoPregrantTsoFloor(Options const&, rti::CallbackModel);
 void scenarioNmraNoPregrantTsoFloorContract(Options const&, rti::CallbackModel);
+void scenarioNmraReceivedTsoActualLookaheadFloor(Options const&, rti::CallbackModel);
+void scenarioNmraReceivedTsoActualLookaheadFloorContract(
+    Options const&, rti::CallbackModel);
+void scenarioNmraQueuedRoAndEarliestTsoCohort(Options const&, rti::CallbackModel);
+void scenarioNmraQueuedRoAndEarliestTsoCohortContract(
+    Options const&, rti::CallbackModel);
 void scenarioSendMessageTimeStatePreservationGranted(Options const&, rti::CallbackModel);
 void scenarioSendMessageTimeStatePreservationGrantedContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionPreferredReceiveConversion(Options const&, rti::CallbackModel);
@@ -304,6 +313,8 @@ void scenarioTimestampedDirectedInteractionImmediateSourceResignationContract(Op
 void scenarioTimestampedDirectedInteractionReenable(Options const&, rti::CallbackModel);
 void scenarioTimestampedDirectedInteractionReenableContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedDirectedInteractionSubscriptionKind(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedDirectedZeroLookaheadTarSendBoundary(
     Options const&, rti::CallbackModel);
 void scenarioTimestampedDirectedInteractionRegulationReenable(Options const&, rti::CallbackModel);
 void scenarioTimestampedDirectedInteractionRegulationReenableContract(Options const&, rti::CallbackModel);
@@ -479,6 +490,38 @@ void scenarioNegotiatedDivestitureCancellation(Options const&, rti::CallbackMode
 void scenarioNegotiatedDivestitureCancellationContract(Options const&, rti::CallbackModel);
 void scenarioNegotiatedDivestiturePartialAcquisitionCancellation(Options const&, rti::CallbackModel);
 void scenarioNegotiatedDivestiturePartialAcquisitionCancellationContract(Options const&, rti::CallbackModel);
+void scenarioNegotiatedDivestitureNoAccepter(Options const&, rti::CallbackModel);
+void scenarioNegotiatedDivestitureNoAccepterContract(Options const&, rti::CallbackModel);
+void scenarioSelectiveUnpublicationPendingAcquisition(Options const&, rti::CallbackModel);
+void scenarioSelectiveUnpublicationPendingAcquisitionContract(Options const&, rti::CallbackModel);
+void scenarioResignAssumptionLaterPublication(Options const&, rti::CallbackModel);
+void scenarioResignAssumptionLaterPublicationContract(Options const&, rti::CallbackModel);
+void scenarioOwnershipAssumptionSearchAfterDecline(Options const&, rti::CallbackModel);
+void scenarioOwnershipAssumptionSearchAfterDeclineContract(Options const&, rti::CallbackModel);
+void scenarioResignMultiSurvivorAssumptionFanout(Options const&, rti::CallbackModel);
+void scenarioResignMultiSurvivorAssumptionFanoutContract(Options const&, rti::CallbackModel);
+void scenarioOwnershipAssumptionTransferEpoch(Options const&, rti::CallbackModel);
+void scenarioOwnershipAssumptionTransferEpochContract(Options const&, rti::CallbackModel);
+void scenarioResignAssumptionLaterDiscovery(Options const&, rti::CallbackModel);
+void scenarioResignAssumptionLaterDiscoveryContract(Options const&, rti::CallbackModel);
+void scenarioNegotiatedDivestitureConcurrentAssumption(Options const&, rti::CallbackModel);
+void scenarioNegotiatedDivestitureConcurrentAssumptionContract(Options const&, rti::CallbackModel);
+void scenarioConfirmDivestitureFromCallback(Options const&, rti::CallbackModel);
+void scenarioConfirmDivestitureFromCallbackContract(Options const&, rti::CallbackModel);
+void scenarioConfirmDivestitureMixedSetAtomicity(Options const&, rti::CallbackModel);
+void scenarioConfirmDivestitureMixedSetAtomicityContract(Options const&, rti::CallbackModel);
+void scenarioDivestitureIfWantedReturnSet(Options const&, rti::CallbackModel);
+void scenarioDivestitureIfWantedReturnSetContract(Options const&, rti::CallbackModel);
+void scenarioIfAvailableDuringNegotiatedDivestiture(Options const&, rti::CallbackModel);
+void scenarioIfAvailableDuringNegotiatedDivestitureContract(
+    Options const&, rti::CallbackModel);
+void scenarioIfAvailableDeletedObject(Options const&, rti::CallbackModel);
+void scenarioIfAvailableDeletedObjectContract(Options const&, rti::CallbackModel);
+void scenarioOwnershipAfterFomMerge(Options const&, rti::CallbackModel);
+void scenarioOwnershipAfterFomMergeContract(Options const&, rti::CallbackModel);
+void scenarioResignDivestsAllInstanceAttributes(Options const&, rti::CallbackModel);
+void scenarioResignDivestsAllInstanceAttributesContract(
+    Options const&, rti::CallbackModel);
 void scenarioNegotiatedDivestiturePreDeliveryCancellation(Options const&, rti::CallbackModel);
 void scenarioNegotiatedDivestiturePreDeliveryCancellationContract(Options const&, rti::CallbackModel);
 void scenarioNegotiatedWillingToAcquireContinuation(Options const&, rti::CallbackModel);
@@ -608,6 +651,12 @@ void scenarioTimeBoundsQueries(Options const&, rti::CallbackModel);
 void scenarioTimeBoundsQueriesContract(Options const&, rti::CallbackModel);
 void scenarioTimeConstrainedEnableAtGaltEquality(Options const&, rti::CallbackModel);
 void scenarioTimeConstrainedEnableAtGaltEqualityContract(Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedEnableRegulatingFederateCurrentTime(Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedEnableRegulatingFederateCurrentTimeContract(Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedEnableRetainsQueuedTso(Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedEnableRetainsQueuedTsoContract(Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedEnableReceiveOrderBoundary(Options const&, rti::CallbackModel);
+void scenarioTimeConstrainedEnableReceiveOrderBoundaryContract(Options const&, rti::CallbackModel);
 void scenarioTimeRegulationImplicitAdvance(Options const&, rti::CallbackModel);
 void scenarioTimeRegulationImplicitAdvanceContract(Options const&, rti::CallbackModel);
 void scenarioTimedRegionalAttributeNegotiatedRegularCandidateContinuationAfterRestore(Options const&, rti::CallbackModel);

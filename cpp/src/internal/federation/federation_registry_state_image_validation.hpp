@@ -10,6 +10,8 @@ namespace umbra::detail::federation_registry_state_image_validation {
 bool isRouteFreeInteractionDeclarationImage(FederationStateImage const& image);
 bool isRouteFreeMultipleInteractionPublicationImage(FederationStateImage const& image);
 bool isRouteFreeRegionalTsoInteractionImage(FederationStateImage const& image);
+bool isOneQueuedTsoInteractionIdentityRebindingImage(
+    FederationStateImage const& image);
 bool isRouteFreeMixedMultipleInteractionDeclarationImage(
     FederationStateImage const& image);
 bool isRouteFreeMultipleDirectedInteractionDeclarationImage(

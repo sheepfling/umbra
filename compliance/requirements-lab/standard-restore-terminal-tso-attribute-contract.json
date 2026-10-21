@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ primary/contract and Java parity translate an independently green 27-assertion native HLA_EVOKED timestamped attribute-update retraction save/restore case. One time-regulating publisher sends and retracts a timestamped attribute update, confirms the designator is terminal, saves, sends a distinct post-save update, then restores. The saved handle remains MessageCanNoLongerBeRetracted while the discarded post-save handle is InvalidMessageRetractionHandle. The adapter supplies the installed provider, endpoint, IEEE 1516.2-2025 FOM with configured object class and attribute, logical-time implementation, and HLA_EVOKED callback configuration. Both portable languages explicitly select TIMESTAMP order via the standard service. Seven direct requirement-section pairs cover six clauses. Isolated portable C++ primary/contract passed against installed package libraries with HLAinteger64Time and HLAfloat64Time. Java compiles against the pinned official API-only JAR; Java provider runtime, HLA_IMMEDIATE, durable/process-restart restore, and interoperability remain unverified. This is experimental public-API evidence, not a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-terminal-tso-attribute",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador publishObjectClassAttributes, changeDefaultAttributeOrderType, registerObjectInstance, enableTimeRegulation, updateAttributeValues, retract, requestFederationSave, federateSaveBegun, federateSaveComplete, requestFederationRestore, federateRestoreComplete; FederateAmbassador federationSaved, federationRestored",
+      "source": "official IEEE 1516.1-2025 C++ headers and hla.rti1516_2025 Java API; adapter-selected IEEE 1516.2-2025 FOM",
+      "source_symbol": "IEEE 1516.1-2025 timestamped attribute-update retraction and federation save/restore interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_restore_tso_terminal_classification_catch2.cpp::Embedded federation restore preserves a terminal timestamped attribute retraction classification",
+        "packages/hla-rti-cpp-tck/src/tck_restore_terminal_tso_attribute.cpp::scenarioRestoreTerminalTsoAttribute",
+        "packages/hla-rti-cpp-tck/src/tck_restore_terminal_tso_attribute.cpp::scenarioRestoreTerminalTsoAttributeContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestoreTerminalTsoAttributeTck.java::run"
+      ]
+    }
+  ]
+}

@@ -16,6 +16,7 @@ param(
   [string[]] $InvalidFomPath,
   [ValidateSet("verified", "all")]
   [string] $ScenarioSet = "verified",
+  [string[]] $ScenarioFilter,
   [string] $TimeImplementation = "HLAinteger64Time",
   [int] $TimeoutMilliseconds = 10000,
   [string] $BuildDirectory,
@@ -117,6 +118,9 @@ if ($RtiConfigurationName) {
 }
 if ($AdditionalSettings) {
   $configureArguments += "-DHLA_RTI_TCK_ADAPTER_ADDITIONAL_SETTINGS=$AdditionalSettings"
+}
+if ($ScenarioFilter) {
+  $configureArguments += "-DHLA_RTI_TCK_ADAPTER_SCENARIO_FILTER=$($ScenarioFilter -join ';')"
 }
 
 & cmake @configureArguments

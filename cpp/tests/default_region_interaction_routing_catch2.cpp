@@ -183,8 +183,9 @@ TEST_CASE(
 
   VariableLengthData const tag;
   // The regional-only subscriber's ordinary default subscription was removed.
-  // A disjoint source remains filtered; the following overlapping source
-  // proves its regional subscription survived both ordinary calls.
+  // A disjoint source remains filtered; the mixed subscriber still receives
+  // through its independent ordinary/default subscription despite its
+  // disjoint With Regions declaration.
   REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
       interactionClass,
       parameters,
@@ -193,11 +194,11 @@ TEST_CASE(
   drain(*regional);
   drain(*mixed);
   REQUIRE(regionalCallbacks.received.empty());
-  REQUIRE(mixedCallbacks.received.empty());
+  REQUIRE(mixedCallbacks.received.size() == 1U);
 
-  // A matching explicit source region reaches the regional subscriber.  The
-  // mixed subscriber's disjoint regional realization suppresses its retained
-  // ordinary/default declaration.
+  // A matching explicit source region reaches the regional subscriber. The
+  // mixed subscriber receives once through its ordinary/default declaration;
+  // its disjoint regional declaration has independent subscription effects.
   REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
       interactionClass,
       parameters,
@@ -206,12 +207,12 @@ TEST_CASE(
   drain(*regional);
   drain(*mixed);
   REQUIRE(regionalCallbacks.received.size() == 1U);
-  REQUIRE(mixedCallbacks.received.empty());
+  REQUIRE(mixedCallbacks.received.size() == 2U);
   REQUIRE(regionalCallbacks.received.front().interactionClass == interactionClass);
   REQUIRE(regionalCallbacks.received.front().parameterValues.contains(temperatureOk));
 
-  // Removing the disjoint explicit declaration restores the mixed federate's
-  // ordinary/default realization for a valid explicit source-region send.
+  // Removing only the disjoint regional declaration leaves the independent
+  // ordinary/default realization in place for an explicit source-region send.
   REQUIRE_NOTHROW(mixed->unsubscribeInteractionClassWithRegions(
       interactionClass,
       RegionHandleSet{mixedRegion}));
@@ -223,7 +224,7 @@ TEST_CASE(
   drain(*regional);
   drain(*mixed);
   REQUIRE(regionalCallbacks.received.size() == 2U);
-  REQUIRE(mixedCallbacks.received.size() == 1U);
+  REQUIRE(mixedCallbacks.received.size() == 3U);
 
   // An ordinary send uses the invisible default region.  The regional
   // subscribers receive it, and the enabled convey switch exposes the
@@ -237,7 +238,7 @@ TEST_CASE(
   drain(*regional);
   drain(*mixed);
   REQUIRE(regionalCallbacks.received.size() == 3U);
-  REQUIRE(mixedCallbacks.received.size() == 2U);
+  REQUIRE(mixedCallbacks.received.size() == 4U);
   REQUIRE(regionalCallbacks.received.back().sentRegionsSupplied);
   REQUIRE(regionalCallbacks.received.back().sentRegions.empty());
   REQUIRE(mixedCallbacks.received.back().sentRegionsSupplied);
@@ -260,6 +261,99 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(mixed->disconnect());
   REQUIRE_NOTHROW(regional->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded regional Receive Interaction conveys the source region designators",
+    "[integration][development-profile][federation-management][interaction-management]"
+    "[ddm][regional-interaction][sent-region-designators]"
+    "[ddm-sent-region-designators-2025][2025]"
+    "[rti.service.create-region][rti.service.set-range-bounds]"
+    "[rti.service.commit-region-modifications][rti.service.publish-interaction-class]"
+    "[rti.service.subscribe-interaction-class-with-regions]"
+    "[rti.service.send-interaction-with-regions]"
+    "[rti.service.set-convey-region-designator-sets-switch]"
+    "[federate.callback.receive-interaction][callback-evoked]") {
+  NullFederateAmbassador publisherCallbacks;
+  InteractionReceiver receiverCallbacks;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = restaurantFom().wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherCallbacks, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverCallbacks, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      fomModule,
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"sent-region-designator-publisher",
+      L"publisher",
+      federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"sent-region-designator-receiver",
+      L"subscriber",
+      federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      fixture_hla::fom::main_course_served);
+  auto const parameter = publisher->getParameterHandle(
+      interactionClass,
+      fixture_hla::fixture::temperature_ok);
+  auto const serverId = publisher->getDimensionHandle(
+      fixture_hla::fixture::server_id);
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(parameter.isValid());
+  REQUIRE(serverId.isValid());
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+
+  auto const sourceRegion = publisher->createRegion(DimensionHandleSet{serverId});
+  auto const subscriptionRegion = receiver->createRegion(DimensionHandleSet{serverId});
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      sourceRegion,
+      serverId,
+      rti1516_2025::RangeBounds(2UL, 5UL)));
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{sourceRegion}));
+  REQUIRE_NOTHROW(receiver->setRangeBounds(
+      subscriptionRegion,
+      serverId,
+      rti1516_2025::RangeBounds(4UL, 8UL)));
+  REQUIRE_NOTHROW(
+      receiver->commitRegionModifications(RegionHandleSet{subscriptionRegion}));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClassWithRegions(
+      interactionClass,
+      RegionHandleSet{subscriptionRegion}));
+  REQUIRE_NOTHROW(receiver->setConveyRegionDesignatorSetsSwitch(true));
+
+  unsigned char const parameterBytes[] = {0xD1, 0x04};
+  ParameterHandleValueMap parameters;
+  parameters.emplace(
+      parameter,
+      VariableLengthData(parameterBytes, sizeof(parameterBytes)));
+  REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
+      interactionClass,
+      parameters,
+      RegionHandleSet{sourceRegion},
+      VariableLengthData{}));
+  drain(*receiver);
+
+  REQUIRE(receiverCallbacks.received.size() == 1U);
+  REQUIRE(receiverCallbacks.received.front().interactionClass == interactionClass);
+  REQUIRE(receiverCallbacks.received.front().parameterValues.contains(parameter));
+  REQUIRE(receiverCallbacks.received.front().sentRegionsSupplied);
+  REQUIRE(receiverCallbacks.received.front().sentRegions.size() == 1U);
+
+  REQUIRE_NOTHROW(receiver->unsubscribeInteractionClassWithRegions(
+      interactionClass,
+      RegionHandleSet{subscriptionRegion}));
+  REQUIRE_NOTHROW(receiver->deleteRegion(subscriptionRegion));
+  REQUIRE_NOTHROW(publisher->deleteRegion(sourceRegion));
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
   REQUIRE_NOTHROW(publisher->disconnect());
 }
 

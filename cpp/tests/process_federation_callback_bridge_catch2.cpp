@@ -338,3 +338,340 @@ TEST_CASE(
     runScenario(umbra::detail::CallbackDispatchModel::immediate);
   }
 }
+
+// Internal callback/lease-boundary evidence only; this synthetic bridge case
+// has no direct normative requirement mapping.
+TEST_CASE(
+    "Private process callback bridge acknowledges grouped timestamped attribute passels after the final callback",
+    "[unit][internal][callbacks][process-boundary][2025][time-management][ddm][tso][ddm-process-tso-region-callback-snapshot][attribute-callback-group-boundary]") {
+  auto runScenario = [](
+                       umbra::detail::CallbackDispatchModel model,
+                       bool requestRetractionBeforeFinal = false) {
+    class RecordingFederateAmbassador final
+        : public rti1516_2025::NullFederateAmbassador {
+     public:
+      void reflectAttributeValues(
+          rti1516_2025::ObjectInstanceHandle const&,
+          rti1516_2025::AttributeHandleValueMap const&,
+          rti1516_2025::VariableLengthData const&,
+          rti1516_2025::TransportationTypeHandle const&,
+          rti1516_2025::FederateHandle const&,
+          rti1516_2025::RegionHandleSet const* regions,
+          rti1516_2025::LogicalTime const&,
+          rti1516_2025::OrderType,
+          rti1516_2025::OrderType,
+          rti1516_2025::MessageRetractionHandle const*) override {
+        ++callbacks;
+        observedRegionCounts.push_back(regions == nullptr ? 0U : regions->size());
+      }
+
+      std::size_t callbacks = 0U;
+      std::vector<std::size_t> observedRegionCounts;
+    } recipient;
+
+    auto dispatcher = std::make_shared<umbra::detail::CallbackDispatcher>(model);
+    auto callbackSession =
+        std::make_shared<rti1516_2025::umbra_binding_detail::CallbackSession>(
+            recipient);
+    umbra::detail::ProcessFederationCallbackBridge bridge(
+        std::move(dispatcher), std::move(callbackSession));
+    std::size_t acknowledgementCount = 0U;
+    std::uint64_t acknowledgedMessageId = 0U;
+    bridge.setTsoDeliveryCompletionHandler(
+        [&](std::uint64_t messageId) {
+          ++acknowledgementCount;
+          acknowledgedMessageId = messageId;
+        });
+
+    auto const encodedTimestamp = rti1516_2025::HLAinteger64Time(5).encode();
+    std::vector<std::uint8_t> timestampBytes;
+    if (encodedTimestamp.size() != 0U) {
+      auto const* data = static_cast<std::uint8_t const*>(encodedTimestamp.data());
+      REQUIRE(data != nullptr);
+      timestampBytes.assign(data, data + encodedTimestamp.size());
+    }
+    auto makeEvent = [&](auto position) {
+      umbra::detail::ProcessFederationAttributeUpdateEvent event;
+      event.producingFederateId = 0x31U;
+      event.receivingFederateId = 0x32U;
+      event.objectInstanceHandle = 0x33U;
+      event.attributeValues.emplace_back(
+          0x34U, std::vector<std::uint8_t>{0x35U});
+      event.transportationName = "HLAreliable";
+      event.sentRegionHandles = std::set<std::uint64_t>{0x37U};
+      event.timestamp = umbra::detail::ProcessFederationLogicalTime{
+          L"HLAinteger64Time", timestampBytes};
+      event.retractionMessageId = 0x36U;
+      event.tsoCallbackGroupPosition = position;
+      return event;
+    };
+
+    using GroupPosition =
+        umbra::detail::ProcessFederationTsoAttributeUpdateCallbackGroupPosition;
+    bridge.submitAttributeUpdate(makeEvent(GroupPosition::more));
+    REQUIRE(acknowledgementCount == 0U);
+    if (requestRetractionBeforeFinal) {
+      bridge.submitRequestRetraction(0x36U);
+      REQUIRE(acknowledgementCount == 0U);
+    }
+    bridge.submitAttributeUpdate(makeEvent(GroupPosition::final));
+
+    if (model == umbra::detail::CallbackDispatchModel::evoked) {
+      REQUIRE(acknowledgedMessageId == 0U);
+      REQUIRE(bridge.pendingCount() == 2U);
+      static_cast<void>(bridge.evokeOne(std::chrono::milliseconds{0}));
+      REQUIRE(recipient.callbacks == (requestRetractionBeforeFinal ? 0U : 1U));
+      REQUIRE(acknowledgementCount == 0U);
+      static_cast<void>(bridge.evokeOne(std::chrono::milliseconds{0}));
+    } else {
+      if (requestRetractionBeforeFinal) {
+        REQUIRE(recipient.callbacks == 1U);
+        REQUIRE(acknowledgementCount == 0U);
+      } else {
+        REQUIRE(recipient.callbacks == 2U);
+        REQUIRE(acknowledgementCount == 1U);
+        REQUIRE(acknowledgedMessageId == 0x36U);
+      }
+    }
+
+    auto const expectedCallbackCount = requestRetractionBeforeFinal
+        ? (model == umbra::detail::CallbackDispatchModel::evoked ? 0U : 1U)
+        : 2U;
+    REQUIRE(recipient.callbacks == expectedCallbackCount);
+    if (!requestRetractionBeforeFinal) {
+      REQUIRE(recipient.observedRegionCounts ==
+              std::vector<std::size_t>{1U, 1U});
+    }
+    REQUIRE(acknowledgementCount == 1U);
+    REQUIRE(acknowledgedMessageId == 0x36U);
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(umbra::detail::CallbackDispatchModel::evoked);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(umbra::detail::CallbackDispatchModel::immediate);
+  }
+  SECTION("HLA_EVOKED request retraction before the final passel") {
+    runScenario(umbra::detail::CallbackDispatchModel::evoked, true);
+  }
+}
+
+// Internal callback-queue evidence only. This exercises the callback-boundary
+// conversion mechanism and is not an independent normative requirement claim.
+TEST_CASE(
+    "Private process callback bridge converts queued TSO interactions to receive order after Disable Time Constrained",
+    "[unit][internal][internal-only][no-normative-mapping][callbacks]"
+    "[process-boundary][2025][time-constrained-disable-tso-to-ro]"
+    "[lane.time-constrained-disable-tso-to-ro][tcd-pending-tso-conversion]") {
+  struct CallbackReport final {
+    bool directed = false;
+    bool timestamped = false;
+    std::wstring interactionClass;
+    std::wstring objectInstance;
+    std::wstring producingFederate;
+    std::wstring transportationType;
+    std::vector<std::uint8_t> parameterValue;
+    std::vector<std::uint8_t> tag;
+    std::vector<std::wstring> regions;
+  };
+
+  class RecordingFederateAmbassador final
+      : public rti1516_2025::NullFederateAmbassador {
+   public:
+    static std::vector<std::uint8_t> copyBytes(
+        rti1516_2025::VariableLengthData const& value) {
+      if (value.size() == 0U) {
+        return {};
+      }
+      auto const* begin =
+          static_cast<std::uint8_t const*>(value.data());
+      return {begin, begin + value.size()};
+    }
+
+    void record(
+        bool directed,
+        bool timestamped,
+        rti1516_2025::InteractionClassHandle const& interactionClass,
+        rti1516_2025::ObjectInstanceHandle const* objectInstance,
+        rti1516_2025::ParameterHandleValueMap const& parameterValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::RegionHandleSet const* regions) {
+      CallbackReport report;
+      report.directed = directed;
+      report.timestamped = timestamped;
+      report.interactionClass = interactionClass.toString();
+      if (objectInstance != nullptr) {
+        report.objectInstance = objectInstance->toString();
+      }
+      report.producingFederate = producingFederate.toString();
+      report.transportationType = transportationType.toString();
+      if (!parameterValues.empty()) {
+        report.parameterValue = copyBytes(parameterValues.begin()->second);
+      }
+      report.tag = copyBytes(userSuppliedTag);
+      if (regions != nullptr) {
+        for (auto const& region : *regions) {
+          report.regions.push_back(region.toString());
+        }
+      }
+      reports.push_back(std::move(report));
+    }
+
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const& interactionClass,
+        rti1516_2025::ParameterHandleValueMap const& parameterValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::RegionHandleSet const* regions) override {
+      record(
+          false, false, interactionClass, nullptr, parameterValues,
+          userSuppliedTag, transportationType, producingFederate, regions);
+    }
+
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const& interactionClass,
+        rti1516_2025::ParameterHandleValueMap const& parameterValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::RegionHandleSet const* regions,
+        rti1516_2025::LogicalTime const&,
+        rti1516_2025::OrderType,
+        rti1516_2025::OrderType,
+        rti1516_2025::MessageRetractionHandle const*) override {
+      record(
+          false, true, interactionClass, nullptr, parameterValues,
+          userSuppliedTag, transportationType, producingFederate, regions);
+    }
+
+    void receiveDirectedInteraction(
+        rti1516_2025::InteractionClassHandle const& interactionClass,
+        rti1516_2025::ObjectInstanceHandle const& objectInstance,
+        rti1516_2025::ParameterHandleValueMap const& parameterValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate) override {
+      record(
+          true, false, interactionClass, &objectInstance, parameterValues,
+          userSuppliedTag, transportationType, producingFederate, nullptr);
+    }
+
+    void receiveDirectedInteraction(
+        rti1516_2025::InteractionClassHandle const& interactionClass,
+        rti1516_2025::ObjectInstanceHandle const& objectInstance,
+        rti1516_2025::ParameterHandleValueMap const& parameterValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::LogicalTime const&,
+        rti1516_2025::OrderType,
+        rti1516_2025::OrderType,
+        rti1516_2025::MessageRetractionHandle const*) override {
+      record(
+          true, true, interactionClass, &objectInstance, parameterValues,
+          userSuppliedTag, transportationType, producingFederate, nullptr);
+    }
+
+    std::vector<CallbackReport> reports;
+  } recipient;
+
+  auto dispatcher = std::make_shared<umbra::detail::CallbackDispatcher>(
+      umbra::detail::CallbackDispatchModel::evoked);
+  auto callbackSession =
+      std::make_shared<rti1516_2025::umbra_binding_detail::CallbackSession>(
+          recipient);
+  umbra::detail::ProcessFederationCallbackBridge bridge(
+      std::move(dispatcher), std::move(callbackSession));
+  bridge.setTimeConstrainedEnabled(true);
+
+  std::vector<std::uint64_t> acknowledgedMessageIds;
+  bridge.setTsoDeliveryCompletionHandler(
+      [&acknowledgedMessageIds](std::uint64_t messageId) {
+        acknowledgedMessageIds.push_back(messageId);
+      });
+  std::vector<std::uint64_t> acceptedMessageIds;
+  bridge.setTsoCallbackAcceptedHandler(
+      [&acceptedMessageIds](std::uint64_t messageId) {
+        acceptedMessageIds.push_back(messageId);
+      });
+
+  auto makeEvent = [](std::uint8_t marker, bool timestamped, bool directed) {
+    umbra::detail::ProcessFederationInteractionEvent event;
+    event.producingFederateId = 0x51U;
+    event.receivingFederateId = 0x52U;
+    event.interactionClassHandle =
+        static_cast<std::uint64_t>(0x40U + marker);
+    event.parameterHandles = {0x53U};
+    event.transportationName = "HLAreliable";
+    if (directed) {
+      event.objectInstanceHandle = 0x61U;
+    } else {
+      event.sentRegionHandles = std::set<std::uint64_t>{0x62U};
+    }
+    umbra::detail::ProcessFederationInteractionEnvelope envelope;
+    envelope.parameterValues.emplace_back(
+        0x53U, std::vector<std::uint8_t>{marker, 0xEEU});
+    envelope.userSuppliedTag = {marker, 0xF0U};
+    event.payload = umbra::detail::encodeProcessFederationInteractionEnvelope(
+        envelope);
+    if (timestamped) {
+      auto const encodedTimestamp = rti1516_2025::HLAinteger64Time(5).encode();
+      std::vector<std::uint8_t> timestampBytes;
+      if (encodedTimestamp.size() != 0U) {
+        auto const* begin =
+            static_cast<std::uint8_t const*>(encodedTimestamp.data());
+        timestampBytes.assign(begin, begin + encodedTimestamp.size());
+      }
+      event.timestamp = umbra::detail::ProcessFederationLogicalTime{
+          L"HLAinteger64Time", std::move(timestampBytes)};
+      event.retractionMessageId = 0x70U + marker;
+      event.sentOrderType = rti1516_2025::TIMESTAMP;
+      event.receivedOrderType = rti1516_2025::TIMESTAMP;
+    }
+    return event;
+  };
+
+  bridge.submitReceiveOrder(makeEvent(0x01U, true, false));
+  bridge.submitReceiveOrder(makeEvent(0x02U, false, false));
+  bridge.submitReceiveOrder(makeEvent(0x03U, true, true));
+  REQUIRE(bridge.pendingCount() == 3U);
+  REQUIRE(acceptedMessageIds ==
+          std::vector<std::uint64_t>{0x71U, 0x73U});
+  REQUIRE(recipient.reports.empty());
+
+  bridge.setTimeConstrainedEnabled(false);
+
+  for (std::size_t expectedCount = 1U; expectedCount <= 3U; ++expectedCount) {
+    static_cast<void>(bridge.evokeOne(std::chrono::milliseconds{0}));
+    REQUIRE(recipient.reports.size() == expectedCount);
+  }
+  REQUIRE(recipient.reports.size() == 3U);
+  REQUIRE(acknowledgedMessageIds == std::vector<std::uint64_t>{0x71U, 0x73U});
+
+  std::vector<std::uint8_t> observedMarkers;
+  for (auto const& report : recipient.reports) {
+    REQUIRE_FALSE(report.timestamped);
+    REQUIRE(report.parameterValue.size() == 2U);
+    observedMarkers.push_back(report.parameterValue.front());
+    REQUIRE(report.tag.size() == 2U);
+    REQUIRE(report.tag.front() == report.parameterValue.front());
+    REQUIRE(report.producingFederate == L"FederateHandle(81)");
+    REQUIRE(report.transportationType == L"TransportationTypeHandle(1)");
+  }
+  REQUIRE(observedMarkers == std::vector<std::uint8_t>{0x01U, 0x02U, 0x03U});
+  REQUIRE(recipient.reports[0].interactionClass == L"InteractionClassHandle(65)");
+  REQUIRE(recipient.reports[0].regions ==
+          std::vector<std::wstring>{L"RegionHandle(98)"});
+  REQUIRE_FALSE(recipient.reports[0].directed);
+  REQUIRE(recipient.reports[1].interactionClass == L"InteractionClassHandle(66)");
+  REQUIRE(recipient.reports[1].regions ==
+          std::vector<std::wstring>{L"RegionHandle(98)"});
+  REQUIRE_FALSE(recipient.reports[1].directed);
+  REQUIRE(recipient.reports[2].interactionClass == L"InteractionClassHandle(67)");
+  REQUIRE(recipient.reports[2].directed);
+  REQUIRE(recipient.reports[2].objectInstance == L"ObjectInstanceHandle(97)");
+}

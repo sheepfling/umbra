@@ -236,3 +236,246 @@ TEST_CASE(
   REQUIRE_NOTHROW(late->disconnect());
   REQUIRE_NOTHROW(immediate->disconnect());
 }
+
+TEST_CASE(
+    "Embedded object discovery keeps its class after a more-specific subscription",
+    "[integration][development-profile][declaration-management][object-management]"
+    "[callbacks][object-instance-registration-discovery][discovered-class-stability][2025]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.get-known-object-class-handle]"
+    "[federate.callback.discover-object-instance]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador subscriberReports;
+  auto publisher = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"stable-class-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"stable-class-subscriber", L"subscriber", federationName));
+
+  auto const employee =
+      publisher->getObjectClassHandle(fixture_hla::fom::employee);
+  auto const server =
+      publisher->getObjectClassHandle(fixture_hla::fom::employee_server);
+  auto const name =
+      publisher->getAttributeHandle(employee, fixture_hla::fixture::name);
+  auto const efficiency = publisher->getAttributeHandle(
+      server, fixture_hla::fixture::efficiency);
+  REQUIRE(employee.isValid());
+  REQUIRE(server.isValid());
+  REQUIRE(name.isValid());
+  REQUIRE(efficiency.isValid());
+  REQUIRE(employee != server);
+
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(
+      server, AttributeHandleSet{name, efficiency}));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      employee, AttributeHandleSet{name}));
+  auto const objectInstance = publisher->registerObjectInstance(server);
+  REQUIRE(objectInstance.isValid());
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(subscriberReports.objectDiscoveryReports.front().objectInstance ==
+          objectInstance);
+  REQUIRE(subscriberReports.objectDiscoveryReports.front().objectClass ==
+          employee);
+  REQUIRE(subscriber->getKnownObjectClassHandle(objectInstance) == employee);
+
+  // A new, more-specific subscription may not revise the existing discovery.
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      server, AttributeHandleSet{efficiency}));
+  REQUIRE_FALSE(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(subscriberReports.objectDiscoveryReports.front().objectClass ==
+          employee);
+  REQUIRE(subscriber->getKnownObjectClassHandle(objectInstance) == employee);
+
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(subscriber->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded registered object class stays fixed across subscriber class views",
+    "[integration][development-profile][declaration-management][object-management]"
+    "[callbacks][registered-class-stability][2025]"
+    "[rti.service.register-object-instance]"
+    "[rti.service.get-known-object-class-handle]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[federate.callback.discover-object-instance]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador parentReports;
+  ReportingFederateAmbassador childReports;
+  auto publisher = makeRti();
+  auto parentSubscriber = makeRti();
+  auto childSubscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(parentSubscriber->connect(parentReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(childSubscriber->connect(childReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"registered-class-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(parentSubscriber->joinFederationExecution(
+      L"registered-class-parent", L"subscriber", federationName));
+  REQUIRE_NOTHROW(childSubscriber->joinFederationExecution(
+      L"registered-class-child", L"subscriber", federationName));
+
+  auto const employee =
+      publisher->getObjectClassHandle(fixture_hla::fom::employee);
+  auto const server =
+      publisher->getObjectClassHandle(fixture_hla::fom::employee_server);
+  auto const name =
+      publisher->getAttributeHandle(employee, fixture_hla::fixture::name);
+  auto const efficiency = publisher->getAttributeHandle(
+      server, fixture_hla::fixture::efficiency);
+  REQUIRE(employee.isValid());
+  REQUIRE(server.isValid());
+  REQUIRE(name.isValid());
+  REQUIRE(efficiency.isValid());
+  REQUIRE(employee != server);
+
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(
+      server, AttributeHandleSet{name, efficiency}));
+  REQUIRE_NOTHROW(parentSubscriber->subscribeObjectClassAttributes(
+      employee, AttributeHandleSet{name}));
+  REQUIRE_NOTHROW(childSubscriber->subscribeObjectClassAttributes(
+      server, AttributeHandleSet{efficiency}));
+  auto const objectInstance = publisher->registerObjectInstance(server);
+  REQUIRE(objectInstance.isValid());
+  REQUIRE(publisher->getKnownObjectClassHandle(objectInstance) == server);
+  REQUIRE_FALSE(parentSubscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_FALSE(childSubscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(parentReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(childReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(parentReports.objectDiscoveryReports.front().objectInstance ==
+          objectInstance);
+  REQUIRE(childReports.objectDiscoveryReports.front().objectInstance ==
+          objectInstance);
+  REQUIRE(parentReports.objectDiscoveryReports.front().objectClass == employee);
+  REQUIRE(childReports.objectDiscoveryReports.front().objectClass == server);
+  REQUIRE(parentSubscriber->getKnownObjectClassHandle(objectInstance) == employee);
+  REQUIRE(childSubscriber->getKnownObjectClassHandle(objectInstance) == server);
+  REQUIRE(publisher->getKnownObjectClassHandle(objectInstance) == server);
+
+  // Subscriber-specific known classes can differ, but neither subscriber
+  // declaration changes the registration class observed by its registrant.
+  REQUIRE_NOTHROW(parentSubscriber->subscribeObjectClassAttributes(
+      server, AttributeHandleSet{efficiency}));
+  REQUIRE_FALSE(parentSubscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(parentReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(parentSubscriber->getKnownObjectClassHandle(objectInstance) == employee);
+  REQUIRE(publisher->getKnownObjectClassHandle(objectInstance) == server);
+
+  REQUIRE_NOTHROW(childSubscriber->unsubscribeObjectClassAttributes(
+      server, AttributeHandleSet{efficiency}));
+  REQUIRE_NOTHROW(childSubscriber->subscribeObjectClassAttributes(
+      employee, AttributeHandleSet{name}));
+  REQUIRE_FALSE(childSubscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(childReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(childSubscriber->getKnownObjectClassHandle(objectInstance) == server);
+  REQUIRE(publisher->getKnownObjectClassHandle(objectInstance) == server);
+  REQUIRE(publisherReports.objectDiscoveryReports.empty());
+
+  REQUIRE_NOTHROW(childSubscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(parentSubscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(childSubscriber->disconnect());
+  REQUIRE_NOTHROW(parentSubscriber->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "An object instance has one discovered class per federate",
+    "[integration][development-profile][declaration-management][object-management]"
+    "[callbacks][per-federate-discovered-class][2025]"
+    "[rti.service.register-object-instance]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.get-known-object-class-handle]"
+    "[federate.callback.discover-object-instance]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador employeeReports;
+  ReportingFederateAmbassador serverReports;
+  auto publisher = makeRti();
+  auto employeeSubscriber = makeRti();
+  auto serverSubscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(employeeSubscriber->connect(employeeReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(serverSubscriber->connect(serverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"per-class-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(employeeSubscriber->joinFederationExecution(
+      L"per-class-employee-subscriber", L"subscriber", federationName));
+  REQUIRE_NOTHROW(serverSubscriber->joinFederationExecution(
+      L"per-class-server-subscriber", L"subscriber", federationName));
+
+  auto const employee =
+      publisher->getObjectClassHandle(fixture_hla::fom::employee);
+  auto const server =
+      publisher->getObjectClassHandle(fixture_hla::fom::employee_server);
+  auto const name =
+      publisher->getAttributeHandle(employee, fixture_hla::fixture::name);
+  auto const efficiency = publisher->getAttributeHandle(
+      server, fixture_hla::fixture::efficiency);
+  REQUIRE(employee.isValid());
+  REQUIRE(server.isValid());
+  REQUIRE(name.isValid());
+  REQUIRE(efficiency.isValid());
+  REQUIRE(employee != server);
+
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(
+      server, AttributeHandleSet{name, efficiency}));
+  REQUIRE_NOTHROW(employeeSubscriber->subscribeObjectClassAttributes(
+      employee, AttributeHandleSet{name}));
+  REQUIRE_NOTHROW(serverSubscriber->subscribeObjectClassAttributes(
+      server, AttributeHandleSet{efficiency}));
+
+  auto const objectInstance = publisher->registerObjectInstance(server);
+  REQUIRE(objectInstance.isValid());
+  REQUIRE_FALSE(employeeSubscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE_FALSE(serverSubscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(employeeReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(serverReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(employeeReports.objectDiscoveryReports.front().objectInstance ==
+          objectInstance);
+  REQUIRE(serverReports.objectDiscoveryReports.front().objectInstance ==
+          objectInstance);
+  REQUIRE(employeeReports.objectDiscoveryReports.front().objectClass == employee);
+  REQUIRE(serverReports.objectDiscoveryReports.front().objectClass == server);
+  REQUIRE(employeeSubscriber->getKnownObjectClassHandle(objectInstance) ==
+          employee);
+  REQUIRE(serverSubscriber->getKnownObjectClassHandle(objectInstance) ==
+          server);
+
+  REQUIRE_NOTHROW(employeeSubscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(serverSubscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(employeeSubscriber->disconnect());
+  REQUIRE_NOTHROW(serverSubscriber->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}

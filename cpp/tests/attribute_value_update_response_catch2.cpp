@@ -254,3 +254,132 @@ TEST_CASE(
   REQUIRE_NOTHROW(requester->disconnect());
   REQUIRE_NOTHROW(owner->disconnect());
 }
+
+TEST_CASE(
+    "Embedded unsubscribing all class attributes prevents later object discovery",
+    "[integration][development-profile][declaration-management]"
+    "[attribute-unsubscribe-discovery-boundary][2025]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.unsubscribe-object-class-attributes]"
+    "[rti.service.register-object-instance]"
+    "[federate.callback.discover-object-instance]") {
+  ResponseAmbassador ownerReports;
+  ResponseAmbassador requesterReports;
+  auto owner = makeRti();
+  auto requester = makeRti();
+  auto const federationName = nextFederationName();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      restaurantFom(),
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"attribute-unsubscribe-discovery-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"attribute-unsubscribe-discovery-requester", L"subscriber", federationName));
+
+  auto const soda = owner->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+  auto const flavor = owner->getAttributeHandle(soda, L"Flavor");
+  REQUIRE(soda.isValid());
+  REQUIRE(flavor.isValid());
+  AttributeHandleSet const flavorOnly{flavor};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(soda, flavorOnly));
+
+  ObjectInstanceHandle initialObject;
+  REQUIRE_NOTHROW(initialObject = owner->registerObjectInstance(soda));
+  REQUIRE(initialObject.isValid());
+  drain(*requester);
+  REQUIRE(requesterReports.discoveredObjects.size() == 1U);
+  REQUIRE(requesterReports.discoveredObjects.front() == initialObject);
+
+  REQUIRE_NOTHROW(requester->unsubscribeObjectClassAttributes(soda, flavorOnly));
+  ObjectInstanceHandle laterObject;
+  REQUIRE_NOTHROW(laterObject = owner->registerObjectInstance(soda));
+  REQUIRE(laterObject.isValid());
+  REQUIRE(laterObject != initialObject);
+  drain(*requester);
+  REQUIRE(requesterReports.discoveredObjects.size() == 1U);
+  REQUIRE(requesterReports.discoveredObjects.front() == initialObject);
+
+  REQUIRE_NOTHROW(owner->unpublishObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded attribute unsubscription suppresses subsequent attribute reflections",
+    "[integration][development-profile][declaration-management][object-management]"
+    "[attribute-unsubscribe-reflection-boundary][2025]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.unsubscribe-object-class-attributes]"
+    "[rti.service.register-object-instance]"
+    "[rti.service.update-attribute-values]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.reflect-attribute-values]") {
+  ResponseAmbassador ownerReports;
+  ResponseAmbassador requesterReports;
+  auto owner = makeRti();
+  auto requester = makeRti();
+  auto const federationName = nextFederationName();
+  unsigned char const firstValueBytes[] = {0x11, 0x22};
+  unsigned char const laterValueBytes[] = {0x33, 0x44};
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      restaurantFom(),
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"attribute-unsubscribe-reflection-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"attribute-unsubscribe-reflection-requester", L"subscriber", federationName));
+
+  auto const soda = owner->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+  auto const flavor = owner->getAttributeHandle(soda, L"Flavor");
+  REQUIRE(soda.isValid());
+  REQUIRE(flavor.isValid());
+  AttributeHandleSet const flavorOnly{flavor};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(soda, flavorOnly));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(soda));
+  REQUIRE(objectInstance.isValid());
+  drain(*requester);
+  REQUIRE(requesterReports.discoveredObjects ==
+          std::vector<ObjectInstanceHandle>{objectInstance});
+
+  AttributeHandleValueMap firstUpdate;
+  firstUpdate.emplace(
+      flavor, VariableLengthData(firstValueBytes, sizeof(firstValueBytes)));
+  REQUIRE_NOTHROW(owner->updateAttributeValues(
+      objectInstance, firstUpdate, VariableLengthData()));
+  drain(*requester);
+  REQUIRE(requesterReports.reflections.size() == 1U);
+  REQUIRE(requesterReports.reflections.back().attributeValues.contains(flavor));
+
+  REQUIRE_NOTHROW(requester->unsubscribeObjectClassAttributes(soda, flavorOnly));
+  AttributeHandleValueMap laterUpdate;
+  laterUpdate.emplace(
+      flavor, VariableLengthData(laterValueBytes, sizeof(laterValueBytes)));
+  REQUIRE_NOTHROW(owner->updateAttributeValues(
+      objectInstance, laterUpdate, VariableLengthData()));
+  drain(*requester);
+  REQUIRE(requesterReports.reflections.size() == 1U);
+
+  REQUIRE_NOTHROW(owner->unpublishObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}

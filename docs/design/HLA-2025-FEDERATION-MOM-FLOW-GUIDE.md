@@ -71,6 +71,9 @@ own discovery/removal lifecycle. A reference in the list is not itself a
 membership-service completion nor this map establishes their relative callback
 order.
 
+For the member object's pending-removal boundary and fresh identity on a later
+rejoin, see the [joined-federate MOM lifecycle flow](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md#resignation-removes-visibility-before-forgetting-the-snapshot).
+
 The MIM defines `HLAfederateReference` as a `FederateHandle` representation
 that refers to the `HLAfederate` object's `HLAfederateHandle` attribute
 ([reference definition](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L3030)).
@@ -108,6 +111,48 @@ orders removal before rediscovery/reflection of that member object, but does
 not observe the federation membership-list reflection. These separate cases
 do not establish a cross-path callback order or embedded/process parity.
 
+### Forced connection loss has its own membership-list path
+
+The 2025 MIM marks `HLAfederatesInFederation` Conditional on Join or Resign
+([MIM row](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L684)).
+It does not by itself establish whether a forced `ConnectionLost` transition
+must produce the same update. Keep that normative question separate from the
+following 2025 implementation observations.
+
+The embedded adapter routes connection loss through the shared forced
+resignation transition and then queues the Federation MOM conditional-update
+helper for `HLAfederatesInFederation`. The configured process service also
+calls the shared registry loss transition, but its inspected
+`dispatchConnectionLossResult` projects ownership work, object removals,
+synchronization notifications, and an eligible Federate-Lost report; it does
+not enqueue a Federation membership-list attribute update. This is a source
+boundary, not a conclusion about the normative connection-loss contract.
+
+```mermaid
+flowchart TD
+  LOST["A joined member is removed after connection loss"] --> REG["Shared 2025 forced registry resignation"]
+  REG --> PROFILE{"Runtime path"}
+  PROFILE -->|Embedded| EMBED["Adapter queues the HLAfederatesInFederation conditional-update helper"]
+  PROFILE -->|Configured process| PROCESS["Service projects cleanup effects;<br/>no Federation-list update enqueue is present in the inspected dispatch"]
+  EMBED --> EMBED_GAP["Source only: no focused test asserts the list reflection after ConnectionLost"]
+  PROCESS --> PROCESS_GAP["Unestablished: no focused process membership-list reflection test"]
+```
+
+The [embedded loss path](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L167)
+calls the registry's forced-loss entry at [the connectionLost branch](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L219)
+and queues the conditional update at [the post-transition point](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L435).
+The process route is visible in [`ProcessFederationService::connectionLost`](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L164)
+and its [cleanup-result dispatcher](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L19).
+The only focused test that names `HLAfederatesInFederation` observes ordinary
+Join and Resign; it does not inject connection loss
+([embedded membership case](../../cpp/tests/ieee1516_2025_federation_mom_membership_boundaries_catch2.cpp#L119)).
+The process rejoin-order case observes member-object removal and later
+rediscovery, not a Federation membership-list reflection
+([process case](../../cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp#L39)).
+Thus both the embedded loss reflection and process loss membership-list
+behavior remain untested here; no callback timing or profile-parity claim is
+made.
+
 ## One object belongs to the federation execution
 
 The embedded 2025 Join path establishes the federation-scoped object once,
@@ -121,7 +166,7 @@ that member's object or remove the other members' known-object state.
 stateDiagram-v2
   [*] --> NotEstablished: before first non-legacy 2025 Join
   NotEstablished --> FederationMomPresent: registry accepts membership and establishes projection
-  FederationMomPresent --> FederationMomPresent: later Join, resignation, or member setup rollback
+  FederationMomPresent --> FederationMomPresent: later Join, resignation, forced connection loss, or member setup rollback
 ```
 
 Read this as the lifecycle of the 2025 federation-scoped MOM projection, not
@@ -147,12 +192,20 @@ known-object state. In the normal path, the object represents the federation
 execution, not an individual member. Process-endpoint parity is not established
 by these tests.
 
+Connection loss enters the shared registry loss transition, and the registry
+cleanup retains execution-scoped Federation MOM records while clearing the
+departing member's known/pending-recipient state
+([connection-loss entry](../../cpp/src/internal/federation/federation_registry.cpp#L424),
+[MOM-ledger cleanup](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L1028)).
+This is source evidence for the execution-object lifetime; the separate
+membership-list subsection above records the adapter-level update difference.
+
 When its service-report store is configured, the 2025 process Join handler
 asks the registry to establish the execution-scoped Federation MOM object
 before creating the joined member's report-file and `HLAfederate` state, then
 commits the session and plans member-object discovery
-([Federation MOM setup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L612),
-inside the [service-report-store branch](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L568)).
+([Federation MOM setup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L685),
+inside the [service-report-store branch](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L641)).
 The registry's resignation ledger explicitly keeps the federation-execution
 record while removing the resigning member from its pending/known-recipient
 sets, and separately retires that member's `HLAfederate` instance
@@ -251,6 +304,10 @@ as conditional on Join/resignation, and the FOM module list and `HLAcurrentFDD`
 as conditional on successful Create/Join changes. The save name/time values
 have their own save-ledger boundaries, documented in the
 [save/restore guide](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md). The
+execution-scoped next/last-save values are distinct from each member's
+`HLAfederateState`: the [joined-federate state flow](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md#snapshot-values-and-live-state-are-different-kinds-of-data)
+shows its save/restore projection, and the guide's [process evidence section](HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md#separate-2025-process-endpoint-evidence)
+records the lack of a direct process assertion for that attribute. The
 federation `HLAsetSwitches` path in this profile handles the Auto Provide
 switch; its discovery and provider-eligibility behavior is covered in the
 [Auto Provide guide](HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md).
@@ -272,7 +329,7 @@ describe its inputs or expose its serialized current FDD:
 | View | What it represents | How to observe or interpret it |
 | --- | --- | --- |
 | Effective federation model | The complete accepted module set after composition. The embedded lookup tests observe already-joined members resolving declarations contributed by a successful Join; the configured-process case checks lookup by the joining client. | Follow the [FOM admission/composition guide's Join boundary](HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md#join-with-additional-fom-modules-replace-definition-and-add-member-together). The lookup results are profile-bounded and do not establish embedded/process parity. |
-| Federation MOM object, `HLAmanager.HLAfederation` | Its `HLAFOMmoduleDesignatorList` describes federation-level module designators supplied through Create/Join; `HLAcurrentFDD` is the Current FDD realized from successful Create/Join changes. Both attributes are Conditional in the MIM. | The MIM defines their automatic update conditions ([list](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L723), [Current FDD](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L740)). Once the object is known, an explicit `requestAttributeValueUpdate` also returns the requested current value through the normal attribute-reflection mechanism, regardless of Conditional policy ([class semantics](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L658)). The focused embedded test observes a changed `HLAcurrentFDD` reflection after Join and confirms a later request returns that same value ([Join reflection](../../cpp/tests/federation_mom_current_fdd_catch2.cpp#L287), [current-value request](../../cpp/tests/federation_mom_current_fdd_catch2.cpp#L311)). |
+| Federation MOM object, `HLAmanager.HLAfederation` | Its `HLAFOMmoduleDesignatorList` describes federation-level module designators supplied through Create/Join; `HLAcurrentFDD` is the Current FDD realized from successful Create/Join changes. Both attributes are Conditional in the MIM. | The MIM defines their automatic update conditions ([list](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L726), [Current FDD](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L743)). Once the object is known, an explicit `requestAttributeValueUpdate` also returns the requested current value through the normal attribute-reflection mechanism, regardless of Conditional policy ([class semantics](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L658)). The focused embedded test observes a changed `HLAcurrentFDD` reflection after Join and confirms a later request returns that same value ([Join reflection](../../cpp/tests/federation_mom_current_fdd_catch2.cpp#L287), [current-value request](../../cpp/tests/federation_mom_current_fdd_catch2.cpp#L311)). |
 | Joined-member MOM object, `HLAmanager.HLAfederate` | Its same-named `HLAFOMmoduleDesignatorList` is Static and lists modules supplied by that particular federate at Join—not every module in the federation's effective model. | This is a different MIM row ([member attribute](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L138)). The public object-lifecycle test verifies the reflected member list matches its Join-supplied module ([test](../../cpp/tests/ieee1516_2025_joined_federate_mom_public_object_lifecycle_catch2.cpp#L125)); a separate private snapshot test corroborates the Join-scoped value but is not public callback evidence ([snapshot test](../../cpp/tests/ieee1516_2025_joined_federate_mom_fom_module_snapshot_integration_catch2.cpp#L32)). |
 | FOM module-data request/report | A request selects one module's retained content by an index in the applicable federation or member list. | `HLAreportFOMmoduleData` carries module content as a MOM interaction; it is neither the composed Current FDD nor an attribute reflection. See [the two request/report scopes](#the-same-short-fom-request-name-appears-under-two-mom-roots). |
 
@@ -331,7 +388,7 @@ composed model.
 
 The pinned MIM makes federation `HLAFOMmoduleDesignatorList` Conditional when
 Create/Join adds FOM modules, and `HLAcurrentFDD` Conditional when those services
-modify the Current FOM subset ([module-list condition](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L723),
+modify the Current FOM subset ([module-list condition](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L726),
 [Current FDD condition](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L743)). The following is a
 source-mapped process-profile trace, not a replacement for that MIM condition
 or a full IEEE 1516.1 conformance determination:
@@ -368,31 +425,49 @@ This trace is bounded to the configured process source. Federation MOM object
 setup occurs inside the service-report-store Join path; after the Join commits,
 that handler queues discovery for the joining member's `HLAfederate` object, not
 a Federation-object module-list or Current-FDD update
-([Join setup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L568),
-[member discovery](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L709)). The process subscription
+([Join setup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L685),
+[member discovery](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L789)). The process subscription
 route does include the execution-scoped object in its RTI-owned MOM discovery
 ledger, despite the helper's joined-federate name; the planner still applies
 subscription eligibility and known/pending-recipient checks
 ([subscription planner](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L228),
-[MOM discovery planner](../../cpp/src/internal/federation/federation_registry_object_discovery_routes.cpp#L96)). Its discovery enqueue
-orders `discoverObjectInstance` before initial MOM values, while the Federation
+[MOM discovery planner](../../cpp/src/internal/federation/federation_registry_object_discovery_routes.cpp#L96)). Its event staging
+places discovery before optional initial MOM values, while the Federation
 object's initial-value map contains only MIM Static attributes—not these
 Conditional fields ([event staging](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L90),
-[Static initial values](../../cpp/src/internal/federation/federation_registry_mom_object_state.cpp#L47)).
+[Static initial values](../../cpp/src/internal/federation/federation_registry_mom_object_state.cpp#L47)). The exact staging differs by
+process receive mode:
 
-The process service's automatic conditional helper resolves a member's
-`HLAfederate` object and class, so it does not supply the missing federation-
-scoped Join update ([member-only helper](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L40)). A direct current-value request uses the
+| Process receive path | Source-level event staging | Evidence boundary |
+| --- | --- | --- |
+| Pull / server queues | During each planned discovery, append the discovery event and then its optional initial-value event to separate per-session queues. | The queues are consumed through distinct receive operations; enqueue order alone does not establish a public callback sequence. See [queue insertion](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L145) and [receive selection](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L109). |
+| Push / unsolicited messages | Collect discoveries and initial MOM values in separate vectors; send the discovery vector before the initial-value vector, rather than sending one discovery/value pair per object. | This is transport-message send order, not a callback-order guarantee. See [push collection](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L129) and [batch sends](../../cpp/src/internal/federation/process_federation_service_object_discovery.cpp#L172). |
+
+The configured-process MOM test observes two discoveries and two reflections,
+then correlates a reflection with its object by handle; it stores the two
+callback kinds separately and does not assert their relative order. Its observer
+uses `HLA_EVOKED`, so it does not test the pushed initial-value path
+([observer setup](../../cpp/tests/ieee1516_2025_connection_process_joined_federate_mom_report_file_catch2.cpp#L328),
+[assertions](../../cpp/tests/ieee1516_2025_connection_process_joined_federate_mom_report_file_catch2.cpp#L359)). Treat the sequence above as source-level
+projection, not callback-order evidence or a normative rule.
+
+The process service's conditional-update helper resolves the joined member's
+`HLAfederate` object and class. Its two current callers follow exception-
+reporting switch changes and request only the member's
+`HLAexceptionReporting` attribute ([`HLAsetSwitches` caller](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L375),
+[exception-reporting switch caller](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L508),
+[member-only helper](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L131)). Neither is the additional-module Join path, so this helper does not supply the missing federation-scoped Join update. A direct current-value request uses the
 shared MOM value planner, which rejects a non-member or unknown MOM object and
 projects the latest module list/Current FDD from the federation definition
 ([process request path](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L35),
 [known-object check](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L371),
-[live module/FDD projection](../../cpp/src/internal/federation/federation_registry_mom_object_state.cpp#L656)). This request path does not set the planner's optional active-subscription
+[live module-list projection](../../cpp/src/internal/federation/federation_registry_mom_object_state.cpp#L656),
+[live Current-FDD projection](../../cpp/src/internal/federation/federation_registry_mom_object_state.cpp#L665)). This request path does not set the planner's optional active-subscription
 filter; the known-object condition remains. These are source observations, not
 process-test results.
 
 The configured-process additional-FOM test asserts class lookup/name after
-Join, not `HLAfederation` discovery or reflection ([test](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L219)). No focused public process
+Join, not `HLAfederation` discovery or reflection ([public assertions](../../cpp/tests/process_federation_additional_fom_catch2.cpp#L385)). No focused public process
 observer assertion was found for either federation Conditional field. The
 embedded `HLAcurrentFDD` reflection test remains separate and does not prove
 process delivery. Treat the MIM-trigger versus process-Join enqueue difference
@@ -432,11 +507,13 @@ sequenceDiagram
 
 The process Join handler establishes the execution-scoped `HLAfederation` MOM
 object only inside its service-report-store branch, then queues discovery for
-the joining member's `HLAfederate` object ([Join setup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L568), [member discovery](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L709)). Process `handleResign` dispatches the registry's object-removal results; the resignation planner retains the execution MOM record for surviving members, clears the departing member's known-object state for it, and separately plans removal of that member's `HLAfederate` object for surviving observers that knew it ([resign handler](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L136), [removal dispatch](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L66), [registry resignation](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L1023)). The process automatic conditional-update helper resolves a joined member's `HLAfederate` object; its call sites are reporting and interaction-send paths, not Join or Resign ([member-scoped helper](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L40), [reporting call site](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L508), [interaction call site](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L376)).
+the joining member's `HLAfederate` object ([Join setup](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L685), [member discovery](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L789)). Process `handleResign` dispatches the registry's object-removal results; the resignation planner retains the execution MOM record for surviving members, clears the departing member's known-object state for it, and separately plans removal of that member's `HLAfederate` object for surviving observers that knew it ([resign handler](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L136), [removal dispatch](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L66), [registry resignation](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L1023)). The process automatic conditional-update helper resolves a joined member's `HLAfederate` object; its call sites are reporting and interaction-send paths, not Join or Resign ([member-scoped helper](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L131), [reporting call site](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L508), [interaction call site](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L376)).
 
 A separate current-value request is source-supported for a surviving member that knows the Federation MOM object: the process request handler uses the shared MOM planner, which checks membership and known-object state, while the Federation attribute projection encodes the current registry membership map ([process request path](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L35), [known-object check](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L371), [live membership projection](../../cpp/src/internal/federation/federation_registry_mom_object_state.cpp#L643)). That call uses the planner's default `requireActiveSubscription = false` ([planner declaration](../../cpp/src/internal/federation/federation_registry.hpp#L1265)); this request path does not establish that automatic Conditional reflections are queued.
 
-The focused embedded membership test observes list reflections at Join and Resign ([embedded test](../../cpp/tests/ieee1516_2025_federation_mom_membership_boundaries_catch2.cpp#L4)). The process resignation test instead checks removal of the departed member's `HLAfederate` object before rediscovery/reflection of a later member ([process test](../../cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp#L39)); it does not assert the Federation membership-list reflection. The exact attribute-name search found no process observer test for `HLAfederatesInFederation`. Treat the process enqueue difference as source-only and unresolved against the full licensed §§4.11/6.9/6.11 text; do not infer 2010 or embedded/process parity.
+Although the shared planner and registry ledger use joined-federate-oriented names, the execution-level object is stored in that same ledger with `federationExecutionObject = true` ([execution-object registration](../../cpp/src/internal/federation/federation_registry_mom_object_state.cpp#L484)); the value projection uses that flag to encode the live federation membership map. This is a source-path clarification, not test evidence.
+
+The focused embedded membership test observes list reflections at Join and Resign ([embedded test](../../cpp/tests/ieee1516_2025_federation_mom_membership_boundaries_catch2.cpp#L4)). The process resignation test instead checks removal of the departed member's `HLAfederate` object before rediscovery/reflection of a later member ([process test](../../cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp#L39)); it does not assert the Federation membership-list reflection. The exact attribute-name search found no configured-process observer test for `HLAfederatesInFederation`, either for automatic Join/Resign reflection or the explicit current-value request. The process enqueue and request outcomes therefore remain source-only and unresolved against the full licensed §§4.11/6.9/6.11 text; do not infer 2010 or embedded/process parity.
 
 ## Creation-time federation policy versus per-member switch seeding
 
@@ -507,6 +584,65 @@ untested backend parity.
 
 ### Switch storage, current MOM projection, and Conditional reflection are separate
 
+The short interaction name `HLAsetSwitches` occurs under two different 2025
+MOM roots. Resolve the full class path before deciding which state is being
+adjusted; the federation-wide and joined-federate forms are not one universal
+switch map ([federation class](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2536),
+[joined-federate class](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L984)):
+
+| 2025 `HLAsetSwitches` path | Standard parameters interpreted | State and current MOM projection |
+| --- | --- | --- |
+| `HLAmanager.HLAfederation.HLAadjust.HLAsetSwitches` | `HLAautoProvide` (`HLAswitch`) | Federation-wide Auto Provide state; projected as `HLAfederation.HLAautoProvide`. See the [Auto Provide guide](HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md). |
+| `HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches` | `HLAobjectClassRelevanceAdvisory`, `HLAattributeRelevanceAdvisory`, `HLAattributeScopeAdvisory`, `HLAinteractionRelevanceAdvisory`, `HLAconveyRegionDesignatorSets`, `HLAserviceReporting`, `HLAexceptionReporting`, and `HLAsendServiceReportsToFile` (`HLAswitch`); `HLAautomaticResignAction` (`HLAresignAction`) | Per-member switch state; corresponding current values are projected on that member's `HLAfederate` MOM object and exposed by the matching getters. |
+
+For these pinned MIM types, `HLAswitch` uses `HLAinteger32BE` with Disabled = 0
+and Enabled = 1, while `HLAresignAction` uses `HLAinteger32BE` values 0 through
+5 ([`HLAswitch`](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L3144),
+[`HLAresignAction`](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L3102)).
+The runtime therefore has two decoders: one for the 0/1 switch and another
+that maps the six resign-action enumerators to `ResignAction` values
+([embedded decoders](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_mom_controls.cpp#L56),
+[process decoders](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L39)).
+
+```mermaid
+flowchart TD
+  Call["sendInteraction with HLAsetSwitches"] --> Consume["Umbra consumes this predefined control interaction;<br/>it does not use ordinary recipient fan-out"]
+  Consume --> Root{"Which HLAsetSwitches class path?"}
+  Root -->|HLAfederation| Federation["Resolve the federation-wide parameters"]
+  Federation --> AutoProvide{"HLAautoProvide supplied?"}
+  AutoProvide -->|Yes| DecodeAuto["Decode HLAswitch:<br/>HLAinteger32BE 0 or 1"]
+  DecodeAuto --> StoreFederation["Update federation Auto Provide state"]
+  AutoProvide -->|No| FederationDone["No Auto Provide change"]
+  Root -->|HLAfederate| Member["Resolve each parameter name"]
+  Member --> Kind{"Recognized standard parameter?"}
+  Kind -->|HLAswitch parameter| DecodeSwitch["Decode Disabled/Enabled value"]
+  Kind -->|HLAautomaticResignAction| DecodeResign["Decode HLAresignAction value 0-5"]
+  Kind -->|Compatible extension parameter| Ignore["Receive but leave extension value uninterpreted"]
+  Kind -->|Unknown parameter identity| Reject["Reject malformed adjustment"]
+  DecodeSwitch --> Stage["Stage recognized member fields"]
+  DecodeResign --> Stage
+  Ignore --> HasStandard{"At least one standard member parameter supplied?"}
+  Stage --> HasStandard
+  HasStandard -->|No| Reject
+  HasStandard -->|Yes| Interlock{"Enable Service Reporting while subscribed to its reports?"}
+  Interlock -->|Yes| Reject
+  Interlock -->|No| Apply["Apply staged values to joined-member state"]
+  Apply --> Projection["Current values feed getters and HLAfederate projection"]
+  StoreFederation --> FederationProjection["Current value feeds HLAfederation projection"]
+```
+
+Both public profiles intercept these predefined classes before ordinary
+interaction fan-out. In the member-scoped route, recognized parameters are
+collected before the registry update; a compatible extension parameter is
+left uninterpreted, but an extension-only member adjustment has no recognized
+standard field to apply. The registry checks the Service Reporting
+subscription interlock before mutating any supplied member field, so a
+rejected mixed adjustment does not partially apply its other staged values
+([registry guard and update](../../cpp/src/internal/federation/federation_registry_control_state.cpp#L582)).
+The process handler also reports malformed member adjustments through its MOM
+exception path; the precise process tests below cover selected failures, not
+every malformed combination.
+
 The 2025 MIM makes `HLAobjectClassRelevanceAdvisory` and
 `HLAinteractionRelevanceAdvisory` Conditional attributes of the joined
 federate's `HLAfederate` MOM object, with update conditions tied to changes in
@@ -543,6 +679,24 @@ handler asks the registry for the current MOM projection and sends the result
 to the requester ([request path](../../cpp/src/internal/federation/process_federation_service_attribute_update_requests.cpp#L12)).
 That current-value response is not evidence that the switch mutation queued an
 automatic Conditional reflection.
+
+The focused configured-process evidence is split by question: the public
+[`HLAautoProvide` case](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L904)
+toggles federation state and has server-side registry assertions; the
+[member switch case](../../cpp/tests/ieee1516_2025_connection_process_mom_set_switches_catch2.cpp#L51)
+uses public setters/getters; a [compatible-subclass case](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L1115)
+covers ignored extension values. Separate process cases cover a malformed
+switch value, unknown parameter, malformed resign action, and the Service
+Reporting interlock with its MOM-exception behavior
+([value](../../cpp/tests/ieee1516_2025_connection_process_mom_malformed_value_catch2.cpp#L459),
+[parameter](../../cpp/tests/ieee1516_2025_connection_process_mom_malformed_parameter_catch2.cpp#L459),
+[resign action](../../cpp/tests/ieee1516_2025_connection_process_mom_malformed_resign_action_catch2.cpp#L459),
+[interlock](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L1376),
+[MOM exception](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L1540)).
+These cases do not establish every multi-parameter failure combination or
+process reflection behavior for all Conditional member attributes. The
+existing embedded setter test remains source-mapped only because its recorded
+run fails during federation creation before reaching the switch assertions.
 
 The profile split is material. After applying a switch update, the embedded
 `HLAsetSwitches` path collects every supplied switch's corresponding MOM
@@ -648,18 +802,23 @@ process test is 2025 configured-endpoint evidence only; it establishes no
 
 ## Federation reports are receive-order interactions
 
-Federation MOM requests such as `HLArequestFOMmoduleData`,
-`HLArequestMIMdata`, `HLArequestSynchronizationPoints`, and
-`HLArequestSynchronizationPointStatus` are not attribute-value requests. The
-RTI validates the joined requester and request-specific input, reads the
-authoritative module/MIM/synchronization state, builds the paired
-`HLAreport...` interaction, and selects report recipients through the ordinary
-interaction-subscription route.
+The 2025 MIM defines federation MOM requests such as
+`HLArequestFOMmoduleData`, `HLArequestMIMdata`,
+`HLArequestSynchronizationPoints`, and
+`HLArequestSynchronizationPointStatus` as interactions, not attribute-value
+requests. In the reviewed embedded 2025 implementation paths, the RTI validates
+the joined requester and request-specific input, reads the authoritative
+module/MIM/synchronization state, builds the paired `HLAreport...` interaction,
+and selects report recipients through the ordinary interaction-subscription
+route. The configured-process report path is bounded separately below.
 
 This explicit request/report path is distinct from subject-switch-controlled
 `HLAreportServiceInvocation` traffic, which describes a public service call
 rather than the requested current Federation MOM state. Compare the separate
 [service-invocation reporting guide](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#three-distinct-traces-call-outcome-invocation-report-requested-mom-report).
+Malformed or rejected MOM requests use the separate `HLAreportMOMexception`
+path; for the per-profile relationship to `HLAreportException`, see the
+[exception-reporting guide](HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md#a-mom-rejection-may-also-enter-the-general-exception-hook).
 
 ### The same short FOM request name appears under two MOM roots
 
@@ -702,7 +861,8 @@ sequenceDiagram
   participant RTI as Federation registry / RTI
   participant Observer as Report subscriber
 
-  Requester->>RTI: sendInteraction(HLArequest..., request-specific parameters)
+  Requester->>RTI: sendInteraction(HLArequest..., request-specific input)
+  Note over Requester,RTI: HLArequestMIMdata has no request parameters
   RTI->>RTI: Validate joined requester and request-specific input
   alt Rejected request (selected embedded cases)
     RTI-->>Requester: Synchronous typed exception — no state report
@@ -711,7 +871,7 @@ sequenceDiagram
     RTI->>RTI: Build matching HLAreport and recipient plan
     RTI->>RTI: Queue reliable receive-order report for eligible subscribers
     RTI-->>Requester: sendInteraction returns normally
-    Note over Observer,RTI: In the tested HLA_EVOKED path, callback waits for evocation
+    Note over Observer,RTI: Callback waits for evokeCallback()
     Observer->>RTI: evokeCallback()
     RTI-->>Observer: receiveInteraction(HLAreport...)
   end
@@ -747,19 +907,116 @@ both report families, so it does not establish their observer callback order.
 
 Focused public-C++ evidence:
 
-- [Federation-scoped FOM-module and MIM requests](../../cpp/tests/federation_mom_current_fdd_catch2.cpp#L324)
+- [Federation-scoped FOM-module requests](../../cpp/tests/federation_mom_current_fdd_catch2.cpp#L324)
   use the dimensionless federation interaction classes and check returned
   content, receive-order callback delivery, subscription revalidation, and
-  synchronous invalid-index/unexpected-parameter rejection.
+  synchronous invalid-index rejection.
+- In that same [focused request test](../../cpp/tests/federation_mom_current_fdd_catch2.cpp#L324),
+  federation `HLArequestMIMdata` is sent with an empty parameter map and
+  produces one `HLAreportMIMdata` whose sole `HLAMIMdata` value decodes to
+  text containing `Standard MOM`. The test also checks reliable receive-order
+  delivery and synchronous rejection of an unexpected request parameter. The
+  pinned MIM defines the request as Subscribe and the report as a reliable,
+  receive-order Publish interaction ([request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2601),
+  [report and parameter](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2677));
+  this is embedded test evidence, not configured-process parity.
 - [Joined-federate FOM-module request/report](../../cpp/tests/ieee1516_2025_federation_mom_fom_module_data_report_catch2.cpp#L4)
   uses the separate member-scoped class, includes its inherited `HLAfederate`
   target parameter, and checks the selected embedded report content. Its case
   targets the sending member itself; it does not establish every cross-member
   requester/target combination.
-- [MIM data and current-FDD requests](../../cpp/tests/federation_mom_current_fdd_catch2.cpp#L180)
-  exercise the retained current model content through the standard MOM route.
+- [Federation current-FDD object coverage](../../cpp/tests/federation_mom_current_fdd_catch2.cpp#L180)
+  exercises retained current model content through the object-attribute route.
 - [Synchronization list/status reports](../../cpp/tests/ieee1516_2025_federation_mom_synchronization_reports_catch2.cpp#L4)
   checks the paired report interactions and their encoded current state.
+
+### Federation synchronization queries: active point list and roster status
+
+The federation MOM offers two read-only synchronization queries. The
+parameterless `HLArequestSynchronizationPoints` asks for all in-progress points
+and returns `HLAreportSynchronizationPoints` with the `HLAsyncPoints` list. The
+named `HLArequestSynchronizationPointStatus` carries one `HLAsyncPointName` and
+returns that name plus `HLAsyncPointFederates`, a list of associated
+federate/status records. The pinned MIM marks both requests Subscribe and each
+paired report Publish; both are reliable and receive-order. Each request's MIM
+semantics specify its corresponding report ([list request and report](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2559),
+[status request and report](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2569),
+[status record type](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L3765)).
+Neither query announces, achieves, or closes a synchronization point.
+
+```mermaid
+flowchart TD
+  Request["Federation synchronization query:<br/>HLArequestSynchronizationPoints or HLArequestSynchronizationPointStatus"] --> Profile{"Implementation profile?"}
+  MIM["Pinned 1516.2-2025 MIM:<br/>both requests Subscribe; paired reports are Publish,<br/>reliable receive-order and specified by the request semantics"] -.-> Request
+
+  Profile -->|Embedded| Validate{"Joined requester and valid required input?"}
+  Validate -->|"No / malformed"| Reject["Synchronous typed rejection"]
+  Validate -->|"Yes"| Query{"Request class?"}
+  Query -->|"HLArequestSynchronizationPoints;<br/>no parameters"| ReadList["Read the active synchronization-point set"]
+  ReadList --> ListReport["HLAreportSynchronizationPoints<br/>HLAsyncPoints list"]
+  Query -->|"HLArequestSynchronizationPointStatus;<br/>one HLAsyncPointName"| Lookup{"Label in current synchronization-point registry?"}
+  Lookup -->|"No"| Empty["Preserve requested label;<br/>federate/status list is empty"]
+  Lookup -->|"Yes"| Roster["Read that point's synchronization set"]
+  Roster --> Announced{"Federate is announced?"}
+  Announced -->|"No"| NoActivity["NoActivity (0)"]
+  Announced -->|"Yes"| Achieved{"Federate has achieved?"}
+  Achieved -->|"No"| Moving["MovingToSyncPoint (2)"]
+  Achieved -->|"Yes"| Waiting["WaitingForRestOfFederation (3)"]
+  Empty --> StatusReport["HLAreportSynchronizationPointStatus<br/>label + federate/status records"]
+  NoActivity --> StatusReport
+  Moving --> StatusReport
+  Waiting --> StatusReport
+  ListReport --> Route["Queue the selected report for eligible subscribers"]
+  StatusReport --> Route
+  Route --> Callback["receiveInteraction<br/>Selected HLA_EVOKED test: callback after evokeCallback"]
+
+  Profile -->|Configured process| ProcessRoute["No synchronization-query-specific handler found in reviewed process source;<br/>request reaches generic receive-order planning"]
+  ProcessRoute --> Published{"Requester published<br/>the request interaction class?"}
+  Published -->|No| ProtocolReject["Rejected process response"]
+  ProtocolReject --> PublicError["Public wrapper maps client error<br/>to RTIinternalError"]
+  Published -->|Yes| ProcessUnknown["No dedicated synchronization-report planner found;<br/>actual list/status report outcome remains unverified"]
+```
+
+The status names and numeric values come from the pinned MIM. The reviewed
+embedded planner maps a federate outside the announced set to `NoActivity`
+(0), an announced but not-yet-achieved federate to `MovingToSyncPoint` (2),
+and an achieved federate to `WaitingForRestOfFederation` (3). Although the MIM
+also defines `AttemptingToRegisterSyncPoint` (1), this planner does not emit it;
+that source observation is not a claim that the implementation exhausts every
+normative case. The focused test directly observes the 2-to-3 change for the
+subject while the observer remains at 2, and a request for an unknown label
+still returns a status report with an empty roster. It does not exercise the
+0 or 1 statuses ([test](../../cpp/tests/ieee1516_2025_federation_mom_synchronization_reports_catch2.cpp#L150),
+[planner](../../cpp/src/internal/federation/federation_registry_mom_synchronization_reporting.cpp#L124),
+[MIM status values](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L3157)).
+
+In that embedded `HLA_EVOKED` test, the requester returns from
+`sendInteraction` before the subscribed observer calls `evokeCallback` and
+receives the report. The same test's unsubscribe-before-evoke check is for
+`HLAreportSynchronizationPoints`, not the status report, so status-report
+delivery-time subscription revalidation is source-observed but not separately
+asserted by that case.
+
+#### Configured-process request route: evidence boundary
+
+The configured-process route has no focused status-request test or dedicated
+status-report planner. Its public `sendInteraction`
+path uses the generic process receive-order planner, which requires the sender
+to have published the interaction class. A non-applied plan becomes a
+rejected protocol response; the process client turns a non-OK response into
+`ProcessFederationClientError`, which the public wrapper translates to
+`RTIinternalError`. This is a conditional source-level mapping, not a verified
+outcome for this request: the pinned MIM marks the request class `Subscribe`,
+and the reviewed sources and tests do not establish whether the configured-
+process federation publishes it or which branch an actual status request
+takes. Keep that process result unclaimed and do not infer process/embedded
+parity ([MIM request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2569),
+[embedded handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L629),
+[process route](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389),
+[generic rejection](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L397),
+[publication check](../../cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp#L48),
+[process client error](../../cpp/src/internal/federation/process_federation_client_value_services.cpp#L30),
+[public exception translation](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L137)).
 
 The [federation report planner](../../cpp/src/internal/federation/federation_registry_mom_federation_content_reporting.cpp#L52)
 and [synchronization report planner](../../cpp/src/internal/federation/federation_registry_mom_synchronization_reporting.cpp#L22)
@@ -767,6 +1024,30 @@ show where federation state becomes a report plan. The runtime's
 [Join-time object setup](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L616)
 and [registry object foundation](../../cpp/src/internal/federation/federation_registry_mom_object_state.cpp#L373)
 show the distinct object-lifecycle path.
+
+The configured-process boundary remains unverified for federation-scoped
+FOM-module-data, MIM-data, synchronization-point-list, and synchronization-
+point-status requests, and for the member-scoped FOM-module-data request. The
+public process `sendInteraction` path forwards the
+parameter values and tag in its private envelope; the server's reviewed
+interaction handler specially consumes federation Auto Provide and joined-
+federate `HLAsetSwitches`, then sends other classes through the ordinary
+receive-order interaction planner ([public process request](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L57),
+[server special cases](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L107),
+[generic planner call](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389),
+[ordinary planner's publication check](../../cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp#L50)). The 2025 MIM marks both
+`HLArequestFOMmoduleData`, federation `HLArequestMIMdata`,
+`HLArequestSynchronizationPoints`, and
+`HLArequestSynchronizationPointStatus` as Subscribe interactions, not
+published application requests ([member FOM
+request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L1200),
+[federation FOM request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2586),
+[federation MIM request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2601),
+[synchronization requests](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2559)). A bounded source/test search found no process-specific FOM/MIM/synchronization report planner
+or configured-process test for these request routes. Therefore the generic
+process send route does not establish whether request execution or report
+production occurs, nor the public rejection type; do not infer those outcomes
+or process/embedded parity from the source path alone.
 
 ## Keep these boundaries visible
 

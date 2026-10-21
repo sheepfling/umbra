@@ -1,6 +1,9 @@
 #include "internal/federation/process_federation_service.hpp"
 #include "internal/federation/process_federation_service_helpers.hpp"
 #include "internal/fom/hla_names.hpp"
+#include "internal/time/federation_time_bounds.hpp"
+
+#include <RTI/Exception.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -29,12 +32,100 @@ void ProcessFederationService::dispatchTimeAdvanceGrants(
         dispatch();
       }
     }
+    static_cast<void>(dispatchEligibleTimeConstrainedEnables(federationName));
     auto const reevaluated = registry_.reevaluateTimeAdvanceGrants(federationName);
     if (reevaluated.status != FederationTimeGrantStatus::applied) {
       return;
     }
     dispatches = reevaluated.dispatches;
   }
+  static_cast<void>(dispatchEligibleTimeConstrainedEnables(federationName));
+}
+
+bool ProcessFederationService::dispatchEligibleTimeConstrainedEnables(
+    std::wstring const& federationName) {
+  struct Candidate final {
+    ProcessTransportSession* session = nullptr;
+    std::uint64_t federateId = 0U;
+    std::uint64_t generation = 0U;
+    std::shared_ptr<FederateTimeState> timeState;
+  };
+  std::vector<Candidate> candidates;
+  {
+    std::scoped_lock lock(mutex_);
+    for (auto& [session, state] : sessions_) {
+      if (state.federationName.has_value() &&
+          *state.federationName == federationName &&
+          state.pendingTimeConstrainedEnableGeneration.has_value() &&
+          state.timeState) {
+        candidates.push_back(Candidate{
+            session,
+            state.federateId,
+            *state.pendingTimeConstrainedEnableGeneration,
+            state.timeState});
+      }
+    }
+  }
+
+  bool completedAny = false;
+  for (auto const& candidate : candidates) {
+    auto const execution = registry_.timeSnapshotFor(federationName);
+    auto const state = candidate.timeState->snapshot();
+    if (!execution || !state.currentTime) {
+      continue;
+    }
+    auto const bounds = FederationTimeBoundsCalculator{}.calculate(
+        *execution, candidate.federateId);
+    if (bounds.status != FederationTimeBoundStatus::available || !bounds.galt) {
+      continue;
+    }
+    try {
+      if (*state.currentTime >= *bounds.galt) {
+        continue;
+      }
+    } catch (rti1516_2025::Exception const&) {
+      continue;
+    }
+
+    auto enabledTime = candidate.timeState->grantTimeConstrained(
+        candidate.generation);
+    if (!enabledTime) {
+      continue;
+    }
+    auto encoded = encodeProcessLogicalTime(enabledTime);
+    if (!encoded) {
+      continue;
+    }
+    ProcessTransportSession* receivingSession = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      auto const found = sessions_.find(candidate.session);
+      if (found == sessions_.end() ||
+          found->second.federateId != candidate.federateId ||
+          !found->second.federationName.has_value() ||
+          *found->second.federationName != federationName ||
+          found->second.pendingTimeConstrainedEnableGeneration !=
+              candidate.generation) {
+        continue;
+      }
+      found->second.pendingTimeConstrainedEnableGeneration.reset();
+      receivingSession = candidate.session;
+    }
+    ProcessFederationTimeAdvanceResult eventResult;
+    eventResult.status = ProcessFederationTimeAdvanceStatus::applied;
+    eventResult.grantedTime = std::move(encoded);
+    eventResult.constrainedEnabled = true;
+    if (!receivingSession->send(TransportServiceMessage{
+            TransportServiceMessageKind::event,
+            TransportServiceOperation::time_advance_grant,
+            TransportServiceStatus::ok,
+            0U,
+            encodeProcessFederationTimeAdvanceResult(eventResult)})) {
+      return completedAny;
+    }
+    completedAny = true;
+  }
+  return completedAny;
 }
 
 bool ProcessFederationService::enqueueJoinedFederateMomConditionalAttributeUpdate(

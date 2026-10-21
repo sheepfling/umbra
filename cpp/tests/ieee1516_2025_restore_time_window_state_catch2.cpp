@@ -270,6 +270,7 @@ TEST_CASE(
     "Embedded immediate federation restore reschedules a saved pending time advance",
     "[integration][development-profile][federation-management][save-restore]"
     "[time-management][callbacks][callback-immediate]"
+    "[restore-pending-time-advance-immediate]"
     "[restore-time-window-state]"
     "[rti.service.request-federation-save][rti.service.federate-save-begun]"
     "[rti.service.federate-save-complete][rti.service.request-federation-restore]"

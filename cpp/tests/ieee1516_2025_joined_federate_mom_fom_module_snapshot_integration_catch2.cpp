@@ -4,7 +4,8 @@
 namespace {
 TEST_CASE(
     "Embedded joined-federate MOM snapshots retain only FOM modules supplied at Join",
-    "[integration][development-profile][federation-management][mom][mom-object-foundation][fom]") {
+    "[integration][development-profile][federation-management][mom][mom-object-foundation][fom]"
+    "[fom-module-designator-preservation]") {
   using rti1516_2025::umbra_binding_detail::UmbraRtiAmbassador;
 
   TestFederateAmbassador reports;

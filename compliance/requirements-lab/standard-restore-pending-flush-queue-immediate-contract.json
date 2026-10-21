@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ primary/contract and Java parity translate an independently green 33-assertion native HLA_IMMEDIATE single-federate pending Flush Queue Request save/restore case. A constrained and regulating member requests a timed save at five epsilon and FQR at six epsilon. Re-entrant Federate Save Begun/Complete in direct Initiate Federate Save captures the pending FQR before the first direct Flush Queue Grant. A post-save TAR advances to nine; restore discards it and delivers direct Federation Restored before a reconstructed FQG at six. A fresh FQR at seven proves the restored special Time Advancing state was released. The adapter supplies the installed provider, endpoint, IEEE 1516.2-2025 FOM with nonRegulatedGrant enabled, logical-time implementation, and HLA_IMMEDIATE callback model. Nineteen direct requirement-section pairs cover thirteen clauses. Isolated portable C++ primary/contract passed against installed package libraries with integer64 and float64 time. Java compiles against the pinned official API-only JAR; Java provider runtime, HLA_EVOKED for this immediate scenario, durable/process-boundary restore, interoperability, and conformance remain unverified.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-pending-flush-queue-immediate",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador enableTimeConstrained, enableTimeRegulation, requestFederationSave, federateSaveBegun, federateSaveComplete, flushQueueRequest, timeAdvanceRequest, queryLogicalTime, requestFederationRestore, federateRestoreComplete; FederateAmbassador initiateFederateSave, federationSaved, federationRestored, flushQueueGrant, timeAdvanceGrant",
+      "source": "official IEEE 1516.1-2025 C++ headers and hla.rti1516_2025 Java API; adapter-selected IEEE 1516.2-2025 FOM with nonRegulatedGrant enabled",
+      "source_symbol": "IEEE 1516.1-2025 immediate-callback pending FQR and federation save/restore interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp::Embedded immediate federation restore reschedules a saved pending Flush Queue Request",
+        "packages/hla-rti-cpp-tck/src/tck_restore_pending_flush_queue_immediate.cpp::scenarioRestorePendingFlushQueueImmediate",
+        "packages/hla-rti-cpp-tck/src/tck_restore_pending_flush_queue_immediate.cpp::scenarioRestorePendingFlushQueueImmediateContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestorePendingFlushQueueImmediateTck.java::run"
+      ]
+    }
+  ]
+}

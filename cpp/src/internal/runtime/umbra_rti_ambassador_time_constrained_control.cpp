@@ -55,19 +55,17 @@ void UmbraRtiAmbassador::enableTimeConstrained() {
 
     switch (processResult.status) {
       case umbra::detail::ProcessFederationTimeEnableStatus::applied:
-        if (!processResult.enabledTime) {
-          throw RTIinternalError(
-              L"The process endpoint accepted Enable Time Constrained without a callback time.");
-        }
         {
           std::scoped_lock lock(mutex_);
           processTimeConstrainedCallbackPending_ = true;
         }
-        try {
-          processClient->dispatchTimeConstrainedEnabled(
-              std::move(*processResult.enabledTime));
-        } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
-          throw RTIinternalError(wideAscii(error.what()));
+        if (processResult.enabledTime) {
+          try {
+            processClient->dispatchTimeConstrainedEnabled(
+                std::move(*processResult.enabledTime));
+          } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+            throw RTIinternalError(wideAscii(error.what()));
+          }
         }
         appendSuccessfulVoidServiceReportToFileIfSelected(
             L"EnableTimeConstrained",
@@ -99,7 +97,6 @@ void UmbraRtiAmbassador::enableTimeConstrained() {
   }
 #endif
   std::shared_ptr<umbra::detail::FederateTimeState> timeState;
-  std::shared_ptr<CallbackSession> callbackSession;
   std::wstring federationName;
   std::uint64_t federateId = 0;
   {
@@ -113,13 +110,8 @@ void UmbraRtiAmbassador::enableTimeConstrained() {
     }
 
     timeState = federateTimeState_;
-    callbackSession = callbackSession_;
     federationName = *joinedFederationName_;
     federateId = *joinedFederateId_;
-    if (!callbackSession) {
-      throw RTIinternalError(
-          L"The embedded connection has no federate ambassador callback recipient.");
-    }
   }
 
   umbra::detail::FederateTimeEnableResult result;
@@ -137,8 +129,8 @@ void UmbraRtiAmbassador::enableTimeConstrained() {
   }
   if (result.status == umbra::detail::FederateTimeEnableStatus::applied) {
     // The service invocation succeeds when the request is accepted; emit the
-    // public report after releasing native locks and before the distinct Time
-    // Constrained Enabled callback is queued below.
+    // public report after releasing native locks. The federation scheduler
+    // queues Time Constrained Enabled only once GALT permits the transition.
     appendSuccessfulVoidServiceReportToFileIfSelected(
         L"EnableTimeConstrained",
         umbra::detail::MomServiceType::time_management,
@@ -168,30 +160,13 @@ void UmbraRtiAmbassador::enableTimeConstrained() {
           L"Umbra exhausted the embedded temporal-request generation space.");
   }
 
-  auto const callbackEpoch = timeState->callbackEpoch();
-  callbacks_->submit([
-      callbackSession = std::move(callbackSession),
-      timeState = std::move(timeState),
-      federationName = std::move(federationName),
-      federateId,
-      generation = result.generation,
-      callbackEpoch] {
-    bool granted = false;
-    callbackSession->invoke([timeState, generation, callbackEpoch, &granted](FederateAmbassador& recipient) {
-      auto enabledTime = timeState->grantTimeConstrainedIfCurrent(generation, callbackEpoch);
-      if (!enabledTime) {
-        return;
-      }
-      granted = true;
-      recipient.timeConstrainedEnabled(*enabledTime);
-    });
-    if (granted) {
-      queueAmbassadorJoinedFederateMomConditionalAttributeUpdateForJoinedFederate(
-          federationName,
-          federateId,
-          {umbra::detail::hla::utf8::mom::time_constrained});
-    }
-  });
+  auto scheduled = embeddedFederationRegistry().reevaluateTimeAdvanceGrants(
+      federationName);
+  if (scheduled.status != umbra::detail::FederationTimeGrantStatus::applied) {
+    throw RTIinternalError(
+        L"The federation could not schedule the accepted Enable Time Constrained request.");
+  }
+  submitAmbassadorTimeAdvanceGrantDispatches(std::move(scheduled.dispatches));
   } catch (Exception const& exception) {
     emitExceptionReport(L"Enable Time Constrained", exception);
     throw;
@@ -234,6 +209,7 @@ void UmbraRtiAmbassador::disableTimeConstrained() {
     }
     switch (processResult.status) {
       case umbra::detail::ProcessFederationTimeDisableStatus::applied:
+        processClient->setTimeConstrainedEnabled(false);
         appendSuccessfulVoidServiceReportToFileIfSelected(
             L"DisableTimeConstrained",
             umbra::detail::MomServiceType::time_management,
@@ -253,7 +229,10 @@ void UmbraRtiAmbassador::disableTimeConstrained() {
 #endif
   umbra::detail::FederateTimeDisableStatus result;
   std::shared_ptr<umbra::detail::FederateTimeState> timeState;
+  std::wstring federationName;
+  std::uint64_t federateId = 0U;
   std::vector<umbra::detail::FederationTimeGrantDispatch> newlyEligible;
+  std::vector<umbra::detail::TsoPayloadDelivery> tsoDeliveriesAsReceiveOrder;
   std::optional<AmbassadorJoinedFederateMomConditionalWork> momWork;
   {
     std::scoped_lock lock(mutex_, ambassadorFederationManagementMutex());
@@ -265,17 +244,32 @@ void UmbraRtiAmbassador::disableTimeConstrained() {
           L"Disable Time Constrained requires a joined federate with initialized logical time.");
     }
     timeState = federateTimeState_;
+    federationName = *joinedFederationName_;
+    federateId = *joinedFederateId_;
     result = timeState->disableTimeConstrained();
     if (result == umbra::detail::FederateTimeDisableStatus::applied) {
+      auto delivery = embeddedFederationRegistry()
+                          .beginTsoPayloadReceiveOrderDelivery(
+                              federationName,
+                              federateId);
+      if (delivery.status != umbra::detail::FederationTsoRegistryStatus::applied ||
+          (delivery.deliveryStatus !=
+               umbra::detail::FederationTsoDeliveryStatus::applied &&
+           delivery.deliveryStatus !=
+               umbra::detail::FederationTsoDeliveryStatus::no_messages)) {
+        throw RTIinternalError(
+            L"The embedded federation could not transition queued timestamped payloads to receive-order delivery.");
+      }
+      tsoDeliveriesAsReceiveOrder = std::move(delivery.deliveries);
       auto scheduled = embeddedFederationRegistry().reevaluateTimeAdvanceGrants(
-          *joinedFederationName_);
+          federationName);
       if (scheduled.status == umbra::detail::FederationTimeGrantStatus::applied) {
         newlyEligible = std::move(scheduled.dispatches);
       }
       momWork = ambassadorJoinedFederateMomConditionalWorkFor(
           embeddedFederationRegistry(),
-          *joinedFederationName_,
-          *joinedFederateId_,
+          federationName,
+          federateId,
           {umbra::detail::hla::utf8::mom::time_constrained});
     }
   }
@@ -300,6 +294,10 @@ void UmbraRtiAmbassador::disableTimeConstrained() {
       // A previously constrained TAR may no longer be GALT-bounded. Queue
       // any resulting grant only after the shared runtime locks are released.
       flushAmbassadorAsynchronousReceiveCallbacks(timeState);
+      queueAmbassadorTsoPayloadsAsReceiveOrder(
+          federationName,
+          federateId,
+          std::move(tsoDeliveriesAsReceiveOrder));
       submitAmbassadorTimeAdvanceGrantDispatches(std::move(newlyEligible));
       return;
     case umbra::detail::FederateTimeDisableStatus::not_enabled:

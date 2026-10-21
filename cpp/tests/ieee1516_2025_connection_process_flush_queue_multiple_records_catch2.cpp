@@ -458,7 +458,7 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "RTIambassadors deliver multiple queued timestamped process messages in order through Flush Queue",
-    "[integration][foundation][interaction-management][time-management][flush-queue-request][timestamped-interaction][tso][retraction][callback-immediate][process-boundary][process-flush-queue-multiple-records][process-flush-queue-retraction][public-endpoint][multi-federate][rti.service.send-interaction][rti.service.retract][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.time-advance-request][rti.service.flush-queue-request][rti.service.query-logical-time][federate.callback.receive-interaction][federate.callback.flush-queue-grant]") {
+    "[integration][foundation][interaction-management][time-management][flush-queue-request][timestamped-interaction][tso][retraction][callback-immediate][process-boundary][process-flush-queue-multiple-records][fqr-all-queued-tso][process-flush-queue-retraction][public-endpoint][multi-federate][rti.service.send-interaction][rti.service.retract][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.time-advance-request][rti.service.flush-queue-request][rti.service.query-logical-time][federate.callback.receive-interaction][federate.callback.flush-queue-grant]") {
   auto runScenario = [](CallbackModel callbackModel) {
   class RecordingFederateAmbassador final : public NullFederateAmbassador {
    public:
@@ -640,19 +640,19 @@ TEST_CASE(
           TransportServiceOperation::subscribe_interaction_class,
           "The multiple-record FQR server lost Subscribe.");
       serveExpected(
-          sender,
-          senderHandler,
-          TransportServiceOperation::enable_time_regulation,
-          "The multiple-record FQR server lost Enable Time Regulation.");
-      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
-          serveExpected, sender, senderHandler);
-      serveExpected(
           receiver,
           receiverHandler,
           TransportServiceOperation::enable_time_constrained,
           "The multiple-record FQR server lost Enable Time Constrained.");
       umbra::test::serveExpectedSuccessfulVoidInvocationReport(
           serveExpected, receiver, receiverHandler);
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::enable_time_regulation,
+          "The multiple-record FQR server lost Enable Time Regulation.");
+      umbra::test::serveExpectedSuccessfulVoidInvocationReport(
+          serveExpected, sender, senderHandler);
       serveExpected(
           sender,
           senderHandler,
@@ -698,7 +698,8 @@ TEST_CASE(
       for (auto const* description : {
                "The multiple-record FQR server lost first TSO acknowledgement.",
                "The multiple-record FQR server lost second TSO acknowledgement.",
-               "The multiple-record FQR server lost frontier TSO acknowledgement."}) {
+               "The multiple-record FQR server lost frontier TSO acknowledgement.",
+               "The multiple-record FQR server lost future TSO acknowledgement."}) {
         serveExpected(
             receiver,
             receiverHandler,
@@ -720,11 +721,6 @@ TEST_CASE(
           receiverHandler,
           TransportServiceOperation::flush_queue_request,
           "The multiple-record FQR server lost second receiver FQR.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::acknowledge_tso_delivery,
-          "The multiple-record FQR server lost retained TSO acknowledgement.");
       serveExpected(
           receiver,
           receiverHandler,
@@ -807,17 +803,17 @@ TEST_CASE(
     REQUIRE_NOTHROW(senderRti->publishInteractionClass(senderInteraction));
     REQUIRE_NOTHROW(
         receiverRti->subscribeInteractionClass(receiverInteraction, true));
+    REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
+    if (callbackModel == HLA_EVOKED) {
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+    }
+    REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
     REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
         rti1516_2025::HLAinteger64Interval(0)));
     if (callbackModel == HLA_EVOKED) {
       static_cast<void>(senderRti->evokeCallback(0.0));
     }
     REQUIRE(senderFederate.timeRegulationEnabledCount == 1U);
-    REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
-    if (callbackModel == HLA_EVOKED) {
-      static_cast<void>(receiverRti->evokeCallback(0.0));
-    }
-    REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
 
     ParameterHandleValueMap parameterValues;
     std::array<std::uint8_t, 2U> encodedParameter{0x01U, 0x00U};
@@ -847,8 +843,9 @@ TEST_CASE(
                 VariableLengthData(frontierTag.data(), frontierTag.size()),
                 rti1516_2025::HLAinteger64Time(10))
                 .isValid());
-    // A later queued record must remain pending after FQR(10); the process
-    // service must not widen admission to the infinite logical-time bound.
+    // FQR delivers every TSO message already queued in the RTI, not only those
+    // at or below the supplied logical time. This timestamp-12 send completes
+    // synchronously before FQR(10) is invoked below.
     std::array<std::uint8_t, 3U> futureTag{0x46U, 0x55U, 0x54U};
     REQUIRE(senderRti->sendInteraction(
                 senderInteraction,
@@ -856,9 +853,8 @@ TEST_CASE(
                 VariableLengthData(futureTag.data(), futureTag.size()),
                 rti1516_2025::HLAinteger64Time(12))
                 .isValid());
-    // A still-future record can be retracted before it crosses the process
-    // callback boundary.  The later FQR(20) below proves that this identity
-    // is gone rather than merely hidden by the first frontier.
+    // A still-future record can be retracted before FQR. Neither FQR below
+    // should expose this retracted identity.
     std::array<std::uint8_t, 3U> retractedFutureTag{0x52U, 0x45U, 0x54U};
     auto const retractedFuture = senderRti->sendInteraction(
         senderInteraction,
@@ -881,18 +877,18 @@ TEST_CASE(
       REQUIRE(receiverFederate.receivedInteractionCount == 0U);
       REQUIRE(receiverFederate.flushQueueGrantCount == 0U);
       for (int pass = 0; pass != 12 &&
-           (receiverFederate.receivedInteractionCount != 3U ||
+           (receiverFederate.receivedInteractionCount != 4U ||
                           receiverFederate.flushQueueGrantCount == 0U);
            ++pass) {
         static_cast<void>(receiverRti->evokeCallback(0.0));
       }
     }
-    REQUIRE(receiverFederate.receivedInteractionCount == 3U);
+    REQUIRE(receiverFederate.receivedInteractionCount == 4U);
     REQUIRE(receiverFederate.flushQueueGrantCount == 1U);
     REQUIRE(
-        receiverFederate.callbackOrder == std::vector<char>{'I', 'I', 'I', 'G'});
+        receiverFederate.callbackOrder == std::vector<char>{'I', 'I', 'I', 'I', 'G'});
     REQUIRE(receiverFederate.receivedInteractionTimes ==
-            std::vector<std::int64_t>{5, 8, 10});
+            std::vector<std::int64_t>{5, 8, 10, 12});
     REQUIRE(receiverFederate.receivedInteractionClass == expectedClass);
     REQUIRE(receiverFederate.receivedProducingFederate == senderHandle);
     REQUIRE(receiverFederate.receivedParameterCount == 1U);
@@ -908,14 +904,13 @@ TEST_CASE(
     REQUIRE_NOTHROW(receiverRti->queryLogicalTime(queriedTime));
     REQUIRE(queriedTime.getTime() == 5);
 
-    // The second frontier admits the retained timestamp-12 record.  The
-    // exact sequence proves that the timestamp-14 record retracted above did
-    // not leave a stale callback behind.
+    // FQR(10) consumed timestamp 12 with the other already-queued payloads.
+    // The later FQR has no TSO callbacks; timestamp 14 was retracted.
     receiverFederate.callbackOrder.clear();
     REQUIRE_NOTHROW(
         receiverRti->flushQueueRequest(rti1516_2025::HLAinteger64Time(20)));
     if (callbackModel == HLA_EVOKED) {
-      REQUIRE(receiverFederate.receivedInteractionCount == 3U);
+      REQUIRE(receiverFederate.receivedInteractionCount == 4U);
       REQUIRE(receiverFederate.flushQueueGrantCount == 1U);
       for (int pass = 0; pass != 12 &&
            (receiverFederate.receivedInteractionCount != 4U ||
@@ -926,11 +921,11 @@ TEST_CASE(
     }
     REQUIRE(receiverFederate.receivedInteractionCount == 4U);
     REQUIRE(receiverFederate.flushQueueGrantCount == 2U);
-    REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I', 'G'});
+    REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'G'});
     REQUIRE(receiverFederate.receivedInteractionTimes ==
             std::vector<std::int64_t>{5, 8, 10, 12});
     REQUIRE(receiverFederate.flushQueueGrantValue == 9);
-    REQUIRE(receiverFederate.flushQueueGrantOptimisticValue == 12);
+    REQUIRE(receiverFederate.flushQueueGrantOptimisticValue == 20);
     rti1516_2025::HLAinteger64Time secondQueriedTime;
     REQUIRE_NOTHROW(receiverRti->queryLogicalTime(secondQueriedTime));
     REQUIRE(secondQueriedTime.getTime() == 9);
@@ -965,11 +960,12 @@ TEST_CASE(
     }
   }
   if (listener) {
-    listener.reset();
+    listener->close();
   }
   if (server.joinable()) {
     server.join();
   }
+  listener.reset();
   if (clientError) {
     std::rethrow_exception(clientError);
   }

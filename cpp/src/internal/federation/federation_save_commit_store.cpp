@@ -6,16 +6,70 @@
 #include <algorithm>
 #include <atomic>
 #include <charconv>
+#include <chrono>
 #include <cctype>
+#include <cstdint>
 #include <fstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 
+#if defined(_WIN32)
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
+
 namespace umbra::detail {
 namespace {
 
+std::string utf8(std::wstring_view value);
+
 std::string safeComponent(std::wstring const& value) {
+  std::string result;
+  result.reserve(25U);
+  for (wchar_t const character : value) {
+    if ((character >= L'a' && character <= L'z') ||
+        (character >= L'A' && character <= L'Z') ||
+        (character >= L'0' && character <= L'9') || character == L'_' ||
+        character == L'-') {
+      result.push_back(static_cast<char>(character));
+    } else {
+      result.push_back('_');
+    }
+    if (result.size() == 8U) {
+      break;
+    }
+  }
+  if (result.empty()) {
+    result = "save";
+  }
+  result.push_back('-');
+
+  // Keep save paths bounded on Windows while retaining a stable discriminator
+  // for the full federation/label. The manifest remains authoritative; these
+  // short components only provide a queryable filename prefix.
+  std::uint64_t hash = 14695981039346656037ULL;
+  for (unsigned char const character : utf8(value)) {
+    hash ^= character;
+    hash *= 1099511628211ULL;
+  }
+  char hashBuffer[16];
+  auto const conversion = std::to_chars(
+      hashBuffer,
+      hashBuffer + sizeof(hashBuffer),
+      hash,
+      16);
+  if (conversion.ec != std::errc{}) {
+    throw std::runtime_error("Unable to encode federation-save filename hash.");
+  }
+  auto const hashDigits = static_cast<std::size_t>(conversion.ptr - hashBuffer);
+  result.append(16U - hashDigits, '0');
+  result.append(hashBuffer, conversion.ptr);
+  return result;
+}
+
+std::string legacySafeComponent(std::wstring const& value) {
   std::string result;
   result.reserve(value.size());
   for (wchar_t const character : value) {
@@ -33,6 +87,19 @@ std::string safeComponent(std::wstring const& value) {
     result.resize(maximumComponentLength);
   }
   return result.empty() ? std::string{"federation-save"} : result;
+}
+
+std::string processSessionIdentity() {
+  static auto const identity = [] {
+    auto const started = std::chrono::system_clock::now().time_since_epoch().count();
+#if defined(_WIN32)
+    auto const processId = _getpid();
+#else
+    auto const processId = getpid();
+#endif
+    return std::to_string(started) + "-" + std::to_string(processId);
+  }();
+  return identity;
 }
 
 std::string utf8(std::wstring_view value) {
@@ -380,8 +447,9 @@ FederationSaveCommitDescriptor parseManifest(std::filesystem::path const& locati
 
 void writeManifest(
     std::filesystem::path const& temporary,
-    std::filesystem::path const& final,
+    std::filesystem::path const& commitMarker,
     std::string const& contents) {
+  bool markerReserved = false;
   try {
     std::ofstream output(temporary, std::ios::binary | std::ios::out | std::ios::trunc);
     if (!output) {
@@ -399,16 +467,18 @@ void writeManifest(
       throw std::runtime_error(
           "Unable to close an Umbra federation-save manifest.");
     }
-    std::error_code error;
-    std::filesystem::rename(temporary, final, error);
-    if (error) {
+    markerReserved = platform::reserveFileExclusively(
+        commitMarker,
+        "Unable to reserve an Umbra federation-save commit marker.");
+    if (!markerReserved) {
       throw std::runtime_error(
-          "Unable to publish an Umbra federation-save manifest.");
+          "An Umbra federation-save commit marker already exists.");
     }
   } catch (...) {
-    std::error_code ignored;
     platform::removeFileNoThrow(temporary);
-    platform::removeFileNoThrow(final);
+    if (markerReserved) {
+      platform::removeFileNoThrow(commitMarker);
+    }
     throw;
   }
 }
@@ -456,7 +526,7 @@ void FilesystemFederationSaveCommitStore::commit(
   static std::atomic_uint64_t nextUnique{1U};
   constexpr std::size_t maximumReservationAttempts = 1024U;
   auto const stem = "umbra-federation-save-" + safeComponent(descriptor.federationName) +
-      "-" + safeComponent(descriptor.label);
+      "-" + safeComponent(descriptor.label) + "-" + processSessionIdentity();
   // Render before reserving a pathname so malformed Unicode cannot leave a
   // misleading temporary manifest behind.
   auto const contents = manifestFor(descriptor);
@@ -471,12 +541,14 @@ void FilesystemFederationSaveCommitStore::commit(
                            .lexically_normal();
     auto temporary = final;
     temporary += ".tmp";
+    auto commitMarker = final;
+    commitMarker += ".commit";
     if (!platform::reserveFileExclusively(
             temporary,
             "Unable to reserve an Umbra federation-save manifest.")) {
       continue;
     }
-    writeManifest(temporary, final, contents);
+    writeManifest(temporary, commitMarker, contents);
     return;
   }
   throw std::runtime_error(
@@ -502,7 +574,11 @@ FilesystemFederationSaveCommitStore::load(
 
   auto const prefix = "umbra-federation-save-" + safeComponent(federationName) +
       "-" + safeComponent(label) + "-";
+  auto const legacyPrefix =
+      "umbra-federation-save-" + legacySafeComponent(federationName) +
+      "-" + legacySafeComponent(label) + "-";
   std::vector<std::filesystem::path> candidates;
+  std::vector<std::filesystem::path> legacyCandidates;
   std::filesystem::directory_iterator entries(directory_, error);
   if (error) {
     throw std::runtime_error(
@@ -514,9 +590,17 @@ FilesystemFederationSaveCommitStore::load(
       continue;
     }
     auto const filename = entry.path().filename().string();
-    if (entry.path().extension() == ".json" && filename.starts_with(prefix)) {
-      candidates.push_back(entry.path());
+    auto const extension = entry.path().extension();
+    if (extension == ".json" || extension == ".commit") {
+      if (filename.starts_with(prefix)) {
+        candidates.push_back(entry.path());
+      } else if (filename.starts_with(legacyPrefix)) {
+        legacyCandidates.push_back(entry.path());
+      }
     }
+  }
+  if (candidates.empty()) {
+    candidates = std::move(legacyCandidates);
   }
   if (candidates.empty()) {
     return std::nullopt;
@@ -527,7 +611,12 @@ FilesystemFederationSaveCommitStore::load(
       [](std::filesystem::path const& first, std::filesystem::path const& second) {
         return first.filename().string() < second.filename().string();
       });
-  auto descriptor = parseManifest(candidates.back());
+  auto manifestPath = candidates.back();
+  if (manifestPath.extension() == ".commit") {
+    manifestPath.replace_extension();
+    manifestPath += ".tmp";
+  }
+  auto descriptor = parseManifest(manifestPath);
   if (descriptor.federationName != federationName || descriptor.label != label) {
     throw std::runtime_error(
         "Federation-save manifest identity does not match its filename.");

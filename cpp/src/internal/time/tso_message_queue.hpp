@@ -137,6 +137,12 @@ class TsoMessageQueue final {
       rti1516_2025::LogicalTime const& boundary,
       bool inclusive);
 
+  // Time Constrained disable converts every still-pending recipient payload
+  // to receive-order delivery.  Unlike grant-boundary delivery, this preserves
+  // enqueue sequence rather than sorting by logical timestamp.
+  [[nodiscard]] std::vector<TsoQueuedMessage> popPendingForReceiveOrder(
+      std::uint64_t recipientFederateId);
+
   [[nodiscard]] std::optional<std::shared_ptr<rti1516_2025::LogicalTime const>>
   earliestTimestampFor(std::uint64_t recipientFederateId) const;
 
@@ -149,6 +155,16 @@ class TsoMessageQueue final {
   // recipient. Other fanout recipients and their message-id terminal state
   // remain untouched.
   [[nodiscard]] std::size_t discardRecipient(std::uint64_t recipientFederateId) noexcept;
+
+  // Retires only this recipient's queued entries strictly before its grant
+  // frontier. Message IDs may still have valid fanout entries for other
+  // recipients, so this must not set the federation-wide retraction fence.
+  [[nodiscard]] std::vector<TsoQueuedMessage> retireBefore(
+      std::uint64_t recipientFederateId,
+      rti1516_2025::LogicalTime const& boundary);
+  [[nodiscard]] std::vector<TsoQueuedMessage> retireAtOrBefore(
+      std::uint64_t recipientFederateId,
+      rti1516_2025::LogicalTime const& boundary);
 
   [[nodiscard]] std::size_t pendingCount() const noexcept;
   [[nodiscard]] std::size_t pendingCountFor(std::uint64_t recipientFederateId) const noexcept;

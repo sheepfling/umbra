@@ -64,6 +64,24 @@ and the [Save/Restore Join boundary](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE
 The barrier-specific expansion behavior below is not a general membership or
 Save/Restore rule.
 
+The Federation MOM also exposes an observation path for this protocol, separate
+from registration, achievement, and federation-level completion:
+`HLArequestSynchronizationPoints` asks for the in-progress point list, while
+`HLArequestSynchronizationPointStatus` asks for one point's federate/status
+roster. The pinned MIM specifies one paired report for each request ([list
+request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2559),
+[status request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2569)).
+In the reviewed embedded path, the [points-request handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L649)
+and [status-request handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L681)
+plan the paired reports. The [focused test](../../cpp/tests/ieee1516_2025_federation_mom_synchronization_reports_catch2.cpp#L158)
+observes the roster changing only after a separate achievement; it does not
+treat the query as a barrier transition. Configured-process query behavior
+remains unverified: the source-level publication-check mismatch and conditional
+error mapping are captured in the MOM guide's [configured-process evidence
+boundary](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#configured-process-request-route-evidence-boundary).
+See also the combined [MOM query flow](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#federation-synchronization-queries-active-point-list-and-roster-status)
+and [cross-cutting state/query example](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#keep-state-pending-work-and-observation-distinct).
+
 ## HLA vocabulary: registration, announcement, and completion differ
 
 The 2025 API exposes a sequence of distinct operations and callbacks. Reading
@@ -211,7 +229,7 @@ The point allows expansion only when registration used the overload without an
 explicit set. The newcomer must then report too. Existing reports are retained,
 so a join after partial reports grows the participant count while the point is
 still pending. That ordering is source-derived: the focused
-[late-join test](../../cpp/tests/ieee1516_2025_federation_registry_synchronization_point_late_join_explicit_set_catch2.cpp#L16)
+[late-join test](../../cpp/tests/ieee1516_2025_federation_registry_synchronization_point_late_join_explicit_set_catch2.cpp#L49)
 joins before any achievement call and does not cover partial-results-before-join.
 
 ### A partial result survives an expanding join
@@ -306,10 +324,72 @@ for a later evoke. With push disabled, the service retains the event for a
 later `receive_interaction` request. Push/poll delivery and callback-model
 selection are independent, but the selected process tests cover only
 the [HLA_EVOKED/polling case](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L457)
-and [HLA_IMMEDIATE/pushed case](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L674). See the
+and [HLA_IMMEDIATE/pushed case](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L679). See the
 [source-derived process ordering trace](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#process-endpoint-service-responses-and-synchronization-events-are-separate)
 for the exact boundaries and test limits; this is not an HLA callback-order
 rule or embedded/process parity claim.
+
+#### In the process push path, callback failure follows barrier closure
+
+The configured-process push route has a narrow source-derived exception edge:
+the server closes the barrier before delivering the final notification, while
+the client may dispatch that notification before the public service reaches its
+normal success-report step. This is implementation behavior, not a normative
+callback-order or rollback rule:
+
+```mermaid
+flowchart TD
+  Last["Last required achievement reaches<br/>the process endpoint"] --> Commit["Registry records the result,<br/>plans notifications, and erases the point"]
+  Commit --> Delivery{"Receive-order delivery mode"}
+  Delivery -->|Polling| Poll["Queue notification for a later<br/>receive_interaction request"]
+  Poll --> PollReturn["Return result; event awaits later receive_interaction"]
+  Delivery -->|Push| Frame["On successful send, deliver the event<br/>before its correlated response"]
+  Frame --> Response["Return correlated achievement response"]
+  Response --> Client["Client matches response, unlocks,<br/>and drains the completing caller's event"]
+  Client --> Model{"Callback model"}
+  Model -->|HLA_IMMEDIATE| Immediate["Application callback may run<br/>inside this drain"]
+  Model -->|HLA_EVOKED| Evoked["Queue callback task<br/>for a later Evoke"]
+  Immediate --> Throws{"Does the application callback throw?"}
+  Throws -->|No| Success["Public service reaches<br/>its success-report step"]
+  Evoked --> Success
+  Throws -->|Yes| Unwind["Drain unwinds before the client result<br/>and success-report step"]
+  Unwind --> Kind{"Exception category"}
+  Kind -->|RTI Exception| Report["Outer catch emits an exception<br/>report and rethrows"]
+  Kind -->|Known internal process error| Internal["Mapped to RTIinternalError"]
+  Kind -->|Other C++ exception| Unspecified["No general conversion or<br/>report path is shown"]
+  Commit -.-> NoRollback["No rollback of the erased point is shown"]
+```
+
+The server-side achievement handler asks the registry to close the point,
+queues or sends the resulting per-recipient notifications, and only then
+returns the correlated response ([handler](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L242),
+[registry commit](../../cpp/src/internal/federation/federation_registry.cpp#L276),
+[push/poll routing](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L357)).
+On the pushed route, the completing caller's client matches that response,
+unlocks the request exchange, and dispatches buffered events before returning
+the result to the RTI adapter ([request dispatch](../../cpp/src/internal/federation/process_federation_client.cpp#L614),
+[event submission](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L274),
+[immediate callback submission](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122),
+[immediate drain and rethrow](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L245),
+[callback invocation](../../cpp/src/internal/callbacks/callback_session.cpp#L46)).
+The adapter appends its successful service report only after that client call
+returns; it maps known process protocol/client/bridge errors to
+`RTIinternalError`, while its outer exception-report path catches RTI
+`Exception` objects ([adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1276),
+[known internal-error mapping](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1327),
+[success-report step](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1324),
+[outer RTI-exception catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1390)).
+Thus a throwing `HLA_IMMEDIATE` callback can escape after the barrier has
+already been erased and before the normal success-report step. The inspected
+wrapper does not show a catch-all conversion or reporting rule for every C++
+exception type. The focused process cases use a non-throwing recorder
+([callback](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L160),
+[polling case](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L457),
+[pushed case](../../cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp#L679));
+they do not inject callback failure or assert post-error barrier state or
+service-report contents. The HLA_EVOKED callback runs at a later Evoke and has
+its own callback-exception boundary, outside this achievement-call trace.
+Treat the exception path as source-only, not as HLA semantics.
 
 ```mermaid
 stateDiagram-v2
@@ -436,11 +516,12 @@ completing or re-registering the point.
 | Concern | Umbra implementation | Focused evidence |
 | --- | --- | --- |
 | Public overloads, set-supplied distinction, callback routing | [2025 ambassador service](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L1073) | [evoked embedded scenario](../../cpp/tests/synchronization_point_catch2.cpp#L242), [immediate embedded scenario](../../cpp/tests/synchronization_point_catch2.cpp#L253) |
-| Participant selection, duplicate-label rejection, announcement, achievement fan-in | [embedded federation registry](../../cpp/src/internal/federation/federation_registry.cpp#L111) | [late-join expansion and explicit-set boundary](../../cpp/tests/ieee1516_2025_federation_registry_synchronization_point_late_join_explicit_set_catch2.cpp#L16), [public API scenario](../../cpp/tests/synchronization_point_catch2.cpp#L113) |
-| Achievement report count closes one-member sets on their first report | [achievement result insertion and set-size check](../../cpp/src/internal/federation/federation_registry.cpp#L291) | [two-member public case with a false final result](../../cpp/tests/synchronization_point_catch2.cpp#L168); no focused singleton achievement case was found in this bounded review |
+| Participant selection, duplicate-label rejection, announcement, achievement fan-in | [embedded federation registry](../../cpp/src/internal/federation/federation_registry.cpp#L126) | [late-join expansion and explicit-set boundary](../../cpp/tests/ieee1516_2025_federation_registry_synchronization_point_late_join_explicit_set_catch2.cpp#L49), [public API scenario](../../cpp/tests/synchronization_point_catch2.cpp#L113) |
+| Achievement report count closes one-member sets on their first report | [achievement result insertion and set-size check](../../cpp/src/internal/federation/federation_registry.cpp#L305) | [two-member public case with a false final result](../../cpp/tests/synchronization_point_catch2.cpp#L168); no focused singleton achievement case was found in this bounded review |
 | Registration result submitted before announcement batch | [callback submission adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1182) | [evoked](../../cpp/tests/synchronization_point_catch2.cpp#L242) and [immediate](../../cpp/tests/synchronization_point_catch2.cpp#L253) callback-model scenarios demonstrate dispatch, but do not assert relative callback order |
-| Late-join hook and announcement submission | [join lifecycle hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L740) | [late-join expansion test](../../cpp/tests/ieee1516_2025_federation_registry_synchronization_point_late_join_explicit_set_catch2.cpp#L16) |
-| Partial achievement retained across omitted-set late-join expansion | [participant-set expansion](../../cpp/src/internal/federation/federation_registry.cpp#L233), [achievement fan-in](../../cpp/src/internal/federation/federation_registry.cpp#L262) | [direct late-join test](../../cpp/tests/ieee1516_2025_federation_registry_synchronization_point_late_join_explicit_set_catch2.cpp#L16) and [public callback-model scenarios](../../cpp/tests/synchronization_point_catch2.cpp#L113) do not exercise an achievement before the late join; the sequence above is source-derived |
+| Late-join hook and announcement submission | [join lifecycle hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L713) | [late-join expansion test](../../cpp/tests/ieee1516_2025_federation_registry_synchronization_point_late_join_explicit_set_catch2.cpp#L49) |
+| Process Join rollback after a late-join announcement is queued | [process Join's shared-registry expansion and queue submission](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L801), [announcement queue helper](../../cpp/src/internal/federation/process_federation_service_notifications.cpp#L285) | The [process MOM resign/removal-order case](../../cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp#L293) injects a Join failure after the announcement enters the joining session's queue; it asserts no leaked callback/reflection/announcement count, then a retry yields exactly one announcement ([failure and retry assertions](../../cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp#L428)). This process rollback case has no prior achievement report; it does not cover the partial-result-before-late-join interleaving or establish general HLA callback ordering/profile parity. |
+| Partial achievement retained across omitted-set late-join expansion | [participant-set insertion](../../cpp/src/internal/federation/federation_registry.cpp#L250), [achievement result insertion and set-size check](../../cpp/src/internal/federation/federation_registry.cpp#L305), [configured-process Join expansion call](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L801) | The [direct late-join test](../../cpp/tests/ieee1516_2025_federation_registry_synchronization_point_late_join_explicit_set_catch2.cpp#L49) and [public late-join step](../../cpp/tests/synchronization_point_catch2.cpp#L199) followed by its [first achievement](../../cpp/tests/synchronization_point_catch2.cpp#L205) do not exercise an achievement before the late join. The [process late-Join rollback case](../../cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp#L428) also has no prior achievement. The partial-result-before-late-join sequence above is source-derived; neither profile has a focused test for this interleaving. |
 | Resignation removes a member and can close the barrier | [resignation cleanup](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L918) | [resignation completion and callback/report ordering](../../cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp#L186) |
 | Forced connection loss during a pending barrier | [registry forced-loss entry](../../cpp/src/internal/federation/federation_registry.cpp#L424), [shared participant-set cleanup](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L918), [embedded result extraction](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L241) and [callback submission](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L421), [process connection-loss entry](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L164), [process event projection](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L84) | No focused loss-during-active-synchronization case was found in the loss-focused Catch2 files or process connection-lifecycle TCK source. The [voluntary embedded resignation case](../../cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp#L186) verifies a two-member `HLA_EVOKED` scenario, not forced transport loss or process delivery. |
 | Pending barrier state image | [capture](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp#L341), [state-image encoding](../../cpp/src/internal/federation/federation_state_image.cpp#L1897), [decode](../../cpp/src/internal/federation/federation_state_image_decode.cpp#L1872), [restore and validation](../../cpp/src/internal/federation/federation_registry_state_image_restore.cpp#L410) | [HLA_IMMEDIATE public save/restore](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L422), [HLA_EVOKED public save/restore](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L570), [fresh-registry filesystem restart](../../cpp/tests/ieee1516_2025_federation_registry_synchronization_point_filesystem_restart_catch2.cpp#L3), [codec round-trip assertions](../../cpp/tests/ieee1516_2025_federation_state_image_codec_catch2.cpp#L406) |

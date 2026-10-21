@@ -796,15 +796,36 @@ profile's forced overlay under `NO_ACTION`, nor do they establish profile
 parity or a callback-order guarantee. These were inspected, not run in this
 documentation pass.
 
-### Process endpoint: server loss and local callback use separate paths
+### Process endpoint: host cleanup and local callback use separate paths
 
-The current-process fault fixture first applies forced registry loss—through
-`ProcessFederationService::connectionLost` for the Federate-Lost report
-scenario, or the equivalent registry-plus-dispatch path for the cleanup
-scenarios—then calls `service.detach(receiver)` and closes the receiver socket.
-This is an adapter-managed schedule, not evidence that a production server
-automatically maps an arbitrary socket EOF to registry cleanup; a bounded scan
-found no caller of the service helper in `cpp/src`.
+The source has a server-host path as well as the controlled current-process
+fault fixture. `ProcessFederationServiceHost::serveConnection` calls
+`service.connectionLost(session, ...)` when its `serveOne` loop ends. A serving
+exception, or a false/throwing result from that normal cleanup call, reaches the
+catch path, which records the failure and makes one best-effort retry before
+detaching. For an unjoined session, the service cleanup is a successful no-op;
+for a joined session, it applies the registry loss transition and projects
+survivor effects. A false return can mean the registry transition was not
+applied, or that effect projection failed after the registry had already
+changed (possibly after partial enqueue/send work). The catch-path retry's
+false return is ignored; a thrown retry exception is recorded, and detach
+still follows either way. Therefore detaching the transport session is not
+proof that membership cleanup or every survivor effect completed.
+
+The host then calls `service.detach(session)` and closes the connection.
+`detach` clears the service's session routing and pending pushed-retraction
+recipient references; it is not the membership transition itself.
+
+That host path is implemented, but the repository's current source has no
+non-test host construction or launch site. The public host integration test
+connects two clients, exercises requests against an absent execution, then
+disconnects them while unjoined before stopping the host. Its stalled-hello
+case checks shutdown interruption. Neither asserts server-side cleanup for a
+joined member or cleanup timing. Keep those limits distinct from the
+current-process fault fixture, which explicitly applies forced registry loss
+(through `ProcessFederationService::connectionLost` for the Federate-Lost
+report scenario, or an equivalent registry-plus-dispatch path for cleanup
+scenarios), then detaches the session and closes its socket.
 
 The client observes the later transport failure separately. Its local adapter
 marks the process endpoint disconnected and submits the `connectionLost`
@@ -823,11 +844,24 @@ the server fixture, client buffer, and callback queue differ.
 
 ```mermaid
 flowchart TD
-  Fixture["Current-process fault fixture"] --> Forced["Apply forced registry loss<br/>and project survivor effects"]
+  Host["Host worker<br/>implemented path; construction is test-only here"] --> Loop["serveOne request loop"]
+  Loop -->|loop ends| HostLoss["Host calls connectionLost(session)"]
+  Loop -->|serving throws| CatchLoss["Catch records failure"]
+  HostLoss --> MemberState{"Session represents<br/>a joined member?"}
+  MemberState -->|no| NoMember["No membership cleanup is needed"]
+  MemberState -->|yes| HostRegistry["Registry loss transition;<br/>project survivor effects"]
+  HostRegistry -->|returns true| HostDetach["Host calls detach(session)"]
+  HostRegistry -->|false or throws| CatchLoss
+  CatchLoss --> CatchRetry["Best-effort connectionLost(session) retry;<br/>false is ignored; thrown error is recorded"]
+  CatchRetry --> HostDetach
+  NoMember --> HostDetach
+  HostDetach --> HostClose["Host closes connection"]
+  Fixture["Current-process fault fixture"] --> Forced["Fixture applies forced registry loss<br/>and projects survivor effects"]
   Forced --> Survivor["Eligible survivors may receive<br/>separate effects, including Federate-Lost MOM interaction"]
-  Forced --> Detach["Detach lost session<br/>and clear its server-side queues"]
-  Detach --> Socket["Close receiver socket"]
-  Socket --> Failure["Client observes transport failure"]
+  Forced --> FixtureDetach["Fixture explicitly detaches session"]
+  FixtureDetach --> FixtureClose["Fixture closes receiver socket"]
+  HostClose --> Failure["Client observes transport failure"]
+  FixtureClose --> Failure
   Failure --> Local["Local adapter becomes Not Connected<br/>and submits ConnectionLost task"]
   Local --> Model{"Callback model"}
   Model -->|HLA_IMMEDIATE| Immediate["May invoke inline"]
@@ -842,10 +876,14 @@ flowchart TD
   Submitted -->|No| NoSubmitted["No earlier event task is in the dispatcher backlog"]
 ```
 
-Process evidence: the [current-process fixture applies forced loss, detaches,
+Process evidence: the [host worker's session loop and cleanup](../../cpp/src/internal/federation/process_federation_service_host.cpp#L153)
+calls the [session connection-loss adapter](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L182)
+before [detaching the service session](../../cpp/src/internal/federation/process_federation_service.cpp#L61).
+The [host integration case](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L42)
+uses unjoined clients; the [stalled-hello case](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L80)
+does not exercise joined-member cleanup. The separate [current-process fixture applies forced loss, detaches,
 and closes the receiver](../../cpp/tests/process_federation_service_probe.cpp#L1036);
-the [service detach](../../cpp/src/internal/federation/process_federation_service.cpp#L61)
-removes its session, and the [connection-loss projection](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L19)
+the [connection-loss projection](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L19)
 forms survivor effects. The client [buffers event frames](../../cpp/src/internal/federation/process_federation_client.cpp#L427),
 then its [failed-request path](../../cpp/src/internal/federation/process_federation_client.cpp#L504)
 dispatches transport failures without draining those events; [client close](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L567)
@@ -999,7 +1037,7 @@ confirmation](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md#push-delivery-commits-b
 | Successful voluntary resignation, peers remain | A successful service ends this membership lifetime and resets its local callback route. Pending acquisitions reject some action choices; cancellation choices remove the leaver's relevant tracked work but do not waive other guards. Rejected preflight leaves membership intact. | Action-dependent ownership, removal, and lifecycle notifications may be planned for peers. Each callback has its own delivery gate; in the active-save case, survivors receive `FEDERATE_RESIGNED_DURING_SAVE`, but the leaver does not. | Selected delete/divest effects are applied; the execution remains with its other members. |
 | Successful voluntary resignation, final member | The same voluntary preflight still applies; being last does not bypass a pending-acquisition rejection. After it succeeds, the current embedded implementation performs the final-member delete-object pass, even with `NO_ACTION`. | There are no surviving members to notify. | Objects eligible for that pass are cleaned up. The execution remains present with zero members and can be joined again before explicit Destroy. |
 | Connection loss, peers remain | The registry forcibly removes the member using its per-member automatic directive plus forced safety cleanup, including acquisition-work cancellation. A `connectionLost` report is local adapter reporting, not a callback sent over the failed connection. | Removal and federate-lost notifications depend on directive, known objects, callback routes, support switches, and timing; loss does not guarantee a removal callback for every object. | The member is removed; the execution remains available to its peers. A lost regulator's narrow TSO cutoff is a separate time-management rule. |
-| Connection loss, final member | Forced cleanup applies, and the final-member delete pass still runs even if the configured automatic directive is `NO_ACTION`. In the focused embedded case, the local fault description is reported, no resignation description is reported, and the old ambassador is disconnected. | There are no surviving members. | The tested object name becomes reusable after reconnecting and rejoining; the execution itself still exists until explicit Destroy. See the [final-member transport-loss case](../../cpp/tests/ieee1516_2025_connection_lost_final_federate_directive_two_catch2.cpp#L4). |
+| Connection loss, final member | Forced cleanup applies, and the final-member delete pass still runs even if the configured automatic directive is `NO_ACTION`. In the focused embedded case, the local fault description is reported, no resignation description is reported, and the old connection is disconnected. | There are no surviving members. | The test reconnects through the same `RTIambassador` object, then joins as a fresh member lifetime; the tested object name becomes reusable. This does not resume the failed connection or old membership. The execution remains until explicit Destroy. See the [final-member transport-loss case](../../cpp/tests/ieee1516_2025_connection_lost_final_federate_directive_two_catch2.cpp#L4). |
 | Explicit Destroy | This is not a member-exit callback or a substitute for resignation; it is a separate service issued while the execution is empty and otherwise destroyable. | No members remain to receive member callbacks. Other RTI connections and executions are outside this execution's lifetime. | Successful Destroy erases the execution and its associated save snapshot state. |
 
 These distinctions are particularly useful when debugging “I resigned but
@@ -1013,6 +1051,7 @@ left but the federation name still exists.”
 | Local ambassador lifecycle | [FederateLifecycle transitions](../../cpp/src/internal/federation/federate_lifecycle.cpp#L11), [public lifecycle adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L147) | [federation create/join/resign/destroy scenario](../../cpp/tests/ieee1516_2025_federation_resign_lifecycle_catch2.cpp#L4) |
 | Execution and membership registry | [create/destroy/join](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L65), [process service handlers](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L130) | [federation create/join/resign/destroy scenario](../../cpp/tests/ieee1516_2025_federation_resign_lifecycle_catch2.cpp#L4) |
 | Federation member-list snapshot and callback | [embedded query adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L2576), [callback dispatcher submission](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L121); no process member-list operation appears in the [transport operation enum](../../cpp/src/internal/federation/transport_service_protocol.hpp#L21), [client management route](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L15), or [service dispatch](../../cpp/src/internal/federation/process_federation_service_dispatch.cpp#L13). | [embedded listing test entry](../../cpp/tests/federation_listing_catch2.cpp#L72), [EVOKED member snapshot](../../cpp/tests/ieee1516_2025_federation_listing_test_support.hpp#L85), [missing-execution callback](../../cpp/tests/ieee1516_2025_federation_listing_test_support.hpp#L94); HLA_IMMEDIATE is exercised there only for the sibling execution-list service. No process-specific member-list test was found in this survey. |
+| Process-host session loss versus fixture-driven loss | [host worker cleanup](../../cpp/src/internal/federation/process_federation_service_host.cpp#L153), [session loss adapter](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L182), [service detach](../../cpp/src/internal/federation/process_federation_service.cpp#L61) | [host client test](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L42) uses unjoined clients; the [fault fixture](../../cpp/tests/process_federation_service_probe.cpp#L1036) manually applies loss and detach. No focused test asserts host-driven cleanup of a joined member. |
 | Voluntary ResignAction | [resign transition and guards](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L13), [public resignation adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L800) | [final-member NO_ACTION cleanup and rejoin](../../cpp/tests/ieee1516_2025_embedded_resign_action_final_federate_catch2.cpp#L4), [delete/removal on resignation](../../cpp/tests/ieee1516_2025_embedded_resign_action_delete_objects_catch2.cpp#L4) |
 | Process Resign and survivor event projection | [process `handleResign`](../../cpp/src/internal/federation/process_federation_service_request_handlers.cpp#L136), [registry-result event dispatch](../../cpp/src/internal/federation/process_federation_service_connection_loss.cpp#L19), [shared resignation transition](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L13) | [NO_ACTION HLAfederate removal before rejoined-object discovery](../../cpp/tests/ieee1516_2025_connection_process_mom_resign_removal_order_catch2.cpp#L37); this does not exercise the other action-specific cleanup effects. |
 | Resignation during an active save or restore | [save failure planning](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L445), [restore failure planning](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L456), [callback guard](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L806), [departed-queue reset and survivor notification submission](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L990) | [HLA_EVOKED active-save callback rejection, multiple-survivor failure, and successful retry](../../cpp/tests/ieee1516_2025_save_active_callback_resignation_guard_catch2.cpp#L4); [HLA_IMMEDIATE save-failure reason and one-survivor retry](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L230); [restore participant resignation failure](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L365) |
@@ -1039,6 +1078,11 @@ substitute for the normative decision table.
 This guide does not specify the full IEEE action decision table, connection
 failure detection policy for every transport, callback ordering for all
 survivor notifications, every cleanup ledger, or complete MOM reporting.
+The source contains a host worker that applies server-side connection-loss
+cleanup, but the current checkout has no non-test host construction site and
+the focused host test does not exercise loss of a joined session. Do not read
+the implementation path as evidence of deployed-host coverage or a tested
+server cleanup timing guarantee.
 Save/restore interlocks and general TSO cutoff details stay in their dedicated
 guides. The cutoff flow records the implementation's clause 4.4 interpretation;
 confirm the exact normative wording from the full standard before using it as
@@ -1050,14 +1094,20 @@ profile does not imply parity with these 2025 transitions or tests.
 Callback queues, HLA_EVOKED versus HLA_IMMEDIATE behavior, re-entry boundaries,
 delivery commit points, and ordering interactions with TSO and federation
 callbacks are covered in the separate [callback and service-ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md).
-On 2026-10-14, all 15 current Mermaid diagrams in this guide rendered locally
-with Mermaid CLI 12.0.0. The revised active-save resignation sequence and the
-connection-loss TSO cutoff flow were visually inspected; the former was
-simplified after its first preview showed unnecessarily dense dispatch detail.
-These local checks are not GitHub-renderer verification. After publication,
-check the changed diagrams on GitHub and record any renderer-specific issue in
-the [flow-guide backlog](HLA-BEHAVIOR-FLOW-GUIDES.md). Verify exact clause 4.4
-wording against the full official standard before presenting the implementation
-flow as normative guidance. A 2010 lifecycle survey remains a separate future
-topic; do not infer it from this 2025 guide.
+On 2026-10-16, all 15 Mermaid diagrams in this guide rendered with Mermaid CLI
+12.0.0. The revised host-versus-fixture process-loss chart was visually
+inspected locally; it is tall but legible while scrolling. Its catch branch
+shows the best-effort retry and unconditional detach without implying that the
+registry transition or every survivor effect necessarily completed. Earlier
+visual review of the active-save resignation sequence and connection-loss TSO
+cutoff flow remains recorded above. Local rendering is not GitHub-renderer
+verification. After publication, check changed diagrams on GitHub and record
+any renderer-specific issue in the [flow-guide backlog](HLA-BEHAVIOR-FLOW-GUIDES.md).
+The current 15-diagram render set includes the member-list HLA/API request-report
+map. Its screenshot/visual review is not recorded; the earlier visual review
+applies to the distinct member-list snapshot sequence, so keep this map on the
+visual-QA handoff.
+Verify exact clause 4.4 wording against the full official standard before
+presenting the implementation flow as normative guidance. A 2010 lifecycle
+survey remains a separate future topic; do not infer it from this 2025 guide.
 Do not edit the HLA Requirements Lab during this Umbra documentation work.

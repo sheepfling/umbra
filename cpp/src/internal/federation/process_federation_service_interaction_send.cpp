@@ -425,7 +425,9 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
       return internalError(request);
     }
     for (auto const& federate : execution->federates) {
-      if (federate.time.timeConstrained) {
+      // Preserve the queued TSO classification through a pending constrained
+      // transition instead of emitting an early receive-order event.
+      if (federate.time.timeConstrained || federate.time.timeConstrainedPending) {
         timeConstrainedRecipients.insert(federate.membership.id);
       }
     }
@@ -566,6 +568,10 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
     if (resolvedRecipient.conveyRegionDesignatorSets &&
         (sendRequest.sentRegionHandles.has_value() || plan.defaultRegionUsed)) {
       event.sentRegionHandles = sendRequest.sentRegionHandles;
+      if (!sendRequest.timestamp && sendRequest.sentRegionHandles &&
+          !sendRequest.sentRegionHandles->empty()) {
+        event.sentRegionSnapshots = plan.sentRegionSnapshots;
+      }
     }
     events.push_back(std::move(event));
   }
@@ -712,7 +718,11 @@ TransportServiceMessage ProcessFederationService::handleSendDirectedInteraction(
       return internalError(request);
     }
     for (auto const& federate : execution->federates) {
-      if (federate.time.timeConstrained) {
+      // Preserve TSO classification throughout Enable Time Constrained's
+      // pending callback interval, including recipients served over the
+      // process boundary.
+      if (federate.time.timeConstrained ||
+          federate.time.timeConstrainedPending) {
         timeConstrainedRecipients.insert(federate.membership.id);
       }
     }

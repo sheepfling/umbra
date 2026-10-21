@@ -2,8 +2,10 @@ package org.hla.rti.tck;
 
 import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.AttributeHandleSet;
+import hla.rti1516_2025.AttributeHandleValueMap;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.RTIambassador;
@@ -44,9 +46,11 @@ final class PrivilegeToDeleteTransferTck {
          connected[2] = true;
          oldOwner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         oldOwner.joinFederationExecution("java-tck-delete-privilege-old-owner", federation);
+         FederateHandle oldOwnerHandle = oldOwner.joinFederationExecution(
+            "java-tck-delete-privilege-old-owner", federation);
          joined[0] = true;
-         newOwner.joinFederationExecution("java-tck-delete-privilege-new-owner", federation);
+         FederateHandle newOwnerHandle = newOwner.joinFederationExecution(
+            "java-tck-delete-privilege-new-owner", federation);
          joined[1] = true;
          observer.joinFederationExecution("java-tck-delete-privilege-observer", federation);
          joined[2] = true;
@@ -71,8 +75,10 @@ final class PrivilegeToDeleteTransferTck {
          AttributeHandleSet oldValues = JavaTckSupport.attributeSet(oldOwner, oldValue);
          AttributeHandleSet newValues = JavaTckSupport.attributeSet(newOwner, newValue);
          AttributeHandleSet observerValues = JavaTckSupport.attributeSet(observer, observerValue);
-         AttributeHandleSet oldPrivileges = JavaTckSupport.attributeSet(oldOwner, oldPrivilege);
-         AttributeHandleSet newPrivileges = JavaTckSupport.attributeSet(newOwner, newPrivilege);
+         AttributeHandleSet oldTransferred = JavaTckSupport.attributeSet(
+            oldOwner, oldValue, oldPrivilege);
+         AttributeHandleSet newTransferred = JavaTckSupport.attributeSet(
+            newOwner, newValue, newPrivilege);
          oldOwner.publishObjectClassAttributes(oldClass, oldValues);
          newOwner.subscribeObjectClassAttributes(newClass, newValues);
          observer.subscribeObjectClassAttributes(observerClass, observerValues);
@@ -86,26 +92,40 @@ final class PrivilegeToDeleteTransferTck {
                && !newOwner.isAttributeOwnedByFederate(object, newPrivilege),
             "delete privilege did not initially belong only to the registrant");
 
-         newOwner.publishObjectClassAttributes(newClass, newPrivileges);
+         newOwner.publishObjectClassAttributes(newClass, newTransferred);
          byte[] acquisitionTag = {(byte) 0xa5, 0x25};
          byte[] divestitureTag = {(byte) 0xd1, 0x25};
-         newOwner.attributeOwnershipAcquisition(object, newPrivileges, acquisitionTag.clone());
+         newOwner.attributeOwnershipAcquisition(object, newTransferred, acquisitionTag.clone());
          AttributeHandleSet divested = oldOwner.attributeOwnershipDivestitureIfWanted(
-            object, oldPrivileges, divestitureTag.clone());
-         JavaTckSupport.check(divested != null && divested.size() == 1
-               && divested.contains(oldPrivilege),
-            "Divestiture If Wanted did not return HLAprivilegeToDeleteObject");
+            object, oldTransferred, divestitureTag.clone());
+         JavaTckSupport.check(divested != null && divested.size() == 2
+               && divested.contains(oldValue) && divested.contains(oldPrivilege),
+            "Divestiture If Wanted did not return both transferred attributes");
          await(newOwner, callbackModel, () -> !newCallbacks.acquisitions.isEmpty(),
             "delete-privilege acquisition notification");
          OwnershipEvent acquisition = newCallbacks.acquisitions.get(0);
          JavaTckSupport.check(object.equals(acquisition.object)
-               && acquisition.attributes.size() == 1
+               && acquisition.attributes.size() == 2
+               && acquisition.attributes.contains(newValue)
                && acquisition.attributes.contains(newPrivilege)
                && Arrays.equals(divestitureTag, acquisition.tag),
             "delete-privilege acquisition notification returned the wrong object, attributes, or tag");
          JavaTckSupport.check(!oldOwner.isAttributeOwnedByFederate(object, oldPrivilege)
                && newOwner.isAttributeOwnedByFederate(object, newPrivilege),
             "delete privilege ownership did not transfer to the acquirer");
+         JavaTckSupport.check(!oldOwner.isAttributeOwnedByFederate(object, oldValue)
+               && newOwner.isAttributeOwnedByFederate(object, newValue),
+            "ordinary attribute ownership did not transfer with the delete privilege");
+         byte[] valueBytes = {0x25, 0x07};
+         AttributeHandleValueMap oldUpdate = oldOwner.getAttributeHandleValueMapFactory().create(1);
+         oldUpdate.put(oldValue, valueBytes.clone());
+         AttributeHandleValueMap newUpdate = newOwner.getAttributeHandleValueMapFactory().create(1);
+         newUpdate.put(newValue, valueBytes.clone());
+         JavaTckSupport.expectFailure(
+            () -> oldOwner.updateAttributeValues(object, oldUpdate, acquisitionTag.clone()),
+            "AttributeNotOwned",
+            "former ordinary-attribute owner updating after transfer");
+         newOwner.updateAttributeValues(object, newUpdate, acquisitionTag.clone());
 
          byte[] deletionTag = {(byte) 0xd3, 0x1e, 0x25};
          JavaTckSupport.expectFailure(
@@ -118,10 +138,14 @@ final class PrivilegeToDeleteTransferTck {
          newOwner.deleteObjectInstance(object, deletionTag.clone());
          await(observer, callbackModel, () -> !observerCallbacks.removals.isEmpty(),
             "object removal after delete-privilege transfer");
+         JavaTckSupport.check(observerCallbacks.removals.size() == 1,
+            "delete-privilege transfer produced duplicate object removals");
          RemovalEvent removal = observerCallbacks.removals.get(0);
          JavaTckSupport.check(object.equals(removal.object)
-               && Arrays.equals(deletionTag, removal.tag),
-            "object removal returned the wrong object identity or deletion tag");
+               && Arrays.equals(deletionTag, removal.tag)
+               && oldOwnerHandle.equals(removal.producer)
+               && !newOwnerHandle.equals(removal.producer),
+            "object removal returned the wrong object, tag, or original registrant");
       } finally {
          for (int index = 0; index < 3; ++index) {
             if (joined[index]) {
@@ -171,10 +195,13 @@ final class PrivilegeToDeleteTransferTck {
    private static final class RemovalEvent {
       private final ObjectInstanceHandle object;
       private final byte[] tag;
+      private final FederateHandle producer;
 
-      private RemovalEvent(ObjectInstanceHandle object, byte[] tag) {
+      private RemovalEvent(ObjectInstanceHandle object, byte[] tag,
+            FederateHandle producer) {
          this.object = object;
          this.tag = tag.clone();
+         this.producer = producer;
       }
    }
 
@@ -193,9 +220,10 @@ final class PrivilegeToDeleteTransferTck {
                } else if ("attributeOwnershipAcquisitionNotification".equals(name)) {
                   acquisitions.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
                      (AttributeHandleSet) arguments[1], (byte[]) arguments[2]));
-               } else if ("removeObjectInstance".equals(name)) {
+               } else if ("removeObjectInstance".equals(name) && arguments != null
+                     && arguments.length == 3) {
                   removals.add(new RemovalEvent((ObjectInstanceHandle) arguments[0],
-                     (byte[]) arguments[1]));
+                     (byte[]) arguments[1], (FederateHandle) arguments[2]));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK delete-privilege callbacks";

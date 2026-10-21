@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ and Java parity for the mapped native 35-assertion one-member pending-FQR restore case. With HLA_EVOKED, a timed save at 5 is completed from its direct pre-FQG callback while an FQR(6) is pending. A post-save TAR reaches 9; restoring the saved image returns to initial time, rejects another TAR while the reconstructed FQR is pending, delivers Federation Restored before the restored FQG(6), and reaches time 6. The adapter supplies provider, logical-time implementation, endpoint, callback model, and a standard IEEE 1516.2-2025 FOM with nonRegulatedGrant enabled; the ordinary P0 FOM has that switch disabled and does not satisfy this scenario's fixture precondition. Eight direct requirement-section mappings cover clauses 4.20, 4.31, 4.32, 8, and 8.12.3. The native Catch2 case passed 35 assertions against the installed package; portable C++ primary/contract passed under integer64 and float64 time with the portable NRG-enabled FOM. Java compiles against the official API only; provider runtime is unverified. This is bounded public-API evidence, not a general pending-advance, multi-member, durable serialization, interoperability, or conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-pending-flush-queue-request",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador requestFederationSave(time), flushQueueRequest, federateSaveBegun, federateSaveComplete, timeAdvanceRequest, queryLogicalTime, requestFederationRestore, federateRestoreComplete; FederateAmbassador initiateFederateSave(time), flushQueueGrant, timeAdvanceGrant, federationSaved, federationRestored",
+      "source": "third_party/ieee1516.1-2025/include/RTI and official hla.rti1516_2025 Java API; standard IEEE 1516.2-2025 nonRegulatedGrant FOM switch",
+      "source_symbol": "IEEE 1516.1-2025 federation save/restore and time-management interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp::Embedded federation restore reschedules a saved pending Flush Queue Request",
+        "packages/hla-rti-cpp-tck/src/tck_restore_pending_flush_queue_request.cpp::scenarioRestorePendingFlushQueueRequest",
+        "packages/hla-rti-cpp-tck/src/tck_restore_pending_flush_queue_request.cpp::scenarioRestorePendingFlushQueueRequestContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestorePendingFlushQueueRequestTck.java::run"
+      ]
+    }
+  ]
+}

@@ -219,4 +219,88 @@ TEST_CASE(
     }
   }
 }
+TEST_CASE(
+    "RTI service invocation reports omit MOM extension parameters",
+    "[integration][development-profile][federation-management][mom][service-reporting]"
+    "[mom-after-base-services][mom-report-extension-parameters]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
+    "[rti.service.get-parameter-handle][rti.service.publish-interaction-class]"
+    "[rti.service.subscribe-interaction-class][rti.service.set-service-reporting-switch]"
+    "[rti.service.send-interaction][federate.callback.receive-interaction]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador observerReports;
+  auto publisher = makeRti();
+  auto observer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const restaurantFom = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  auto const extensionFom =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
+       "mom-report-service-invocation-extension-fom.xml")
+          .wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(observer->connect(observerReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{restaurantFom, extensionFom},
+      standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"mom-extension-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(observer->joinFederationExecution(
+      L"mom-extension-observer", L"observer", federationName));
+
+  auto const reportClass = observer->getInteractionClassHandle(
+      standard_hla::mom::report_service_invocation);
+  REQUIRE(reportClass.isValid());
+  std::vector<ParameterHandle> predefinedReportParameters;
+  for (auto const& name : {
+           L"HLAservice",
+           L"HLAserviceType",
+           L"HLAsuccessIndicator",
+           L"HLAsuppliedArguments",
+           L"HLAreturnedArgument",
+           L"HLAexception",
+           L"HLAserialNumber",
+           L"HLAfederate"}) {
+    auto const parameter = observer->getParameterHandle(reportClass, name);
+    REQUIRE(parameter.isValid());
+    predefinedReportParameters.push_back(parameter);
+  }
+  auto const extensionParameter = observer->getParameterHandle(
+      reportClass, L"UmbraExtensionReportPayload");
+  REQUIRE(extensionParameter.isValid());
+  REQUIRE_NOTHROW(observer->subscribeInteractionClass(reportClass));
+
+  auto const applicationInteraction = publisher->getInteractionClassHandle(
+      fixture_hla::fom::main_course_served);
+  REQUIRE(applicationInteraction.isValid());
+  auto const applicationParameter = publisher->getParameterHandle(
+      applicationInteraction, fixture_hla::fixture::temperature_ok);
+  REQUIRE(applicationParameter.isValid());
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(applicationInteraction));
+  REQUIRE_NOTHROW(publisher->setServiceReportingSwitch(true));
+
+  unsigned char const payloadBytes[] = {0x52, 0x45, 0x50, 0x54};
+  ParameterHandleValueMap const payload{{
+      applicationParameter,
+      VariableLengthData(payloadBytes, sizeof(payloadBytes)),
+  }};
+  REQUIRE_NOTHROW(publisher->sendInteraction(applicationInteraction, payload, VariableLengthData{}));
+  REQUIRE(observerReports.interactionReports.size() == 1U);
+  auto const& report = observerReports.interactionReports.front();
+  REQUIRE(report.interactionClass == reportClass);
+  REQUIRE(report.parameterValues.size() == predefinedReportParameters.size());
+  for (auto const parameter : predefinedReportParameters) {
+    REQUIRE(report.parameterValues.find(parameter) != report.parameterValues.end());
+  }
+  REQUIRE(report.parameterValues.find(extensionParameter) == report.parameterValues.end());
+
+  REQUIRE_NOTHROW(observer->unsubscribeInteractionClass(reportClass));
+  REQUIRE_NOTHROW(observer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(observer->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
 } // namespace

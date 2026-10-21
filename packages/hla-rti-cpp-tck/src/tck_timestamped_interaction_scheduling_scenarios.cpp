@@ -536,7 +536,7 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
       *publisherTime.factory,
       *publisherTime.initial,
       *publisherTime.epsilon,
-      1U);
+      11U);
   auto const secondTime = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,
@@ -553,8 +553,8 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
       *receiverTime.epsilon,
       10U);
   require(
-      *requestBoundary < *secondTime,
-      "Timestamped interaction Flush Queue future-input scenario must queue a TSO timestamp above the requested time");
+      *requestBoundary < *firstTime && *firstTime < *secondTime,
+      "Timestamped interaction Flush Queue future-input scenario must queue both TSO timestamps above the requested time");
 
   std::vector<std::uint8_t> const firstParameterBytes{
       0x46U, 0x55U, 0x54U, 0x55U, 0x52U, 0x45U};
@@ -577,8 +577,8 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
   rti::VariableLengthData firstTag(firstTagBytes.data(), firstTagBytes.size());
   rti::VariableLengthData secondTag(secondTagBytes.data(), secondTagBytes.size());
 
-  // Queue future input on both sides of the FQR request boundary. Delivery
-  // must precede the grant under either callback model.
+  // Queue two messages above the FQR request boundary. Delivery must precede
+  // the grant, and the FQG optimistic time must remain bounded by the request.
   auto const firstRetraction = publisher.rtiAmbassador().sendInteraction(
       publisherInteraction,
       firstParameters,
@@ -682,8 +682,8 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
 
   auto const flushGrants = receiver.recorder().flushQueueGrants();
   require(
-      flushGrants.front().optimisticTime == encodeTime(*firstTime),
-      "Timestamped interaction Flush Queue future-input grant returned the wrong optimistic frontier");
+      flushGrants.front().optimisticTime == encodeTime(*requestBoundary),
+      "Timestamped interaction Flush Queue future-input grant did not cap its optimistic frontier at the request time");
   require(
       !flushGrants.front().time.empty() &&
           !flushGrants.front().timeText.empty() &&
@@ -711,7 +711,7 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
       "Timestamped interaction Flush Queue future-input receiver lookahead changed unexpectedly");
   auto const postGrantSendTime = timeAfter(
       *receiverTime.factory,
-      *queriedReceiverTime,
+      *optimisticFlushTime,
       *queriedReceiverLookahead,
       1U);
   rti::ParameterHandleValueMap postGrantParameters;
@@ -723,6 +723,16 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
   rti::VariableLengthData postGrantTag(
       firstTagBytes.data(),
       firstTagBytes.size());
+  requireException(
+      [&] {
+        static_cast<void>(receiver.rtiAmbassador().sendInteraction(
+            receiverInteraction,
+            postGrantParameters,
+            postGrantTag,
+            *optimisticFlushTime));
+      },
+      L"InvalidLogicalTime",
+      "FQG optimistic time plus lookahead rejected a lower TSO timestamp");
   auto const postGrantRetraction = receiver.rtiAmbassador().sendInteraction(
       receiverInteraction,
       postGrantParameters,
@@ -730,7 +740,7 @@ void scenarioTimestampedInteractionFlushQueueFutureInput(
       *postGrantSendTime);
   require(
       postGrantRetraction.isValid(),
-      "Timestamped interaction Flush Queue future-input post-grant send at current time plus lookahead returned an invalid retraction handle");
+      "Timestamped interaction Flush Queue future-input send at optimistic time plus lookahead returned an invalid retraction handle");
   auto logicalTimeAfterSend = receiverTime.factory->makeInitial();
   receiver.rtiAmbassador().queryLogicalTime(*logicalTimeAfterSend);
   require(
@@ -1385,6 +1395,41 @@ void scenarioFqrPostgrantLowerTsoRetraction(
       *receiverTimeAfterFirstFlush,
       *expectedActualGrant,
       "FQR post-grant first actual logical time");
+  auto const belowOptimisticFloor = timeAfter(
+      *receiverTime.factory,
+      *receiverTimeAfterFirstFlush,
+      *receiverTime.epsilon,
+      1U);
+  require(
+      *expectedActualGrant < *belowOptimisticFloor &&
+          *belowOptimisticFloor < *requestBoundary,
+      "FQR post-grant advance probe did not distinguish actual and optimistic time");
+  requireException(
+      [&] { receiver.rtiAmbassador().timeAdvanceRequest(*belowOptimisticFloor); },
+      L"LogicalTimeAlreadyPassed",
+      "Time Advance Request after FQG below its optimistic logical time");
+  requireException(
+      [&] { receiver.rtiAmbassador().timeAdvanceRequestAvailable(*belowOptimisticFloor); },
+      L"LogicalTimeAlreadyPassed",
+      "Time Advance Request Available after FQG below its optimistic logical time");
+  requireException(
+      [&] { receiver.rtiAmbassador().nextMessageRequest(*belowOptimisticFloor); },
+      L"LogicalTimeAlreadyPassed",
+      "Next Message Request after FQG below its optimistic logical time");
+  requireException(
+      [&] { receiver.rtiAmbassador().nextMessageRequestAvailable(*belowOptimisticFloor); },
+      L"LogicalTimeAlreadyPassed",
+      "Next Message Request Available after FQG below its optimistic logical time");
+  requireException(
+      [&] { receiver.rtiAmbassador().flushQueueRequest(*belowOptimisticFloor); },
+      L"LogicalTimeAlreadyPassed",
+      "Flush Queue Request after FQG below its optimistic logical time");
+  auto receiverTimeAfterRejectedAdvance = receiverTime.factory->makeInitial();
+  receiver.rtiAmbassador().queryLogicalTime(*receiverTimeAfterRejectedAdvance);
+  requireTimeEquals(
+      *receiverTimeAfterRejectedAdvance,
+      *expectedActualGrant,
+      "rejected post-FQG advance changed the actual logical time");
 
   bool rejectedBelowLookahead = false;
   try {
@@ -1865,14 +1910,43 @@ void scenarioTarQueuedTsoBeforeGrant(
 
   receiver.recorder().clearCallbackOrder();
   receiver.rtiAmbassador().timeAdvanceRequest(*receiverTarget);
-  waitFor(
-      receiver,
-      [&] {
-        return receiver.recorder().timedInteractions().size() == 1U &&
-            receiver.recorder().timeAdvanceGrants().size() == 1U;
-      },
-      options,
-      "TAR queued TSO and grant callbacks");
+  try {
+    waitFor(
+        receiver,
+        [&] {
+          return receiver.recorder().timedInteractions().size() == 1U &&
+              receiver.recorder().timeAdvanceGrants().size() == 1U;
+        },
+        options,
+        "TAR queued TSO and grant callbacks");
+  } catch (std::runtime_error const& error) {
+    std::string temporalState = " (temporal queries unavailable)";
+    try {
+      auto observedTime = receiverTime.factory->makeInitial();
+      auto observedGalt = receiverTime.factory->makeInitial();
+      auto observedLits = receiverTime.factory->makeInitial();
+      if (observedTime && observedGalt && observedLits) {
+        receiver.rtiAmbassador().queryLogicalTime(*observedTime);
+        bool const hasGalt = receiver.rtiAmbassador().queryGALT(*observedGalt);
+        bool const hasLits = receiver.rtiAmbassador().queryLITS(*observedLits);
+        temporalState = " (logical time=" + toNarrow(observedTime->toString()) +
+            ", GALT=" + (hasGalt ? toNarrow(observedGalt->toString()) : "undefined") +
+            ", LITS=" + (hasLits ? toNarrow(observedLits->toString()) : "undefined") + ")";
+      }
+    } catch (std::exception const& queryError) {
+      temporalState = " (temporal queries failed: " + std::string(queryError.what()) + ")";
+    } catch (...) {
+      temporalState = " (temporal queries failed with unknown exception)";
+    }
+    throw std::runtime_error(
+        std::string(error.what()) + " (receive-order callbacks=" +
+        std::to_string(receiver.recorder().interactions().size()) +
+        ", timestamped callbacks=" +
+        std::to_string(receiver.recorder().timedInteractions().size()) +
+        ", grants=" +
+        std::to_string(receiver.recorder().timeAdvanceGrants().size()) + ")" +
+        temporalState);
+  }
 
   auto const delivery = receiver.recorder().timedInteractions().front();
   auto const grant = receiver.recorder().timeAdvanceGrants().front();

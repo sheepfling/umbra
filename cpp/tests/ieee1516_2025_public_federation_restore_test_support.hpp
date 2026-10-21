@@ -53,7 +53,30 @@ inline ScopedTemporaryDirectory temporaryServiceReportDirectory() {
 }
 
 inline ScopedTemporaryDirectory temporaryFederationSaveDirectory() {
-  return reserveDirectory("save");
+  static std::atomic_uint64_t counter{0};
+  auto const parent = std::filesystem::temp_directory_path();
+  auto const ticks = static_cast<std::uint64_t>(
+      std::chrono::steady_clock::now().time_since_epoch().count());
+  auto const thread = static_cast<std::uint64_t>(
+      std::hash<std::thread::id>{}(std::this_thread::get_id()));
+  auto const processRun = ticks ^ (thread + (ticks << 6U) + (ticks >> 2U));
+  // The save-manifest filename also contains federation, label, process, and
+  // sequence identifiers. Keep this parent component compact for Windows'
+  // legacy filesystem path limit, including packaged TEMP roots.
+  for (std::size_t attempt = 0U; attempt != 1024U; ++attempt) {
+    auto const path = parent /
+        ("s-" + std::to_string(processRun % 1000000000000ULL) + "-" +
+         std::to_string(++counter) + "-" + std::to_string(attempt));
+    std::error_code error;
+    if (std::filesystem::create_directory(path, error)) {
+      return ScopedTemporaryDirectory(path);
+    }
+    if (error && error != std::errc::file_exists) {
+      throw std::filesystem::filesystem_error(
+          "Unable to reserve temporary federation-save directory", path, error);
+    }
+  }
+  throw std::runtime_error("Unable to reserve a unique temporary federation-save directory.");
 }
 
 class ScopedEmbeddedFederationRegistry final {

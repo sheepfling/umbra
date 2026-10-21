@@ -32,6 +32,70 @@
 #include <utility>
 
 namespace umbra::detail {
+namespace {
+
+std::shared_ptr<rti1516_2025::LogicalTime> processImplicitRegulationTarget(
+    FederationTimeExecutionSnapshot const& execution,
+    std::uint64_t federateId,
+    rti1516_2025::LogicalTimeInterval const& lookahead) {
+  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+      execution.definition.logicalTimeImplementationName);
+  if (!factory || factory->getName() != lookahead.implementationName()) {
+    return nullptr;
+  }
+  auto const requester = std::find_if(
+      execution.federates.begin(), execution.federates.end(),
+      [federateId](auto const& member) {
+        return member.membership.id == federateId;
+      });
+  if (requester == execution.federates.end() ||
+      !requester->time.currentTime || !requester->time.timeConstrained) {
+    return nullptr;
+  }
+  auto clone = [&](rti1516_2025::LogicalTime const& time)
+      -> std::shared_ptr<rti1516_2025::LogicalTime> {
+    auto copy = factory->decodeLogicalTime(time.encode());
+    return copy && copy->implementationName() == factory->getName()
+        ? std::shared_ptr<rti1516_2025::LogicalTime>(std::move(copy))
+        : nullptr;
+  };
+  auto target = clone(*requester->time.currentTime);
+  if (!target) {
+    return nullptr;
+  }
+  try {
+    for (auto const& peer : execution.federates) {
+      if (peer.membership.id == federateId || !peer.time.active ||
+          !peer.time.timeConstrained) {
+        continue;
+      }
+      if (!peer.time.currentTime) {
+        return nullptr;
+      }
+      auto emissionBoundary = clone(*target);
+      if (!emissionBoundary) {
+        return nullptr;
+      }
+      *emissionBoundary += lookahead;
+      if (*emissionBoundary < *peer.time.currentTime) {
+        auto required = clone(*peer.time.currentTime);
+        if (!required) {
+          return nullptr;
+        }
+        *required -= lookahead;
+        if (*required > *target) {
+          target = std::move(required);
+        }
+      }
+    }
+  } catch (rti1516_2025::Exception const&) {
+    return nullptr;
+  }
+  return target;
+}
+
+}  // namespace
+
 TransportServiceMessage ProcessFederationService::handleQueryLogicalTime(
     ProcessTransportSession& session,
     TransportServiceMessage const& request) {
@@ -367,9 +431,22 @@ TransportServiceMessage ProcessFederationService::handleEnableTimeRegulation(
         encodeProcessFederationEnableTimeRegulationResult(processResult));
   }
 
+  std::shared_ptr<rti1516_2025::LogicalTime> implicitTarget;
+  if (timeState->snapshot().timeConstrained) {
+    auto const execution = registry_.timeSnapshotFor(enable.federationName);
+    if (!execution) {
+      return internalError(request);
+    }
+    implicitTarget = processImplicitRegulationTarget(
+        *execution, enable.federateId, *decodedLookahead);
+    if (!implicitTarget) {
+      return internalError(request);
+    }
+  }
   auto requestResult = timeState->requestTimeRegulation(
       std::shared_ptr<rti1516_2025::LogicalTimeInterval>(
-          std::move(decodedLookahead)));
+          std::move(decodedLookahead)),
+      std::move(implicitTarget));
   switch (requestResult.status) {
     case FederateTimeEnableStatus::applied:
       processResult.status = ProcessFederationTimeEnableStatus::applied;
@@ -398,32 +475,34 @@ TransportServiceMessage ProcessFederationService::handleEnableTimeRegulation(
   }
 
   if (requestResult.status == FederateTimeEnableStatus::applied) {
-    // Complete the accepted role request against server-owned state and return
-    // the exact value that the client callback bridge will deliver through
-    // FederateAmbassador::timeRegulationEnabled. Any newly eligible grants are
-    // dispatched through the federation-owned scheduler after this transition.
-    auto enabledTime = timeState->grantTimeRegulation(requestResult.generation);
-    if (!enabledTime) {
-      return internalError(request);
-    }
-    auto const encodedTime = enabledTime->encode();
-    std::vector<std::uint8_t> bytes;
-    if (encodedTime.size() != 0U) {
-      auto const* data = static_cast<unsigned char const*>(encodedTime.data());
-      if (data == nullptr) {
+    if (timeState->snapshot().timeAdvancePending) {
+      // A constrained request with a higher implicit target enters the normal
+      // federation grant scheduler. The ordered grant event, not this response,
+      // completes Time Regulation Enabled after queued TSO delivery.
+      auto scheduled = registry_.requestTimeAdvanceGrant(
+          enable.federationName, enable.federateId, requestResult.generation);
+      if (scheduled.status != FederationTimeGrantStatus::applied) {
         return internalError(request);
       }
-      bytes.assign(data, data + encodedTime.size());
+      dispatchTimeAdvanceGrants(
+          enable.federationName, std::move(scheduled.dispatches));
+    } else {
+      // With no implicit advance, preserve the immediate callback value.
+      auto enabledTime = timeState->grantTimeRegulation(requestResult.generation);
+      if (!enabledTime) {
+        return internalError(request);
+      }
+      processResult.enabledTime = encodeProcessLogicalTime(enabledTime);
+      if (!processResult.enabledTime) {
+        return internalError(request);
+      }
+      auto scheduled = registry_.reevaluateTimeAdvanceGrants(enable.federationName);
+      if (scheduled.status != FederationTimeGrantStatus::applied) {
+        return internalError(request);
+      }
+      dispatchTimeAdvanceGrants(
+          enable.federationName, std::move(scheduled.dispatches));
     }
-    processResult.enabledTime = ProcessFederationLogicalTime{
-        timeState->implementationName(), std::move(bytes)};
-    auto scheduled = registry_.reevaluateTimeAdvanceGrants(enable.federationName);
-    if (scheduled.status != FederationTimeGrantStatus::applied) {
-      return internalError(request);
-    }
-    dispatchTimeAdvanceGrants(
-        enable.federationName,
-        std::move(scheduled.dispatches));
   }
   return responseFor(
       request,
@@ -483,24 +562,58 @@ TransportServiceMessage ProcessFederationService::handleEnableTimeConstrained(
   }
 
   if (requestResult.status == FederateTimeEnableStatus::applied) {
-    // Complete the accepted role request against server-owned state and
-    // return the exact callback value. Any newly eligible cross-federate time
-    // grants are dispatched after this transition through the shared scheduler.
-    auto enabledTime = timeState->grantTimeConstrained(requestResult.generation);
-    if (!enabledTime) {
+    auto const state = timeState->snapshot();
+    auto const execution = registry_.timeSnapshotFor(enable.federationName);
+    if (!state.currentTime || !execution) {
       return internalError(request);
     }
-    processResult.enabledTime = encodeProcessLogicalTime(enabledTime);
-    if (!processResult.enabledTime) {
+    auto const bounds = FederationTimeBoundsCalculator{}.calculate(
+        *execution, enable.federateId);
+    if (bounds.status == FederationTimeBoundStatus::factory_unavailable ||
+        bounds.status ==
+            FederationTimeBoundStatus::inconsistent_temporal_state ||
+        bounds.status ==
+            FederationTimeBoundStatus::requesting_federate_not_registered) {
       return internalError(request);
     }
-    auto scheduled = registry_.reevaluateTimeAdvanceGrants(enable.federationName);
-    if (scheduled.status != FederationTimeGrantStatus::applied) {
-      return internalError(request);
+    bool waitForGalt = false;
+    if (bounds.status == FederationTimeBoundStatus::available && bounds.galt) {
+      try {
+        waitForGalt = *state.currentTime >= *bounds.galt;
+      } catch (rti1516_2025::Exception const&) {
+        return internalError(request);
+      }
     }
-    dispatchTimeAdvanceGrants(
-        enable.federationName,
-        std::move(scheduled.dispatches));
+    if (waitForGalt) {
+      std::scoped_lock lock(mutex_);
+      auto const current = sessions_.find(&session);
+      if (current == sessions_.end() ||
+          current->second.federateId != enable.federateId ||
+          !current->second.federationName.has_value() ||
+          *current->second.federationName != enable.federationName) {
+        return rejected(request);
+      }
+      current->second.pendingTimeConstrainedEnableGeneration =
+          requestResult.generation;
+      processResult.awaitingGalt = true;
+    } else {
+      auto enabledTime =
+          timeState->grantTimeConstrained(requestResult.generation);
+      if (!enabledTime) {
+        return internalError(request);
+      }
+      processResult.enabledTime = encodeProcessLogicalTime(enabledTime);
+      if (!processResult.enabledTime) {
+        return internalError(request);
+      }
+      auto scheduled = registry_.reevaluateTimeAdvanceGrants(enable.federationName);
+      if (scheduled.status != FederationTimeGrantStatus::applied) {
+        return internalError(request);
+      }
+      dispatchTimeAdvanceGrants(
+          enable.federationName,
+          std::move(scheduled.dispatches));
+    }
   }
   return responseFor(
       request,
@@ -562,7 +675,22 @@ TransportServiceMessage ProcessFederationService::handleDisableTimeRole(
   if (stateResult == FederateTimeDisableStatus::applied) {
     if (regulation) {
       registry_.applyTsoObjectDeletionProducerRegulationDisabled(
-          disable.federationName, disable.federateId);
+          disable.federationName,
+          disable.federateId);
+    } else {
+      auto const timeSnapshot = timeState->snapshot();
+      if (!timeSnapshot.currentTime) {
+        return internalError(request);
+      }
+      // Time-Constrained disable converts the recipient's already-queued
+      // timestamped payloads into ordinary receive-order events. Keep this
+      // drain ahead of any newly released grant callback.
+      dispatchTsoInteractionPayloads(
+          disable.federationName,
+          disable.federateId,
+          *timeSnapshot.currentTime,
+          false,
+          true);
     }
     // Disabling either role can release a TAR that was waiting on the
     // corresponding temporal bound. Re-evaluate only after the role state has

@@ -6,6 +6,7 @@
 #include "internal/handles/parameter_handle.hpp"
 #include "internal/handles/region_handle.hpp"
 #include "internal/runtime/ambassador_shared_utilities.hpp"
+#include "internal/runtime/callback_region_designator_copies.hpp"
 
 #include <mutex>
 #include <optional>
@@ -149,12 +150,21 @@ void queueAmbassadorTimestampedReceiveOrderInteraction(
        retraction.emplace(makeMessageRetractionHandle(*retractionMessageId));
      }
      std::optional<RegionHandleSet> optionalSentRegions;
+     CallbackRegionDesignatorCopies callbackRegionDesignatorCopies(
+         federationName, receivingFederateId);
      if (projection->conveyRegionDesignatorSets &&
          (sentRegionHandles || defaultRegionUsed)) {
        optionalSentRegions.emplace();
-       if (sentRegionHandles) {
-         for (auto const regionHandle : *sentRegionHandles) {
-           optionalSentRegions->insert(makeRegionHandle(regionHandle));
+       if (sentRegionHandles && !sentRegionHandles->empty()) {
+         if (!regionOverrides) {
+           throw RTIinternalError(
+               L"A timestamped regional Receive Interaction has no send-time region snapshots.");
+         }
+         auto const copyStatus = callbackRegionDesignatorCopies.create(
+             *sentRegionHandles, *regionOverrides, *optionalSentRegions);
+         if (copyStatus != umbra::detail::RegionServiceStatus::applied) {
+           throw RTIinternalError(
+               L"The RTI could not create callback-scoped region designator copies.");
          }
        }
      }

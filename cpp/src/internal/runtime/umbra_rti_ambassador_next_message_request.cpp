@@ -229,6 +229,16 @@ void UmbraRtiAmbassador::nextMessageRequestAvailable(LogicalTime const& time) {
           umbra::detail::formatMomLogicalTime(time)}},
         describeAmbassadorException(exception));
     throw;
+  } catch (InvalidLogicalTime const& exception) {
+    emitExceptionReport(L"Next Message Request Available", exception);
+    appendFailedServiceReportToFileIfSelected(
+        L"NextMessageRequestAvailable",
+        umbra::detail::MomServiceType::time_management,
+        {{umbra::detail::MomArgumentType::logical_time,
+          L"Logical time",
+          umbra::detail::formatMomLogicalTime(time)}},
+        describeAmbassadorException(exception));
+    throw;
   } catch (Exception const& exception) {
     emitExceptionReport(L"Next Message Request Available", exception);
     throw;

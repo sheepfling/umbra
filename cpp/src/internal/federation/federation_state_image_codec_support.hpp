@@ -1432,7 +1432,7 @@ inline void validateTsoRequestRetractionRecordVector(
     for (auto const& recipient : record.recipientStates) {
       if (recipient.receivingFederateId == 0U ||
           recipient.receivingFederateId <= previousRecipient ||
-          recipient.state > 3U) {
+          recipient.state > 4U) {
         throw std::runtime_error(
             "TSO Request Retraction recipients are not strictly ordered in Umbra state image.");
       }

@@ -61,6 +61,10 @@ std::filesystem::path resourcePath(std::filesystem::path const& relativePath) {
 class ReportingFederateAmbassador final
     : public rti1516_2025::NullFederateAmbassador {
  public:
+  explicit ReportingFederateAmbassador(
+      bool recordTimeConstrainedCallback = false) noexcept
+      : recordTimeConstrainedCallback_(recordTimeConstrainedCallback) {}
+
   struct TimeAdvanceGrantReport final {
     std::wstring implementationName;
     std::wstring value;
@@ -91,6 +95,15 @@ class ReportingFederateAmbassador final
   void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
     timeAdvanceGrantReports.push_back({time.implementationName(), time.toString()});
     callbackOrder.push_back("grant");
+  }
+
+  void timeConstrainedEnabled(
+      rti1516_2025::LogicalTime const& time) override {
+    timeConstrainedEnabledReports.push_back(
+        {time.implementationName(), time.toString()});
+    if (recordTimeConstrainedCallback_) {
+      callbackOrder.push_back("time-constrained-enabled");
+    }
   }
 
   void receiveDirectedInteraction(
@@ -135,9 +148,13 @@ class ReportingFederateAmbassador final
   }
 
   std::vector<TimeAdvanceGrantReport> timeAdvanceGrantReports;
+  std::vector<TimeAdvanceGrantReport> timeConstrainedEnabledReports;
   std::vector<DirectedInteractionReport> directedInteractionReports;
   std::vector<ObjectDiscoveryReport> objectDiscoveryReports;
   std::vector<std::string> callbackOrder;
+
+ private:
+  bool recordTimeConstrainedCallback_ = false;
 };
 
 std::unique_ptr<RTIambassador> makeRti() {
@@ -294,5 +311,144 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(tar->disconnect());
   REQUIRE_NOTHROW(nmr->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timestamped directed interaction remains TSO while Time Constrained enable is pending",
+    "[integration][development-profile][interaction-management][directed]"
+    "[time-management][timestamped-directed-interaction][tso]"
+    "[lane.tce-transition-stored-tso-directed-interaction]"
+    "[rti.service.enable-time-constrained][rti.service.send-directed-interaction]"
+    "[rti.service.time-advance-request]"
+    "[federate.callback.time-constrained-enabled]"
+    "[federate.callback.receive-directed-interaction]"
+    "[federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports{true};
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName() + L"-tce-transition";
+  auto const objectConsumer = resourcePath(
+      "directed-interaction-object-consumer-fom.xml").wstring();
+  auto const interactionProvider = resourcePath(
+      "directed-interaction-interaction-provider-fom.xml").wstring();
+  InteractionClassHandleSet directedClasses;
+  std::vector<unsigned char> const tagBytes{0x54U, 0x43U, 0x45U};
+  VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{objectConsumer, interactionProvider},
+      standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"tce-directed-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"tce-directed-receiver", L"subscriber", federationName));
+
+  auto const objectClass = publisher->getObjectClassHandle(
+      fixture_hla::fom::directed_fixture_object);
+  auto const marker = publisher->getAttributeHandle(
+      objectClass,
+      fixture_hla::fixture::directed_target_marker);
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      fixture_hla::fom::directed_fixture_interaction);
+  REQUIRE(objectClass.isValid());
+  REQUIRE(marker.isValid());
+  REQUIRE(interactionClass.isValid());
+  directedClasses.insert(interactionClass);
+
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(publisher->publishObjectClassDirectedInteractions(
+      objectClass, directedClasses));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassDirectedInteractions(
+      objectClass, directedClasses, true));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(
+      interactionClass, TIMESTAMP));
+
+  ObjectInstanceHandle target;
+  REQUIRE_NOTHROW(target = publisher->registerObjectInstance(objectClass));
+  REQUIRE(target.isValid());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.objectDiscoveryReports.size() == 1U);
+
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  while (publisher->evokeCallback(0.0)) {
+  }
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(5)));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.front().value == L"5");
+  receiverReports.callbackOrder.clear();
+
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeConstrainedEnabledReports.empty());
+
+  auto const retraction = publisher->sendDirectedInteraction(
+      interactionClass,
+      target,
+      ParameterHandleValueMap{},
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(retraction.isValid());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.directedInteractionReports.empty());
+  REQUIRE(receiverReports.timeConstrainedEnabledReports.empty());
+
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(4)));
+  while (publisher->evokeCallback(0.0)) {
+  }
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeConstrainedEnabledReports.empty());
+  REQUIRE(receiverReports.directedInteractionReports.empty());
+
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(5)));
+  while (publisher->evokeCallback(0.0)) {
+  }
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.timeConstrainedEnabledReports.size() == 1U);
+  REQUIRE(receiverReports.timeConstrainedEnabledReports.front().value == L"5");
+  REQUIRE(receiverReports.directedInteractionReports.empty());
+
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
+      rti1516_2025::HLAinteger64Time(6)));
+  for (int attempt = 0;
+       attempt != 8 && (receiverReports.directedInteractionReports.empty() ||
+                        receiverReports.timeAdvanceGrantReports.size() != 2U);
+       ++attempt) {
+    receiver->evokeCallback(0.25);
+  }
+  REQUIRE(receiverReports.directedInteractionReports.size() == 1U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"6");
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{
+      "time-constrained-enabled", "directed", "grant"});
+  auto const& received = receiverReports.directedInteractionReports.front();
+  REQUIRE(received.interactionClass == interactionClass);
+  REQUIRE(received.objectInstance == target);
+  REQUIRE(received.parameterValues.empty());
+  REQUIRE(variableLengthDataBytes(received.userSuppliedTag) == tagBytes);
+  REQUIRE(received.timeImplementationName == L"HLAinteger64Time");
+  REQUIRE(received.timeValue == L"6");
+  REQUIRE(received.sentOrderType == TIMESTAMP);
+  REQUIRE(received.receivedOrderType == TIMESTAMP);
+  REQUIRE(received.retractionSupplied);
+  REQUIRE(received.retractionValid);
+
+  REQUIRE_NOTHROW(receiver->disableTimeConstrained());
+  REQUIRE_NOTHROW(publisher->disableTimeRegulation());
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
   REQUIRE_NOTHROW(publisher->disconnect());
 }

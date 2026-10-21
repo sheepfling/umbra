@@ -303,13 +303,25 @@ class EmbeddedFederationManagement final {
                 resources_ / "schemas" / "IEEE1516-DIF-2025.xsd",
                 legacyResources_,
              }),
-        registry_(std::make_shared<umbra::detail::EmbeddedFederationRegistry>()) {}
+        registry_(std::make_shared<umbra::detail::EmbeddedFederationRegistry>()),
+        defaultRegistry_(registry_) {}
 
   [[nodiscard]] umbra::detail::EmbeddedFederationRegistry& registry() noexcept {
     return *registry_;
   }
 
-  void configureFederationSaveDirectory(std::filesystem::path directory) {
+  void configureFederationSaveDirectory(
+      std::filesystem::path directory,
+      bool explicitSetting) {
+    {
+      std::scoped_lock lock(saveCommitStoreMutex_);
+      if (!explicitSetting && registry_ != defaultRegistry_) {
+        // Internal tests may inject an in-memory or isolated durable store.
+        // Do not silently replace that test-owned persistence seam with the
+        // production default merely because Connect used no explicit setting.
+        return;
+      }
+    }
     std::error_code error;
     auto const absoluteDirectory =
         std::filesystem::absolute(std::move(directory), error).lexically_normal();
@@ -366,6 +378,7 @@ class EmbeddedFederationManagement final {
   umbra::detail::ReferenceLogicalTimeSelector timeSelector_;
   umbra::detail::FederationManagementCoordinator coordinator_;
   std::shared_ptr<umbra::detail::EmbeddedFederationRegistry> registry_;
+  std::shared_ptr<umbra::detail::EmbeddedFederationRegistry> defaultRegistry_;
   std::mutex saveCommitStoreMutex_;
   std::filesystem::path saveCommitDirectory_;
 };
@@ -597,7 +610,8 @@ std::shared_ptr<LogicalTime> cloneReferenceLogicalTime(
 
 void validateTsoTimestamp(
     umbra::detail::FederateTimeSnapshot const& timeSnapshot,
-    LogicalTime const& timestamp) {
+    LogicalTime const& timestamp,
+    bool applyOptimisticTimeFloor) {
   if (timestamp.isInitial() || timestamp.isFinal()) {
     throw InvalidLogicalTime(
         L"A timestamped service requires a finite logical timestamp.");
@@ -615,11 +629,19 @@ void validateTsoTimestamp(
           ? *timeSnapshot.requestedTime
           : *timeSnapshot.currentTime);
   try {
-    if (timeSnapshot.optimisticTime && *lowerBound < *timeSnapshot.optimisticTime) {
-      *lowerBound = *timeSnapshot.optimisticTime;
-    }
+    // IEEE 1516.1-2025 §8.1.5 uses the requested logical time while the
+    // federate is Time Advancing, then its current logical time after a grant.
     *lowerBound += *timeSnapshot.lookahead;
-    if (timeSnapshot.minimumTimestampIsExclusive) {
+    // The exclusive epsilon is needed while a zero-lookahead advance is
+    // pending, but IEEE 1516.1-2025 §8.9 permits a regulating federate to send
+    // at its granted current time when its actual lookahead is zero. Keep the
+    // snapshot's exclusive boundary for peer-grant scheduling; do not apply
+    // it as a sender-side floor after that grant has completed.
+    bool const completedZeroLookaheadGrant =
+        timeSnapshot.minimumTimestampIsExclusive &&
+        !timeSnapshot.timeAdvancePending && timeSnapshot.lookahead->isZero();
+    if (timeSnapshot.minimumTimestampIsExclusive &&
+        !completedZeroLookaheadGrant) {
       auto factory = HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
           timeSnapshot.implementationName);
       if (!factory || factory->getName() != timeSnapshot.implementationName) {
@@ -633,9 +655,25 @@ void validateTsoTimestamp(
       }
       *lowerBound += *epsilon;
     }
+
+    // A Flush Queue Grant may report an optimistic time above its actual
+    // grant. Subsequent TSO messages must still respect that optimistic
+    // floor plus lookahead until actual time reaches it. Keep this as a
+    // separate non-strict bound: zero-lookahead exclusivity applies to the
+    // actual/requested-time floor, not to the FQG optimistic boundary.
+    if (applyOptimisticTimeFloor && timeSnapshot.optimisticTime) {
+      auto optimisticLowerBound = cloneReferenceLogicalTime(
+          timeSnapshot.implementationName,
+          *timeSnapshot.optimisticTime);
+      *optimisticLowerBound += *timeSnapshot.lookahead;
+      if (*lowerBound < *optimisticLowerBound) {
+        lowerBound = std::move(optimisticLowerBound);
+      }
+    }
+
     if (timestamp < *lowerBound) {
       throw InvalidLogicalTime(
-          L"A timestamped service is earlier than the sender's current logical time plus lookahead.");
+          L"A timestamped service is earlier than the sender's applicable logical-time-plus-lookahead floor.");
     }
   } catch (InvalidLogicalTime const&) {
     throw;
@@ -966,19 +1004,40 @@ umbra::detail::FederateCallbackRoute makeFederateCallbackRoute(
   std::weak_ptr<CallbackSession> const session = callbackSession;
   auto pendingReceiveOrder =
       std::make_shared<std::atomic<std::size_t>>(0U);
-  auto enqueue = [dispatcher, session, pendingReceiveOrder](
+  auto interactionMutex = std::make_shared<std::mutex>();
+  auto pendingInteractions =
+      std::make_shared<std::map<std::uint64_t,
+          umbra::detail::FederationStateImageReceiveOrderInteraction>>();
+  auto nextInteractionSequence = std::make_shared<std::uint64_t>(0U);
+  auto enqueue = [dispatcher, session, pendingReceiveOrder,
+                  interactionMutex, pendingInteractions,
+                  nextInteractionSequence](
                      umbra::detail::FederateCallbackInvocation invocation,
-                     bool receiveOrder) mutable {
+                     bool receiveOrder,
+                     std::optional<umbra::detail::FederationStateImageReceiveOrderInteraction>
+                         pendingInteraction = std::nullopt) mutable {
     if (!invocation) {
       return;
     }
     if (receiveOrder) {
       pendingReceiveOrder->fetch_add(1U, std::memory_order_relaxed);
     }
+    std::optional<std::uint64_t> pendingInteractionSequence;
+    if (pendingInteraction) {
+      std::scoped_lock lock(*interactionMutex);
+      pendingInteraction->sequence = ++*nextInteractionSequence;
+      pendingInteractionSequence = pendingInteraction->sequence;
+      pendingInteractions->emplace(
+          *pendingInteractionSequence, std::move(*pendingInteraction));
+    }
     auto callbackDispatcher = dispatcher.lock();
     if (!callbackDispatcher) {
       if (receiveOrder) {
         pendingReceiveOrder->fetch_sub(1U, std::memory_order_relaxed);
+      }
+      if (pendingInteractionSequence) {
+        std::scoped_lock lock(*interactionMutex);
+        pendingInteractions->erase(*pendingInteractionSequence);
       }
       return;
     }
@@ -989,9 +1048,16 @@ umbra::detail::FederateCallbackRoute makeFederateCallbackRoute(
         session,
         pendingReceiveOrder,
         receiveOrder,
+        interactionMutex,
+        pendingInteractions,
+        pendingInteractionSequence,
         invocation = std::move(invocation)]() mutable {
       if (receiveOrder) {
         pendingReceiveOrder->fetch_sub(1U, std::memory_order_relaxed);
+      }
+      if (pendingInteractionSequence) {
+        std::scoped_lock lock(*interactionMutex);
+        pendingInteractions->erase(*pendingInteractionSequence);
       }
       auto callbackSession = session.lock();
       if (!callbackSession) {
@@ -1009,8 +1075,24 @@ umbra::detail::FederateCallbackRoute makeFederateCallbackRoute(
       umbra::detail::FederateCallbackInvocation invocation) mutable {
     enqueue(std::move(invocation), true);
   };
+  route.receiveOrderInteractionSubmit = [enqueue](
+      umbra::detail::FederateCallbackInvocation invocation,
+      std::optional<umbra::detail::FederationStateImageReceiveOrderInteraction>
+          pending) mutable {
+    enqueue(std::move(invocation), true, std::move(pending));
+  };
   route.pendingReceiveOrderCount = [pendingReceiveOrder] {
     return pendingReceiveOrder->load(std::memory_order_relaxed);
+  };
+  route.pendingReceiveOrderInteractions = [interactionMutex, pendingInteractions] {
+    std::vector<umbra::detail::FederationStateImageReceiveOrderInteraction> result;
+    std::scoped_lock lock(*interactionMutex);
+    result.reserve(pendingInteractions->size());
+    for (auto const& [sequence, interaction] : *pendingInteractions) {
+      static_cast<void>(sequence);
+      result.push_back(interaction);
+    }
+    return result;
   };
   return route;
 }
@@ -1098,15 +1180,18 @@ void submitReceiveOrderCallback(
     umbra::detail::FederateCallbackRoute callbackRoute,
     std::wstring federationName,
     std::uint64_t receivingFederateId,
-    umbra::detail::FederateCallbackInvocation invocation) {
+    umbra::detail::FederateCallbackInvocation invocation,
+    std::optional<umbra::detail::FederationStateImageReceiveOrderInteraction>
+        pendingInteraction = std::nullopt) {
   if (!callbackRoute || !invocation) {
     return;
   }
 
-  callbackRoute.enqueueReceiveOrder([
+  callbackRoute.enqueueReceiveOrderInteraction([
       callbackRoute,
       federationName = std::move(federationName),
       receivingFederateId,
+      pendingInteraction,
       invocation = std::move(invocation)](
       FederateAmbassador& recipient) mutable {
     auto timeState = lookupFederateTimeState(
@@ -1117,18 +1202,20 @@ void submitReceiveOrderCallback(
           callbackRoute = std::move(callbackRoute),
           federationName,
           receivingFederateId,
+          pendingInteraction = std::move(pendingInteraction),
           invocation = std::move(invocation)]() mutable {
         submitReceiveOrderCallback(
             std::move(callbackRoute),
             federationName,
             receivingFederateId,
-            std::move(invocation));
+            std::move(invocation),
+            std::move(pendingInteraction));
       });
       return;
     }
 
     invocation(recipient);
-  });
+  }, std::move(pendingInteraction));
 }
 
 std::wstring declarationAdvisoryServiceReportRecord(
@@ -1833,8 +1920,11 @@ std::wstring describeAmbassadorException(Exception const& exception) {
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 void UmbraRtiAmbassador::configureFederationSaveDirectory(
-    std::filesystem::path const& directory) {
-  embeddedFederationManagement().configureFederationSaveDirectory(directory);
+    std::filesystem::path const& directory,
+    bool explicitSetting) {
+  embeddedFederationManagement().configureFederationSaveDirectory(
+      directory,
+      explicitSetting);
 }
 
 std::mutex& ambassadorFederationManagementMutex() {
@@ -1930,12 +2020,15 @@ void submitAmbassadorReceiveOrderCallback(
     umbra::detail::FederateCallbackRoute callbackRoute,
     std::wstring federationName,
     std::uint64_t receivingFederateId,
-    umbra::detail::FederateCallbackInvocation invocation) {
+    umbra::detail::FederateCallbackInvocation invocation,
+    std::optional<umbra::detail::FederationStateImageReceiveOrderInteraction>
+        pendingInteraction) {
   submitReceiveOrderCallback(
       std::move(callbackRoute),
       std::move(federationName),
       receivingFederateId,
-      std::move(invocation));
+      std::move(invocation),
+      std::move(pendingInteraction));
 }
 
 void queueAmbassadorTimestampedReflectAttributeUpdate(
@@ -2184,8 +2277,9 @@ void queueAmbassadorAttributeValueUpdateClassProvide(
 
 void validateAmbassadorTsoTimestamp(
     umbra::detail::FederateTimeSnapshot const& timeSnapshot,
-    LogicalTime const& timestamp) {
-  validateTsoTimestamp(timeSnapshot, timestamp);
+    LogicalTime const& timestamp,
+    bool applyOptimisticTimeFloor) {
+  validateTsoTimestamp(timeSnapshot, timestamp, applyOptimisticTimeFloor);
 }
 
 VariableLengthData makeAmbassadorVariableLengthData(

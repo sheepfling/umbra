@@ -111,12 +111,16 @@ void UmbraRtiAmbassador::updateAttributeValues(
         umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
 
     try {
-      static_cast<void>(processClient->updateAttributeValues(
+      auto const result = processClient->updateAttributeValues(
           std::move(federationName),
           producingFederateId,
           *objectInstanceValue,
           std::move(processAttributeValues),
-          std::move(processTag)));
+          std::move(processTag));
+      if (result.status !=
+          umbra::detail::ReceiveOrderAttributeUpdateStatus::applied) {
+        throwReceiveOrderAttributeUpdateFailure(result.status);
+      }
       while (processClient->pendingPushedAttributeUpdateCount() != 0U) {
         processClient->dispatchPushedAttributeUpdate();
       }
@@ -439,6 +443,10 @@ MessageRetractionHandle UmbraRtiAmbassador::updateAttributeValues(
           std::move(processTag),
           umbra::detail::ProcessFederationLogicalTime{
               timestamp->implementationName(), std::move(processTimestampBytes)});
+      if (result.status !=
+          umbra::detail::ReceiveOrderAttributeUpdateStatus::applied) {
+        throwReceiveOrderAttributeUpdateFailure(result.status);
+      }
       while (processClient->pendingPushedAttributeUpdateCount() != 0U) {
         processClient->dispatchPushedAttributeUpdate();
       }
@@ -529,7 +537,8 @@ MessageRetractionHandle UmbraRtiAmbassador::updateAttributeValues(
         *federationName,
         *producingFederateId,
         *objectInstanceHandle,
-        *attributeHandles);
+        *attributeHandles,
+        timestamp.get());
     if (plan.status != umbra::detail::ReceiveOrderAttributeUpdateStatus::applied) {
       throwReceiveOrderAttributeUpdateFailure(plan.status);
     }
@@ -623,7 +632,9 @@ MessageRetractionHandle UmbraRtiAmbassador::updateAttributeValues(
           L"The embedded federation no longer exposes a coherent time snapshot.");
     }
     for (auto const& federate : snapshot->federates) {
-      if (federate.time.timeConstrained) {
+      // Queue timestamp-preferred updates through an outstanding constrained
+      // role transition so they cannot escape as receive-order reflections.
+      if (federate.time.timeConstrained || federate.time.timeConstrainedPending) {
         timeConstrainedRecipients.insert(federate.membership.id);
       }
     }

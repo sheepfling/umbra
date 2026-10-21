@@ -1645,10 +1645,12 @@ EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient(
             [&federation, regionOverrides](std::uint64_t regionHandle) {
               return regionOverlapsDefault(federation, regionHandle, regionOverrides);
             });
+    // §9.1.5 treats ordinary DM and With Regions subscription effects as
+    // independent declarations. A disjoint regional declaration must not
+    // shadow the ordinary subscription's default-region route.
     bool const subscribedWithoutRegion =
         ordinarySubscription != declarations->second.subscribedInteractionClasses.end() &&
         (ordinarySubscription->second || activeSubscriptionEstablished) &&
-        !hasExplicitSubscriptionRegion &&
         (!hasExplicitSentRegion || explicitSentRegionOverlapsDefault);
     bool subscribedWithRegion = false;
     if (!subscribedWithoutRegion && hasExplicitSubscriptionRegion) {

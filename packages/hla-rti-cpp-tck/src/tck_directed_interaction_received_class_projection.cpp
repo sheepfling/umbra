@@ -122,6 +122,10 @@ void scenarioDirectedInteractionReceivedClassProjection(
   publisherAmbassador.publishObjectClassDirectedInteractions(
       publisherObjectClass,
       publishedInteractions);
+  publisherAmbassador.subscribeObjectClassDirectedInteractions(
+      publisherObjectClass,
+      publishedInteractions,
+      true);
   superclassAmbassador.subscribeObjectClassDirectedInteractions(
       superclassObjectClass,
       superclassSubscription,
@@ -156,6 +160,34 @@ void scenarioDirectedInteractionReceivedClassProjection(
       rti::VariableLengthData(derivedValue.data(), derivedValue.size()));
   std::vector<std::uint8_t> tagBytes{0x44U, 0x49U, 0x52U, 0x50U};
   rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+
+  // The derived parameter exists in the FDD, but is unavailable to the base
+  // interaction class. A rejected send must not leak a directed callback.
+  rti::ParameterHandleValueMap unavailableParameters;
+  unavailableParameters.emplace(
+      publisherBaseParameter,
+      rti::VariableLengthData(baseValue.data(), baseValue.size()));
+  unavailableParameters.emplace(
+      publisherDerivedParameter,
+      rti::VariableLengthData(derivedValue.data(), derivedValue.size()));
+  requireException(
+      [&] {
+        publisherAmbassador.sendDirectedInteraction(
+            publisherBaseInteraction, target, unavailableParameters, tag);
+      },
+      L"InteractionParameterNotDefined",
+      "directed send using a parameter unavailable to its interaction class");
+  for (int pass = 0; pass != 16; ++pass) {
+    publisher.pump();
+    closestSuperclassSubscriber.pump();
+    sentClassSubscriber.pump();
+  }
+  require(
+      publisher.recorder().directedInteractions().empty() &&
+          closestSuperclassSubscriber.recorder().directedInteractions().empty() &&
+          sentClassSubscriber.recorder().directedInteractions().empty(),
+      "rejected directed send delivered an interaction callback");
+
   publisherAmbassador.sendDirectedInteraction(
       publisherDerivedInteraction,
       target,
@@ -174,6 +206,11 @@ void scenarioDirectedInteractionReceivedClassProjection(
       [&] { return sentClassSubscriber.recorder().directedInteractions().size() == 1U; },
       options,
       "directed interaction received at its subscribed sent class");
+  for (int pass = 0; pass != 16; ++pass) {
+    publisher.pump();
+  }
+  require(publisher.recorder().directedInteractions().empty(),
+          "directed sender received its own interaction despite a matching subscription");
 
   auto const superclassDeliveries =
       closestSuperclassSubscriber.recorder().directedInteractions();
@@ -209,6 +246,9 @@ void scenarioDirectedInteractionReceivedClassProjection(
   sentClassAmbassador.unsubscribeObjectClassDirectedInteractions(
       sentClassObjectClass,
       sentClassSubscription);
+  publisherAmbassador.unsubscribeObjectClassDirectedInteractions(
+      publisherObjectClass,
+      publishedInteractions);
   superclassAmbassador.unsubscribeObjectClassAttributes(
       superclassObjectClass,
       superclassAttributes);

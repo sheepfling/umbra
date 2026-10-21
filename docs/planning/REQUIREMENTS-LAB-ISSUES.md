@@ -78,6 +78,27 @@ mutate the pinned export as part of RTI work.
 Source: `content/clauses/04-federation-management-page-067.tex`, line 22
 (page 67), document `hla-1516.1-2025`.
 
+### RL-336 — changed-lookahead contracts map Query Lookahead to Modify Lookahead §8.20.4
+
+Candidate
+`requirement-candidate-content-clauses-08-time-management-page-208-l66-15`
+states a requirement for the **Modify Lookahead** service. The changed-lookahead
+requirements contract instead assigns that candidate and §8.20.4 to the
+`queryLookahead` assertion. The associated native case only queries the active
+lookahead after disabling and re-enabling Time Regulation with a new interval;
+it does not invoke Modify Lookahead. The same misattribution recurs in the
+timestamped attribute, interaction, deletion, and regional changed-lookahead
+contracts. This is a traceability mismatch, not a conformance finding.
+
+Workaround: do not use this candidate as evidence for Query Lookahead. Keep
+that assertion explicitly unmapped until a Query Lookahead-specific normative
+anchor is verified; leave the pinned Requirements Lab export unchanged and do
+not resync it for this issue.
+
+Source: pinned `semantic/requirements.json`, candidate above; the native
+contract `compliance/requirements-lab/timestamped-attribute-update-regulation-reenable-changed-lookahead-requirements-contract.json`;
+and `cpp/tests/timestamped_attribute_update_regulation_reenable_changed_lookahead_catch2.cpp`.
+
 ## Resolved local harness rough edge
 
 While adding the next bounded ownership handoff, the Catch2 plan validator
@@ -536,6 +557,10 @@ fragments in RL-326/RL-327 and the individual earlier boundary reports:
   `...page-192-l63-17`, and `...page-194-l21-3`: exported §8.5.5, §8.6.3,
   and §8.8.3 respectively; their service-introduction rules belong to
   §8.5, §8.6, and §8.8.
+- `requirement-candidate-content-clauses-08-time-management-page-194-l27-5`:
+  exported §8.8.3; the TAR message-set rule (queued RO plus TSO timestamps
+  less than or equal to the requested time) occurs under the §8.8 service
+  description before §8.8.1, so it belongs to §8.8.
 - `requirement-candidate-content-clauses-08-time-management-page-206-l29-4`
   and `...page-207-l112-28`: exported §8.18.1 and §8.19.3; the Query GALT
   and Query LITS result rules belong to §8.17 and §8.19 respectively.
@@ -569,3 +594,248 @@ resynchronized. This is a Lab source-attribution issue, not an IEEE erratum or
 conformance finding; the canonical PDF was not independently checked in this
 turn. Source: pinned `semantic/requirements.json` and the page-165 heading
 sequence in `semantic/content-blocks.json`.
+
+### RL-330 — Page-180 mixed-passel message rule inherits 8.1.4
+
+Five page-180 candidates with full prefix
+`requirement-candidate-content-clauses-08-time-management-page-180-`
+and suffixes `l9-1`, `l21-5`, `l27-7`, `l39-11`, and `l45-13` are exported
+as §8.1.4 despite appearing under §8.1.3 Messages. The reconstructed page
+places the §8.1.4 Message order type heading only at line 70, after all
+five. The `l27-7` separate-passel-message rule is complete and has a focused
+C++ case; `l9-1` is introductory, while `l21-5`, `l39-11`, and `l45-13`
+are incomplete fragments. Apply a local §8.1.3 section crosswalk but do not
+invent independent coverage for those four records. Keep the pinned export
+unchanged; do not resync unchanged Lab inputs. This is a Lab attribution and
+fragmentation defect, not IEEE errata or conformance evidence. The
+canonical PDF was not independently checked in this turn.
+
+### RL-331 — Page-153 acquisition and privilege rules inherit 7.1.4
+
+Twelve page-153 candidates are exported as §7.1.4 User-supplied tags. The
+first six have full prefix
+`requirement-candidate-content-clauses-07-ownership-management-page-153-`
+and suffixes `l15-4`, `l30-9`, `l36-11`, `l45-14`, `l60-19`, and `l75-24`.
+They continue §7.1.2.2 Acquisition from page 152, before the §7.1.3
+heading on page 153. The next six, with suffixes `l84-26`, `l87-27`,
+`l96-30`, `l99-31`, `l108-34`, and `l111-35`, are §7.1.3 privilege-to-delete
+text before the §7.1.4 heading. Only page-153 `l123-38` and `l129-40`
+belong to §7.1.4. Mapping by the exported subsection would falsely
+attribute acquisition and privilege evidence to tag behavior. Keep the
+pinned IDs and apply a local canonical-section crosswalk. No existing plan
+row selects these twelve IDs; the separately covered page-154 `l66-21`
+§7.1.4 mapping is correct. No Lab resync was performed; this is an
+attribution defect, not IEEE errata or a conformance finding. The
+canonical PDF was not independently checked in this turn.
+
+### RL-332 — Page-180 Delete Object Instance order rule is split mid-sentence
+
+The §8.1.4 Delete Object Instance preferred-order rule is divided between
+candidate `requirement-candidate-content-clauses-08-time-management-page-180-l87-26`,
+which ends at “Delete Object Instance service”, and candidate
+`requirement-candidate-content-clauses-08-time-management-page-180-l93-28`,
+which begins with the continuation “invocation, the preferred order type...”.
+Neither candidate alone gives a clean, complete statement of the rule. The
+pinned source text confirms one sentence: sent Delete Object Instance message
+order is based on the specified instance's `HLAprivilegeToDeleteObject`
+preferred order. The existing process C++ case directly exercises both the
+default TIMESTAMP path and changing that attribute to RECEIVE, but the current
+traceability mapping selects only the sentence-start candidate to avoid
+counting the split twice.
+
+Workaround: retain the candidate IDs and map the evidence to the sentence-start
+candidate, with this issue as the continuation pointer; do not count both
+fragments as independent normative coverage. No Lab resync was performed. This
+is a Lab extraction/usability defect, not IEEE errata or a conformance finding.
+The current local process test rerun failed during endpoint connection setup
+before behavior assertions, so this turn does not claim fresh behavioral
+verification. Source: pinned Lab candidate records and the source text in
+`../Document-Recreation/topics/ieee/hla-1516.1-2025/content/clauses/08-time-management-page-180.tex`.
+
+### RL-333 — Page-192 Time Constrained Enabled requirement is an incomplete fragment
+
+Candidate `requirement-candidate-content-clauses-08-time-management-page-192-l69-19`
+is exported with only the trailing text “of the joined federate. If the joined
+federate is time-regulating, the argument shall equal the joined federate’s”.
+The source page continues on the next layout block with “current logical time.”
+This leaves the normative postcondition incomplete in both the requirement
+query and the candidate record, obscuring the exact behavior unless the reader
+opens the page-level content block and reconstructs the sentence.
+
+Workaround: keep the stable candidate ID and map the focused C++ case to
+§8.6.3, using the complete source-page sentence as context. Do not resync the
+unchanged Lab. This is a Lab extraction/usability defect, not IEEE errata or a
+conformance finding. Source: pinned `semantic/requirements.json` candidate and
+the page-192 layout text in
+`../Document-Recreation/topics/ieee/hla-1516.1-2025/semantic/content-blocks.json`.
+
+### RL-334 — Page-192 smallest-feasible-time requirement is an incomplete fragment
+
+Candidate `requirement-candidate-content-clauses-08-time-management-page-192-l72-20`
+ends at “for which all other constraints necessary to” and omits the remainder
+of the smallest-feasible-logical-time condition. The full page-level Time
+Constrained Enabled block carries additional constraints and delivery behavior
+that the candidate query does not show.
+
+Workaround: preserve the stable candidate ID and map focused behavior only to
+§8.6.3 after checking the complete page-level source. Do not resync the
+unchanged Lab or infer omitted detail from the fragment. This is a Lab
+extraction/usability defect, not IEEE errata or a conformance finding. Source:
+pinned `semantic/requirements.json` and page-192 sequence 192 in
+`../Document-Recreation/topics/ieee/hla-1516.1-2025/semantic/content-blocks.json`.
+
+### RL-335 — Page-197 Time Advance Grant result statement is split mid-sentence
+
+Candidate `requirement-candidate-content-clauses-08-time-management-page-197-l98-29`
+ends at “or to the”. The following candidate,
+`requirement-candidate-content-clauses-08-time-management-page-197-l104-31`,
+begins “specified logical time if no TSO messages were delivered” and then
+continues into separate no-future-TSO and GALT grant conditions. The page-197
+source block presents one complete Time Advance Grant result sentence followed
+by those additional requirements; neither exported fragment is safe to read as
+the full surrounding rule in isolation.
+
+Workaround: retain the stable IDs, use the full page-197 source block as
+context, and map grant-time evidence to the directly relevant candidate without
+counting the continuation candidate as an independent duplicate obligation.
+The new focused NMR case covers the no-TSO branch; the existing received-TSO
+case covers the delivered-message branch. This is a new occurrence of the
+Lab's sentence-fragmentation defect (compare RL-332), not IEEE errata or a
+conformance finding. No Lab resync was performed. Source: pinned
+`semantic/requirements.json` and page-197 sequence 197 in
+`../Document-Recreation/topics/ieee/hla-1516.1-2025/semantic/content-blocks.json`.
+
+### RL-337 — Page-200 Flush Queue Request delivery and grant rule is fragmented
+
+The pinned §8.12 candidates with prefix
+`requirement-candidate-content-clauses-08-time-management-page-200-`
+split the delivery sentence across `l131-38`, `l134-39`, and `l140-41`.
+The first ends at “the joined federate”; the second begins “will receive”
+and ends at “smaller timestamps”; the third begins “could arrive” and
+introduces the smallest-of grant rule but does not contain its three list
+items. The optimistic-logical-time sentence is likewise split between
+`l164-49` (ending “advancing the”) and `l170-51` (its tail). The full local
+2025 semantic §8.12 page-200 block, lines 33–44, presents the continuous
+delivery paragraph, the grant minimum of supplied time, GALT, and the
+smallest timestamp delivered in response, and the complete optimistic-time
+paragraph.
+
+An isolated candidate query therefore cannot safely establish the full FQR
+delivery or grant-value obligation. Keep the stable IDs and pinned export;
+read these fragments as a group with the complete semantic page and its
+page-201 continuation, and map only the tested subclaim. In particular, the
+fragmentation does not justify inventing a mandatory cutoff for TSO input
+arriving between request acceptance and an HLA_EVOKED grant callback. This
+is a new Lab candidate-extraction/usability occurrence, not IEEE errata or
+conformance evidence. The canonical PDF was not independently checked and
+no Lab resync was performed. Source: pinned `semantic/requirements.json`
+and `output/semantic/content-block-content-15161-page-200.tex` in the
+2025 Requirements Lab topic.
+
+### RL-338 — local directed-interaction map used Delete Object Instance §6.16 for Send Directed Interaction
+
+The pinned candidate
+`requirement-candidate-content-clauses-06-object-management-page-129-l123-34`
+is a valid Delete Object Instance requirement, but the local changed-lookahead
+directed-interaction contract assigned it to `sendDirectedInteraction`. The
+native case invokes no Delete Object Instance service. This was a local plan /
+contract mapping error, not a defect in the pinned candidate.
+
+Resolution: removed the unrelated candidate from the focused Catch2 plan row
+and local requirements contract. Retained the known-target requirement in
+§5.1.5 and the directly exercised time-management mappings in the portable
+C++/Java catalogs. The Query Lookahead mapping correction is tracked under
+RL-336. The pinned Lab export was not changed or resynchronized.
+
+Source: `cpp/tests/timestamped_directed_interaction_regulation_reenable_changed_lookahead_catch2.cpp`;
+`compliance/requirements-lab/catch2-test-plan.json`; and
+`compliance/requirements-lab/timestamped-directed-interaction-regulation-reenable-changed-lookahead-requirements-contract.json`.
+
+### RL-339 — Page-203 time-management candidates inherit §8.14.3 across service boundaries
+
+The pinned candidates
+`requirement-candidate-content-clauses-08-time-management-page-203-l47-12`,
+`...-l95-25`, `...-l104-28`, and `...-l113-31` are all exported as
+**§8.14.3 Preconditions**. The complete page-203 source block places l47 under
+the preceding **§8.13.4 Postconditions** heading (pending lookahead after
+Flush Queue Grant), while l95, l104, and l113 are in the Time Advance Grant
+result paragraph immediately following the **§8.14 service** heading—not in
+its §8.14.3 preconditions.
+
+Impact: a §8.14.3 gap query groups unrelated FQG and Time Advance Grant
+obligations under the wrong subsection, making correct test mappings easy to
+misstate. This is a new clause-boundary issue; preserve all stable Lab IDs and
+the exported label, but map evidence to the source-heading clause: l47 to
+§8.13.4, and l95/l104/l113 to §8.14. Do not edit or resynchronize unchanged
+Lab inputs.
+
+Reproduce with
+`python tools/query_rti_work.py gaps --document hla-1516.1-2025 --family time-save-restore --clause clause-8.14 --limit 8 --compact`;
+compare the records in the pinned `semantic/requirements.json` with
+`output/semantic/content-block-content-15161-page-203.tex` in the 2025 Lab
+topic. This is a Requirements Lab extraction defect, not IEEE errata or a
+conformance finding. No Lab resync was performed.
+
+### RL-340 — Page-190 time-regulation candidates inherit §8.4.3 across service boundaries
+
+The pinned candidates
+`requirement-candidate-content-clauses-08-time-management-page-190-l64-15`,
+`...-l67-16`, `...-l76-19`, and `...-l106-26` are all exported as
+**§8.4.3 Preconditions**. The complete page-190 source places l64, l67, and
+l76 in **§8.3.4 Postconditions** for Enable Time Regulation: the role-enable
+callback, permission to send TSO, the logical-time/lookahead state, and the
+constrained-recipient timestamp cutoff. The related candidate
+`requirement-candidate-content-clauses-08-time-management-page-190-l103-25`
+is also misattributed to §8.4.3 and belongs to the §8.4 Disable Time Regulation
+service narrative. The source places l106 in the narrative for
+the following **§8.4 Disable Time Regulation service**: subsequent messages
+from the joined federate are sent as RO. The actual §8.4.3 preconditions begin
+after that service heading and do not contain these statements.
+
+Impact: a §8.4.3 gap query directs implementation and traceability toward the
+wrong service. Preserve the stable candidate IDs, but map source-backed
+Enable Time Regulation evidence to §8.3.4 and Disable Time Regulation evidence
+to §8.4; do not claim that these candidates establish §8.4.3 preconditions.
+This is a new recurrence of the Lab's clause-boundary extraction defect
+(compare RL-339), not IEEE errata or a conformance finding. No Lab resync was
+performed. Source: pinned `semantic/requirements.json` and
+`output/semantic/content-block-content-15161-page-190.tex` in the 2025
+Requirements Lab topic.
+
+### RL-341 — Page-198 §8.11 candidate is split across a page boundary
+
+The pinned candidate
+`requirement-candidate-content-clauses-08-time-management-page-198-l192-57`
+exports only the fragment that the RTI shall not guarantee delivery of all
+messages timestamped `T` before a Time Advance Grant to `T`, ending with the
+word “and”. The source continues on page 199: after receiving the grant to
+`T`, a federate with zero lookahead can send additional messages timestamped
+`T`.
+
+Impact: the page-198 candidate is an incomplete statement and should not be
+turned into a test that asserts either delivery or non-delivery of equal-`T`
+messages before the grant. Preserve the candidate ID, but assess the complete
+cross-page passage before creating behavioral mappings. Existing equal-time
+delivery observations do not prove this non-guarantee. This is a source
+fragment/extraction issue, not IEEE errata or a conformance finding. No Lab
+resync was performed. Source: pinned `semantic/requirements.json` and the
+page-198/page-199 source blocks in the 2025 Requirements Lab topic.
+
+### RL-342 — Page-192 TCE service narrative is attributed to §8.6.3
+
+The pinned candidates
+`requirement-candidate-content-clauses-08-time-management-page-192-l72-20`,
+`...-l78-22`, `...-l84-24`, `...-l93-27`, and `...-l99-29` are reported by
+the work query as **§8.6.3**. The full page-192 source places these statements
+in the narrative immediately after the **§8.6 Time Constrained Enabled
+service** heading and before the §8.6.1 supplied-arguments heading. They are
+service-level behavior, not §8.6.3 preconditions.
+
+Impact: mappings for the page-192 service narrative must use §8.6. Existing
+time-constrained-enable mappings that use §8.6.3 should be corrected when
+their test evidence is updated. This is a new recurrence of the Lab's clause
+boundary attribution problem; it also corrects the earlier RL-334 workaround,
+which directed mappings to §8.6.3. Preserve all stable candidate IDs and do
+not resync unchanged Lab inputs. Source: the exact pinned requirement queries
+and `output/semantic/content-block-content-15161-page-192.tex` in the 2025
+Requirements Lab topic.

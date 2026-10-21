@@ -17,6 +17,7 @@ using umbra::detail::ProcessFederationLogicalTime;
 
 }  // namespace
 
+
 TEST_CASE(
     "Private process local-delete request and result preserve the official status vocabulary",
     "[unit][foundation][transport][process-boundary][object-management][local-delete-object-instance][transport-contract][rti.service.local-delete-object-instance]") {
@@ -421,4 +422,56 @@ TEST_CASE(
     CHECK_THROWS_AS(encodeProcessFederationReceiveInteractionResult({event}),
                     ProcessFederationServiceProtocolError);
   }
+}
+
+// Internal wire-format compatibility evidence only; this codec case has no
+// direct normative requirement mapping.
+TEST_CASE(
+    "Private process timestamped attribute callback group markers round-trip without changing ungrouped acknowledgements",
+    "[unit][internal][transport][process-boundary][2025][time-management][ddm][tso][ddm-process-tso-region-callback-snapshot][attribute-callback-group-boundary]") {
+  using GroupPosition =
+      umbra::detail::ProcessFederationTsoAttributeUpdateCallbackGroupPosition;
+
+  auto makeEvent = [] {
+    umbra::detail::ProcessFederationAttributeUpdateEvent event;
+    event.producingFederateId = 0x31U;
+    event.receivingFederateId = 0x32U;
+    event.objectInstanceHandle = 0x33U;
+    event.attributeValues.emplace_back(
+        0x34U, std::vector<std::uint8_t>{0x35U});
+    event.transportationName = "HLAreliable";
+    event.timestamp = umbra::detail::ProcessFederationLogicalTime{
+        L"HLAinteger64Time", {0x05U}};
+    event.retractionMessageId = 0x36U;
+    return event;
+  };
+
+  for (auto const position : {GroupPosition::more, GroupPosition::final}) {
+    auto event = makeEvent();
+    event.tsoCallbackGroupPosition = position;
+    auto const decoded =
+        umbra::detail::decodeProcessFederationReceiveAttributeUpdateResult(
+            umbra::detail::encodeProcessFederationReceiveAttributeUpdateResult(
+                umbra::detail::ProcessFederationReceiveAttributeUpdateResult{
+                    event}));
+    REQUIRE(decoded.event.has_value());
+    CHECK(decoded.event->retractionMessageId == event.retractionMessageId);
+    REQUIRE(decoded.event->timestamp.has_value());
+    CHECK(decoded.event->timestamp->implementationName ==
+          event.timestamp->implementationName);
+    CHECK(decoded.event->timestamp->encoding == event.timestamp->encoding);
+    CHECK(decoded.event->tsoCallbackGroupPosition == position);
+  }
+
+  auto const ungrouped = makeEvent();
+  auto const decodedUngrouped =
+      umbra::detail::decodeProcessFederationReceiveAttributeUpdateResult(
+          umbra::detail::encodeProcessFederationReceiveAttributeUpdateResult(
+              umbra::detail::ProcessFederationReceiveAttributeUpdateResult{
+                  ungrouped}));
+  REQUIRE(decodedUngrouped.event.has_value());
+  CHECK(decodedUngrouped.event->retractionMessageId ==
+        ungrouped.retractionMessageId);
+  CHECK(decodedUngrouped.event->tsoCallbackGroupPosition ==
+        GroupPosition::ungrouped);
 }

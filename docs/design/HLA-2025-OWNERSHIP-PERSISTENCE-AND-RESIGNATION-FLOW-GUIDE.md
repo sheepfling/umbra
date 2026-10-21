@@ -162,8 +162,10 @@ selected 2025 process evidence. In the first case, discovery and ownership-
 assumption frames have already been pushed into the candidate's live
 HLA_EVOKED callback queue before federation save starts. The save/restore
 protocol completes without invoking them; later evokeCallback calls deliver
-discovery, then the assumption callback, then the queued save/restore status
-callbacks in that test's observed order.
+discovery, then the assumption callback, followed by
+`initiateFederateSave`, `federationSaved`, `federationRestoreBegun`,
+`initiateFederateRestore`, and `federationRestored` in that selected
+candidate's observed queue order.
 
 In the second case, the restore operation returns value-only ownership-
 assumption work. The process service first queues federation-restore
@@ -178,16 +180,20 @@ flowchart TB
 
   Ask --> Pushed["Already pushed into a live HLA_EVOKED queue"]
   Pushed --> SaveRestore["Selected process case completes Save and Restore without invoking it"]
-  SaveRestore --> Evoke["Later evokeCallback calls"]
+  SaveRestore --> Evoke["Candidate's later evokeCallback calls"]
   Evoke --> Discovery["discoverObjectInstance"]
   Discovery --> Assumption["requestAttributeOwnershipAssumption"]
-  Assumption --> Status["Then save/restore callbacks in this test's queue order"]
+  Assumption --> SaveInitiate["initiateFederateSave(saveLabel)"]
+  SaveInitiate --> Saved["federationSaved()"]
+  Saved --> RestoreBegun["federationRestoreBegun()"]
+  RestoreBegun --> RestoreInitiate["initiateFederateRestore(...)"]
+  RestoreInitiate --> PushedRestored["federationRestored()"]
 
   Ask --> Rebuilt["Value-only ownership work returned by restore"]
   Rebuilt --> Validate["Validate saved identities against restored members and object attributes"]
   Validate --> Lifecycle["Queue federation-restore lifecycle notifications"]
   Lifecycle --> Ownership["Then enqueue reconstructed assumption work for a live recipient"]
-  Ownership --> Restored["Separate test observes federationRestored before the assumption callback"]
+  Ownership --> RebuiltOutcome["Separate test observes federationRestored before the assumption callback"]
 ```
 
 These are separate process-profile test scenarios, not two branches of one

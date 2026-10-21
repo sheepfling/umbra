@@ -216,9 +216,9 @@ flowchart TD
     N --> O["Clear client queues and joined identity; close process callback bridge"]
     M --> P["Public Disconnect returns"]
     O --> P
-    N -. "peer can observe EOF" .-> Q["Remote transport owner exits its session loop"]
-    Q -. "if that owner is wired to this service" .-> R["ProcessFederationService::detach(session)"]
-    R -.-> S["Remove server session and cached retraction routes"]
+    N -. "server may observe session end asynchronously" .-> Q["ProcessFederationServiceHost exits serving loop"]
+    Q --> R["Run connectionLost(session), then detach(session)"]
+    R --> S["Remove server session and cached retraction routes"]
 ```
 
 The adapter `CallbackSession` is closed outside the ambassador lock so an
@@ -233,15 +233,23 @@ as one teardown step.
 
 Server-side `ProcessFederationService::detach` is another boundary, not a
 Disconnect request sent by the RTI ambassador. In the process profile, public
-Disconnect calls `ProcessFederationClient::close`; it does not send a
-Disconnect service message. The client closes its socket locally. The service
-header assigns `detach` to the transport owner after the serving loop exits;
-that method removes the session and cached pushed-retraction routes, but does
-not resign a federate. The bounded source scan found no production callsite
-for this service cleanup in the checkout. The configured process-endpoint
-lifecycle test calls `detach` explicitly in its server fixture after serving
-its planned requests, so it does not establish that public Disconnect
-synchronously causes that call.
+Disconnect calls `ProcessFederationClient::close`; it sends no Disconnect
+service message and does not wait for a remote host worker. The client closes
+its socket locally. In the included `ProcessFederationServiceHost` implementation,
+the serving loop handles session exit by calling `connectionLost(session)` and
+then `detach(session)`. `detach` removes the server session and cached
+pushed-retraction routes; it does not itself resign a federate. Thus the source
+shows a server-side cleanup path after the transport session ends, but not that
+public `Disconnect` waits for that cleanup to finish. A bounded repository-wide
+symbol search found the host constructed by focused tests, not by a
+non-test server launcher in this checkout.
+
+The configured process-endpoint lifecycle test uses its own server fixture and
+calls `detach` explicitly after serving its planned requests; it does not test
+the host's automatic cleanup path. A separate host integration test exercises
+public Connect/Disconnect followed by host shutdown, but does not assert server
+session removal or its timing. These are source and scenario observations, not
+process/embedded parity evidence.
 Connection loss remains a separate forced-resignation path; see the lifecycle
 guide rather than inferring it from this voluntary Disconnect sequence.
 
@@ -280,7 +288,7 @@ Umbra implementation:
 - [Connect overloads and shared preparation/commit path](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L29)
 - [Factory construction](../../cpp/src/ieee1516_2025_binding_shell.cpp#L142),
   [Connect-time RID lookup](../../cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp#L92),
-  and [RID parsing/profile selection](../../cpp/src/internal/runtime/rti_initialization_data.cpp#L339)
+  and [RID parsing/profile selection](../../cpp/src/internal/runtime/rti_initialization_data.cpp#L165)
 - [Callback-model, credential, address, and setting helpers](../../cpp/src/internal/runtime/ambassador_connection_support.cpp#L31)
 - [Process endpoint address selection](../../cpp/src/internal/runtime/ambassador_connection_support.cpp#L45),
   [credential policy](../../cpp/src/internal/runtime/ambassador_connection_support.cpp#L130),
@@ -290,6 +298,7 @@ Umbra implementation:
 - [Process client close: socket shutdown, client-queue clearing, then bridge close](../../cpp/src/internal/federation/process_federation_client_callback_dispatch.cpp#L550), and [transport socket close](../../cpp/src/internal/federation/process_transport.cpp#L221)
 - [Process transport service-operation enum](../../cpp/src/internal/federation/transport_service_protocol.hpp#L21); it has no public Disconnect request operation.
 - [Process service Detach contract](../../cpp/src/internal/federation/process_federation_service.hpp#L87) and [server-session/retraction-route cleanup](../../cpp/src/internal/federation/process_federation_service.cpp#L61)
+- [Process service host loop: connection-loss handling and detach on session exit](../../cpp/src/internal/federation/process_federation_service_host.cpp#L153)
 - [Local lifecycle transitions](../../cpp/src/internal/federation/federate_lifecycle.cpp#L11)
 
 Focused tests (citations identify scenario evidence; see the factory/RID run
@@ -309,16 +318,19 @@ result above):
 - [Malformed process address rejected before connection](../../cpp/tests/ieee1516_2025_connection_address_validation_catch2.cpp#L457)
 - [Successful configured TCP process-endpoint Connect and result flags](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L41)
 - [Public process-endpoint lifecycle through Resign and Disconnect; server fixture calls Detach separately](../../cpp/tests/ieee1516_2025_connection_catch2.cpp#L98)
+- [Process service host clients Connect and Disconnect before host shutdown; cleanup state/timing is not asserted](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L42)
 - [CallbackSession close drains an external in-flight invocation](../../cpp/tests/callback_dispatcher_catch2.cpp#L327)
 
 ## Known gaps and boundaries
 
 - Most focused connection and cleanup assertions exercise the embedded
-  profile. The configured process-endpoint lifecycle test does call public
-  Disconnect, but its server fixture invokes `ProcessFederationService::detach`
-  separately; it does not assert that the API call caused server-side session
-  cleanup. The sources therefore do not prove full process/embedded equivalence
-  for configuration, callback shutdown, or error mapping.
+  profile. The host implementation calls `connectionLost` and `detach` after a
+  serving loop ends, but the configured process-endpoint lifecycle fixture calls
+  `detach` explicitly and the separate host test does not assert cleanup state
+  or timing. No non-test host construction/launcher was found in this checkout.
+  The sources and tests therefore do not prove that public Disconnect waits for
+  server cleanup or establish full process/embedded equivalence for
+  configuration, callback shutdown, or error mapping.
 - Umbra's source and test report `NotConnected` when Disconnect is called on an
   absent connection, but the pinned `RTIambassador.h` 4.3 `@throws` list does
   not include that exception. Treat this as an API/source discrepancy to
@@ -331,5 +343,8 @@ result above):
   profile; a 2025 `fomEdition=2010` compatibility setting is not evidence about
   that implementation.
 
-Visual rendering is pending; track it in the
+The process-host cleanup chart has been rendered and visually reviewed locally.
+It is tall but readable while scrolling, and it keeps public Disconnect return
+separate from the host's later session cleanup. GitHub presentation remains
+unverified; track publication review in the
 [behavior-flow guide backlog](HLA-BEHAVIOR-FLOW-GUIDES.md).

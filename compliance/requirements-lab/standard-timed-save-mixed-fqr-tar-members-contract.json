@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ and Java translation of the mapped native four-member mixed FQR/TAR timed-save case. The adapter supplies provider, FOM, endpoint, callback model, and logical-time implementation. With HLA_EVOKED callbacks, a regulating owner requests a save at time 5; two constrained members request Flush Queue at 6 and 7, and a third constrained member and the owner request ordinary TAR at 5. The two FQR members each observe save initiation before their actual Flush Queue Grant at 6; the ordinary TAR member observes save initiation before its grant at the inclusive boundary 5. All four members complete the save. Direct traceability is limited to five pinned requirement-section pairs in clauses 4.19, 4.19.6, and 4.20. C++ primary and contract passed against an installed package under integer64 and float64 time. Java compiles against the official API only; provider runtime is unverified. No universal cross-service ordering, immediate-callback, transport, interoperability, or conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-timed-save-mixed-fqr-tar-members",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador requestFederationSave(label, time), flushQueueRequest, timeAdvanceRequest, federateSaveBegun, federateSaveComplete; FederateAmbassador initiateFederateSave(label, time), flushQueueGrant, timeAdvanceGrant, federationSaved",
+      "source": "third_party/ieee1516.1-2025/include/RTI and official hla.rti1516_2025 Java API",
+      "source_symbol": "IEEE 1516.1-2025 federation-save and time-management interfaces",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_timed_save_mixed_fqr_tar.cpp::scenarioTimedSaveMixedFqrTar",
+        "packages/hla-rti-cpp-tck/src/tck_timed_save_mixed_fqr_tar.cpp::scenarioTimedSaveMixedFqrTarContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/TimedSaveMixedFqrTarTck.java::run"
+      ]
+    }
+  ]
+}

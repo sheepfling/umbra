@@ -105,6 +105,51 @@ sender-to-receiver mapping remains subject to the licensed IEEE text; the
 separate [time-management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md) explains
 the TSO gate once a delivery is timestamp-ordered.
 
+### One sent TSO interaction can have different received orders
+
+The two callback fields matter even when there is only one send. In a focused
+embedded `HLA_EVOKED` scenario, a time-regulating sender sends an interaction
+whose effective order is `TIMESTAMP` to two eligible receivers. The
+non-time-constrained receiver observes it as receive-order; the time-constrained
+receiver observes it as timestamp-order after advancing to the message time.
+Both reports preserve `sentOrderType == TIMESTAMP`, and both contain a valid
+retraction designator for the accepted send. The [shared delivery assertions](../../cpp/tests/ieee1516_2025_sent_tso_per_recipient_order_conversion_catch2.cpp#L218)
+check payload, tag, transportation, producer, logical time, sent order, and
+retraction validity; the [recipient-specific assertions](../../cpp/tests/ieee1516_2025_sent_tso_per_recipient_order_conversion_catch2.cpp#L240)
+check `RECEIVE` versus `TIMESTAMP` received order. The test also checks the
+constrained receiver's [interaction-before-grant callback order](../../cpp/tests/ieee1516_2025_sent_tso_per_recipient_order_conversion_catch2.cpp#L215).
+
+The sequence includes this test's `HLA_EVOKED` polling so the callback arrows
+are not mistaken for asynchronous delivery: the unconstrained receiver polls
+after the send; the constrained receiver polls before its time advance and has
+no interaction callback yet, then requests time 6 and polls for the TSO
+interaction and grant. The test also requests sender time 2 before observing
+the constrained delivery. That is the test's schedule, not a replacement for
+the general grant-eligibility explanation in the [time-management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md).
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor S as Time-regulating sender
+  participant RTI as 2025 embedded RTI
+  actor U as Joined receiver (not time constrained)
+  actor C as Joined receiver (time constrained)
+
+  S->>RTI: sendInteraction(..., LogicalTime=6)<br/>effective sent order TIMESTAMP
+  U->>RTI: evokeCallback(...)<br/>poll for delivery
+  RTI-->>U: Callback sent=TIMESTAMP, received=RECEIVE<br/>valid retraction designator
+  RTI->>RTI: Retain the accepted TSO message for C
+  C->>RTI: evokeCallback(0.1)<br/>before time advance
+  Note over RTI,C: C has no interaction callback before its time advance.
+  C->>RTI: timeAdvanceRequest(6)
+  S->>RTI: timeAdvanceRequest(2)<br/>test schedule
+  C->>RTI: evokeCallback(0.25)<br/>poll until both callbacks are observed
+  RTI-->>C: Callback sent=TIMESTAMP, received=TIMESTAMP<br/>valid retraction designator
+  RTI-->>C: timeAdvanceGrant(6)
+```
+
+This is the bounded observation in the [per-recipient conversion test](../../cpp/tests/ieee1516_2025_sent_tso_per_recipient_order_conversion_catch2.cpp#L125), not a complete order-conversion table or an independent normative interpretation. Its source comment maps the expected case to §8.1.4 Table 3; the licensed standard text is still needed to verify that normative mapping. The embedded sender path separates time-constrained recipients from the receive-order callback route ([recipient split and TSO admission](../../cpp/src/internal/runtime/umbra_rti_ambassador_timestamped_interaction_send.cpp#L288), [receive-order callback fields](../../cpp/src/internal/runtime/umbra_rti_ambassador_timestamped_interaction_send.cpp#L396)). It is one `HLA_EVOKED` scenario; do not generalize it to every sender/receiver role combination, process endpoint, or the separate 2010 stream.
+
 ## Who controls what, and when does it take effect?
 
 Umbra exposes class/default settings and more specific settings. They are
@@ -207,7 +252,9 @@ stateDiagram-v2
   [*] --> Rejected: admission fails
   Pending --> Committed: embedded task rechecks and commits before callback
   Pending --> Discarded: cancelled or stale before dispatch
-  Pending --> Pending: save and restore retain the pending request
+  Pending --> Discarded: last requested attribute divested before dispatch
+  Pending --> Pending: partial divestiture retains remaining attributes
+  Pending --> Pending: save/restore retains request
   Committed --> [*]
   Rejected --> [*]
   Discarded --> [*]
@@ -221,7 +268,18 @@ commit: attribute ownership for each requested attribute, or publication of
 the interaction class. If the request is cancelled or no longer eligible,
 Umbra drops it without delivering a confirmation; ownership changes can also
 clear an attribute's current override, so this path does not promise the old
-effective value remains in force.
+effective value remains in force. In the embedded source, unconditional
+divestiture also removes each divested attribute from every pending
+transportation-change request. If that empties a request, the registry erases
+it; when its already-queued confirmation work later starts, the request lookup
+finds nothing and returns without a public confirmation. If only part of a
+multi-attribute request is divested, its remaining attributes stay in the
+request and are rechecked and committed through the ordinary pending-work path.
+This is a source-observed interaction between two services, not a statement of
+the IEEE rule for their ordering. The paths are visible in [unconditional
+divestiture cleanup](../../cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp#L202),
+[pending-request dispatch lookup](../../cpp/src/internal/federation/federation_registry_transportation_order_services.cpp#L64),
+and the [queued callback's no-delivery return](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1390).
 
 In the embedded implementation, the registry writes the selected value while
 processing confirmation work, immediately before invoking the public callback
@@ -233,11 +291,24 @@ internal write ordering does not establish an earlier portable or normative
 effective time. Under `HLA_EVOKED`, the work waits for callback dispatch; under
 `HLA_IMMEDIATE`, it can run inline while the request service is still active,
 so the pending interval need not be visible after the service returns.
-The focused [attribute restore case](../../cpp/tests/ieee1516_2025_public_pending_attribute_transportation_type_change_restore_catch2.cpp)
-and [interaction restore case](../../cpp/tests/ieee1516_2025_public_pending_interaction_transportation_type_change_restore_catch2.cpp)
-exercise pending-state restoration under both callback models. They do not
-claim every process restart, persistence backend, or callback-scheduling
-interleaving is covered.
+The focused [attribute restore case](../../cpp/tests/ieee1516_2025_public_pending_attribute_transportation_type_change_restore_catch2.cpp#L249)
+checks the restored confirmation for the object, attribute set, and selected
+transportation type; its [query call](../../cpp/tests/ieee1516_2025_public_pending_attribute_transportation_type_change_restore_catch2.cpp#L255)
+and [result assertion](../../cpp/tests/ieee1516_2025_public_pending_attribute_transportation_type_change_restore_catch2.cpp#L264)
+check the effective setting afterward. The [interaction restore case](../../cpp/tests/ieee1516_2025_public_pending_interaction_transportation_type_change_restore_catch2.cpp#L333)
+checks the restored interaction and attribute confirmations, then its
+[query call](../../cpp/tests/ieee1516_2025_public_pending_interaction_transportation_type_change_restore_catch2.cpp#L358)
+and [result assertion](../../cpp/tests/ieee1516_2025_public_pending_interaction_transportation_type_change_restore_catch2.cpp#L367)
+check the effective setting. These cases exercise pending-state restoration
+under both callback models; they do not claim every process restart, persistence
+backend, or callback-scheduling interleaving is covered. The [save/restore interlock case](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L130)
+also invokes both transportation-change and unconditional-divestiture services,
+but only verifies that each is rejected while save or restore is in progress
+([transportation request](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L130),
+[divestiture](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L160));
+it does not exercise divestiture while a transportation change is pending.
+The divestiture interleaving above is therefore source-only, with no focused
+2025 test asserting its callback outcome.
 
 ## 3. Delivery carries both properties; routing and time stay separate
 
@@ -312,10 +383,30 @@ sequenceDiagram
   RTI-->>FA: reportInteractionTransportationType(...)
 ```
 
-The interaction query's federate designator matters: it asks about a named
-federate's effective transportation for an interaction class, not one
-federation-wide class value. The process-endpoint integration test exercises
-interaction change and query under both `HLA_EVOKED` and `HLA_IMMEDIATE`.
+The interaction query's federate designator separates the query subject from
+the callback recipient. The process request carries requesting and queried
+federate IDs independently ([client request](../../cpp/src/internal/federation/process_federation_client_declaration_services.cpp#L203)).
+In the embedded registry, resolution starts with the composed class
+transportation, looks up the queried federate's declarations, and applies that
+federate's override only when it is currently publishing the class through an
+ordinary or directed publication; the report route is selected for the
+requesting federate ([default value](../../cpp/src/internal/federation/federation_registry_transportation_order_services.cpp#L496),
+[queried declarations](../../cpp/src/internal/federation/federation_registry_transportation_order_services.cpp#L497),
+[publication gate](../../cpp/src/internal/federation/federation_registry_transportation_order_services.cpp#L511),
+[requester's callback route](../../cpp/src/internal/federation/federation_registry_transportation_order_services.cpp#L518)).
+This is a source observation, not an independent normative interpretation.
+
+The configured-process test exercises the change and query under both
+`HLA_EVOKED` and `HLA_IMMEDIATE` ([evoked](../../cpp/tests/ieee1516_2025_connection_interaction_transportation_catch2.cpp#L258),
+[immediate](../../cpp/tests/ieee1516_2025_connection_interaction_transportation_catch2.cpp#L261)),
+but queries the calling federate's own handle
+([self-target selection](../../cpp/tests/ieee1516_2025_connection_interaction_transportation_catch2.cpp#L211),
+[query call](../../cpp/tests/ieee1516_2025_connection_interaction_transportation_catch2.cpp#L221),
+[queried-target assertion](../../cpp/tests/ieee1516_2025_connection_interaction_transportation_catch2.cpp#L226),
+[reported-value assertion](../../cpp/tests/ieee1516_2025_connection_interaction_transportation_catch2.cpp#L228)).
+It verifies that self-query round trip; it does not test querying another
+publisher or querying after the target stops publishing. Those cross-federate
+and publication-change outcomes remain source-only here.
 
 ## Reading the implementation evidence
 
@@ -330,6 +421,7 @@ is the authority for interpreting those sections.
 | Attribute transportation default, pending request, and query | [Request planning](../../cpp/src/internal/federation/federation_registry_attribute_transportation_type_change_planning.cpp#L10); [effective-value resolution](../../cpp/src/internal/federation/federation_registry_catalog_queries.cpp#L932); [ambassador services](../../cpp/src/internal/runtime/umbra_rti_ambassador_order_transportation_services.cpp#L415) | [Embedded default/instance control](../../cpp/tests/custom_transportation_type_control_catch2.cpp#L102); [FOM-defined controls](../../cpp/tests/ieee1516_2025_custom_transportation_type_controls_catch2.cpp#L3) |
 | Interaction transportation request/query | [Change](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_transportation_type_change.cpp#L21); [query](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_transportation_type_query.cpp#L20); [effective value](../../cpp/src/internal/federation/federation_registry_catalog_queries.cpp#L955) | [Configured process endpoint, both callback models](../../cpp/tests/ieee1516_2025_connection_interaction_transportation_catch2.cpp#L76) |
 | Transportation metadata on outgoing delivery | [Interaction planning](../../cpp/src/internal/federation/federation_registry.cpp#L1832); [attribute update planning](../../cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp#L152) | [Ordinary custom transport](../../cpp/tests/custom_transportation_delivery_catch2.cpp#L142); [timestamped custom transport](../../cpp/tests/custom_transportation_timestamped_delivery_catch2.cpp#L185); [regional/directed variants](../../cpp/tests/custom_transportation_timestamped_regional_attribute_delivery_catch2.cpp#L163), [directed interaction](../../cpp/tests/custom_transportation_timestamped_directed_delivery_catch2.cpp#L143) |
+| Per-recipient order conversion for one sent TSO interaction | [Sender recipient split and RECEIVE callback fields](../../cpp/src/internal/runtime/umbra_rti_ambassador_timestamped_interaction_send.cpp#L288); [TSO message admission](../../cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp#L289) | [Constrained and unconstrained receivers report different `receivedOrderType` values for the same sent order](../../cpp/tests/ieee1516_2025_sent_tso_per_recipient_order_conversion_catch2.cpp#L125) |
 | Pending transportation changes through restore | [Saved pending state](../../cpp/src/internal/federation/federation_registry_state_image_capture.cpp) | [Attribute restore](../../cpp/tests/ieee1516_2025_public_pending_attribute_transportation_type_change_restore_catch2.cpp#L6); [interaction restore](../../cpp/tests/ieee1516_2025_public_pending_interaction_transportation_type_change_restore_catch2.cpp#L6) |
 
 These links show representative implementation and test paths, not exhaustive

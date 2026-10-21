@@ -460,7 +460,12 @@ enum class ProcessTimeRequest { tar, nmr, nmra };
 void verifyProcessTsoAttributeBeforeGrant(
     ProcessTimeRequest requestKind,
     bool const regionalAttribute = false,
-    CallbackModel const callbackModel = HLA_EVOKED) {
+    CallbackModel const callbackModel = HLA_EVOKED,
+    bool const pendingTceTransition = false) {
+  REQUIRE_FALSE((pendingTceTransition &&
+                (requestKind != ProcessTimeRequest::tar || regionalAttribute ||
+                 callbackModel != HLA_EVOKED)));
+
   class RecordingFederateAmbassador final : public NullFederateAmbassador {
    public:
     void discoverObjectInstance(
@@ -521,6 +526,9 @@ void verifyProcessTsoAttributeBeforeGrant(
     void timeConstrainedEnabled(rti1516_2025::LogicalTime const&) override {
       std::scoped_lock lock(callbackMutex);
       ++timeConstrainedEnabledCount;
+      if (recordConstrainedEnableInCallbackOrder) {
+        callbackOrder.push_back('C');
+      }
       callbackChanged.notify_all();
     }
 
@@ -541,10 +549,12 @@ void verifyProcessTsoAttributeBeforeGrant(
           lock, std::chrono::seconds(2), [this] { return discovered; });
     }
 
-    bool waitForReflectionAndGrant() {
+    bool waitForReflectionAndGrant(std::size_t requiredGrantCount = 1U) {
       std::unique_lock lock(callbackMutex);
-      return callbackChanged.wait_for(lock, std::chrono::seconds(2), [this] {
-        return reflectedCount == 1U && timeAdvanceGrantCount == 1U;
+      return callbackChanged.wait_for(
+          lock, std::chrono::seconds(2), [this, requiredGrantCount] {
+            return reflectedCount == 1U &&
+                timeAdvanceGrantCount == requiredGrantCount;
       });
     }
 
@@ -563,10 +573,13 @@ void verifyProcessTsoAttributeBeforeGrant(
     std::int64_t reflectedTimestampValue = -1;
     std::size_t timeRegulationEnabledCount = 0U;
     std::size_t timeConstrainedEnabledCount = 0U;
+    bool recordConstrainedEnableInCallbackOrder = false;
     std::size_t timeAdvanceGrantCount = 0U;
     std::int64_t timeAdvanceGrantValue = -1;
     std::vector<char> callbackOrder;
   } senderFederate, receiverFederate;
+  receiverFederate.recordConstrainedEnableInCallbackOrder =
+      pendingTceTransition;
 
   constexpr wchar_t const* federationName =
       L"process-timestamped-attribute-scheduler-execution";
@@ -665,6 +678,11 @@ void verifyProcessTsoAttributeBeforeGrant(
       umbra::test::serveExpectedProcessSuccessfulVoidService(
           serveExpected, sender, senderHandler,
           TransportServiceOperation::enable_time_regulation);
+      if (pendingTceTransition) {
+        umbra::test::serveExpectedProcessSuccessfulVoidService(
+            serveExpected, receiver, receiverHandler,
+            TransportServiceOperation::time_advance_request);
+      }
       umbra::test::serveExpectedProcessSuccessfulVoidService(
           serveExpected, receiver, receiverHandler,
           TransportServiceOperation::enable_time_constrained);
@@ -676,7 +694,19 @@ void verifyProcessTsoAttributeBeforeGrant(
         serveExpected(receiver, receiverHandler,
                       TransportServiceOperation::receive_interaction);
       }
-      if (requestKind == ProcessTimeRequest::nmra) {
+      if (pendingTceTransition) {
+        serveExpected(sender, senderHandler,
+                      TransportServiceOperation::update_attribute_values);
+        umbra::test::serveExpectedProcessSuccessfulVoidService(
+            serveExpected, sender, senderHandler,
+            TransportServiceOperation::time_advance_request);
+        umbra::test::serveExpectedProcessSuccessfulVoidService(
+            serveExpected, sender, senderHandler,
+            TransportServiceOperation::time_advance_request);
+        umbra::test::serveExpectedProcessSuccessfulVoidService(
+            serveExpected, receiver, receiverHandler,
+            TransportServiceOperation::time_advance_request);
+      } else if (requestKind == ProcessTimeRequest::nmra) {
         umbra::test::serveExpectedProcessSuccessfulVoidService(
             serveExpected, receiver, receiverHandler,
             TransportServiceOperation::next_message_request_available);
@@ -689,11 +719,13 @@ void verifyProcessTsoAttributeBeforeGrant(
             serveExpected, receiver, receiverHandler,
             TransportServiceOperation::time_advance_request);
       }
-      serveExpected(sender, senderHandler,
-                    TransportServiceOperation::update_attribute_values);
-      umbra::test::serveExpectedProcessSuccessfulVoidService(
-          serveExpected, sender, senderHandler,
-          TransportServiceOperation::time_advance_request);
+      if (!pendingTceTransition) {
+        serveExpected(sender, senderHandler,
+                      TransportServiceOperation::update_attribute_values);
+        umbra::test::serveExpectedProcessSuccessfulVoidService(
+            serveExpected, sender, senderHandler,
+            TransportServiceOperation::time_advance_request);
+      }
       if (callbackModel == HLA_EVOKED) {
         serveExpected(receiver, receiverHandler,
                       TransportServiceOperation::query_time_bounds);
@@ -807,17 +839,29 @@ void verifyProcessTsoAttributeBeforeGrant(
       std::scoped_lock lock(senderFederate.callbackMutex);
       REQUIRE(senderFederate.timeRegulationEnabledCount == 1U);
     }
+    if (pendingTceTransition) {
+      REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(5)));
+      REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+      std::scoped_lock lock(receiverFederate.callbackMutex);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
+      REQUIRE(receiverFederate.timeAdvanceGrantValue == 5);
+      receiverFederate.callbackOrder.clear();
+    }
     REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
     if (callbackModel == HLA_EVOKED) {
       {
         std::scoped_lock lock(receiverFederate.callbackMutex);
         REQUIRE_FALSE(receiverFederate.timeConstrainedEnabledCount != 0U);
       }
-      static_cast<void>(receiverRti->evokeCallback(0.0));
+      if (!pendingTceTransition) {
+        static_cast<void>(receiverRti->evokeCallback(0.0));
+      }
     }
     {
       std::scoped_lock lock(receiverFederate.callbackMutex);
-      REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
+      REQUIRE(receiverFederate.timeConstrainedEnabledCount ==
+              (pendingTceTransition ? 0U : 1U));
     }
 
     rti1516_2025::ObjectInstanceHandle objectInstance;
@@ -856,22 +900,25 @@ void verifyProcessTsoAttributeBeforeGrant(
       REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
     }
 
-    if (requestKind == ProcessTimeRequest::nmra) {
-      REQUIRE_NOTHROW(receiverRti->nextMessageRequestAvailable(
-          rti1516_2025::HLAinteger64Time(10)));
-      if (callbackModel == HLA_EVOKED) {
-        REQUIRE_NOTHROW(receiverRti->disableCallbacks());
+    if (!pendingTceTransition) {
+      if (requestKind == ProcessTimeRequest::nmra) {
+        REQUIRE_NOTHROW(receiverRti->nextMessageRequestAvailable(
+            rti1516_2025::HLAinteger64Time(10)));
+        if (callbackModel == HLA_EVOKED) {
+          REQUIRE_NOTHROW(receiverRti->disableCallbacks());
+        }
+      } else if (requestKind == ProcessTimeRequest::nmr) {
+        REQUIRE_NOTHROW(receiverRti->nextMessageRequest(
+            rti1516_2025::HLAinteger64Time(10)));
+      } else {
+        REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
+            rti1516_2025::HLAinteger64Time(5)));
       }
-    } else if (requestKind == ProcessTimeRequest::nmr) {
-      REQUIRE_NOTHROW(receiverRti->nextMessageRequest(
-          rti1516_2025::HLAinteger64Time(10)));
-    } else {
-      REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
-          rti1516_2025::HLAinteger64Time(5)));
-    }
-    {
       std::scoped_lock lock(receiverFederate.callbackMutex);
       REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+    } else {
+      std::scoped_lock lock(receiverFederate.callbackMutex);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
     }
 
     std::array<std::uint8_t, 3U> const valueBytes{0x54U, 0x53U, 0x4FU};
@@ -885,27 +932,64 @@ void verifyProcessTsoAttributeBeforeGrant(
         objectInstance,
         attributeValues,
         tag,
-        rti1516_2025::HLAinteger64Time(5));
+        rti1516_2025::HLAinteger64Time(
+            pendingTceTransition ? 6 : 5));
     REQUIRE(retraction.isValid());
 
-    REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
-        rti1516_2025::HLAinteger64Time(6)));
-    if (callbackModel == HLA_EVOKED) {
+    if (pendingTceTransition) {
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.timeConstrainedEnabledCount == 0U);
+        REQUIRE(receiverFederate.reflectedCount == 0U);
+      }
+      REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(4)));
+      REQUIRE_FALSE(senderRti->evokeCallback(0.0));
       {
         std::scoped_lock lock(senderFederate.callbackMutex);
-        REQUIRE(senderFederate.timeAdvanceGrantCount == 0U);
+        REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
+        REQUIRE(senderFederate.timeAdvanceGrantValue == 4);
       }
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.timeConstrainedEnabledCount == 0U);
+        REQUIRE(receiverFederate.reflectedCount == 0U);
+      }
+      REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(5)));
       REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+      {
+        std::scoped_lock lock(senderFederate.callbackMutex);
+        REQUIRE(senderFederate.timeAdvanceGrantCount == 2U);
+        REQUIRE(senderFederate.timeAdvanceGrantValue == 5);
+      }
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
+        REQUIRE(receiverFederate.reflectedCount == 0U);
+      }
+      REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(6)));
+    } else {
+      REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(6)));
+      if (callbackModel == HLA_EVOKED) {
+        {
+          std::scoped_lock lock(senderFederate.callbackMutex);
+          REQUIRE(senderFederate.timeAdvanceGrantCount == 0U);
+        }
+        REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+      }
+      {
+        std::scoped_lock lock(senderFederate.callbackMutex);
+        REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
+        REQUIRE(senderFederate.timeAdvanceGrantValue == 6);
+      }
     }
-    {
-      std::scoped_lock lock(senderFederate.callbackMutex);
-      REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
-      REQUIRE(senderFederate.timeAdvanceGrantValue == 6);
-    }
-    // The sender requested 6, so its own grant is 6.  The timestamp-5
-    // reflection is delivered to the constrained receiver before that
-    // receiver's separate grant at 5; it does not lower the sender's TAR
-    // target.
+    // In the ordinary lane the producer advances to 6 while the constrained
+    // receiver has TAR(5) pending. In the transition lane it advances only to
+    // 5, enabling Time Constrained before the receiver requests TAR(6).
     if (callbackModel == HLA_EVOKED) {
       // The attribute event has crossed transport but remains in the
       // coordinator's inTransit phase until the public reflection callback
@@ -917,13 +1001,16 @@ void verifyProcessTsoAttributeBeforeGrant(
       }
       rti1516_2025::HLAinteger64Time inTransitGaltValue(99);
       REQUIRE(receiverRti->queryGALT(inTransitGaltValue));
-      REQUIRE(inTransitGaltValue.getTime() == 5);
+      REQUIRE(inTransitGaltValue.getTime() ==
+              (pendingTceTransition ? 6 : 5));
       rti1516_2025::HLAinteger64Time inTransitLitsValue(101);
       REQUIRE(receiverRti->queryLITS(inTransitLitsValue));
-      REQUIRE(inTransitLitsValue.getTime() == 5);
+      REQUIRE(inTransitLitsValue.getTime() ==
+              (pendingTceTransition ? 6 : 5));
       {
         std::scoped_lock lock(receiverFederate.callbackMutex);
-        REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+        REQUIRE(receiverFederate.timeAdvanceGrantCount ==
+                (pendingTceTransition ? 1U : 0U));
       }
       if (requestKind == ProcessTimeRequest::nmra) {
         REQUIRE(receiverRti->evokeCallback(0.0));
@@ -938,22 +1025,31 @@ void verifyProcessTsoAttributeBeforeGrant(
     } else {
       // The process reader delivers both the TSO reflection and the grant
       // asynchronously; no benign RTI service is used to poll the endpoint.
-      REQUIRE(receiverFederate.waitForReflectionAndGrant());
+      REQUIRE(receiverFederate.waitForReflectionAndGrant(
+          pendingTceTransition ? 2U : 1U));
     }
     if (callbackModel == HLA_EVOKED) {
       {
         std::scoped_lock lock(receiverFederate.callbackMutex);
         REQUIRE(receiverFederate.reflectedCount == 1U);
-        REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
-        REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'A'});
+        REQUIRE(receiverFederate.timeAdvanceGrantCount ==
+                (pendingTceTransition ? 1U : 0U));
+        REQUIRE(receiverFederate.callbackOrder ==
+                (pendingTceTransition ? std::vector<char>{'C', 'A'}
+                                      : std::vector<char>{'A'}));
       }
       static_cast<void>(receiverRti->evokeCallback(0.0));
     }
     {
       std::scoped_lock lock(receiverFederate.callbackMutex);
       REQUIRE(receiverFederate.reflectedCount == 1U);
-      REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
-      REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'A', 'G'});
+      REQUIRE(receiverFederate.timeAdvanceGrantCount ==
+              (pendingTceTransition ? 2U : 1U));
+      REQUIRE(receiverFederate.timeAdvanceGrantValue ==
+              (pendingTceTransition ? 6 : 5));
+      REQUIRE(receiverFederate.callbackOrder ==
+              (pendingTceTransition ? std::vector<char>{'C', 'A', 'G'}
+                                    : std::vector<char>{'A', 'G'}));
       REQUIRE(receiverFederate.reflectedObjectInstance == objectInstance);
       REQUIRE(receiverFederate.reflectedAttributeCount == 1U);
       REQUIRE(receiverFederate.reflectedValue ==
@@ -963,7 +1059,8 @@ void verifyProcessTsoAttributeBeforeGrant(
       REQUIRE(receiverFederate.hasRetraction);
       REQUIRE(receiverFederate.sentOrderType == rti1516_2025::TIMESTAMP);
       REQUIRE(receiverFederate.receivedOrderType == rti1516_2025::TIMESTAMP);
-      REQUIRE(receiverFederate.reflectedTimestampValue == 5);
+      REQUIRE(receiverFederate.reflectedTimestampValue ==
+              (pendingTceTransition ? 6 : 5));
     }
 
     REQUIRE_NOTHROW(senderRti->resignFederationExecution(
@@ -1015,6 +1112,13 @@ TEST_CASE(
     "RTIambassadors deliver a deferred timestamped process attribute update before the grant",
     "[integration][foundation][object-management][time-management][time-advance][transport][process-boundary][public-endpoint][multi-federate][timestamped-process-attribute-update][process-tso-attribute-before-grant][galt][lits][query-galt-lits][rti.service.update-attribute-values][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.time-advance-request][rti.service.query-galt][rti.service.query-lits][federate.callback.reflect-attribute-values][federate.callback.time-advance-grant]") {
   verifyProcessTsoAttributeBeforeGrant(ProcessTimeRequest::tar);
+}
+
+TEST_CASE(
+    "RTIambassadors keep a process attribute update timestamped while Time Constrained is pending",
+    "[integration][foundation][object-management][time-management][time-advance][transport][process-boundary][public-endpoint][multi-federate][timestamped-process-attribute-update][tce-transition-stored-tso-attribute][lane.tce-transition-stored-tso-attribute-process][rti.service.enable-time-constrained][rti.service.update-attribute-values][rti.service.time-advance-request][federate.callback.time-constrained-enabled][federate.callback.reflect-attribute-values][federate.callback.time-advance-grant][2025]") {
+  verifyProcessTsoAttributeBeforeGrant(
+      ProcessTimeRequest::tar, false, HLA_EVOKED, true);
 }
 
 TEST_CASE(

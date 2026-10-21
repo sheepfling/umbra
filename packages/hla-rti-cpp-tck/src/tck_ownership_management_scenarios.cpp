@@ -46,8 +46,8 @@ void scenarioPrivilegeToDeleteTransfer(
   rti::AttributeHandleSet const oldValues{oldValue};
   rti::AttributeHandleSet const newValues{newValue};
   rti::AttributeHandleSet const observerValues{observerValue};
-  rti::AttributeHandleSet const oldPrivileges{oldPrivilege};
-  rti::AttributeHandleSet const newPrivileges{newPrivilege};
+  rti::AttributeHandleSet const oldTransferred{oldValue, oldPrivilege};
+  rti::AttributeHandleSet const newTransferred{newValue, newPrivilege};
   oldOwner.rtiAmbassador().publishObjectClassAttributes(oldClass, oldValues);
   newOwner.rtiAmbassador().subscribeObjectClassAttributes(newClass, newValues);
   observer.rtiAmbassador().subscribeObjectClassAttributes(
@@ -71,7 +71,7 @@ void scenarioPrivilegeToDeleteTransfer(
           !newOwner.rtiAmbassador().isAttributeOwnedByFederate(object, newPrivilege),
       "delete privilege did not initially belong only to the registrant");
 
-  newOwner.rtiAmbassador().publishObjectClassAttributes(newClass, newPrivileges);
+  newOwner.rtiAmbassador().publishObjectClassAttributes(newClass, newTransferred);
   std::vector<std::uint8_t> const acquisitionTagBytes{0xA5U, 0x25U};
   std::vector<std::uint8_t> const divestitureTagBytes{0xD1U, 0x25U};
   rti::VariableLengthData const acquisitionTag(
@@ -80,17 +80,17 @@ void scenarioPrivilegeToDeleteTransfer(
       divestitureTagBytes.data(), divestitureTagBytes.size());
   newOwner.rtiAmbassador().attributeOwnershipAcquisition(
       object,
-      newPrivileges,
+      newTransferred,
       acquisitionTag);
   rti::AttributeHandleSet divested;
   oldOwner.rtiAmbassador().attributeOwnershipDivestitureIfWanted(
       object,
-      oldPrivileges,
+      oldTransferred,
       divestitureTag,
       divested);
   require(
-      divested == oldPrivileges,
-      "Divestiture If Wanted did not return the transferred delete privilege");
+      divested == oldTransferred,
+      "Divestiture If Wanted did not return both transferred attributes");
   waitFor(
       newOwner,
       [&] { return newOwner.recorder().ownershipAcquisition().has_value(); },
@@ -99,13 +99,27 @@ void scenarioPrivilegeToDeleteTransfer(
   auto const acquisition = newOwner.recorder().ownershipAcquisition();
   require(
       acquisition->object == object &&
-          acquisition->attributes == newPrivileges &&
+          acquisition->attributes == newTransferred &&
           acquisition->tag == divestitureTagBytes,
       "delete-privilege acquisition notification returned the wrong object, attributes, or tag");
   require(
       !oldOwner.rtiAmbassador().isAttributeOwnedByFederate(object, oldPrivilege) &&
           newOwner.rtiAmbassador().isAttributeOwnedByFederate(object, newPrivilege),
       "delete-privilege ownership did not transfer to the acquirer");
+  require(
+      !oldOwner.rtiAmbassador().isAttributeOwnedByFederate(object, oldValue) &&
+          newOwner.rtiAmbassador().isAttributeOwnedByFederate(object, newValue),
+      "ordinary attribute ownership did not transfer with the delete privilege");
+  std::vector<std::uint8_t> const valueBytes{0x25U, 0x07U};
+  rti::AttributeHandleValueMap const oldUpdate{
+      {oldValue, rti::VariableLengthData(valueBytes.data(), valueBytes.size())}};
+  rti::AttributeHandleValueMap const newUpdate{
+      {newValue, rti::VariableLengthData(valueBytes.data(), valueBytes.size())}};
+  requireException(
+      [&] { oldOwner.rtiAmbassador().updateAttributeValues(object, oldUpdate, acquisitionTag); },
+      L"AttributeNotOwned",
+      "former ordinary-attribute owner updating after transfer");
+  newOwner.rtiAmbassador().updateAttributeValues(object, newUpdate, acquisitionTag);
 
   std::vector<std::uint8_t> const deletionTagBytes{0xD3U, 0x1EU, 0x25U};
   rti::VariableLengthData const deletionTag(
@@ -1217,6 +1231,8 @@ void scenarioOwnershipAcquisitionPublicationFence(
       [&] { return requester.recorder().hasDiscovery(object); },
       options,
       "Ownership-acquisition publication object discovery");
+  require(requester.rtiAmbassador().getKnownObjectClassHandle(object) == requesterClass,
+          "ownership acquisition requester did not know the registered object class");
 
   std::vector<std::uint8_t> const initialTagBytes{0x11U, 0x22U};
   std::vector<std::uint8_t> const acquisitionTagBytes{0x33U, 0x44U, 0x55U};
@@ -1244,7 +1260,20 @@ void scenarioOwnershipAcquisitionPublicationFence(
       "acquiring an unpublished ownership attribute");
   requester.rtiAmbassador().publishObjectClassAttributes(
       requesterClass,
-      requesterAttributes);
+      requesterSecondOnly);
+  requireException(
+      [&] {
+        requester.rtiAmbassador().attributeOwnershipAcquisition(
+            object, requesterFirstOnly, initialTag);
+      },
+      L"AttributeNotPublished",
+      "acquiring an attribute absent from an otherwise published class");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerFirst) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(object, requesterFirst),
+      "rejected acquisition of an unpublished attribute changed ownership");
+  requester.rtiAmbassador().publishObjectClassAttributes(
+      requesterClass, requesterFirstOnly);
 
   rti::AttributeHandle const invalidAttribute;
   requireException(
@@ -1354,7 +1383,44 @@ void scenarioOwnershipAcquisitionPublicationFence(
   requester.rtiAmbassador().unpublishObjectClassAttributes(
       requesterClass,
       requesterFirstOnly);
+  requester.recorder().clearOwnershipRecords();
+  owner.rtiAmbassador().attributeOwnershipReleaseDenied(
+      object,
+      ownerFirstOnly,
+      denialTag);
+  for (int pass = 0; pass != 8; ++pass) {
+    requester.pump();
+  }
+  require(!requester.recorder().ownershipUnavailable().has_value(),
+          "repeated release denial produced an unavailable callback after acquisition ended");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerFirst) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(object, requesterFirst),
+      "repeated release denial changed ownership without a pending acquisition");
 
+  requester.rtiAmbassador().publishObjectClassAttributes(
+      requesterClass, requesterFirstOnly);
+  requester.recorder().clearOwnershipRecords();
+  requester.rtiAmbassador().attributeOwnershipAcquisition(
+      object, requesterFirstOnly, acquisitionTag);
+  rti::AttributeHandleSet divested;
+  owner.rtiAmbassador().attributeOwnershipDivestitureIfWanted(
+      object, ownerFirstOnly, acquisitionTag, divested);
+  require(divested == ownerFirstOnly,
+          "publication-eligible acquisition did not divest exactly the requested attribute");
+  waitFor(requester,
+          [&] { return requester.recorder().ownershipAcquisition().has_value(); },
+          options, "publication-eligible ownership acquisition notification");
+  auto const transferred = requester.recorder().ownershipAcquisition();
+  require(transferred->object == object &&
+              transferred->attributes == requesterFirstOnly &&
+              transferred->tag == acquisitionTagBytes,
+          "publication-eligible acquisition notification reported the wrong object, set, or tag");
+  require(!owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerFirst) &&
+              requester.rtiAmbassador().isAttributeOwnedByFederate(object, requesterFirst),
+          "publication-eligible acquisition failed to transfer ownership");
+
+  owner.rtiAmbassador().deleteObjectInstance(object, rti::VariableLengthData{});
   requester.resign(rti::NO_ACTION);
   owner.resign(rti::DELETE_OBJECTS);
   owner.rtiAmbassador().destroyFederationExecution(federation);
@@ -2665,6 +2731,300 @@ void scenarioOwnershipTransferDeferredRegionalUpdateContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioOwnershipTransferDeferredRegionalUpdate(options, model);
+}
+
+void scenarioNegotiatedDivestitureNoAccepter(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Negotiated divestiture without an acquirer requires an adapter-supplied FOM");
+
+  Session owner(options, model, "negotiated-no-accepter-owner");
+  Session requester(options, model, "negotiated-no-accepter-requester");
+  auto const federation = federationName(
+      options,
+      "negotiated-divestiture-no-accepter");
+  connectAndJoin(owner, requester, options, federation, options.fom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const requesterAttribute = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && requesterClass.isValid() &&
+          ownerAttribute.isValid() && requesterAttribute.isValid(),
+      "Negotiated no-accepter lookup returned an invalid standard handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const requesterAttributes{requesterAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.rtiAmbassador().publishObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes,
+      true,
+      L"");
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(object.isValid(), "Negotiated no-accepter registration returned an invalid handle");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(object); },
+      options,
+      "negotiated no-accepter object discovery");
+
+  std::vector<std::uint8_t> const offerTagBytes{0xD7U, 0x31U};
+  std::vector<std::uint8_t> const requestTagBytes{0xA7U, 0x31U};
+  std::vector<std::uint8_t> const confirmationTagBytes{0xE7U, 0x31U};
+  rti::VariableLengthData const offerTag(offerTagBytes.data(), offerTagBytes.size());
+  rti::VariableLengthData const requestTag(
+      requestTagBytes.data(), requestTagBytes.size());
+  rti::VariableLengthData const confirmationTag(
+      confirmationTagBytes.data(), confirmationTagBytes.size());
+  owner.recorder().clearOwnershipRecords();
+  requester.recorder().clearOwnershipRecords();
+
+  owner.rtiAmbassador().negotiatedAttributeOwnershipDivestiture(
+      object,
+      ownerAttributes,
+      offerTag);
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(owner.evokeMultipleCallbacks(0.0, 0.0));
+  }
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              requesterAttribute) &&
+          !owner.recorder().divestitureConfirmation().has_value(),
+      "Negotiated divestiture changed ownership or requested confirmation before an acquirer existed");
+
+  requester.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      requesterAttributes,
+      requestTag);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().divestitureConfirmation().has_value(); },
+      options,
+      "negotiated divestiture confirmation after an acquirer appeared");
+  auto const request = owner.recorder().divestitureConfirmation();
+  require(
+      request->object == object && request->attributes == ownerAttributes &&
+          request->tag == requestTagBytes &&
+          owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              requesterAttribute),
+      "Negotiated divestiture confirmation changed ownership or lost its request metadata");
+
+  owner.rtiAmbassador().confirmDivestiture(
+      object,
+      ownerAttributes,
+      confirmationTag);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "negotiated no-accepter acquisition notification");
+  auto const acquisition = requester.recorder().ownershipAcquisition();
+  require(
+      acquisition->object == object &&
+          acquisition->attributes == requesterAttributes &&
+          acquisition->tag == confirmationTagBytes &&
+          !owner.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              ownerAttribute) &&
+          requester.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              requesterAttribute),
+      "Negotiated divestiture did not transfer only after owner confirmation");
+
+  requester.rtiAmbassador().unpublishObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.resign(rti::NO_ACTION);
+  owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioNegotiatedDivestitureNoAccepterContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNegotiatedDivestitureNoAccepter(options, model);
+}
+
+void scenarioSelectiveUnpublicationPendingAcquisition(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(!options.multiAttributeFom.empty(),
+          "Selective unpublication requires an adapter-supplied two-attribute FOM");
+
+  Session owner(options, model, "selective-unpublication-owner");
+  Session requester(options, model, "selective-unpublication-requester");
+  auto const federation = federationName(
+      options, "selective-unpublication-pending-acquisition");
+  connectAndJoin(owner, requester, options, federation, options.multiAttributeFom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const ownerPending = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass, options.multiAttributeFirstName);
+  auto const ownerUnrelated = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass, options.multiAttributeSecondName);
+  auto const requesterPending = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass, options.multiAttributeFirstName);
+  auto const requesterUnrelated = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass, options.multiAttributeSecondName);
+  require(ownerClass.isValid() && requesterClass.isValid() &&
+              ownerPending.isValid() && ownerUnrelated.isValid() &&
+              requesterPending.isValid() && requesterUnrelated.isValid() &&
+              ownerPending != ownerUnrelated &&
+              requesterPending != requesterUnrelated,
+          "Adapter FOM did not resolve two distinct ownership attributes");
+
+  rti::AttributeHandleSet const ownerBoth{ownerPending, ownerUnrelated};
+  rti::AttributeHandleSet const requesterBoth{
+      requesterPending, requesterUnrelated};
+  rti::AttributeHandleSet const requesterPendingOnly{requesterPending};
+  rti::AttributeHandleSet const requesterUnrelatedOnly{requesterUnrelated};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerBoth);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass, requesterBoth, true, L"");
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(object.isValid(), "Selective unpublication returned an invalid object handle");
+  waitFor(requester,
+          [&] { return requester.recorder().hasDiscovery(object); },
+          options, "selective unpublication object discovery");
+
+  requester.rtiAmbassador().publishObjectClassAttributes(
+      requesterClass, requesterBoth);
+  requester.rtiAmbassador().attributeOwnershipAcquisition(
+      object, requesterPendingOnly, rti::VariableLengthData{});
+  require(!requester.rtiAmbassador().isAttributeOwnedByFederate(
+              object, requesterPending) &&
+              owner.rtiAmbassador().isAttributeOwnedByFederate(
+                  object, ownerPending) &&
+              owner.rtiAmbassador().isAttributeOwnedByFederate(
+                  object, ownerUnrelated),
+          "Pending acquisition unexpectedly changed attribute ownership");
+
+  requester.rtiAmbassador().unpublishObjectClassAttributes(
+      requesterClass, requesterUnrelatedOnly);
+  requireException(
+      [&] {
+        requester.rtiAmbassador().attributeOwnershipAcquisition(
+            object, requesterUnrelatedOnly, rti::VariableLengthData{});
+      },
+      L"AttributeNotPublished",
+      "acquiring the separately unpublished attribute");
+  requireException(
+      [&] {
+        requester.rtiAmbassador().unpublishObjectClassAttributes(
+            requesterClass, requesterPendingOnly);
+      },
+      L"OwnershipAcquisitionPending",
+      "unpublishing the attribute with an active acquisition");
+  require(!requester.rtiAmbassador().isAttributeOwnedByFederate(
+              object, requesterPending) &&
+              owner.rtiAmbassador().isAttributeOwnedByFederate(
+                  object, ownerPending) &&
+              owner.rtiAmbassador().isAttributeOwnedByFederate(
+                  object, ownerUnrelated),
+          "Selective unpublication changed ownership of the pending attribute");
+
+  requester.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioSelectiveUnpublicationPendingAcquisitionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioSelectiveUnpublicationPendingAcquisition(options, model);
+}
+
+void scenarioResignAssumptionLaterPublication(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(!options.fom.empty(),
+          "Late ownership-assumption publication requires an adapter-supplied FOM");
+  Session owner(options, model, "late-assumption-owner");
+  Session candidate(options, model, "late-assumption-candidate");
+  auto const federation = federationName(
+      options, "resign-assumption-later-publication");
+  connectAndJoin(owner, candidate, options, federation, options.fom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const candidateClass = candidate.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass, options.attributeName);
+  auto const candidateAttribute = candidate.rtiAmbassador().getAttributeHandle(
+      candidateClass, options.attributeName);
+  auto const candidatePrivilege = candidate.rtiAmbassador().getAttributeHandle(
+      candidateClass, L"HLAprivilegeToDeleteObject");
+  require(ownerClass.isValid() && candidateClass.isValid() &&
+              ownerAttribute.isValid() && candidateAttribute.isValid() &&
+              candidatePrivilege.isValid(),
+          "Late ownership-assumption lookup returned an invalid standard handle");
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const candidateAttributes{candidateAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  candidate.rtiAmbassador().subscribeObjectClassAttributes(
+      candidateClass, candidateAttributes, true, L"");
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(object.isValid(), "Late ownership-assumption registration returned an invalid handle");
+  waitFor(candidate,
+          [&] { return candidate.recorder().hasDiscovery(object); },
+          options, "late ownership-assumption object discovery");
+
+  candidate.recorder().clearOwnershipRecords();
+  owner.resign(rti::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+  if (model == rti::HLA_EVOKED) {
+    static_cast<void>(candidate.evokeMultipleCallbacks(0.0, 0.0));
+  }
+  require(!candidate.recorder().ownershipAssumption().has_value(),
+          "Ownership assumption was offered before the candidate published");
+
+  candidate.rtiAmbassador().publishObjectClassAttributes(
+      candidateClass, candidateAttributes);
+  waitFor(candidate,
+          [&] { return candidate.recorder().ownershipAssumption().has_value(); },
+          options, "late publication ownership-assumption callback");
+  auto const assumption = candidate.recorder().ownershipAssumption();
+  rti::AttributeHandleSet const expected{
+      candidateAttribute, candidatePrivilege};
+  require(assumption->object == object && assumption->attributes == expected &&
+              assumption->tag.empty(),
+          "Late publication offered the wrong object, attributes, or tag");
+
+  candidate.resign(rti::NO_ACTION);
+  candidate.rtiAmbassador().destroyFederationExecution(federation);
+  candidate.disconnect();
+  owner.disconnect();
+}
+
+void scenarioResignAssumptionLaterPublicationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioResignAssumptionLaterPublication(options, model);
 }
 
 } // namespace hla_rti_cpp_tck::detail

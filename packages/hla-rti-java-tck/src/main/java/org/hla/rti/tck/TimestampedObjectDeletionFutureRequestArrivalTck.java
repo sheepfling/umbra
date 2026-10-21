@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-/** Exercises NMR and NMRA while a future timestamped object deletion arrives. */
+/** Exercises NMR, NMRA, and TARA while a future timestamped object deletion arrives. */
 final class TimestampedObjectDeletionFutureRequestArrivalTck {
    private TimestampedObjectDeletionFutureRequestArrivalTck() { }
 
@@ -31,24 +31,31 @@ final class TimestampedObjectDeletionFutureRequestArrivalTck {
          String objectClassName, String attributeName, CallbackModel callbackModel)
          throws Exception {
       run(factory, fom, timeImplementation, objectClassName, attributeName,
-         callbackModel, false);
+         callbackModel, false, false);
    }
 
    static void runNmra(RtiFactory factory, String fom, String timeImplementation,
          String objectClassName, String attributeName, CallbackModel callbackModel)
          throws Exception {
       run(factory, fom, timeImplementation, objectClassName, attributeName,
-         callbackModel, true);
+         callbackModel, true, false);
+   }
+
+   static void runTara(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String attributeName, CallbackModel callbackModel)
+         throws Exception {
+      run(factory, fom, timeImplementation, objectClassName, attributeName,
+         callbackModel, true, true);
    }
 
    private static void run(RtiFactory factory, String fom, String timeImplementation,
          String objectClassName, String attributeName, CallbackModel callbackModel,
-         boolean available) throws Exception {
+         boolean available, boolean tara) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador receiver = factory.getRtiAmbassador();
       Recorder publisherRecorder = new Recorder();
       Recorder receiverRecorder = new Recorder();
-      String requestName = available ? "nmra" : "nmr";
+      String requestName = tara ? "tara" : available ? "nmra" : "nmr";
       String federation = "java-tck-deletion-future-" + requestName + "-"
          + UUID.randomUUID();
       boolean publisherConnected = false, receiverConnected = false;
@@ -96,7 +103,7 @@ final class TimestampedObjectDeletionFutureRequestArrivalTck {
          JavaTckSupport.check(initial.equals(receiverInitial),
             "federates began at different logical times");
          LogicalTimeInterval epsilon = (LogicalTimeInterval) publisherFactory.makeEpsilon();
-         LogicalTimeInterval lookahead = intervalOffset(epsilon, 5);
+         LogicalTimeInterval lookahead = tara ? epsilon : intervalOffset(epsilon, 5);
 
          receiver.enableTimeConstrained();
          constrained = true;
@@ -113,11 +120,15 @@ final class TimestampedObjectDeletionFutureRequestArrivalTck {
          JavaTckSupport.check(publisherCurrent.equals(publisherRecorder.grants.get(0)),
             "publisher advanced to an unexpected logical time");
 
-         LogicalTime<?, ?> deletionTime = offset(publisherCurrent, epsilon, 5);
+         LogicalTime<?, ?> deletionTime = offset(publisherCurrent, epsilon,
+            tara ? 3 : 5);
          LogicalTime<?, ?> requestBoundary = offset(
-            receiverInitial, (LogicalTimeInterval) receiverFactory.makeEpsilon(), 10);
+            receiverInitial, (LogicalTimeInterval) receiverFactory.makeEpsilon(),
+            tara ? 6 : 10);
          TimeQueryReturn galt = receiver.queryGALT();
-         JavaTckSupport.check(galt.timeIsValid && deletionTime.equals(galt.time),
+         LogicalTime<?, ?> expectedGalt = tara
+            ? offset(publisherCurrent, epsilon, 1) : deletionTime;
+         JavaTckSupport.check(galt.timeIsValid && expectedGalt.equals(galt.time),
             "receiver did not observe the defined GALT at the future deletion time");
 
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
@@ -131,14 +142,17 @@ final class TimestampedObjectDeletionFutureRequestArrivalTck {
             "object discovery returned the wrong instance, class, or producer");
 
          receiverRecorder.callbackOrder.clear();
-         if (available) receiver.nextMessageRequestAvailable(requestBoundary);
+         if (tara) receiver.timeAdvanceRequestAvailable(requestBoundary);
+         else if (available) receiver.nextMessageRequestAvailable(requestBoundary);
          else receiver.nextMessageRequest(requestBoundary);
          JavaTckSupport.drain(receiver);
          JavaTckSupport.check(receiverRecorder.removals.isEmpty()
                && receiverRecorder.grants.isEmpty(),
             requestName + " completed before its future timestamped deletion arrived");
 
-         byte[] tag = available
+         byte[] tag = tara
+            ? new byte[] {0x54, 0x41, 0x52, 0x41}
+            : available
             ? new byte[] {0x4e, 0x4d, 0x52, 0x41}
             : new byte[] {0x4e, 0x4d, 0x52};
          MessageRetractionReturn sent = publisher.deleteObjectInstance(
@@ -146,6 +160,17 @@ final class TimestampedObjectDeletionFutureRequestArrivalTck {
          JavaTckSupport.check(sent != null && sent.retractionHandleIsValid
                && sent.handle != null,
             "timestamped deletion returned no valid retraction handle");
+
+         if (tara) {
+            LogicalTime<?, ?> publisherAdvance = offset(publisherCurrent,
+               epsilon, 4);
+            publisher.timeAdvanceRequest(publisherAdvance);
+            await(() -> publisherRecorder.grants.size() == 2,
+               publisher, receiver, "regulator's follow-up time advance");
+            JavaTckSupport.check(publisherAdvance.equals(
+                  publisherRecorder.grants.get(1)),
+               "regulator's follow-up grant had the wrong logical time");
+         }
 
          await(() -> receiverRecorder.removals.size() >= 1
                && receiverRecorder.grants.size() >= 1,
@@ -166,8 +191,9 @@ final class TimestampedObjectDeletionFutureRequestArrivalTck {
                && removal.receivedOrder == OrderType.TIMESTAMP
                && sent.handle.equals(removal.retraction),
             "timestamped removal returned incorrect time, order, or retraction metadata");
-         JavaTckSupport.check(deletionTime.equals(receiverRecorder.grants.get(0))
-               && deletionTime.equals(receiver.queryLogicalTime()),
+         LogicalTime<?, ?> expectedGrant = tara ? requestBoundary : deletionTime;
+         JavaTckSupport.check(expectedGrant.equals(receiverRecorder.grants.get(0))
+               && expectedGrant.equals(receiver.queryLogicalTime()),
             "request did not grant and advance to the future deletion time");
 
          receiver.disableTimeConstrained();

@@ -207,13 +207,49 @@
         "-DUMBRA_GENERATOR=${CMAKE_GENERATOR}"
         "-DUMBRA_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}"
         "-DUMBRA_CONFIGURATION=$<CONFIG>"
+        "-DUMBRA_EXPECT_SHARED_LIBRARIES=${UMBRA_BUILD_SHARED_LIBRARIES}"
+        "-DUMBRA_ALTERNATE_PROVIDER_PREFIX=${UMBRA_ALTERNATE_PROVIDER_PREFIX}"
+        "-DUMBRA_INSTALL_INCLUDEDIR=${CMAKE_INSTALL_INCLUDEDIR}"
+        "-DUMBRA_INSTALL_BINDIR=${CMAKE_INSTALL_BINDIR}"
+        "-DUMBRA_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
         "-DUMBRA_EXPECT_PROCESS_PROFILE=${UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT}"
+        "-DUMBRA_CATCH2_SOURCE_DIRECTORY=${FETCHCONTENT_SOURCE_DIR_CATCH2}"
         $<$<TARGET_EXISTS:umbra_process_federation_service_probe>:-DUMBRA_PROCESS_SERVICE_PROBE_PATH=$<TARGET_FILE:umbra_process_federation_service_probe>>
         -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_installed_package_smoke.cmake
     )
     set_tests_properties(umbra.package_config PROPERTIES
       LABELS installable-package
     )
+    if(UMBRA_BUILD_SHARED_LIBRARIES)
+      if(WIN32)
+        set(umbra_shared_runtime_install_dir ${CMAKE_INSTALL_BINDIR})
+      else()
+        set(umbra_shared_runtime_install_dir ${CMAKE_INSTALL_LIBDIR})
+      endif()
+      set_property(TEST umbra.package_config APPEND PROPERTY LABELS shared-library-package)
+      set_tests_properties(umbra.package_config PROPERTIES
+        FIXTURES_SETUP umbra_shared_package_install
+      )
+      add_test(
+        NAME umbra.package_runtime_provider_switch
+        COMMAND ${CMAKE_COMMAND}
+          "-DUMBRA_PACKAGE_CONSUMER_DIRECTORY=${CMAKE_CURRENT_BINARY_DIR}/package-smoke-consumer"
+          "-DUMBRA_PACKAGE_CONSUMER_FILENAME=umbra_rti_package_smoke${CMAKE_EXECUTABLE_SUFFIX}"
+          "-DUMBRA_PACKAGE_PRIMARY_PROVIDER_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/package-smoke-install"
+          "-DUMBRA_PACKAGE_ALTERNATE_PROVIDER_PREFIX=${UMBRA_ALTERNATE_PROVIDER_PREFIX}"
+          "-DUMBRA_PACKAGE_PRIMARY_RTI_RUNTIME=${CMAKE_CURRENT_BINARY_DIR}/package-smoke-install/${umbra_shared_runtime_install_dir}/$<TARGET_FILE_NAME:umbra_rti>"
+          "-DUMBRA_PACKAGE_PRIMARY_FEDTIME_RUNTIME=${CMAKE_CURRENT_BINARY_DIR}/package-smoke-install/${umbra_shared_runtime_install_dir}/$<TARGET_FILE_NAME:umbra_fedtime>"
+          "-DUMBRA_PACKAGE_PRIMARY_AUTHORIZER_RUNTIME=${CMAKE_CURRENT_BINARY_DIR}/package-smoke-install/${umbra_shared_runtime_install_dir}/$<TARGET_FILE_NAME:umbra_authorizer>"
+          "-DUMBRA_PACKAGE_INSTALL_BINDIR=${CMAKE_INSTALL_BINDIR}"
+          "-DUMBRA_PACKAGE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
+          -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/package-smoke/runtime_provider_switch.cmake
+      )
+      set_tests_properties(umbra.package_runtime_provider_switch PROPERTIES
+        FIXTURES_REQUIRED umbra_shared_package_install
+        LABELS "installable-package;shared-library-runtime-switch"
+        SKIP_REGULAR_EXPRESSION "SKIP: alternate provider install prefix is not configured"
+      )
+    endif()
     if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
       add_test(
         NAME umbra.ieee1516_2025.embedded_federation_management_traceability

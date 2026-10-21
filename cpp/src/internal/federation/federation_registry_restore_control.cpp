@@ -8,8 +8,10 @@
 #include <map>
 #include <mutex>
 #include <optional>
+#include <set>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace umbra::detail {
 
@@ -41,7 +43,705 @@ using federation_registry_state_image_validation::isRouteFreePendingOwnershipAcq
 using federation_registry_state_image_validation::isRouteFreePendingOwnershipAssumptionObject;
 using federation_registry_state_image_validation::isRouteFreePendingRegularOwnershipObject;
 using federation_registry_state_image_validation::isRouteFreeRegionalTsoInteractionImage;
+using federation_registry_state_image_validation::isOneQueuedTsoInteractionIdentityRebindingImage;
 using federation_registry_state_image_validation::pendingOwnershipAssumptionCallbackCount;
+
+using FederateIdentityMapping = std::map<std::uint64_t, std::uint64_t>;
+
+template <typename LiveMembers>
+bool mapSavedFederatesByType(
+    FederationStateImage const& image,
+    LiveMembers const& liveMembers,
+    FederateIdentityMapping& mapping,
+    bool& identityChanged) {
+  std::map<std::wstring, std::vector<std::uint64_t>> savedIdsByType;
+  std::map<std::wstring, std::vector<std::uint64_t>> liveIdsByType;
+  std::set<std::uint64_t> savedIds;
+  for (FederationStateImageMember const& member : image.members) {
+    if (member.id == 0U || !savedIds.insert(member.id).second) {
+      return false;
+    }
+    savedIdsByType[member.type].push_back(member.id);
+  }
+  for (auto const& [federateId, member] : liveMembers) {
+    if (federateId == 0U) {
+      return false;
+    }
+    liveIdsByType[member.type].push_back(federateId);
+  }
+  if (savedIdsByType.size() != liveIdsByType.size()) {
+    return false;
+  }
+  for (auto& [federateType, savedTypeIds] : savedIdsByType) {
+    auto const liveType = liveIdsByType.find(federateType);
+    if (liveType == liveIdsByType.end() ||
+        liveType->second.size() != savedTypeIds.size()) {
+      return false;
+    }
+    std::sort(savedTypeIds.begin(), savedTypeIds.end());
+    auto liveTypeIds = liveType->second;
+    std::sort(liveTypeIds.begin(), liveTypeIds.end());
+    for (std::size_t index = 0U; index < savedTypeIds.size(); ++index) {
+      auto const [position, inserted] = mapping.emplace(
+          savedTypeIds[index], liveTypeIds[index]);
+      static_cast<void>(position);
+      if (!inserted) {
+        return false;
+      }
+      auto const savedMember = std::find_if(
+          image.members.begin(),
+          image.members.end(),
+          [&](FederationStateImageMember const& candidate) {
+            return candidate.id == savedTypeIds[index];
+          });
+      auto const liveMember = liveMembers.find(liveTypeIds[index]);
+      if (savedMember == image.members.end() || liveMember == liveMembers.end()) {
+        return false;
+      }
+      identityChanged = identityChanged ||
+          savedTypeIds[index] != liveTypeIds[index] ||
+          savedMember->name != liveMember->second.name;
+    }
+  }
+  return mapping.size() == image.members.size() &&
+      mapping.size() == liveMembers.size();
+}
+
+bool isRouteFreeObjectClassPublicationDeclaration(
+    FederationStateImageObjectClassAttributeDeclarations const& declarations) {
+  if (declarations.federateId == 0U || declarations.subscriptionGeneration != 0U ||
+      declarations.classes.size() != 1U) {
+    return false;
+  }
+
+  FederationStateImageObjectClassAttributeClass const& objectClass =
+      declarations.classes.front();
+  return objectClass.objectClassHandle != 0U &&
+      !objectClass.privilegeToDeleteExplicitlyUnpublished &&
+      objectClass.explicitlyPublishedAttributeHandles.size() == 1U &&
+      objectClass.explicitlyPublishedAttributeHandles.front() != 0U &&
+      objectClass.subscribedAttributes.empty() &&
+      objectClass.subscribedUpdateRateDesignators.empty() &&
+      objectClass.regionalSubscribedAttributes.empty() &&
+      objectClass.regionalSubscribedUpdateRateDesignators.empty() &&
+      objectClass.defaultTransportationTypes.empty() &&
+      objectClass.defaultOrderTypes.empty();
+}
+
+bool isOneOrTwoRouteFreeObjectClassPublicationDeclarationImage(
+    FederationStateImage const& image) {
+  if (!image.objectClassAttributeDeclarationsPresent ||
+      image.objectClassDeclarationCount !=
+          image.objectClassAttributeDeclarations.size() ||
+      image.objectClassAttributeDeclarations.empty() ||
+      image.objectClassAttributeDeclarations.size() > 2U) {
+    return false;
+  }
+
+  FederationStateImageObjectClassAttributeDeclarations const& firstDeclarations =
+      image.objectClassAttributeDeclarations.front();
+  if (!isRouteFreeObjectClassPublicationDeclaration(firstDeclarations)) {
+    return false;
+  }
+  FederationStateImageObjectClassAttributeClass const& firstClass =
+      firstDeclarations.classes.front();
+  std::set<std::uint64_t> declarationFederateIds;
+  for (FederationStateImageObjectClassAttributeDeclarations const& declarations :
+       image.objectClassAttributeDeclarations) {
+    if (!isRouteFreeObjectClassPublicationDeclaration(declarations) ||
+        !declarationFederateIds.insert(declarations.federateId).second) {
+      return false;
+    }
+    FederationStateImageObjectClassAttributeClass const& objectClass =
+        declarations.classes.front();
+    if (objectClass.objectClassHandle != firstClass.objectClassHandle ||
+        objectClass.explicitlyPublishedAttributeHandles !=
+            firstClass.explicitlyPublishedAttributeHandles) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool isOneRouteFreeObjectClassPublicationDeclarationImage(
+    FederationStateImage const& image) {
+  return image.objectClassAttributeDeclarations.size() == 1U &&
+      isOneOrTwoRouteFreeObjectClassPublicationDeclarationImage(image);
+}
+
+bool isOneOrTwoRouteFreePublishedObjectApplicationValueImage(
+    FederationStateImage const& image,
+    bool allowSingleRegionAssociation = false) {
+  if (!isOneOrTwoRouteFreeObjectClassPublicationDeclarationImage(image) ||
+      image.objectInstanceCount != image.objects.size() ||
+      image.objects.empty() || image.objects.size() > 2U) {
+    return false;
+  }
+
+  FederationStateImageRegion const* associatedRegion = nullptr;
+  if (allowSingleRegionAssociation) {
+    if (image.objects.size() != 1U || !image.regionsPresent ||
+        image.regionCount != 1U || image.regions.size() != 1U) {
+      return false;
+    }
+    associatedRegion = &image.regions.front();
+    if (associatedRegion->handle == 0U ||
+        associatedRegion->ownerFederateId == 0U ||
+        !associatedRegion->inUse || !associatedRegion->specificationCommitted ||
+        associatedRegion->dimensionHandles.size() != 1U ||
+        associatedRegion->dimensionHandles.front() == 0U ||
+        associatedRegion->pendingRangeBounds.size() != 1U ||
+        associatedRegion->committedRangeBounds.size() != 1U) {
+      return false;
+    }
+    auto const hasCompleteBounds = [associatedRegion](
+                                       FederationStateImageRegionRange const& range) {
+      return range.dimensionHandle ==
+                 associatedRegion->dimensionHandles.front() &&
+          range.lowerBound < range.upperBound;
+    };
+    if (!hasCompleteBounds(associatedRegion->pendingRangeBounds.front()) ||
+        !hasCompleteBounds(associatedRegion->committedRangeBounds.front())) {
+      return false;
+    }
+  } else if (image.regionCount != 0U || !image.regions.empty()) {
+    return false;
+  }
+
+  FederationStateImageObjectClassAttributeClass const& objectClass =
+      image.objectClassAttributeDeclarations.front().classes.front();
+  std::map<std::uint64_t, std::size_t> objectCountByProducer;
+  std::set<std::uint64_t> objectHandles;
+  std::set<std::wstring> objectNames;
+  for (FederationStateImageObject const& object : image.objects) {
+    auto const declaration = std::find_if(
+        image.objectClassAttributeDeclarations.begin(),
+        image.objectClassAttributeDeclarations.end(),
+        [&object](
+            FederationStateImageObjectClassAttributeDeclarations const& candidate) {
+          return candidate.federateId == object.producingFederateId;
+        });
+    if (object.handle == 0U || object.name.empty() ||
+        !objectHandles.insert(object.handle).second ||
+        !objectNames.insert(object.name).second ||
+        object.registeredObjectClassHandle != objectClass.objectClassHandle ||
+        declaration == image.objectClassAttributeDeclarations.end() ||
+        !isRouteFreeDeliveredApplicationValue(object) ||
+        object.attributes.empty() || object.attributeValues.size() != 1U ||
+        object.knownObjectClassHandlesByFederate.size() != 1U) {
+      return false;
+    }
+    ++objectCountByProducer[object.producingFederateId];
+
+    FederationStateImageObjectAttributeValue const& value =
+        object.attributeValues.front();
+    FederationStateImageKnownObjectClass const& knownClass =
+        object.knownObjectClassHandlesByFederate.front();
+    if (value.attributeHandle !=
+            objectClass.explicitlyPublishedAttributeHandles.front() ||
+        knownClass.federateId != object.producingFederateId ||
+        knownClass.objectClassHandle != object.registeredObjectClassHandle) {
+      return false;
+    }
+
+    // The class may contribute additional attribute ownership records, but
+    // this slice admits only each registering producer's initial ownership.
+    // Its object-region extension is limited to the one valued attribute on
+    // the single object and the single region validated above.
+    std::size_t matchingPublishedAttributeCount = 0U;
+    std::size_t associatedRegionReferenceCount = 0U;
+    std::set<std::uint64_t> attributeHandles;
+    for (FederationStateImageObjectAttribute const& attribute : object.attributes) {
+      if (attribute.handle == 0U ||
+          !attributeHandles.insert(attribute.handle).second ||
+          (!attribute.updateRegionHandles.empty() &&
+           (associatedRegion == nullptr ||
+            attribute.handle != value.attributeHandle ||
+            attribute.updateRegionHandles.size() != 1U ||
+            attribute.updateRegionHandles.front() != associatedRegion->handle)) ||
+          (attribute.ownerFederateId != 0U &&
+           attribute.ownerFederateId != object.producingFederateId)) {
+        return false;
+      }
+      if (!attribute.updateRegionHandles.empty()) {
+        ++associatedRegionReferenceCount;
+      }
+      if (attribute.handle == value.attributeHandle) {
+        if (attribute.ownerFederateId != object.producingFederateId) {
+          return false;
+        }
+        ++matchingPublishedAttributeCount;
+      }
+    }
+    if (matchingPublishedAttributeCount != 1U) {
+      return false;
+    }
+    if (associatedRegion != nullptr &&
+        (associatedRegion->ownerFederateId != object.producingFederateId ||
+         associatedRegionReferenceCount != 1U)) {
+      return false;
+    }
+  }
+  for (FederationStateImageObjectClassAttributeDeclarations const& declarations :
+       image.objectClassAttributeDeclarations) {
+    auto const objectCount = objectCountByProducer.find(declarations.federateId);
+    if (objectCount == objectCountByProducer.end() ||
+        (image.objectClassAttributeDeclarations.size() == 2U &&
+         objectCount->second != 1U)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool isOneRouteFreePublishedObjectApplicationValueWithOneRegionImage(
+    FederationStateImage const& image) {
+  return isOneOrTwoRouteFreePublishedObjectApplicationValueImage(image, true);
+}
+
+bool isOneExplicitUnachievedTwoMemberSynchronizationPointImage(
+    FederationStateImage const& image) {
+  if (!image.synchronizationPointsPresent ||
+      image.synchronizationPointCount != 1U ||
+      image.synchronizationPoints.size() != 1U ||
+      image.members.size() != 2U) {
+    return false;
+  }
+
+  std::set<std::uint64_t> savedMemberIds;
+  for (FederationStateImageMember const& member : image.members) {
+    if (member.id == 0U || !savedMemberIds.insert(member.id).second) {
+      return false;
+    }
+  }
+
+  FederationStateImageSynchronizationPoint const& point =
+      image.synchronizationPoints.front();
+  auto const namesExactlySavedMembers = [&savedMemberIds](
+                                           std::vector<std::uint64_t> const& ids) {
+    std::set<std::uint64_t> uniqueIds(ids.begin(), ids.end());
+    return ids.size() == savedMemberIds.size() &&
+        uniqueIds.size() == ids.size() && uniqueIds == savedMemberIds;
+  };
+  return !point.label.empty() && !point.lateJoinExpansionAllowed &&
+      namesExactlySavedMembers(point.synchronizationSet) &&
+      namesExactlySavedMembers(point.announcedFederates) &&
+      point.achievedFederates.empty();
+}
+
+bool isOnePendingRegularOwnershipIdentityRebindingImage(
+    FederationStateImage const& image) {
+  // The type-rebinding path admits one durable regular-acquisition request
+  // together with the exact publication/subscription graph that made the
+  // owner callback possible. The ownership request, not unrelated application
+  // ledgers, is the only added transaction state in this image.
+  if (image.members.size() != 2U ||
+      image.objectInstanceCount != 1U || image.objects.size() != 1U ||
+      image.regionCount != 0U || !image.regions.empty() ||
+      image.objectClassDeclarationCount !=
+          image.objectClassAttributeDeclarations.size() ||
+      image.objectClassAttributeDeclarations.size() != 2U ||
+      !image.objectClassAttributeDeclarationsPresent) {
+    return false;
+  }
+
+  std::set<std::uint64_t> savedMemberIds;
+  for (FederationStateImageMember const& member : image.members) {
+    if (member.id == 0U || !savedMemberIds.insert(member.id).second) {
+      return false;
+    }
+  }
+
+  FederationStateImageObject const& object = image.objects.front();
+  if (object.handle == 0U || object.name.empty() ||
+      object.registeredObjectClassHandle == 0U ||
+      !savedMemberIds.contains(object.producingFederateId) ||
+      !isRouteFreePendingRegularOwnershipObject(object) ||
+      object.attributes.empty() || object.attributeValues.size() != 1U ||
+      object.knownObjectClassHandlesByFederate.size() != savedMemberIds.size() ||
+      object.pendingAttributeOwnershipAcquisitionRequests.size() != 1U) {
+    return false;
+  }
+
+  FederationStateImagePendingAttributeOwnershipAcquisition const& request =
+      object.pendingAttributeOwnershipAcquisitionRequests.front();
+  if (!savedMemberIds.contains(request.requestingFederateId) ||
+      request.requestingFederateId == object.producingFederateId ||
+      request.desiredAttributeHandles.size() != 1U ||
+      request.releaseCallbacksQueuedByOwningFederate.size() != 1U) {
+    return false;
+  }
+  std::uint64_t const requestedAttributeHandle =
+      request.desiredAttributeHandles.front();
+  auto const attribute = std::find_if(
+      object.attributes.begin(),
+      object.attributes.end(),
+      [requestedAttributeHandle](FederationStateImageObjectAttribute const& candidate) {
+        return candidate.handle == requestedAttributeHandle;
+      });
+  if (attribute == object.attributes.end()) {
+    return false;
+  }
+  auto const& firstDeclarations =
+      image.objectClassAttributeDeclarations.front();
+  if (firstDeclarations.classes.size() != 1U) {
+    return false;
+  }
+  FederationStateImageObjectClassAttributeClass const& firstObjectClass =
+      firstDeclarations.classes.front();
+  if (firstObjectClass.objectClassHandle == 0U ||
+      firstObjectClass.explicitlyPublishedAttributeHandles !=
+          std::vector<std::uint64_t>{requestedAttributeHandle}) {
+    return false;
+  }
+  std::uint64_t const objectClassHandle = firstObjectClass.objectClassHandle;
+
+  std::set<std::uint64_t> declarationFederateIds;
+  bool requesterHasExactAttributeSubscription = false;
+  for (FederationStateImageObjectClassAttributeDeclarations const& declarations :
+       image.objectClassAttributeDeclarations) {
+    if (!savedMemberIds.contains(declarations.federateId) ||
+        !declarationFederateIds.insert(declarations.federateId).second ||
+        declarations.classes.size() != 1U) {
+      return false;
+    }
+    FederationStateImageObjectClassAttributeClass const& memberClass =
+        declarations.classes.front();
+    if (memberClass.objectClassHandle != objectClassHandle ||
+        memberClass.privilegeToDeleteExplicitlyUnpublished ||
+        memberClass.explicitlyPublishedAttributeHandles !=
+            std::vector<std::uint64_t>{requestedAttributeHandle} ||
+        !memberClass.regionalSubscribedAttributes.empty() ||
+        !memberClass.regionalSubscribedUpdateRateDesignators.empty() ||
+        !memberClass.defaultTransportationTypes.empty() ||
+        !memberClass.defaultOrderTypes.empty()) {
+      return false;
+    }
+    if (declarations.federateId == request.requestingFederateId) {
+      if (memberClass.subscribedAttributes.size() != 1U ||
+          memberClass.subscribedAttributes.front().attributeHandle !=
+              requestedAttributeHandle ||
+          !memberClass.subscribedAttributes.front().active ||
+          memberClass.subscribedUpdateRateDesignators.size() != 1U ||
+          memberClass.subscribedUpdateRateDesignators.front().attributeHandle !=
+              requestedAttributeHandle) {
+        return false;
+      }
+      requesterHasExactAttributeSubscription = true;
+    } else if (declarations.federateId == object.producingFederateId) {
+      if (!memberClass.subscribedAttributes.empty() ||
+          !memberClass.subscribedUpdateRateDesignators.empty()) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+  if (declarationFederateIds != savedMemberIds ||
+      !requesterHasExactAttributeSubscription) {
+    return false;
+  }
+
+  std::set<std::uint64_t> objectAttributeHandles;
+  bool producerOwnsRequestedAttribute = false;
+  for (FederationStateImageObjectAttribute const& candidate : object.attributes) {
+    if (candidate.handle == 0U ||
+        !objectAttributeHandles.insert(candidate.handle).second ||
+        !candidate.updateRegionHandles.empty() ||
+        (candidate.ownerFederateId != 0U &&
+         candidate.ownerFederateId != object.producingFederateId)) {
+      return false;
+    }
+    if (candidate.handle == requestedAttributeHandle) {
+      if (candidate.ownerFederateId != object.producingFederateId) {
+        return false;
+      }
+      producerOwnsRequestedAttribute = true;
+    }
+  }
+  std::set<std::uint64_t> knownFederateIds;
+  for (FederationStateImageKnownObjectClass const& knownClass :
+       object.knownObjectClassHandlesByFederate) {
+    if (!savedMemberIds.contains(knownClass.federateId) ||
+        !knownFederateIds.insert(knownClass.federateId).second ||
+        knownClass.objectClassHandle != object.registeredObjectClassHandle) {
+      return false;
+    }
+  }
+  if (!producerOwnsRequestedAttribute || knownFederateIds != savedMemberIds) {
+    return false;
+  }
+  FederationStateImageObjectAttributeValue const& value =
+      object.attributeValues.front();
+  auto const& [ownerFederateId, releasedAttributes] =
+      request.releaseCallbacksQueuedByOwningFederate.front();
+  if (object.registeredObjectClassHandle != objectClassHandle ||
+      value.attributeHandle != requestedAttributeHandle ||
+      ownerFederateId != object.producingFederateId ||
+      releasedAttributes != request.desiredAttributeHandles) {
+    return false;
+  }
+  return true;
+}
+
+bool hasOnlySupportedRebindableRestoreLedgers(
+    FederationStateImage const& image) {
+  bool const hasNoInteractionDeclarations =
+      image.interactionDeclarationCount == 0U &&
+      image.interactionDeclarations.empty();
+  bool const hasOneRouteFreeInteractionDeclaration =
+      isRouteFreeInteractionDeclarationImage(image);
+  bool const hasNoObjectClassDeclarations =
+      image.objectClassDeclarationCount == 0U &&
+      image.objectClassAttributeDeclarations.empty();
+  bool const hasOneObjectClassPublicationDeclaration =
+      isOneRouteFreeObjectClassPublicationDeclarationImage(image);
+  bool const hasNoObjects =
+      image.objectInstanceCount == 0U && image.objects.empty();
+  bool const hasOneOrTwoPublishedObjectApplicationValues =
+      isOneOrTwoRouteFreePublishedObjectApplicationValueImage(image);
+  bool const hasOnePublishedObjectApplicationValueWithOneRegion =
+      isOneRouteFreePublishedObjectApplicationValueWithOneRegionImage(image);
+  bool const hasNoSynchronizationPoints =
+      image.synchronizationPointCount == 0U &&
+      image.synchronizationPoints.empty();
+  bool const hasOneStandaloneSynchronizationPoint =
+      isOneExplicitUnachievedTwoMemberSynchronizationPointImage(image) &&
+      hasNoInteractionDeclarations && hasNoObjectClassDeclarations && hasNoObjects;
+  bool const hasOnePendingRegularOwnershipLedger =
+      isOnePendingRegularOwnershipIdentityRebindingImage(image) &&
+      hasNoInteractionDeclarations &&
+      image.synchronizationPointCount == 0U &&
+      image.synchronizationPoints.empty();
+  bool const hasOneQueuedTsoInteractionLedger =
+      isOneQueuedTsoInteractionIdentityRebindingImage(image);
+  bool const hasOneAllowedDeclarationLedger =
+      (hasNoInteractionDeclarations && hasNoObjectClassDeclarations && hasNoObjects) ||
+      (hasOneRouteFreeInteractionDeclaration && hasNoObjectClassDeclarations && hasNoObjects) ||
+      (hasNoInteractionDeclarations && hasOneObjectClassPublicationDeclaration && hasNoObjects) ||
+      (hasNoInteractionDeclarations &&
+       (hasOneOrTwoPublishedObjectApplicationValues ||
+        hasOnePublishedObjectApplicationValueWithOneRegion));
+  bool const hasNoTsoPayloadLedgers =
+      image.tsoInteractionMessageCount == 0U &&
+      image.tsoAttributeUpdateMessageCount == 0U &&
+      image.tsoObjectDeletionMessageCount == 0U &&
+      image.tsoDirectedInteractionMessageCount == 0U &&
+      image.tsoInteractionMessages.empty() &&
+      image.tsoAttributeUpdateMessages.empty() &&
+      image.tsoObjectDeletionMessages.empty() &&
+      image.tsoRequestRetractionRecords.empty() &&
+      image.tsoDirectedInteractionMessages.empty() &&
+      image.tsoQueueEntries.empty();
+  bool const hasOneNonTsoRebindableLedger =
+      ((hasOneAllowedDeclarationLedger && hasNoSynchronizationPoints) ||
+       hasOneStandaloneSynchronizationPoint ||
+       hasOnePendingRegularOwnershipLedger) &&
+      image.regionCount ==
+          (hasOnePublishedObjectApplicationValueWithOneRegion ? 1U : 0U) &&
+      hasNoTsoPayloadLedgers &&
+      image.deferredUpdateRegionAssociations.empty() &&
+      image.pendingAttributeOwnershipQueries.empty() &&
+      image.pendingAttributeOwnershipAssumptions.empty() &&
+      image.queuedReceiveOrderInteractions.empty() &&
+      image.queuedReceiveOrderAttributeUpdates.empty() &&
+      image.reservedObjectInstanceNames.empty() &&
+      (hasOnePublishedObjectApplicationValueWithOneRegion
+           ? image.regions.size() == 1U
+           : image.regions.empty());
+  return hasOneNonTsoRebindableLedger || hasOneQueuedTsoInteractionLedger;
+}
+
+template <typename LiveMembers>
+bool rebindSupportedFederateIdentityLedgers(
+    FederationStateImage& image,
+    FederateIdentityMapping const& mapping,
+    LiveMembers const& liveMembers) {
+  bool const hasOneQueuedTsoIdentityRebindingLedger =
+      isOneQueuedTsoInteractionIdentityRebindingImage(image);
+  // The object producer and publication declaration refer to the same saved
+  // member. Validate that cross-linked graph before either side is rebound.
+  bool const hasOneOrTwoPublishedObjectApplicationValues =
+      image.objects.empty() ||
+      isOneOrTwoRouteFreePublishedObjectApplicationValueImage(image) ||
+      isOneRouteFreePublishedObjectApplicationValueWithOneRegionImage(image) ||
+      isOnePendingRegularOwnershipIdentityRebindingImage(image);
+  if (!hasOneOrTwoPublishedObjectApplicationValues) {
+    return false;
+  }
+  if (!(image.synchronizationPointCount == 0U &&
+        image.synchronizationPoints.empty()) &&
+      !isOneExplicitUnachievedTwoMemberSynchronizationPointImage(image)) {
+    return false;
+  }
+
+  for (FederationStateImageMember& member : image.members) {
+    auto const reboundId = mapping.find(member.id);
+    if (reboundId == mapping.end()) {
+      return false;
+    }
+    auto const liveMember = liveMembers.find(reboundId->second);
+    if (liveMember == liveMembers.end() || liveMember->second.type != member.type) {
+      return false;
+    }
+    member.id = reboundId->second;
+    member.name = liveMember->second.name;
+  }
+  for (FederationStateImageTimeState& timeState : image.timeStates) {
+    auto const reboundId = mapping.find(timeState.federateId);
+    if (reboundId == mapping.end()) {
+      return false;
+    }
+    timeState.federateId = reboundId->second;
+  }
+  if (!image.interactionDeclarations.empty()) {
+    if (!isRouteFreeInteractionDeclarationImage(image) &&
+        !hasOneQueuedTsoIdentityRebindingLedger) {
+      return false;
+    }
+    for (FederationStateImageInteractionDeclaration& declaration :
+         image.interactionDeclarations) {
+      auto const reboundId = mapping.find(declaration.federateId);
+      if (reboundId == mapping.end()) {
+        return false;
+      }
+      declaration.federateId = reboundId->second;
+    }
+  }
+  if (!image.objectClassAttributeDeclarations.empty()) {
+    // A no-object image may contain only the standalone one-declaration
+    // publication slice. When objects are present, the linked one/two-
+    // producer application graph was prevalidated before any identity edits.
+    if (image.objects.empty() &&
+        !isOneRouteFreeObjectClassPublicationDeclarationImage(image)) {
+      return false;
+    }
+    for (FederationStateImageObjectClassAttributeDeclarations& declarations :
+         image.objectClassAttributeDeclarations) {
+      auto const reboundId = mapping.find(declarations.federateId);
+      if (reboundId == mapping.end()) {
+        return false;
+      }
+      declarations.federateId = reboundId->second;
+    }
+  }
+  for (FederationStateImageRegion& region : image.regions) {
+    auto const reboundOwner = mapping.find(region.ownerFederateId);
+    if (reboundOwner == mapping.end()) {
+      return false;
+    }
+    region.ownerFederateId = reboundOwner->second;
+  }
+  for (FederationStateImageSynchronizationPoint& point :
+       image.synchronizationPoints) {
+    auto rebindParticipantIds = [&mapping](
+                                    std::vector<std::uint64_t>& ids) {
+      for (std::uint64_t& id : ids) {
+        auto const reboundId = mapping.find(id);
+        if (reboundId == mapping.end()) {
+          return false;
+        }
+        id = reboundId->second;
+      }
+      return true;
+    };
+    if (!rebindParticipantIds(point.synchronizationSet) ||
+        !rebindParticipantIds(point.announcedFederates)) {
+      return false;
+    }
+  }
+  if (!image.objects.empty()) {
+    for (FederationStateImageObject& object : image.objects) {
+      auto const reboundProducer = mapping.find(object.producingFederateId);
+      if (reboundProducer == mapping.end()) {
+        return false;
+      }
+      object.producingFederateId = reboundProducer->second;
+      for (FederationStateImageObjectAttribute& attribute : object.attributes) {
+        if (attribute.ownerFederateId == 0U) {
+          continue;
+        }
+        auto const reboundOwner = mapping.find(attribute.ownerFederateId);
+        if (reboundOwner == mapping.end()) {
+          return false;
+        }
+        attribute.ownerFederateId = reboundOwner->second;
+      }
+      for (FederationStateImageKnownObjectClass& knownClass :
+           object.knownObjectClassHandlesByFederate) {
+        auto const reboundKnownFederate = mapping.find(knownClass.federateId);
+        if (reboundKnownFederate == mapping.end()) {
+          return false;
+        }
+        knownClass.federateId = reboundKnownFederate->second;
+      }
+      for (FederationStateImagePendingAttributeOwnershipAcquisition& request :
+           object.pendingAttributeOwnershipAcquisitionRequests) {
+        auto const reboundRequester = mapping.find(request.requestingFederateId);
+        if (reboundRequester == mapping.end()) {
+          return false;
+        }
+        request.requestingFederateId = reboundRequester->second;
+        for (auto& [ownerFederateId, attributes] :
+             request.releaseCallbacksQueuedByOwningFederate) {
+          static_cast<void>(attributes);
+          auto const reboundOwner = mapping.find(ownerFederateId);
+          if (reboundOwner == mapping.end()) {
+            return false;
+          }
+          ownerFederateId = reboundOwner->second;
+        }
+      }
+    }
+  }
+  for (FederationStateImageTsoInteractionMessage& message :
+       image.tsoInteractionMessages) {
+    auto const reboundProducer = mapping.find(message.producingFederateId);
+    if (reboundProducer == mapping.end()) {
+      return false;
+    }
+    message.producingFederateId = reboundProducer->second;
+  }
+  for (FederationStateImageTsoRequestRetractionRecord& record :
+       image.tsoRequestRetractionRecords) {
+    auto const reboundProducer = mapping.find(record.producingFederateId);
+    if (reboundProducer == mapping.end()) {
+      return false;
+    }
+    record.producingFederateId = reboundProducer->second;
+    for (FederationStateImageTsoRequestRetractionRecipient& recipient :
+         record.recipientStates) {
+      auto const reboundRecipient = mapping.find(recipient.receivingFederateId);
+      if (reboundRecipient == mapping.end()) {
+        return false;
+      }
+      recipient.receivingFederateId = reboundRecipient->second;
+    }
+  }
+  for (FederationStateImageTsoQueueEntry& entry : image.tsoQueueEntries) {
+    auto const reboundRecipient = mapping.find(entry.recipientFederateId);
+    if (reboundRecipient == mapping.end()) {
+      return false;
+    }
+    entry.recipientFederateId = reboundRecipient->second;
+  }
+
+  std::map<std::uint64_t, std::wstring> reboundNames;
+  for (auto const& mappingEntry : mapping) {
+    auto const liveMember = liveMembers.find(mappingEntry.second);
+    if (liveMember == liveMembers.end()) {
+      return false;
+    }
+    reboundNames.emplace(mappingEntry.second, liveMember->second.name);
+  }
+  for (auto const& [savedId, savedName] : image.federateNamesById) {
+    if (!mapping.contains(savedId)) {
+      reboundNames.try_emplace(savedId, savedName);
+    }
+  }
+  image.federateNamesById.assign(reboundNames.begin(), reboundNames.end());
+  return true;
+}
 
 }  // namespace
 
@@ -108,23 +808,30 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
   // a complete state image yet, but a missing/corrupt/mismatched record must
   // never be silently ignored by a future disk-backed restore path.
   bool durableCommitMatches = false;
+  bool membershipTypeCountsMatch = false;
+  bool restoreFromProcessLocalSnapshot = processLocalSnapshot;
+  std::map<std::uint64_t, std::wstring> savedFederateNamesByLiveId;
   std::optional<FederationStateImage> durableStateImage;
   try {
     auto const durableCommit = saveCommitStore_->load(federationName, label);
     if (durableCommit && durableCommit->federationName == federationName &&
         durableCommit->label == label &&
          durableCommit->logicalTimeImplementationName ==
-             snapshot.definition.logicalTimeImplementationName &&
-         durableCommit->memberFederateIds.size() == snapshot.members.size()) {
+             snapshot.definition.logicalTimeImplementationName) {
       durableCommitMatches = true;
-      for (auto const& [memberId, member] : snapshot.members) {
-        static_cast<void>(member);
-        if (std::find(
-                durableCommit->memberFederateIds.begin(),
-                durableCommit->memberFederateIds.end(),
-                memberId) == durableCommit->memberFederateIds.end()) {
+      if (processLocalSnapshot) {
+        if (durableCommit->memberFederateIds.size() != snapshot.members.size()) {
           durableCommitMatches = false;
-          break;
+        }
+        for (auto const& [memberId, member] : snapshot.members) {
+          static_cast<void>(member);
+          if (std::find(
+                  durableCommit->memberFederateIds.begin(),
+                  durableCommit->memberFederateIds.end(),
+                  memberId) == durableCommit->memberFederateIds.end()) {
+            durableCommitMatches = false;
+            break;
+          }
         }
       }
       if (durableCommitMatches && !durableCommit->stateImage.empty()) {
@@ -134,7 +841,9 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
           if (image.federationName != federationName ||
               image.logicalTimeImplementationName !=
                   snapshot.definition.logicalTimeImplementationName ||
-              image.members.size() != snapshot.members.size()) {
+              image.members.size() != durableCommit->memberFederateIds.size() ||
+              (processLocalSnapshot &&
+               image.members.size() != snapshot.members.size())) {
             durableCommitMatches = false;
           }
           if (processLocalSnapshot && durableCommitMatches &&
@@ -142,19 +851,29 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
             durableCommitMatches = false;
           }
           if (durableCommitMatches) {
-            for (std::size_t index = 0U; index < image.members.size(); ++index) {
-              auto const& imageMember = image.members[index];
-              auto const snapshotMember = snapshot.members.find(imageMember.id);
-              auto const liveMember = federation->second.members.find(imageMember.id);
-              if (snapshotMember == snapshot.members.end() ||
-                  liveMember == federation->second.members.end() ||
-                  snapshotMember->second.name != imageMember.name ||
-                  snapshotMember->second.type != imageMember.type ||
-                  liveMember->second.name != imageMember.name ||
-                  liveMember->second.type != imageMember.type) {
+            std::set<std::uint64_t> imageMemberIds;
+            for (FederationStateImageMember const& imageMember : image.members) {
+              if (!imageMemberIds.insert(imageMember.id).second ||
+                  std::find(
+                      durableCommit->memberFederateIds.begin(),
+                      durableCommit->memberFederateIds.end(),
+                      imageMember.id) == durableCommit->memberFederateIds.end()) {
                 durableCommitMatches = false;
                 break;
               }
+              if (processLocalSnapshot) {
+                auto const snapshotMember = snapshot.members.find(imageMember.id);
+                if (snapshotMember == snapshot.members.end() ||
+                    snapshotMember->second.name != imageMember.name ||
+                    snapshotMember->second.type != imageMember.type) {
+                  durableCommitMatches = false;
+                  break;
+                }
+              }
+            }
+            if (durableCommitMatches &&
+                imageMemberIds.size() != durableCommit->memberFederateIds.size()) {
+              durableCommitMatches = false;
             }
           }
           if (durableCommitMatches) {
@@ -297,6 +1016,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
               bool const restartableInteractionLedger =
                   image.interactionDeclarations.empty() ||
                   isRouteFreeInteractionDeclarationImage(image) ||
+                  isOneQueuedTsoInteractionIdentityRebindingImage(image) ||
                   isRouteFreeMultipleInteractionPublicationImage(image) ||
                   isRouteFreeMixedMultipleInteractionDeclarationImage(image) ||
                   isRouteFreeMultipleDirectedInteractionDeclarationImage(image) ||
@@ -307,6 +1027,48 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
                        ? image.tsoObjectDeletionMessages.empty()
                        : restartableObjectLedger) &&
                   restartableTsoPayloadLedger;
+            }
+            if (durableCommitMatches) {
+              FederateIdentityMapping identityMapping;
+              bool identityChanged = false;
+              membershipTypeCountsMatch = mapSavedFederatesByType(
+                  image,
+                  federation->second.members,
+                  identityMapping,
+                  identityChanged);
+              if (membershipTypeCountsMatch) {
+                for (FederationStateImageMember const& imageMember : image.members) {
+                  auto const liveId = identityMapping.find(imageMember.id);
+                  if (liveId == identityMapping.end() ||
+                      !savedFederateNamesByLiveId.emplace(
+                          liveId->second,
+                          imageMember.name).second) {
+                    durableCommitMatches = false;
+                    break;
+                  }
+                }
+              }
+              if (durableCommitMatches && identityChanged) {
+                // This bounded slice admits one route-free interaction
+                // declaration, one object-class publication declaration, the
+                // matching one-or-two-object application-value graph, one
+                // standalone explicit unachieved synchronization point, one
+                // pending regular ownership transaction, or one queued TSO
+                // interaction with its exact publisher/subscriber, queue, and
+                // retraction ledgers. Every admitted member reference is
+                // rewritten through the same type-preserving map; combining
+                // these transaction ledgers remains outside this slice.
+                bool const supported = hasOnlySupportedRebindableRestoreLedgers(image);
+                bool const rebound = supported && rebindSupportedFederateIdentityLedgers(
+                    image,
+                    identityMapping,
+                    federation->second.members);
+                if (!supported || !rebound) {
+                  durableCommitMatches = false;
+                } else {
+                  restoreFromProcessLocalSnapshot = false;
+                }
+              }
             }
             if (durableCommitMatches) {
               durableStateImage = std::move(image);
@@ -332,18 +1094,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
     result.notifications.push_back(std::move(notification));
     return result;
   }
-  bool membershipMatches = snapshot.members.size() == federation->second.members.size();
-  if (membershipMatches) {
-    for (auto const& [federateId, member] : federation->second.members) {
-      auto const savedMember = snapshot.members.find(federateId);
-      if (savedMember == snapshot.members.end() ||
-          savedMember->second.name != member.name ||
-          savedMember->second.type != member.type) {
-        membershipMatches = false;
-        break;
-      }
-    }
-  }
+  bool const membershipMatches = membershipTypeCountsMatch;
   if (!membershipMatches) {
     result.status = FederationRestoreControlStatus::membership_mismatch;
     FederationRestoreNotification notification;
@@ -369,7 +1120,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
   Federation::RestoreOperation operation;
   operation.label = label;
   operation.stateImage = std::move(durableStateImage);
-  operation.processLocalSnapshot = processLocalSnapshot;
+  operation.processLocalSnapshot = restoreFromProcessLocalSnapshot;
   for (auto const& [federateId, member] : federation->second.members) {
     static_cast<void>(member);
     operation.statuses.emplace(federateId, rti1516_2025::FEDERATE_RESTORING);
@@ -411,7 +1162,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
     initiate.kind = FederationRestoreNotificationKind::initiate;
     initiate.receivingFederateId = federateId;
     initiate.label = label;
-    initiate.federateName = member.name;
+    initiate.federateName = savedFederateNamesByLiveId.at(federateId);
     initiate.preRestoreFederateId = federateId;
     initiate.postRestoreFederateId = federateId;
     initiate.callbackRoute = route->second;
@@ -483,6 +1234,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreComple
   if (processLocalSnapshot &&
       (savedFederations == saveSnapshots_.end() ||
        saved == savedFederations->second.end())) {
+    result.status = FederationRestoreControlStatus::restore_failed;
     appendRestoreCompletionNotifications(
         federation->second,
         false,
@@ -561,6 +1313,10 @@ FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreComple
         *restoreOperation->stateImage,
         federation->second);
     restoreTsoQueueFromStateImage(snapshot, *restoreOperation->stateImage);
+    snapshot.queuedReceiveOrderInteractions =
+        restoreOperation->stateImage->queuedReceiveOrderInteractions;
+    snapshot.queuedReceiveOrderAttributeUpdates =
+        restoreOperation->stateImage->queuedReceiveOrderAttributeUpdates;
     restoreFederationFromSnapshot(federation->second, snapshot);
     if (!processLocalSnapshot) {
       // A durable image carries declaration state, while the relevance sets
@@ -924,6 +1680,7 @@ FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreComple
         rti1516_2025::RTI_UNABLE_TO_RESTORE,
         result.notifications);
     federation->second.restoreOperation.reset();
+    result.status = FederationRestoreControlStatus::restore_failed;
     return result;
   }
 
@@ -962,6 +1719,10 @@ FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreComple
   // role work cannot consume a restored generation.
   result.timeRoleEnableDispatches =
       scheduleRestoredTimeRoleEnableDispatches(federation->second);
+  result.restoredQueuedReceiveOrderInteractions =
+      federation->second.queuedReceiveOrderInteractions;
+  result.restoredQueuedReceiveOrderAttributeUpdates =
+      federation->second.queuedReceiveOrderAttributeUpdates;
   return result;
 }
 FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreNotComplete(

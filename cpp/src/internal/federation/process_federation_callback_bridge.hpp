@@ -24,14 +24,24 @@ class ProcessFederationCallbackBridgeError final : public std::runtime_error {
   using std::runtime_error::runtime_error;
 };
 
+enum class ProcessFederationAsynchronousDeliveryStatus {
+  applied,
+  already_enabled,
+  already_disabled,
+};
+
 // Private process-client adapter from a decoded service event to the official
 // IEEE 1516.1-2025 FederateAmbassador callback.  It deliberately reuses the
 // same CallbackDispatcher/CallbackSession lifetime and dispatch-model seam as
 // the embedded public binding; it is not a public API or a conformance claim.
 class ProcessFederationCallbackBridge final {
  public:
+  struct AsynchronousReceiveOrderDeliveryState;
+
   using CallbackCompletionHandler = std::function<void()>;
   using TsoDeliveryCompletionHandler = std::function<void(std::uint64_t)>;
+  using TsoCallbackAcceptedHandler = std::function<void(std::uint64_t)>;
+  using PushAttributeDeliveryCompletionHandler = std::function<void(std::uint64_t)>;
   using ExceptionReportProjectionHandler = std::function<
       std::optional<ProcessFederationInteractionEvent>(ProcessFederationInteractionEvent)>;
   using DeferredAttributeUpdateHandler = std::function<
@@ -64,6 +74,14 @@ class ProcessFederationCallbackBridge final {
   // the immediate model this invokes the callback before returning; in the
   // evoked model the caller must use evokeOne/evokeMultiple.
   void submitReceiveOrder(ProcessFederationInteractionEvent event);
+
+  // The process endpoint's asynchronous-delivery switch is federate-local.
+  // It gates only receive-order callbacks in this bridge; timestamped events
+  // remain on their existing grant-controlled path.
+  [[nodiscard]] ProcessFederationAsynchronousDeliveryStatus
+  setAsynchronousDeliveryEnabled(bool enabled);
+  void setTimeConstrainedEnabled(bool enabled);
+  void setTimeAdvancePending(bool pending);
 
   // Apply a process-side Request Retraction consequence to a timestamped
   // interaction that already crossed the callback boundary.  If the original
@@ -186,6 +204,12 @@ class ProcessFederationCallbackBridge final {
   // Request Retraction).
   void setTsoDeliveryCompletionHandler(
       TsoDeliveryCompletionHandler handler);
+  // Optional per-bridge observation seam for tests that must establish that a
+  // timestamped callback entered the local dispatcher before a later service
+  // transition. It is not part of the public RTI configuration or API.
+  void setTsoCallbackAcceptedHandler(TsoCallbackAcceptedHandler handler);
+  void setPushAttributeDeliveryCompletionHandler(
+      PushAttributeDeliveryCompletionHandler handler);
   void setExceptionReportProjectionHandler(ExceptionReportProjectionHandler handler);
 
   // Invalidate queued reports and wait for the client-owned projection hook
@@ -236,6 +260,8 @@ class ProcessFederationCallbackBridge final {
     bool recipientResigned = false;
     bool retractionCallbackQueued = false;
     bool deliveryAcknowledged = false;
+    bool groupedTsoAttributeCallbacks = false;
+    bool finalTsoAttributeCallbackSubmitted = false;
   };
 
   // Keep these owners stable through close: an evoker may still be returning
@@ -245,10 +271,14 @@ class ProcessFederationCallbackBridge final {
       callbackSession_;
   std::shared_ptr<ExceptionReportProjectionState> const exceptionReportProjection_;
   std::shared_ptr<DeferredAttributeUpdateState> const deferredAttributeUpdate_;
+  std::shared_ptr<AsynchronousReceiveOrderDeliveryState> const
+      asynchronousReceiveOrderDelivery_;
   std::shared_ptr<std::atomic_bool> attributeRelevanceAdvisorySwitchState_;
   CallbackCompletionHandler timeRegulationEnabledCompletion_;
   CallbackCompletionHandler timeConstrainedEnabledCompletion_;
   TsoDeliveryCompletionHandler tsoDeliveryCompletion_;
+  TsoCallbackAcceptedHandler tsoCallbackAccepted_;
+  PushAttributeDeliveryCompletionHandler pushAttributeDeliveryCompletion_;
   AttributeOwnershipReleaseClaimHandler attributeOwnershipReleaseClaim_;
   mutable std::mutex retractionMutex_;
   std::unordered_map<

@@ -274,3 +274,93 @@ TEST_CASE(
   REQUIRE_NOTHROW(cancelled->disconnect());
   REQUIRE_NOTHROW(immediate->disconnect());
 }
+
+TEST_CASE(
+    "Embedded receive-order Send Interaction follows current publication state",
+    "[integration][development-profile][2025][interaction-management]"
+    "[interaction-publication-send-boundary]"
+    "[rti.service.publish-interaction-class]"
+    "[rti.service.unpublish-interaction-class]"
+    "[rti.service.send-interaction]"
+    "[federate.callback.receive-interaction]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+                          "cpp" / "tests" / "data" /
+                          "parameter-handle-provider-fom.xml")
+                             .wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"interaction-publication-state-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"interaction-publication-state-receiver", L"subscriber", federationName));
+
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      fixture_hla::fom::parameter_fixture_child_interaction);
+  auto const parameter = publisher->getParameterHandle(
+      interactionClass, fixture_hla::fixture::identifier);
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(parameter.isValid());
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(receiver->subscribeInteractionClass(interactionClass));
+
+  unsigned char const firstPayload[] = {0x11, 0x25};
+  unsigned char const firstTagBytes[] = {0xA1};
+  ParameterHandleValueMap firstParameters;
+  firstParameters.emplace(
+      parameter, VariableLengthData(firstPayload, sizeof(firstPayload)));
+  VariableLengthData const firstTag(firstTagBytes, sizeof(firstTagBytes));
+  REQUIRE_NOTHROW(publisher->sendInteraction(
+      interactionClass, firstParameters, firstTag));
+  drainCallbacks(*receiver);
+  REQUIRE(receiverReports.interactionReports.size() == 1U);
+  REQUIRE(receiverReports.interactionReports.front().interactionClass ==
+          interactionClass);
+  REQUIRE(variableLengthDataBytes(
+              receiverReports.interactionReports.front().parameterValues.at(parameter)) ==
+          std::vector<unsigned char>(
+              firstPayload, firstPayload + sizeof(firstPayload)));
+  REQUIRE(variableLengthDataBytes(
+              receiverReports.interactionReports.front().userSuppliedTag) ==
+          std::vector<unsigned char>(firstTagBytes, firstTagBytes + sizeof(firstTagBytes)));
+
+  REQUIRE_NOTHROW(publisher->unpublishInteractionClass(interactionClass));
+  REQUIRE_THROWS_AS(
+      publisher->sendInteraction(interactionClass, firstParameters, firstTag),
+      rti1516_2025::InteractionClassNotPublished);
+  drainCallbacks(*receiver);
+  REQUIRE(receiverReports.interactionReports.size() == 1U);
+
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
+  unsigned char const secondPayload[] = {0x22, 0x25};
+  unsigned char const secondTagBytes[] = {0xA2};
+  ParameterHandleValueMap secondParameters;
+  secondParameters.emplace(
+      parameter, VariableLengthData(secondPayload, sizeof(secondPayload)));
+  VariableLengthData const secondTag(secondTagBytes, sizeof(secondTagBytes));
+  REQUIRE_NOTHROW(publisher->sendInteraction(
+      interactionClass, secondParameters, secondTag));
+  drainCallbacks(*receiver);
+  REQUIRE(receiverReports.interactionReports.size() == 2U);
+  auto const& secondReport = receiverReports.interactionReports.back();
+  REQUIRE(secondReport.interactionClass == interactionClass);
+  REQUIRE(variableLengthDataBytes(secondReport.parameterValues.at(parameter)) ==
+          std::vector<unsigned char>(
+              secondPayload, secondPayload + sizeof(secondPayload)));
+  REQUIRE(variableLengthDataBytes(secondReport.userSuppliedTag) ==
+          std::vector<unsigned char>(secondTagBytes, secondTagBytes + sizeof(secondTagBytes)));
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}

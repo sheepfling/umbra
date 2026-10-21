@@ -5,12 +5,14 @@
 #include "internal/federation/process_federation_service.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
+#include "internal/time/federate_time_state.hpp"
 #include "process_federation_service_test_support.hpp"
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/time/HLAinteger64Interval.h>
 #include <RTI/time/HLAinteger64Time.h>
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <filesystem>
 #include <fstream>
@@ -222,7 +224,7 @@ TEST_CASE(
 
 
 TEST_CASE(
-    "Private process service binds create join and receive-order interaction to the federation registry",
+    "Private process service retains pull TSO retraction routes before and after polling and prunes on Resign",
     "[unit][foundation][transport][process-boundary][service-dispatch][registry-binding][transport-contract][interaction-management][2025]") {
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener != nullptr);
@@ -295,6 +297,25 @@ TEST_CASE(
       if (!ProcessTransportServiceDispatcher::serveOne(sender, senderHandler) ||
           !ProcessTransportServiceDispatcher::serveOne(receiver, receiverHandler)) {
         throw std::runtime_error("The process federation service lost an interaction request.");
+      }
+      if (!ProcessTransportServiceDispatcher::serveOne(sender, senderHandler) ||
+          !ProcessTransportServiceDispatcher::serveOne(receiver, receiverHandler) ||
+          !ProcessTransportServiceDispatcher::serveOne(sender, senderHandler)) {
+        throw std::runtime_error(
+            "The process service lost the pull-mode TSO retraction sequence.");
+      }
+      if (!ProcessTransportServiceDispatcher::serveOne(sender, senderHandler) ||
+          !ProcessTransportServiceDispatcher::serveOne(sender, senderHandler) ||
+          !ProcessTransportServiceDispatcher::serveOne(receiver, receiverHandler)) {
+        throw std::runtime_error(
+            "The process service lost the pre-poll retraction sequence.");
+      }
+      if (!ProcessTransportServiceDispatcher::serveOne(sender, senderHandler) ||
+          !ProcessTransportServiceDispatcher::serveOne(receiver, receiverHandler) ||
+          !ProcessTransportServiceDispatcher::serveOne(receiver, receiverHandler) ||
+          !ProcessTransportServiceDispatcher::serveOne(sender, senderHandler)) {
+        throw std::runtime_error(
+            "The process service lost the resigned-recipient retraction sequence.");
       }
       service.detach(sender);
       service.detach(receiver);
@@ -465,6 +486,228 @@ TEST_CASE(
     REQUIRE(receiveResult.event->parameterHandles.empty());
     REQUIRE(receiveResult.event->payload == interactionPayload);
     REQUIRE(receiveResult.event->transportationName == "HLAreliable");
+
+    // Exercise the pull route after the polled event has left the server
+    // queue. A Retract before the client callback starts must still find this
+    // receiver and send the callback bridge its cancellation notification.
+    rti1516_2025::HLAinteger64Time tsoTime(5);
+    auto const encodedTsoTime = tsoTime.encode();
+    REQUIRE(encodedTsoTime.size() != 0U);
+    auto const* tsoTimeData =
+        static_cast<std::uint8_t const*>(encodedTsoTime.data());
+    REQUIRE(tsoTimeData != nullptr);
+    std::vector<std::uint8_t> tsoTimeBytes(
+        tsoTimeData, tsoTimeData + encodedTsoTime.size());
+    ProcessFederationSendInteractionRequest tsoSend{
+        L"process-execution",
+        senderResult.federateId,
+        *interactionClass,
+        {},
+        interactionPayload};
+    tsoSend.timestamp = umbra::detail::ProcessFederationLogicalTime{
+        L"HLAinteger64Time", std::move(tsoTimeBytes)};
+    REQUIRE(sender.request(
+        request(
+            TransportServiceOperation::send_interaction,
+            8U,
+            umbra::detail::encodeProcessFederationSendInteractionRequest(
+                tsoSend)),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    auto const tsoSendResult =
+        umbra::detail::decodeProcessFederationSendInteractionResult(
+            response.payload);
+    REQUIRE(tsoSendResult.messageId != 0U);
+
+    REQUIRE(receiver.request(
+        request(
+            TransportServiceOperation::receive_interaction,
+            9U,
+            umbra::detail::encodeProcessFederationReceiveInteractionRequest(
+                ProcessFederationReceiveInteractionRequest{
+                    L"process-execution", receiverResult.federateId})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    auto const tsoReceiveResult =
+        umbra::detail::decodeProcessFederationReceiveInteractionResult(
+            response.payload);
+    REQUIRE(tsoReceiveResult.event.has_value());
+    REQUIRE(tsoReceiveResult.event->retractionMessageId ==
+            tsoSendResult.messageId);
+
+    REQUIRE(sender.request(
+        request(
+            TransportServiceOperation::retract,
+            10U,
+            umbra::detail::encodeProcessFederationRetractRequest(
+                umbra::detail::ProcessFederationRetractRequest{
+                    L"process-execution",
+                    senderResult.federateId,
+                    tsoSendResult.messageId})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    auto const retractResult =
+        umbra::detail::decodeProcessFederationRetractResult(response.payload);
+    REQUIRE(retractResult.status ==
+            umbra::detail::ProcessFederationRetractStatus::applied);
+
+    TransportServiceMessage retractionEvent;
+    REQUIRE(receiver.receive(retractionEvent));
+    REQUIRE(retractionEvent.kind == TransportServiceMessageKind::event);
+    REQUIRE(retractionEvent.operation ==
+            TransportServiceOperation::request_retraction);
+    auto const retraction =
+        umbra::detail::decodeProcessFederationRequestRetractionEvent(
+            retractionEvent.payload);
+    REQUIRE(retraction.messageId == tsoSendResult.messageId);
+
+    // Retracting while the event is still server-side must remove the
+    // original event before a later pull can return it. Request Retraction is
+    // still permitted as an unmatched notification by the service contract.
+    rti1516_2025::HLAinteger64Time prePollTsoTime(6);
+    auto const encodedPrePollTsoTime = prePollTsoTime.encode();
+    auto const* prePollTsoTimeData =
+        static_cast<std::uint8_t const*>(encodedPrePollTsoTime.data());
+    REQUIRE(prePollTsoTimeData != nullptr);
+    std::vector<std::uint8_t> prePollTsoTimeBytes(
+        prePollTsoTimeData,
+        prePollTsoTimeData + encodedPrePollTsoTime.size());
+    ProcessFederationSendInteractionRequest prePollTsoSend{
+        L"process-execution",
+        senderResult.federateId,
+        *interactionClass,
+        {},
+        interactionPayload};
+    prePollTsoSend.timestamp = umbra::detail::ProcessFederationLogicalTime{
+        L"HLAinteger64Time", std::move(prePollTsoTimeBytes)};
+    REQUIRE(sender.request(
+        request(
+            TransportServiceOperation::send_interaction,
+            11U,
+            umbra::detail::encodeProcessFederationSendInteractionRequest(
+                prePollTsoSend)),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    auto const prePollTsoSendResult =
+        umbra::detail::decodeProcessFederationSendInteractionResult(
+            response.payload);
+    REQUIRE(prePollTsoSendResult.messageId != 0U);
+
+    REQUIRE(sender.request(
+        request(
+            TransportServiceOperation::retract,
+            12U,
+            umbra::detail::encodeProcessFederationRetractRequest(
+                umbra::detail::ProcessFederationRetractRequest{
+                    L"process-execution",
+                    senderResult.federateId,
+                    prePollTsoSendResult.messageId})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    auto const prePollRetractResult =
+        umbra::detail::decodeProcessFederationRetractResult(response.payload);
+    REQUIRE(prePollRetractResult.status ==
+            umbra::detail::ProcessFederationRetractStatus::applied);
+
+    TransportServiceMessage unmatchedRetractionEvent;
+    if (receiver.receive(unmatchedRetractionEvent)) {
+      REQUIRE(unmatchedRetractionEvent.kind == TransportServiceMessageKind::event);
+      REQUIRE(unmatchedRetractionEvent.operation ==
+              TransportServiceOperation::request_retraction);
+      auto const unmatchedRetraction =
+          umbra::detail::decodeProcessFederationRequestRetractionEvent(
+              unmatchedRetractionEvent.payload);
+      REQUIRE(unmatchedRetraction.messageId == prePollTsoSendResult.messageId);
+    }
+
+    REQUIRE(receiver.request(
+        request(
+            TransportServiceOperation::receive_interaction,
+            13U,
+            umbra::detail::encodeProcessFederationReceiveInteractionRequest(
+                ProcessFederationReceiveInteractionRequest{
+                    L"process-execution", receiverResult.federateId})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    auto const prePollReceiveResult =
+        umbra::detail::decodeProcessFederationReceiveInteractionResult(
+            response.payload);
+    REQUIRE_FALSE(prePollReceiveResult.event.has_value());
+
+    rti1516_2025::HLAinteger64Time resignedTsoTime(7);
+    auto const encodedResignedTsoTime = resignedTsoTime.encode();
+    auto const* resignedTsoTimeData =
+        static_cast<std::uint8_t const*>(encodedResignedTsoTime.data());
+    REQUIRE(resignedTsoTimeData != nullptr);
+    std::vector<std::uint8_t> resignedTsoTimeBytes(
+        resignedTsoTimeData,
+        resignedTsoTimeData + encodedResignedTsoTime.size());
+    ProcessFederationSendInteractionRequest resignedTsoSend{
+        L"process-execution",
+        senderResult.federateId,
+        *interactionClass,
+        {},
+        interactionPayload};
+    resignedTsoSend.timestamp = umbra::detail::ProcessFederationLogicalTime{
+        L"HLAinteger64Time", std::move(resignedTsoTimeBytes)};
+    REQUIRE(sender.request(
+        request(
+            TransportServiceOperation::send_interaction,
+            14U,
+            umbra::detail::encodeProcessFederationSendInteractionRequest(
+                resignedTsoSend)),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    auto const resignedTsoSendResult =
+        umbra::detail::decodeProcessFederationSendInteractionResult(
+            response.payload);
+    REQUIRE(resignedTsoSendResult.messageId != 0U);
+
+    REQUIRE(receiver.request(
+        request(
+            TransportServiceOperation::receive_interaction,
+            15U,
+            umbra::detail::encodeProcessFederationReceiveInteractionRequest(
+                ProcessFederationReceiveInteractionRequest{
+                    L"process-execution", receiverResult.federateId})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    auto const resignedTsoReceiveResult =
+        umbra::detail::decodeProcessFederationReceiveInteractionResult(
+            response.payload);
+    REQUIRE(resignedTsoReceiveResult.event.has_value());
+    REQUIRE(resignedTsoReceiveResult.event->retractionMessageId ==
+            resignedTsoSendResult.messageId);
+
+    REQUIRE(receiver.request(
+        request(
+            TransportServiceOperation::resign_federation_execution,
+            16U,
+            umbra::detail::encodeProcessFederationResignRequest(
+                ProcessFederationResignRequest{
+                    L"process-execution",
+                    receiverResult.federateId,
+                    rti1516_2025::NO_ACTION})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+
+    REQUIRE(sender.request(
+        request(
+            TransportServiceOperation::retract,
+            17U,
+            umbra::detail::encodeProcessFederationRetractRequest(
+                umbra::detail::ProcessFederationRetractRequest{
+                    L"process-execution",
+                    senderResult.federateId,
+                    resignedTsoSendResult.messageId})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    auto const resignedRetractResult =
+        umbra::detail::decodeProcessFederationRetractResult(response.payload);
+    REQUIRE(resignedRetractResult.status ==
+            umbra::detail::ProcessFederationRetractStatus::applied);
+    TransportServiceMessage staleRetractionEvent;
+    REQUIRE_FALSE(receiver.receive(staleRetractionEvent));
 
     sender.connection()->close();
     receiver.connection()->close();
@@ -2178,4 +2421,543 @@ TEST_CASE(
   REQUIRE(recipient.callbacks == 0U);
   REQUIRE(client->connection() == nullptr);
   REQUIRE_FALSE(serverFailure);
+}
+
+TEST_CASE(
+    "Polling process save and restore reconstitutes an undelivered receive-order interaction exactly once",
+    "[unit][federation-management][save-restore][receive-order][process-boundary]"
+    "[save-queued-ro-interaction][2025]") {
+  using umbra::detail::ProcessFederationClient;
+  using umbra::detail::ProcessFederationInteractionEnvelope;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::encodeProcessFederationInteractionEnvelope;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener != nullptr);
+  EmbeddedFederationRegistry registry;
+  ProcessFederationServiceOptions options;
+  options.pushReceiveOrderEvents = false;
+  ProcessFederationService service(registry, composedRestaurantDefinition(), options);
+  std::array<std::exception_ptr, 2U> serverFailures{};
+  std::thread server([&] {
+    try {
+      auto firstConnection = listener->accept(
+          nullptr, {"queued-ro-save-server-a", 0xF9U},
+          [](std::wstring) {}, [](std::wstring) { return false; });
+      auto secondConnection = listener->accept(
+          nullptr, {"queued-ro-save-server-b", 0xFBU},
+          [](std::wstring) {}, [](std::wstring) { return false; });
+      ProcessTransportSession firstSession(std::move(firstConnection));
+      ProcessTransportSession secondSession(std::move(secondConnection));
+      auto firstHandler = service.handlerFor(firstSession);
+      auto secondHandler = service.handlerFor(secondSession);
+      std::thread firstWorker([&] {
+        try {
+          while (ProcessTransportServiceDispatcher::serveOne(
+              firstSession, firstHandler)) {}
+          service.detach(firstSession);
+        } catch (...) {
+          serverFailures[0] = std::current_exception();
+        }
+        firstSession.connection()->close();
+      });
+      std::thread secondWorker([&] {
+        try {
+          while (ProcessTransportServiceDispatcher::serveOne(
+              secondSession, secondHandler)) {}
+          service.detach(secondSession);
+        } catch (...) {
+          serverFailures[1] = std::current_exception();
+        }
+        secondSession.connection()->close();
+      });
+      firstWorker.join();
+      secondWorker.join();
+    } catch (...) {
+      serverFailures[0] = std::current_exception();
+    }
+  });
+
+  std::exception_ptr clientFailure;
+  try {
+    ProcessFederationClient sender(
+        {"127.0.0.1", listener->address().port},
+        {"queued-ro-save-client-a", 0xFAU});
+    ProcessFederationClient receiver(
+        {"127.0.0.1", listener->address().port},
+        {"queued-ro-save-client-b", 0xFCU});
+    std::wstring const federation = L"queued-ro-save-execution";
+    REQUIRE_NOTHROW(sender.createFederationExecution(federation));
+    auto const senderJoin = sender.joinFederationExecution(
+        federation, L"queued-ro-save-sender", L"queued-ro-save-sender");
+    auto const receiverJoin = receiver.joinFederationExecution(
+        federation, L"queued-ro-save-receiver", L"queued-ro-save-receiver");
+    auto const interaction = sender.lookupInteractionClassHandle(
+        federation, senderJoin.federateId, L"HLAinteractionRoot");
+    REQUIRE(interaction.has_value());
+    REQUIRE_NOTHROW(sender.publishInteractionClass(
+        federation, senderJoin.federateId, *interaction));
+    REQUIRE_NOTHROW(receiver.subscribeInteractionClass(
+        federation, receiverJoin.federateId, *interaction, true));
+
+    std::vector<std::uint8_t> const tag{0x51U, 0x52U, 0x53U};
+    auto payload = encodeProcessFederationInteractionEnvelope(
+        ProcessFederationInteractionEnvelope{{}, tag});
+    auto const sent = sender.sendInteraction(
+        federation, senderJoin.federateId, *interaction, {}, payload);
+    REQUIRE(sent.recipientCount == 1U);
+
+    REQUIRE(sender.requestFederationSave(
+                federation, senderJoin.federateId, L"queued-ro-checkpoint").status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(sender.federateSaveBegun(federation, senderJoin.federateId).status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(receiver.federateSaveBegun(federation, receiverJoin.federateId).status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(sender.federateSaveComplete(federation, senderJoin.federateId).status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(receiver.federateSaveComplete(federation, receiverJoin.federateId).status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+
+    // Consume the live queue only after the immutable save image has been
+    // committed. Restore must recreate this already-delivered live event from
+    // the saved route-free queue record.
+    std::optional<umbra::detail::ProcessFederationInteractionEvent> liveEvent;
+    for (std::size_t attempt = 0U; attempt < 8U && !liveEvent; ++attempt) {
+      liveEvent = receiver.receiveInteraction(federation, receiverJoin.federateId).interaction;
+    }
+    REQUIRE(liveEvent.has_value());
+    REQUIRE(liveEvent->payload == payload);
+    REQUIRE(liveEvent->parameterHandles.empty());
+
+    REQUIRE(sender.requestFederationRestore(
+                federation, senderJoin.federateId, L"queued-ro-checkpoint").status ==
+            umbra::detail::FederationRestoreControlStatus::applied);
+    REQUIRE(sender.federateRestoreComplete(
+                federation, senderJoin.federateId).status ==
+            umbra::detail::FederationRestoreControlStatus::applied);
+    REQUIRE(receiver.federateRestoreComplete(
+                federation, receiverJoin.federateId).status ==
+            umbra::detail::FederationRestoreControlStatus::applied);
+
+    std::optional<umbra::detail::ProcessFederationInteractionEvent> restoredEvent;
+    for (std::size_t attempt = 0U; attempt < 12U && !restoredEvent; ++attempt) {
+      restoredEvent = receiver.receiveInteraction(federation, receiverJoin.federateId).interaction;
+    }
+    REQUIRE(restoredEvent.has_value());
+    REQUIRE(restoredEvent->producingFederateId == senderJoin.federateId);
+    REQUIRE(restoredEvent->receivingFederateId == receiverJoin.federateId);
+    REQUIRE(restoredEvent->interactionClassHandle == *interaction);
+    REQUIRE(restoredEvent->parameterHandles.empty());
+    REQUIRE(restoredEvent->payload == payload);
+    auto const noDuplicate =
+        receiver.receiveInteraction(federation, receiverJoin.federateId);
+    REQUIRE_FALSE(noDuplicate.interaction.has_value());
+
+    REQUIRE_NOTHROW(receiver.resignFederationExecution(
+        federation, receiverJoin.federateId, rti1516_2025::NO_ACTION));
+    REQUIRE_NOTHROW(sender.resignFederationExecution(
+        federation, senderJoin.federateId, rti1516_2025::NO_ACTION));
+  } catch (...) {
+    clientFailure = std::current_exception();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientFailure) {
+    std::rethrow_exception(clientFailure);
+  }
+  REQUIRE_FALSE(serverFailures[0]);
+  REQUIRE_FALSE(serverFailures[1]);
+}
+
+TEST_CASE(
+    "Pushed process attribute reflection is delivered exactly once through save and restore",
+    "[unit][internal-only][no-normative-mapping][process-boundary][save-restore]"
+    "[save-queued-ro-attribute-update-push-client-queue]") {
+  using umbra::detail::CallbackDispatchModel;
+  using umbra::detail::ProcessFederationClient;
+
+  class ReflectionCounter final : public rti1516_2025::NullFederateAmbassador {
+   public:
+    void reflectAttributeValues(
+        rti1516_2025::ObjectInstanceHandle const&,
+        rti1516_2025::AttributeHandleValueMap const& values,
+        rti1516_2025::VariableLengthData const&,
+        rti1516_2025::TransportationTypeHandle const&,
+        rti1516_2025::FederateHandle const&,
+        rti1516_2025::RegionHandleSet const*) override {
+      reflectedValueCounts.push_back(values.size());
+    }
+
+    std::vector<std::size_t> reflectedValueCounts;
+  } receiverCallbacks;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener != nullptr);
+  auto saveStore = std::make_shared<umbra::detail::MemoryFederationSaveCommitStore>();
+  EmbeddedFederationRegistry registry({}, saveStore);
+  umbra::detail::ProcessFederationServiceOptions options;
+  options.pushReceiveOrderEvents = true;
+  ProcessFederationService service(
+      registry, composedRestaurantDefinition(), options);
+  std::array<std::exception_ptr, 2U> serverFailures{};
+  std::thread server([&] {
+    try {
+      auto firstConnection = listener->accept(
+          nullptr, {"queued-ro-push-server-a", 0xB1U},
+          [](std::wstring) {}, [](std::wstring) { return false; });
+      auto secondConnection = listener->accept(
+          nullptr, {"queued-ro-push-server-b", 0xB2U},
+          [](std::wstring) {}, [](std::wstring) { return false; });
+      ProcessTransportSession firstSession(std::move(firstConnection));
+      ProcessTransportSession secondSession(std::move(secondConnection));
+      auto firstHandler = service.handlerFor(firstSession);
+      auto secondHandler = service.handlerFor(secondSession);
+      std::thread firstWorker([&] {
+        try {
+          while (ProcessTransportServiceDispatcher::serveOne(
+              firstSession, firstHandler)) {}
+          service.detach(firstSession);
+        } catch (...) {
+          serverFailures[0] = std::current_exception();
+        }
+        firstSession.connection()->close();
+      });
+      std::thread secondWorker([&] {
+        try {
+          while (ProcessTransportServiceDispatcher::serveOne(
+              secondSession, secondHandler)) {}
+          service.detach(secondSession);
+        } catch (...) {
+          serverFailures[1] = std::current_exception();
+        }
+        secondSession.connection()->close();
+      });
+      firstWorker.join();
+      secondWorker.join();
+    } catch (...) {
+      serverFailures[0] = std::current_exception();
+    }
+  });
+
+  std::exception_ptr clientFailure;
+  try {
+    ProcessFederationClient sender(
+        {"127.0.0.1", listener->address().port},
+        {"queued-ro-push-client-a", 0xB3U});
+    ProcessFederationClient receiver(
+        {"127.0.0.1", listener->address().port},
+        {"queued-ro-push-client-b", 0xB4U});
+    std::wstring const federation = L"queued-ro-push-save-execution";
+    REQUIRE_NOTHROW(sender.createFederationExecution(federation));
+    auto const senderJoin = sender.joinFederationExecution(
+        federation, L"queued-ro-push-sender", L"queued-ro-push-sender");
+    auto const receiverJoin = receiver.joinFederationExecution(
+        federation, L"queued-ro-push-receiver", L"queued-ro-push-receiver");
+    receiver.attachCallbackBridge(receiverCallbacks, CallbackDispatchModel::evoked);
+
+    auto const objectClass = sender.lookupObjectClassHandle(
+        federation, senderJoin.federateId, L"HLAobjectRoot.Employee");
+    REQUIRE(objectClass.has_value());
+    auto const attribute = sender.lookupAttributeHandle(
+        federation, senderJoin.federateId, *objectClass, L"Name");
+    REQUIRE(attribute.has_value());
+    REQUIRE_NOTHROW(sender.publishObjectClassAttributes(
+        federation, senderJoin.federateId, *objectClass, {*attribute}));
+    REQUIRE_NOTHROW(receiver.subscribeObjectClassAttributes(
+        federation, receiverJoin.federateId, *objectClass, {*attribute}, true, ""));
+    auto const registration = sender.registerObjectInstance(
+        federation, senderJoin.federateId, *objectClass);
+    REQUIRE(registration.objectInstanceHandle != 0U);
+    while (receiver.evokeOne(std::chrono::milliseconds{0})) {
+    }
+
+    std::vector<std::uint8_t> const value{0x50U, 0x75U, 0x73U, 0x68U};
+    auto const update = sender.updateAttributeValues(
+        federation,
+        senderJoin.federateId,
+        registration.objectInstanceHandle,
+        {{*attribute, value}},
+        {});
+    REQUIRE(update.recipientCount == 1U);
+    bool pendingReflection = false;
+    for (std::size_t attempt = 0U;
+         attempt < 100U && !pendingReflection;
+         ++attempt) {
+      pendingReflection =
+          receiver.pendingPushedAttributeUpdateCount() != 0U ||
+          receiver.pendingCallbackCount() != 0U;
+      if (!pendingReflection) {
+        std::this_thread::sleep_for(std::chrono::milliseconds{2});
+      }
+    }
+    REQUIRE(pendingReflection);
+    REQUIRE(receiverCallbacks.reflectedValueCounts.empty());
+    receiver.dispatchPendingPushedEvents();
+    REQUIRE(receiver.pendingCallbackCount() >= 1U);
+    REQUIRE(receiverCallbacks.reflectedValueCounts.empty());
+
+    REQUIRE(sender.requestFederationSave(
+                federation, senderJoin.federateId, L"queued-ro-push-save").status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(sender.federateSaveBegun(
+                federation, senderJoin.federateId).status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(receiver.federateSaveBegun(
+                federation, receiverJoin.federateId).status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(sender.federateSaveComplete(
+                federation, senderJoin.federateId).status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(receiver.federateSaveComplete(
+                federation, receiverJoin.federateId).status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+
+    auto const committed = saveStore->load(federation, L"queued-ro-push-save");
+    REQUIRE(committed.has_value());
+    auto const image = umbra::detail::FederationStateImageCodec::decode(
+        committed->stateImage);
+    REQUIRE(image.queuedReceiveOrderAttributeUpdates.size() == 1U);
+    CHECK(image.queuedReceiveOrderAttributeUpdates.front().pushDeliveryId != 0U);
+    CHECK(image.queuedReceiveOrderAttributeUpdates.front().receivingFederateId ==
+          receiverJoin.federateId);
+
+    EmbeddedFederationRegistry restartedRegistry({}, saveStore);
+    REQUIRE(restartedRegistry.create(
+                federation, composedRestaurantDefinition()).status ==
+            umbra::detail::FederationRegistryStatus::applied);
+    auto const discardRestartedCallback =
+        [](umbra::detail::FederateCallbackInvocation) {};
+    auto const restartedSender = restartedRegistry.joinWithTimeState(
+        federation,
+        std::make_shared<umbra::detail::FederateTimeState>(
+            L"HLAinteger64Time",
+            std::make_shared<rti1516_2025::HLAinteger64Time>()),
+        L"queued-ro-push-sender",
+        L"queued-ro-push-sender",
+        discardRestartedCallback);
+    auto const restartedReceiver = restartedRegistry.joinWithTimeState(
+        federation,
+        std::make_shared<umbra::detail::FederateTimeState>(
+            L"HLAinteger64Time",
+            std::make_shared<rti1516_2025::HLAinteger64Time>()),
+        L"queued-ro-push-receiver",
+        L"queued-ro-push-receiver",
+        discardRestartedCallback);
+    REQUIRE(restartedSender.membership.has_value());
+    REQUIRE(restartedReceiver.membership.has_value());
+    REQUIRE(restartedSender.membership->id == senderJoin.federateId);
+    REQUIRE(restartedReceiver.membership->id == receiverJoin.federateId);
+    REQUIRE(restartedRegistry.requestFederationRestore(
+                federation, senderJoin.federateId, L"queued-ro-push-save").status ==
+            umbra::detail::FederationRestoreControlStatus::applied);
+    REQUIRE(restartedRegistry.federateRestoreComplete(
+                federation, senderJoin.federateId).status ==
+            umbra::detail::FederationRestoreControlStatus::applied);
+    auto const restartedRestore = restartedRegistry.federateRestoreComplete(
+        federation, receiverJoin.federateId);
+    REQUIRE(restartedRestore.status ==
+            umbra::detail::FederationRestoreControlStatus::applied);
+    REQUIRE(restartedRestore.notifications.size() == 2U);
+    CHECK(std::all_of(
+        restartedRestore.notifications.begin(),
+        restartedRestore.notifications.end(),
+        [](auto const& notification) { return notification.successful; }));
+    REQUIRE(restartedRestore.restoredQueuedReceiveOrderAttributeUpdates.size() == 1U);
+    CHECK(restartedRestore.restoredQueuedReceiveOrderAttributeUpdates.front()
+              .pushDeliveryId ==
+          image.queuedReceiveOrderAttributeUpdates.front().pushDeliveryId);
+
+    REQUIRE(sender.requestFederationRestore(
+                federation, senderJoin.federateId, L"queued-ro-push-save").status ==
+            umbra::detail::FederationRestoreControlStatus::applied);
+    REQUIRE(sender.federateRestoreComplete(
+                federation, senderJoin.federateId).status ==
+            umbra::detail::FederationRestoreControlStatus::applied);
+    REQUIRE(receiver.federateRestoreComplete(
+                federation, receiverJoin.federateId).status ==
+            umbra::detail::FederationRestoreControlStatus::applied);
+
+    while (receiver.evokeOne(std::chrono::milliseconds{0})) {
+    }
+    REQUIRE(receiverCallbacks.reflectedValueCounts == std::vector<std::size_t>{1U});
+    REQUIRE(receiver.pendingCallbackCount() == 0U);
+
+    REQUIRE_NOTHROW(receiver.resignFederationExecution(
+        federation, receiverJoin.federateId, rti1516_2025::NO_ACTION));
+    REQUIRE_NOTHROW(sender.resignFederationExecution(
+        federation, senderJoin.federateId, rti1516_2025::NO_ACTION));
+  } catch (...) {
+    clientFailure = std::current_exception();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientFailure) {
+    std::rethrow_exception(clientFailure);
+  }
+  REQUIRE_FALSE(serverFailures[0]);
+  REQUIRE_FALSE(serverFailures[1]);
+}
+
+TEST_CASE(
+    "Polling process save and restore reconstitutes an undelivered receive-order attribute update exactly once",
+    "[unit][federation-management][save-restore][receive-order]"
+    "[process-boundary][save-queued-ro-attribute-update][2025]") {
+  using umbra::detail::ProcessFederationClient;
+  using umbra::detail::ProcessFederationServiceOptions;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener != nullptr);
+  EmbeddedFederationRegistry registry;
+  ProcessFederationServiceOptions options;
+  options.pushReceiveOrderEvents = false;
+  ProcessFederationService service(registry, composedRestaurantDefinition(), options);
+  std::array<std::exception_ptr, 2U> serverFailures{};
+  std::thread server([&] {
+    try {
+      auto firstConnection = listener->accept(
+          nullptr, {"queued-ro-attribute-server-a", 0xA1U},
+          [](std::wstring) {}, [](std::wstring) { return false; });
+      auto secondConnection = listener->accept(
+          nullptr, {"queued-ro-attribute-server-b", 0xA2U},
+          [](std::wstring) {}, [](std::wstring) { return false; });
+      ProcessTransportSession firstSession(std::move(firstConnection));
+      ProcessTransportSession secondSession(std::move(secondConnection));
+      auto firstHandler = service.handlerFor(firstSession);
+      auto secondHandler = service.handlerFor(secondSession);
+      std::thread firstWorker([&] {
+        try {
+          while (ProcessTransportServiceDispatcher::serveOne(
+              firstSession, firstHandler)) {}
+          service.detach(firstSession);
+        } catch (...) {
+          serverFailures[0] = std::current_exception();
+        }
+        firstSession.connection()->close();
+      });
+      std::thread secondWorker([&] {
+        try {
+          while (ProcessTransportServiceDispatcher::serveOne(
+              secondSession, secondHandler)) {}
+          service.detach(secondSession);
+        } catch (...) {
+          serverFailures[1] = std::current_exception();
+        }
+        secondSession.connection()->close();
+      });
+      firstWorker.join();
+      secondWorker.join();
+    } catch (...) {
+      serverFailures[0] = std::current_exception();
+    }
+  });
+
+  std::exception_ptr clientFailure;
+  try {
+    ProcessFederationClient sender(
+        {"127.0.0.1", listener->address().port},
+        {"queued-ro-attribute-client-a", 0xA3U});
+    ProcessFederationClient receiver(
+        {"127.0.0.1", listener->address().port},
+        {"queued-ro-attribute-client-b", 0xA4U});
+    std::wstring const federation = L"queued-ro-attribute-save-execution";
+    REQUIRE_NOTHROW(sender.createFederationExecution(federation));
+    auto const senderJoin = sender.joinFederationExecution(
+        federation, L"queued-ro-attribute-sender", L"queued-ro-attribute-sender");
+    auto const receiverJoin = receiver.joinFederationExecution(
+        federation, L"queued-ro-attribute-receiver", L"queued-ro-attribute-receiver");
+    auto const objectClass = sender.lookupObjectClassHandle(
+        federation, senderJoin.federateId, L"HLAobjectRoot.Employee");
+    REQUIRE(objectClass.has_value());
+    auto const attribute = sender.lookupAttributeHandle(
+        federation, senderJoin.federateId, *objectClass, L"Name");
+    REQUIRE(attribute.has_value());
+    REQUIRE_NOTHROW(sender.publishObjectClassAttributes(
+        federation, senderJoin.federateId, *objectClass, {*attribute}));
+    REQUIRE_NOTHROW(receiver.subscribeObjectClassAttributes(
+        federation, receiverJoin.federateId, *objectClass, {*attribute}, true, ""));
+    auto const registration = sender.registerObjectInstance(
+        federation, senderJoin.federateId, *objectClass);
+    REQUIRE(registration.objectInstanceHandle != 0U);
+
+    // Keep join/discovery initialization callbacks out of this focused save
+    // boundary; the case is specifically about one application RO reflection.
+    while (receiver.receiveAttributeUpdate(
+        federation, receiverJoin.federateId)) {
+    }
+
+    std::vector<std::uint8_t> const value{0x41U, 0x74U, 0x74U, 0x72U};
+    std::vector<std::uint8_t> const tag{0x53U, 0x61U, 0x76U, 0x65U};
+    auto const update = sender.updateAttributeValues(
+        federation,
+        senderJoin.federateId,
+        registration.objectInstanceHandle,
+        {{*attribute, value}},
+        tag);
+    REQUIRE(update.recipientCount == 1U);
+    REQUIRE(sender.requestFederationSave(
+                federation, senderJoin.federateId, L"queued-ro-attribute-save").status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(sender.federateSaveBegun(
+                federation, senderJoin.federateId).status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(receiver.federateSaveBegun(
+                federation, receiverJoin.federateId).status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(sender.federateSaveComplete(
+                federation, senderJoin.federateId).status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(receiver.federateSaveComplete(
+                federation, receiverJoin.federateId).status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+
+    auto live = receiver.receiveAttributeUpdate(
+        federation, receiverJoin.federateId);
+    std::vector<umbra::detail::ProcessFederationAttributeValue> const
+        expectedValues{{*attribute, value}};
+    REQUIRE(live.has_value());
+    REQUIRE(live->producingFederateId == senderJoin.federateId);
+    REQUIRE(live->receivingFederateId == receiverJoin.federateId);
+    REQUIRE(live->objectInstanceHandle == registration.objectInstanceHandle);
+    REQUIRE(live->attributeValues == expectedValues);
+    REQUIRE(live->userSuppliedTag == tag);
+
+    REQUIRE(sender.requestFederationRestore(
+                federation, senderJoin.federateId, L"queued-ro-attribute-save").status ==
+            umbra::detail::FederationRestoreControlStatus::applied);
+    REQUIRE(sender.federateRestoreComplete(
+                federation, senderJoin.federateId).status ==
+            umbra::detail::FederationRestoreControlStatus::applied);
+    REQUIRE(receiver.federateRestoreComplete(
+                federation, receiverJoin.federateId).status ==
+            umbra::detail::FederationRestoreControlStatus::applied);
+
+    auto restored = receiver.receiveAttributeUpdate(
+        federation, receiverJoin.federateId);
+    REQUIRE(restored.has_value());
+    REQUIRE(restored->producingFederateId == senderJoin.federateId);
+    REQUIRE(restored->receivingFederateId == receiverJoin.federateId);
+    REQUIRE(restored->objectInstanceHandle == registration.objectInstanceHandle);
+    REQUIRE(restored->attributeValues == expectedValues);
+    REQUIRE(restored->userSuppliedTag == tag);
+    REQUIRE_FALSE(receiver.receiveAttributeUpdate(
+        federation, receiverJoin.federateId).has_value());
+
+    REQUIRE_NOTHROW(receiver.resignFederationExecution(
+        federation, receiverJoin.federateId, rti1516_2025::NO_ACTION));
+    REQUIRE_NOTHROW(sender.resignFederationExecution(
+        federation, senderJoin.federateId, rti1516_2025::NO_ACTION));
+  } catch (...) {
+    clientFailure = std::current_exception();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientFailure) {
+    std::rethrow_exception(clientFailure);
+  }
+  REQUIRE_FALSE(serverFailures[0]);
+  REQUIRE_FALSE(serverFailures[1]);
 }

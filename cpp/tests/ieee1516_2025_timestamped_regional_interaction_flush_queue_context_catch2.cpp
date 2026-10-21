@@ -2,9 +2,10 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
 TEST_CASE(
-    "Embedded Flush Queue Request delivers timestamped regional interaction context",
+    "Embedded Flush Queue Request uses actual time for timestamped regional interaction send bound",
     "[integration][development-profile][interaction-management][ddm][time-management]"
     "[flush-queue-request][timestamped-regional-interaction][tso]"
+    "[fqr-distinct-actual-optimistic-regional-interaction-bound]"
     "[timestamped-regional-interaction-flush-queue-context][2025]"
     "[rti.service.send-interaction-with-regions][rti.service.flush-queue-request]"
     "[federate.callback.receive-interaction][federate.callback.flush-queue-grant]") {
@@ -60,6 +61,10 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->setConveyRegionDesignatorSetsSwitch(true));
   REQUIRE_NOTHROW(receiver->enableTimeConstrained());
   REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(receiver->publishInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(receiver->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
   REQUIRE_NOTHROW(publisher->enableTimeRegulation(
       rti1516_2025::HLAinteger64Interval(5)));
   REQUIRE_FALSE(publisher->evokeCallback(0.0));
@@ -106,6 +111,22 @@ TEST_CASE(
   REQUIRE(report.sentRegions.contains(publisherRegion));
   REQUIRE(report.retractionSupplied);
   REQUIRE(report.retractionValid);
+
+  // The FQR actual grant is 5 while its optimistic time is 7. The sender's
+  // timestamped regional-service bound uses actual current time plus
+  // lookahead, so a send at 6 succeeds without advancing logical time.
+  rti1516_2025::HLAinteger64Time logicalTime;
+  REQUIRE_NOTHROW(receiver->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+  auto const postGrantRetraction = receiver->sendInteractionWithRegions(
+      interactionClass,
+      parameterValues,
+      RegionHandleSet{receiverRegion},
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(postGrantRetraction.isValid());
+  REQUIRE_NOTHROW(receiver->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
 
   REQUIRE_NOTHROW(receiver->unsubscribeInteractionClassWithRegions(
       interactionClass,

@@ -133,6 +133,33 @@ final class FqrPostgrantLowerTsoRetractionTck {
                && requestBoundary.equals(firstGrant.optimistic)
                && expectedActualGrant.equals(receiver.queryLogicalTime()),
             "FQR reported or queried the wrong actual/optimistic frontier");
+         LogicalTime<?, ?> belowOptimisticFloor =
+            offset(expectedActualGrant, receiverEpsilon, 1);
+         JavaTckSupport.check(compareTime(belowOptimisticFloor, expectedActualGrant) > 0
+               && compareTime(belowOptimisticFloor, requestBoundary) < 0,
+            "FQR advance probe did not distinguish actual and optimistic time");
+         JavaTckSupport.expectFailure(
+            () -> receiver.timeAdvanceRequest(belowOptimisticFloor),
+            "LogicalTimeAlreadyPassed",
+            "timeAdvanceRequest after FQG below its optimistic logical time");
+         JavaTckSupport.expectFailure(
+            () -> receiver.timeAdvanceRequestAvailable(belowOptimisticFloor),
+            "LogicalTimeAlreadyPassed",
+            "timeAdvanceRequestAvailable after FQG below its optimistic logical time");
+         JavaTckSupport.expectFailure(
+            () -> receiver.nextMessageRequest(belowOptimisticFloor),
+            "LogicalTimeAlreadyPassed",
+            "nextMessageRequest after FQG below its optimistic logical time");
+         JavaTckSupport.expectFailure(
+            () -> receiver.nextMessageRequestAvailable(belowOptimisticFloor),
+            "LogicalTimeAlreadyPassed",
+            "nextMessageRequestAvailable after FQG below its optimistic logical time");
+         JavaTckSupport.expectFailure(
+            () -> receiver.flushQueueRequest(belowOptimisticFloor),
+            "LogicalTimeAlreadyPassed",
+            "flushQueueRequest after FQG below its optimistic logical time");
+         JavaTckSupport.check(expectedActualGrant.equals(receiver.queryLogicalTime()),
+            "rejected post-FQG advance changed the actual logical time");
 
          JavaTckSupport.expectFailure(
             () -> publisher.sendInteraction(
@@ -241,6 +268,11 @@ final class FqrPostgrantLowerTsoRetractionTck {
          result = (LogicalTime) result.add(interval);
       }
       return result;
+   }
+
+   @SuppressWarnings({"rawtypes", "unchecked"})
+   private static int compareTime(LogicalTime left, LogicalTime right) {
+      return left.compareTo(right);
    }
 
    private static void await(RTIambassador ambassador, CallbackModel model,

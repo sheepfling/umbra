@@ -135,6 +135,10 @@ MomServiceReportRoutingPlan EmbeddedFederationRegistry::momServiceReportRoutingP
         &endpointRegionHandles,
         &endpointOverride);
     if (recipient) {
+      if (recipient->conveyRegionDesignatorSets) {
+        recipient->sentRegionHandles = endpointRegionHandles;
+        recipient->sentRegionSnapshots = endpointOverride;
+      }
       result.recipients.push_back(std::move(*recipient));
     }
   }
@@ -233,7 +237,7 @@ EmbeddedFederationRegistry::momServiceReportRecipientFor(
   std::set<std::uint64_t> const endpointRegionHandles{
       kMomServiceReportEndpointRegionHandle,
   };
-  return candidateReceiveOrderInteractionRecipient(
+  auto recipient = candidateReceiveOrderInteractionRecipient(
       federation->second,
       InteractionProducer::rti(),
       receivingFederateId,
@@ -241,6 +245,11 @@ EmbeddedFederationRegistry::momServiceReportRecipientFor(
       reportParameterHandles,
       &endpointRegionHandles,
       &endpointOverride);
+  if (recipient && recipient->conveyRegionDesignatorSets) {
+    recipient->sentRegionHandles = endpointRegionHandles;
+    recipient->sentRegionSnapshots = std::move(endpointOverride);
+  }
+  return recipient;
 }
 
 

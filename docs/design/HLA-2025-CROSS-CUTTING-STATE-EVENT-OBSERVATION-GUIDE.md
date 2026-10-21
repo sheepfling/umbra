@@ -95,6 +95,26 @@ carry data; and some effects are gated by logical time or federation-wide
 coordination. A callback can also be queued without yet being visible to user
 code. Identify those details in the guide for the specific service.
 
+The 2025 Federation MOM synchronization queries make the `FACTS` → `QUERY`
+distinction concrete. `HLArequestSynchronizationPoints` asks for the current
+in-progress point list; `HLArequestSynchronizationPointStatus` asks for one
+point's federate/status roster. The pinned MIM defines both as reliable,
+receive-order Subscribe requests that specify one paired report ([list
+request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2559),
+[status request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2569)).
+In the reviewed embedded path, each request
+plans and queues a report rather than announcing, achieving, or completing the
+point. The focused test observes the active-point list, a participant's status
+changing from 2 to 3 after achievement, and an empty roster for an unknown
+label. This is an embedded source/test example, not a universal pipeline or a
+configured-process parity claim; that query path remains unverified. See the
+[synchronization-query flow](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#federation-synchronization-queries-active-point-list-and-roster-status),
+[points-request handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L649),
+[status-request handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L681),
+[list response test](../../cpp/tests/ieee1516_2025_federation_mom_synchronization_reports_catch2.cpp#L109),
+[status transition test](../../cpp/tests/ieee1516_2025_federation_mom_synchronization_reports_catch2.cpp#L158),
+and [unknown-label test](../../cpp/tests/ieee1516_2025_federation_mom_synchronization_reports_catch2.cpp#L172).
+
 ## A federation model defines vocabulary; services create live state
 
 The FOM and the running federation answer different questions. A composed

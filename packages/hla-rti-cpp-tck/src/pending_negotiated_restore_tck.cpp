@@ -7,10 +7,13 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
+#include <fstream>
+#include <iterator>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <stdexcept>
+#include <string>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -273,6 +276,34 @@ std::vector<std::filesystem::path> reportFiles(
   return result;
 }
 
+std::string initialReportCallbackModel(std::filesystem::path const& path) {
+  std::ifstream input(path, std::ios::binary);
+  if (!input) {
+    throw std::runtime_error(
+        "The public HLAreportServiceFile path could not be opened");
+  }
+  std::string const contents(
+      std::istreambuf_iterator<char>{input},
+      std::istreambuf_iterator<char>{});
+  auto const fieldName = std::string{"\"CallbackModel\":"};
+  auto const fieldPosition = contents.find(fieldName);
+  if (fieldPosition == std::string::npos) {
+    throw std::runtime_error(
+        "The initial service-report record omitted CallbackModel");
+  }
+  auto const valueStart = contents.find('"', fieldPosition + fieldName.size());
+  if (valueStart == std::string::npos) {
+    throw std::runtime_error(
+        "The initial service-report CallbackModel was not a string value");
+  }
+  auto const valueEnd = contents.find('"', valueStart + 1U);
+  if (valueEnd == std::string::npos) {
+    throw std::runtime_error(
+        "The initial service-report CallbackModel string was incomplete");
+  }
+  return contents.substr(valueStart + 1U, valueEnd - valueStart - 1U);
+}
+
 std::vector<std::uint8_t> copyBytes(rti::VariableLengthData const& value) {
   auto const* bytes = static_cast<std::uint8_t const*>(value.data());
   return bytes == nullptr ? std::vector<std::uint8_t>{}
@@ -514,6 +545,14 @@ void runPendingNegotiatedRestore(
           filesAtJoin.end()) {
     throw std::runtime_error(
         "Public Federate MOM HLAreportServiceFile values did not identify distinct retained files");
+  }
+  auto const expectedCallbackModel = configuration.callbackModel == rti::HLA_EVOKED
+      ? "HLA_EVOKED"
+      : "HLA_IMMEDIATE";
+  if (initialReportCallbackModel(ownerObservedRequester->path) != expectedCallbackModel ||
+      initialReportCallbackModel(requesterObservedOwner->path) != expectedCallbackModel) {
+    throw std::runtime_error(
+        "A joined federate's initial service-report record encoded the wrong CallbackModel");
   }
 
   if (configuration.callbackModel == rti::HLA_IMMEDIATE) {

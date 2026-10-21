@@ -71,6 +71,9 @@ final class TimeConstrainedEnableGaltEqualityTck {
          await(callbackModel, regulator,
             () -> four.equals(regulatorRecorder.timeAdvanceGrant),
             "regulator grant to four");
+         TimeQueryReturn equalityGalt = requester.queryGALT();
+         JavaTckSupport.check(equalityGalt.timeIsValid && five.equals(equalityGalt.time),
+            "GALT did not equal current logical time before constrained enablement");
          LogicalTime<?, ?> regulatorFive = add(initial, offset(epsilon, 5));
          regulator.timeAdvanceRequest(regulatorFive);
          await(callbackModel, regulator,
@@ -85,6 +88,36 @@ final class TimeConstrainedEnableGaltEqualityTck {
             "time-constrained callback at GALT equality");
          JavaTckSupport.check(five.equals(requesterRecorder.timeConstrainedTime),
             "time-constrained callback reported a time other than five");
+         JavaTckSupport.check(five.equals(requester.queryLogicalTime()),
+            "time-constrained enablement did not set the callback's logical time");
+
+         LogicalTime<?, ?> six = add(initial, offset(epsilon, 6));
+         LogicalTime<?, ?> eight = add(initial, offset(epsilon, 8));
+         TimeQueryReturn heldGalt = requester.queryGALT();
+         JavaTckSupport.check(heldGalt.timeIsValid && six.equals(heldGalt.time),
+            "regulator-constrained advance had the wrong GALT before the request");
+         requester.timeAdvanceRequest(eight);
+         long heldDeadline = System.nanoTime() + 50_000_000L;
+         while (System.nanoTime() < heldDeadline) {
+            if (callbackModel == CallbackModel.HLA_EVOKED) requester.evokeCallback(0.0);
+            JavaTckSupport.check(five.equals(requesterRecorder.timeAdvanceGrant),
+               "time-constrained requester advanced beyond the regulating peer's GALT");
+            Thread.yield();
+         }
+         JavaTckSupport.check(five.equals(requester.queryLogicalTime()),
+            "regulator-constrained request changed logical time before the peer advanced");
+         heldGalt = requester.queryGALT();
+         JavaTckSupport.check(heldGalt.timeIsValid && six.equals(heldGalt.time),
+            "GALT changed while the constrained advance was held");
+         regulator.timeAdvanceRequest(eight);
+         await(callbackModel, regulator,
+            () -> eight.equals(regulatorRecorder.timeAdvanceGrant),
+            "regulator grant that releases the constrained requester");
+         await(callbackModel, requester,
+            () -> eight.equals(requesterRecorder.timeAdvanceGrant),
+            "time-constrained requester grant after regulator advance");
+         JavaTckSupport.check(eight.equals(requester.queryLogicalTime()),
+            "time-constrained requester did not reach its granted time");
 
          requester.disableTimeConstrained();
          regulator.disableTimeRegulation();

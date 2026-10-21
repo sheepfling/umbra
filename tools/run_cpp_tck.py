@@ -21,10 +21,22 @@ from pathlib import Path
 from typing import Any, Iterable
 
 try:
-    from .cpp_tck import DEFAULT_CATALOG, ROOT, load_catalog
+    from .cpp_tck import (
+        DEFAULT_CATALOG,
+        ROOT,
+        STANDARD_CALLBACK_MODELS,
+        callback_models_for_scenario,
+        load_catalog,
+    )
 except ImportError:  # Direct invocation: python tools/run_cpp_tck.py
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from cpp_tck import DEFAULT_CATALOG, ROOT, load_catalog
+    from cpp_tck import (
+        DEFAULT_CATALOG,
+        ROOT,
+        STANDARD_CALLBACK_MODELS,
+        callback_models_for_scenario,
+        load_catalog,
+    )
 
 
 ADAPTER = ROOT / "packages" / "hla-rti-cpp-tck" / "adapters" / "current-package"
@@ -235,6 +247,11 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--ownership-extension-fom",
+        default=str(default_path("packages/hla-rti-cpp-tck/fom/ownership-post-join-extension-tck.xml")),
+        help="FOM module adding an attribute to an already registered class at join",
+    )
+    parser.add_argument(
         "--ddm-dimension",
         action="append",
         default=[],
@@ -283,6 +300,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--object-class", default="HLAobjectRoot.TckObject")
     parser.add_argument("--attribute", default="Value")
     parser.add_argument("--secondary-attribute", default="Name")
+    parser.add_argument("--ownership-added-attribute", default="AddedAfterRegistration")
     parser.add_argument("--object-class-third-attribute", default="PayRate")
     parser.add_argument(
         "--auto-provide-object-class",
@@ -521,6 +539,11 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             must_exist=True,
             label="known-class-disabled advisory FOM",
         ),
+        "ownership_extension_fom": resolve_path(
+            arguments.ownership_extension_fom,
+            must_exist=True,
+            label="ownership post-join extension FOM",
+        ),
     }
     ddm_dimensions = arguments.ddm_dimension or ["TckDimensionX", "TckDimensionY"]
     three_dimensions = arguments.three_dimensional_dimension or [
@@ -580,6 +603,8 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM": inputs[
             "known_class_disabled_fom"
         ],
+        "HLA_RTI_TCK_ADAPTER_OWNERSHIP_EXTENSION_FOM": inputs["ownership_extension_fom"],
+        "HLA_RTI_TCK_ADAPTER_OWNERSHIP_ADDED_ATTRIBUTE": arguments.ownership_added_attribute,
         "HLA_RTI_TCK_ADAPTER_DDM_DIMENSIONS": ";".join(inputs["ddm_dimensions"]),
         "HLA_RTI_TCK_ADAPTER_THREE_DIMENSIONAL_DIMENSIONS": ";".join(
             inputs["three_dimensions"]
@@ -683,6 +708,40 @@ def configure(arguments: argparse.Namespace, inputs: dict[str, Any]) -> None:
     run_command(command, cwd=ROOT)
 
 
+def verify_configured_package(inputs: dict[str, Any]) -> dict[str, Path]:
+    """Reject a reused CMake cache bound to a different installed package.
+
+    CMAKE_PREFIX_PATH is only a search hint: a cached package ``_DIR`` may
+    select another installation. Check the resolved provider configuration and
+    API headers before building or treating any run as package evidence.
+    """
+    build_directory: Path = inputs["build_directory"]
+    cache = build_directory / "CMakeCache.txt"
+    if not cache.is_file():
+        raise ValueError(f"configured CMake cache was not found: {cache}")
+    keys = ("umbra_rti_DIR", "HLA_RTI_TCK_API_INCLUDE_DIR")
+    values: dict[str, Path] = {}
+    for line in cache.read_text(encoding="utf-8", errors="replace").splitlines():
+        name_and_type, separator, value = line.partition("=")
+        if not separator:
+            continue
+        name = name_and_type.partition(":")[0]
+        if name in keys and value and not value.endswith("-NOTFOUND"):
+            values[name] = Path(value).resolve()
+    prefix: Path = inputs["package_prefix"].resolve()
+    for key in keys:
+        actual = values.get(key)
+        if actual is None or not actual.is_dir():
+            raise ValueError(f"configured {key} is missing or not a directory in {cache}")
+        if not actual.is_relative_to(prefix):
+            raise ValueError(
+                f"configured {key} resolves outside --package-prefix: "
+                f"{actual} (requested {prefix}); use a fresh build directory "
+                "or clear the stale CMake package cache"
+            )
+    return values
+
+
 def build(arguments: argparse.Namespace, inputs: dict[str, Any]) -> None:
     command = [
         arguments.cmake,
@@ -715,6 +774,24 @@ def ctest_scenario_regex(selected: list[dict[str, Any]]) -> str | None:
         f"hla_rti_cpp_tck\\.{re.escape(slug)}\\." for slug in slugs
     )
     return "(" + "|".join(alternatives) + ")"
+
+
+def ctest_callback_model_exclusion_regex(
+    arguments: argparse.Namespace,
+    selected: list[dict[str, Any]],
+) -> str | None:
+    if arguments.callback_model != "both":
+        return None
+    exclusions = []
+    for scenario in selected:
+        slug = re.sub(r"[^A-Za-z0-9_]", "_", scenario["id"])
+        declared_models = set(callback_models_for_scenario(scenario))
+        exclusions.extend(
+            rf"hla_rti_cpp_tck\.{re.escape(slug)}\.{model}$"
+            for model in STANDARD_CALLBACK_MODELS
+            if model not in declared_models
+        )
+    return "(" + "|".join(sorted(exclusions)) + ")" if exclusions else None
 
 
 def ctest_registered_scenarios(
@@ -753,6 +830,11 @@ def run_ctest(
     scenario_regex = ctest_scenario_regex(selected) if arguments.scenario else None
     if scenario_regex:
         command.extend(["-R", scenario_regex])
+    callback_model_exclusions = ctest_callback_model_exclusion_regex(
+        arguments, selected
+    )
+    if callback_model_exclusions:
+        command.extend(["-E", callback_model_exclusions])
     command.append("--no-tests=error")
     command.append("--output-on-failure")
     run_command(command, cwd=ROOT)
@@ -809,6 +891,17 @@ def select_scenarios(arguments: argparse.Namespace, catalog: dict[str, Any]) -> 
     ]
     if unsupported:
         raise ValueError("unsupported catalog scenario(s): " + ", ".join(unsupported))
+    if arguments.callback_model != "both":
+        incompatible = [
+            scenario["id"]
+            for scenario in selected
+            if arguments.callback_model not in callback_models_for_scenario(scenario)
+        ]
+        if incompatible:
+            raise ValueError(
+                "scenario(s) do not declare callback model "
+                f"{arguments.callback_model}: " + ", ".join(incompatible)
+            )
     return selected
 
 
@@ -854,6 +947,10 @@ def direct_arguments(
         str(inputs["known_class_fom"]),
         "--known-class-disabled-fom",
         str(inputs["known_class_disabled_fom"]),
+        "--ownership-extension-fom",
+        str(inputs["ownership_extension_fom"]),
+        "--ownership-added-attribute",
+        arguments.ownership_added_attribute,
         "--time-implementation",
         arguments.time_implementation,
         "--provider-id",
@@ -1380,13 +1477,18 @@ def run_executable_direct(
     # evidence without failing the process.  Keep each direct evidence child
     # to one catalog scenario so the merged result is complete and portable.
     if len(selected) <= 1:
+        child_arguments = argparse.Namespace(**vars(arguments))
+        if selected:
+            child_arguments.callback_model = callback_model_argument_for_scenario(
+                arguments, selected[0]
+            )
         if (
             len(selected) == 1
             and is_portable_dispatch_scenario(selected[0]["id"])
             and (results is not None or junit is not None)
         ):
             run_portable_dispatch_direct(
-                arguments,
+                child_arguments,
                 inputs,
                 executable,
                 selected[0],
@@ -1395,7 +1497,7 @@ def run_executable_direct(
             )
             return
         command = [str(executable)] + direct_arguments(
-            arguments,
+            child_arguments,
             inputs,
             selected,
             results,
@@ -1418,6 +1520,10 @@ def run_executable_direct(
         failed_scenarios: list[tuple[str, subprocess.CalledProcessError]] = []
         missing_evidence: list[str] = []
         for index, scenario in enumerate(selected):
+            child_arguments = argparse.Namespace(**vars(arguments))
+            child_arguments.callback_model = callback_model_argument_for_scenario(
+                arguments, scenario
+            )
             chunk_results = (
                 temporary_root / f"chunk-{index}.json" if results is not None else None
             )
@@ -1425,7 +1531,7 @@ def run_executable_direct(
                 temporary_root / f"chunk-{index}.xml" if junit is not None else None
             )
             command = [str(executable)] + direct_arguments(
-                arguments,
+                child_arguments,
                 inputs,
                 [scenario],
                 chunk_results,
@@ -1647,11 +1753,10 @@ def validate_direct_evidence(
     callback_model: str,
 ) -> None:
     payload = json.loads(results.read_text(encoding="utf-8"))
-    models = ("evoked", "immediate") if callback_model == "both" else (callback_model,)
     expected = {
         (scenario["id"], model)
         for scenario in selected
-        for model in models
+        for model in callback_models_for_run(callback_model, scenario)
     }
     observed = {
         (result.get("id"), result.get("callback_model"))
@@ -1666,6 +1771,32 @@ def validate_direct_evidence(
             + preview
             + suffix
         )
+
+
+def callback_models_for_run(
+    requested_callback_model: str,
+    scenario: dict[str, Any],
+) -> tuple[str, ...]:
+    requested = (
+        STANDARD_CALLBACK_MODELS
+        if requested_callback_model == "both"
+        else (requested_callback_model,)
+    )
+    declared = callback_models_for_scenario(scenario)
+    return tuple(model for model in requested if model in declared)
+
+
+def callback_model_argument_for_scenario(
+    arguments: argparse.Namespace,
+    scenario: dict[str, Any],
+) -> str:
+    models = callback_models_for_run(arguments.callback_model, scenario)
+    if not models:
+        raise ValueError(
+            f"{scenario['id']} has no evidence lane for callback model "
+            f"{arguments.callback_model}"
+        )
+    return "both" if models == STANDARD_CALLBACK_MODELS else models[0]
 
 
 def run_portable_dispatch_direct(
@@ -2338,6 +2469,7 @@ def main() -> int:
         selected = select_scenarios(arguments, catalog)
         if not arguments.skip_configure:
             configure(arguments, inputs)
+        configured_package = verify_configured_package(inputs)
         if not arguments.skip_build:
             build(arguments, inputs)
         ctest_ran = False
@@ -2394,6 +2526,9 @@ def main() -> int:
             "valid": True,
             "adapter": str(ADAPTER),
             "package_prefix": str(inputs["package_prefix"]),
+            "configured_package": {
+                key: str(value) for key, value in configured_package.items()
+            },
             "build_directory": str(inputs["build_directory"]),
             "scenario_set": arguments.scenario_set,
             "configured_scenario_count": len(

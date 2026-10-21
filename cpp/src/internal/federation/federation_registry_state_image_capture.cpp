@@ -66,6 +66,10 @@ FederationStateImage EmbeddedFederationRegistry::stateImageFor(
   image.nextSaveName = federation.nextSaveName;
   image.nextSaveTimeEncoding = encodedLogicalValue(federation.nextSaveTime);
   image.saveHistoryPresent = true;
+  image.queuedReceiveOrderInteractions =
+      federation.queuedReceiveOrderInteractions;
+  image.queuedReceiveOrderAttributeUpdates =
+      federation.queuedReceiveOrderAttributeUpdates;
 
   image.interactionDeclarationCount = federation.interactionDeclarations.size();
   image.synchronizationPointCount = federation.synchronizationPoints.size();
@@ -820,7 +824,10 @@ FederationStateImage EmbeddedFederationRegistry::stateImageFor(
         (state.timeAdvancePending ? 1U << 4U : 0U) |
         (state.timeRegulationPending ? 1U << 5U : 0U) |
         (state.timeConstrainedPending ? 1U << 6U : 0U) |
-        (state.minimumTimestampIsExclusive ? 1U << 7U : 0U);
+        (state.minimumTimestampIsExclusive ? 1U << 7U : 0U) |
+        (state.allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant
+             ? 1U << 8U
+             : 0U);
     savedTime.pendingGeneration = state.pendingTimeAdvanceGeneration;
     savedTime.advanceMode = static_cast<std::uint32_t>(state.advanceMode);
     savedTime.currentTimeEncoding = encodedLogicalValue(state.currentTime);

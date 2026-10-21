@@ -577,7 +577,7 @@ std::vector<std::uint8_t> encodeProcessFederationRestoreControlResult(
     ProcessFederationRestoreControlResult const& result) {
   auto const status = static_cast<std::uint8_t>(result.status);
   if (status > static_cast<std::uint8_t>(
-                   FederationRestoreControlStatus::callback_route_missing)) {
+                   FederationRestoreControlStatus::restore_failed)) {
     throw ProcessFederationServiceProtocolError(
         "A process federation-restore result has an invalid status.");
   }
@@ -592,7 +592,7 @@ ProcessFederationRestoreControlResult decodeProcessFederationRestoreControlResul
   auto const status = reader.unsigned8();
   reader.finish();
   if (status > static_cast<std::uint8_t>(
-                   FederationRestoreControlStatus::callback_route_missing)) {
+                   FederationRestoreControlStatus::restore_failed)) {
     throw ProcessFederationServiceProtocolError(
         "A process federation-restore result has an invalid status.");
   }

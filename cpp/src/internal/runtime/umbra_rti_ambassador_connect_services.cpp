@@ -150,8 +150,10 @@ ConfigurationResult UmbraRtiAmbassador::connectImpl(
         instrumentation_);
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   }
-  if (federationSaveDirectorySettingsApplied) {
-    configureFederationSaveDirectory(federationSaveDirectory);
+  if (!processEndpoint) {
+    configureFederationSaveDirectory(
+        federationSaveDirectory,
+        federationSaveDirectorySettingsApplied);
   }
 #endif
   ServiceReportConnectionSnapshot serviceReportConnection;

@@ -931,6 +931,8 @@ TEST_CASE(
             "The region-dimension-set process server lost the initial file-switch query.");
       serve(TransportServiceOperation::get_dimension_handle,
             "The region-dimension-set process server lost the BarQuantity lookup.");
+      serve(TransportServiceOperation::get_dimension_handle,
+            "The region-dimension-set process server lost the ServerId lookup.");
       serve(TransportServiceOperation::create_region,
             "The region-dimension-set process server lost region creation.");
       serve(TransportServiceOperation::set_service_reporting_switch,
@@ -973,8 +975,12 @@ TEST_CASE(
 
     auto const barQuantity = rti->getDimensionHandle(fixture_hla::fixture::bar_quantity);
     REQUIRE(barQuantity.isValid());
+    auto const serverId = rti->getDimensionHandle(fixture_hla::fixture::server_id);
+    REQUIRE(serverId.isValid());
+    auto const regionDimensions =
+        rti1516_2025::DimensionHandleSet{barQuantity, serverId};
     auto const region = rti->createRegion(
-        rti1516_2025::DimensionHandleSet{barQuantity});
+        regionDimensions);
     REQUIRE(region.isValid());
 
     auto files = reportFiles();
@@ -989,7 +995,7 @@ TEST_CASE(
     REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
     REQUIRE(rti->getSendServiceReportsToFileSwitch());
     REQUIRE(rti->getDimensionHandleSet(region) ==
-            rti1516_2025::DimensionHandleSet{barQuantity});
+            regionDimensions);
 
     auto asAscii = [](std::wstring const& value) {
       std::string result;
@@ -1002,12 +1008,20 @@ TEST_CASE(
       return result;
     };
     auto const regionValue = asAscii(region.toString());
-    auto const barQuantityValue = asAscii(barQuantity.toString());
+    std::string dimensionValues = "[";
+    for (auto iterator = regionDimensions.begin(); iterator != regionDimensions.end();
+         ++iterator) {
+      if (iterator != regionDimensions.begin()) {
+        dimensionValues += ",";
+      }
+      dimensionValues += "\"" + asAscii(iterator->toString()) + "\"";
+    }
+    dimensionValues += "]";
     auto const expectedRecord =
         std::string{
-            R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":11,"HLAargumentName":"A set of dimensions","HLAargumentValue":[")" +
-        barQuantityValue +
-        R"("]}],"HLAservice":"GetDimensionHandleSet","HLAsuppliedArguments":[{"HLAargumentType":42,"HLAargumentName":"Region handle","HLAargumentValue":")" +
+            R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":11,"HLAargumentName":"A set of dimensions","HLAargumentValue":)" +
+        dimensionValues +
+        R"(}],"HLAservice":"GetDimensionHandleSet","HLAsuppliedArguments":[{"HLAargumentType":42,"HLAargumentName":"Region handle","HLAargumentValue":")" +
         regionValue +
         R"("}],"HLAsuccessIndicator":true,"HLAexception":null})"};
     REQUIRE(readReport(reportFile) == initialText + expectedRecord);

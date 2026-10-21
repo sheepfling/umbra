@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-contract",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This contract isolates the zero-lookahead Time Advance Request send restriction from Table 1. The pinned Lab candidate is affected by RL-312's TeX and adjacent-column extraction artifacts. This case asserts only that while a federate is Time Advancing after TAR(tR), it cannot send a TSO message timestamped at or below tR; it does not assert the table's pre-grant delivery column, post-grant rules, or a GALT formula. HLA_EVOKED is selected so the pending state is observed before the grant callback is serviced. No provider-conformance claim is made.",
+  "requirements": [
+    {
+      "id": "tso-zero-lookahead-tar-send-boundary",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l45-12",
+      "clause_id": "clause-8.1.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_timestamped_interaction_boundary_scenarios.cpp",
+      "source_symbol": "runTimestampedInteractionZeroLookaheadTarSendBoundary",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_timestamped_interaction_boundary_scenarios.cpp::scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/tck_timestamped_interaction_boundary_scenarios.cpp::scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryContractPortable"
+      ],
+      "notes": "The canonical source marks the preceding page 177 with §8.1.2, Advancing logical time; page 178 continues that subsection and Table 1 supplies the zero-lookahead TAR send boundary. RL-312 remains open for extraction quality. This mapping is local to the explicit no-send-at-or-below-tR rule and excludes the neighboring third- and fourth-column rules."
+    }
+  ]
+}

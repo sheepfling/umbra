@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only the IEEE 1516.1 API. An adapter supplies the multi-attribute FOM containing the configured object class and attributes, provider library, endpoint, callback model, and logical-time implementation. The test's FOM fixture declares HLAreliable and HLAbestEffort on separate attributes; a provider adapter may supply equivalent names through the TCK options. The test sends one timestamped update to a non-time-constrained subscriber, checks the two reflected passels and their shared retraction designator, then verifies one recipient-local Request Retraction callback after Retract. The contract is limited to these observed outcomes and is not a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-attribute-immediate-recipient-multi-transport-retraction",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped Update Attribute Values and Retract, and FederateAmbassador reflection/Request Retraction callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador update/retraction and FederateAmbassador callback declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_timestamped_attribute_immediate_recipient_retraction.cpp::scenarioTimestampedAttributeImmediateRecipientMultiTransportRetraction"
+      ]
+    }
+  ]
+}

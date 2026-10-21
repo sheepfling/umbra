@@ -8,9 +8,11 @@
 #include <libxml/xmlschemas.h>
 
 #include <cstdint>
+#include <cctype>
 #include <fstream>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <system_error>
@@ -142,6 +144,138 @@ FomValidationResult resolveRegularFile(
   return {FomValidationStatus::valid, std::nullopt, {}};
 }
 
+bool hasFileUriScheme(std::string_view value) {
+  constexpr std::string_view scheme{"file:"};
+  if (value.size() < scheme.size()) {
+    return false;
+  }
+  for (std::size_t index = 0; index < scheme.size(); ++index) {
+    auto const character = static_cast<unsigned char>(value[index]);
+    if (static_cast<char>(std::tolower(character)) != scheme[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+int hexDigitValue(char value) {
+  if (value >= '0' && value <= '9') {
+    return value - '0';
+  }
+  if (value >= 'a' && value <= 'f') {
+    return value - 'a' + 10;
+  }
+  if (value >= 'A' && value <= 'F') {
+    return value - 'A' + 10;
+  }
+  return -1;
+}
+
+std::optional<std::string> decodeUriPath(std::string_view encodedPath) {
+  std::string decoded;
+  decoded.reserve(encodedPath.size());
+  for (std::size_t index = 0; index < encodedPath.size(); ++index) {
+    if (encodedPath[index] != '%') {
+      decoded.push_back(encodedPath[index]);
+      continue;
+    }
+    if (index + 2 >= encodedPath.size()) {
+      return std::nullopt;
+    }
+    auto const high = hexDigitValue(encodedPath[index + 1]);
+    auto const low = hexDigitValue(encodedPath[index + 2]);
+    if (high < 0 || low < 0) {
+      return std::nullopt;
+    }
+    auto const byte = static_cast<char>((high << 4) | low);
+    if (byte == '\0') {
+      return std::nullopt;
+    }
+    decoded.push_back(byte);
+    index += 2;
+  }
+  return decoded;
+}
+
+bool isLocalhostAuthority(std::string_view authority) {
+  constexpr std::string_view localhost{"localhost"};
+  if (authority.size() != localhost.size()) {
+    return false;
+  }
+  for (std::size_t index = 0; index < localhost.size(); ++index) {
+    auto const character = static_cast<unsigned char>(authority[index]);
+    if (static_cast<char>(std::tolower(character)) != localhost[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+std::optional<std::filesystem::path> fileUriPath(
+    std::string_view uri,
+    std::string& diagnostic) {
+  if (!hasFileUriScheme(uri)) {
+    return std::nullopt;
+  }
+
+  auto remainder = uri.substr(std::string_view{"file:"}.size());
+  std::string authority;
+  std::string_view encodedPath;
+  if (remainder.starts_with("//")) {
+    remainder.remove_prefix(2);
+    auto const pathSeparator = remainder.find('/');
+    if (pathSeparator == std::string_view::npos) {
+      authority.assign(remainder);
+      encodedPath = {};
+    } else {
+      authority.assign(remainder.substr(0, pathSeparator));
+      encodedPath = remainder.substr(pathSeparator);
+    }
+  } else {
+    encodedPath = remainder;
+  }
+
+  if (encodedPath.empty() || encodedPath.front() != '/' ||
+      encodedPath.find_first_of("?#") != std::string_view::npos) {
+    diagnostic = "The FOM file URL must contain an absolute path without a query or fragment.";
+    return std::nullopt;
+  }
+  std::string networkPathPrefix;
+  if (!authority.empty() && !isLocalhostAuthority(authority)) {
+    if (authority.find_first_of("@?#:") != std::string::npos) {
+      diagnostic = "The FOM file URL contains an unsupported authority component.";
+      return std::nullopt;
+    }
+    networkPathPrefix = "//" + authority;
+  }
+
+  auto decodedPath = decodeUriPath(encodedPath);
+  if (!decodedPath) {
+    diagnostic = "The FOM file URL contains malformed percent-encoding.";
+    return std::nullopt;
+  }
+  if (!networkPathPrefix.empty()) {
+    *decodedPath = networkPathPrefix + *decodedPath;
+  }
+#ifdef _WIN32
+  if (networkPathPrefix.empty() && decodedPath->size() >= 3 && decodedPath->front() == '/' &&
+      std::isalpha(static_cast<unsigned char>((*decodedPath)[1])) != 0 &&
+      (*decodedPath)[2] == ':') {
+    decodedPath->erase(decodedPath->begin());
+  }
+#endif
+  auto const decodedWidePath = wideFromUtf8(*decodedPath);
+  if (!decodedWidePath) {
+    diagnostic = "The FOM file URL path is not valid UTF-8.";
+    return std::nullopt;
+  }
+#ifdef _WIN32
+  return std::filesystem::path{*decodedWidePath};
+#else
+  return std::filesystem::path{*decodedPath};
+#endif
+}
+
 void normalizeLegacyRprReferenceMetadata(
     xmlNode* node,
     std::vector<std::string>& warnings) {
@@ -231,8 +365,21 @@ FomValidationResult loadValidatedLibXml2FomDocument(
     LibXml2ValidatedFomDocument& destination) {
   destination = {};
 
+  auto sourcePath = request.sourcePath;
+  auto const sourceDesignator = utf8FromWide(request.designator);
+  if (sourceDesignator && hasFileUriScheme(*sourceDesignator)) {
+    std::string diagnostic;
+    auto const localPath = fileUriPath(*sourceDesignator, diagnostic);
+    if (!localPath) {
+      return failure(
+          FomValidationStatus::source_unreadable,
+          diagnostic.empty() ? "The FOM file URL cannot be resolved locally." : diagnostic);
+    }
+    sourcePath = *localPath;
+  }
+
   std::filesystem::path canonicalSource;
-  if (auto const result = resolveRegularFile(request.sourcePath, canonicalSource, "FOM");
+  if (auto const result = resolveRegularFile(sourcePath, canonicalSource, "FOM");
       result.status != FomValidationStatus::valid) {
     return result;
   }

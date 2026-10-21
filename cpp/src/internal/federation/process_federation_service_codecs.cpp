@@ -1627,12 +1627,19 @@ decodeProcessFederationUpdateRateValueResult(
 
 std::vector<std::uint8_t> encodeProcessFederationUpdateAttributeValuesResult(
     ProcessFederationUpdateAttributeValuesResult const& result) {
+  if (result.status > ReceiveOrderAttributeUpdateStatus::inconsistent_catalog) {
+    throw ProcessFederationServiceProtocolError(
+        "A process attribute-update result has an invalid status.");
+  }
   PayloadWriter writer;
   writer.unsigned32(result.recipientCount);
   // Keep the ordinary response byte-for-byte compatible. The optional field
   // is present only for an accepted timestamp-ordered message.
   if (result.messageId != 0U) {
     writer.unsigned64(result.messageId);
+  }
+  if (result.status != ReceiveOrderAttributeUpdateStatus::applied) {
+    writer.unsigned8(static_cast<std::uint8_t>(result.status));
   }
   return std::move(writer).finish();
 }
@@ -1643,14 +1650,25 @@ decodeProcessFederationUpdateAttributeValuesResult(
   PayloadReader reader(encoded);
   ProcessFederationUpdateAttributeValuesResult result{reader.unsigned32()};
   if (reader.remaining() != 0U) {
-    if (reader.remaining() != sizeof(std::uint64_t)) {
+    if (reader.remaining() == sizeof(std::uint64_t)) {
+      result.messageId = reader.unsigned64();
+      requireNonzero(
+          result.messageId,
+          "A process attribute-update result cannot carry a zero message identity.");
+    } else if (reader.remaining() == sizeof(std::uint8_t)) {
+      auto const status = reader.unsigned8();
+      if (status == static_cast<std::uint8_t>(
+                        ReceiveOrderAttributeUpdateStatus::applied) ||
+          status > static_cast<std::uint8_t>(
+                       ReceiveOrderAttributeUpdateStatus::inconsistent_catalog)) {
+        throw ProcessFederationServiceProtocolError(
+            "A process attribute-update result has an invalid status.");
+      }
+      result.status = static_cast<ReceiveOrderAttributeUpdateStatus>(status);
+    } else {
       throw ProcessFederationServiceProtocolError(
-          "A process attribute-update result has an invalid message identity.");
+          "A process attribute-update result has an invalid optional field.");
     }
-    result.messageId = reader.unsigned64();
-    requireNonzero(
-        result.messageId,
-        "A process attribute-update result cannot carry a zero message identity.");
   }
   reader.finish();
   return result;
@@ -1730,11 +1748,35 @@ encodeProcessFederationReceiveAttributeUpdateResult(
     if (event.rtiOwnedMomObject) {
       writer.unsigned8(kRtiOwnedMomAttributeEventMarker);
     }
+    switch (event.tsoCallbackGroupPosition) {
+      case ProcessFederationTsoAttributeUpdateCallbackGroupPosition::ungrouped:
+        break;
+      case ProcessFederationTsoAttributeUpdateCallbackGroupPosition::more:
+      case ProcessFederationTsoAttributeUpdateCallbackGroupPosition::final:
+        if (!event.timestamp || !event.retractionMessageId ||
+            event.rtiOwnedMomObject || event.pushDeliveryId != 0U) {
+          throw ProcessFederationServiceProtocolError(
+              "A grouped process TSO attribute callback requires a timestamped application event and retraction identity.");
+        }
+        writer.unsigned8(
+            event.tsoCallbackGroupPosition ==
+                    ProcessFederationTsoAttributeUpdateCallbackGroupPosition::more
+                ? kTsoAttributeCallbackGroupMoreMarker
+                : kTsoAttributeCallbackGroupFinalMarker);
+        break;
+      default:
+        throw ProcessFederationServiceProtocolError(
+            "A process attribute event has an invalid TSO callback group position.");
+    }
     if (event.retractionMessageId) {
       requireNonzero(
           *event.retractionMessageId,
           "A process attribute event requires a retraction identity.");
       writer.unsigned64(*event.retractionMessageId);
+    }
+    if (event.pushDeliveryId != 0U) {
+      writer.unsigned8(kPushAttributeDeliveryIdMarker);
+      writer.unsigned64(event.pushDeliveryId);
     }
   }
   return std::move(writer).finish();
@@ -1773,27 +1815,72 @@ decodeProcessFederationReceiveAttributeUpdateResult(
     event.transportationName = reader.string();
     readAttributeUpdateRegionMetadata(reader, event);
     event.timestamp = readOptionalLogicalTime(reader);
-    if (reader.remaining() == sizeof(std::uint64_t)) {
-      event.retractionMessageId = reader.unsigned64();
-      requireNonzero(
-          *event.retractionMessageId,
-          "A process attribute event requires a retraction identity.");
-    } else if (reader.remaining() != 0U) {
+    auto const trailingBytes = reader.remaining();
+    if (trailingBytes == 1U) {
       if (reader.unsigned8() != kRtiOwnedMomAttributeEventMarker) {
         throw ProcessFederationServiceProtocolError(
             "A process attribute result has an invalid RTI-owned MOM marker.");
       }
       event.rtiOwnedMomObject = true;
-      if (reader.remaining() != 0U) {
-        if (reader.remaining() != sizeof(std::uint64_t)) {
-          throw ProcessFederationServiceProtocolError(
-              "A process attribute result has invalid trailing metadata.");
-        }
+    } else if (trailingBytes == sizeof(std::uint64_t)) {
+      event.retractionMessageId = reader.unsigned64();
+    } else if (trailingBytes == sizeof(std::uint8_t) + sizeof(std::uint64_t)) {
+      auto const marker = reader.unsigned8();
+      if (marker == kRtiOwnedMomAttributeEventMarker) {
+        event.rtiOwnedMomObject = true;
         event.retractionMessageId = reader.unsigned64();
-        requireNonzero(
-            *event.retractionMessageId,
-            "A process attribute event requires a retraction identity.");
+      } else if (marker == kPushAttributeDeliveryIdMarker) {
+        event.pushDeliveryId = reader.unsigned64();
+      } else if (marker == kTsoAttributeCallbackGroupMoreMarker) {
+        event.retractionMessageId = reader.unsigned64();
+        event.tsoCallbackGroupPosition =
+            ProcessFederationTsoAttributeUpdateCallbackGroupPosition::more;
+      } else if (marker == kTsoAttributeCallbackGroupFinalMarker) {
+        event.retractionMessageId = reader.unsigned64();
+        event.tsoCallbackGroupPosition =
+            ProcessFederationTsoAttributeUpdateCallbackGroupPosition::final;
+      } else {
+        throw ProcessFederationServiceProtocolError(
+            "A process attribute result has invalid trailing metadata.");
       }
+    } else if (trailingBytes == 2U * sizeof(std::uint8_t) + sizeof(std::uint64_t)) {
+      if (reader.unsigned8() != kRtiOwnedMomAttributeEventMarker ||
+          reader.unsigned8() != kPushAttributeDeliveryIdMarker) {
+        throw ProcessFederationServiceProtocolError(
+            "A process attribute result has invalid trailing metadata.");
+      }
+      event.rtiOwnedMomObject = true;
+      event.pushDeliveryId = reader.unsigned64();
+    } else if (trailingBytes == 2U * sizeof(std::uint64_t) + sizeof(std::uint8_t)) {
+      event.retractionMessageId = reader.unsigned64();
+      if (reader.unsigned8() != kPushAttributeDeliveryIdMarker) {
+        throw ProcessFederationServiceProtocolError(
+            "A process attribute result has invalid push-delivery metadata.");
+      }
+      event.pushDeliveryId = reader.unsigned64();
+    } else if (trailingBytes == 2U * (sizeof(std::uint64_t) + sizeof(std::uint8_t))) {
+      if (reader.unsigned8() != kRtiOwnedMomAttributeEventMarker) {
+        throw ProcessFederationServiceProtocolError(
+            "A process attribute result has an invalid RTI-owned MOM marker.");
+      }
+      event.rtiOwnedMomObject = true;
+      event.retractionMessageId = reader.unsigned64();
+      if (reader.unsigned8() != kPushAttributeDeliveryIdMarker) {
+        throw ProcessFederationServiceProtocolError(
+            "A process attribute result has invalid push-delivery metadata.");
+      }
+      event.pushDeliveryId = reader.unsigned64();
+    } else if (trailingBytes != 0U) {
+      throw ProcessFederationServiceProtocolError(
+          "A process attribute result has invalid trailing metadata.");
+    }
+    if (event.retractionMessageId) {
+      requireNonzero(*event.retractionMessageId,
+                     "A process attribute event requires a retraction identity.");
+    }
+    if (event.pushDeliveryId != 0U) {
+      requireNonzero(event.pushDeliveryId,
+                     "A process pushed attribute event requires a delivery identity.");
     }
     if (!event.rtiOwnedMomObject) {
       requireNonzero(

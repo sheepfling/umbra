@@ -825,6 +825,7 @@ void UmbraRtiAmbassador::resignFederationExecution(ResignAction resignAction) {
   std::vector<umbra::detail::DeclarationAdvisory> declarationAdvisories;
   std::wstring federationName;
   std::uint64_t reportedFederateId = 0;
+  std::shared_ptr<CallbackSession> callbackSession;
   umbra::detail::FederationRegistryResult resigned;
   bool finalServiceReportAppendFailed = false;
   {
@@ -839,6 +840,7 @@ void UmbraRtiAmbassador::resignFederationExecution(ResignAction resignAction) {
 
     federationName = *joinedFederationName_;
     reportedFederateId = *joinedFederateId_;
+    callbackSession = callbackSession_;
     resigned = embeddedFederationRegistry()
         .resignWithFinalServiceReportReservation(
         federationName,
@@ -954,6 +956,9 @@ void UmbraRtiAmbassador::resignFederationExecution(ResignAction resignAction) {
   // resigned.  Notifications prepared for surviving members use their own
   // callback routes and are submitted below after this local queue is reset.
   callbacks_->reset();
+  if (callbackSession) {
+    callbackSession->waitUntilIdle();
+  }
   submitAmbassadorTimeAdvanceGrantDispatches(std::move(newlyEligible));
   submitAmbassadorFederationSaveNotifications(
       federationName,

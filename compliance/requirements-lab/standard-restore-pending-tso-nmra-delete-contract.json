@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ and Java parity for the independently green native 218-assertion pending-NMRA timestamped object-deletion save/restore case. Three joined members are time constrained and two regulate with epsilon lookahead. A published two-attribute object is registered and discovered, the receiver issues NMRA(10), and the publisher accepts a timestamp-5 Delete Object Instance. Two regulators advance to time 4 so GALT equals 5; an untimed save captures the pre-grant queued removal. After all members advance to 9 and restore, Remove Object Instance repeats the same object, producing federate, timestamp, order, tag, and retraction presence between Federation Restored and receiver TAG(5). Both callback models are exercised. The adapter supplies the provider, endpoint, logical-time implementation, callback model, class and two attribute names, and IEEE 1516.2-2025 FOM with nonRegulatedGrant. Seventeen direct requirement-section pairs cover eleven clauses. The native and isolated portable C++ primary/contract passed against the installed package under both callback models and integer64/float64 time. Java compiles against the official API-only JAR; Java provider runtime, other timestamped producer families, general temporal persistence, interoperability, and conformance remain unverified.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-pending-tso-nmra-delete",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador publishObjectClassAttributes, subscribeObjectClassAttributes, registerObjectInstance, deleteObjectInstance, nextMessageRequestAvailable, timeAdvanceRequest, requestFederationSave, federateSaveBegun, federateSaveComplete, requestFederationRestore, federateRestoreComplete, queryLogicalTime, evokeCallback; FederateAmbassador discoverObjectInstance, removeObjectInstance, timeAdvanceGrant, federationSaved, federationRestored",
+      "source": "official IEEE 1516.1-2025 C++ headers and hla.rti1516_2025 Java API; adapter-selected IEEE 1516.2-2025 FOM",
+      "source_symbol": "IEEE 1516.1-2025 timestamped object deletion/removal, NMRA Available-boundary, and federation save/restore interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp::Embedded restore replays a timestamped object deletion queued for pending NMRA at GALT",
+        "packages/hla-rti-cpp-tck/src/tck_restore_pending_tso_nmra_delete.cpp::scenarioRestorePendingTsoNmraDelete",
+        "packages/hla-rti-cpp-tck/src/tck_restore_pending_tso_nmra_delete.cpp::scenarioRestorePendingTsoNmraDeleteContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestorePendingTsoNmraDeleteTck.java::run"
+      ]
+    }
+  ]
+}

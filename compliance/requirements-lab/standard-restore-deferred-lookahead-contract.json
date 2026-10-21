@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ primary/contract and Java parity translate an independently green 31-assertion native HLA_EVOKED single-federate save/restore case. A time-regulating federate at initial time has actual lookahead five epsilon and requests a prospective decrease to one epsilon. It saves while Query Lookahead still returns five, advances three epsilon so actual lookahead becomes two, restores the saved zero/five time window, and advances three epsilon again to prove that the saved deferred target was restored, not just the visible actual value. The adapter supplies the installed provider, endpoint, IEEE 1516.2-2025 FOM, logical-time implementation, and callback model. Fourteen direct requirement-section pairs cover ten clauses. Isolated portable C++ primary/contract passed against installed package libraries with integer64 and float64 time. Java compiles against the pinned official API-only JAR; Java provider runtime, HLA_IMMEDIATE, pending advances, multi-member or durable restore, interoperability, and conformance remain unverified.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-deferred-lookahead",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador enableTimeRegulation, modifyLookahead, queryLookahead, timeAdvanceRequest, queryLogicalTime, requestFederationSave, federateSaveBegun, federateSaveComplete, requestFederationRestore, federateRestoreComplete; FederateAmbassador federationSaved, federationRestored",
+      "source": "official IEEE 1516.1-2025 C++ headers and hla.rti1516_2025 Java API; adapter-selected IEEE 1516.2-2025 FOM",
+      "source_symbol": "IEEE 1516.1-2025 deferred lookahead and federation save/restore interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "packages/hla-rti-cpp-tck/src/tck_restore_deferred_lookahead.cpp::scenarioRestoreDeferredLookahead",
+        "packages/hla-rti-cpp-tck/src/tck_restore_deferred_lookahead.cpp::scenarioRestoreDeferredLookaheadContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestoreDeferredLookaheadTck.java::run"
+      ]
+    }
+  ]
+}

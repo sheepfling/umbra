@@ -3,15 +3,15 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records a portable IEEE 1516.1 test of the sender time-regulating role in timestamped attribute-update order classification. Keep the attribute's timestamp-order preference and supplied logical timestamp fixed: before regulation, the update is received in receive order and supplies no valid retraction handle; after regulation, the update is timestamp order, remains queued until receiver advancement, and supplies a valid retraction handle. The adapter supplies the provider, standard FOM, endpoint, callback model, and logical-time implementation. This focused API check is not conformance evidence.",
+  "notes": "This contract records a portable IEEE 1516.1 test of the sender time-regulating role in timestamped attribute-update order classification. Keep the attribute's timestamp-order preference and supplied logical timestamp fixed: before regulation, the update is received in receive order and supplies no valid retraction handle; after regulation, the update is timestamp order, remains queued until receiver advancement, and supplies a valid retraction handle. The C++ scenario also checks that Time Regulation Enabled reports the assigned initial time, Query Logical Time agrees, and Query Lookahead returns the requested lookahead in this no-competing-regulator setup; it does not cover minimum-time selection under additional constraints. The adapter supplies the provider, standard FOM, endpoint, callback model, and logical-time implementation. This focused API check is not conformance evidence.",
   "api_surfaces": [
     {
       "id": "standard-cpp-timestamped-attribute-sender-regulation-transition",
       "owner": "IEEE 1516.1 C++ API",
       "language": "cpp",
-      "signature": "RTIambassador timestamped UpdateAttributeValues, Change Default Attribute Order Type and Enable Time Regulation with FederateAmbassador reflection/order callbacks",
+      "signature": "RTIambassador timestamped UpdateAttributeValues, Change Default Attribute Order Type, Enable Time Regulation, Query Logical Time and Query Lookahead with FederateAmbassador regulation/reflection/order callbacks",
       "source": "third_party/ieee1516.1-2025/include/RTI",
-      "source_symbol": "IEEE 1516.1 RTIambassador timestamped update, attribute-order and time-regulation declarations; FederateAmbassador reflectAttributeValues callback",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped update, attribute-order, time-regulation and time/lookahead query declarations; FederateAmbassador timeRegulationEnabled and reflectAttributeValues callbacks",
       "tests": [
         "packages/hla-rti-cpp-tck/src/tck_timestamped_attribute_sender_regulation_transition.cpp::scenarioTimestampedAttributeSenderRegulationTransition"
       ]

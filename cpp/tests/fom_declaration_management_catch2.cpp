@@ -64,9 +64,12 @@ TEST_CASE(
   // surface: a joined member can resolve the validated OMT class and its
   // declared attribute in the committed 2025 FOM, then round-trip both names.
   auto const employee = member->getObjectClassHandle(fixture_hla::fom::employee);
+  auto const mimFederateClass =
+      member->getObjectClassHandle(L"HLAobjectRoot.HLAmanager.HLAfederate");
   auto const employeeName =
       member->getAttributeHandle(employee, fixture_hla::fixture::name);
   REQUIRE(employee.isValid());
+  REQUIRE(mimFederateClass.isValid());
   REQUIRE(employeeName.isValid());
   REQUIRE(member->getObjectClassName(employee) == fixture_hla::fom::employee);
   REQUIRE(member->getAttributeName(employee, employeeName) == fixture_hla::fixture::name);

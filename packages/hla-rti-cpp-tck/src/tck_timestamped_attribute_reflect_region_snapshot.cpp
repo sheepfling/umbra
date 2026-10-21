@@ -194,7 +194,10 @@ void scenarioTimestampedAttributeReflectRegionDesignatorCallbackSnapshot(
       publisherTime.factory->getName() == receiverTime.factory->getName() &&
           encodeTime(*publisherTime.initial) == encodeTime(*receiverTime.initial),
       "Timestamped region-snapshot members selected different initial time contexts");
-  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.zero);
+  // This scenario isolates callback-scoped region snapshot behavior. Keep a
+  // positive, minimal lookahead so enabling time-constrained reception does
+  // not also exercise the separate zero-lookahead GALT boundary.
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
   waitFor(
       publisher,
       [&] { return !publisher.recorder().timeRegulationEnabled().empty(); },

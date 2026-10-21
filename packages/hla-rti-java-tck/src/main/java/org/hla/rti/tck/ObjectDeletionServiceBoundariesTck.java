@@ -112,7 +112,27 @@ final class ObjectDeletionServiceBoundariesTck {
          receiverCallbacks.clearRemovals();
 
          byte[] tag = new byte[] {(byte) 0x6a, (byte) 0xb7, (byte) 0xc4};
+         AttributeHandle ownerPrivilege = owner.getAttributeHandle(ownerClass,
+            "HLAprivilegeToDeleteObject");
+         AttributeHandle receiverPrivilege = receiver.getAttributeHandle(receiverClass,
+            "HLAprivilegeToDeleteObject");
+         JavaTckSupport.check(owner.isAttributeOwnedByFederate(remotelyDeleted, ownerPrivilege)
+               && !receiver.isAttributeOwnedByFederate(remotelyDeleted, receiverPrivilege),
+            "delete privilege did not initially belong only to the registrant");
+         expectFailure(() -> receiver.deleteObjectInstance(remotelyDeleted, tag.clone()),
+            "DeletePrivilegeNotHeld", "non-owner deleting before the privilege transfers");
+         JavaTckSupport.check(receiverCallbacks.removals().isEmpty(),
+            "rejected non-owner deletion produced a removal callback");
          owner.deleteObjectInstance(remotelyDeleted, tag);
+         expectFailure(() -> owner.getKnownObjectClassHandle(remotelyDeleted),
+            "ObjectInstanceNotKnown", "deleting owner class lookup before recipient removal");
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            JavaTckSupport.check(receiverCallbacks.removals().isEmpty(),
+               "evoked recipient received removal without servicing callbacks");
+            JavaTckSupport.check(receiver.getKnownObjectClassHandle(remotelyDeleted)
+                  .equals(receiverClass),
+               "evoked recipient forgot the object before its queued removal callback");
+         }
          await(receiver, () -> receiverCallbacks.removals().size() == 1,
             "receiver did not receive ordinary object removal");
          Removal removal = receiverCallbacks.removals().get(0);

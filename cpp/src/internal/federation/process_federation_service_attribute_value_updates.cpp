@@ -16,8 +16,9 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
     TransportServiceMessage const& request) {
   auto const updateRequest =
       decodeProcessFederationUpdateAttributeValuesRequest(request.payload);
+  std::shared_ptr<rti1516_2025::LogicalTime const> updateTimestamp;
   if (updateRequest.timestamp) {
-    validateProcessLogicalTime(
+    updateTimestamp = decodeProcessLogicalTime(
         *updateRequest.timestamp,
         federationDefinition_->logicalTimeImplementationName);
   }
@@ -46,9 +47,15 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
       updateRequest.federationName,
       updateRequest.producingFederateId,
       updateRequest.objectInstanceHandle,
-      sentAttributeHandles);
+      sentAttributeHandles,
+      updateTimestamp.get());
   if (plan.status != ReceiveOrderAttributeUpdateStatus::applied) {
-    return rejected(request);
+    return responseFor(
+        request,
+        TransportServiceStatus::ok,
+        encodeProcessFederationUpdateAttributeValuesResult(
+            ProcessFederationUpdateAttributeValuesResult{
+                0U, 0U, plan.status}));
   }
   auto const delaySubscriptionEvaluation =
       registry_.delaySubscriptionEvaluationSwitchFor(
@@ -76,7 +83,9 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
       return internalError(request);
     }
     for (auto const& federate : execution->federates) {
-      if (federate.time.timeConstrained) {
+      // Preserve queued TSO classification while Enable Time Constrained is
+      // pending rather than emitting an immediate receive-order reflection.
+      if (federate.time.timeConstrained || federate.time.timeConstrainedPending) {
         timeConstrainedRecipients.insert(federate.membership.id);
       }
     }
@@ -90,9 +99,7 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
     message.userSuppliedTag.setData(
         updateRequest.userSuppliedTag.data(),
         updateRequest.userSuppliedTag.size());
-    message.timestamp = decodeProcessLogicalTime(
-        *updateRequest.timestamp,
-        federationDefinition_->logicalTimeImplementationName);
+    message.timestamp = updateTimestamp;
     message.attributes.reserve(updateRequest.attributeValues.size());
     for (auto const& [attributeHandle, value] : updateRequest.attributeValues) {
       rti1516_2025::VariableLengthData encodedValue;
@@ -207,13 +214,15 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
         continue;
       }
       auto recipient = plannedRecipient;
-      // Pull mode checks ordinary receive-order passels on poll. For the
-      // bounded regional push lane, issue a readiness marker and check when
-      // the immediate callback task is admitted. Nonregional push routing
-      // remains on its existing path pending a separate DSE slice.
+      // Pull mode checks ordinary receive-order passels on poll. In push
+      // mode, issue a readiness marker for delayed-subscription passels (and
+      // regional passels in either switch state) so eligibility is checked
+      // when the immediate callback task is admitted. This includes the
+      // default-region path, where no explicit sent-region handles exist.
       bool const recheckAtReceive =
           !updateRequest.timestamp.has_value() &&
           (!options_.pushReceiveOrderEvents ||
+           *delaySubscriptionEvaluation ||
            !passel.sentRegionHandles.empty());
       if (!recheckAtReceive && recipient.receivedAttributeHandles.empty()) {
         auto const current = registry_.receiveOrderAttributeUpdateRecipientFor(
@@ -316,6 +325,15 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
           pushedEvents.push_back(PushedAttributeEvent{
               receivingSession->second, std::nullopt, receivingFederateId});
         } else {
+          if (!event.timestamp && !event.sentRegionHandles &&
+              !event.defaultRegionUsed && !event.rtiOwnedMomObject) {
+            if (nextPushedAttributeDeliveryId_ == 0U) {
+              return internalError(request);
+            }
+            event.pushDeliveryId = nextPushedAttributeDeliveryId_++;
+            receivingState->second.pendingPushedAttributeUpdates.emplace(
+                event.pushDeliveryId, event);
+          }
           pushedEvents.push_back(PushedAttributeEvent{
               receivingSession->second, std::move(event), 0U});
         }

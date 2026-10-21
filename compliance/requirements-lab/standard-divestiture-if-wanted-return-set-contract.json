@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "IEEE 1516.1-2025 public-API two-attribute scenario: Divestiture If Wanted returns an empty set with no pending acquirer, then returns and transfers only the first attribute when only that attribute has a pending regular acquisition. The second attribute remains owner-held, and a later acquisition of it requires a new If Wanted call. The selected native requirement page-151-l132-43 maps to §7.1.2.1 only for the If Wanted branch; other composite divestiture paths and process behavior are not claimed. The adapter supplies the provider, endpoint, two-attribute FOM and names, callback model, and logical-time implementation. Current-source installed-package C++ primary/contract passed 4/4 under evoked/immediate callbacks. Java parity compiles against the official API-only JAR but has no provider-runtime evidence. This is not a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-divestiture-if-wanted-return-set",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador attributeOwnershipAcquisition, attributeOwnershipDivestitureIfWanted, isAttributeOwnedByFederate and FederateAmbassador attributeOwnershipAcquisitionNotification",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_divestiture_return_set.cpp::scenarioDivestitureIfWantedReturnSet",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_divestiture_return_set.cpp::scenarioDivestitureIfWantedReturnSetContract"
+      ]
+    }
+  ]
+}

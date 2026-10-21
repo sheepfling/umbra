@@ -40,6 +40,7 @@ class RecordingFederateAmbassador final : public NullFederateAmbassador {
     ObjectInstanceHandle objectInstance;
     AttributeHandleSet attributes;
     std::wstring updateRateDesignator;
+    bool hasUpdateRateDesignator = false;
   };
 
   struct AttributeReport {
@@ -66,7 +67,7 @@ class RecordingFederateAmbassador final : public NullFederateAmbassador {
       AttributeHandleSet const& attributes,
       std::wstring const& updateRateDesignator) override {
     turnUpdatesOnForObjectInstanceReports.push_back(
-        {objectInstance, attributes, updateRateDesignator});
+        {objectInstance, attributes, updateRateDesignator, true});
   }
 
   void turnUpdatesOffForObjectInstance(
@@ -256,6 +257,50 @@ TEST_CASE(
             objectInstance);
     REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.front().attributes ==
             attributeSet);
+
+    // IEEE 1516.1-2025 6.23 suppresses the optional designator while any
+    // relevant subscriber uses the default, unspecified update rate. Removing
+    // that subscription restores the explicit maximum without turning updates
+    // off in between.
+    REQUIRE_NOTHROW(highRateSubscriber->subscribeObjectClassAttributes(
+        objectClass,
+        attributeSet,
+        true,
+        L"High"));
+    drainOwner();
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.size() == 5U);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.back().hasUpdateRateDesignator);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.back().updateRateDesignator ==
+            L"High");
+
+    REQUIRE_NOTHROW(lowRateSubscriber->subscribeObjectClassAttributes(
+        objectClass,
+        attributeSet));
+    drainOwner();
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.size() == 6U);
+    REQUIRE_FALSE(
+        ownerReports.turnUpdatesOnForObjectInstanceReports.back().hasUpdateRateDesignator);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.back().objectInstance ==
+            objectInstance);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.back().attributes ==
+            attributeSet);
+    REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.size() == 1U);
+
+    REQUIRE_NOTHROW(lowRateSubscriber->unsubscribeObjectClassAttributes(
+        objectClass,
+        attributeSet));
+    drainOwner();
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.size() == 7U);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.back().hasUpdateRateDesignator);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.back().updateRateDesignator ==
+            L"High");
+    REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.size() == 1U);
+
+    REQUIRE_NOTHROW(highRateSubscriber->unsubscribeObjectClassAttributes(
+        objectClass,
+        attributeSet));
+    drainOwner();
+    REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.size() == 2U);
 
     REQUIRE_NOTHROW(highRateSubscriber->resignFederationExecution(NO_ACTION));
     REQUIRE_NOTHROW(lowRateSubscriber->resignFederationExecution(NO_ACTION));

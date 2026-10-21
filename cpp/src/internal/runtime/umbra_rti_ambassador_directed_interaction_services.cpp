@@ -637,7 +637,12 @@ MessageRetractionHandle UmbraRtiAmbassador::sendDirectedInteraction(
           L"The embedded federation no longer exposes a coherent time snapshot.");
     }
     for (auto const& federate : snapshot->federates) {
-      if (federate.time.timeConstrained) {
+      // A successful Enable Time Constrained request remains a recipient for
+      // TSO while its role callback is pending. Treat that transition as
+      // constrained for recipient selection so the interaction cannot escape
+      // as receive-order work before the enable callback is delivered.
+      if (federate.time.timeConstrained ||
+          federate.time.timeConstrainedPending) {
         timeConstrainedRecipients.insert(federate.membership.id);
       }
     }

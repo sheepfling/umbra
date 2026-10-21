@@ -6,6 +6,7 @@ TEST_CASE(
     "[integration][development-profile][federation-management][interaction-management]"
     "[mom][service-reporting][service-report-interaction][send-interaction-service-report]"
     "[receive-order-send-interaction-service-report-interaction]"
+    "[send-service-reports-file-switch-off-no-append]"
     "[rti.service.send-interaction][rti.service.set-service-reporting-switch]"
     "[rti.service.set-send-service-reports-to-file-switch]"
     "[rti.service.publish-interaction-class][rti.service.subscribe-interaction-class]"
@@ -25,17 +26,21 @@ TEST_CASE(
       (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
        "switch-support-enabled-fom.xml")
           .wstring();
+  auto reportDirectory = temporaryServiceReportDirectory();
+  auto configuration = configurationForServiceReportDirectory(reportDirectory.path());
+  configuration.withRtiAddress(L"in-process");
   std::vector<std::wstring> const fomModules{interactionFom, switchFom};
   unsigned char const tagBytes[] = {'r', 'o', 'i'};
   VariableLengthData const tag(tagBytes, sizeof(tagBytes));
   unsigned char const identifierBytes[] = {0x01, 0x02};
   VariableLengthData const identifierValue(identifierBytes, sizeof(identifierBytes));
 
-  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
-  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED, configuration));
   // An immediate observer makes the MOM report visible at the accepted-send
   // boundary while the ordinary recipient remains HLA_EVOKED.
-  REQUIRE_NOTHROW(observer->connect(observerReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(observer->connect(
+      observerReports, rti1516_2025::HLA_IMMEDIATE, configuration));
   REQUIRE_NOTHROW(publisher->createFederationExecution(
       federationName,
       fomModules,
@@ -88,8 +93,27 @@ TEST_CASE(
   // stays disabled because it is only selecting the public MOM interaction.
   REQUIRE_NOTHROW(publisher->setServiceReportingSwitch(true));
   REQUIRE_FALSE(publisher->getSendServiceReportsToFileSwitch());
+  auto const reportFiles = serviceReportFiles(reportDirectory.path());
+  auto const publisherReportFile = std::find_if(
+      reportFiles.begin(),
+      reportFiles.end(),
+      [](std::filesystem::path const& candidate) {
+        return candidate.filename().string().find("receive-order-mom-publisher") !=
+               std::string::npos;
+      });
+  REQUIRE(publisherReportFile != reportFiles.end());
+  std::error_code initialReportSizeError;
+  auto const initialReportSize =
+      std::filesystem::file_size(*publisherReportFile, initialReportSizeError);
+  REQUIRE_FALSE(initialReportSizeError);
+  REQUIRE(initialReportSize > 0U);
   ParameterHandleValueMap const values{{identifier, identifierValue}};
   REQUIRE_NOTHROW(publisher->sendInteraction(interactionClass, values, tag));
+  std::error_code finalReportSizeError;
+  auto const finalReportSize =
+      std::filesystem::file_size(*publisherReportFile, finalReportSizeError);
+  REQUIRE_FALSE(finalReportSizeError);
+  REQUIRE(finalReportSize == initialReportSize);
 
   // HLA_IMMEDIATE has already received the report, while the ordinary
   // receive-order callback is still queued for the HLA_EVOKED recipient.

@@ -557,6 +557,40 @@ struct FederationStateImageTsoInteractionMessage final {
   std::uint32_t receivedOrderType = 0;
 };
 
+// Route-free polling-mode receive-order interaction retained across a save.
+// This first slice intentionally covers ordinary, undirected RO interactions;
+// callback routes are rebound from the live joined session on restore.
+struct FederationStateImageReceiveOrderInteraction final {
+  std::uint64_t sequence = 0;
+  std::uint64_t producingFederateId = 0;
+  std::uint64_t receivingFederateId = 0;
+  std::uint64_t interactionClassHandle = 0;
+  std::vector<std::uint64_t> parameterHandles;
+  std::string payload;
+  std::string transportationName;
+};
+
+// Route-free polling-mode reflect-attribute-values callback retained across a
+// save. This bounded queue form covers ordinary, nonregional receive-order
+// updates; callback routes are rebound from the live joined session on restore.
+struct FederationStateImageReceiveOrderAttributeValue final {
+  std::uint64_t attributeHandle = 0;
+  std::string value;
+};
+
+struct FederationStateImageReceiveOrderAttributeUpdate final {
+  std::uint64_t sequence = 0;
+  std::uint64_t producingFederateId = 0;
+  std::uint64_t receivingFederateId = 0;
+  std::uint64_t objectInstanceHandle = 0;
+  std::vector<FederationStateImageReceiveOrderAttributeValue> values;
+  std::string userSuppliedTag;
+  std::string transportationName;
+  bool recheckAtReceive = false;
+  // Nonzero only for an ordinary push-mode callback awaiting receiver ack.
+  std::uint64_t pushDeliveryId = 0U;
+};
+
 // Route-free payload for one timestamped Update Attribute Values invocation.
 // The passel projections are retained per recipient because regional scope,
 // transportation, and order are accepted per callback path at invocation
@@ -845,6 +879,14 @@ struct FederationStateImage final {
   std::vector<FederationStateImageTsoDirectedInteractionMessage>
       tsoDirectedInteractionMessages;
   std::vector<FederationStateImageTsoQueueEntry> tsoQueueEntries;
+  std::vector<FederationStateImageReceiveOrderInteraction>
+      queuedReceiveOrderInteractions;
+  // Decoder-only compatibility marker for the appended RO interaction queue.
+  bool queuedReceiveOrderInteractionsPresent = false;
+  std::vector<FederationStateImageReceiveOrderAttributeUpdate>
+      queuedReceiveOrderAttributeUpdates;
+  // Decoder-only compatibility marker for the appended RO attribute queue.
+  bool queuedReceiveOrderAttributeUpdatesPresent = false;
   std::vector<FederationStateImageObjectInstanceNameReservation>
       reservedObjectInstanceNames;
   // Decoder-only compatibility marker: older v1 images ended immediately

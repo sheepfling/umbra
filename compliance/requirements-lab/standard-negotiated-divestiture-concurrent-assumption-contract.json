@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "IEEE 1516.1-2025 public-API three-federate ownership scenario: a requester seeks acquisition, the owner offers negotiated divestiture, and a separate published candidate receives a grouped tagged Request Attribute Ownership Assumption while owner confirmation is pending. Ownership remains with the owner until Confirm Divestiture, after which the requester receives a tagged acquisition notification and owns the attribute. The pinned native selection page-154-l9-2 -> §7.2 maps the assumption callback; other callback metadata and ownership checks are supplemental public-API observations, not additional invented requirements. Process endpoint, pushed transport, and private registry mechanics are excluded. Adapter supplies provider, endpoint, FOM, names, callback model and logical-time implementation. Current-source installed-package C++ primary/contract passed 4/4 under evoked/immediate callbacks. Java parity compiles against the official API-only JAR but has no provider-runtime execution evidence. This is not a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-negotiated-divestiture-concurrent-assumption",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador attributeOwnershipAcquisition, negotiatedAttributeOwnershipDivestiture, confirmDivestiture, isAttributeOwnedByFederate and FederateAmbassador requestAttributeOwnershipAssumption, requestDivestitureConfirmation, attributeOwnershipAcquisitionNotification",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_assumption_search.cpp::scenarioNegotiatedDivestitureConcurrentAssumption",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_assumption_search.cpp::scenarioNegotiatedDivestitureConcurrentAssumptionContract"
+      ]
+    }
+  ]
+}

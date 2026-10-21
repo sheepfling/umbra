@@ -9,9 +9,13 @@
 #include <RTI/time/HLAinteger64Time.h>
 
 #include <atomic>
+#include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <stdexcept>
 #include <string>
+#include <system_error>
 #include <vector>
 
 #ifndef UMBRA_SOURCE_DIRECTORY
@@ -55,6 +59,54 @@ std::wstring nextFederationName() {
   return L"timed-restore-live-tso-default-region-attribute-" +
       std::to_wstring(sequence.fetch_add(1U, std::memory_order_relaxed));
 }
+
+class ScopedTemporaryFederationSaveDirectory final {
+ public:
+  ScopedTemporaryFederationSaveDirectory() {
+    static std::atomic_uint64_t sequence{0U};
+    // Keep the manifest path short even when TMP points into a deeply nested
+    // sandbox directory on Windows.
+    auto const parent = std::filesystem::current_path();
+    auto const tick = static_cast<std::uint64_t>(
+        std::chrono::steady_clock::now().time_since_epoch().count());
+    for (std::size_t attempt = 0U; attempt != 1024U; ++attempt) {
+      auto const path = parent /
+          ("save-" + std::to_string(tick) + "-" +
+           std::to_string(sequence.fetch_add(1U, std::memory_order_relaxed)) +
+           "-" + std::to_string(attempt));
+      std::error_code error;
+      if (std::filesystem::create_directory(path, error)) {
+        path_ = path;
+        return;
+      }
+      if (error && error != std::errc::file_exists) {
+        throw std::filesystem::filesystem_error(
+            "Unable to reserve temporary federation-save directory",
+            path,
+            error);
+      }
+    }
+    throw std::runtime_error(
+        "Unable to reserve a unique federation-save directory.");
+  }
+
+  ScopedTemporaryFederationSaveDirectory(
+      ScopedTemporaryFederationSaveDirectory const&) = delete;
+  ScopedTemporaryFederationSaveDirectory& operator=(
+      ScopedTemporaryFederationSaveDirectory const&) = delete;
+
+  ~ScopedTemporaryFederationSaveDirectory() {
+    std::error_code ignored;
+    std::filesystem::remove_all(path_, ignored);
+  }
+
+  [[nodiscard]] std::filesystem::path const& path() const noexcept {
+    return path_;
+  }
+
+ private:
+  std::filesystem::path path_;
+};
 
 std::filesystem::path resourcePath(std::filesystem::path const& relativePath) {
   return std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
@@ -181,6 +233,12 @@ TEST_CASE(
     "[federate.callback.federation-saved][federate.callback.federation-restored]"
     "[federate.callback.reflect-attribute-values][federate.callback.request-retraction]"
     "[federate.callback.flush-queue-grant]") {
+  auto const saveDirectory = ScopedTemporaryFederationSaveDirectory{};
+  auto configuration = rti1516_2025::RtiConfiguration::createConfiguration();
+  configuration.withRtiAddress(L"in-process");
+  configuration.withAdditionalSettings(
+      L"federationSaveDirectory=" + saveDirectory.path().wstring());
+
   ReportingFederateAmbassador publisherReports;
   ReportingFederateAmbassador receiverReports;
   auto publisher = makeRti();
@@ -197,8 +255,10 @@ TEST_CASE(
     }
   };
 
-  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
-  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->connect(
+      publisherReports, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(receiver->connect(
+      receiverReports, HLA_EVOKED, configuration));
   REQUIRE_NOTHROW(publisher->createFederationExecution(
       federationName,
       fomModule,

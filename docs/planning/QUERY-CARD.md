@@ -9,6 +9,7 @@ Use `resume` once, then `ready`, `case <handle>`, and `matrix <handle>` for the 
 | Question | Command |
 | --- | --- |
 | What do I implement next? | `python tools/query_rti_work.py resume` |
+| Which independent 2025 files are currently claimed for parallel work? | `python tools/query_parallel_rti_lanes.py` |
 | Is the next item runnable, backlog shaping, or external review? | `python tools/query_rti_work.py queue --summary --compact` |
 | What are its acceptance criteria? | `python tools/query_rti_work.py ready --summary --compact` |
 | Where is one test, and what does it prove? | `python tools/query_rti_work.py case <plan-id> --summary --compact` |
@@ -25,7 +26,17 @@ Use `resume` once, then `ready`, `case <handle>`, and `matrix <handle>` for the 
 | Did my lane's mappings drift? | `python tools/query_rti_work.py check --lane <tag> --summary --compact` |
 | Is the saved roadmap/traceability snapshot current? | `python tools/query_rti_work.py dashboard --summary --compact` |
 
-Replace placeholders; quote multi-word titles. Topic lookups are count-only: `roadmap <topic> --summary --compact` finds a family; `item <family-id> --summary --compact` previews five cases. Don't expand a family to trace one test. Case cards show C++ source, direct 2025 subsection pairs, APIs, and focused handles; use their case-specific CTest selector. `focus`/`check --lane` take lane tags. `unplanned` finds tests missing plan rows; `unmapped` finds rows needing mapping or disposition. Keep family tags tied to real Catch2 rows; `ready --include-source-only` includes unmapped source tests. `check` validates the live plan; `check --historical` audits history. Mark replaced history `superseded_by`; don't rewrite it. Use exact case/matrix handles for direct mappings and `--verbose` only when needed.
+Replace placeholders; quote multi-word titles. Topic lookups are count-only: `roadmap <topic> --summary --compact` finds a family; `item <family-id> --summary --compact` previews five cases. Don't expand a family to trace one test. Case cards show C++ source, direct 2025 subsection pairs, APIs, and focused handles; use their case-specific CTest selector. `focus`/`check --lane` take lane tags. `unplanned` finds tests missing plan rows; `unmapped` finds rows needing mapping or disposition. Keep family tags tied to real Catch2 rows; `ready --include-source-only` includes unmapped source tests. `gaps --family <id>` is family-local: a requirement can be uncovered in that family while already mapped by another family's test; the result reports both scopes. Omit `--family` for global uncovered requirements. `check` validates the live plan; `check --historical` audits history. Mark replaced history `superseded_by`; don't rewrite it. Use exact case/matrix handles for direct mappings and `--verbose` only when needed.
+
+The parallel-lane query defaults to active work; use `--state ready` to find unclaimed lanes or `--state all` for completed history too.
+
+For a source-verified Requirements Lab subsection-attribution defect, preserve
+the stable Lab requirement ID, record exported and source-backed clauses in
+`compliance/requirements-lab/known-issues.json`, and use a
+`requirement_section_mapping_overrides` row that cites that issue. Query output
+keeps the exported section visible while using the corrected canonical pair;
+never silently rewrite the pinned Lab mapping. Internal tests belong to a
+focused lane but use an explicit no-normative-mapping disposition.
 
 ## Work loop
 
@@ -46,5 +57,4 @@ Lab re-syncs. Unmapped internal tests need an explicit disposition, not an
 invented requirement. Passing development tests are not conformance evidence.
 
 Sources: [roadmap index](ROADMAP-INDEX.json) for the next task; [Catch2 plan](../../compliance/requirements-lab/catch2-test-plan.json) for mappings.
-The [command guide](QUERY-GUIDE.md) and [archived examples](QUERY-CARD-HISTORY.md)
-are optional; search a specific heading instead of loading them whole.
+The [command guide](QUERY-GUIDE.md) and [archived examples](QUERY-CARD-HISTORY.md) are optional; search a specific heading instead of loading them whole.

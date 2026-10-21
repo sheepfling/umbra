@@ -78,7 +78,7 @@ state, report path, and observer visibility, see the
 flowchart TD
     A[Observe the failing operation] --> B{What operation failed?}
     B -->|Covered public RTI service call threw| C[HLAreportException path]
-    B -->|MOM Send Interaction was malformed or rejected| D[HLAreportMOMexception path]
+    B -->|MOM Send Interaction was malformed or rejected| D[HLAreportMOMexception path; check for an independent public-exception hook]
     B -->|Need a service invocation record| E[HLAreportServiceInvocation path]
     C --> C1{Reported member joined and Exception Reporting enabled?}
     C1 -->|No| C2[No HLAreportException]
@@ -95,6 +95,12 @@ The diagram is an orientation aid, not a universal rule for every RTI service
 or every malformed MOM class. `HLAreportException` is emitted only at public
 API catch sites that call the exception-report hook. The linked tests exercise
 specific such sites and MOM inputs.
+
+The branches classify what a report means; they are not necessarily mutually
+exclusive. For a covered failed `Send Interaction` on a recognized MOM class,
+the current embedded catch attempts both the MOM-rejection report and the
+general exception-report hook. The configured-process path has a different
+source boundary, shown under [Route B](#a-mom-rejection-may-also-enter-the-general-exception-hook).
 
 ## Route A: a covered public service raises an exception
 
@@ -404,9 +410,71 @@ receive-order, reliable, empty-tag, invalid/default producer, and without sent
 regions.
 
 `HLAreportMOMexception` is independent of the subject's Exception Reporting
-switch. A test intentionally leaves that switch off and still observes the
+switch. The configured-process [MOM payload case](../../cpp/tests/ieee1516_2025_connection_process_mom_exception_report_parameters_catch2.cpp#L460)
+explicitly asserts that the switch is false while observing and decoding the
 MOM rejection report. The report interaction subscription and current recipient
 eligibility still matter; “not switch-gated” does not mean “broadcast.”
+
+### A MOM rejection may also enter the general exception hook
+
+For the covered `Send Interaction` wrappers, the MOM report and the public
+service-exception report are separate attempts. In the embedded path, a
+recognized MOM class is retained before request validation; the catch attempts
+`HLAreportMOMexception`, then invokes `emitExceptionReport`. The latter can
+route `HLAreportException` only through its own switch and eligible-recipient
+checks. Thus an enabled, eligible embedded case can attempt both reports, but
+the current focused tests do not configure and assert both routes together.
+After those exception hooks, the embedded catch also calls the failed service-
+invocation writer; its independent Service Reporting switch and sink can
+therefore make a third report attempt (`HLAreportServiceInvocation` or a file
+record). No cited test observes all three routes for one failed call.
+
+The configured-process `HLAsetSwitches` path differs. The server plans and
+enqueues an eligible `HLAreportMOMexception` before returning the rejected
+service response. The public process `Send Interaction` branch translates
+that rejection to `RTIinternalError` and exits before reaching the later
+embedded catch or the failed service-invocation writer. The focused process
+test asserts the caller error and MOM report, but does not exercise the general
+Exception Reporting route. This is a source-path distinction, not a normative
+rule or a claim of profile parity; event enqueue order is not callback-arrival
+order.
+
+```mermaid
+flowchart TD
+  A[Send Interaction targets a recognized MOM class] --> B{RTI rejects the request?}
+  B -->|No| C[This MOM-rejection reporting path does not run]
+  B -->|Yes| D{2025 implementation path}
+  D -->|Embedded| E[Catch attempts HLAreportMOMexception]
+  E --> F[Catch invokes HLAreportException hook separately]
+  F --> G{Exception Reporting enabled and recipient eligible?}
+  G -->|Yes| H[HLAreportException may also be routed]
+  G -->|No| I[No general exception report; MOM route remains independent]
+  H --> J[Catch calls failed service-invocation writer]
+  I --> J
+  J --> K{Service Reporting enabled?}
+  K -->|Yes| L[Selected file or HLAreportServiceInvocation sink may be attempted]
+  K -->|No| M[No invocation report; exception routes remain independent]
+  D -->|Configured process| Q[Server plans MOM report for eligible recipients]
+  Q --> R[Server returns rejected response]
+  R --> S[Client translates it to RTIinternalError]
+  S --> T[Reviewed process branch exits before embedded hooks and failure writer]
+```
+
+The [embedded malformed/rejected-MOM test](../../cpp/tests/ieee1516_2025_federation_mom_exception_report_catch2.cpp#L4)
+and [configured-process malformed `HLAsetSwitches` test](../../cpp/tests/ieee1516_2025_connection_process_mom_malformed_exception_catch2.cpp#L460)
+exercise the MOM-report path, not a combined two-report case. The latter
+does not subscribe to or assert `HLAreportException`; the separate process [payload test](../../cpp/tests/ieee1516_2025_connection_process_mom_exception_report_parameters_catch2.cpp#L460)
+explicitly checks Exception Reporting off while observing the MOM report. The
+embedded wrapper's [catch order](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L2395)
+attempts both hooks; the process [early client branch](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L57)
+and [server rejection/report path](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L263)
+show the different boundary. Neither profile's cited tests assert both
+exception-report interactions for one failed call, and no cited test asserts
+all three report routes together. Do not infer `HLAreportServiceInvocation`
+from either exception-report path: the embedded ordinary-send catch proceeds
+to a separate failed-invocation writer, while the reviewed configured-process
+ordinary-send branch exits before that writer. See the
+[service-invocation guide's failed-send boundary](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#failed-invocation-reporting-is-wrapper-specific).
 
 ## One concrete trace
 
@@ -473,8 +541,8 @@ interleaving or callback scheduler has identical behavior.
 - [Process Send Interaction validation and rejected-request reporting](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L183)
 - [Separate report payload types and switch-gating distinction](../../cpp/src/internal/federation/federation_registry_mom_report_types.hpp#L80)
 - [Embedded malformed/rejected MOM interactions, including parameter-error classification](../../cpp/tests/ieee1516_2025_federation_mom_exception_report_catch2.cpp#L4)
-- [Process malformed `HLAsetSwitches` report with Exception Reporting still off](../../cpp/tests/ieee1516_2025_connection_process_mom_malformed_exception_catch2.cpp#L459)
-- [Process inherited `HLAfederate`, four-parameter payload, parent projection, both callback models and event transports](../../cpp/tests/ieee1516_2025_connection_process_mom_exception_report_parameters_catch2.cpp#L460)
+- [Process malformed `HLAsetSwitches` report](../../cpp/tests/ieee1516_2025_connection_process_mom_malformed_exception_catch2.cpp#L459)
+- [Process inherited `HLAfederate`, four-parameter payload, Exception Reporting explicitly false, parent projection, both callback models and event transports](../../cpp/tests/ieee1516_2025_connection_process_mom_exception_report_parameters_catch2.cpp#L460)
 
 ## Limits and handoff
 

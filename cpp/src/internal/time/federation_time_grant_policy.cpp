@@ -59,12 +59,13 @@ FederationTimeAdvanceGrantDecision FederationTimeAdvanceGrantPolicy::decide(
           bool const inclusiveBoundary =
               requester.advanceMode == FederateTimeAdvanceMode::time_advance_request_available ||
               requester.advanceMode == FederateTimeAdvanceMode::next_message_request_available;
-          // A queued/in-transit TSO boundary is already a known delivery
-          // point. Preserve the established exact-bound behavior for all
-          // advance forms when that queue-derived boundary is the selected
-          // GALT; the Available forms additionally permit equality at an
-          // ordinary regulator-only GALT.
-          bool const queuedTsoBoundary = atTsoBoundary;
+          // TAR remains strictly below GALT, including when a queued TSO is
+          // itself the current boundary. Let that callback complete and
+          // recompute GALT before granting at the requested time. NMR may
+          // grant at its queued next-message boundary; the Available forms
+          // already permit equality at GALT.
+          bool const queuedTsoBoundary = atTsoBoundary &&
+              requester.advanceMode == FederateTimeAdvanceMode::next_message_request;
           return {
               (*requester.requestedTime < *bounds.galt || inclusiveBoundary &&
                   *requester.requestedTime == *bounds.galt || queuedTsoBoundary)

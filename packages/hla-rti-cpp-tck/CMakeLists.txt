@@ -28,6 +28,7 @@ endif()
 
 add_executable(hla_rti_cpp_tck
   src/main.cpp
+  src/tck_auto_provide_scenarios.cpp
   src/tck_receive_order_callback_cancellation.cpp
   src/tck_attribute_value_update_request_response.cpp
   src/tck_update_rate_scenarios.cpp
@@ -35,7 +36,46 @@ add_executable(hla_rti_cpp_tck
   src/tck_federation_synchronization_mom_queries.cpp
   src/tck_multi_attribute_delivery_scenarios.cpp
   src/tck_timestamped_interaction_scheduling_scenarios.cpp
+  src/tck_flush_queue_nonlimiting_galt_scenarios.cpp
+  src/tck_nrg_regulator_resignation.cpp
+  src/tck_nrg_disabled_regulator_activation.cpp
+  src/tck_constrained_tar_disable_release.cpp
+  src/tck_save_active_callback_resignation.cpp
+  src/tck_timed_save_fqr_callback_resignation.cpp
+  src/tck_timed_save_tara_callback_resignation.cpp
+  src/tck_timed_save_nmra_callback_resignation.cpp
+  src/tck_timed_save_mixed_fqr_tar.cpp
+  src/tck_timed_save_ordinary_before_fqr.cpp
+  src/tck_timed_save_all_advance_modes.cpp
+  src/tck_timed_save_per_member_tso.cpp
+  src/tck_timed_save_flush_queue_admission.cpp
+  src/tck_timed_save_available_admission.cpp
+  src/tck_timed_save_next_message_admission.cpp
+  src/tck_timed_save_available_next_message_member_admission.cpp
+  src/tck_timed_save_resigned_constrained_member.cpp
+  src/tck_restore_pending_flush_queue_request.cpp
+  src/tck_restore_resignation_callback_lifetime.cpp
+  src/tck_restore_pending_time_advance.cpp
+  src/tck_restore_pending_advance_modes.cpp
+  src/tck_restore_pending_tso_nmr.cpp
+  src/tck_restore_pending_tso_nmra_attribute.cpp
+  src/tck_restore_pending_tso_nmra_delete.cpp
+  src/tck_restore_mixed_tso_four_member.cpp
+  src/tck_restore_terminal_tso_attribute.cpp
+  src/tck_restore_terminal_tso_interaction.cpp
+  src/tck_restore_terminal_tso_directed_interaction.cpp
+  src/tck_restore_time_window_state.cpp
+  src/tck_restore_deferred_lookahead.cpp
+  src/tck_restore_multi_pending_time_advance.cpp
+  src/tck_restore_pending_flush_queue_immediate.cpp
+  src/tck_restore_object_snapshot_status.cpp
+  src/tck_restore_tso_retraction_uniqueness.cpp
+  src/tck_restore_tso_directed_multi_recipient.cpp
+  src/tck_restore_live_tso_retraction_record.cpp
+  src/tck_restore_live_tso_directed_interaction.cpp
+  src/tck_restore_live_tso_interaction_multi_recipient.cpp
   src/tck_timestamped_directed_interaction_subscription_kind.cpp
+  src/tck_timestamped_directed_zero_lookahead_tar_boundary.cpp
   src/tck_directed_interaction_received_class_projection.cpp
   src/tck_directed_interaction_no_applicable_subscription.cpp
   src/tck_directed_interaction_subscription_accumulation.cpp
@@ -45,6 +85,11 @@ add_executable(hla_rti_cpp_tck
   src/tck_callback_controls_time_transport.cpp
   src/tck_connection_lifecycle.cpp
   src/portable_tck.cpp
+  src/tck_portable_scenario_runner.cpp
+  src/tck_timestamped_object_deletion_router.cpp
+  src/tck_nmr_future_timestamped_attribute_update.cpp
+  src/tck_timestamped_attribute_pending_tara.cpp
+  src/tck_timestamped_attribute_tara_router.cpp
   src/tck_portable_member_control_scenarios.cpp
   src/tck_transport_order_type_change.cpp
   src/tck_transport_order_scenarios.cpp
@@ -111,8 +156,14 @@ add_executable(hla_rti_cpp_tck
   src/tck_timestamped_interaction_scenarios.cpp
   src/tck_nmr_future_timestamped_object_deletion.cpp
   src/tck_nmra_future_timestamped_object_deletion.cpp
+  src/tck_tara_future_timestamped_object_deletion.cpp
   src/tck_timestamped_interaction_boundary_scenarios.cpp
   src/tck_time_management_scenarios.cpp
+  src/tck_tar_acknowledged_tso_galt_release.cpp
+  src/tck_time_constrained_enable_scenarios.cpp
+  src/tck_nmra_received_tso_floor.cpp
+  src/tck_nmra_message_set.cpp
+  src/tck_fqr_non_time_constrained.cpp
   src/tck_time_coordinated_interaction.cpp
   src/tck_empty_attribute_subscription.cpp
   src/tck_attribute_subscription_mode_transitions.cpp
@@ -156,6 +207,12 @@ add_executable(hla_rti_cpp_tck
   src/tck_object_management_scenarios.cpp
   src/tck_object_removal_fanout_scenarios.cpp
   src/tck_ownership_management_scenarios.cpp
+  src/tck_ownership_assumption_search.cpp
+  src/tck_ownership_divestiture_return_set.cpp
+  src/tck_ownership_if_available_negotiated.cpp
+  src/tck_if_available_deleted_object.cpp
+  src/tck_ownership_after_fom_merge.cpp
+  src/tck_resign_divests_all_instance_attributes.cpp
   src/tck_region_lifecycle_scenarios.cpp
   src/tck_delay_subscription_scenarios.cpp
   src/tck_federation_save_restore_interlocks.cpp
@@ -208,8 +265,79 @@ if(BUILD_TESTING)
       if(_tck_scenario STREQUAL
            "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot" OR
          _tck_scenario STREQUAL
-           "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot-contract")
+           "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot-contract" OR
+         _tck_scenario STREQUAL
+           "cpp-tck.if-available-during-negotiated-divestiture" OR
+         _tck_scenario STREQUAL
+           "cpp-tck.if-available-during-negotiated-divestiture-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.nmra-ro-earliest-tso-cohort" OR
+         _tck_scenario STREQUAL "cpp-tck.nmra-ro-earliest-tso-cohort-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-active-callback-resignation-guard" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-active-callback-resignation-guard-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-fqr-active-callback-resignation-guard" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-fqr-active-callback-resignation-guard-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-tara-active-callback-resignation-guard" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-tara-active-callback-resignation-guard-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-nmra-active-callback-resignation-guard" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-nmra-active-callback-resignation-guard-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-mixed-fqr-tar-members" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-mixed-fqr-tar-members-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-ordinary-boundary-before-fqr" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-ordinary-boundary-before-fqr-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-all-advance-modes" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-all-advance-modes-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-per-member-tso" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-per-member-tso-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-flush-queue-admission" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-flush-queue-admission-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-available-admission" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-available-admission-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-next-message-admission" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-next-message-admission-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-available-next-message-member-admission" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-available-next-message-member-admission-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-resigned-constrained-member" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-resigned-constrained-member-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-resigned-pending-fqr" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-save-resigned-pending-fqr-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-pending-flush-queue-request" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-pending-flush-queue-request-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-resignation-callback-lifetime" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-resignation-callback-lifetime-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-pending-time-advance" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-pending-time-advance-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-mixed-tso-four-member" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-mixed-tso-four-member-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-terminal-tso-attribute" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-terminal-tso-attribute-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-terminal-tso-interaction" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-terminal-tso-interaction-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-terminal-tso-directed-interaction" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-terminal-tso-directed-interaction-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-tso-retraction-uniqueness" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-tso-retraction-uniqueness-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-tso-directed-multi-recipient" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-tso-directed-multi-recipient-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-live-tso-retraction-record" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-live-tso-retraction-record-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-live-tso-directed-interaction" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-live-tso-directed-interaction-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-live-tso-interaction-multi-recipient" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-live-tso-interaction-multi-recipient-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-time-window-state" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-time-window-state-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-deferred-lookahead" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-deferred-lookahead-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-multi-pending-time-advance" OR
+         _tck_scenario STREQUAL "cpp-tck.restore-multi-pending-time-advance-contract")
         set(_tck_callback_models evoked)
+      elseif(_tck_scenario STREQUAL "cpp-tck.restore-pending-time-advance-immediate" OR
+             _tck_scenario STREQUAL "cpp-tck.restore-pending-time-advance-immediate-contract" OR
+             _tck_scenario STREQUAL "cpp-tck.restore-pending-flush-queue-immediate" OR
+             _tck_scenario STREQUAL "cpp-tck.restore-pending-flush-queue-immediate-contract" OR
+             _tck_scenario STREQUAL "cpp-tck.restore-object-snapshot-status" OR
+             _tck_scenario STREQUAL "cpp-tck.restore-object-snapshot-status-contract")
+        set(_tck_callback_models immediate)
       else()
         set(_tck_callback_models ${HLA_RTI_TCK_TEST_CALLBACK_MODELS})
       endif()

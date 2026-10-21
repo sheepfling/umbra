@@ -9,7 +9,8 @@ TEST_CASE(
     "[rti.service.unsubscribe-interaction-class-with-regions]"
     "[rti.service.send-interaction]"
     "[rti.service.send-interaction-with-regions]"
-    "[federate.callback.receive-interaction]") {
+    "[federate.callback.receive-interaction]"
+    "[ddm-default-region-dm-reinterpretation][2025]") {
   ReportingFederateAmbassador publisherReports;
   ReportingFederateAmbassador regionalReports;
   ReportingFederateAmbassador mixedReports;
@@ -73,10 +74,9 @@ TEST_CASE(
       RegionHandleSet{mixedRegion}));
 
   VariableLengthData const tag;
-  // The mixed federate retains an ordinary subscription, but the explicit,
-  // disjoint regional declaration is its effective realization for this
-  // class. It must not receive an explicit source-region interaction through
-  // the ordinary default region.
+  // The ordinary and With Regions subscription effects are independent.
+  // Although this source is disjoint from the mixed federate's regional
+  // declaration, its retained ordinary/default subscription still receives.
   REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
       interactionClass,
       parameters,
@@ -85,11 +85,10 @@ TEST_CASE(
   static_cast<void>(regional->evokeMultipleCallbacks(0.0, 0.0));
   static_cast<void>(mixed->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(regionalReports.interactionReports.size() == 1);
-  REQUIRE(mixedReports.interactionReports.empty());
+  REQUIRE(mixedReports.interactionReports.size() == 1);
 
-  // Once its explicit subscription is removed, the retained ordinary
-  // subscription again uses the default region and qualifies for any valid
-  // explicit source-region interaction.
+  // Removing only the disjoint regional declaration does not change the
+  // independent ordinary/default route.
   REQUIRE_NOTHROW(mixed->unsubscribeInteractionClassWithRegions(
       interactionClass,
       RegionHandleSet{mixedRegion}));
@@ -101,7 +100,7 @@ TEST_CASE(
   static_cast<void>(regional->evokeMultipleCallbacks(0.0, 0.0));
   static_cast<void>(mixed->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(regionalReports.interactionReports.size() == 2);
-  REQUIRE(mixedReports.interactionReports.size() == 1);
+  REQUIRE(mixedReports.interactionReports.size() == 2);
 
   // Restore the disjoint regional realization. An ordinary Send Interaction
   // uses the invisible RTI-provided default region, which overlaps each
@@ -116,7 +115,7 @@ TEST_CASE(
   static_cast<void>(regional->evokeMultipleCallbacks(0.0, 0.0));
   static_cast<void>(mixed->evokeMultipleCallbacks(0.0, 0.0));
   REQUIRE(regionalReports.interactionReports.size() == 3);
-  REQUIRE(mixedReports.interactionReports.size() == 2);
+  REQUIRE(mixedReports.interactionReports.size() == 3);
   REQUIRE(regionalReports.interactionReports.back().sentRegionsSupplied);
   REQUIRE(regionalReports.interactionReports.back().sentRegions.empty());
   REQUIRE(mixedReports.interactionReports.back().sentRegionsSupplied);

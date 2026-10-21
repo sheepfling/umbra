@@ -43,6 +43,14 @@ void CallbackSession::close() {
   recipient_ = nullptr;
 }
 
+void CallbackSession::waitUntilIdle() {
+  std::unique_lock lock(mutex_);
+  if (activeCallbackSession == this) {
+    return;
+  }
+  noInvocationsInFlight_.wait(lock, [this] { return invocationsInFlight_ == 0; });
+}
+
 void CallbackSession::invoke(Invocation invocation) {
   if (!invocation) {
     return;

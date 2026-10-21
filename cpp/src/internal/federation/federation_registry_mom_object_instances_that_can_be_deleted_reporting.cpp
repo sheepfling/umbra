@@ -72,8 +72,9 @@ EmbeddedFederationRegistry::planMomObjectInstancesThatCanBeDeletedReport(
   }
 
   // HLAobjectInstancesThatCanBeDeleted is live ownership state, not a
-  // historical counter. Count only federate-created objects whose
-  // HLAprivilegeToDeleteObject owner is the represented joined federate.
+  // historical counter. Count live objects whose HLAprivilegeToDeleteObject
+  // owner is the represented joined federate; that owner need not be the
+  // original registrant.
   for (auto const& [objectInstanceHandle, objectInstance] :
        federation->second.objectInstances) {
     static_cast<void>(objectInstanceHandle);

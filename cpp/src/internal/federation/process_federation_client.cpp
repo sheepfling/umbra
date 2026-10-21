@@ -24,6 +24,8 @@ namespace {
       return "internal-error";
     case TransportServiceStatus::service_reporting_interlock:
       return "service-reporting-interlock";
+    case TransportServiceStatus::invalid_logical_time:
+      return "invalid-logical-time";
   }
   return "unknown";
 }
@@ -71,6 +73,8 @@ namespace {
       return "flush-queue-request";
     case TransportServiceOperation::acknowledge_tso_delivery:
       return "acknowledge-tso-delivery";
+    case TransportServiceOperation::acknowledge_push_attribute_update:
+      return "acknowledge-pushed-attribute-update";
     case TransportServiceOperation::get_object_instance_handle:
       return "get-object-instance-handle";
     case TransportServiceOperation::get_object_instance_name:
@@ -499,7 +503,13 @@ void ProcessFederationClient::bufferEvent(TransportServiceMessage message) {
         throw ProcessFederationClientError(
             "Process federation client received an invalid time-advance grant event.");
       }
-      if (result.optimisticTime) {
+      if (result.regulationEnabled) {
+        pendingEvents_.emplace_back(PendingTimeRegulationEnabled{
+            std::move(*result.grantedTime)});
+      } else if (result.constrainedEnabled) {
+        pendingEvents_.emplace_back(PendingTimeConstrainedEnabled{
+            std::move(*result.grantedTime)});
+      } else if (result.optimisticTime) {
         pendingEvents_.emplace_back(PendingFlushQueueGrant{
             std::move(*result.grantedTime), std::move(*result.optimisticTime)});
       } else {
@@ -716,7 +726,7 @@ void ProcessFederationClient::dispatchLoop() noexcept {
       callbackEventsAvailable_.wait(lock, [this] {
         return closing_.load(std::memory_order_acquire) ||
             ((callbackBridge_ && !pendingEvents_.empty()) ||
-             !deferredTsoDeliveryAcknowledgements_.empty()) &&
+             !deferredDeliveryAcknowledgements_.empty()) &&
                 requestDepth_ == 0U && callbackDispatchSuppressionDepth_ == 0U;
       });
       if (closing_.load(std::memory_order_acquire)) {
@@ -811,6 +821,49 @@ void ProcessFederationClient::acknowledgeTsoDelivery(
       "Process federation client received an invalid TSO delivery acknowledgement result.");
 }
 
+void ProcessFederationClient::acknowledgePushedAttributeUpdate(
+    std::uint64_t deliveryId) {
+  if (deliveryId == 0U) {
+    throw ProcessFederationClientError(
+        "A pushed receive-order attribute acknowledgement requires an identity.");
+  }
+  {
+    std::scoped_lock lock(transactionMutex_);
+    auto const pending = std::pair{deliveryId, true};
+    if (std::find(deferredDeliveryAcknowledgements_.begin(),
+                  deferredDeliveryAcknowledgements_.end(), pending) ==
+        deferredDeliveryAcknowledgements_.end()) {
+      deferredDeliveryAcknowledgements_.push_back(pending);
+    }
+  }
+  callbackEventsAvailable_.notify_all();
+}
+
+void ProcessFederationClient::sendPushedAttributeUpdateAcknowledgement(
+    std::uint64_t deliveryId) {
+  std::wstring federationName;
+  std::uint64_t federateId = 0U;
+  {
+    std::scoped_lock lock(transactionMutex_);
+    if (requestDepth_ != 0U || !session_ || !joinedFederationName_ ||
+        joinedFederateId_ == 0U) {
+      return;
+    }
+    federationName = *joinedFederationName_;
+    federateId = joinedFederateId_;
+  }
+  auto const response = request(
+      TransportServiceOperation::acknowledge_push_attribute_update,
+      encodeProcessFederationAcknowledgeTsoDeliveryRequest(
+          ProcessFederationAcknowledgeTsoDeliveryRequest{
+              std::move(federationName), federateId, deliveryId}),
+      false);
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+}
+
 void ProcessFederationClient::deferTsoDeliveryAcknowledgement(
     std::uint64_t messageId) {
   std::scoped_lock lock(transactionMutex_);
@@ -818,26 +871,33 @@ void ProcessFederationClient::deferTsoDeliveryAcknowledgement(
     throw ProcessFederationClientError(
         "A process TSO delivery acknowledgement requires a message identity.");
   }
-  if (std::find(
-          deferredTsoDeliveryAcknowledgements_.begin(),
-          deferredTsoDeliveryAcknowledgements_.end(),
-          messageId) == deferredTsoDeliveryAcknowledgements_.end()) {
-    deferredTsoDeliveryAcknowledgements_.push_back(messageId);
+    auto const pending = std::pair{messageId, false};
+    if (std::find(
+          deferredDeliveryAcknowledgements_.begin(),
+          deferredDeliveryAcknowledgements_.end(),
+          pending) == deferredDeliveryAcknowledgements_.end()) {
+    deferredDeliveryAcknowledgements_.push_back(pending);
   }
 }
 
 void ProcessFederationClient::flushDeferredTsoDeliveryAcknowledgements() {
   while (true) {
     std::uint64_t messageId = 0U;
+    bool isPushAttribute = false;
     {
       std::scoped_lock lock(transactionMutex_);
-      if (requestDepth_ != 0U || deferredTsoDeliveryAcknowledgements_.empty()) {
+      if (requestDepth_ != 0U || deferredDeliveryAcknowledgements_.empty()) {
         return;
       }
-      messageId = deferredTsoDeliveryAcknowledgements_.front();
-      deferredTsoDeliveryAcknowledgements_.pop_front();
+      messageId = deferredDeliveryAcknowledgements_.front().first;
+      isPushAttribute = deferredDeliveryAcknowledgements_.front().second;
+      deferredDeliveryAcknowledgements_.pop_front();
     }
-    acknowledgeTsoDelivery(messageId);
+    if (isPushAttribute) {
+      sendPushedAttributeUpdateAcknowledgement(messageId);
+    } else {
+      acknowledgeTsoDelivery(messageId);
+    }
   }
 }
 

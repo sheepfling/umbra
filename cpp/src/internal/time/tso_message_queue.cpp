@@ -292,6 +292,33 @@ std::vector<TsoQueuedMessage> TsoMessageQueue::popEligible(
   return eligible;
 }
 
+std::vector<TsoQueuedMessage> TsoMessageQueue::popPendingForReceiveOrder(
+    std::uint64_t recipientFederateId) {
+  std::vector<TsoQueuedMessage> eligible;
+  if (recipientFederateId == 0) {
+    return eligible;
+  }
+
+  std::vector<PendingEntry> retained;
+  retained.reserve(pending_.size());
+  for (auto& entry : pending_) {
+    if (entry.message.recipientFederateId == recipientFederateId) {
+      deliveredMessageIds_.push_back(entry.message.messageId);
+      eligible.push_back(std::move(entry.message));
+    } else {
+      retained.push_back(std::move(entry));
+    }
+  }
+  pending_ = std::move(retained);
+  std::stable_sort(
+      eligible.begin(),
+      eligible.end(),
+      [](TsoQueuedMessage const& left, TsoQueuedMessage const& right) {
+        return left.sequence < right.sequence;
+      });
+  return eligible;
+}
+
 std::optional<std::shared_ptr<rti1516_2025::LogicalTime const>>
 TsoMessageQueue::earliestTimestampFor(std::uint64_t recipientFederateId) const {
   if (recipientFederateId == 0) {
@@ -337,6 +364,60 @@ std::size_t TsoMessageQueue::discardRecipient(std::uint64_t recipientFederateId)
           }),
       pending_.end());
   return originalSize - pending_.size();
+}
+
+std::vector<TsoQueuedMessage> TsoMessageQueue::retireBefore(
+    std::uint64_t recipientFederateId,
+    rti1516_2025::LogicalTime const& boundary) {
+  std::vector<TsoQueuedMessage> retired;
+  if (recipientFederateId == 0 ||
+      (!implementationName_.empty() &&
+       boundary.implementationName() != implementationName_)) {
+    return retired;
+  }
+
+  std::vector<PendingEntry> retained;
+  retained.reserve(pending_.size());
+  for (auto& entry : pending_) {
+    if (entry.message.recipientFederateId == recipientFederateId &&
+        *entry.message.timestamp < boundary) {
+      retired.push_back(std::move(entry.message));
+    } else {
+      retained.push_back(std::move(entry));
+    }
+  }
+  pending_ = std::move(retained);
+  return retired;
+}
+
+std::vector<TsoQueuedMessage> TsoMessageQueue::retireAtOrBefore(
+    std::uint64_t recipientFederateId,
+    rti1516_2025::LogicalTime const& boundary) {
+  std::vector<TsoQueuedMessage> retired;
+  if (recipientFederateId == 0 ||
+      (!implementationName_.empty() &&
+       boundary.implementationName() != implementationName_)) {
+    return retired;
+  }
+
+  std::vector<PendingEntry> retained;
+  retained.reserve(pending_.size());
+  for (auto& entry : pending_) {
+    bool atOrBefore = false;
+    try {
+      atOrBefore = *entry.message.timestamp < boundary ||
+                   *entry.message.timestamp == boundary;
+    } catch (rti1516_2025::Exception const&) {
+      // Preserve incomparable queue entries for ordinary delivery validation.
+    }
+    if (entry.message.recipientFederateId == recipientFederateId && atOrBefore) {
+      retired.push_back(std::move(entry.message));
+    } else {
+      retained.push_back(std::move(entry));
+    }
+  }
+  pending_ = std::move(retained);
+  return retired;
 }
 
 std::size_t TsoMessageQueue::pendingCount() const noexcept {

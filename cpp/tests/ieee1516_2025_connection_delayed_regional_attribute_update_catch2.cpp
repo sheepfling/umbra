@@ -366,6 +366,197 @@ void runScenario(bool enableDelay, CallbackModel callbackModel) {
   REQUIRE_NOTHROW(host.rethrowIfFailed());
 }
 
+void runDefaultRegionScenario(bool enableDelay) {
+  EmbeddedFederationRegistry registry;
+  ProcessFederationServiceHost host(
+      registry,
+      delayedRegionalDefinition(enableDelay),
+      {"127.0.0.1", 0U},
+      {"umbra-delayed-default-region-process-test", 0xD353U},
+      ProcessFederationServiceOptions{true});
+  host.start();
+
+  constexpr wchar_t const* federationName =
+      L"process-delayed-default-region-attribute";
+  NullFederateAmbassador senderFederate;
+  RegionalReceiver receiverFederate;
+  auto sender = makeRti();
+  auto receiver = makeRti();
+  REQUIRE(sender->connect(
+      senderFederate,
+      HLA_IMMEDIATE,
+      configurationFor(host.address().port, L"default-region-sender")).addressUsed);
+  REQUIRE(receiver->connect(
+      receiverFederate,
+      HLA_IMMEDIATE,
+      configurationFor(host.address().port, L"default-region-receiver")).addressUsed);
+  REQUIRE_NOTHROW(sender->createFederationExecution(
+      federationName, L"server-owned-fom.xml"));
+  REQUIRE_NOTHROW(sender->joinFederationExecution(L"sender", L"test", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(L"receiver", L"test", federationName));
+  auto const receiverMembership = registry.memberByName(federationName, L"receiver");
+  REQUIRE(receiverMembership);
+  REQUIRE(registry.delaySubscriptionEvaluationSwitchFor(
+              federationName, receiverMembership->id) == enableDelay);
+
+  auto const senderClass = sender->getObjectClassHandle(fixture_hla::fom::food_drink_soda);
+  auto const senderAttribute = sender->getAttributeHandle(
+      senderClass, fixture_hla::fixture::flavor);
+  auto const receiverClass = receiver->getObjectClassHandle(fixture_hla::fom::food_drink_soda);
+  auto const receiverAttribute = receiver->getAttributeHandle(
+      receiverClass, fixture_hla::fixture::flavor);
+  REQUIRE(senderClass.isValid());
+  REQUIRE(senderAttribute.isValid());
+  REQUIRE(receiverClass.isValid());
+  REQUIRE(receiverAttribute.isValid());
+
+  AttributeHandleSet const senderAttributes{senderAttribute};
+  AttributeHandleSet const receiverAttributes{receiverAttribute};
+  sender->publishObjectClassAttributes(senderClass, senderAttributes);
+  receiver->subscribeObjectClassAttributes(receiverClass, receiverAttributes);
+  auto const object = sender->registerObjectInstance(senderClass);
+  REQUIRE(object.isValid());
+  pumpCallbacksUntil(*receiver, HLA_IMMEDIATE, [&] {
+    return receiverFederate.discoveries == 1U;
+  });
+  REQUIRE(receiverFederate.discoveries == 1U);
+
+  // Without explicit region associations, this dimensional attribute update
+  // travels through the default-region projection. The known receiver has no
+  // declaration when Update is accepted; delayed evaluation retains its route
+  // until the HLA_IMMEDIATE callback task can recheck the new subscription.
+  receiver->disableCallbacks();
+  receiver->unsubscribeObjectClassAttributes(receiverClass, receiverAttributes);
+  std::array<std::uint8_t, 1U> const value{0xE3U};
+  AttributeHandleValueMap values;
+  values.emplace(senderAttribute, VariableLengthData(value.data(), value.size()));
+  std::array<std::uint8_t, 1U> const tag{0xE4U};
+  sender->updateAttributeValues(
+      object, values, VariableLengthData(tag.data(), tag.size()));
+  receiver->subscribeObjectClassAttributes(receiverClass, receiverAttributes);
+  receiver->enableCallbacks();
+  if (enableDelay) {
+    pumpCallbacksUntil(*receiver, HLA_IMMEDIATE, [&] {
+      return receiverFederate.reflections == 1U;
+    });
+  } else {
+    drainCallbacksFor(*receiver, HLA_IMMEDIATE);
+  }
+  REQUIRE(receiverFederate.reflections == (enableDelay ? 1U : 0U));
+  if (enableDelay) {
+    REQUIRE(receiverFederate.receivedAttributes == 1U);
+    REQUIRE(receiverFederate.receivedTag ==
+            std::vector<std::uint8_t>(tag.begin(), tag.end()));
+  }
+
+  receiver->resignFederationExecution(NO_ACTION);
+  sender->resignFederationExecution(DELETE_OBJECTS);
+  sender->destroyFederationExecution(federationName);
+  receiver->disconnect();
+  sender->disconnect();
+  host.stop();
+  REQUIRE_NOTHROW(host.rethrowIfFailed());
+}
+
+void runNonregionalScenario(bool enableDelay, CallbackModel callbackModel) {
+  EmbeddedFederationRegistry registry;
+  ProcessFederationServiceHost host(
+      registry,
+      delayedRegionalDefinition(enableDelay),
+      {"127.0.0.1", 0U},
+      {"umbra-delayed-nonregional-process-test", 0xD354U},
+      ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
+  host.start();
+
+  constexpr wchar_t const* federationName =
+      L"process-delayed-nonregional-attribute";
+  NullFederateAmbassador senderFederate;
+  RegionalReceiver receiverFederate;
+  auto sender = makeRti();
+  auto receiver = makeRti();
+  REQUIRE(sender->connect(
+      senderFederate,
+      callbackModel,
+      configurationFor(host.address().port, L"nonregional-sender")).addressUsed);
+  REQUIRE(receiver->connect(
+      receiverFederate,
+      callbackModel,
+      configurationFor(host.address().port, L"nonregional-receiver")).addressUsed);
+  REQUIRE_NOTHROW(sender->createFederationExecution(
+      federationName, L"server-owned-fom.xml"));
+  REQUIRE_NOTHROW(sender->joinFederationExecution(L"sender", L"test", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(L"receiver", L"test", federationName));
+  auto const receiverMembership = registry.memberByName(federationName, L"receiver");
+  REQUIRE(receiverMembership);
+  REQUIRE(registry.delaySubscriptionEvaluationSwitchFor(
+              federationName, receiverMembership->id) == enableDelay);
+
+  // Employee.Server and its Efficiency attribute are nondimensional in the
+  // Restaurant FOM. This scenario therefore exercises ordinary, nonregional
+  // Update Attribute Values rather than the separate default-region path.
+  auto const senderClass = sender->getObjectClassHandle(fixture_hla::fom::employee_server);
+  auto const senderAttribute = sender->getAttributeHandle(
+      senderClass, fixture_hla::fixture::efficiency);
+  auto const receiverClass = receiver->getObjectClassHandle(fixture_hla::fom::employee_server);
+  auto const receiverAttribute = receiver->getAttributeHandle(
+      receiverClass, fixture_hla::fixture::efficiency);
+  REQUIRE(senderClass.isValid());
+  REQUIRE(senderAttribute.isValid());
+  REQUIRE(receiverClass.isValid());
+  REQUIRE(receiverAttribute.isValid());
+
+  AttributeHandleSet const senderAttributes{senderAttribute};
+  AttributeHandleSet const receiverAttributes{receiverAttribute};
+  sender->publishObjectClassAttributes(senderClass, senderAttributes);
+  receiver->subscribeObjectClassAttributes(receiverClass, receiverAttributes);
+  auto const object = sender->registerObjectInstance(senderClass);
+  REQUIRE(object.isValid());
+  pumpCallbacksUntil(*receiver, callbackModel, [&] {
+    return receiverFederate.discoveries == 1U;
+  });
+  REQUIRE(receiverFederate.discoveries == 1U);
+
+  // The receiver has no declaration when the update is generated. HLA_IMMEDIATE
+  // holds callback execution behind the disabled-callback gate; HLA_EVOKED
+  // holds it because evokeCallback has not yet been called. With DSE enabled,
+  // eligibility is rechecked against the current subscription at admission.
+  if (callbackModel == HLA_IMMEDIATE) {
+    receiver->disableCallbacks();
+  }
+  receiver->unsubscribeObjectClassAttributes(receiverClass, receiverAttributes);
+  std::array<std::uint8_t, 1U> const value{0xE5U};
+  AttributeHandleValueMap values;
+  values.emplace(senderAttribute, VariableLengthData(value.data(), value.size()));
+  std::array<std::uint8_t, 1U> const tag{0xE6U};
+  sender->updateAttributeValues(
+      object, values, VariableLengthData(tag.data(), tag.size()));
+  receiver->subscribeObjectClassAttributes(receiverClass, receiverAttributes);
+  if (callbackModel == HLA_IMMEDIATE) {
+    receiver->enableCallbacks();
+  }
+  if (enableDelay) {
+    pumpCallbacksUntil(*receiver, callbackModel, [&] {
+      return receiverFederate.reflections == 1U;
+    });
+  } else {
+    drainCallbacksFor(*receiver, callbackModel);
+  }
+  REQUIRE(receiverFederate.reflections == (enableDelay ? 1U : 0U));
+  if (enableDelay) {
+    REQUIRE(receiverFederate.receivedAttributes == 1U);
+    REQUIRE(receiverFederate.receivedTag ==
+            std::vector<std::uint8_t>(tag.begin(), tag.end()));
+  }
+
+  receiver->resignFederationExecution(NO_ACTION);
+  sender->resignFederationExecution(DELETE_OBJECTS);
+  sender->destroyFederationExecution(federationName);
+  receiver->disconnect();
+  sender->disconnect();
+  host.stop();
+  REQUIRE_NOTHROW(host.rethrowIfFailed());
+}
+
 void runResignCallbackFenceScenario() {
   EmbeddedFederationRegistry registry;
   ProcessFederationServiceHost host(
@@ -560,5 +751,53 @@ TEST_CASE(
   }
   SECTION("disabled preserves generation-time exclusion") {
     runScenario(false, HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "Process immediate delayed default-region attribute delivery rechecks at callback-task admission",
+    "[integration][object-management][data-distribution-management]"
+    "[delay-subscription-evaluation][process-boundary]"
+    "[process-delayed-default-region-attribute-immediate][2025]"
+    "[rti.service.update-attribute-values]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[federate.callback.reflect-attribute-values]") {
+  SECTION("enabled defers eligibility to HLA_IMMEDIATE callback-task admission") {
+    runDefaultRegionScenario(true);
+  }
+  SECTION("disabled preserves generation-time exclusion") {
+    runDefaultRegionScenario(false);
+  }
+}
+
+TEST_CASE(
+    "Process immediate delayed ordinary attribute delivery rechecks at callback-task admission",
+    "[integration][object-management][data-distribution-management]"
+    "[delay-subscription-evaluation][process-boundary]"
+    "[process-delayed-nonregional-attribute-immediate][2025]"
+    "[rti.service.update-attribute-values]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[federate.callback.reflect-attribute-values]") {
+  SECTION("enabled defers eligibility to HLA_IMMEDIATE callback-task admission") {
+    runNonregionalScenario(true, HLA_IMMEDIATE);
+  }
+  SECTION("disabled preserves generation-time exclusion") {
+    runNonregionalScenario(false, HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "Process HLA_EVOKED delayed ordinary attribute delivery rechecks at callback admission",
+    "[integration][object-management][data-distribution-management]"
+    "[delay-subscription-evaluation][process-boundary]"
+    "[process-delayed-nonregional-attribute-evoked][2025]"
+    "[rti.service.update-attribute-values]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[federate.callback.reflect-attribute-values]") {
+  SECTION("enabled defers eligibility to HLA_EVOKED callback admission") {
+    runNonregionalScenario(true, HLA_EVOKED);
+  }
+  SECTION("disabled preserves generation-time exclusion") {
+    runNonregionalScenario(false, HLA_EVOKED);
   }
 }

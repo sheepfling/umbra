@@ -896,6 +896,26 @@ bool mergeNode(
   }
 
   for (SemanticNode const* candidateChild : childrenInDeclarationOrder(candidate)) {
+    if (current.localName == "alternative" &&
+        candidateChild->localName == "enumerator") {
+      auto existingEnumerator = std::find_if(
+          current.children.begin(),
+          current.children.end(),
+          [&](auto const& entry) {
+            return entry.second.localName == "enumerator" &&
+                   entry.second.namespaceName == candidateChild->namespaceName;
+          });
+      if (existingEnumerator != current.children.end()) {
+        std::string const& incoming = candidateChild->text;
+        std::string& merged = existingEnumerator->second.text;
+        if (merged.empty()) {
+          merged = incoming;
+        } else if (!incoming.empty() && merged != incoming) {
+          merged += ", " + incoming;
+        }
+        continue;
+      }
+    }
     NodeKey const key = childKey(current, *candidateChild);
     auto existing = current.children.find(key);
     if (existing == current.children.end()) {

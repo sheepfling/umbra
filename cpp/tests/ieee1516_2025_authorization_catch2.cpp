@@ -511,6 +511,28 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Internal reference HLAauthorizer returns unauthorized for an unrecognized credential type",
+    "[baseline][authorization][authorizer][unit][internal][internal-only][no-normative-mapping][unknown-credential-type-unauthorized]") {
+  umbra::detail::ReferenceAuthorizerConfiguration configuration;
+  configuration.globalPlainTextPassword = L"test-password";
+  auto authorizer = umbra::detail::makeReferenceAuthorizer(std::move(configuration));
+  REQUIRE(authorizer);
+
+  Credentials unknown(L"UmbraUnknownCredential", VariableLengthData{});
+  REQUIRE(
+      authorizer->authorizeRtiOperation(unknown).getCode() ==
+      AuthorizationResult::UNAUTHORIZED);
+  REQUIRE(
+      authorizer->authorizeFederationOperation(unknown, L"federation").getCode() ==
+      AuthorizationResult::UNAUTHORIZED);
+  REQUIRE(
+      authorizer
+          ->authorizeFederateOperation(
+              unknown, L"federation", L"federate", L"type")
+          .getCode() == AuthorizationResult::UNAUTHORIZED);
+}
+
+TEST_CASE(
     "Embedded Connect delegates credentials to the configured HLAauthorizer factory",
     "[baseline][federation-management][authorization][credentials][integration][connect-authorizer-factory-path]") {
   umbra::detail::ReferenceAuthorizerConfiguration configuration;
@@ -570,6 +592,11 @@ TEST_CASE(
   rti1516_2025::RTIambassadorFactory factory;
   auto rti = factory.createRTIambassador();
   rti1516_2025::NullFederateAmbassador federate;
+
+  Credentials unknown(L"UmbraUnknownCredential", VariableLengthData{});
+  REQUIRE_THROWS_AS(
+      rti->connect(federate, rti1516_2025::HLA_EVOKED, unknown),
+      rti1516_2025::Unauthorized);
 
   HLAplainTextPassword wrong(L"wrong-password");
   REQUIRE_THROWS_AS(

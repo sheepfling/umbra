@@ -135,6 +135,16 @@ class FederationTimeCoordinator final {
   [[nodiscard]] TsoMessageRetractionResult retractPendingTsoMessage(
       std::uint64_t messageId);
 
+  // Retires one recipient's stale queue phases at a committed time frontier.
+  // The returned messages identify affected per-recipient retraction ledger
+  // entries; fanout for other recipients is untouched.
+  [[nodiscard]] std::vector<TsoQueuedMessage> retireTsoMessagesBefore(
+      std::uint64_t recipientFederateId,
+      rti1516_2025::LogicalTime const& boundary);
+  [[nodiscard]] std::vector<TsoQueuedMessage> retireTsoMessagesAtOrBefore(
+      std::uint64_t recipientFederateId,
+      rti1516_2025::LogicalTime const& boundary);
+
   // Returns the earliest currently queued TSO timestamp for one recipient.
   // The value is immutable and remains owned by the queue until delivery or
   // retraction; the caller uses it only to select an NMR grant target.
@@ -148,6 +158,11 @@ class FederationTimeCoordinator final {
       std::uint64_t recipientFederateId,
       rti1516_2025::LogicalTime const& boundary,
       bool inclusive);
+
+  // Moves every pending payload for one federate into the in-transit phase in
+  // enqueue order so Disable Time Constrained can deliver it as receive order.
+  [[nodiscard]] FederationTsoDeliveryResult beginTsoReceiveOrderDelivery(
+      std::uint64_t recipientFederateId);
 
   [[nodiscard]] FederationTsoDeliveryStatus completeTsoDelivery(
       TsoQueuedMessage const& message);
@@ -189,6 +204,9 @@ class FederationTimeCoordinator final {
   std::map<std::uint64_t, std::vector<TsoQueuedMessage>> inTransitTsoMessages_;
   std::map<std::uint64_t, std::vector<TsoQueuedMessage>>
       deliveredTsoMessagesSinceLastAdvance_;
+  // A process transport may acknowledge an event that was already in transit
+  // when a concurrent FQG retired it. Keep only identity until that ack lands.
+  std::vector<TsoQueuedMessage> retiredInTransitTsoMessages_;
 };
 
 }  // namespace umbra::detail

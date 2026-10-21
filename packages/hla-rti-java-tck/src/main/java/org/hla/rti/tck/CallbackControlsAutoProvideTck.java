@@ -266,6 +266,11 @@ final class CallbackControlsAutoProvideTck {
             requester, requesterFirst, requesterSecond);
          owner.publishObjectClassAttributes(ownerClass, ownerAttributes);
          requester.subscribeObjectClassAttributes(requesterClass, requesterAttributes);
+         if (!gateCallbacks) {
+            requester.setAttributeScopeAdvisorySwitch(false);
+            JavaTckSupport.check(!requester.getAttributeScopeAdvisorySwitch(),
+               "Auto Provide baseline did not disable Attribute Scope Advisory");
+         }
 
           ownerRecorder.clearProvided();
           if (gateCallbacks) owner.disableCallbacks();
@@ -297,6 +302,33 @@ final class CallbackControlsAutoProvideTck {
                && new HashSet<>(ownerAttributes).equals(update.attributes)
                && update.tag.length == 0,
             "re-enabled Auto Provide callback lost standard object, attribute, or tag data");
+
+         if (!gateCallbacks) {
+            requester.setAttributeScopeAdvisorySwitch(true);
+            JavaTckSupport.check(requester.getAttributeScopeAdvisorySwitch(),
+               "Auto Provide comparison did not enable Attribute Scope Advisory");
+            JavaTckSupport.check(owner.getAutoProvideSwitch()
+                  && requester.getAutoProvideSwitch(),
+               "Attribute Scope Advisory changed the Auto Provide switch");
+            ownerRecorder.clearProvided();
+            ObjectInstanceHandle secondObject = owner.registerObjectInstance(ownerClass);
+            JavaTckSupport.check(secondObject != null && !secondObject.equals(object),
+               "Auto Provide comparison returned an invalid or duplicate object handle");
+            await(requester, callbackModel, objectClassName,
+               () -> requesterRecorder.discoveries.contains(secondObject),
+               "requester did not discover the comparison Auto Provide object");
+            await(owner, callbackModel, objectClassName,
+               () -> ownerRecorder.provided().size() >= 1,
+               "Auto Provide callback did not arrive with Attribute Scope Advisory enabled");
+            List<ProvidedUpdate> secondUpdates = ownerRecorder.provided();
+            JavaTckSupport.check(secondUpdates.size() == 1
+                  && secondObject.equals(secondUpdates.get(0).object)
+                  && new HashSet<>(ownerAttributes).equals(secondUpdates.get(0).attributes)
+                  && secondUpdates.get(0).tag.length == 0,
+               "Attribute Scope Advisory changed Auto Provide callback data");
+            JavaTckSupport.check(requesterRecorder.discoveries.size() == 2,
+               "Attribute Scope Advisory changed Auto Provide discovery count");
+         }
 
          requester.unsubscribeObjectClassAttributes(requesterClass, requesterAttributes);
          owner.unpublishObjectClassAttributes(ownerClass, ownerAttributes);

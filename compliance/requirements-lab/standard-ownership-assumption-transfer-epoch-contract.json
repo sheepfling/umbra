@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "IEEE 1516.1-2025 public-API transfer-epoch scenario: two published candidates receive one tagged assumption offer after unconditional divestiture; the first acquires the transferred attribute set, the second unpublishes, and the original owner resigns. After the first candidate divests and the second republishes, that previously offered candidate receives exactly one fresh grouped assumption with the new tag. Direct pinned native mappings: page-148-l61-18/l70-21 -> Clause 7 and page-154-l162-51 -> §7.2. Adapter supplies provider, endpoint, FOM, names, callback model and logical-time implementation. Current-source installed-package C++ primary/contract passed 4/4 under evoked/immediate callbacks. Java parity compiles against the official API-only JAR but has no provider-runtime execution evidence. This is not a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ownership-assumption-transfer-epoch",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador unconditionalAttributeOwnershipDivestiture, attributeOwnershipAcquisition, isAttributeOwnedByFederate and FederateAmbassador requestAttributeOwnershipAssumption, attributeOwnershipAcquisitionNotification",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_assumption_search.cpp::scenarioOwnershipAssumptionTransferEpoch",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_assumption_search.cpp::scenarioOwnershipAssumptionTransferEpochContract"
+      ]
+    }
+  ]
+}

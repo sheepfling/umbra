@@ -19,6 +19,7 @@
     },
     {
       "id": "cpp-1516.1-tck-standard-hla-report-mom-exception-precondition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l60-19",
       "clause_id": "clause-11.5.1",
       "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
       "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception",

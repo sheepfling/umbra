@@ -86,6 +86,8 @@ TransportServiceMessage ProcessFederationService::handle(
         return handleReceiveInteraction(session, request);
       case TransportServiceOperation::acknowledge_tso_delivery:
         return handleAcknowledgeTsoDelivery(session, request);
+      case TransportServiceOperation::acknowledge_push_attribute_update:
+        return handleAcknowledgePushAttributeUpdate(session, request);
       case TransportServiceOperation::query_logical_time:
         return handleQueryLogicalTime(session, request);
       case TransportServiceOperation::query_lookahead:

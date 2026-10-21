@@ -723,6 +723,14 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
   federation->second.pendingTimeAdvanceGrants.erase(federateId);
   federation->second.timeAdvanceGrantDispatchFactories.erase(federateId);
   federation->second.timeRoleEnableDispatchFactories.erase(federateId);
+  for (auto queued = federation->second.queuedTimeConstrainedEnableDispatches.begin();
+       queued != federation->second.queuedTimeConstrainedEnableDispatches.end();) {
+    if (queued->first == federateId) {
+      queued = federation->second.queuedTimeConstrainedEnableDispatches.erase(queued);
+    } else {
+      ++queued;
+    }
+  }
   federation->second.interactionDeclarations.erase(federateId);
   federation->second.objectClassAttributeDeclarations.erase(federateId);
   federation->second.interactionCallbackRoutes.erase(federateId);

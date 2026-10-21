@@ -145,6 +145,7 @@ void scenarioDirectedInteractionSubscriptionAccumulation(
       });
   require(
       deliveries.size() == 2U &&
+          subscriber.recorder().timedDirectedInteractions().empty() &&
           firstDelivery != deliveries.end() && secondDelivery != deliveries.end() &&
           firstDelivery->object == target && secondDelivery->object == target &&
           firstDelivery->tag == firstTagBytes && secondDelivery->tag == secondTagBytes &&
@@ -168,7 +169,7 @@ void scenarioDirectedInteractionSubscriptionAccumulation(
               secondParameterBytes.end(),
               static_cast<std::uint8_t const*>(
                   secondDelivery->parameters.at(subscriberSecondParameter).data())),
-      "a later directed-interaction subscription removed the previously selected class");
+      "sequential directed subscriptions changed class delivery or selected a timestamped callback overload");
 
   subscriberAmbassador.unsubscribeObjectClassDirectedInteractions(
       subscriberObjectClass,

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ primary/contract and Java parity translate an independently green native HLA_EVOKED single-federate save/restore case. The federate enables regulation with lookahead two epsilon, advances to time three epsilon, saves, increases actual lookahead to five epsilon and advances to time five epsilon, then restores and queries time three epsilon and lookahead two epsilon. The adapter supplies the installed provider, endpoint, IEEE 1516.2-2025 FOM, logical-time implementation, and callback model. Eleven direct requirement-section pairs cover ten clauses. Isolated portable C++ primary/contract passed with integer64 and float64 time against installed package libraries. Java compiles against the pinned official API-only JAR; Java provider runtime, HLA_IMMEDIATE, deferred lookahead decreases, pending advances, multi-member or durable restore, interoperability, and conformance remain unverified.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-time-window-state",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador enableTimeRegulation, timeAdvanceRequest, queryLogicalTime, queryLookahead, modifyLookahead, requestFederationSave, federateSaveBegun, federateSaveComplete, requestFederationRestore, federateRestoreComplete; FederateAmbassador federationSaved, federationRestored",
+      "source": "official IEEE 1516.1-2025 C++ headers and hla.rti1516_2025 Java API; adapter-selected IEEE 1516.2-2025 FOM",
+      "source_symbol": "IEEE 1516.1-2025 federation save/restore and time-window interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "packages/hla-rti-cpp-tck/src/tck_restore_time_window_state.cpp::scenarioRestoreTimeWindowState",
+        "packages/hla-rti-cpp-tck/src/tck_restore_time_window_state.cpp::scenarioRestoreTimeWindowStateContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestoreTimeWindowStateTck.java::run"
+      ]
+    }
+  ]
+}

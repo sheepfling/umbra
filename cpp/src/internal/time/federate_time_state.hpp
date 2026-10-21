@@ -120,6 +120,9 @@ struct FederateTimeSnapshot {
   // already granted, must not send at the boundary time. The no-TSO bounds
   // calculator applies one factory epsilon to this exclusive lower bound.
   bool minimumTimestampIsExclusive = false;
+  // TARA does not guarantee delivery of equal-time TSO before its grant. Keep
+  // that boundary eligible until a later non-TARA grant advances the state.
+  bool allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant = false;
   std::shared_ptr<rti1516_2025::LogicalTime const> currentTime;
   // A Flush Queue Grant may advance the federate below the optimistic logical
   // time supplied with that grant.  Subsequent advances must not request a
@@ -239,7 +242,8 @@ class FederateTimeState final {
       std::shared_ptr<rti1516_2025::LogicalTime> optimisticTime);
 
   [[nodiscard]] FederateTimeEnableResult requestTimeRegulation(
-      std::shared_ptr<rti1516_2025::LogicalTimeInterval> lookahead);
+      std::shared_ptr<rti1516_2025::LogicalTimeInterval> lookahead,
+      std::shared_ptr<rti1516_2025::LogicalTime> implicitAdvanceTime = nullptr);
 
   // Returns the current time only for the matching, still-active regulation
   // request. The returned time is the argument to Time Regulation Enabled.
@@ -338,6 +342,7 @@ class FederateTimeState final {
   bool timeConstrained_ = false;
   bool asynchronousDeliveryEnabled_ = false;
   bool minimumTimestampIsExclusive_ = false;
+  bool allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_ = false;
   bool active_ = true;
   bool timeAdvancing_ = false;
   std::chrono::steady_clock::time_point momStateSince_ =

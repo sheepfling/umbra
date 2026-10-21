@@ -2,6 +2,7 @@
 
 #include "internal/time/federation_time_coordinator.hpp"
 
+#include <cstdint>
 #include <memory>
 
 #include <RTI/time/HLAinteger64Interval.h>
@@ -27,6 +28,10 @@ HLAinteger64Time const& asIntegerTime(
   auto const* value = dynamic_cast<HLAinteger64Time const*>(time.get());
   REQUIRE(value != nullptr);
   return *value;
+}
+
+std::shared_ptr<rti1516_2025::LogicalTime const> integerTime(std::int64_t value) {
+  return std::make_shared<HLAinteger64Time const>(value);
 }
 
 }  // namespace
@@ -233,4 +238,51 @@ TEST_CASE(
   REQUIRE(coordinator.tsoSnapshotFor(7).queued.size() == 1U);
   REQUIRE(coordinator.tsoSnapshotFor(7).inTransit.size() == 1U);
   REQUIRE(coordinator.tsoSnapshotFor(8).deliveredSinceLastAdvance.size() == 1U);
+}
+
+TEST_CASE(
+    "Federation time coordinator retires stale queued, in-transit, and delivered recipient state",
+    "[unit][kernel][time-management][federation-time][tso][flush-queue-grant]") {
+  FederationTimeCoordinator coordinator;
+  REQUIRE(coordinator.registerFederate(1, integerTimeState()).status ==
+          FederationTimeCoordinatorStatus::applied);
+  REQUIRE(coordinator.registerFederate(2, integerTimeState()).status ==
+          FederationTimeCoordinatorStatus::applied);
+
+  auto const deliveredId = coordinator.allocateTsoMessageId();
+  auto const inTransitId = coordinator.allocateTsoMessageId();
+  auto const equalId = coordinator.allocateTsoMessageId();
+  auto const laterId = coordinator.allocateTsoMessageId();
+  REQUIRE(coordinator.enqueueTsoMessage(deliveredId, 1, integerTime(5)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(coordinator.enqueueTsoMessage(deliveredId, 2, integerTime(5)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(coordinator.enqueueTsoMessage(inTransitId, 1, integerTime(6)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(coordinator.enqueueTsoMessage(inTransitId, 2, integerTime(6)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(coordinator.enqueueTsoMessage(equalId, 1, integerTime(7)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+  REQUIRE(coordinator.enqueueTsoMessage(laterId, 1, integerTime(8)).status ==
+          umbra::detail::TsoMessageQueueStatus::applied);
+
+  auto const delivery = coordinator.beginTsoDelivery(1, HLAinteger64Time(6), true);
+  REQUIRE(delivery.messages.size() == 2U);
+  REQUIRE(coordinator.completeTsoDelivery(delivery.messages.front()) ==
+          umbra::detail::FederationTsoDeliveryStatus::applied);
+  auto const retired = coordinator.retireTsoMessagesBefore(1, HLAinteger64Time(7));
+  REQUIRE(retired.size() == 2U);
+  REQUIRE(coordinator.completeTsoDeliveryFor(1, inTransitId) ==
+          umbra::detail::FederationTsoDeliveryStatus::message_already_completed);
+
+  auto const receiver = coordinator.tsoSnapshotFor(1);
+  REQUIRE(receiver.queued.size() == 2U);
+  REQUIRE(receiver.queued[0].messageId == equalId);
+  REQUIRE(receiver.queued[1].messageId == laterId);
+  REQUIRE(receiver.inTransit.empty());
+  REQUIRE(receiver.deliveredSinceLastAdvance.empty());
+  auto const other = coordinator.tsoSnapshotFor(2);
+  REQUIRE(other.queued.size() == 2U);
+  REQUIRE(other.queued[0].messageId == deliveredId);
+  REQUIRE(other.queued[1].messageId == inTransitId);
 }

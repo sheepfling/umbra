@@ -83,12 +83,39 @@ class ReportingFederateAmbassador final
     std::wstring value;
   };
 
+  struct ReceiveOrderDirectedInteractionReport final {
+    InteractionClassHandle interactionClass;
+    ObjectInstanceHandle objectInstance;
+    ParameterHandleValueMap parameterValues;
+    VariableLengthData userSuppliedTag;
+    TransportationTypeHandle transportationType;
+    FederateHandle producingFederate;
+  };
+
   void discoverObjectInstance(
       ObjectInstanceHandle const& objectInstance,
       ObjectClassHandle const&,
       std::wstring const&,
       FederateHandle const&) override {
     objectDiscoveryReports.push_back(objectInstance);
+  }
+
+  void receiveDirectedInteraction(
+      InteractionClassHandle const& interactionClass,
+      ObjectInstanceHandle const& objectInstance,
+      ParameterHandleValueMap const& parameterValues,
+      VariableLengthData const& userSuppliedTag,
+      TransportationTypeHandle const& transportationType,
+      FederateHandle const& producingFederate) override {
+    receiveOrderDirectedInteractionReports.push_back({
+        interactionClass,
+        objectInstance,
+        parameterValues,
+        userSuppliedTag,
+        transportationType,
+        producingFederate,
+    });
+    callbackOrder.push_back("directed-receive-order");
   }
 
   void receiveDirectedInteraction(
@@ -127,6 +154,8 @@ class ReportingFederateAmbassador final
   void timeRegulationEnabled(LogicalTime const&) override {}
 
   std::vector<ObjectInstanceHandle> objectDiscoveryReports;
+  std::vector<ReceiveOrderDirectedInteractionReport>
+      receiveOrderDirectedInteractionReports;
   std::vector<DirectedInteractionReport> directedInteractionReports;
   std::vector<TimeAdvanceGrantReport> timeAdvanceGrantReports;
   std::vector<std::string> callbackOrder;
@@ -276,6 +305,116 @@ TEST_CASE(
   REQUIRE_THROWS_AS(
       publisher->retract(secondHandle),
       rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(
+      rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Disable Time Constrained delivers queued timestamped directed interactions as receive order",
+    "[integration][development-profile][interaction-management][directed]"
+    "[time-management][lane.tcd-transition-tso-to-ro]"
+    "[time-constrained-disable-tso-to-ro][rti.service.disable-time-constrained]"
+    "[rti.service.send-directed-interaction]"
+    "[federate.callback.receive-directed-interaction]"
+    "[2025][requirement-8.7]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const objectConsumer = testDataPath(
+      "directed-interaction-object-consumer-fom.xml").wstring();
+  auto const interactionProvider = testDataPath(
+      "directed-interaction-interaction-provider-fom.xml").wstring();
+  unsigned char const tagBytes[] = {0x72, 0xB1, 0x1C};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+  InteractionClassHandleSet directedClasses;
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{objectConsumer, interactionProvider},
+      standard_hla::mom::integer64_time));
+  FederateHandle publisherHandle;
+  REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+      L"tcd-directed-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"tcd-directed-receiver", L"subscriber", federationName));
+
+  auto const objectClass = publisher->getObjectClassHandle(
+      fixture_hla::fom::directed_fixture_object);
+  auto const marker = publisher->getAttributeHandle(
+      objectClass,
+      fixture_hla::fixture::directed_target_marker);
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      fixture_hla::fom::directed_fixture_interaction);
+  REQUIRE(objectClass.isValid());
+  REQUIRE(marker.isValid());
+  REQUIRE(interactionClass.isValid());
+  directedClasses.insert(interactionClass);
+
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(publisher->publishObjectClassDirectedInteractions(
+      objectClass,
+      directedClasses));
+  REQUIRE_NOTHROW(publisher->changeInteractionOrderType(
+      interactionClass,
+      TIMESTAMP));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassDirectedInteractions(
+      objectClass,
+      directedClasses,
+      true));
+
+  ObjectInstanceHandle target;
+  REQUIRE_NOTHROW(target = publisher->registerObjectInstance(objectClass));
+  REQUIRE(target.isValid());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE(receiverReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  REQUIRE_FALSE(receiver->evokeCallback(0.0));
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(5)));
+  REQUIRE_NOTHROW(drainCallbacks(*publisher));
+
+  auto const sentHandle = publisher->sendDirectedInteraction(
+      interactionClass,
+      target,
+      ParameterHandleValueMap{},
+      tag,
+      rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(sentHandle.isValid());
+  REQUIRE(receiverReports.directedInteractionReports.empty());
+  REQUIRE(receiverReports.receiveOrderDirectedInteractionReports.empty());
+  REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+
+  // The successful timestamped send has entered the queue. Disabling the
+  // receiver's constrained role changes this queued directed delivery to RO.
+  REQUIRE_NOTHROW(receiver->disableTimeConstrained());
+  drainCallbacks(*receiver);
+  REQUIRE(receiverReports.receiveOrderDirectedInteractionReports.size() == 1U);
+  REQUIRE(receiverReports.directedInteractionReports.empty());
+  REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+  REQUIRE(receiverReports.callbackOrder ==
+          std::vector<std::string>{"directed-receive-order"});
+
+  auto const& report =
+      receiverReports.receiveOrderDirectedInteractionReports.front();
+  REQUIRE(report.interactionClass == interactionClass);
+  REQUIRE(report.objectInstance == target);
+  REQUIRE(report.parameterValues.empty());
+  REQUIRE(variableLengthDataBytes(report.userSuppliedTag) ==
+          std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
+  REQUIRE(report.producingFederate == publisherHandle);
+  REQUIRE(report.transportationType ==
+          publisher->getTransportationTypeHandle(standard_hla::mom::reliable));
 
   REQUIRE_NOTHROW(receiver->resignFederationExecution(
       rti1516_2025::NO_ACTION));

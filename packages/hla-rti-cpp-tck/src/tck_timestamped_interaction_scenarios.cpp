@@ -2923,6 +2923,10 @@ void scenarioTimestampedObjectDeletion(Options const& options, rti::CallbackMode
       *publisherTime.initial,
       *publisherTime.epsilon,
       3U);
+  require(
+      publisher.rtiAmbassador().isAttributeOwnedByFederate(
+          first.first, publisherAttribute),
+      "timestamped object deletion did not begin with the producer owning the published attribute");
   auto firstConstrainedTime = timeAfter(
       *constrainedTime.factory,
       *constrainedTime.initial,
@@ -2983,6 +2987,10 @@ void scenarioTimestampedObjectDeletion(Options const& options, rti::CallbackMode
       immediate.rtiAmbassador().getObjectInstanceHandle(first.second) == first.first &&
           constrained.rtiAmbassador().getObjectInstanceHandle(first.second) == first.first,
       "timestamped object-removal retraction did not reconstitute the object identity");
+  require(
+      publisher.rtiAmbassador().isAttributeOwnedByFederate(
+          first.first, publisherAttribute),
+      "timestamped object-removal retraction did not reassume the producer's previously owned attribute");
 
   immediate.recorder().clearCallbackOrder();
   constrained.recorder().clearCallbackOrder();

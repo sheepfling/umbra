@@ -175,13 +175,21 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] FederationSaveControlResult requestFederationSave(
       std::wstring const& federationName,
       std::uint64_t requestingFederateId,
-      std::wstring label);
+      std::wstring label,
+      bool capturePublicReceiveOrderInteractions = false);
 
   [[nodiscard]] FederationSaveControlResult requestFederationSave(
       std::wstring const& federationName,
       std::uint64_t requestingFederateId,
       std::wstring label,
       std::shared_ptr<rti1516_2025::LogicalTime const> timestamp);
+
+  void setQueuedReceiveOrderInteractionsForSave(
+      std::wstring const& federationName,
+      std::vector<FederationStateImageReceiveOrderInteraction> messages);
+  void setQueuedReceiveOrderAttributeUpdatesForSave(
+      std::wstring const& federationName,
+      std::vector<FederationStateImageReceiveOrderAttributeUpdate> messages);
 
   // Returns callback routes for all still-uninstructed constrained members
   // once every constrained member has an advance request pending. This is a
@@ -558,6 +566,13 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] FederationTimeGrantDispatchResult reevaluateTimeAdvanceGrants(
       std::wstring const& federationName);
 
+  // Release the scheduler's one-shot reservation after a queued constrained
+  // role-enable callback reaches its grant boundary.
+  void completeTimeConstrainedEnableDispatch(
+      std::wstring const& federationName,
+      std::uint64_t federateId,
+      std::uint64_t generation);
+
   // Re-checks eligibility immediately before the queued callback changes the
   // federate's logical time. A stale or newly blocked callback becomes a
   // harmless no-op and is eligible for a future re-evaluation.
@@ -677,6 +692,14 @@ class EmbeddedFederationRegistry final {
       std::uint64_t producingFederateId,
       rti1516_2025::LogicalTime const& retractionLowerBound);
 
+  // Discards only this receiver's messages below a committed grant, including
+  // queue entries already extracted for callback dispatch. Other fanout
+  // recipients and delivered retraction history remain intact.
+  [[nodiscard]] std::size_t retireStaleTsoRecipientMessages(
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId,
+      rti1516_2025::LogicalTime const& grantedTime);
+
   // Claims the normal or directed timestamped interaction delivery boundary
   // immediately before the public callback enters user code. A concurrent
   // legal Retract can turn a still-pending recipient into retracted first,
@@ -684,7 +707,8 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] bool beginTsoInteractionCallback(
       std::wstring const& federationName,
       std::uint64_t receivingFederateId,
-      std::uint64_t messageId);
+      std::uint64_t messageId,
+      bool allowStaleTimestamp = false);
 
   // Claims one timestamped Reflect Attribute Values callback boundary. A
   // timestamped Update Attribute Values invocation may yield multiple
@@ -694,7 +718,8 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] bool beginTsoAttributeUpdateCallback(
       std::wstring const& federationName,
       std::uint64_t receivingFederateId,
-      std::uint64_t messageId);
+      std::uint64_t messageId,
+      bool allowStaleTimestamp = false);
 
   // Rechecks the recipient's active membership immediately before the
   // binding invokes Request Retraction on a route captured by a legal
@@ -727,6 +752,14 @@ class EmbeddedFederationRegistry final {
       rti1516_2025::LogicalTime const& boundary,
       bool inclusive);
 
+  // Removes all pending TSO payloads for the recipient in original enqueue
+  // order. Disable Time Constrained uses this to transition queued traffic to
+  // the ordinary receive-order callback overloads without a time boundary.
+  [[nodiscard]] FederationTsoPayloadDeliveryRegistryResult
+  beginTsoPayloadReceiveOrderDelivery(
+      std::wstring const& federationName,
+      std::uint64_t recipientFederateId);
+
   // Begins one timestamped removal callback.  The execution-owned deletion
   // record remains reconstitutable after delivery as well: a legal Retract
   // either clears the pending marker before this boundary or restores the
@@ -737,7 +770,8 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t receivingFederateId,
       std::uint64_t objectInstanceHandle,
-      std::uint64_t messageId);
+      std::uint64_t messageId,
+      bool allowStaleTimestamp = false);
 
   [[nodiscard]] FederationTsoDeliveryRegistryResult completeTsoDelivery(
       std::wstring const& federationName,
@@ -900,6 +934,16 @@ class EmbeddedFederationRegistry final {
       std::uint64_t federateId,
       std::uint64_t regionHandle,
       std::uint64_t dimensionHandle) const;
+  [[nodiscard]] RegionServiceStatus createCallbackScopedRegionDesignatorCopies(
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId,
+      std::set<std::uint64_t> const& sentRegionHandles,
+      std::map<std::uint64_t, RegionSpecificationSnapshot> const& sentRegionSnapshots,
+      std::map<std::uint64_t, std::uint64_t>& copiedRegionHandles);
+  void releaseCallbackScopedRegionDesignatorCopies(
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId,
+      std::map<std::uint64_t, std::uint64_t> const& copiedRegionHandles);
   [[nodiscard]] RegionServiceStatus setRangeBounds(
       std::wstring const& federationName,
       std::uint64_t federateId,
@@ -1240,7 +1284,8 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t producingFederateId,
        std::uint64_t objectInstanceHandle,
-       std::vector<std::uint64_t> const& sentAttributeHandles) const;
+      std::vector<std::uint64_t> const& sentAttributeHandles,
+      rti1516_2025::LogicalTime const* timestamp = nullptr) const;
 
   // Applies a producing federate's local object-knowledge boundary when a
   // successful grant reaches or passes an accepted timestamped deletion.
@@ -2232,6 +2277,9 @@ class EmbeddedFederationRegistry final {
       // delivery, so a later Retract cannot request retraction from it.
       suppressed,
       retracted,
+      // The recipient had already advanced past this message's timestamp
+      // before its callback began. Appended to preserve durable enum values.
+      stale,
     };
 
     // The queue tracks only temporal fanout. This companion record tracks the
@@ -2584,6 +2632,10 @@ class EmbeddedFederationRegistry final {
     std::map<std::uint64_t, FederateInteractionDeclarations> interactionDeclarations;
     std::map<std::wstring, SynchronizationPoint> synchronizationPoints;
     std::optional<SaveOperation> saveOperation;
+    std::vector<FederationStateImageReceiveOrderInteraction>
+        queuedReceiveOrderInteractions;
+    std::vector<FederationStateImageReceiveOrderAttributeUpdate>
+        queuedReceiveOrderAttributeUpdates;
     std::optional<PendingImmediateSave> pendingImmediateSave;
     std::optional<PendingTimedSave> pendingTimedSave;
     // Federation-scoped save history is part of the execution MOM, not a
@@ -2618,6 +2670,8 @@ class EmbeddedFederationRegistry final {
         timeAdvanceGrantDispatchFactories;
     std::map<std::uint64_t, FederationTimeRoleEnableDispatchFactory>
         timeRoleEnableDispatchFactories;
+    std::set<std::pair<std::uint64_t, std::uint64_t>>
+        queuedTimeConstrainedEnableDispatches;
     // This monotonically increases for every production grant dispatch and
     // never rolls back with a snapshot, invalidating pre-restore callback
     // work even when the saved time-generation value is later reused.
@@ -2639,6 +2693,10 @@ class EmbeddedFederationRegistry final {
         tsoDirectedInteractionMessages;
     std::map<std::uint64_t, PendingTimeAdvanceGrant> pendingTimeAdvanceGrants;
     std::map<std::uint64_t, Region> regions;
+    // Conveyed DDM region designators are read-only snapshots that exist only
+    // for the lifetime of their Receive Interaction/Reflect Attribute Values
+    // callback. Keep them out of ordinary region accounting and state images.
+    std::map<std::uint64_t, Region> callbackScopedRegionDesignatorCopies;
     // RTI-created joined-federate MOM objects reserve common object-instance
     // handle values but are not inserted into objectInstances. The ordinary
     // object-management paths therefore cannot accidentally treat them as
@@ -3038,6 +3096,10 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] static bool hasPendingTsoRecipient(
       Federation const& federation,
       Federation::TsoRequestRetractionRecord const& record) noexcept;
+  [[nodiscard]] static std::size_t retireStaleTsoRecipientMessagesLocked(
+      Federation& federation,
+      std::uint64_t receivingFederateId,
+      rti1516_2025::LogicalTime const& grantedTime);
   [[nodiscard]] static std::optional<std::shared_ptr<rti1516_2025::LogicalTime const>>
   earliestConnectionLossTsoDeliveryBoundary(
       Federation const& federation,
@@ -3057,6 +3119,8 @@ class EmbeddedFederationRegistry final {
 
   [[nodiscard]] static std::vector<FederationTimeGrantDispatch> scheduleEligibleTimeAdvanceGrants(
       Federation& federation);
+  [[nodiscard]] static std::vector<FederationTimeGrantDispatch>
+  scheduleEligibleTimeConstrainedEnableDispatches(Federation& federation);
 
   // Rebind callback-gated role-enable requests after the route-free temporal
   // image has been applied. Factories capture the target state's fresh

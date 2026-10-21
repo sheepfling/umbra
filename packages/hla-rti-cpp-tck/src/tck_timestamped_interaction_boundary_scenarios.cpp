@@ -133,11 +133,14 @@ void runTimestampedInteractionMixedAdvancesScenario(
       *timeAdvanceAvailableTime.initial,
       *timeAdvanceAvailableTime.epsilon,
       6U);
+  // TAR(5) must be below the regulator's GALT before the equal-time message
+  // can be granted. Advance the TAR-equal publisher to 5 (lookahead 1 =>
+  // GALT 6); only TARA-equal first grants at 5 before the message exists.
   auto const publisherTarget = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,
       *publisherTime.epsilon,
-      equalTaraBoundary || equalTarBoundary ? 4U : 5U);
+      equalTaraBoundary ? 4U : 5U);
   auto const requestBoundary = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,
@@ -222,21 +225,38 @@ void runTimestampedInteractionMixedAdvancesScenario(
   if (!equalTaraBoundary) {
     publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
   }
-  waitForSessions(
-      {&publisher, &flushQueue, &timeAdvanceAvailable, &nextMessageAvailable},
-      [&] {
-        return publisher.recorder().timeAdvanceGrants().size() >=
-                (equalTaraBoundary ? 2U : 1U) &&
-            flushQueue.recorder().timedInteractions().size() >= 1U &&
-            flushQueue.recorder().flushQueueGrants().size() >= 1U &&
-            timeAdvanceAvailable.recorder().timedInteractions().size() >= 1U &&
-            timeAdvanceAvailable.recorder().timeAdvanceGrants().size() >=
-                (equalTaraBoundary ? 2U : 1U) &&
-            nextMessageAvailable.recorder().timedInteractions().size() >= 1U &&
-            nextMessageAvailable.recorder().timeAdvanceGrants().size() >= 1U;
-      },
-      options,
-      "Timestamped interaction mixed-advance deliveries and grants");
+  try {
+    waitForSessions(
+        {&publisher, &flushQueue, &timeAdvanceAvailable, &nextMessageAvailable},
+        [&] {
+          return publisher.recorder().timeAdvanceGrants().size() >=
+                  (equalTaraBoundary ? 2U : 1U) &&
+              flushQueue.recorder().timedInteractions().size() >= 1U &&
+              flushQueue.recorder().flushQueueGrants().size() >= 1U &&
+              timeAdvanceAvailable.recorder().timedInteractions().size() >= 1U &&
+              timeAdvanceAvailable.recorder().timeAdvanceGrants().size() >=
+                  (equalTaraBoundary ? 2U : 1U) &&
+              nextMessageAvailable.recorder().timedInteractions().size() >= 1U &&
+              nextMessageAvailable.recorder().timeAdvanceGrants().size() >= 1U;
+        },
+        options,
+        "Timestamped interaction mixed-advance deliveries and grants");
+  } catch (std::runtime_error const& error) {
+    throw std::runtime_error(
+        std::string(error.what()) + "; observed counts: publisher TAG=" +
+        std::to_string(publisher.recorder().timeAdvanceGrants().size()) +
+        ", FQR TSO/FQG=" +
+        std::to_string(flushQueue.recorder().timedInteractions().size()) + "/" +
+        std::to_string(flushQueue.recorder().flushQueueGrants().size()) +
+        ", TARA TSO/TAG=" +
+        std::to_string(timeAdvanceAvailable.recorder().timedInteractions().size()) +
+        "/" +
+        std::to_string(timeAdvanceAvailable.recorder().timeAdvanceGrants().size()) +
+        ", NMRA TSO/TAG=" +
+        std::to_string(nextMessageAvailable.recorder().timedInteractions().size()) +
+        "/" +
+        std::to_string(nextMessageAvailable.recorder().timeAdvanceGrants().size()));
+  }
 
   require(
       publisher.recorder().timeAdvanceGrants().size() ==
@@ -425,6 +445,471 @@ void scenarioTimestampedInteractionTaraEqualBoundary(
     rti::CallbackModel model) {
   runTimestampedInteractionMixedAdvancesScenario(
       options, model, TimestampedInteractionBoundaryMode::tara_equal);
+}
+
+namespace {
+
+void runTimestampedInteractionTaraQueuedEqualBoundary(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "TARA queued equal-boundary case requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "tara-queued-equal-publisher");
+  Session receiver(options, model, "tara-queued-equal-receiver");
+  auto const federation = federationName(
+      options, "timestamped-interaction-tara-queued-equal-boundary");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherInteraction =
+      publisher.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const receiverInteraction =
+      receiver.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      publisherInteraction.isValid() && receiverInteraction.isValid() &&
+          publisherParameter.isValid() && receiverParameter.isValid() &&
+          publisherInteraction == receiverInteraction &&
+          publisherParameter == receiverParameter,
+      "TARA queued equal-boundary lookup returned inconsistent standard handles");
+
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction,
+      rti::TIMESTAMP);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction, true);
+
+  auto const publisherTime = makeTimeContext(publisher);
+  auto const receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "TARA queued equal-boundary federates selected different logical-time factories");
+  requireTimeEquals(
+      *publisherTime.initial,
+      *receiverTime.initial,
+      "TARA queued equal-boundary initial time");
+
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "TARA queued equal-boundary constrained callback");
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "TARA queued equal-boundary regulation callback");
+
+  auto const messageTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      2U);
+  std::vector<std::uint8_t> const payloadBytes{0x54U, 0x41U, 0x52U, 0x41U};
+  std::vector<std::uint8_t> const tagBytes{0x51U, 0x45U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(payloadBytes.data(), payloadBytes.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  auto const retraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      parameters,
+      tag,
+      *messageTime);
+  require(
+      retraction.isValid(),
+      "TARA queued equal-boundary send returned an invalid retraction handle");
+  require(
+      receiver.recorder().timedInteractions().empty() &&
+          receiver.recorder().timeAdvanceGrants().empty(),
+      "TARA queued equal-boundary message was delivered before its request");
+
+  receiver.rtiAmbassador().timeAdvanceRequestAvailable(*messageTime);
+  publisher.rtiAmbassador().timeAdvanceRequest(*messageTime);
+  waitForSessions(
+      {&publisher, &receiver},
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() == 1U &&
+            receiver.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "TARA queued equal-boundary grants");
+
+  auto const interactions = receiver.recorder().timedInteractions();
+  require(
+      interactions.size() == 1U &&
+          receiver.recorder().callbackOrder() ==
+              std::vector<std::string>{"interaction", "grant"},
+      "TARA did not deliver its queued equal-time TSO before the grant");
+  auto const& interaction = interactions.front();
+  require(
+      interaction.interaction == receiverInteraction &&
+          interaction.parameters.size() == 1U &&
+          interaction.parameters.count(receiverParameter) == 1U &&
+          interaction.time == encodeTime(*messageTime) &&
+          interaction.sentOrder == rti::TIMESTAMP &&
+          interaction.receivedOrder == rti::TIMESTAMP &&
+          interaction.tag == tagBytes && interaction.retractionPresent &&
+          interaction.retraction == copyBytes(retraction.encode()),
+      "TARA queued equal-time callback metadata did not match the sent interaction");
+  require(
+      copyBytes(interaction.parameters.at(receiverParameter)) == payloadBytes,
+      "TARA queued equal-time callback changed the interaction payload");
+  require(
+      receiver.recorder().timeAdvanceGrants().front().encoded ==
+          encodeTime(*messageTime) &&
+          publisher.recorder().timeAdvanceGrants().front().encoded ==
+              encodeTime(*messageTime),
+      "TARA queued equal-boundary participants received the wrong grant time");
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void runTimestampedInteractionZeroLookaheadSendAtGrant(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "zero-lookahead post-grant send requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "zero-lookahead-post-grant-publisher");
+  Session receiver(options, model, "zero-lookahead-post-grant-receiver");
+  auto const federation = federationName(
+      options, "timestamped-interaction-zero-lookahead-send-at-grant");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherInteraction =
+      publisher.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const receiverInteraction =
+      receiver.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      publisherInteraction.isValid() && receiverInteraction.isValid() &&
+          publisherParameter.isValid() && receiverParameter.isValid() &&
+          publisherInteraction == receiverInteraction &&
+          publisherParameter == receiverParameter,
+      "zero-lookahead post-grant lookup returned inconsistent standard handles");
+
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction,
+      rti::TIMESTAMP);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction, true);
+
+  auto const publisherTime = makeTimeContext(publisher);
+  auto const receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "zero-lookahead post-grant federates selected different logical-time factories");
+  requireTimeEquals(
+      *publisherTime.initial,
+      *receiverTime.initial,
+      "zero-lookahead post-grant initial time");
+
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "zero-lookahead post-grant constrained callback");
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.zero);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "zero-lookahead post-grant regulation callback");
+  auto actualLookahead = publisherTime.factory->makeZero();
+  require(
+      actualLookahead != nullptr,
+      "zero-lookahead post-grant case could not allocate Query Lookahead output");
+  publisher.rtiAmbassador().queryLookahead(*actualLookahead);
+  require(
+      *actualLookahead == *publisherTime.zero,
+      "the regulating federate did not retain zero actual lookahead");
+
+  auto const grantedTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  auto const nextTime = timeAfter(
+      *publisherTime.factory,
+      *grantedTime,
+      *publisherTime.epsilon,
+      1U);
+  publisher.rtiAmbassador().timeAdvanceRequest(*grantedTime);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "zero-lookahead publisher's initial grant");
+  require(
+      publisher.recorder().timeAdvanceGrants().front().encoded ==
+          encodeTime(*grantedTime),
+      "zero-lookahead publisher received the wrong initial grant");
+
+  std::vector<std::uint8_t> const payloadBytes{0xB5U, 0x05U};
+  std::vector<std::uint8_t> const tagBytes{0xB5U, 0x06U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(payloadBytes.data(), payloadBytes.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  auto const retraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      parameters,
+      tag,
+      *grantedTime);
+  require(
+      retraction.isValid(),
+      "zero-lookahead post-grant send at the granted logical time was rejected");
+  require(
+      receiver.recorder().timedInteractions().empty(),
+      "zero-lookahead TSO was delivered before the receiver requested its time");
+
+  publisher.rtiAmbassador().timeAdvanceRequest(*nextTime);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 2U; },
+      options,
+      "zero-lookahead publisher's forward grant");
+
+  receiver.rtiAmbassador().timeAdvanceRequest(*grantedTime);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "zero-lookahead receiver's matching grant");
+  auto const interactions = receiver.recorder().timedInteractions();
+  require(
+      interactions.size() == 1U &&
+          receiver.recorder().callbackOrder() ==
+              std::vector<std::string>{"interaction", "grant"},
+      "zero-lookahead post-grant TSO was not observed before the receiver grant");
+  auto const& interaction = interactions.front();
+  require(
+      interaction.interaction == receiverInteraction &&
+          interaction.parameters.size() == 1U &&
+          interaction.parameters.count(receiverParameter) == 1U &&
+          interaction.time == encodeTime(*grantedTime) &&
+          interaction.sentOrder == rti::TIMESTAMP &&
+          interaction.receivedOrder == rti::TIMESTAMP &&
+          interaction.tag == tagBytes && interaction.retractionPresent &&
+          interaction.retraction == copyBytes(retraction.encode()),
+      "zero-lookahead post-grant callback metadata did not match the sent interaction");
+  require(
+      copyBytes(interaction.parameters.at(receiverParameter)) == payloadBytes,
+      "zero-lookahead post-grant callback changed the interaction payload");
+  require(
+      receiver.recorder().timeAdvanceGrants().front().encoded ==
+          encodeTime(*grantedTime),
+      "zero-lookahead receiver received the wrong grant time");
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void runTimestampedInteractionZeroLookaheadTarSendBoundary(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      model == rti::HLA_EVOKED,
+      "zero-lookahead TAR send-boundary scenario requires HLA_EVOKED to observe the Time Advancing state before servicing its grant");
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "zero-lookahead TAR send-boundary scenario requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "zero-lookahead-tar-boundary-publisher");
+  Session receiver(options, model, "zero-lookahead-tar-boundary-receiver");
+  auto const federation = federationName(
+      options, "timestamped-interaction-zero-lookahead-tar-send-boundary");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherInteraction =
+      publisher.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const receiverInteraction =
+      receiver.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      publisherInteraction.isValid() && receiverInteraction.isValid() &&
+          publisherParameter.isValid() && receiverParameter.isValid() &&
+          publisherInteraction == receiverInteraction &&
+          publisherParameter == receiverParameter,
+      "zero-lookahead TAR send-boundary lookup returned inconsistent standard handles");
+
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction,
+      rti::TIMESTAMP);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction, true);
+
+  auto const publisherTime = makeTimeContext(publisher);
+  auto const receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "zero-lookahead TAR send-boundary federates selected different logical-time factories");
+  requireTimeEquals(
+      *publisherTime.initial,
+      *receiverTime.initial,
+      "zero-lookahead TAR send-boundary initial time");
+
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "zero-lookahead TAR send-boundary constrained callback");
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.zero);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "zero-lookahead TAR send-boundary regulation callback");
+
+  auto const requestedTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  auto const futureTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
+  std::vector<std::uint8_t> const payloadBytes{0xB7U, 0x05U};
+  std::vector<std::uint8_t> const tagBytes{0xB7U, 0x06U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(payloadBytes.data(), payloadBytes.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+
+  publisher.rtiAmbassador().timeAdvanceRequest(*requestedTime);
+  bool boundaryRejected = false;
+  try {
+    static_cast<void>(publisher.rtiAmbassador().sendInteraction(
+        publisherInteraction,
+        parameters,
+        tag,
+        *requestedTime));
+  } catch (rti::InvalidLogicalTime const&) {
+    boundaryRejected = true;
+  }
+  require(
+      boundaryRejected,
+      "zero-lookahead TAR accepted a timestamped interaction at its requested-time boundary");
+
+  auto const futureRetraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      parameters,
+      tag,
+      *futureTime);
+  require(
+      futureRetraction.isValid(),
+      "zero-lookahead TAR rejected a timestamped interaction strictly after its requested time");
+  require(
+      publisher.recorder().timeAdvanceGrants().empty(),
+      "zero-lookahead TAR was serviced before the test explicitly evoked its grant callback");
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "zero-lookahead TAR send-boundary grant");
+  require(
+      publisher.recorder().timeAdvanceGrants().front().encoded ==
+          encodeTime(*requestedTime),
+      "zero-lookahead TAR send-boundary received the wrong grant time");
+  require(
+      receiver.recorder().timedInteractions().empty(),
+      "zero-lookahead TAR send-boundary delivered the future interaction before a receiver advance");
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+}  // namespace
+
+void scenarioTimestampedInteractionTaraQueuedEqualBoundary(
+    Options const& options,
+    rti::CallbackModel model) {
+  runTimestampedInteractionTaraQueuedEqualBoundary(options, model);
+}
+
+void scenarioTimestampedInteractionTaraQueuedEqualBoundaryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  runTimestampedInteractionTaraQueuedEqualBoundary(options, model);
+}
+
+void scenarioTimestampedInteractionZeroLookaheadSendAtGrant(
+    Options const& options,
+    rti::CallbackModel model) {
+  runTimestampedInteractionZeroLookaheadSendAtGrant(options, model);
+}
+
+void scenarioTimestampedInteractionZeroLookaheadSendAtGrantContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  runTimestampedInteractionZeroLookaheadSendAtGrant(options, model);
+}
+
+void scenarioTimestampedInteractionZeroLookaheadTarSendBoundary(
+    Options const& options,
+    rti::CallbackModel model) {
+  runTimestampedInteractionZeroLookaheadTarSendBoundary(options, model);
+}
+
+void scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  runTimestampedInteractionZeroLookaheadTarSendBoundary(options, model);
 }
 
 void scenarioTimestampedInteractionTaraStrictTimestampCutoff(
@@ -1023,6 +1508,42 @@ void scenarioTimestampedInteractionTaraEqualBoundaryContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedInteractionTaraEqualBoundaryContract(options, model);
+}
+
+void scenarioTimestampedInteractionTaraQueuedEqualBoundaryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionTaraQueuedEqualBoundary(options, model);
+}
+
+void scenarioTimestampedInteractionTaraQueuedEqualBoundaryContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionTaraQueuedEqualBoundaryContract(options, model);
+}
+
+void scenarioTimestampedInteractionZeroLookaheadSendAtGrantPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionZeroLookaheadSendAtGrant(options, model);
+}
+
+void scenarioTimestampedInteractionZeroLookaheadSendAtGrantContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionZeroLookaheadSendAtGrantContract(options, model);
+}
+
+void scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionZeroLookaheadTarSendBoundary(options, model);
+}
+
+void scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryContract(options, model);
 }
 
 void scenarioTimestampedInteractionTarEqualBoundaryPortable(

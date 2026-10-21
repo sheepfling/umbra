@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-evidence-not-conformance-evidence",
+  "notes": "The portable C++ scenario maps page-192 l93 directly to canonical §8.6. It advances an unconstrained receiver, leaves Enable Time Constrained pending, queues one timestamped interaction during the transition, waits for Time Constrained Enabled, and then checks that the retained interaction is delivered with TIMESTAMP sent/received order before the receiver's TAR(6) grant. It does not prescribe a GALT formula, cover other timestamped producer families, or claim provider conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-time-constrained-enable-stored-tso",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::enableTimeRegulation, timeAdvanceRequest, enableTimeConstrained, publishInteractionClass, changeInteractionOrderType, subscribeInteractionClass, sendInteraction, disableTimeConstrained, disableTimeRegulation; FederateAmbassador::timeRegulationEnabled, timeAdvanceGrant, timeConstrainedEnabled, receiveInteraction",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador; FederateAmbassador",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_time_constrained_enable_scenarios.cpp::scenarioTimeConstrainedEnableRetainsQueuedTso",
+        "packages/hla-rti-cpp-tck/src/tck_time_constrained_enable_scenarios.cpp::scenarioTimeConstrainedEnableRetainsQueuedTsoContract"
+      ]
+    }
+  ]
+}

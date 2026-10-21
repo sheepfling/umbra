@@ -10,6 +10,19 @@
 
 namespace umbra::detail {
 
+ProcessFederationAsynchronousDeliveryStatus
+ProcessFederationClient::setAsynchronousDeliveryEnabled(bool enabled) {
+  return requireCallbackBridge()->setAsynchronousDeliveryEnabled(enabled);
+}
+
+void ProcessFederationClient::setTimeConstrainedEnabled(bool enabled) {
+  requireCallbackBridge()->setTimeConstrainedEnabled(enabled);
+}
+
+void ProcessFederationClient::setTimeAdvancePending(bool pending) {
+  requireCallbackBridge()->setTimeAdvancePending(pending);
+}
+
 void ProcessFederationClient::dispatchPushedReceiveOrder() {
   dispatchPendingPushedEvents();
 }
@@ -348,6 +361,12 @@ void ProcessFederationClient::dispatchPendingPushedEvents() {
           bridge->submitFlushQueueGrant(
               std::move(value.grantedTime), std::move(value.optimisticTime));
         }
+        else if constexpr (std::is_same_v<Event, PendingTimeRegulationEnabled>) {
+          bridge->submitTimeRegulationEnabled(std::move(value.enabledTime));
+        }
+        else if constexpr (std::is_same_v<Event, PendingTimeConstrainedEnabled>) {
+          bridge->submitTimeConstrainedEnabled(std::move(value.enabledTime));
+        }
         else if constexpr (std::is_same_v<Event, PendingRequestRetraction>) {
           bridge->submitRequestRetraction(value.messageId);
         }
@@ -489,6 +508,10 @@ void ProcessFederationClient::attachCallbackBridge(
       attributeRelevanceAdvisorySwitchState_);
   callbackBridge_->setTsoDeliveryCompletionHandler(
       [this](std::uint64_t messageId) { acknowledgeTsoDelivery(messageId); });
+  callbackBridge_->setPushAttributeDeliveryCompletionHandler(
+      [this](std::uint64_t deliveryId) {
+        acknowledgePushedAttributeUpdate(deliveryId);
+      });
   callbackBridge_->setExceptionReportProjectionHandler(
       [this](ProcessFederationInteractionEvent event) {
         return recheckExceptionReport(std::move(event));
@@ -515,6 +538,10 @@ void ProcessFederationClient::attachCallbackBridge(
       attributeRelevanceAdvisorySwitchState_);
   callbackBridge_->setTsoDeliveryCompletionHandler(
       [this](std::uint64_t messageId) { acknowledgeTsoDelivery(messageId); });
+  callbackBridge_->setPushAttributeDeliveryCompletionHandler(
+      [this](std::uint64_t deliveryId) {
+        acknowledgePushedAttributeUpdate(deliveryId);
+      });
   callbackBridge_->setExceptionReportProjectionHandler(
       [this](ProcessFederationInteractionEvent event) {
         return recheckExceptionReport(std::move(event));
@@ -599,7 +626,7 @@ void ProcessFederationClient::close() noexcept {
     connection_.reset();
     pendingEvents_.clear();
     pendingTransportFailures_.clear();
-    deferredTsoDeliveryAcknowledgements_.clear();
+    deferredDeliveryAcknowledgements_.clear();
     joinedFederationName_.reset();
     joinedFederateId_ = 0U;
   }

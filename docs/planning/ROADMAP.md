@@ -37,6 +37,100 @@ GALT/LITS after the event crosses transport but before the callback ACK, then
 verifies callback-before-grant ordering. Keep future cases deterministic; do
 not grow a sleep-based timing test.
 
+## Timestamped directed interaction delivery through the authoritative process time coordinator
+
+Separate-process HLA_EVOKED NMR and NMRA cases now exercise a late timestamped
+`HLAinteractionRoot.ServerAction.TakeOrder` directed to a discovered Restaurant
+Server object. They check directed callback-before-grant ordering and target
+metadata through one authoritative coordinator. This is private
+development-profile evidence; it does not prescribe deployment topology or
+establish interoperability or conformance.
+
+### Registry-free ingress processes forward time state to one authoritative coordinator
+
+The focused composition case runs one authoritative federation/time-service
+process and three separate registry-free ingress processes. Public C++ clients
+route two regulating senders and one constrained receiver through distinct
+ingresses; the NMR and NMRA scenarios both verify timestamp 5 is delivered
+before grant 5 after timestamp 8 was admitted. Only the observable §8,
+§8.10.2, §8.11, and §8.11.3 outcomes are mapped. Coordinator and proxy
+topology is implementation evidence, not a normative requirement. The RTI
+clients in this case are in the Catch2 process; separate client processes
+connecting through ingress proxies remain a distinct follow-up.
+
+Verified 2026-10-19: the MinGW connection target built and this exact
+coordinator-ingress case passed CTest 1/1 with loopback access enabled. In an
+earlier restricted run, the existing direct-authority case and proxy-process
+baseline failed at local `connect()` with Winsock 10013; those environment
+blocks are not behavior-failure evidence and were not retried.
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-tso-authoritative-coordinator-ingress-os-process --summary --compact
+python tools/query_rti_work.py trace "Registry-free ingress processes forward federate time state to one authoritative coordinator" --summary --compact
+python tools/query_rti_work.py check --lane process-tso-authoritative-coordinator-ingress-os-process --summary --compact
+ctest --test-dir out/mgw/process-tso-authoritative-coordinator -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.Registry-free ingress processes forward federate time state to one authoritative coordinator$" --output-on-failure
+```
+
+### Independent client processes deliver future timestamped interactions before TARA grants through one authoritative coordinator
+
+This HLA_EVOKED process case starts the authoritative service, regulating
+sender, and constrained receiver as separate OS processes. The receiver
+submits TARA(6); the sender then sends an ordinary interaction at timestamp 5
+and advances to 6. The receiver verifies Receive Interaction precedes TAG 6,
+with the timestamped callback metadata intact. Direct mappings are limited to
+§8.1.4, §8.9, and §8.14.4(e). This is one process interaction/TARA route, not
+a general external-watermark guarantee or a normative topology.
+
+Verified 2026-10-20: MinGW connection target built; exact CTest passed 1/1 with
+loopback enabled.
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-tso-authoritative-coordinator-tara-future-arrival --summary --compact
+python tools/query_rti_work.py check --lane process-tso-authoritative-coordinator-tara-future-arrival --summary --compact
+ctest --test-dir out/mgw/process-tso-authoritative-coordinator -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.Independent RTI client processes deliver a future timestamped interaction before pending TARA grant through one authoritative coordinator$" --output-on-failure
+```
+
+### Independent client processes deliver timestamped directed interactions before pending TARA grants through one authoritative coordinator
+
+This distinct HLA_EVOKED process case uses separate sender and receiver RTI
+processes with one authoritative coordinator. The receiver submits TARA(6)
+before the sender issues Send Directed Interaction at timestamp 5. It verifies
+the target object, TakeOrder class, empty parameter map for this standard FOM
+interaction, tag, timestamped sent/received order, valid retraction metadata,
+and directed callback before grant 6. Direct mappings are limited to §§6.14.3,
+6.15.1, 8.1.4, 8.9, and 8.14.4(e). This does not imply that other TSO service
+families or external arrival-watermark behavior are covered.
+
+Verified 2026-10-20: the isolated MinGW connection target built; the exact
+loopback-enabled CTest passed 1/1. The lane mapping check reports five direct
+requirement-to-section pairs and no unmapped case.
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-tso-directed-authoritative-coordinator-tara-future-arrival --summary --compact
+python tools/query_rti_work.py check --lane process-tso-directed-authoritative-coordinator-tara-future-arrival --summary --compact
+ctest --test-dir out/mgw/process-tso-authoritative-coordinator -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.Independent RTI client processes deliver a timestamped directed interaction before pending TARA grant through one authoritative coordinator$" --output-on-failure
+```
+
+### Independent client processes deliver future timestamped attribute updates before TARA grants through one authoritative coordinator
+
+This distinct HLA_EVOKED process case exercises timestamped Update Attribute
+Values rather than an interaction. The receiver submits TARA(6) before the
+sender issues the attribute update at time 5 and advances to 6. It checks the
+time-5 reflection before TAG 6 and verifies object/attribute identity,
+producer, value, tag, timestamp/order, and retraction metadata. Direct mappings
+are limited to §6.10, §8.1.4, §8.9, and §8.14.4. This is one timestamped
+attribute-update/TARA route through one authoritative coordinator, not broad
+service-family or conformance evidence.
+
+Verified 2026-10-20: MinGW connection target built; exact loopback-enabled
+CTest passed 1/1.
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-tso-authoritative-coordinator-tara-attribute-update-future-arrival --summary --compact
+python tools/query_rti_work.py check --lane process-tso-authoritative-coordinator-tara-attribute-update-future-arrival --summary --compact
+ctest --test-dir out/mgw/process-tso-authoritative-coordinator -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.Independent RTI client processes deliver a future timestamped attribute update before pending TARA grant through one authoritative coordinator$" --output-on-failure
+```
+
 When a selected family has no implementation/source queue but still has an
 unclassified, source-located plan row, use
 `python tools/query_rti_work.py ready --family <roadmap-item-id> --summary
@@ -321,6 +415,39 @@ python tools/query_rti_work.py trace "RTIambassadors select queued timestamped p
 python tools/query_rti_work.py matrix umbra-cpp-process-next-message-queued-tso-focused-integration --summary --compact
 python tools/query_rti_work.py check --lane process-time-advance-next-message-queued-focused --summary --compact
 ctest --test-dir .build -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors select queued timestamped process messages for next-message advances$" --output-on-failure
+```
+
+### Independent HLA_EVOKED clients route timestamped attribute update through one authoritative coordinator
+
+This bounded slice runs the coordinator, sender, and receiver as distinct OS
+processes. The receiver submits NMRA(10), then receives timestamp-5 attribute
+discovery/reflection before grant 5 with the tested metadata intact. The
+coordinator's single-authority topology is implementation evidence, not a
+normative requirement; this does not claim NMR, arbitrary network watermarks,
+other timestamped service families, validation, or conformance.
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-tso-nmra-attribute-update-authoritative-coordinator --summary --compact
+python tools/query_rti_work.py focus process-tso-attribute-update-nmra-authoritative-coordinator --summary --compact
+python tools/query_rti_work.py trace "Independent RTI client processes deliver a late TSO attribute update before NMRA grant through one authoritative coordinator" --summary --compact
+python tools/query_rti_work.py check --lane process-tso-attribute-update-nmra-authoritative-coordinator --summary --compact
+ctest --test-dir out/mgw/catch2 -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.Independent RTI client processes deliver a late TSO attribute update before NMRA grant through one authoritative coordinator$" --output-on-failure
+```
+
+### Independent HLA_EVOKED clients route timestamped attribute update through one authoritative coordinator for NMR
+
+This is a distinct NMR(10) companion, not NMRA coverage by implication. The
+separate sender/receiver processes use one authoritative coordinator; the
+receiver observes discovery and timestamp-5 attribute reflection before
+grant 5. Its only direct normative mapping is the NMR message-before-grant
+requirement at §8.10.2. The selected coordinator topology is not normative.
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-tso-nmr-attribute-update-authoritative-coordinator --summary --compact
+python tools/query_rti_work.py focus process-tso-attribute-update-nmr-authoritative-coordinator --summary --compact
+python tools/query_rti_work.py trace "Independent RTI client processes deliver a late TSO attribute update before NMR grant through one authoritative coordinator" --summary --compact
+python tools/query_rti_work.py check --lane process-tso-attribute-update-nmr-authoritative-coordinator --summary --compact
+ctest --test-dir out/mgw/catch2 -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.Independent RTI client processes deliver a late TSO attribute update before NMR grant through one authoritative coordinator$" --output-on-failure
 ```
 
 The preceding bounded handoff (configured-process multiple-record Flush Queue):
@@ -877,7 +1004,83 @@ dedicated embedded explicit-source regional TSO restore companion is now
 source-backed and green at 78 HLA_EVOKED assertions, with the exact restored
 source-region, reflection-before-grant, and post-restore retraction evidence
 indexed separately from the broader aggregate federation-management file. The
-three-federate source-resignation companion is now source-backed and green at
+first member-identity restore slice is implemented for member control/telemetry,
+temporal state, and one route-free ordinary interaction declaration. A live federate can restore the saved state of any federate of the same type when per-type membership counts match; the focused public positive case changes
+both live names and handles across a fresh-registry restore, checks the
+saved-name/current-handle callback pairing, and verifies saved logical time
+4/lookahead 2 after changing the live lookahead to 5. A second public case
+keeps total membership at two but changes the per-type histogram from
+`{participant: 2}` to `{participant: 1, observer: 1}`; restore is rejected
+before restore-begun or initiate callbacks. A third public case saves one
+ordinary interaction subscription among two same-type members, restores to
+fresh names/handles, then verifies a peer's post-restore interaction reaches
+the rebound subscriber. The positive member/time case maps the page-44
+count/interchangeability statements to §4.1.2 and the page-57 federate-type
+argument to the §4.11 Join Federation Execution service description
+(RL-347/RL-348); the negative and declaration cases map only the two page-44
+requirements to §4.1.2 under RL-347. A fourth public case saves one
+one-attribute object-class publication declaration and no instances; after
+identity rebind, the live publisher registers and updates without republishing,
+and the peer discovers and reflects the value. A fifth case saves one named
+object instance with one committed application value, forces live federate
+handles to differ, and verifies the saved object handle/name/value remain
+stable while producer, attribute-owner, and known-class references rebind. The
+peer subscribes after restore, discovers the object, and receives a later
+reflected update. Its direct mapping remains limited to the page-44 same-type
+count/interchangeability statements; it is not general object-graph or
+conformance evidence. A sixth case restores two distinct named instances under
+one publisher, preserves separate object handles/names/values, and verifies the
+peer discovers and reflects each object after restore. Its direct mapping is
+the same bounded §4.1.2 same-type interchangeability evidence, not general
+multi-object restore coverage. A seventh case saves two same-type publisher
+members, each owning one object, and checks that producer, owner, and known-class
+references independently rebind to the corresponding live publisher before
+the receiver discovers and reflects separate updates. It remains mapped only
+to the bounded §4.1.2 same-type interchangeability evidence. An eighth public
+case saves one object attribute associated with one committed region and
+restores into a fresh registry after both same-type federate handles and names
+change. The live publisher can mutate the restored region; a disjoint receiver
+range remains unaware until moved into overlap, after which it discovers the
+object and receives a later update. This 90-assertion case maps only to the
+page-44 same-type restore statements in §4.1.2 under RL-347; the DDM calls are
+setup and observation surfaces, not an added §9.6 conformance claim. Keep the
+single-region allowance separate from arbitrary region topologies. Query these
+cases with:
+
+```powershell
+python tools/query_rti_work.py focus restore-member-identity-rebinding --summary --compact
+python tools/query_rti_work.py trace "Embedded public restore rebinds member-only saved state by federate type" --summary --compact
+python tools/query_rti_work.py trace "Embedded public restore rejects equal-total membership with different federate-type counts" --summary --compact
+python tools/query_rti_work.py trace "Embedded public fresh-registry restore rebinds a route-free interaction declaration for one member" --summary --compact
+python tools/query_rti_work.py trace "Embedded public fresh-registry restore rebinds one member-owned object-class publication declaration" --summary --compact
+python tools/query_rti_work.py trace "Embedded public fresh-registry restore rebinds one saved named object instance identity" --summary --compact
+python tools/query_rti_work.py trace "Embedded public fresh-registry restore rebinds two saved named object instances" --summary --compact
+python tools/query_rti_work.py trace "Embedded public fresh-registry restore independently rebinds two named object producers" --summary --compact
+python tools/query_rti_work.py trace "Embedded public fresh-registry restore rebinds one saved object-region association" --summary --compact
+python tools/query_rti_work.py trace "Embedded public fresh-registry restore rebinds an explicit synchronization point" --summary --compact
+python tools/query_rti_work.py check --lane restore-member-identity-rebinding --summary --compact
+cmake --build out/mgw/embedded --target umbra_ieee1516_2025_restore_member_identity_rebinding_catch2 -j 4
+cmake --build out/mgw/embedded --target umbra_ieee1516_2025_restore_object_region_association_catch2 -j 4
+cmake --build out/mgw/embedded --target umbra_ieee1516_2025_restore_synchronization_point_rebinding_catch2 -j 4
+cmake --build out/mgw/embedded --target umbra_ieee1516_2025_restore_ownership_transaction_rebinding_catch2 -j 4
+ctest --test-dir out/mgw/embedded -C Debug -L '^restore-member-identity-rebinding$' --output-on-failure --repeat until-fail:3
+```
+
+The ten-case fresh-registry lane now includes one standalone explicit,
+unachieved two-member synchronization point and one pending regular ownership
+transaction. The synchronization point rebinds participant and announcement
+identities; the ownership case remaps the requester and release-owner IDs and
+proves the release callback reaches the mapped owner without completing
+acquisition. The direct map remains the page-44 §4.1.2 same-type
+interchangeability statements under RL-347; both callback paths are restore
+oracles, not broader synchronization or ownership-service conformance evidence.
+Next add queued-message restore as a separate typed ledger, followed by
+process-local snapshot identity. The object/region, synchronization, and
+ownership slices do not establish arbitrary region topology or general restore
+behavior. This remains bounded development-profile evidence, not full
+federation restore or conformance evidence.
+The three-federate source-resignation companion is now
+source-backed and green at
 91 HLA_EVOKED assertions, with 20 Requirements-Lab anchors, 18 canonical 2025
 sections, and 23 official C++ API surfaces. It preserves the queued
 explicit-source passel through source-region mutation, restore, unconditional
@@ -1376,7 +1579,24 @@ Delete Object Instance retraction case at
 with 49 HLA_EVOKED assertions. Its callback-drain boundary consumes the
 joined-federate MOM work item after Enable Time Regulation before asserting the
 timestamped deletion, retraction, reconstitution, removal, and grant-order
-path. The known-class-disabled
+path. GitHub issues #1–#3 are complete in their focused lanes: timestamped
+deletion producer knowledge, FQR/undefined-GALT NRG, and delivered-callback
+FQG frontier. GitHub #4's process pull-path interaction-retraction case passes
+53 assertions for retraction before polling, before callback entry, after
+callback entry, and mixed constrained/unconstrained fanout. GitHub #5's public
+Resign coverage now includes interaction, timestamped attribute reflection, and
+object removal (53- and 34-assertion cases); later Retract produces no stale
+callback for the resigned recipient. GitHub #6 is resolved as a tested policy
+difference, not a normative parity requirement: the same HLA_EVOKED scenario
+reports embedded actual/OLT 5/9 with timestamp 9 delivered, versus process
+actual/OLT 5/10 with no late TSO callback in that FQR; timestamp 12 is retracted
+before callback entry in both. The pinned §§8.12–8.14 text sets FQR queue/OLT
+semantics and the no-future-TSO-below-actual-grant guarantee, but not a
+transport-arrival or callback-start cutoff. A focused process regular
+Send-Interaction check rejects timestamp 4 against its sender floor of 5. These
+are bounded development-profile findings, not broad TSO-family or conformance
+claims. The
+known-class-disabled
 attribute-relevance case at
 `cpp/tests/attribute_relevance_known_class_disabled_subscription_catch2.cpp:97` is now green
 with 35 HLA_EVOKED assertions, 18 Requirements-Lab anchors, 13 canonical 2025
@@ -3123,6 +3343,56 @@ Umbra-owned replacement public API.
       save/restore, transport,
       and broader re-enable coverage remain open, as do cross-family request-retraction
       callbacks, transport, package evidence, and conformance.
+- [x] Preserve queued TSO order across a pending Time Constrained transition for
+      Send Interaction. The public HLA_EVOKED C++ case sends a timestamped
+      interaction while Enable Time Constrained is pending, verifies it remains
+      undelivered through the role callback, then observes it as TIMESTAMP before
+      grant 6. Direct mapping:
+      `requirement-candidate-content-clauses-08-time-management-page-192-l93-27`
+      -> IEEE 1516.1-2025 §8.6. This verifies one embedded ordinary interaction
+      path only; process runtime evidence,
+      regional/directed interaction, attribute-update and deletion families,
+      other transport routes, interoperability, and conformance are not claimed.
+      Next: inspect timestamped Update Attribute Values recipient selection as
+      its own focused producer-family lane.
+- [x] Preserve queued timestamped Update Attribute Values as TSO across a
+      pending Time Constrained transition. The public HLA_EVOKED C++ case sends
+      a timestamp-preferred attribute passel while Enable Time Constrained is
+      pending, confirms no reflection escapes through the role callback, then
+      observes a TIMESTAMP reflection before grant 6. Direct mapping:
+      `requirement-candidate-content-clauses-08-time-management-page-192-l93-27`
+      -> IEEE 1516.1-2025 §8.6. This is one embedded attribute-update path;
+      process runtime, other timestamped service families, interoperability,
+      and conformance are not claimed. Next: inspect timestamped directed-
+      interaction recipient selection as a separate focused lane.
+- [x] Preserve queued timestamped directed interactions as TSO across a
+      pending Time Constrained transition. The public HLA_EVOKED C++ case sends
+      a directed interaction while Enable Time Constrained is pending, confirms
+      it does not arrive as receive-order work through the role callback, then
+      observes a TIMESTAMP callback before grant 6. Direct mapping:
+      `requirement-candidate-content-clauses-08-time-management-page-192-l93-27`
+      -> IEEE 1516.1-2025 §8.6. This verifies the embedded directed-interaction
+      path only; process transport evidence is tracked separately, and other
+      timestamped service families, interoperability, validation, and
+      conformance are not claimed.
+- [x] Verify the process-boundary timestamped attribute-update companion for
+      pending Enable Time Constrained. The public C++ case is mapped to
+      `requirement-candidate-content-clauses-08-time-management-page-192-l93-27`
+      -> IEEE 1516.1-2025 §8.6. Its exact focused MinGW CTest passed 1/1 after
+      removing empty receiver polls that disagreed with the strict server
+      fixture; the callback snapshots and single expected transition dispatch
+      remain. This verifies one process attribute-update route only; other
+      timestamped families, validation, interoperability, and conformance are
+      not claimed.
+- [x] Verify the process-boundary timestamped directed-interaction companion
+      for pending Enable Time Constrained. Its separate public C++ plan row is
+      mapped to page-192 l93-27 -> IEEE 1516.1-2025 §8.6. The exact focused
+      MinGW CTest passed 1/1 after aligning the directed timestamp and receiver
+      TAR to the eligible time-6 boundary and removing an unsupported poll from
+      the strict fixture sequence. This verifies one process-boundary directed
+      interaction route only; the attribute companion and other timestamped
+      service families remain separate, and validation/conformance are not
+      claimed.
 - [x] Add a bounded Request Retraction vertical slice for normal non-regional
       timestamped `Send Interaction`, `Update Attribute Values`, and `Send
       Directed Interaction`, plus region-context `Send Interaction With
@@ -3914,6 +4184,12 @@ Umbra-owned replacement public API.
       switch-default rules and resolve the supplied extension's
       directed-interaction/FDD-schema mismatch before widening the
       federation-management runtime boundary.
+- [x] Add a focused internal C++ FOM-composer case for merging a same-named
+      HLAextendableVariantRecord alternative across modules with matching type
+      and semantics and disjoint discriminant enumerators. It directly maps
+      the pinned IEEE 1516.2-2025 Annex C.3 candidate at page 110 line 90 and
+      passes its isolated MinGW CTest. Conflicting metadata, overlapping
+      assignments, other merge types, and conformance remain separate.
 - [x] Resolve Umbra's local aggregate C++ Connect crosswalk by selecting all
       four official overload-level API records in the implementation contract
       and validating them against the Lab export. The adjacent Lab's aggregate
@@ -5187,6 +5463,26 @@ Umbra-owned replacement public API.
        sole terminal reply. Negotiated acquisition, remaining divestiture
        flows, RTI-owned state, full resign-action disposition, and conformance
       remain separate work.
+- [x] Failed cancellation after transfer yields the acquisition notification.
+      Add this separate 2025 public-C++ lane: when the owner transfers an
+      attribute before the
+      requester processes its queued callback, cancellation fails and the
+      requester receives one `Attribute Ownership Acquisition Notification`
+      with the divestiture tag, without a cancellation confirmation. This
+      maps only the failure branch at §7.1.2.2 page 153 l36; successful
+      cancellation and other arbitration branches remain separately scoped.
+- [x] Regular acquisition cancels a pending If Available request. A separate
+      HLA_EVOKED case proves a regular request supersedes the same federate's
+      pending If Available invocation, remains pending through the owner's
+      release request, and completes only at successful cancellation
+      confirmation. This maps page 153 l60 / §7.1.2.2; other terminal paths
+      remain separately scoped.
+- [x] The FDD catalog makes HLAprivilegeToDeleteObject available on every
+      object class. An internal composer regression checks effective
+      inheritance for every object class in the composed 2025 Standard MIM +
+      Restaurant FOM catalog. This maps only page 153 l84 / §7.1.3 for that
+      catalog; it does not assert behavior for every possible future FOM or
+      establish public RTI API conformance.
 - [x] Add the public MOM interaction companion for accepted
       `Cancel Attribute Ownership Acquisition`. The HLA_IMMEDIATE observer
       receives one reliable `HLAreportServiceInvocation` after the cancellation
@@ -6211,6 +6507,50 @@ Umbra-owned replacement public API.
       not an exhaustive inspection of private RTI storage or a conformance
       claim.
 - [ ] Time management, ownership management, and save/restore.
+      Focused lane anchor: TAR forbids later delivery of timestamps at or below its grant.
+      Focused lane anchor: Acknowledged callbacks are not pending-message GALT constraints.
+      Focused lane anchor: A queued timestamp below pending TARA must be delivered before its grant.
+      Focused lane anchor: Asynchronous delivery must not bypass the timestamp-order time gate.
+      Focused lane anchor: Re-enabling asynchronous delivery releases receive-order but keeps timestamp-order gated until advance.
+      Focused lane anchor: A Send Message transition preserves the joined-federate time state.
+      Focused lane anchor: An eligible joined federate can receive outstanding receive-order messages.
+      Focused lane anchor: Send Message conversion honors preferred order and timestamp presence.
+      Focused lane anchor: An early NMR grant eases the subsequent TSO timestamp bound.
+      Focused lane anchor: An early NMRA grant eases the subsequent TSO timestamp bound.
+      Focused lane anchor: An early NMR grant eases timestamped object deletion bound.
+      Focused lane anchor: An early FQR grant eases the subsequent TSO timestamp bound.
+      Focused lane anchor: Apply NRG to FQR when GALT is undefined.
+      Focused lane anchor: FQG derives grant times from callback-started TSO deliveries.
+      Focused lane anchor: A federate may send at its granted time when actual lookahead is zero.
+      Focused lane anchor: During zero-lookahead TAR, reject a TSO at the requested time.
+      Focused lane anchor: An early NMR grant eases timestamped attribute update bound.
+      Focused lane anchor: Use optimistic grant time for the post-FQR TSO send floor.
+      Focused lane anchor: Use actual FQR time for attribute update bound.
+      Focused lane anchor: Use actual FQR time for timestamped attribute update after divergent grant.
+        Focused lane anchor: Use actual FQR time for timestamped object deletion bound.
+        Focused lane anchor: Use actual FQR time for timestamped directed send bound.
+        Focused lane anchor: Use actual FQR time for timestamped regional send bound.
+      Focused lane anchor: Use actual FQR time for timestamped federation save bound.
+      Focused lane anchor: Timed save crosses a distinct FQR boundary.
+      Focused lane anchor: An already-delivered equal-boundary TSO must not stall timed-save progress after FQR.
+      Focused lane anchor: An already-delivered equal-boundary timestamp must not stall FQR time progress.
+      Focused lane anchor: Negotiated divestiture retains ownership until another federate accepts.
+      Focused lane anchor: The two ownership acquisition service paths are publicly usable.
+      Focused lane anchor: If Available acquisition distinguishes nondivesting ownership from unowned state.
+      Focused lane anchor: A willing If Available acquirer is selected when the owner begins negotiated divestiture.
+      Focused lane anchor: A willing acquirer becomes eligible when the owner begins negotiated divestiture.
+      Focused lane anchor: Divestiture If Wanted reports precisely which instance attributes were divested.
+      Focused lane anchor: Unconditionally divesting resignation releases every owned instance attribute.
+      Focused lane anchor: A time-regulating sender may emit timestamp-order messages.
+      Focused lane anchor: Disable Time Constrained converts the joined federate's TSO stream to receive order.
+      Focused lane anchor: Process-boundary Disable Time Constrained drains queued TSO through receive order.
+      Focused lane anchor: Disable Time Constrained converts a queued timestamped attribute update to untimed reflection.
+      Focused lane anchor: Disable Time Constrained converts a queued timestamped directed interaction to receive order.
+      Focused lane anchor: Disable Time Constrained converts a queued timestamped object deletion to untimed removal.
+      Focused lane anchor: Retracting a mixed-order attribute update after its receive-order passel.
+      Focused lane anchor: Select the smallest feasible time when regulation is enabled.
+      Focused lane anchor: Process service endpoints share one federation time authority.
+      Focused lane anchor: Route process-boundary NMRA and TSO delivery through one authoritative coordinator.
       Focused lane anchor: joined-owner timestamped deletion retraction.
       Focused lane anchor: optimistic-time Flush Queue Request.
       Focused lane anchor: joined-federate MOM time-state durations.
@@ -6232,9 +6572,15 @@ Umbra-owned replacement public API.
       Focused lane anchor: timed negotiated cancellation after restore.
       Focused lane anchor: timed negotiated continuation after restore.
       Focused lane anchor: timed negotiated confirmation cancellation after restore.
+      Focused lane anchor: durable pending Enable Time Constrained restore.
 - [ ] MOM services after the corresponding base service behavior is stable.
       Focused lane anchor: federation-scoped FOM-module/MIM MOM reports
       (`federation-mom-content-reports`).
+- [x] Record invalid-logical-time `Next Message Request Available` failure
+      reports in the embedded filesystem store. The new official-C++ case
+      passes its isolated MinGW CTest and maps only its report fields and
+      routing to 1516.1-2025 §§11.5, 11.5.1, and 11.5.2; the time-type mismatch
+      itself is not claimed as direct §8.11.3 coverage.
 - [ ] Embedded and remote transports, multi-process interoperability, and
       independently reviewed conformance evidence.
       Completed bounded Summary Rule 3 evidence is separately indexed as
@@ -6253,6 +6599,13 @@ Keep portable C++ conformance scenarios on the official IEEE 1516.1-2025 and
 1516.2-2025 APIs. Track the scenario inventory in
 `compliance/catalogs/cpp-tck-scenario-catalog.json`; each scenario remains
 distinct from embedded-profile regression evidence.
+
+#### Future timestamped attribute update during pending NMR
+
+Keep the portable primary and contract pair scoped to a future timestamped
+attribute update arriving while NMR is pending. The scenario catalog and
+`ROADMAP-INDEX.json` hold the direct requirement mapping and focused evidence;
+this portable-only slice has no separate embedded Catch2 lane.
 
 ### Portable Java TCK (2025)
 

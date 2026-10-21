@@ -33,6 +33,7 @@ class CallbackSession final {
   CallbackSession& operator=(CallbackSession const&) = delete;
 
   void close();
+  void waitUntilIdle();
   void invoke(Invocation invocation);
 
  private:

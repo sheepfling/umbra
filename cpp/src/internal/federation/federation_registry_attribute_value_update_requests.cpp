@@ -94,7 +94,8 @@ ReceiveOrderAttributeUpdatePlan EmbeddedFederationRegistry::planReceiveOrderAttr
     std::wstring const& federationName,
     std::uint64_t producingFederateId,
     std::uint64_t objectInstanceHandle,
-    std::vector<std::uint64_t> const& sentAttributeHandles) const {
+    std::vector<std::uint64_t> const& sentAttributeHandles,
+    rti1516_2025::LogicalTime const* timestamp) const {
   std::scoped_lock lock(mutex_);
   auto const federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -105,8 +106,29 @@ ReceiveOrderAttributeUpdatePlan EmbeddedFederationRegistry::planReceiveOrderAttr
   }
   auto const instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() ||
-      instance->second.deleteAccepted ||
       !instance->second.knownObjectClassHandlesByFederate.contains(producingFederateId)) {
+    return {ReceiveOrderAttributeUpdateStatus::object_instance_not_known};
+  }
+  bool timestampPrecedesPendingDeletion = false;
+  if (timestamp && instance->second.pendingTimestampedDeletionMessageId) {
+    auto const deletion = federation->second.tsoObjectDeletionMessages.find(
+        *instance->second.pendingTimestampedDeletionMessageId);
+    if (deletion != federation->second.tsoObjectDeletionMessages.end() &&
+        deletion->second.producingFederateId == producingFederateId &&
+        deletion->second.timestamp &&
+        timestamp->implementationName() ==
+            deletion->second.timestamp->implementationName()) {
+      try {
+        timestampPrecedesPendingDeletion =
+            *timestamp < *deletion->second.timestamp;
+      } catch (rti1516_2025::Exception const&) {
+      }
+      if (!timestampPrecedesPendingDeletion) {
+        return {ReceiveOrderAttributeUpdateStatus::object_instance_not_known};
+      }
+    }
+  }
+  if (instance->second.deleteAccepted && !timestampPrecedesPendingDeletion) {
     return {ReceiveOrderAttributeUpdateStatus::object_instance_not_known};
   }
   if (!federation->second.definition.catalog ||

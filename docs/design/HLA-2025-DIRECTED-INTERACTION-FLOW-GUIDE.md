@@ -437,11 +437,17 @@ carry the wider time-state context. These are source observations; the full
 normative §4.4 text is not reproduced here.
 
 A legal producer `Retract` is a separate operation from this live-eligibility
-recheck. Before dispatch, it removes pending recipient entries from the TSO
-queue and terminalizes their pending states, so no original interaction frame
-is sent to those recipients. If a recipient has already crossed the callback
-boundary, its Request Retraction path is distinct; the [TSO retraction
-guide](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md) owns that full state machine.
+recheck and has two process cutoffs. Before dispatch, it removes a pending
+recipient copy from the TSO queue, so no original interaction frame is sent.
+After the process service has sent the frame, a still-legal `Retract` can send a
+Request Retraction event to that pushed recipient. If the original callback
+has not started, the client removes the still-buffered event or the callback
+bridge suppresses it before user-code entry; if the callback has started, the
+bridge queues the public `requestRetraction` callback. This post-frame path is
+source-derived and has no focused process test for a queued directed TSO
+interaction. The [TSO retraction guide's process-buffer discussion](HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md#configured-process-callback-buffers-are-a-separate-boundary)
+covers the wider callback/retraction lifecycle; it does not establish this
+directed-TSO case as tested or normative.
 
 ```mermaid
 flowchart TD
@@ -451,7 +457,7 @@ flowchart TD
   Classify -->|No| ReceiveOrder[Use process receive-order lane<br/>sent TIMESTAMP / received RECEIVE]
   Classify -->|Yes| Queue[Queue this recipient's TSO copy]
   Queue -->|Recipient's request reaches delivery boundary| Recheck{Is the producer still joined?}
-  Queue -. while legally retractable .-> Retract[Producer calls Retract]
+  Queue -. before dispatch, while legal .-> Retract[Producer calls Retract]
   Retract --> Remove[Remove pending TSO copy;<br/>no original interaction callback]
   Recheck -->|Yes| Joined[Check current publication,<br/>target state, and receiver route]
   Joined -->|No| Suppress[Suppress this recipient;<br/>complete its TSO delivery entry]
@@ -462,6 +468,10 @@ flowchart TD
   Departed -->|No target/receiver candidate| Suppress
   Departed -->|Eligible now| Project
   Project --> Frame[Send timestamped directed event frame]
+  Frame -. after frame send, while Retract remains legal .-> RetractFrame[Process service sends Request Retraction]
+  RetractFrame --> Started{Has original public callback started?}
+  Started -->|No| SuppressOriginal[Remove buffered event or suppress before callback entry;<br/>no original interaction callback]
+  Started -->|Yes| NotifyRetraction[Queue public requestRetraction callback]
   Frame --> Gate{Has the process callback gate admitted it?}
   Gate -->|Not yet| Hold[Keep callback pending;<br/>delivery remains in transit]
   Hold --> Gate
@@ -470,9 +480,16 @@ flowchart TD
 ```
 
 The figure intentionally draws only the constrained recipient's TSO branch;
-the receive-order branch is not queued for a grant. It also omits a throwing
-callback, whose missing-ack/in-transit consequence is mapped in the [process
-endpoint guide](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#3-a-timestamped-process-delivery-stays-in-transit-through-callback-completion).
+the receive-order branch is not queued for a grant. The retraction branch is a
+process-source observation: dispatch records the pushed recipient after
+sending the frame ([dispatcher](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L161));
+the service emits Request Retraction to that session ([service](../../cpp/src/internal/federation/process_federation_service_retraction.cpp#L200)),
+the client removes a matching buffered interaction event ([client](../../cpp/src/internal/federation/process_federation_client.cpp#L512)),
+and the callback bridge admits the public retraction callback only after the
+original callback has started ([bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1509)).
+The focused process callback-gating test does not exercise this retraction
+branch. The figure also omits a throwing callback, whose missing-ack/in-transit
+consequence is mapped in the [process endpoint guide](HLA-2025-PROCESS-ENDPOINT-REQUEST-AND-CALLBACK-FLOW-GUIDE.md#3-a-timestamped-process-delivery-stays-in-transit-through-callback-completion).
 The focused process callback-gating case demonstrates a directed TSO callback
 before its matching grant after the disabled-callback gate opens. It does not
 change publication or target state, nor retract the queued constrained copy.
@@ -502,7 +519,7 @@ directed TSO recipient has been queued.
 | Process directed TSO retraction timing limit | [Process directed-send callback case](../../cpp/tests/ieee1516_2025_connection_directed_interaction_callback_catch2.cpp#L1073) checks timestamped Retract before callback and Request Retraction after callback under both callback models, but the receiver observes `receivedOrder=RECEIVE`; it is not a time-constrained queued-TSO case. The TSO-specific process gate above does not retract or mutate declarations. |
 | Target departure after directed TSO acceptance | [Embedded target-departure case](../../cpp/tests/ieee1516_2025_timestamped_directed_target_departure_catch2.cpp#L4): a time-six object removal is delivered before the queued time-seven directed interaction; the later target recheck suppresses the directed callback. This does not establish process behavior. |
 | Timed save/restore retains a later directed TSO message | [Embedded HLA_EVOKED save/restore case](../../cpp/tests/timed_restore_live_tso_directed_interaction_catch2.cpp#L165); [worked trace in the save/restore guide](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#worked-case-a-timed-save-retains-later-directed-tso-work): at save time 6, timestamp-8 directed work remains pending, is delivered after restore and FQR, then the original handle can generate Request Retraction. Actual/optimistic grant fields are separately documented in the time-management guide. This is embedded development-profile evidence only. |
-| Multiple process-endpoint receivers | [2025 process multi-recipient case](../../cpp/tests/ieee1516_2025_connection_directed_interaction_multi_recipient_catch2.cpp#L458): an exact-class send reaches two subscribed receivers and not its sender under both callback models. The fixture maps `HLA_IMMEDIATE` to pushed events [here](../../cpp/tests/ieee1516_2025_connection_directed_interaction_multi_recipient_catch2.cpp#L541) and includes both [HLA_EVOKED and HLA_IMMEDIATE sections](../../cpp/tests/ieee1516_2025_connection_directed_interaction_multi_recipient_catch2.cpp#L982). It does not test ancestor selection or callback timing relative to service return. |
+| Multiple process-endpoint receivers | [2025 process multi-recipient case](../../cpp/tests/ieee1516_2025_connection_directed_interaction_multi_recipient_catch2.cpp#L458): an exact-class send reaches two subscribed receivers and not its sender under both callback models. The fixture maps `HLA_IMMEDIATE` to pushed events [here](../../cpp/tests/ieee1516_2025_connection_directed_interaction_multi_recipient_catch2.cpp#L582) and includes both [HLA_EVOKED and HLA_IMMEDIATE sections](../../cpp/tests/ieee1516_2025_connection_directed_interaction_multi_recipient_catch2.cpp#L1027). It does not test ancestor selection or callback timing relative to service return. |
 
 The process-endpoint case establishes multi-recipient delivery for its tested
 path, with exact-class declarations and both callback models. The process send

@@ -153,6 +153,7 @@ TEST_CASE(
     "Embedded service reporting preserves Synchronization Point Achieved arguments",
     "[integration][development-profile][federation-management][synchronization]"
     "[mom][service-report-file][service-reporting][synchronization-point-achieved]"
+    "[service-report-table-5-federate-handle-set]"
     "[rti.service.register-federation-synchronization-point]"
     "[rti.service.synchronization-point-achieved]"
     "[federate.callback.federation-synchronized]") {

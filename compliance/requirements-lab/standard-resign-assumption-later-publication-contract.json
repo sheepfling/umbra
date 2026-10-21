@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The public-API scenario exercises IEEE 1516.1-2025 §4.12 resignation and §4.12.4 ownership-assumption continuation after a known candidate becomes eligible by publishing later. The candidate discovers the owner's object while subscribed but not publishing. The owner resigns with UNCONDITIONALLY_DIVEST_ATTRIBUTES; no assumption callback is yet delivered. Publishing the attribute then produces Request Attribute Ownership Assumption for the object, attribute and HLAprivilegeToDeleteObject, with an empty tag. Direct pinned mappings are page-058-l112-33 -> §4.12 and page-059-l8-1 -> §4.12.4. The adapter supplies provider, endpoint, FOM, names, callback model, and logical-time implementation. Current-source installed-package C++ primary/contract passed 4/4 under evoked and immediate callbacks; Java parity compiles against the official API-only JAR but has no provider-runtime evidence. This does not claim later-join continuation, terminal re-search, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-resign-assumption-later-publication",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador resignFederationExecution(UNCONDITIONALLY_DIVEST_ATTRIBUTES), publishObjectClassAttributes, and FederateAmbassador requestAttributeOwnershipAssumption",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioResignAssumptionLaterPublication",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioResignAssumptionLaterPublicationContract"
+      ]
+    }
+  ]
+}

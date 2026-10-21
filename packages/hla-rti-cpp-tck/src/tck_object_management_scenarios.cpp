@@ -210,9 +210,39 @@ void scenarioObjectDeletion(Options const& options, rti::CallbackModel model) {
 
   auto const deleted = registerAndDiscover();
   member.recorder().clearRemovals();
+  auto const ownerPrivilege = owner.rtiAmbassador().getAttributeHandle(
+      objectClass, L"HLAprivilegeToDeleteObject");
+  auto const memberClass = member.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const memberPrivilege = member.rtiAmbassador().getAttributeHandle(
+      memberClass, L"HLAprivilegeToDeleteObject");
+  require(ownerPrivilege.isValid() && memberPrivilege.isValid(),
+          "Object deletion could not resolve the standard delete privilege");
+  require(owner.rtiAmbassador().isAttributeOwnedByFederate(deleted.first, ownerPrivilege) &&
+              !member.rtiAmbassador().isAttributeOwnedByFederate(
+                  deleted.first, memberPrivilege),
+          "delete privilege did not initially belong only to the registrant");
   std::vector<std::uint8_t> deletionTagBytes{0xD1U, 0xE2U, 0xF3U};
   rti::VariableLengthData deletionTag(deletionTagBytes.data(), deletionTagBytes.size());
+  requireException(
+      [&] { member.rtiAmbassador().deleteObjectInstance(deleted.first, deletionTag); },
+      L"DeletePrivilegeNotHeld",
+      "non-owner deleting an object before the privilege transfers");
+  require(member.recorder().removals().empty(),
+          "rejected non-owner deletion produced a removal callback");
   owner.rtiAmbassador().deleteObjectInstance(deleted.first, deletionTag);
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getKnownObjectClassHandle(deleted.first));
+      },
+      L"ObjectInstanceNotKnown",
+      "deleting owner querying the class before the recipient removal callback");
+  if (model == rti::HLA_EVOKED) {
+    require(member.recorder().removals().empty(),
+            "evoked recipient received removal without servicing callbacks");
+    require(member.rtiAmbassador().getKnownObjectClassHandle(deleted.first) == memberClass,
+            "evoked recipient forgot the object before its queued removal callback");
+  }
   waitFor(member, [&] {
     return member.recorder().hasRemoval(
         deleted.first, deletionTagBytes, owner.federateHandle());
@@ -445,10 +475,40 @@ void scenarioNamedRegistration(Options const& options, rti::CallbackModel model)
   owner.rtiAmbassador().reserveObjectInstanceName(name);
   waitFor(owner, [&] { return owner.recorder().reservationSucceeded(name); }, options,
           "named object reservation");
+  auto const memberClass = member.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const memberAttribute = member.rtiAmbassador().getAttributeHandle(
+      memberClass, options.attributeName);
+  rti::AttributeHandleSet const memberAttributes{memberAttribute};
+  member.rtiAmbassador().publishObjectClassAttributes(memberClass, memberAttributes);
+  requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().registerObjectInstance(memberClass, name));
+      },
+      L"ObjectInstanceNameNotReserved",
+      "another publisher consuming the owner's object-name reservation");
+  owner.rtiAmbassador().unpublishObjectClassAttributes(objectClass, attributes);
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().registerObjectInstance(objectClass, name));
+      },
+      L"ObjectClassNotPublished",
+      "named registration before object-class publication");
+  owner.rtiAmbassador().publishObjectClassAttributes(objectClass, attributes);
   auto const object = owner.rtiAmbassador().registerObjectInstance(objectClass, name);
   require(object.isValid(), "Named registration returned an invalid handle");
   require(owner.rtiAmbassador().getObjectInstanceHandle(name) == object,
           "Named registration lookup did not round-trip at the owner");
+  requireException(
+      [&] { owner.rtiAmbassador().releaseObjectInstanceName(name); },
+      L"ObjectInstanceNameNotReserved",
+      "releasing an object-name reservation consumed by registration");
+  requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().registerObjectInstance(memberClass, name));
+      },
+      L"ObjectInstanceNameInUse",
+      "another publisher registering an already-used object name");
+  member.rtiAmbassador().unpublishObjectClassAttributes(memberClass, memberAttributes);
 
   waitFor(member, [&] { return member.recorder().discovery().present; }, options,
           "named object discovery");
@@ -457,6 +517,26 @@ void scenarioNamedRegistration(Options const& options, rti::CallbackModel model)
   require(discovered.name == name, "Named discovery returned the wrong instance name");
   require(member.rtiAmbassador().getObjectInstanceHandle(name) == object,
           "Named registration lookup did not round-trip at the member");
+
+  auto const reservedAgainstGeneration = federation + L"-reserved-against-generation";
+  owner.recorder().clearReservations();
+  owner.rtiAmbassador().reserveObjectInstanceName(reservedAgainstGeneration);
+  waitFor(owner, [&] {
+    return owner.recorder().reservationSucceeded(reservedAgainstGeneration);
+  }, options, "reservation before unnamed registration");
+  member.recorder().clearDiscovery();
+  auto const generatedObject = owner.rtiAmbassador().registerObjectInstance(objectClass);
+  require(generatedObject.isValid(), "Unnamed registration returned an invalid handle");
+  auto const generatedName = owner.rtiAmbassador().getObjectInstanceName(generatedObject);
+  require(generatedName != reservedAgainstGeneration,
+          "Unnamed registration consumed another reserved object name");
+  waitFor(member, [&] { return member.recorder().discovery().present; }, options,
+          "unnamed object discovery after name reservation");
+  auto const generatedDiscovery = member.recorder().discovery();
+  require(generatedDiscovery.object == generatedObject &&
+              generatedDiscovery.name == generatedName,
+          "Unnamed discovery did not preserve its generated name and handle");
+  owner.rtiAmbassador().releaseObjectInstanceName(reservedAgainstGeneration);
 
   auto const unreservedName = federation + L"-unreserved-name";
   requireException(

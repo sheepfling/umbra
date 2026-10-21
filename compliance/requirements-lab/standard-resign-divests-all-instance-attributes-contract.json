@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable 2025 public-API translation of the verified 31-assertion native Unconditionally Divest Attributes resignation case. The adapter supplies a FOM class with two distinct attributes, two federates connect and join, and the owner publishes both attributes and registers two instances. The survivor discovers both. Before resignation the owner holds all four instance attributes; after UNCONDITIONALLY_DIVEST_ATTRIBUTES, both objects remain known and all four attributes are unowned. Standard queryAttributeOwnership callbacks additionally report attributeIsNotOwned for both attributes on each object, with no removal callback. Direct mapping is limited to requirement-candidate-content-clauses-07-ownership-management-page-151-l99-32 and canonical clause 7.1.2.1, not the full resignation-action matrix or conformance. Official-header C++ primary/contract passed 4/4 across evoked and immediate callback models twice against installed package libraries. Java parity compiles against the official API-only JAR, but has no provider-runtime result.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-resign-divests-all-instance-attributes",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador resignFederationExecution(UNCONDITIONALLY_DIVEST_ATTRIBUTES), isAttributeOwnedByFederate, getKnownObjectClassHandle, queryAttributeOwnership with FederateAmbassador discoverObjectInstance, attributeIsNotOwned, removeObjectInstance",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador federation, object, and ownership declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_resign_divests_all_instance_attributes.cpp::scenarioResignDivestsAllInstanceAttributes",
+        "packages/hla-rti-cpp-tck/src/tck_resign_divests_all_instance_attributes.cpp::scenarioResignDivestsAllInstanceAttributesContract"
+      ]
+    }
+  ]
+}

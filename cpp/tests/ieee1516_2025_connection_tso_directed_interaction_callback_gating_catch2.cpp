@@ -460,7 +460,8 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 void verifyProcessDirectedTsoPendingNextMessageAdvance(
     bool useAvailableRequest,
     bool useOrdinaryInteraction = false,
-    bool useImmediateCallbacks = false) {
+    bool useImmediateCallbacks = false,
+    bool pendingTimeConstrainedEnable = false) {
   class RecordingDirectedTsoFederateAmbassador final
       : public NullFederateAmbassador {
    public:
@@ -835,6 +836,18 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
           senderHandler,
           TransportServiceOperation::report_successful_void_service_invocation,
           "The directed callback-gating server lost sender regulation report.");
+      if (pendingTimeConstrainedEnable) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::time_advance_request,
+            "The directed callback-gating server lost the pre-constrained TAR.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The directed callback-gating server lost the pre-constrained TAR report.");
+      }
       serveExpected(
           receiver,
           receiverHandler,
@@ -845,20 +858,22 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
           receiverHandler,
           TransportServiceOperation::report_successful_void_service_invocation,
           "The directed callback-gating server lost receiver constrained report.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          useAvailableRequest
-              ? TransportServiceOperation::next_message_request_available
-              : TransportServiceOperation::next_message_request,
-          useAvailableRequest
-              ? "The directed callback-gating server lost receiver NMRA."
-              : "The directed callback-gating server lost receiver NMR.");
-      serveExpected(
-          receiver,
-          receiverHandler,
-          TransportServiceOperation::report_successful_void_service_invocation,
-          "The directed callback-gating server lost receiver NMR report.");
+      if (!pendingTimeConstrainedEnable) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            useAvailableRequest
+                ? TransportServiceOperation::next_message_request_available
+                : TransportServiceOperation::next_message_request,
+            useAvailableRequest
+                ? "The directed callback-gating server lost receiver NMRA."
+                : "The directed callback-gating server lost receiver NMR.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The directed callback-gating server lost receiver NMR report.");
+      }
       if (!useImmediateCallbacks) {
         serveExpected(
             receiver,
@@ -890,6 +905,38 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
               })) {
         throw std::runtime_error(
             "The directed callback-gating server lost directed Send.");
+      }
+      if (pendingTimeConstrainedEnable) {
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::time_advance_request,
+            "The directed callback-gating server lost sender TAR(4).");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The directed callback-gating server lost sender TAR(4) report.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::time_advance_request,
+            "The directed callback-gating server lost sender TAR(5).");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The directed callback-gating server lost sender TAR(5) report.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::time_advance_request,
+            "The directed callback-gating server lost receiver TAR at the queued TSO boundary.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::report_successful_void_service_invocation,
+            "The directed callback-gating server lost receiver TAR boundary report.");
       }
       // The eligible TSO is already admitted through the active event path;
       // the receiver's next service request after callback dispatch is its
@@ -1031,25 +1078,40 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
     }
 
     REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
-        rti1516_2025::HLAinteger64Interval(7)));
+        rti1516_2025::HLAinteger64Interval(
+            pendingTimeConstrainedEnable ? 1 : 7)));
     REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+    if (pendingTimeConstrainedEnable) {
+      REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(5)));
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
+        REQUIRE(receiverFederate.timeAdvanceGrantValue == 5);
+        receiverFederate.callbackOrder.clear();
+      }
+    }
     REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
-    if (useImmediateCallbacks) {
+    if (useImmediateCallbacks && !pendingTimeConstrainedEnable) {
       REQUIRE(receiverFederate.waitForTimeConstrainedEnabled(
           std::chrono::seconds(5)));
-    } else {
+    } else if (!pendingTimeConstrainedEnable) {
       static_cast<void>(receiverRti->evokeCallback(0.0));
     }
     {
       std::scoped_lock lock(receiverFederate.callbackMutex);
-      REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
+      REQUIRE(receiverFederate.timeConstrainedEnabledCount ==
+              (pendingTimeConstrainedEnable ? 0U : 1U));
     }
-    if (useAvailableRequest) {
-      REQUIRE_NOTHROW(receiverRti->nextMessageRequestAvailable(
-          rti1516_2025::HLAinteger64Time(10)));
-    } else {
-      REQUIRE_NOTHROW(receiverRti->nextMessageRequest(
-          rti1516_2025::HLAinteger64Time(10)));
+    if (!pendingTimeConstrainedEnable) {
+      if (useAvailableRequest) {
+        REQUIRE_NOTHROW(receiverRti->nextMessageRequestAvailable(
+            rti1516_2025::HLAinteger64Time(10)));
+      } else {
+        REQUIRE_NOTHROW(receiverRti->nextMessageRequest(
+            rti1516_2025::HLAinteger64Time(10)));
+      }
     }
     if (!useImmediateCallbacks) {
       static_cast<void>(receiverRti->evokeCallback(0.0));
@@ -1057,10 +1119,11 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
     {
       std::scoped_lock lock(receiverFederate.callbackMutex);
       REQUIRE(receiverFederate.receivedInteractionCount == 0U);
-      REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount ==
+              (pendingTimeConstrainedEnable ? 1U : 0U));
     }
 
-    if (!useImmediateCallbacks) {
+    if (!useImmediateCallbacks && !pendingTimeConstrainedEnable) {
       REQUIRE_NOTHROW(receiverRti->disableCallbacks());
     }
     std::array<std::uint8_t, 3U> const tagBytes{0x44U, 0x54U, 0x53U};
@@ -1071,16 +1134,51 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
               senderInteraction,
               rti1516_2025::ParameterHandleValueMap{},
               tag,
-              rti1516_2025::HLAinteger64Time(7))
+              rti1516_2025::HLAinteger64Time(
+                  pendingTimeConstrainedEnable ? 6 : 7))
         : senderRti->sendDirectedInteraction(
               senderInteraction,
               objectInstance,
               rti1516_2025::ParameterHandleValueMap{},
               tag,
-              rti1516_2025::HLAinteger64Time(7));
+              rti1516_2025::HLAinteger64Time(
+                  pendingTimeConstrainedEnable ? 6 : 7));
     REQUIRE(retraction.isValid());
     REQUIRE(recipientCount.load(std::memory_order_acquire) == 1U);
-    if (useImmediateCallbacks) {
+    if (pendingTimeConstrainedEnable) {
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.receivedInteractionCount == 0U);
+        REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
+        REQUIRE(receiverFederate.timeConstrainedEnabledCount == 0U);
+      }
+      REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(4)));
+      static_cast<void>(senderRti->evokeCallback(0.0));
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.timeConstrainedEnabledCount == 0U);
+        REQUIRE(receiverFederate.receivedInteractionCount == 0U);
+      }
+      REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(5)));
+      static_cast<void>(senderRti->evokeCallback(0.0));
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+      {
+        std::scoped_lock lock(receiverFederate.callbackMutex);
+        REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
+        REQUIRE(receiverFederate.receivedInteractionCount == 0U);
+        REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
+      }
+      REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(6)));
+      for (int attempt = 0;
+           attempt != 8 && (receiverFederate.receivedInteractionCount == 0U ||
+                            receiverFederate.timeAdvanceGrantCount != 2U);
+           ++attempt) {
+        static_cast<void>(receiverRti->evokeCallback(0.25));
+      }
+    } else if (useImmediateCallbacks) {
       REQUIRE(receiverFederate.waitForInteractionAndGrant(
           std::chrono::seconds(5)));
     } else {
@@ -1109,7 +1207,9 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
     {
       std::scoped_lock lock(receiverFederate.callbackMutex);
       REQUIRE(receiverFederate.receivedInteractionCount == 1U);
-      REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount ==
+              (pendingTimeConstrainedEnable ? 2U : 1U));
+      REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
       REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I', 'G'});
       REQUIRE(receiverFederate.receivedInteractionClass == receiverInteraction);
       if (!useOrdinaryInteraction) {
@@ -1122,12 +1222,14 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
               std::vector<std::uint8_t>{0x44U, 0x54U, 0x53U});
       REQUIRE(receiverFederate.receivedTimestampImplementation ==
               L"HLAinteger64Time");
-      REQUIRE(receiverFederate.receivedTimestampValue == 7);
+      REQUIRE(receiverFederate.receivedTimestampValue ==
+              (pendingTimeConstrainedEnable ? 6 : 7));
       REQUIRE(receiverFederate.receivedSentOrderType == rti1516_2025::TIMESTAMP);
       REQUIRE(receiverFederate.receivedReceivedOrderType == rti1516_2025::TIMESTAMP);
       REQUIRE(receiverFederate.hasOptionalRetraction);
       REQUIRE(receiverFederate.retractionIsValid);
-      REQUIRE(receiverFederate.timeAdvanceGrantValue == 7);
+      REQUIRE(receiverFederate.timeAdvanceGrantValue ==
+              (pendingTimeConstrainedEnable ? 6 : 7));
     }
 
     REQUIRE_NOTHROW(senderRti->resignFederationExecution(
@@ -1246,6 +1348,28 @@ TEST_CASE(
     "[federate.callback.receive-directed-interaction]"
     "[federate.callback.time-advance-grant][2025]") {
   verifyProcessDirectedTsoPendingNextMessageAdvance(false);
+}
+
+TEST_CASE(
+    "RTIambassadors retain a process directed TSO while Enable Time Constrained is pending",
+    "[integration][foundation][federation-management][interaction-management]"
+    "[object-management][time-management][time-advance][transport]"
+    "[process-boundary][public-endpoint][multi-federate][directed-interaction]"
+    "[timestamped-directed-interaction][directed-routing]"
+    "[lane.tce-transition-stored-tso-directed-interaction-process]"
+    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
+    "[rti.service.get-interaction-class-handle]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.publish-object-class-directed-interactions]"
+    "[rti.service.subscribe-object-class-directed-interactions]"
+    "[rti.service.register-object-instance][rti.service.enable-time-regulation]"
+    "[rti.service.time-advance-request][rti.service.enable-time-constrained]"
+    "[rti.service.send-directed-interaction]"
+    "[federate.callback.time-constrained-enabled]"
+    "[federate.callback.receive-directed-interaction]"
+    "[federate.callback.time-advance-grant][2025]") {
+  verifyProcessDirectedTsoPendingNextMessageAdvance(false, false, false, true);
 }
 
 TEST_CASE(

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLA TCK non-regulated grant switch</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-10-20</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Portable IEEE 1516.1-2025 time-management testing</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>Enables the standard non-regulated grant switch.</description>
+    </modelIdentification>
+    <switches>
+        <nonRegulatedGrant isEnabled="true"/>
+    </switches>
+</objectModel>

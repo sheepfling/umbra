@@ -23,6 +23,13 @@ class ProcessFederationServiceHost final {
       TransportEndpointIdentity localIdentity,
       ProcessFederationServiceOptions options = {});
 
+  // Multiple listeners may share one authoritative coordinator. This keeps
+  // joined-federate state and callback routing common across endpoints.
+  ProcessFederationServiceHost(
+      std::shared_ptr<ProcessFederationService> service,
+      ProcessTransportAddress listenAddress,
+      TransportEndpointIdentity localIdentity);
+
   ProcessFederationServiceHost(ProcessFederationServiceHost const&) = delete;
   ProcessFederationServiceHost& operator=(
       ProcessFederationServiceHost const&) = delete;
@@ -44,7 +51,7 @@ class ProcessFederationServiceHost final {
   void reapFinishedWorkers();
   void recordFailure(std::exception_ptr failure) noexcept;
 
-  ProcessFederationService service_;
+  std::shared_ptr<ProcessFederationService> service_;
   std::unique_ptr<ProcessTransportListener> listener_;
   TransportEndpointIdentity localIdentity_;
   mutable std::mutex workerMutex_;

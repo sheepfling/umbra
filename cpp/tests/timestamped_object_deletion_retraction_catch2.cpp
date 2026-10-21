@@ -71,9 +71,20 @@ class ReportingFederateAmbassador final
     bool retractionValid = false;
   };
 
+  struct ReceiveOrderRemovalReport final {
+    ObjectInstanceHandle objectInstance;
+    VariableLengthData tag;
+    FederateHandle producer;
+  };
+
   struct TimeReport final {
     std::wstring implementationName;
     std::wstring value;
+  };
+
+  struct FlushQueueGrantReport final {
+    std::wstring value;
+    std::wstring optimisticValue;
   };
 
   struct RequestRetractionReport final {
@@ -111,6 +122,14 @@ class ReportingFederateAmbassador final
     callbackOrder.push_back("remove");
   }
 
+  void removeObjectInstance(
+      ObjectInstanceHandle const& objectInstance,
+      VariableLengthData const& tag,
+      FederateHandle const& producer) override {
+    receiveOrderObjectRemovalReports.push_back({objectInstance, tag, producer});
+    callbackOrder.push_back("remove");
+  }
+
   void requestRetraction(
       rti1516_2025::MessageRetractionHandle const& retraction) override {
     requestRetractionReports.push_back({retraction.isValid(), retraction.encode()});
@@ -122,10 +141,19 @@ class ReportingFederateAmbassador final
     callbackOrder.push_back("grant");
   }
 
+  void flushQueueGrant(
+      LogicalTime const& time,
+      LogicalTime const& optimisticTime) override {
+    flushQueueGrantReports.push_back({time.toString(), optimisticTime.toString()});
+    callbackOrder.push_back("flush-grant");
+  }
+
   std::vector<ObjectInstanceHandle> objectDiscoveryReports;
   std::vector<RemovalReport> objectRemovalReports;
+  std::vector<ReceiveOrderRemovalReport> receiveOrderObjectRemovalReports;
   std::vector<RequestRetractionReport> requestRetractionReports;
   std::vector<TimeReport> timeAdvanceGrantReports;
+  std::vector<FlushQueueGrantReport> flushQueueGrantReports;
   std::vector<std::string> callbackOrder;
 };
 
@@ -275,4 +303,373 @@ TEST_CASE(
   REQUIRE_NOTHROW(constrained->disconnect());
   REQUIRE_NOTHROW(immediate->disconnect());
   REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded early NMR grant eases timestamped object deletion bound",
+    "[integration][development-profile][object-management][time-management][tso]"
+    "[timestamped-delete-early-grant-tso-bound-easing][2025]"
+    "[rti.service.delete-object-instance]"
+    "[rti.service.next-message-request][rti.service.time-advance-request]"
+    "[federate.callback.remove-object-instance][federate.callback.time-advance-grant]") {
+  ReportingFederateAmbassador requesterReports;
+  ReportingFederateAmbassador peerReports;
+  auto requester = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = sourcePath(
+      std::filesystem::path("cpp") / "tests" / "data" /
+      "attribute-update-passel-fom.xml").wstring();
+  unsigned char const earlyTagBytes[] = {0x45U, 0x41U};
+  unsigned char const outgoingTagBytes[] = {0x44U, 0x45U};
+  VariableLengthData const earlyTag(earlyTagBytes, sizeof(earlyTagBytes));
+  VariableLengthData const outgoingTag(outgoingTagBytes, sizeof(outgoingTagBytes));
+
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"deletion-early-grant-requester", L"publisher", federationName));
+  REQUIRE_NOTHROW(peer->joinFederationExecution(
+      L"deletion-early-grant-peer", L"publisher", federationName));
+
+  auto const objectClass = requester->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const reliable = requester->getAttributeHandle(
+      objectClass, fixture_hla::fixture::reliable_base_a);
+  auto const bestEffort = requester->getAttributeHandle(
+      objectClass, fixture_hla::fixture::best_effort_base);
+  REQUIRE(objectClass.isValid());
+  REQUIRE(reliable.isValid());
+  REQUIRE(bestEffort.isValid());
+  AttributeHandleSet const attributes{reliable, bestEffort};
+  REQUIRE_NOTHROW(requester->publishObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(peer->publishObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(objectClass, attributes));
+  ObjectInstanceHandle const earlyObject = peer->registerObjectInstance(objectClass);
+  ObjectInstanceHandle const outgoingObject = requester->registerObjectInstance(objectClass);
+
+  REQUIRE_NOTHROW(requester->enableTimeConstrained());
+  drainCallbacks(*requester);
+  REQUIRE_NOTHROW(requester->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  drainCallbacks(*requester);
+  REQUIRE_NOTHROW(peer->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  drainCallbacks(*peer);
+
+  // The queued deletion at 5 supplies an early NMR target for request 10.
+  auto const earlyRetraction = peer->deleteObjectInstance(
+      earlyObject, earlyTag, rti1516_2025::HLAinteger64Time(5));
+  REQUIRE(earlyRetraction.isValid());
+  REQUIRE_NOTHROW(requester->nextMessageRequest(
+      rti1516_2025::HLAinteger64Time(10)));
+  REQUIRE(requesterReports.timeAdvanceGrantReports.empty());
+  REQUIRE_NOTHROW(peer->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  drainCallbacks(*peer);
+  drainCallbacks(*requester);
+  REQUIRE(requesterReports.objectRemovalReports.size() == 1U);
+  REQUIRE(requesterReports.objectRemovalReports.front().objectInstance == earlyObject);
+  REQUIRE(requesterReports.objectRemovalReports.front().timeValue == L"5");
+  REQUIRE(requesterReports.timeAdvanceGrantReports.size() == 1U);
+  REQUIRE(requesterReports.timeAdvanceGrantReports.front().value == L"5");
+
+  rti1516_2025::HLAinteger64Time logicalTime;
+  REQUIRE_NOTHROW(requester->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+
+  // At logical time 5 and lookahead 1, timestamp 7 is legal. It is below the
+  // stale request-time bound 10 + 1 and therefore witnesses bound easing.
+  auto const outgoingRetraction = requester->deleteObjectInstance(
+      outgoingObject, outgoingTag, rti1516_2025::HLAinteger64Time(7));
+  REQUIRE(outgoingRetraction.isValid());
+  REQUIRE_NOTHROW(requester->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+
+  REQUIRE_NOTHROW(requester->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(peer->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(requester->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded timestamped Delete Object Instance follows privilege attribute order",
+    "[integration][development-profile][2025][object-management][time-management][tso]"
+    "[delete-object-instance-preferred-order]"
+    "[rti.service.delete-object-instance]"
+    "[federate.callback.remove-object-instance]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador recipientReports;
+  auto publisher = makeRti();
+  auto recipient = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = sourcePath(
+      std::filesystem::path("cpp") / "tests" / "data" /
+      "attribute-update-passel-fom.xml").wstring();
+  unsigned char const tagBytes[] = {0x50U, 0x52U, 0x45U, 0x46U};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(recipient->connect(recipientReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      fomModule,
+      standard_hla::mom::integer64_time));
+  FederateHandle publisherHandle;
+  REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+      L"delete-order-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(recipient->joinFederationExecution(
+      L"delete-order-recipient", L"subscriber", federationName));
+
+  auto const objectClass = publisher->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const reliable = publisher->getAttributeHandle(
+      objectClass, fixture_hla::fixture::reliable_base_a);
+  auto const bestEffort = publisher->getAttributeHandle(
+      objectClass, fixture_hla::fixture::best_effort_base);
+  auto const privilegeToDelete = publisher->getAttributeHandle(
+      objectClass, L"HLAprivilegeToDeleteObject");
+  REQUIRE(objectClass.isValid());
+  REQUIRE(reliable.isValid());
+  REQUIRE(bestEffort.isValid());
+  REQUIRE(privilegeToDelete.isValid());
+  AttributeHandleSet const observedAttributes{reliable, bestEffort};
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(
+      objectClass, observedAttributes));
+  REQUIRE_NOTHROW(recipient->subscribeObjectClassAttributes(
+      objectClass, observedAttributes));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(objectClass));
+  drainCallbacks(*recipient);
+  REQUIRE(recipientReports.objectDiscoveryReports ==
+          std::vector<ObjectInstanceHandle>{objectInstance});
+
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  drainCallbacks(*publisher);
+  REQUIRE_NOTHROW(publisher->changeAttributeOrderType(
+      objectInstance,
+      AttributeHandleSet{privilegeToDelete},
+      RECEIVE));
+
+  // The timestamped API invocation uses the live preferred order of its
+  // HLAprivilegeToDeleteObject attribute, not an unconditional TIMESTAMP.
+  auto const retraction = publisher->deleteObjectInstance(
+      objectInstance,
+      tag,
+      rti1516_2025::HLAinteger64Time(2));
+  REQUIRE_FALSE(retraction.isValid());
+  drainCallbacks(*recipient);
+  REQUIRE(recipientReports.objectRemovalReports.size() == 1U);
+  auto const& removal = recipientReports.objectRemovalReports.front();
+  REQUIRE(removal.objectInstance == objectInstance);
+  REQUIRE(removal.producer == publisherHandle);
+  REQUIRE(variableLengthDataBytes(removal.tag) ==
+          std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
+  REQUIRE(removal.timeImplementationName == standard_hla::mom::integer64_time);
+  REQUIRE(removal.timeValue == L"2");
+  REQUIRE(removal.sentOrderType == RECEIVE);
+  REQUIRE(removal.receivedOrderType == RECEIVE);
+  REQUIRE_FALSE(removal.retractionSupplied);
+
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(recipient->resignFederationExecution(
+      rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(recipient->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Disable Time Constrained delivers queued timestamped object deletions as receive order",
+    "[integration][development-profile][2025][object-management][time-management][tso]"
+    "[lane.tcd-transition-tso-to-ro][time-constrained-disable-tso-to-ro]"
+    "[rti.service.disable-time-constrained][rti.service.delete-object-instance]"
+    "[federate.callback.remove-object-instance][requirement-8.7]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName() + L"-tcd-tso-to-ro";
+  auto const fomModule = sourcePath(
+      std::filesystem::path("cpp") / "tests" / "data" /
+      "attribute-update-passel-fom.xml").wstring();
+  unsigned char const tagBytes[] = {0x54U, 0x43U, 0x44U, 0xD1U};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      fomModule,
+      standard_hla::mom::integer64_time));
+  FederateHandle publisherHandle;
+  REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+      L"tcd-delete-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"tcd-delete-receiver", L"subscriber", federationName));
+
+  auto const objectClass = publisher->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const reliable = publisher->getAttributeHandle(
+      objectClass,
+      fixture_hla::fixture::reliable_base_a);
+  auto const bestEffort = publisher->getAttributeHandle(
+      objectClass,
+      fixture_hla::fixture::best_effort_base);
+  REQUIRE(objectClass.isValid());
+  REQUIRE(reliable.isValid());
+  REQUIRE(bestEffort.isValid());
+  AttributeHandleSet const attributes{reliable, bestEffort};
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(objectClass, attributes));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(objectClass));
+  drainCallbacks(*receiver);
+  REQUIRE(receiverReports.objectDiscoveryReports ==
+          std::vector<ObjectInstanceHandle>{objectInstance});
+
+  REQUIRE_NOTHROW(receiver->enableTimeConstrained());
+  drainCallbacks(*receiver);
+  REQUIRE_NOTHROW(publisher->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  drainCallbacks(*publisher);
+
+  // A valid designator proves the timestamped deletion was accepted while the
+  // receiver was time constrained; no callback is eligible before the role
+  // transition because the receiver has not advanced to the timestamp.
+  auto const retraction = publisher->deleteObjectInstance(
+      objectInstance,
+      tag,
+      rti1516_2025::HLAinteger64Time(2));
+  REQUIRE(retraction.isValid());
+  REQUIRE(receiverReports.objectRemovalReports.empty());
+  REQUIRE(receiverReports.receiveOrderObjectRemovalReports.empty());
+  REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+
+  REQUIRE_NOTHROW(receiver->disableTimeConstrained());
+  drainCallbacks(*receiver);
+  REQUIRE(receiverReports.receiveOrderObjectRemovalReports.size() == 1U);
+  REQUIRE(receiverReports.objectRemovalReports.empty());
+  REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+  REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{"remove"});
+
+  auto const& removal = receiverReports.receiveOrderObjectRemovalReports.front();
+  REQUIRE(removal.objectInstance == objectInstance);
+  REQUIRE(removal.producer == publisherHandle);
+  REQUIRE(variableLengthDataBytes(removal.tag) ==
+          std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
+
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded distinct FQR grant uses actual time for timestamped object deletion bound",
+    "[integration][development-profile][2025][object-management][time-management][tso]"
+    "[fqr-distinct-actual-optimistic-delete-bound]"
+    "[rti.service.delete-object-instance][rti.service.flush-queue-request]"
+    "[rti.service.time-advance-request][federate.callback.remove-object-instance]"
+    "[federate.callback.flush-queue-grant]") {
+  ReportingFederateAmbassador requesterReports;
+  ReportingFederateAmbassador peerReports;
+  auto requester = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = sourcePath(
+      std::filesystem::path("cpp") / "tests" / "data" /
+      "attribute-update-passel-fom.xml").wstring();
+  unsigned char const incomingTagBytes[] = {0x46U, 0x51U, 0x52U, 0x44U};
+  unsigned char const outgoingTagBytes[] = {0x46U, 0x51U, 0x52U, 0x4FU};
+  VariableLengthData const incomingTag(incomingTagBytes, sizeof(incomingTagBytes));
+  VariableLengthData const outgoingTag(outgoingTagBytes, sizeof(outgoingTagBytes));
+
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"deletion-fqr-bound-requester", L"publisher", federationName));
+  REQUIRE_NOTHROW(peer->joinFederationExecution(
+      L"deletion-fqr-bound-peer", L"publisher", federationName));
+
+  auto const objectClass = requester->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const reliable = requester->getAttributeHandle(
+      objectClass, fixture_hla::fixture::reliable_base_a);
+  auto const bestEffort = requester->getAttributeHandle(
+      objectClass, fixture_hla::fixture::best_effort_base);
+  REQUIRE(objectClass.isValid());
+  REQUIRE(reliable.isValid());
+  REQUIRE(bestEffort.isValid());
+  AttributeHandleSet const attributes{reliable, bestEffort};
+  REQUIRE_NOTHROW(requester->publishObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(peer->publishObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(objectClass, attributes));
+  ObjectInstanceHandle const requesterObject = requester->registerObjectInstance(objectClass);
+  ObjectInstanceHandle const peerObject = peer->registerObjectInstance(objectClass);
+  drainCallbacks(*requester);
+  drainCallbacks(*peer);
+
+  REQUIRE_NOTHROW(requester->enableTimeConstrained());
+  drainCallbacks(*requester);
+  REQUIRE_NOTHROW(requester->enableTimeRegulation(
+      rti1516_2025::HLAinteger64Interval(1)));
+  drainCallbacks(*requester);
+  REQUIRE_NOTHROW(peer->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+  drainCallbacks(*peer);
+
+  REQUIRE_NOTHROW(requester->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  REQUIRE_NOTHROW(peer->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+  for (int pass = 0; pass != 8; ++pass) {
+    drainCallbacks(*requester);
+    drainCallbacks(*peer);
+  }
+  rti1516_2025::HLAinteger64Time logicalTime;
+  REQUIRE_NOTHROW(requester->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 4);
+  REQUIRE_NOTHROW(peer->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 4);
+  requesterReports.callbackOrder.clear();
+
+  auto const incomingRetraction = peer->deleteObjectInstance(
+      peerObject, incomingTag, rti1516_2025::HLAinteger64Time(7));
+  REQUIRE(incomingRetraction.isValid());
+  REQUIRE_NOTHROW(requester->flushQueueRequest(rti1516_2025::HLAinteger64Time(10)));
+  drainCallbacks(*requester);
+  REQUIRE(requesterReports.objectRemovalReports.size() == 1U);
+  REQUIRE(requesterReports.objectRemovalReports.front().objectInstance == peerObject);
+  REQUIRE(requesterReports.objectRemovalReports.front().timeValue == L"7");
+  REQUIRE(requesterReports.flushQueueGrantReports.size() == 1U);
+  REQUIRE(requesterReports.flushQueueGrantReports.front().value == L"5");
+  REQUIRE(requesterReports.flushQueueGrantReports.front().optimisticValue == L"7");
+  REQUIRE(requesterReports.callbackOrder ==
+          std::vector<std::string>{"remove", "flush-grant"});
+
+  REQUIRE_NOTHROW(requester->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+  auto const outgoingRetraction = requester->deleteObjectInstance(
+      requesterObject, outgoingTag, rti1516_2025::HLAinteger64Time(6));
+  REQUIRE(outgoingRetraction.isValid());
+  REQUIRE_NOTHROW(requester->queryLogicalTime(logicalTime));
+  REQUIRE(logicalTime.getTime() == 5);
+  REQUIRE_THROWS_AS(
+      requester->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)),
+      rti1516_2025::LogicalTimeAlreadyPassed);
+
+  REQUIRE_NOTHROW(requester->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(peer->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(requester->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(peer->disconnect());
 }

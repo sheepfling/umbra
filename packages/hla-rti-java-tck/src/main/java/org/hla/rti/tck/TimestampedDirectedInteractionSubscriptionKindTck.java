@@ -221,6 +221,64 @@ final class TimestampedDirectedInteractionSubscriptionKindTck {
                && universalTarget.equals(universalRecorder.grants.get(0))
                && timestamp.equals(senderRecorder.grants.get(0)),
             "timestamped directed-interaction grants returned the wrong logical times");
+
+         ownershipSubscriber.publishObjectClassDirectedInteractions(
+            ownershipClass, ownershipDirected);
+         ownershipSubscriber.changeInteractionOrderType(
+            ownershipInteraction, OrderType.TIMESTAMP);
+         ownershipSubscriber.enableTimeRegulation(
+            (LogicalTimeInterval<?>) ownershipTimeFactory.makeEpsilon());
+         await(ambassadors, () -> ownershipRecorder.timeRegulationEnabled,
+            "timestamped directed-interaction second sender's Time Regulation callback");
+
+         LogicalTime<?, ?> senderLater = offset(senderInitial, lookahead, 4);
+         LogicalTime<?, ?> ownershipLater = offset(ownershipInitial,
+            (LogicalTimeInterval<?>) ownershipTimeFactory.makeEpsilon(), 4);
+         JavaTckSupport.check(senderLater.equals(ownershipLater),
+            "timestamped directed-interaction senders constructed different later times");
+         ParameterHandleValueMap ownershipParameters =
+            ownershipSubscriber.getParameterHandleValueMapFactory().create(1);
+         ownershipParameters.put(ownershipParameter, payload);
+         JavaTckSupport.expectFailure(
+            () -> sender.sendDirectedInteraction(
+               senderInteraction, target, parameters, tag, timestamp),
+            "InvalidLogicalTime",
+            "timestamped directed send below current logical time plus lookahead");
+         LogicalTime<?, ?> senderAtLookaheadBoundary = offset(senderInitial, lookahead, 3);
+         MessageRetractionReturn boundary = sender.sendDirectedInteraction(
+            senderInteraction, target, parameters, tag, senderAtLookaheadBoundary);
+         JavaTckSupport.check(boundary != null && boundary.retractionHandleIsValid
+               && boundary.handle != null,
+            "timestamped directed send at current logical time plus lookahead returned no handle");
+         MessageRetractionReturn sameSender = sender.sendDirectedInteraction(
+            senderInteraction, target, parameters, tag, senderLater);
+         MessageRetractionReturn otherSender = ownershipSubscriber.sendDirectedInteraction(
+            ownershipInteraction, target, ownershipParameters, tag, ownershipLater);
+         JavaTckSupport.check(sameSender != null && sameSender.retractionHandleIsValid
+               && sameSender.handle != null && otherSender != null
+               && otherSender.retractionHandleIsValid && otherSender.handle != null
+               && !sent.handle.equals(boundary.handle)
+               && !sent.handle.equals(sameSender.handle)
+               && !sent.handle.equals(otherSender.handle)
+               && !boundary.handle.equals(sameSender.handle)
+               && !boundary.handle.equals(otherSender.handle)
+               && !sameSender.handle.equals(otherSender.handle),
+            "timestamped directed sends did not return federation-unique retraction handles");
+
+         universalSubscriber.publishObjectClassDirectedInteractions(
+            universalClass, universalDirected);
+         LogicalTime<?, ?> universalLater = offset(universalInitial,
+            (LogicalTimeInterval<?>) universalTimeFactory.makeEpsilon(), 4);
+         JavaTckSupport.check(senderLater.equals(universalLater),
+            "timestamped directed-interaction non-regulating sender constructed a different time");
+         ParameterHandleValueMap universalParameters =
+            universalSubscriber.getParameterHandleValueMapFactory().create(1);
+         universalParameters.put(universalParameter, payload);
+         MessageRetractionReturn nonRegulating = universalSubscriber.sendDirectedInteraction(
+            universalInteraction, target, universalParameters, tag, universalLater);
+         JavaTckSupport.check(nonRegulating != null
+               && !nonRegulating.retractionHandleIsValid,
+            "timestamped directed send by a non-regulating federate returned a retraction handle");
       } finally {
          for (int i = 0; i < ambassadors.length; ++i) {
             if (joined[i]) {

@@ -346,10 +346,100 @@ FederationTsoRetractionResult EmbeddedFederationRegistry::retractTsoMessageForPr
   return {FederationTsoRegistryStatus::applied, queueResult};
 }
 
+std::size_t EmbeddedFederationRegistry::retireStaleTsoRecipientMessages(
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId,
+    rti1516_2025::LogicalTime const& grantedTime) {
+  auto instrumentationScope = beginInstrumentation(
+      "retireStaleTsoRecipientMessages");
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end() || receivingFederateId == 0 ||
+      !federation->second.members.contains(receivingFederateId)) {
+    return 0;
+  }
+
+  return retireStaleTsoRecipientMessagesLocked(
+      federation->second,
+      receivingFederateId,
+      grantedTime);
+}
+
+std::size_t EmbeddedFederationRegistry::retireStaleTsoRecipientMessagesLocked(
+    Federation& federation,
+    std::uint64_t receivingFederateId,
+    rti1516_2025::LogicalTime const& grantedTime) {
+  auto const timeState = federation.timeCoordinator.timeStateFor(
+      receivingFederateId);
+  auto const temporalState = timeState
+      ? timeState->snapshot()
+      : FederateTimeSnapshot{};
+  bool const regulationEnableTransition =
+      temporalState.timeRegulationPending &&
+      temporalState.advanceMode ==
+          FederateTimeAdvanceMode::time_advance_request_available;
+  // A completed TARA grant may be followed by a legal equal-time TSO arrival.
+  // Keep that timestamp eligible through later advance requests until a
+  // non-TARA grant closes the boundary; only older timestamps are stale.
+  bool const preserveEqualTimeTso =
+      regulationEnableTransition ||
+      temporalState.allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant;
+  auto retired = preserveEqualTimeTso
+      ? federation.timeCoordinator.retireTsoMessagesBefore(
+            receivingFederateId,
+            grantedTime)
+      : federation.timeCoordinator.retireTsoMessagesAtOrBefore(
+            receivingFederateId,
+            grantedTime);
+  std::set<std::uint64_t> affectedMessages;
+  for (auto const& message : retired) {
+    affectedMessages.insert(message.messageId);
+  }
+
+  for (auto const messageId : affectedMessages) {
+    auto record = federation.tsoRequestRetractionRecords.find(messageId);
+    if (record == federation.tsoRequestRetractionRecords.end()) {
+      continue;
+    }
+    auto recipient = record->second.recipientStates.find(receivingFederateId);
+    if (recipient == record->second.recipientStates.end() ||
+        recipient->second != Federation::TsoRecipientDeliveryState::pending) {
+      continue;
+    }
+    recipient->second = Federation::TsoRecipientDeliveryState::stale;
+
+    // A stale timestamped deletion did not cross this recipient's object
+    // removal boundary. Preserve the invocation snapshot/retraction record,
+    // but release the recipient's local removal hold.
+    auto const deletion = federation.tsoObjectDeletionMessages.find(messageId);
+    if (deletion != federation.tsoObjectDeletionMessages.end()) {
+      auto const instance = federation.objectInstances.find(
+          deletion->second.objectInstanceHandle);
+      if (instance != federation.objectInstances.end() &&
+          instance->second.pendingTimestampedDeletionMessageId == messageId) {
+        instance->second.pendingTimestampedRemovalFederates.erase(
+            receivingFederateId);
+        if (!instance->second.deleteAccepted &&
+            !hasPendingTsoRecipient(federation, record->second)) {
+          // Every callback recipient is now stale/suppressed. Do not leave an
+          // unaccepted deletion blocking unrelated object services; retain the
+          // invocation snapshot until the producer's legal retraction window
+          // closes, since Request Retraction still uses that ledger.
+          instance->second.pendingTimestampedDeletionMessageId.reset();
+          instance->second.pendingTimestampedRemovalFederates.clear();
+        }
+      }
+    }
+    reclaimTsoMessagePayload(federation, messageId);
+  }
+  return retired.size();
+}
+
 bool EmbeddedFederationRegistry::beginTsoInteractionCallback(
     std::wstring const& federationName,
     std::uint64_t receivingFederateId,
-    std::uint64_t messageId) {
+    std::uint64_t messageId,
+    bool allowStaleTimestamp) {
   auto instrumentationScope = beginInstrumentation("beginTsoInteractionCallback");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
@@ -366,6 +456,21 @@ bool EmbeddedFederationRegistry::beginTsoInteractionCallback(
       recipient->second != Federation::TsoRecipientDeliveryState::pending) {
     return false;
   }
+  if (!allowStaleTimestamp && record->second.timestamp) {
+    auto const timeState = federation->second.timeCoordinator.timeStateFor(
+        receivingFederateId);
+    auto const time = timeState ? timeState->snapshot() : FederateTimeSnapshot{};
+    if (time.currentTime) {
+      try {
+        if (*record->second.timestamp < *time.currentTime) {
+          recipient->second = Federation::TsoRecipientDeliveryState::stale;
+          reclaimTsoMessagePayload(federation->second, messageId);
+          return false;
+        }
+      } catch (rti1516_2025::Exception const&) {
+      }
+    }
+  }
   recipient->second = Federation::TsoRecipientDeliveryState::delivered;
   reclaimTsoMessagePayload(federation->second, messageId);
   return true;
@@ -374,7 +479,8 @@ bool EmbeddedFederationRegistry::beginTsoInteractionCallback(
 bool EmbeddedFederationRegistry::beginTsoAttributeUpdateCallback(
     std::wstring const& federationName,
     std::uint64_t receivingFederateId,
-    std::uint64_t messageId) {
+    std::uint64_t messageId,
+    bool allowStaleTimestamp) {
   auto instrumentationScope = beginInstrumentation("beginTsoAttributeUpdateCallback");
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
@@ -391,6 +497,21 @@ bool EmbeddedFederationRegistry::beginTsoAttributeUpdateCallback(
       (recipient->second != Federation::TsoRecipientDeliveryState::pending &&
        recipient->second != Federation::TsoRecipientDeliveryState::delivered)) {
     return false;
+  }
+  if (!allowStaleTimestamp && record->second.timestamp) {
+    auto const timeState = federation->second.timeCoordinator.timeStateFor(
+        receivingFederateId);
+    auto const time = timeState ? timeState->snapshot() : FederateTimeSnapshot{};
+    if (time.currentTime) {
+      try {
+        if (*record->second.timestamp < *time.currentTime) {
+          recipient->second = Federation::TsoRecipientDeliveryState::stale;
+          reclaimTsoMessagePayload(federation->second, messageId);
+          return false;
+        }
+      } catch (rti1516_2025::Exception const&) {
+      }
+    }
   }
   recipient->second = Federation::TsoRecipientDeliveryState::delivered;
   applyTsoAttributeUpdateValues(federation->second, messageId);
@@ -492,6 +613,17 @@ EmbeddedFederationRegistry::beginTsoInteractionDelivery(
             {}};
   }
 
+  if (auto const timeState = federation->second.timeCoordinator.timeStateFor(
+          recipientFederateId)) {
+    auto const time = timeState->snapshot();
+    if (time.currentTime && !time.currentTime->isInitial()) {
+      static_cast<void>(retireStaleTsoRecipientMessagesLocked(
+          federation->second,
+          recipientFederateId,
+          *time.currentTime));
+    }
+  }
+
   auto const delivery = federation->second.timeCoordinator.beginTsoDelivery(
       recipientFederateId,
       boundary,
@@ -537,6 +669,17 @@ EmbeddedFederationRegistry::beginTsoPayloadDelivery(
     return {FederationTsoRegistryStatus::federate_not_member,
             FederationTsoDeliveryStatus::invalid_recipient,
             {}};
+  }
+
+  if (auto const timeState = federation->second.timeCoordinator.timeStateFor(
+          recipientFederateId)) {
+    auto const time = timeState->snapshot();
+    if (time.currentTime && !time.currentTime->isInitial()) {
+      static_cast<void>(retireStaleTsoRecipientMessagesLocked(
+          federation->second,
+          recipientFederateId,
+          *time.currentTime));
+    }
   }
 
   auto const delivery = federation->second.timeCoordinator.beginTsoDelivery(
@@ -591,12 +734,76 @@ EmbeddedFederationRegistry::beginTsoPayloadDelivery(
           std::move(result)};
 }
 
+FederationTsoPayloadDeliveryRegistryResult
+EmbeddedFederationRegistry::beginTsoPayloadReceiveOrderDelivery(
+    std::wstring const& federationName,
+    std::uint64_t recipientFederateId) {
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return {FederationTsoRegistryStatus::federation_does_not_exist,
+            FederationTsoDeliveryStatus::no_messages,
+            {}};
+  }
+  if (!federation->second.members.contains(recipientFederateId)) {
+    return {FederationTsoRegistryStatus::federate_not_member,
+            FederationTsoDeliveryStatus::invalid_recipient,
+            {}};
+  }
+
+  auto const delivery = federation->second.timeCoordinator
+                           .beginTsoReceiveOrderDelivery(recipientFederateId);
+  if (delivery.status != FederationTsoDeliveryStatus::applied) {
+    return {FederationTsoRegistryStatus::applied, delivery.status, {}};
+  }
+
+  std::vector<TsoPayloadDelivery> result;
+  result.reserve(delivery.messages.size());
+  for (auto const& queuedMessage : delivery.messages) {
+    if (auto const interaction = federation->second.tsoInteractionMessages.find(
+            queuedMessage.messageId);
+        interaction != federation->second.tsoInteractionMessages.end()) {
+      result.emplace_back(TsoInteractionDelivery{queuedMessage, interaction->second});
+      continue;
+    }
+    if (auto const attributeUpdate =
+            federation->second.tsoAttributeUpdateMessages.find(queuedMessage.messageId);
+        attributeUpdate != federation->second.tsoAttributeUpdateMessages.end()) {
+      result.emplace_back(
+          TsoAttributeUpdateDelivery{queuedMessage, attributeUpdate->second});
+      continue;
+    }
+    if (auto const objectDeletion =
+            federation->second.tsoObjectDeletionMessages.find(queuedMessage.messageId);
+        objectDeletion != federation->second.tsoObjectDeletionMessages.end()) {
+      result.emplace_back(
+          TsoObjectDeletionDelivery{queuedMessage, objectDeletion->second});
+      continue;
+    }
+    if (auto const directedInteraction =
+            federation->second.tsoDirectedInteractionMessages.find(
+                queuedMessage.messageId);
+        directedInteraction != federation->second.tsoDirectedInteractionMessages.end()) {
+      result.emplace_back(TsoDirectedInteractionDelivery{
+          queuedMessage, directedInteraction->second});
+      continue;
+    }
+    return {FederationTsoRegistryStatus::invalid_request,
+            FederationTsoDeliveryStatus::message_not_in_transit,
+            {}};
+  }
+  return {FederationTsoRegistryStatus::applied,
+          FederationTsoDeliveryStatus::applied,
+          std::move(result)};
+}
+
 std::optional<RemovedObjectInstanceSnapshot>
 EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval(
     std::wstring const& federationName,
     std::uint64_t receivingFederateId,
     std::uint64_t objectInstanceHandle,
-    std::uint64_t messageId) {
+    std::uint64_t messageId,
+    bool allowStaleTimestamp) {
   std::scoped_lock lock(mutex_);
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
@@ -620,6 +827,23 @@ EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval(
     // already have yielded this typed payload, but it must not commit a stale
     // Remove Object Instance after its recipient state was retracted.
     return std::nullopt;
+  }
+  if (!allowStaleTimestamp && retractionRecord->second.timestamp) {
+    auto const timeState = federation->second.timeCoordinator.timeStateFor(
+        receivingFederateId);
+    auto const time = timeState ? timeState->snapshot() : FederateTimeSnapshot{};
+    if (time.currentTime) {
+      try {
+        if (*retractionRecord->second.timestamp < *time.currentTime) {
+          recipientState->second = Federation::TsoRecipientDeliveryState::stale;
+          instance->second.pendingTimestampedRemovalFederates.erase(
+              receivingFederateId);
+          reclaimTsoMessagePayload(federation->second, messageId);
+          return std::nullopt;
+        }
+      } catch (rti1516_2025::Exception const&) {
+      }
+    }
   }
 
   instance->second.pendingTimestampedRemovalFederates.erase(receivingFederateId);
@@ -825,7 +1049,31 @@ std::vector<FederationTimeGrantDispatch> EmbeddedFederationRegistry::scheduleEli
             federateId,
             requester->time,
             bounds);
-    if (!grantEligible) {
+    bool tarHasQueuedPreGrantTso = false;
+    if (requester->time.advanceMode ==
+            FederateTimeAdvanceMode::time_advance_request &&
+        requester->time.requestedTime) {
+      auto hasTsoThroughRequestedTime = [&](std::vector<TsoQueuedMessage> const& messages) {
+        return std::any_of(
+            messages.begin(),
+            messages.end(),
+            [&](TsoQueuedMessage const& message) {
+              if (message.recipientFederateId != federateId || !message.timestamp ||
+                  message.timestamp->implementationName() !=
+                      requester->time.implementationName) {
+                return false;
+              }
+              try {
+                return *message.timestamp <= *requester->time.requestedTime;
+              } catch (rti1516_2025::Exception const&) {
+                return false;
+              }
+            });
+      };
+      tarHasQueuedPreGrantTso =
+          hasTsoThroughRequestedTime(requester->queuedTsoMessages);
+    }
+    if (!grantEligible && !tarHasQueuedPreGrantTso) {
       continue;
     }
 
@@ -833,6 +1081,84 @@ std::vector<FederationTimeGrantDispatch> EmbeddedFederationRegistry::scheduleEli
     // throws, the request remains eligible for a later re-evaluation.
     result.push_back(pending.dispatch);
     pending.dispatchQueued = true;
+  }
+  return result;
+}
+
+std::vector<FederationTimeGrantDispatch>
+EmbeddedFederationRegistry::scheduleEligibleTimeConstrainedEnableDispatches(
+    Federation& federation) {
+  auto snapshot = makeTimeSnapshot(federation);
+  if (!snapshot) {
+    return {};
+  }
+
+  FederationTimeBoundsCalculator boundsCalculator;
+  std::set<std::pair<std::uint64_t, std::uint64_t>> activeRequests;
+  for (auto const& federate : snapshot->federates) {
+    if (federate.time.timeConstrainedPending &&
+        federate.time.pendingTimeConstrainedGeneration != 0U) {
+      activeRequests.emplace(
+          federate.membership.id,
+          federate.time.pendingTimeConstrainedGeneration);
+    }
+  }
+  for (auto queued = federation.queuedTimeConstrainedEnableDispatches.begin();
+       queued != federation.queuedTimeConstrainedEnableDispatches.end();) {
+    if (!activeRequests.contains(*queued)) {
+      queued = federation.queuedTimeConstrainedEnableDispatches.erase(queued);
+    } else {
+      ++queued;
+    }
+  }
+
+  std::vector<FederationTimeGrantDispatch> result;
+  for (auto const& federate : snapshot->federates) {
+    auto const& time = federate.time;
+    if (!time.timeConstrainedPending ||
+        time.pendingTimeConstrainedGeneration == 0U || !time.currentTime) {
+      continue;
+    }
+    auto const dispatchKey = std::make_pair(
+        federate.membership.id,
+        time.pendingTimeConstrainedGeneration);
+    if (federation.queuedTimeConstrainedEnableDispatches.contains(dispatchKey)) {
+      continue;
+    }
+
+    FederationTimeBounds const bounds =
+        boundsCalculator.calculate(*snapshot, federate.membership.id);
+    if (bounds.status != FederationTimeBoundStatus::available &&
+        bounds.status != FederationTimeBoundStatus::undefined) {
+      continue;
+    }
+    if (bounds.galt) {
+      try {
+        // A joined federate whose current time is ahead of GALT cannot enter
+        // Time Constrained until federation time has caught up to that time.
+        if (*time.currentTime >= *bounds.galt) {
+          continue;
+        }
+      } catch (rti1516_2025::Exception const&) {
+        continue;
+      }
+    }
+
+    auto const factory =
+        federation.timeRoleEnableDispatchFactories.find(federate.membership.id);
+    if (factory == federation.timeRoleEnableDispatchFactories.end() ||
+        !factory->second) {
+      continue;
+    }
+    auto dispatch = factory->second(
+        federate.membership.id,
+        time.pendingTimeConstrainedGeneration,
+        FederationTimeRoleEnableKind::constrained);
+    if (!dispatch) {
+      continue;
+    }
+    result.push_back(std::move(dispatch));
+    federation.queuedTimeConstrainedEnableDispatches.insert(dispatchKey);
   }
   return result;
 }
@@ -846,8 +1172,14 @@ EmbeddedFederationRegistry::scheduleRestoredTimeRoleEnableDispatches(
     FederationTimeRoleEnableKind kind = FederationTimeRoleEnableKind::regulation;
   };
 
+  federation.queuedTimeConstrainedEnableDispatches.clear();
+  auto snapshot = makeTimeSnapshot(federation);
+  if (!snapshot) {
+    throw std::logic_error("A restored time state could not be snapshotted for role scheduling.");
+  }
+  FederationTimeBoundsCalculator boundsCalculator;
   std::vector<PendingRoleEnable> pending;
-  for (auto const& savedTimeState : federation.timeCoordinator.snapshot()) {
+  for (auto const& savedTimeState : snapshot->federates) {
     auto const& time = savedTimeState.time;
     if (time.timeRegulationPending !=
             (time.pendingTimeRegulationGeneration != 0U) ||
@@ -858,17 +1190,30 @@ EmbeddedFederationRegistry::scheduleRestoredTimeRoleEnableDispatches(
     }
     if (time.timeRegulationPending) {
       pending.push_back({
-          savedTimeState.federateId,
+          savedTimeState.membership.id,
           time.pendingTimeRegulationGeneration,
           FederationTimeRoleEnableKind::regulation,
       });
     }
     if (time.timeConstrainedPending) {
-      pending.push_back({
-          savedTimeState.federateId,
-          time.pendingTimeConstrainedGeneration,
-          FederationTimeRoleEnableKind::constrained,
-      });
+      FederationTimeBounds const bounds =
+          boundsCalculator.calculate(*snapshot, savedTimeState.membership.id);
+      bool eligible = bounds.status == FederationTimeBoundStatus::available ||
+          bounds.status == FederationTimeBoundStatus::undefined;
+      if (eligible && bounds.galt && time.currentTime) {
+        try {
+          eligible = *time.currentTime < *bounds.galt;
+        } catch (rti1516_2025::Exception const&) {
+          eligible = false;
+        }
+      }
+      if (eligible) {
+        pending.push_back({
+            savedTimeState.membership.id,
+            time.pendingTimeConstrainedGeneration,
+            FederationTimeRoleEnableKind::constrained,
+        });
+      }
     }
   }
 
@@ -900,6 +1245,11 @@ EmbeddedFederationRegistry::scheduleRestoredTimeRoleEnableDispatches(
           "The embedded federation could not recreate a saved role-enable callback.");
     }
     result.push_back(std::move(dispatch));
+    if (role.kind == FederationTimeRoleEnableKind::constrained) {
+      federation.queuedTimeConstrainedEnableDispatches.emplace(
+          role.federateId,
+          role.generation);
+    }
   }
   return result;
 }

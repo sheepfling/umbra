@@ -134,6 +134,7 @@ bool isTransportServiceOperation(TransportServiceOperation operation) noexcept {
     case TransportServiceOperation::normalize_object_instance_handle:
     case TransportServiceOperation::flush_queue_request:
     case TransportServiceOperation::acknowledge_tso_delivery:
+    case TransportServiceOperation::acknowledge_push_attribute_update:
     case TransportServiceOperation::get_automatic_resign_directive:
     case TransportServiceOperation::set_automatic_resign_directive:
     case TransportServiceOperation::change_interaction_order_type:

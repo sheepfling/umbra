@@ -84,6 +84,14 @@ That ordering is service-wrapper-specific. The Federation MOM guide's paired
 request/report interactions are a separate receive-order path, not another
 `HLAreportServiceInvocation` record.
 
+For a rejected MOM `Send Interaction`, also keep the independent
+`HLAreportMOMexception` and public-service `HLAreportException` routes
+distinct. Their attempted paths differ between the covered embedded and
+configured-process wrappers; see the exception guide's
+[MOM-rejection overlap map](HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md#a-mom-rejection-may-also-enter-the-general-exception-hook).
+That does not establish a `HLAreportServiceInvocation` record for every such
+failure.
+
 ## The mental model: subject, switch, sink, observer
 
 There are two roles in a report interaction:
@@ -138,10 +146,13 @@ by the [interlock test](../../cpp/tests/mom_service_reporting_interlock_catch2.c
 
 ## A reportable service call selects one destination
 
-For a joined subject, a successful or failed public service invocation reaches
-the service-report writer. Calls rejected before membership exists are not
-manufactured into joined-member reports. The writer then uses the subject's
-master switch and file-sink switch to choose what happens:
+The following route describes the embedded callback path. Where a public-service
+wrapper wires invocation reporting, a successful or failed call by a joined
+subject reaches the service-report writer. Calls rejected before membership
+exists are not manufactured into joined-member reports. The writer then uses
+the subject's master switch and file-sink switch to choose what happens. The
+configured-process endpoint uses the shared report planner and serial state,
+but its recipient lifetime differs; that path is described separately below.
 
 ```mermaid
 flowchart TD
@@ -156,7 +167,7 @@ flowchart TD
   I -- No --> J[Suppress interaction; do not reserve its serial]
   I -- Yes --> K[Reserve serial and encode the report]
   K --> L[Queue reliable receive-order report callbacks]
-  L --> M{Still subscribed and in scope at callback time?}
+  L --> M{Embedded callback recheck: still subscribed and in scope?}
   M -- No --> N[Drop this recipient's stale delivery]
   M -- Yes --> O[Deliver RTI-originated receiveInteraction callback]
 ```
@@ -164,23 +175,27 @@ flowchart TD
 The private report endpoint is an internal producer, not a public
 `sendInteraction` call. Its region identifies the subject (`HLAfederate`) and
 service group (`HLAserviceGroup`); the registry selects observers through the
-normal interaction subscription/DDM path. At callback time, the implementation
-rechecks the recipient projection so a now-stale subscription is not delivered.
-Because an RTI-originated report does not go back through the public service
-wrapper, reporting the report does not recursively produce another report.
+normal interaction subscription/DDM path. In the embedded profile, the
+callback route rechecks the recipient projection so a now-stale subscription is
+not delivered. Do not carry that callback-time behavior over to the configured-
+process path below. Because an RTI-originated report does not go back through
+the public service wrapper, reporting the report does not recursively produce
+another report.
 
 There are two useful serial-number boundaries to keep apart. If the initial
 interaction plan has no eligible observer and the file sink is off, the current
 implementation suppresses the report before reserving an interaction serial.
-If a recipient becomes ineligible after reservation but before callback
-delivery, the recipient is dropped at revalidation; do not infer that the
-already-reserved serial is rolled back. The no-recipient/no-reservation rule is
-source-derived; the focused tests linked below do not exhaustively exercise
-subscription mutation in that interval.
+In the embedded route, if a recipient becomes ineligible after reservation but
+before callback delivery, the recipient is dropped at revalidation; do not
+infer that the already-reserved serial is rolled back. The process route also
+reserves before enqueueing, but its later check is for a live session, not a
+fresh subscription/DDM projection. The no-recipient/no-reservation rule is
+source-derived; focused tests do not exhaustively exercise mutation after
+reservation in either profile.
 
-This routing chart describes sink selection, not one universal report-before-
-callback rule. Individual service wrappers decide whether a report can be
-submitted at their particular state and lock boundary; some defer
+The embedded routing chart describes sink selection, not one universal
+report-before-callback rule. Individual service wrappers decide whether a
+report can be submitted at their particular state and lock boundary; some defer
 callback-sensitive submission until after releasing service locks. For an
 ordering not shown in the directed-send test, follow that service's wrapper
 and its focused test rather than inferring a global ordering guarantee.
@@ -190,6 +205,254 @@ and the exception details in its report payload. That does not mean the
 Exception Reporting switch controls this path; ordinary exception reports and
 malformed-MOM reports are separate mechanisms, deliberately outside this
 diagram.
+
+### Configured-process recipient snapshot and callback boundary
+
+For the configured-process route, the ambassador asks the process client to
+write the success or failure report. The server validates that request against
+the reporting session and joined member, then asks the registry to choose the
+file or interaction route. For an interaction report, the registry applies the
+subject and service-group endpoint together with normal subscription/DDM
+selection. No eligible observer means no interaction report and no interaction
+serial reservation. When observers exist, `reserveMomServiceReport` recomputes
+the routing decision under the registry lock and advances the reported
+member's serial only if an interaction remains eligible.
+
+After reservation, the process server encodes the eight report parameters,
+including the reported member handle and `HLAserialNumber`, and builds an
+RTI-owned, reliable receive-order interaction. Before queueing or sending each
+planned recipient's event, it checks that the recipient still has a mapped
+session in the same federation. That is a session/federation check, not a fresh
+subscription or DDM check. Pull delivery places the event in the session's
+interaction queue; the later Receive Interaction poll removes that queued
+interaction directly. Push delivery sends the event to the recipient session.
+The process callback bridge then submits it to the callback dispatcher and
+delivers `receiveInteraction` with an invalid producing-federate handle.
+
+Push delivery is controlled by a private process-server option that defaults
+to pull. When push is enabled, the server sends each selected recipient event
+before it returns the reporting request's response. The receiving client's
+reader buffers pushed events; its independent dispatch loop submits them once
+that client's own service request is no longer in flight. The report writer
+itself is synchronous: if the reporting federate is also a selected recipient,
+its report request drains the buffered event before returning to the public
+service wrapper. `HLA_IMMEDIATE` submission then invokes that reporter's
+callback synchronously, so it can run before the public service returns;
+`HLA_EVOKED` only queues it for a later evoke. A different observer has its own
+reader and dispatch loop, so its `HLA_IMMEDIATE` callback may run before or
+after the reporting federate's public service returns. The server's send-before-
+response order does not define that cross-session callback/return order. These
+are implementation consequences, not normative HLA timing rules, and no
+focused process test currently exercises them.
+
+Unlike the embedded callback route above, this process path has no
+`HLAreportServiceInvocation` subscription/DDM recheck at poll or callback
+admission. The callback bridge's separate projection/recheck key is specific to
+`HLAreportException`; it is not attached to service-invocation report events.
+Therefore a process report request's successful response establishes that the
+server suppressed, appended, queued, or sent according to the selected route;
+it does not establish that an observer callback has run. In push mode, a send
+failure returns an internal error after serial reservation, and earlier
+recipient sends may already have succeeded. These post-reservation outcomes
+are source-derived; no focused test exercises them.
+
+The focused process report matrix includes a successful regional send whose
+observer receives the service report. Its helper connects both reporter and
+observer with `HLA_EVOKED`, subscribes one observer, invokes `evokeCallback`,
+and checks reliable transportation, the RTI-originated producer marker, the
+reported-member parameter, and the first interaction serial. The server uses
+the default pull-event mode; the report-specific cases do not configure
+`pushReceiveOrderEvents` or `HLA_IMMEDIATE`. They also do not mutate the
+subscription after planning or establish callback arrival relative to the
+reporting service's return. Other process tests exercise generic push delivery,
+but do not establish service-report timing. A separate process concurrency test
+exercises the `HLAreportException` recheck path, not this service-invocation
+route. These are 2025 configured-process source/test boundaries, not normative
+HLA behavior.
+
+```mermaid
+flowchart TD
+  A[Process service-report request] --> B[Validate reporting session and joined member]
+  B --> C[Registry selects subject and service-group report route]
+  C --> D{Interaction route?}
+  D -->|No: suppressed or file sink| E[No HLAreportServiceInvocation callback]
+  D -->|Yes| F{Eligible recipient snapshot empty?}
+  F -->|Yes| G[Return without interaction serial reservation]
+  F -->|No| H[Re-plan eligibility and reserve per-reported-member serial]
+  H --> I{Still eligible at reservation?}
+  I -->|No| G
+  I -->|Yes| J[Encode RTI-owned reliable report with HLAfederate and HLAserialNumber]
+  J --> K{Recipient session still mapped to same federation?}
+  K -->|No| L[Skip this recipient]
+  K -->|Yes| M{Private process push option enabled?}
+  M -->|No: default pull| N[Queue for later Receive Interaction poll]
+  N --> O[Client submits callback after poll]
+  M -->|Yes| P[Send event before reporting response]
+  P --> Q[Recipient reader buffers event]
+  Q --> R{Recipient client has a request in flight?}
+  R -->|Yes| S[Drain buffered event after that response]
+  R -->|No| T[Independent dispatch loop submits event]
+  S --> U{Callback model}
+  T --> U
+  O --> U
+  U -->|HLA_EVOKED| V[Queue callback until explicit evoke]
+  U -->|HLA_IMMEDIATE| W[Invoke callback on submitter thread]
+  W --> X{Delivery route?}
+  X -->|Pull poll| Y[Runs inside the later poll, after report response]
+  X -->|Push to reporting client| Z[Can run before the public service returns]
+  X -->|Push to another client| AA[May race with the reporting service return]
+  V --> AB[Observer receiveInteraction; producer handle is invalid]
+  Y --> AB
+  Z --> AB
+  AA --> AB
+  AB --> AC[No service-report subscription/DDM recheck in this path]
+```
+
+The [process report handler](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L223)
+calls the shared [recipient planner](../../cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp#L53)
+and [serial reservation](../../cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp#L144).
+Its post-reservation [session check and event queue/send](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L364)
+are followed by the pull path's [direct interaction dequeue](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L107)
+and the client's [receive-order callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1211).
+The bridge's [separate exception-report projection key](../../cpp/src/internal/federation/process_federation_service_protocol.hpp#L1351)
+and [callback admission check](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1282)
+do not apply to these service-invocation events.
+
+The private [push/pull server option](../../cpp/src/internal/federation/process_federation_service.hpp#L31)
+defaults to pull. The public regional [Send Interaction With Regions wrapper and
+success-report point](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L581)
+calls the [service-report writer](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L146),
+which makes a synchronous [process report request](../../cpp/src/internal/federation/process_federation_client_federation_management.cpp#L487).
+The [client request path](../../cpp/src/internal/federation/process_federation_client.cpp#L537)
+dispatches buffered pushed events before it returns at [this boundary](../../cpp/src/internal/federation/process_federation_client.cpp#L612);
+an idle recipient is serviced by its separate [client dispatch loop](../../cpp/src/internal/federation/process_federation_client.cpp#L712).
+The callback dispatcher's [immediate submit path](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L122)
+invokes the callback on the submitting thread.
+The shared request-backed and background process callback routes are diagrammed
+in the [2025 callback/service-ordering guide](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#process-endpoint-callback-exception-attribution);
+this report flow applies those routes specifically to MOM report recipients.
+
+The [process regional-send success case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L626)
+uses the [single-observer helper](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L717),
+which checks the report serial at [line 1414](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L1414)
+and the invalid producer handle at [line 982](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L982).
+The helper configures both participants as `HLA_EVOKED`, including the [reporter](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L424).
+The separate [process exception-report concurrency test](../../cpp/tests/ieee1516_2025_connection_process_exception_report_concurrency_catch2.cpp#L460)
+is not service-invocation report coverage. No focused process test found in this
+review changes a report observer's subscription between report planning and
+callback delivery.
+
+### Failed invocation reporting is wrapper-specific
+
+The failed payload contract does not mean every thrown service call reaches a
+failed-invocation writer. The reviewed ordinary `Send Interaction` wrappers
+show a profile-specific boundary:
+
+- **Embedded:** the service catch attempts the applicable MOM-exception and
+  public-exception hooks, then calls the failed service-report writer before
+  rethrowing. That writer independently applies the subject's Service
+  Reporting switch and selected sink. No cited test observes all of these
+  report paths together for one failed ordinary `Send Interaction`.
+- **Configured process:** the early endpoint branch translates a rejected
+  process response to `RTIinternalError` and returns from the wrapper before
+  its successful-invocation writer; the reviewed branch has no failed-
+  invocation-writer call. The focused process [ordinary-send case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L525)
+  covers success only. Some server-side `HLAsetSwitches` rejections—such as a
+  malformed payload or a rejected attempt to enable Service Reporting while
+  reports are subscribed—can independently emit `HLAreportMOMexception`.
+  That MOM-specific path is separate from a failed-invocation report and is
+  not represented in the wrapper comparison below.
+- **A narrower process case:** `Send Interaction With Regions` explicitly
+  calls the failed-invocation writer for specific public preflight failures.
+  Focused tests cover invalid region and parameter handles; they do not show
+  that a server-rejected regional request follows the same route.
+
+The chart compares only a caught embedded exception with a rejected
+configured-process response. Process-local validation failures before an
+endpoint request, and the regional/timestamped overloads, are outside this
+comparison.
+
+```mermaid
+flowchart TD
+  A[Send Interaction fails] --> B{Wrapper profile?}
+  B -->|Embedded catch| C[Attempt applicable MOM/public-exception hooks]
+  C --> D[Call failed-invocation writer]
+  D --> E{Service Reporting enabled?}
+  E -->|Yes| F[Selected file or HLAreportServiceInvocation]
+  E -->|No| G[No service-invocation report]
+  B -->|Process rejected response| H[Translate rejection to RTIinternalError]
+  H --> I[Exit before failed-invocation writer]
+```
+
+The ordinary-send source boundary is visible in the [embedded catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L2396)
+and [configured-process early branch](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L57),
+whose [service-report call follows a successful process response](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L130).
+The [regional process parameter preflight](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L503),
+[region preflight](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L531),
+[focused invalid-region interaction-report case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L649),
+the [invalid-parameter file-report case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L691),
+and [invalid-parameter interaction-report case](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L715)
+show the narrower evidence. The malformed-MOM server path is covered separately
+in the [process exception test](../../cpp/tests/ieee1516_2025_connection_process_mom_malformed_exception_catch2.cpp#L460).
+These are implementation/profile observations, not a normative distinction
+between the reports.
+
+### Process regional sends separate public preflight from server rejection
+
+The receive-order configured-process overload has explicit failed-invocation
+writer calls for two local checks: an undefined parameter handle and an invalid
+region handle. The undefined interaction-class check throws without that
+writer. If those checks pass, the wrapper calls the process endpoint and
+records a successful invocation only after a successful response. A rejected
+response becomes `RTIinternalError`; the wrapper's protocol/client-error catches
+do not call the failed-invocation writer. The shared server path returns a
+rejected response when interaction planning fails, so that failure does not
+flow back through the two local reporting branches.
+
+The timestamped configured-process overload is a separate boundary. Its early
+process branch performs local handle/time validation, submits the timestamped
+request, and returns the retraction handle on success; that branch has no
+service-invocation writer for either success or failure. Local validation
+exceptions and translated process rejections therefore do not produce a
+service-invocation report through this reviewed branch. The later embedded
+catch and report writer belong to the embedded path, not this process route.
+
+```mermaid
+flowchart TD
+  A[Process Send Interaction With Regions] --> B{Timestamp supplied?}
+  B -->|No| C{Receive-order public validation}
+  C -->|Invalid parameter/region handle| D[Call failed-report writer; then throw]
+  C -->|Other validation failure| E[Throw; no failed writer shown in this branch]
+  C -->|Pass| F[Send receive-order request]
+  F --> G{Server accepts request?}
+  G -->|Yes| H[Call success-report writer]
+  G -->|No| I[Map rejection to RTIinternalError; no failed writer]
+  B -->|Yes| J{Timestamped public validation}
+  J -->|Fail| K[Throw before service-report writer]
+  J -->|Pass| L[Send timestamped request]
+  L --> M{Server accepts request?}
+  M -->|Yes| N[Return retraction handle; no service writer]
+  M -->|No| O[Map rejection to RTIinternalError; no service writer]
+```
+
+The [receive-order parameter preflight](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L503)
+and [region preflight](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L531),
+[success writer](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L581),
+and [process-error translation](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L600)
+show that wrapper boundary. The [timestamped process fast path](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L49)
+is separate from its later [embedded failure writer](../../cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp#L442).
+On the server, [interaction planning/rejection](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L389)
+is shared by the [regional operation handler](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L631).
+
+The process report matrix covers [invalid-region](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L649)
+and [invalid-parameter](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L715)
+preflight reports, not a server-rejected request. The reviewed timestamped
+regional-send report cases are explicitly [embedded file-report](../../cpp/tests/timestamped_regional_interaction_failure_service_report_file_catch2.cpp#L157)
+and [embedded MOM-report](../../cpp/tests/timestamped_regional_interaction_failure_service_report_interaction_catch2.cpp#L90)
+tests; they do not establish process behavior. No focused process test in this
+review asserts service-invocation reporting for a server-rejected regional
+send or for the timestamped process branch. Keep these as implementation and
+test-scope observations, not normative behavior or profile-parity claims.
 
 ## Callback order: a focused interaction example
 
@@ -436,6 +699,7 @@ exception, and it does not describe 2010 or the process endpoint.
 | RTI-originated receive-order callback and callback-time recheck | [interaction callback path](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L276) | [report precedes directed callback](../../cpp/tests/ieee1516_2025_service_report_directed_invocation_ordering_interaction_catch2.cpp#L114); that case does not mutate the subscription between planning and delivery |
 | Embedded per-membership file creation and final lifetime | [join/report setup](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L631) | [embedded immutable file lifetime](../../cpp/tests/ieee1516_2025_service_report_file_lifecycle_catch2.cpp#L4) |
 | Process endpoint selection and file lifetime | [process report handling delegated from the writer](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L140) | [independent process files](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L142), [file path across switch cycles](../../cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp#L356), [failed process reports through interaction](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L42) |
+| Process report-recipient snapshot and callback boundary | [process report handler](../../cpp/src/internal/federation/process_federation_service_reporting.cpp#L223), [pull dequeue](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L107), [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L1211) | [regional-send success report](../../cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp#L626), [observer and serial assertions](../../cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp#L717) — one pull-mode `HLA_EVOKED` observer; no post-plan subscription mutation, push-mode, or `HLA_IMMEDIATE` report test. |
 
 These are selected implementation and integration scenarios. A passing case
 does not establish complete service coverage, every regional boundary, or

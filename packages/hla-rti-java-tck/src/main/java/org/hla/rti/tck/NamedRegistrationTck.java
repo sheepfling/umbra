@@ -101,6 +101,17 @@ final class NamedRegistrationTck {
          if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(member);
          JavaTckSupport.check(memberCallbacks.discoveries.isEmpty(),
             "Reserve Object Instance Name caused an object-discovery callback");
+         member.publishObjectClassAttributes(memberClass, memberAttributes);
+         JavaTckSupport.expectFailure(
+            () -> member.registerObjectInstance(memberClass, objectName),
+            "ObjectInstanceNameNotReserved",
+            "another publisher consuming the owner's object-name reservation");
+         owner.unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+         JavaTckSupport.expectFailure(
+            () -> owner.registerObjectInstance(ownerClass, objectName),
+            "ObjectClassNotPublished",
+            "named registration before object-class publication");
+         owner.publishObjectClassAttributes(ownerClass, ownerAttributes);
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass, objectName);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "named registration returned an invalid object handle");
@@ -108,6 +119,14 @@ final class NamedRegistrationTck {
             "named registration lookup did not round-trip at the owner");
          JavaTckSupport.check(objectName.equals(owner.getObjectInstanceName(object)),
             "named registration object handle did not round-trip to its reserved name");
+         JavaTckSupport.expectFailure(() -> owner.releaseObjectInstanceName(objectName),
+            "ObjectInstanceNameNotReserved",
+            "releasing an object-name reservation consumed by registration");
+         JavaTckSupport.expectFailure(
+            () -> member.registerObjectInstance(memberClass, objectName),
+            "ObjectInstanceNameInUse",
+            "another publisher registering an already-used object name");
+         member.unpublishObjectClassAttributes(memberClass, memberAttributes);
 
          await(member, callbackModel, () -> !memberCallbacks.discoveries.isEmpty(),
             "named object discovery");
@@ -122,6 +141,27 @@ final class NamedRegistrationTck {
             "named discovery returned the wrong object class");
          JavaTckSupport.check(object.equals(member.getObjectInstanceHandle(objectName)),
             "named registration lookup did not round-trip at the member");
+
+         String reservedAgainstGeneration = federation + "-reserved-against-generation";
+         ownerCallbacks.clear();
+         owner.reserveObjectInstanceName(reservedAgainstGeneration);
+         await(owner, callbackModel,
+            () -> ownerCallbacks.singleSucceeded.contains(reservedAgainstGeneration),
+            "reservation before unnamed registration");
+         memberCallbacks.discoveries.clear();
+         ObjectInstanceHandle generatedObject = owner.registerObjectInstance(ownerClass);
+         JavaTckSupport.check(generatedObject != null && generatedObject.encodedLength() > 0,
+            "unnamed registration returned an invalid object handle");
+         String generatedName = owner.getObjectInstanceName(generatedObject);
+         JavaTckSupport.check(!reservedAgainstGeneration.equals(generatedName),
+            "unnamed registration consumed another reserved object name");
+         await(member, callbackModel, () -> !memberCallbacks.discoveries.isEmpty(),
+            "unnamed object discovery after name reservation");
+         JavaTckSupport.check(memberCallbacks.discoveries.size() == 1
+               && generatedObject.equals(memberCallbacks.discoveries.get(0).object)
+               && generatedName.equals(memberCallbacks.discoveries.get(0).name),
+            "unnamed discovery did not preserve its generated name and handle");
+         owner.releaseObjectInstanceName(reservedAgainstGeneration);
 
          String unreservedName = federation + "-unreserved-name";
          JavaTckSupport.expectFailure(() -> owner.registerObjectInstance(ownerClass,

@@ -4,6 +4,7 @@
 #include "internal/federation/transport_protocol.hpp"
 
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <mutex>
@@ -23,13 +24,15 @@ class ProcessTransportError final : public std::runtime_error {
   using std::runtime_error::runtime_error;
 };
 
-// Private synchronous socket endpoint used to grow the process-boundary
-// transport incrementally. The public RTI binding does not expose this type;
-// service/session dispatch will layer on the framed data path later.
+// Private synchronous socket endpoint for process-boundary service traffic.
+// The public RTI binding does not expose this type; service/session dispatch
+// carries encoded messages through its framed data path.
 class ProcessTransportConnection final : public TransportConnection {
  public:
   using FailureHandler = TransportConnection::FailureHandler;
   using ForcedResignationHandler = TransportConnection::ForcedResignationHandler;
+  using TestSendFrameHandler =
+      std::function<bool(TransportFrame const& frame)>;
 
   ProcessTransportConnection(ProcessTransportConnection const&) = delete;
   ProcessTransportConnection& operator=(ProcessTransportConnection const&) = delete;
@@ -43,6 +46,11 @@ class ProcessTransportConnection final : public TransportConnection {
       FailureHandler failureHandler,
       ForcedResignationHandler forcedResignationHandler,
       std::shared_ptr<RuntimeInstrumentation> instrumentation = {});
+
+  // Creates a send-only, socketless endpoint for private service tests. The
+  // embedded/runtime construction paths remain listener/client socket-backed.
+  [[nodiscard]] static std::shared_ptr<ProcessTransportConnection>
+  createForTesting(TestSendFrameHandler sendFrameHandler);
 
   // Send and receive one complete private protocol frame. These operations
   // are synchronous by design; a future session dispatcher can own the read
@@ -71,6 +79,7 @@ class ProcessTransportConnection final : public TransportConnection {
       FailureHandler failureHandler,
       ForcedResignationHandler forcedResignationHandler,
       std::shared_ptr<RuntimeInstrumentation> instrumentation);
+  explicit ProcessTransportConnection(TestSendFrameHandler sendFrameHandler);
 
   mutable std::mutex stateMutex_;
   mutable std::mutex sendMutex_;
@@ -80,6 +89,7 @@ class ProcessTransportConnection final : public TransportConnection {
   TransportEndpointIdentity peerIdentity_;
   FailureHandler failureHandler_;
   ForcedResignationHandler forcedResignationHandler_;
+  TestSendFrameHandler testSendFrameHandler_;
   std::shared_ptr<RuntimeInstrumentation> instrumentation_;
   bool open_ = false;
 };

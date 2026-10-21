@@ -84,6 +84,8 @@ FederateTimeState::FederateTimeState(FederateTimeState const& other) {
   timeConstrained_ = other.timeConstrained_;
   asynchronousDeliveryEnabled_ = other.asynchronousDeliveryEnabled_;
   minimumTimestampIsExclusive_ = other.minimumTimestampIsExclusive_;
+  allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_ =
+      other.allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_;
   active_ = other.active_;
   timeAdvancing_ = other.timeAdvancing_;
   momGrantedMilliseconds_ = momDurations.grantedMilliseconds;
@@ -117,6 +119,8 @@ FederateTimeState& FederateTimeState::operator=(FederateTimeState const& other) 
   timeConstrained_ = other.timeConstrained_;
   asynchronousDeliveryEnabled_ = other.asynchronousDeliveryEnabled_;
   minimumTimestampIsExclusive_ = other.minimumTimestampIsExclusive_;
+  allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_ =
+      other.allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_;
   active_ = other.active_;
   timeAdvancing_ = other.timeAdvancing_;
   momGrantedMilliseconds_ = momDurations.grantedMilliseconds;
@@ -185,6 +189,8 @@ void FederateTimeState::restoreFromSnapshot(FederateTimeSnapshot const& snapshot
   timeConstrained_ = snapshot.timeConstrained;
   asynchronousDeliveryEnabled_ = snapshot.asynchronousDeliveryEnabled;
   minimumTimestampIsExclusive_ = snapshot.minimumTimestampIsExclusive;
+  allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_ =
+      snapshot.allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant;
   active_ = snapshot.active;
   timeAdvancing_ = snapshot.timeAdvancePending;
   momGrantedMilliseconds_ = 0U;
@@ -231,6 +237,7 @@ FederateTimeSnapshot FederateTimeState::snapshot() const {
       pendingTimeConstrainedGeneration_,
       nextGeneration_,
       minimumTimestampIsExclusive_,
+      allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_,
       currentTime_,
       optimisticTime_,
       pendingTime_,
@@ -476,6 +483,9 @@ std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grantImpl(
       lookahead_ = std::move(revisedLookahead);
     }
   }
+  allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_ =
+      advanceMode_ == FederateTimeAdvanceMode::time_advance_request_available &&
+      pendingTimeRegulationGeneration_ == 0U;
   pendingAdvanceRequestTime_.reset();
   advanceMode_ = FederateTimeAdvanceMode::none;
   pendingGeneration_ = 0;
@@ -538,7 +548,8 @@ FederateTimeAdvanceResult FederateTimeState::grantFlushQueue(
 }
 
 FederateTimeEnableResult FederateTimeState::requestTimeRegulation(
-    std::shared_ptr<rti1516_2025::LogicalTimeInterval> lookahead) {
+    std::shared_ptr<rti1516_2025::LogicalTimeInterval> lookahead,
+    std::shared_ptr<rti1516_2025::LogicalTime> implicitAdvanceTime) {
   std::scoped_lock lock(mutex_);
   if (!active_ || !currentTime_) {
     return {FederateTimeEnableStatus::inactive, 0};
@@ -555,12 +566,35 @@ FederateTimeEnableResult FederateTimeState::requestTimeRegulation(
   if (timeRegulating_) {
     return {FederateTimeEnableStatus::already_enabled, 0};
   }
+  bool requiresImplicitAdvance = false;
+  if (implicitAdvanceTime) {
+    if (!timeConstrained_ ||
+        implicitAdvanceTime->implementationName() != implementationName_) {
+      return {FederateTimeEnableStatus::inactive, 0};
+    }
+    try {
+      requiresImplicitAdvance = *implicitAdvanceTime > *currentTime_;
+    } catch (rti1516_2025::Exception const&) {
+      return {FederateTimeEnableStatus::inactive, 0};
+    }
+  }
   if (nextGeneration_ == std::numeric_limits<std::uint64_t>::max()) {
     return {FederateTimeEnableStatus::generation_exhausted, 0};
   }
 
   pendingTimeRegulationGeneration_ = nextGeneration_++;
   pendingLookahead_ = std::move(lookahead);
+  if (requiresImplicitAdvance) {
+    // A constrained federate's Enable Time Regulation is an implicit TARA.
+    // Retain one generation for the advance and the regulation callback so
+    // the normal TSO dispatcher can deliver before Time Regulation Enabled.
+    pendingGeneration_ = pendingTimeRegulationGeneration_;
+    pendingTime_ = implicitAdvanceTime;
+    pendingAdvanceRequestTime_ = std::move(implicitAdvanceTime);
+    advanceMode_ = FederateTimeAdvanceMode::time_advance_request_available;
+    accumulateMomTimeLocked(std::chrono::steady_clock::now());
+    timeAdvancing_ = true;
+  }
   return {FederateTimeEnableStatus::applied, pendingTimeRegulationGeneration_};
 }
 
@@ -846,6 +880,7 @@ void FederateTimeState::deactivate() noexcept {
   timeConstrained_ = false;
   asynchronousDeliveryEnabled_ = false;
   minimumTimestampIsExclusive_ = false;
+  allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_ = false;
   deferredAsynchronousReceives_.clear();
 }
 

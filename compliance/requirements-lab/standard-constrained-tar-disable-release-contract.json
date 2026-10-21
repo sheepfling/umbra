@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable public-API translation of the verified 15-assertion native constrained-TAR Time Constrained disable witness. The adapter supplies a complete FOM with the standard nonRegulatedGrant switch disabled, endpoint, logical-time implementation, and callback model. One constrained federate requests a strict TAR with no regulator and observes no grant; disabling Time Constrained releases exactly one grant at the requested time. The public switch getter confirms the FOM precondition. Direct native traceability pairs are page-191-l73-17 to IEEE 1516.1-2025 clause 8.5.5, page-192-l63-17 to clause 8.6.3, page-193-l58-12 to clause 8.7.5, and page-194-l21-3 and page-194-l69-19 to clause 8.8.3. Official-header C++ primary and contract passed twice in evoked and immediate models against installed package libraries. Java parity compiles against the official API-only JAR but has no provider-runtime result. No provider-independent conformance claim is made.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-constrained-tar-disable-release",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador getNonRegulatedGrantSwitch, enableTimeConstrained, timeAdvanceRequest, disableTimeConstrained with FederateAmbassador timeConstrainedEnabled and timeAdvanceGrant",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador time-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_constrained_tar_disable_release.cpp::scenarioConstrainedTarDisableRelease",
+        "packages/hla-rti-cpp-tck/src/tck_constrained_tar_disable_release.cpp::scenarioConstrainedTarDisableReleaseContract"
+      ]
+    }
+  ]
+}
