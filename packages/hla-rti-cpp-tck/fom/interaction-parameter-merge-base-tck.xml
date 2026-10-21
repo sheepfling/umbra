@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <modelIdentification><name>TCK Parameter Base</name><type>FOM</type></modelIdentification>
+  <interactions>
+    <interactionClass>
+      <name>HLAinteractionRoot</name>
+      <interactionClass>
+        <name>TckParameterMergeInteraction</name>
+        <sharing>PublishSubscribe</sharing>
+        <transportation>HLAreliable</transportation>
+        <order>Receive</order>
+        <parameter><name>FirstValue</name><dataType>HLAunicodeString</dataType></parameter>
+      </interactionClass>
+    </interactionClass>
+  </interactions>
+</objectModel>

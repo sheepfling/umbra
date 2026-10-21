@@ -38,5 +38,7 @@ void scenarioFomDataTypeConflictingDefinition(Options const&, rti::CallbackModel
 void scenarioFomDataTypeConflictingDefinitionContract(Options const&, rti::CallbackModel);
 void scenarioFomVariantAlternativeOverlap(Options const&, rti::CallbackModel);
 void scenarioFomVariantAlternativeOverlapContract(Options const&, rti::CallbackModel);
+void scenarioFomInteractionParameterMergeConflict(Options const&, rti::CallbackModel);
+void scenarioFomInteractionParameterMergeConflictContract(Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable Annex C.3 interaction-parameter composition uses only the official IEEE 1516.1-2025 RTIambassador and FederateAmbassador API and adapter-owned schema-valid FOM modules. It checks the positive set merge via both parameter handle lookups, rejects a same-named parameter with a different data type as InconsistentFOM, and confirms a valid federation-name retry. The native official-API focused CTest passed 1/1. Installed-package CTest passed 4/4 and direct runner passed 4/4 under both callback models (out/mgw/interaction-parameter-merge-20261021.json). Java compiles against the API-only JAR, but provider runtime remains unverified; no claim for other parameter sub-elements or interoperability.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-interaction-parameter-merge-annex-c3",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>), joinFederationExecution, getInteractionClassHandle, getParameterHandle, resignFederationExecution, and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and interaction parameter lookup services",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_interaction_parameter_merge.cpp::scenarioFomInteractionParameterMergeConflictContract"
+      ]
+    }
+  ]
+}

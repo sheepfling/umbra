@@ -257,6 +257,18 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(default_path("packages/hla-rti-cpp-tck/fom/variant-alternative-overlap-tck.xml")),
     )
     parser.add_argument(
+        "--interaction-parameter-base-fom",
+        default=str(default_path("packages/hla-rti-cpp-tck/fom/interaction-parameter-merge-base-tck.xml")),
+    )
+    parser.add_argument(
+        "--interaction-parameter-disjoint-fom",
+        default=str(default_path("packages/hla-rti-cpp-tck/fom/interaction-parameter-merge-disjoint-tck.xml")),
+    )
+    parser.add_argument(
+        "--interaction-parameter-conflict-fom",
+        default=str(default_path("packages/hla-rti-cpp-tck/fom/interaction-parameter-merge-conflict-tck.xml")),
+    )
+    parser.add_argument(
         "--known-class-fom",
         default=str(
             default_path("packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml")
@@ -583,6 +595,21 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             must_exist=True,
             label="variant-alternative overlap FOM",
         ),
+        "interaction_parameter_base_fom": resolve_path(
+            arguments.interaction_parameter_base_fom,
+            must_exist=True,
+            label="interaction-parameter base FOM",
+        ),
+        "interaction_parameter_disjoint_fom": resolve_path(
+            arguments.interaction_parameter_disjoint_fom,
+            must_exist=True,
+            label="interaction-parameter disjoint FOM",
+        ),
+        "interaction_parameter_conflict_fom": resolve_path(
+            arguments.interaction_parameter_conflict_fom,
+            must_exist=True,
+            label="interaction-parameter conflict FOM",
+        ),
         "known_class_fom": resolve_path(
             arguments.known_class_fom,
             must_exist=True,
@@ -670,6 +697,15 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         ],
         "HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_OVERLAP_FOM": inputs[
             "variant_alternative_overlap_fom"
+        ],
+        "HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_BASE_FOM": inputs[
+            "interaction_parameter_base_fom"
+        ],
+        "HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_DISJOINT_FOM": inputs[
+            "interaction_parameter_disjoint_fom"
+        ],
+        "HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_CONFLICT_FOM": inputs[
+            "interaction_parameter_conflict_fom"
         ],
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM": inputs["known_class_fom"],
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM": inputs[
@@ -1027,6 +1063,12 @@ def direct_arguments(
         str(inputs["variant_alternative_disjoint_fom"]),
         "--variant-alternative-overlap-fom",
         str(inputs["variant_alternative_overlap_fom"]),
+        "--interaction-parameter-base-fom",
+        str(inputs["interaction_parameter_base_fom"]),
+        "--interaction-parameter-disjoint-fom",
+        str(inputs["interaction_parameter_disjoint_fom"]),
+        "--interaction-parameter-conflict-fom",
+        str(inputs["interaction_parameter_conflict_fom"]),
         "--known-class-fom",
         str(inputs["known_class_fom"]),
         "--known-class-disabled-fom",

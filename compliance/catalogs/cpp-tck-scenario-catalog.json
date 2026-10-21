@@ -55598,18 +55598,192 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.fom-data-type-forward-reference",
+      "category": "fom-composition",
+      "title": "Resolve a data type supplied by a later FOM module during federation creation",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "The adapter supplies schema-valid consumer/provider modules. A consumer-only array element reference fails with InconsistentFOM; consumer followed by the provider creates successfully under the same federation name. Native public-API focused CTest passed 4/4 including duplicate registrations. Installed-package CTest passed 8/8 and direct runner passed 8/8 across this slice in both callback models; no general FOM merge or conformance claim.",
+      "contract_refs": ["standard-fom-data-type-merge-contract.json"],
+      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomDataTypeForwardReference",
+      "runner_id": "cpp-tck.fom-data-type-forward-reference",
+      "parity": "java-tck.fom-data-type-forward-reference",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-data-type-forward-reference-contract",
+      "category": "fom-composition",
+      "title": "Portable Annex C.3 forward-reference data-type merge contract",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Repeats the primary official-API Annex C.3 assertions; installed-package CTest and direct runner passed 8/8 each across this slice in both callback models.",
+      "contract_refs": ["standard-fom-data-type-merge-contract.json"],
+      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomDataTypeForwardReferenceContract",
+      "runner_id": "cpp-tck.fom-data-type-forward-reference-contract",
+      "parity": "cpp-tck.fom-data-type-forward-reference",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-data-type-conflicting-definition",
+      "category": "fom-composition",
+      "title": "Reject conflicting definitions of one named data type across FOM modules",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Each provider composes separately with the consumer; together they define one named simple data type with incompatible representations and must fail with InconsistentFOM. A subsequent valid create under the same federation name checks rejection atomicity. Native public-API focused CTest passed 4/4 including duplicate registrations. Installed-package CTest passed 8/8 and direct runner passed 8/8 across this slice in both callback models.",
+      "contract_refs": ["standard-fom-data-type-merge-contract.json"],
+      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomDataTypeConflictingDefinition",
+      "runner_id": "cpp-tck.fom-data-type-conflicting-definition",
+      "parity": "java-tck.fom-data-type-conflicting-definition",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-data-type-conflicting-definition-contract",
+      "category": "fom-composition",
+      "title": "Portable Annex C.3 named data-type conflict contract",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Repeats the primary official-API Annex C.3 conflict and federation-name reuse assertions; installed-package CTest and direct runner passed 8/8 each across this slice in both callback models.",
+      "contract_refs": ["standard-fom-data-type-merge-contract.json"],
+      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomDataTypeConflictingDefinitionContract",
+      "runner_id": "cpp-tck.fom-data-type-conflicting-definition-contract",
+      "parity": "cpp-tck.fom-data-type-conflicting-definition",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-variant-alternative-overlap",
+      "category": "fom-composition",
+      "title": "Reject overlapping named extendable-variant alternatives at federation creation",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "A disjoint alternative composes with the base; a separately schema-valid alternative assigning an overlapping enumerator to another named alternative fails with InconsistentFOM, then a valid retry reuses the federation name. This is bounded evidence for the intact general Annex C.3 conflict rule, not complete extendable-variant merging. The specific cross-page variant continuation remains clipped in the Requirements Lab (RL-319); no HLAother or same-name-alternative claim. Native public-API focused CTest passed 2/2 including duplicate registrations; installed-package CTest passed 4/4 and direct runner passed 4/4 in both callback models.",
+      "contract_refs": ["standard-fom-variant-alternative-overlap-contract.json"],
+      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomVariantAlternativeOverlap",
+      "runner_id": "cpp-tck.fom-variant-alternative-overlap",
+      "parity": "java-tck.fom-variant-alternative-overlap",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-variant-alternative-overlap-contract",
+      "category": "fom-composition",
+      "title": "Portable Annex C.3 overlapping variant-alternative contract",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Repeats the bounded official-API overlap and federation-name reuse assertions; RL-319 prevents treating the clipped variant-specific candidate as complete validation. Installed-package CTest and direct runner passed 4/4 each in both callback models.",
+      "contract_refs": ["standard-fom-variant-alternative-overlap-contract.json"],
+      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomVariantAlternativeOverlapContract",
+      "runner_id": "cpp-tck.fom-variant-alternative-overlap-contract",
+      "parity": "cpp-tck.fom-variant-alternative-overlap",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-interaction-parameter-merge-conflict",
+      "category": "fom-composition",
+      "title": "Merge disjoint interaction parameters and reject a conflicting data type",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.joinFederationExecution", "RTIambassador.getInteractionClassHandle", "RTIambassador.getParameterHandle", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l26-6"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l26-6", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Two modules declare disjoint parameters of one named interaction class, and a joined member resolves both through the official handle lookup service. Reusing one parameter name with a different data type raises InconsistentFOM; a valid retry reuses the federation name. This is bounded Annex C.3 parameter-set merge/conflict evidence, not all parameter sub-elements. Native official-API focused CTest passed 1/1; installed-package CTest passed 4/4 and direct runner passed 4/4 in both callback models.",
+      "contract_refs": ["standard-fom-interaction-parameter-merge-contract.json"],
+      "cpp_test": "src/tck_fom_interaction_parameter_merge.cpp#scenarioFomInteractionParameterMergeConflict",
+      "runner_id": "cpp-tck.fom-interaction-parameter-merge-conflict",
+      "parity": "java-tck.fom-interaction-parameter-merge-conflict",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-interaction-parameter-merge-conflict-contract",
+      "category": "fom-composition",
+      "title": "Portable Annex C.3 interaction-parameter merge/conflict contract",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.joinFederationExecution", "RTIambassador.getInteractionClassHandle", "RTIambassador.getParameterHandle", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l26-6"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l26-6", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Repeats the primary official-API parameter merge, conflicting data type, and federation-name reuse assertions; installed-package CTest and direct runner passed 4/4 each in both callback models.",
+      "contract_refs": ["standard-fom-interaction-parameter-merge-contract.json"],
+      "cpp_test": "src/tck_fom_interaction_parameter_merge.cpp#scenarioFomInteractionParameterMergeConflictContract",
+      "runner_id": "cpp-tck.fom-interaction-parameter-merge-conflict-contract",
+      "parity": "cpp-tck.fom-interaction-parameter-merge-conflict",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.connection-loss-cleanup",
       "category": "connection",
-      "title": "Report connection loss, clean up the lost member, and keep the survivor usable",
+      "title": "Report connection loss, enforce the disconnected service state, and keep the survivor usable",
       "api_methods": [
         "FederateAmbassador.connectionLost",
         "RTIambassador.disconnect",
+        "RTIambassador.listFederationExecutions",
         "RTIambassador.sendInteraction"
       ],
       "requirement_ids": [
         "cpp-1516.1-connection-loss-callback",
-        "cpp-1516.1-connection-loss-cleanup"
+        "cpp-1516.1-connection-loss-cleanup",
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.1",
+        "hla-1516.1-2025:clause-4.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "req-federate-connection-lost",
+          "standard_section": "hla-1516.1-2025:clause-4.1.1"
+        },
+        {
+          "requirement_id": "req-connection-lost-service-behavior",
+          "standard_section": "hla-1516.1-2025:clause-4.4"
+        }
+      ],
+      "mapping_note": "The adapter-managed process-loss scenario directly waits for the connectionLost callback (§4.1.1), then verifies the lost ambassador's standard federation-list service throws NotConnected after the callback (§4.4). It separately verifies the survivor can still send an interaction. This is public C++ API evidence only, not provider validation or conformance evidence.",
       "contract_refs": [
         "connection-lost-api-contract.json",
         "connection-lost-requirements-contract.json",
@@ -55625,16 +55799,38 @@
     {
       "id": "cpp-tck.connection-loss-cleanup-contract",
       "category": "connection",
-      "title": "Pure standard C++ contract for adapter-managed connection-loss callback, lost-member cleanup, and surviving-member service",
+      "title": "Pure standard C++ contract for adapter-managed connection loss, the disconnected service state, and surviving-member service",
       "api_methods": [
         "FederateAmbassador.connectionLost",
         "RTIambassador.disconnect",
+        "RTIambassador.listFederationExecutions",
         "RTIambassador.sendInteraction"
       ],
       "requirement_ids": [
         "cpp-1516.1-connection-loss-callback",
-        "cpp-1516.1-connection-loss-cleanup"
+        "cpp-1516.1-connection-loss-cleanup",
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.1",
+        "hla-1516.1-2025:clause-4.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "req-federate-connection-lost",
+          "standard_section": "hla-1516.1-2025:clause-4.1.1"
+        },
+        {
+          "requirement_id": "req-connection-lost-service-behavior",
+          "standard_section": "hla-1516.1-2025:clause-4.4"
+        }
+      ],
+      "mapping_note": "The contract variant asserts the same two exact observations using only the official C++ API: connectionLost callback receipt (§4.1.1) and a NotConnected federation-list service result from the lost ambassador after the callback (§4.4). The process fault source remains adapter-owned; this is not provider validation or conformance evidence.",
       "contract_refs": [
         "standard-connection-loss-cleanup-contract.json"
       ],
@@ -55903,120 +56099,6 @@
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.unsubscribeInteractionClassWithRegions",
         "RTIambassador.unpublishInteractionClass",
-    {
-      "id": "cpp-tck.fom-data-type-forward-reference",
-      "category": "fom-composition",
-      "title": "Resolve a data type supplied by a later FOM module during federation creation",
-      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
-      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
-      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8"],
-      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
-      "requirement_mappings": [
-        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8", "standard_section": "hla-1516.2-2025:clause-C.3" }
-      ],
-      "mapping_note": "The adapter supplies schema-valid consumer/provider modules. A consumer-only array element reference fails with InconsistentFOM; consumer followed by the provider creates successfully under the same federation name. Native public-API focused CTest passed 4/4 including duplicate registrations. Installed-package CTest passed 8/8 and direct runner passed 8/8 across this slice in both callback models; no general FOM merge or conformance claim.",
-      "contract_refs": ["standard-fom-data-type-merge-contract.json"],
-      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomDataTypeForwardReference",
-      "runner_id": "cpp-tck.fom-data-type-forward-reference",
-      "parity": "java-tck.fom-data-type-forward-reference",
-      "default_status": "adapter-required",
-      "promotion": "promoted"
-    },
-    {
-      "id": "cpp-tck.fom-data-type-forward-reference-contract",
-      "category": "fom-composition",
-      "title": "Portable Annex C.3 forward-reference data-type merge contract",
-      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
-      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
-      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8"],
-      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
-      "requirement_mappings": [
-        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8", "standard_section": "hla-1516.2-2025:clause-C.3" }
-      ],
-      "mapping_note": "Repeats the primary official-API Annex C.3 assertions; installed-package CTest and direct runner passed 8/8 each across this slice in both callback models.",
-      "contract_refs": ["standard-fom-data-type-merge-contract.json"],
-      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomDataTypeForwardReferenceContract",
-      "runner_id": "cpp-tck.fom-data-type-forward-reference-contract",
-      "parity": "cpp-tck.fom-data-type-forward-reference",
-      "default_status": "adapter-required",
-      "promotion": "promoted"
-    },
-    {
-      "id": "cpp-tck.fom-data-type-conflicting-definition",
-      "category": "fom-composition",
-      "title": "Reject conflicting definitions of one named data type across FOM modules",
-      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
-      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
-      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
-      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
-      "requirement_mappings": [
-        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
-      ],
-      "mapping_note": "Each provider composes separately with the consumer; together they define one named simple data type with incompatible representations and must fail with InconsistentFOM. A subsequent valid create under the same federation name checks rejection atomicity. Native public-API focused CTest passed 4/4 including duplicate registrations. Installed-package CTest passed 8/8 and direct runner passed 8/8 across this slice in both callback models.",
-      "contract_refs": ["standard-fom-data-type-merge-contract.json"],
-      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomDataTypeConflictingDefinition",
-      "runner_id": "cpp-tck.fom-data-type-conflicting-definition",
-      "parity": "java-tck.fom-data-type-conflicting-definition",
-      "default_status": "adapter-required",
-      "promotion": "promoted"
-    },
-    {
-      "id": "cpp-tck.fom-data-type-conflicting-definition-contract",
-      "category": "fom-composition",
-      "title": "Portable Annex C.3 named data-type conflict contract",
-      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
-      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
-      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
-      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
-      "requirement_mappings": [
-        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
-      ],
-      "mapping_note": "Repeats the primary official-API Annex C.3 conflict and federation-name reuse assertions; installed-package CTest and direct runner passed 8/8 each across this slice in both callback models.",
-      "contract_refs": ["standard-fom-data-type-merge-contract.json"],
-      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomDataTypeConflictingDefinitionContract",
-      "runner_id": "cpp-tck.fom-data-type-conflicting-definition-contract",
-      "parity": "cpp-tck.fom-data-type-conflicting-definition",
-      "default_status": "adapter-required",
-      "promotion": "promoted"
-    },
-    {
-      "id": "cpp-tck.fom-variant-alternative-overlap",
-      "category": "fom-composition",
-      "title": "Reject overlapping named extendable-variant alternatives at federation creation",
-      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
-      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
-      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
-      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
-      "requirement_mappings": [
-        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
-      ],
-      "mapping_note": "A disjoint alternative composes with the base; a separately schema-valid alternative assigning an overlapping enumerator to another named alternative fails with InconsistentFOM, then a valid retry reuses the federation name. This is bounded evidence for the intact general Annex C.3 conflict rule, not complete extendable-variant merging. The specific cross-page variant continuation remains clipped in the Requirements Lab (RL-319); no HLAother or same-name-alternative claim. Native public-API focused CTest passed 2/2 including duplicate registrations; installed-package CTest passed 4/4 and direct runner passed 4/4 in both callback models.",
-      "contract_refs": ["standard-fom-variant-alternative-overlap-contract.json"],
-      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomVariantAlternativeOverlap",
-      "runner_id": "cpp-tck.fom-variant-alternative-overlap",
-      "parity": "java-tck.fom-variant-alternative-overlap",
-      "default_status": "adapter-required",
-      "promotion": "promoted"
-    },
-    {
-      "id": "cpp-tck.fom-variant-alternative-overlap-contract",
-      "category": "fom-composition",
-      "title": "Portable Annex C.3 overlapping variant-alternative contract",
-      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
-      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
-      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
-      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
-      "requirement_mappings": [
-        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
-      ],
-      "mapping_note": "Repeats the bounded official-API overlap and federation-name reuse assertions; RL-319 prevents treating the clipped variant-specific candidate as complete validation. Installed-package CTest and direct runner passed 4/4 each in both callback models.",
-      "contract_refs": ["standard-fom-variant-alternative-overlap-contract.json"],
-      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomVariantAlternativeOverlapContract",
-      "runner_id": "cpp-tck.fom-variant-alternative-overlap-contract",
-      "parity": "cpp-tck.fom-variant-alternative-overlap",
-      "default_status": "adapter-required",
-      "promotion": "promoted"
-    },
         "RTIambassador.deleteRegion",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",

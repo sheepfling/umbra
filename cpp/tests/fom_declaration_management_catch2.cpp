@@ -404,4 +404,50 @@ TEST_CASE(
   REQUIRE_NOTHROW(subscriber->disconnect());
 }
 
+TEST_CASE(
+    "Embedded Create Federation Execution merges disjoint interaction parameters and rejects a conflicting data type",
+    "[integration][development-profile][federation-management][fom][annex-c]"
+    "[annex-c-interaction-parameter-public][rti.service.create-federation-execution]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]") {
+  rti1516_2025::NullFederateAmbassador creatorFederate;
+  rti1516_2025::NullFederateAmbassador memberFederate;
+  auto creator = makeRti();
+  auto member = makeRti();
+  auto const federationName = nextFederationName();
+  auto const packageFom = [](char const* filename) {
+    return (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "packages" /
+            "hla-rti-cpp-tck" / "fom" / filename).wstring();
+  };
+  auto const base = packageFom("interaction-parameter-merge-base-tck.xml");
+  auto const disjoint = packageFom("interaction-parameter-merge-disjoint-tck.xml");
+  auto const conflict = packageFom("interaction-parameter-merge-conflict-tck.xml");
+
+  REQUIRE_NOTHROW(creator->connect(creatorFederate, rti1516_2025::HLA_EVOKED));
+  REQUIRE_NOTHROW(member->connect(memberFederate, rti1516_2025::HLA_EVOKED));
+  REQUIRE_NOTHROW(creator->createFederationExecution(
+      federationName, std::vector<std::wstring>{base, disjoint},
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(member->joinFederationExecution(
+      L"parameter-merge-member", L"member", federationName));
+  auto const interaction = member->getInteractionClassHandle(
+      L"HLAinteractionRoot.TckParameterMergeInteraction");
+  REQUIRE(interaction.isValid());
+  REQUIRE(member->getParameterHandle(interaction, L"FirstValue").isValid());
+  REQUIRE(member->getParameterHandle(interaction, L"SecondValue").isValid());
+  REQUIRE_NOTHROW(member->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
+
+  REQUIRE_THROWS_AS(
+      creator->createFederationExecution(
+          federationName, std::vector<std::wstring>{base, conflict},
+          L"HLAinteger64Time"),
+      rti1516_2025::InconsistentFOM);
+  REQUIRE_NOTHROW(creator->createFederationExecution(
+      federationName, std::vector<std::wstring>{base, disjoint},
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(member->disconnect());
+  REQUIRE_NOTHROW(creator->disconnect());
+}
+
 }  // namespace

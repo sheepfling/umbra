@@ -22,6 +22,9 @@ struct Options {
   std::filesystem::path variantAlternativeBaseFom;
   std::filesystem::path variantAlternativeDisjointFom;
   std::filesystem::path variantAlternativeOverlapFom;
+  std::filesystem::path interactionParameterBaseFom;
+  std::filesystem::path interactionParameterDisjointFom;
+  std::filesystem::path interactionParameterConflictFom;
   std::filesystem::path knownClassFom;
   std::filesystem::path knownClassDisabledFom;
   std::vector<std::filesystem::path> additionalFomModules;

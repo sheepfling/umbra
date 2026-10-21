@@ -8358,6 +8358,24 @@
       "exclusion": "Configure the three hla.rti.tck.variantAlternative*Fom properties for a Java IEEE 1516.1-2025 provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-interaction-parameter-merge-conflict",
+      "category": "fom-composition",
+      "title": "Merge disjoint interaction parameters and reject a conflicting data type",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.joinFederationExecution", "RTIambassador.getInteractionClassHandle", "RTIambassador.getParameterHandle", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l26-6"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l26-6", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Standard Java API parity for the bounded Annex C.3 interaction-parameter set merge, conflicting data type, and name-reuse assertions. Adapter supplies all FOM modules and callback configuration. API-only compilation required; Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-interaction-parameter-merge-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomInteractionParameterMergeConflict",
+      "parity": "cpp-tck.fom-interaction-parameter-merge-conflict",
+      "default_status": "unsupported",
+      "exclusion": "Configure the three hla.rti.tck.interactionParameter*Fom properties for a Java IEEE 1516.1-2025 provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-standard-invalid-input-corpus",
       "category": "fom-lifecycle",
       "title": "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",

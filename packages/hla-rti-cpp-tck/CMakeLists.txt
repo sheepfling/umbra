@@ -166,6 +166,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_lookup_lifecycle_scenarios.cpp
   src/tck_fom_module_scenarios.cpp
   src/tck_fom_data_type_merge.cpp
+  src/tck_fom_interaction_parameter_merge.cpp
   src/tck_timestamped_attribute_scenarios.cpp
   src/tck_timestamped_attribute_reflect_region_snapshot.cpp
   src/tck_timestamped_attribute_update_time_advancing_cutoff.cpp

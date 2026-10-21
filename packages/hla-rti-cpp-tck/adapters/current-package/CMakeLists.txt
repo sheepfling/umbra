@@ -81,6 +81,15 @@ set(HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_DISJOINT_FOM
 set(HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_OVERLAP_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-alternative-overlap-tck.xml"
   CACHE FILEPATH "Annex C.3 overlapping variant-alternative FOM supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_BASE_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/interaction-parameter-merge-base-tck.xml"
+  CACHE FILEPATH "Annex C.3 interaction-parameter base FOM supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_DISJOINT_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/interaction-parameter-merge-disjoint-tck.xml"
+  CACHE FILEPATH "Annex C.3 disjoint interaction-parameter FOM supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_CONFLICT_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/interaction-parameter-merge-conflict-tck.xml"
+  CACHE FILEPATH "Annex C.3 conflicting interaction-parameter FOM supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"
   CACHE FILEPATH "Known-class advisory FOM supplied by this provider adapter")
@@ -297,6 +306,14 @@ foreach(_variant_fom IN ITEMS
     message(FATAL_ERROR "Adapter variant-alternative FOM does not exist: ${${_variant_fom}}")
   endif()
 endforeach()
+foreach(_parameter_fom IN ITEMS
+    HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_BASE_FOM
+    HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_DISJOINT_FOM
+    HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_CONFLICT_FOM)
+  if(NOT EXISTS "${${_parameter_fom}}" OR IS_DIRECTORY "${${_parameter_fom}}")
+    message(FATAL_ERROR "Adapter interaction-parameter FOM does not exist: ${${_parameter_fom}}")
+  endif()
+endforeach()
 if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}" OR
    IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}")
   message(FATAL_ERROR
@@ -435,6 +452,9 @@ set(_tck_common_arguments
   --variant-alternative-base-fom "${HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_BASE_FOM}"
   --variant-alternative-disjoint-fom "${HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_DISJOINT_FOM}"
   --variant-alternative-overlap-fom "${HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_OVERLAP_FOM}"
+  --interaction-parameter-base-fom "${HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_BASE_FOM}"
+  --interaction-parameter-disjoint-fom "${HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_DISJOINT_FOM}"
+  --interaction-parameter-conflict-fom "${HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_CONFLICT_FOM}"
   --fom-custom-transportation "${HLA_RTI_TCK_ADAPTER_FOM_CUSTOM_TRANSPORTATION}"
   --fom-additional-transportation
     "${HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_TRANSPORTATION}"
