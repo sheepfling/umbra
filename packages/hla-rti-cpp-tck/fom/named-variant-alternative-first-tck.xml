@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <modelIdentification><name>TCK Named Variant Alternative First</name><type>FOM</type></modelIdentification>
+  <dataTypes>
+    <enumeratedDataTypes><enumeratedData>
+      <name>TckNamedVariantChoices</name><representation>HLAinteger32BE</representation>
+      <enumerator><name>TckNamedVariantFirstChoice</name><value>1</value></enumerator>
+    </enumeratedData></enumeratedDataTypes>
+    <variantRecordDataTypes><variantRecordData>
+      <name>TckNamedExtendableVariant</name>
+      <discriminant>TckSelection</discriminant>
+      <dataType>TckNamedVariantChoices</dataType>
+      <alternative>
+        <enumerator>TckNamedVariantFirstChoice</enumerator>
+        <name>TckNamedMergedAlternative</name><dataType>HLAboolean</dataType>
+        <semantics>Shared semantics for the named alternative.</semantics>
+      </alternative>
+      <encoding>HLAextendableVariantRecord</encoding>
+    </variantRecordData></variantRecordDataTypes>
+  </dataTypes>
+</objectModel>

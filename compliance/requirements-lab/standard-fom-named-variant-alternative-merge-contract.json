@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Pure 2025 public-API acceptance evidence for the positive named HLAextendableVariantRecord alternative merge in Annex C.3. Two adapter-owned DIF modules declare the same named alternative with matching type and semantics but disjoint discriminant enumerators; each creates a federation alone and the pair creates one together. Native focused CTest passed 1/1; installed-package CTest and direct runner passed 4/4 each across both callback models; Java compiled against the API-only JAR. The pinned page-110 candidate states the positive union rule but clips the following conflict sentence; page 111 supplies the remaining conflict and HLAother text (RL-319). This case does not claim those failure branches or private merged-catalog inspection. The separate existing portable overlap case covers only its own conflict shape. Java provider runtime, interoperability, and conformance remain unverified.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-named-variant-alternative-merge",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and destruction services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_named_variant_alternative_merge.cpp::scenarioFomNamedVariantAlternativeMergeContract"]
+    }
+  ]
+}

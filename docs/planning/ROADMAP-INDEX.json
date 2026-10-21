@@ -1,4 +1,13 @@
 {
+  "portable_tck_fom_named_variant_alternative_merge_handoff_2026_10_21": {
+    "status": "verified-installed-package",
+    "scope": "Translate the native-green Annex C.3 positive same-named HLAextendableVariantRecord alternative union into pure public-API portable C++ primary/contract IDs with Java parity.",
+    "sources": "cpp/tests/annex_c_variant_alternative_merge_catch2.cpp; packages/hla-rti-cpp-tck/src/tck_fom_named_variant_alternative_merge.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomNamedVariantAlternativeMergeTck.java",
+    "direct_mapping": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l90-20 -> IEEE 1516.2-2025 Annex C.3 positive named-alternative union only; read page-111 continuation with RL-319 for separate failure rules",
+    "evidence": "Native internal focused CTest passed 1/1. Installed-package MinGW/Ninja CTest passed 4/4 and direct runner passed 4/4 under HLA_EVOKED and HLA_IMMEDIATE (out/mgw/named-variant-alternative-merge-20261021.json). C++ and Java catalogs validate, parity audit passes, and Java compiles against the API-only JAR. Java provider runtime remains unverified.",
+    "scope_boundary": "The pair of adapter-owned, schema-valid modules independently and jointly creates. Public APIs do not expose merged private variant-alternative metadata. The clipped candidate's conflict/HLAother continuation, other failure branches, Java provider runtime, interoperability, and conformance are not claimed.",
+    "next": "Inspect the existing native HLAother rejection and overlapping-discriminant composer cases in cpp/tests/libxml2_fom_composer_catch2.cpp by targeted line range and exact plan row, then select a distinct intact public-API rejection witness only if the pinned page-111 continuation and native-green evidence support it. Do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_class_dimension_merge_handoff_2026_10_21": {
     "status": "verified-installed-package",
     "scope": "Translate two native-green 2025 Clause 7 available-dimension union cases into independent pure public-API object-class and interaction-class portable C++ primary/contract IDs with Java parity, without region services.",

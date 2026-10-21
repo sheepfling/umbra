@@ -19427,6 +19427,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-matching-data-types-contract",
       "cpp-tck.fom-object-class-dimension-merge-contract",
       "cpp-tck.fom-interaction-class-dimension-merge-contract",
+      "cpp-tck.fom-named-variant-alternative-merge-contract",
       "cpp-tck.service-report-interaction-contract",
       "cpp-tck.service-report-attribute-update-contract",
       "cpp-tck.service-report-register-object-instance-contract",
@@ -20123,6 +20124,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-matching-data-types",
       "cpp-tck.fom-object-class-dimension-merge",
       "cpp-tck.fom-interaction-class-dimension-merge",
+      "cpp-tck.fom-named-variant-alternative-merge",
       "cpp-tck.connection-loss-cleanup",
       "cpp-tck.connection-loss-cleanup-contract",
       "cpp-tck.connection-loss-automatic-unconditional-divestiture",
@@ -20939,6 +20941,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-interaction-class-dimension-merge-contract") {
     return scenarioFomInteractionClassDimensionMergeContract;
+  }
+  if (id == "cpp-tck.fom-named-variant-alternative-merge-contract") {
+    return scenarioFomNamedVariantAlternativeMergeContract;
   }
   if (id == "cpp-tck.service-report-interaction-contract") {
     return scenarioServiceReportInteractionContract;
@@ -23162,6 +23167,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-interaction-class-dimension-merge") {
     return scenarioFomInteractionClassDimensionMerge;
   }
+  if (id == "cpp-tck.fom-named-variant-alternative-merge") {
+    return scenarioFomNamedVariantAlternativeMerge;
+  }
   if (id == "cpp-tck.connection-loss-cleanup") return scenarioConnectionLoss;
   if (id == "cpp-tck.connection-loss-cleanup-contract") {
     return scenarioConnectionLossContract;
@@ -23588,6 +23596,12 @@ int run(Options const& options) {
                   options.scenarioFoms.count("interaction-dimension-merge-second") == 0U)) {
         result.status = "skipped";
         result.message = "requires two adapter-supplied interaction-dimension FOM modules";
+      } else if ((scenario == "cpp-tck.fom-named-variant-alternative-merge" ||
+                  scenario == "cpp-tck.fom-named-variant-alternative-merge-contract") &&
+                 (options.scenarioFoms.count("named-variant-alternative-first") == 0U ||
+                  options.scenarioFoms.count("named-variant-alternative-second") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires two adapter-supplied named-variant FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&

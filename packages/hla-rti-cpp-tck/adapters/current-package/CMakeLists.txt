@@ -107,6 +107,8 @@ set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
   "object-dimension-merge-second=${_repository_root}/packages/hla-rti-cpp-tck/fom/object-dimension-merge-second-tck.xml"
   "interaction-dimension-merge-first=${_repository_root}/packages/hla-rti-cpp-tck/fom/interaction-dimension-merge-first-tck.xml"
   "interaction-dimension-merge-second=${_repository_root}/packages/hla-rti-cpp-tck/fom/interaction-dimension-merge-second-tck.xml"
+  "named-variant-alternative-first=${_repository_root}/packages/hla-rti-cpp-tck/fom/named-variant-alternative-first-tck.xml"
+  "named-variant-alternative-second=${_repository_root}/packages/hla-rti-cpp-tck/fom/named-variant-alternative-second-tck.xml"
   CACHE STRING "Semicolon-separated NAME=FILE FOM bindings supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"
