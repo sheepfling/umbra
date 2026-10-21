@@ -56,6 +56,12 @@ public final class RtiTckMain {
       "hla.rti.tck.dataTypeMergeProviderFom";
    private static final String DATA_TYPE_MERGE_CONFLICTING_PROVIDER_FOM_PROPERTY =
       "hla.rti.tck.dataTypeMergeConflictingProviderFom";
+   private static final String VARIANT_ALTERNATIVE_BASE_FOM_PROPERTY =
+      "hla.rti.tck.variantAlternativeBaseFom";
+   private static final String VARIANT_ALTERNATIVE_DISJOINT_FOM_PROPERTY =
+      "hla.rti.tck.variantAlternativeDisjointFom";
+   private static final String VARIANT_ALTERNATIVE_OVERLAP_FOM_PROPERTY =
+      "hla.rti.tck.variantAlternativeOverlapFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1568,6 +1574,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomDataTypeConflictingDefinition);
+      run(new Scenario("java-tck.fom-variant-alternative-overlap",
+            "Accept disjoint and reject overlapping named extendable-variant alternatives",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomVariantAlternativeOverlap);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11242,6 +11254,8 @@ public final class RtiTckMain {
             method = "fomDataTypeForwardReference"; break;
          case "java-tck.fom-data-type-conflicting-definition":
             method = "fomDataTypeConflictingDefinition"; break;
+         case "java-tck.fom-variant-alternative-overlap":
+            method = "fomVariantAlternativeOverlap"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -12728,6 +12742,14 @@ public final class RtiTckMain {
          requireAdapterFile(DATA_TYPE_MERGE_CONSUMER_FOM_PROPERTY),
          requireAdapterFile(DATA_TYPE_MERGE_PROVIDER_FOM_PROPERTY),
          requireAdapterFile(DATA_TYPE_MERGE_CONFLICTING_PROVIDER_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomVariantAlternativeOverlap() throws Exception {
+      FomDataTypeMergeTck.variantAlternativeOverlap(factory(),
+         requireAdapterFile(VARIANT_ALTERNATIVE_BASE_FOM_PROPERTY),
+         requireAdapterFile(VARIANT_ALTERNATIVE_DISJOINT_FOM_PROPERTY),
+         requireAdapterFile(VARIANT_ALTERNATIVE_OVERLAP_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 

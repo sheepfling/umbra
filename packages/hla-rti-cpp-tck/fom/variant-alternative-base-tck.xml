@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <dataTypes>
+    <enumeratedDataTypes>
+      <enumeratedData>
+        <name>TckVariantSelections</name>
+        <representation>HLAinteger32BE</representation>
+        <enumerator><name>TckOne</name><value>1</value></enumerator>
+        <enumerator><name>TckTwo</name><value>2</value></enumerator>
+        <enumerator><name>TckThree</name><value>3</value></enumerator>
+        <enumerator><name>TckFour</name><value>4</value></enumerator>
+      </enumeratedData>
+    </enumeratedDataTypes>
+    <variantRecordDataTypes>
+      <variantRecordData>
+        <name>TckExtendableVariant</name>
+        <discriminant>TckSelection</discriminant>
+        <dataType>TckVariantSelections</dataType>
+        <alternative>
+          <enumerator>[TckOne .. TckThree]</enumerator>
+          <name>TckFirstAlternative</name>
+        </alternative>
+        <encoding>HLAextendableVariantRecord</encoding>
+      </variantRecordData>
+    </variantRecordDataTypes>
+  </dataTypes>
+</objectModel>

@@ -83,4 +83,38 @@ void scenarioFomDataTypeConflictingDefinitionContract(Options const& options,
   scenarioFomDataTypeConflictingDefinition(options, model);
 }
 
+void scenarioFomVariantAlternativeOverlap(Options const& options,
+                                          rti::CallbackModel model) {
+  require(!options.variantAlternativeBaseFom.empty() &&
+              !options.variantAlternativeDisjointFom.empty() &&
+              !options.variantAlternativeOverlapFom.empty(),
+          "Annex C.3 variant-alternative test requires three adapter-supplied FOM modules");
+  require(!options.logicalTimeImplementationName.empty(),
+          "Annex C.3 variant-alternative test requires an adapter-supplied logical time");
+  Session creator(options, model, "fom-variant-creator");
+  auto const federation = federationName(options, "fom-variant-alternative-overlap");
+  creator.connect();
+
+  create(creator, federation, options,
+         {options.variantAlternativeBaseFom,
+          options.variantAlternativeDisjointFom});
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  requireException(
+      [&] { create(creator, federation, options,
+                   {options.variantAlternativeBaseFom,
+                    options.variantAlternativeOverlapFom}); },
+      L"InconsistentFOM",
+      "merging different named extendable-variant alternatives with overlapping enumerators");
+  create(creator, federation, options,
+         {options.variantAlternativeBaseFom,
+          options.variantAlternativeDisjointFom});
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  creator.disconnect();
+}
+
+void scenarioFomVariantAlternativeOverlapContract(Options const& options,
+                                                  rti::CallbackModel model) {
+  scenarioFomVariantAlternativeOverlap(options, model);
+}
+
 }  // namespace hla_rti_cpp_tck::detail

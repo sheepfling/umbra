@@ -19463,6 +19463,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.service-report-dimension-upper-bound",
       "cpp-tck.service-report-dimension-upper-bound-contract",
       "cpp-tck.service-report-dimension-name",
+      "cpp-tck.fom-variant-alternative-overlap-contract",
       "cpp-tck.service-report-dimension-name-contract",
       "cpp-tck.service-report-dimension-handle",
       "cpp-tck.service-report-dimension-handle-contract",
@@ -20152,6 +20153,7 @@ void printHelp() {
       "  --data-type-merge-provider-fom FILE\n"
       "  --data-type-merge-conflicting-provider-fom FILE\n"
       "  --known-class-fom FILE        Known-class advisory FOM supplied by the adapter\n"
+      "cpp-tck.fom-variant-alternative-overlap",
       "  --known-class-disabled-fom FILE\n"
       "                                Known-class-disabled advisory FOM supplied by the adapter\n"
       "  --ddm-dimension NAME          Repeat; DDM dimension lookup name\n"
@@ -20194,6 +20196,9 @@ void printHelp() {
       "                                Best-effort update-rate comparison attribute\n"
       "  --rate-designator NAME        Active update-rate designator\n"
       "  --fom-update-rate NAME        Higher update-rate designator for advisory tests\n"
+      "  --variant-alternative-base-fom FILE\n"
+      "  --variant-alternative-disjoint-fom FILE\n"
+      "  --variant-alternative-overlap-fom FILE\n"
       "  --fom-additional-update-rate NAME\n"
       "                                Update-rate designator in the additional FOM\n"
       "  --three-dimensional-object-class NAME\n"
@@ -20347,6 +20352,15 @@ Options parseOptions(int argc, char** argv) {
       options.scenarios.emplace_back(argv[++index]);
     } else if (argument == "--callback-model") {
       requireValue(index, argc, argv, argument);
+    } else if (argument == "--variant-alternative-base-fom") {
+      requireValue(index, argc, argv, argument);
+      options.variantAlternativeBaseFom = argv[++index];
+    } else if (argument == "--variant-alternative-disjoint-fom") {
+      requireValue(index, argc, argv, argument);
+      options.variantAlternativeDisjointFom = argv[++index];
+    } else if (argument == "--variant-alternative-overlap-fom") {
+      requireValue(index, argc, argv, argument);
+      options.variantAlternativeOverlapFom = argv[++index];
       options.callbackModel = argv[++index];
     } else if (argument == "--provider-id") {
       requireValue(index, argc, argv, argument);
@@ -20604,6 +20618,14 @@ Options parseOptions(int argc, char** argv) {
     }
   }
   if (options.callbackModel != "both" && options.callbackModel != "evoked" &&
+  for (auto const& variantFom : {options.variantAlternativeBaseFom,
+                                 options.variantAlternativeDisjointFom,
+                                 options.variantAlternativeOverlapFom}) {
+    if (!variantFom.empty() && !std::filesystem::is_regular_file(variantFom)) {
+      throw std::runtime_error("Variant-alternative FOM file does not exist: " +
+                               variantFom.string());
+    }
+  }
       options.callbackModel != "immediate") {
     throw std::runtime_error("--callback-model must be both, evoked, or immediate");
   }
@@ -20871,6 +20893,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
     return scenarioServiceReportRegionalInteractionFailureContract;
   }
   if (id == "cpp-tck.service-report-timestamped-attribute-update-failure-contract") {
+  if (id == "cpp-tck.fom-variant-alternative-overlap-contract") {
+    return scenarioFomVariantAlternativeOverlapContract;
+  }
     return scenarioServiceReportTimestampedAttributeUpdateFailureContract;
   }
   if (id == "cpp-tck.service-report-timestamped-interaction-failure-contract") {
@@ -23072,6 +23097,9 @@ std::string jsonEscape(std::string const& value) {
 
 std::string xmlEscape(std::string const& value) {
   std::string escaped;
+  if (id == "cpp-tck.fom-variant-alternative-overlap") {
+    return scenarioFomVariantAlternativeOverlap;
+  }
   escaped.reserve(value.size() + 8U);
   for (auto const character : value) {
     switch (character) {
@@ -23168,6 +23196,12 @@ void writeResults(
            << "\", \"status\": \"" << jsonEscape(result.status)
            << "\", \"message\": \"" << jsonEscape(result.message)
            << "\", \"duration_ms\": " << result.durationMilliseconds << "}";
+        << "  \"variant_alternative_base_fom\": \""
+        << jsonEscape(options.variantAlternativeBaseFom.string()) << "\",\n"
+        << "  \"variant_alternative_disjoint_fom\": \""
+        << jsonEscape(options.variantAlternativeDisjointFom.string()) << "\",\n"
+        << "  \"variant_alternative_overlap_fom\": \""
+        << jsonEscape(options.variantAlternativeOverlapFom.string()) << "\",\n"
     if (index + 1U != results.size()) output << ',';
     output << '\n';
   }
@@ -23425,6 +23459,13 @@ int run(Options const& options) {
                   scenario == "cpp-tck.partial-attribute-ownership-transfer-contract" ||
                   scenario == "cpp-tck.divestiture-if-wanted-mixed-acquirers" ||
                   scenario == "cpp-tck.divestiture-if-wanted-mixed-acquirers-contract" ||
+      } else if ((scenario == "cpp-tck.fom-variant-alternative-overlap" ||
+                  scenario == "cpp-tck.fom-variant-alternative-overlap-contract") &&
+                 (options.variantAlternativeBaseFom.empty() ||
+                  options.variantAlternativeDisjointFom.empty() ||
+                  options.variantAlternativeOverlapFom.empty())) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied Annex C.3 variant-alternative FOM modules";
                   scenario == "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation" ||
                   scenario == "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation-contract" ||
                   scenario == "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore" ||

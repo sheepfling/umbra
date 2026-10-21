@@ -72,6 +72,15 @@ set(HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_PROVIDER_FOM
 set(HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_CONFLICTING_PROVIDER_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/data-type-merge-conflicting-provider-tck.xml"
   CACHE FILEPATH "Annex C.3 conflicting named data-type provider FOM supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_BASE_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-alternative-base-tck.xml"
+  CACHE FILEPATH "Annex C.3 extendable-variant base FOM supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_DISJOINT_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-alternative-disjoint-tck.xml"
+  CACHE FILEPATH "Annex C.3 disjoint variant-alternative FOM supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_OVERLAP_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-alternative-overlap-tck.xml"
+  CACHE FILEPATH "Annex C.3 overlapping variant-alternative FOM supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"
   CACHE FILEPATH "Known-class advisory FOM supplied by this provider adapter")
@@ -280,6 +289,14 @@ foreach(_merge_fom IN ITEMS
     message(FATAL_ERROR "Adapter data-type merge FOM does not exist: ${${_merge_fom}}")
   endif()
 endforeach()
+foreach(_variant_fom IN ITEMS
+    HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_BASE_FOM
+    HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_DISJOINT_FOM
+    HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_OVERLAP_FOM)
+  if(NOT EXISTS "${${_variant_fom}}" OR IS_DIRECTORY "${${_variant_fom}}")
+    message(FATAL_ERROR "Adapter variant-alternative FOM does not exist: ${${_variant_fom}}")
+  endif()
+endforeach()
 if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}" OR
    IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}")
   message(FATAL_ERROR
@@ -415,6 +432,9 @@ set(_tck_common_arguments
   --data-type-merge-provider-fom "${HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_PROVIDER_FOM}"
   --data-type-merge-conflicting-provider-fom
     "${HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_CONFLICTING_PROVIDER_FOM}"
+  --variant-alternative-base-fom "${HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_BASE_FOM}"
+  --variant-alternative-disjoint-fom "${HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_DISJOINT_FOM}"
+  --variant-alternative-overlap-fom "${HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_OVERLAP_FOM}"
   --fom-custom-transportation "${HLA_RTI_TCK_ADAPTER_FOM_CUSTOM_TRANSPORTATION}"
   --fom-additional-transportation
     "${HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_TRANSPORTATION}"

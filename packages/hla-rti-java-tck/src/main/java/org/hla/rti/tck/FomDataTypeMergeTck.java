@@ -76,6 +76,38 @@ final class FomDataTypeMergeTck {
       }
    }
 
+   static void variantAlternativeOverlap(RtiFactory factory, String base,
+         String disjoint, String overlapping, String timeImplementation,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador creator = factory.getRtiAmbassador();
+      String federation = "java-tck-variant-alternative-" + UUID.randomUUID();
+      boolean connected = false;
+      boolean created = false;
+      try {
+         creator.connect(callbacks(), callbackModel);
+         connected = true;
+         creator.createFederationExecution(
+            federation, new String[] {base, disjoint}, timeImplementation);
+         created = true;
+         creator.destroyFederationExecution(federation);
+         created = false;
+         JavaTckSupport.expectFailure(
+            () -> creator.createFederationExecution(
+               federation, new String[] {base, overlapping}, timeImplementation),
+            "InconsistentFOM", "overlapping named variant alternatives");
+         creator.createFederationExecution(
+            federation, new String[] {base, disjoint}, timeImplementation);
+         created = true;
+         creator.destroyFederationExecution(federation);
+         created = false;
+      } finally {
+         if (created) try { creator.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         if (connected) try { creator.disconnect(); }
+            catch (Exception ignored) { }
+      }
+   }
+
    private static FederateAmbassador callbacks() {
       return (FederateAmbassador) Proxy.newProxyInstance(
          FederateAmbassador.class.getClassLoader(),

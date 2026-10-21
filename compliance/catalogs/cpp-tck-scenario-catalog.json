@@ -55979,6 +55979,44 @@
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
+    {
+      "id": "cpp-tck.fom-variant-alternative-overlap",
+      "category": "fom-composition",
+      "title": "Reject overlapping named extendable-variant alternatives at federation creation",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "A disjoint alternative composes with the base; a separately schema-valid alternative assigning an overlapping enumerator to another named alternative fails with InconsistentFOM, then a valid retry reuses the federation name. This is bounded evidence for the intact general Annex C.3 conflict rule, not complete extendable-variant merging. The specific cross-page variant continuation remains clipped in the Requirements Lab (RL-319); no HLAother or same-name-alternative claim. Native public-API focused CTest passed 2/2 including duplicate registrations; installed-package CTest passed 4/4 and direct runner passed 4/4 in both callback models.",
+      "contract_refs": ["standard-fom-variant-alternative-overlap-contract.json"],
+      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomVariantAlternativeOverlap",
+      "runner_id": "cpp-tck.fom-variant-alternative-overlap",
+      "parity": "java-tck.fom-variant-alternative-overlap",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-variant-alternative-overlap-contract",
+      "category": "fom-composition",
+      "title": "Portable Annex C.3 overlapping variant-alternative contract",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Repeats the bounded official-API overlap and federation-name reuse assertions; RL-319 prevents treating the clipped variant-specific candidate as complete validation. Installed-package CTest and direct runner passed 4/4 each in both callback models.",
+      "contract_refs": ["standard-fom-variant-alternative-overlap-contract.json"],
+      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomVariantAlternativeOverlapContract",
+      "runner_id": "cpp-tck.fom-variant-alternative-overlap-contract",
+      "parity": "cpp-tck.fom-variant-alternative-overlap",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
         "RTIambassador.deleteRegion",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",

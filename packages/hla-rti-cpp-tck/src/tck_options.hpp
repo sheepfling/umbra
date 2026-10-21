@@ -19,6 +19,9 @@ struct Options {
   std::filesystem::path dataTypeMergeConsumerFom;
   std::filesystem::path dataTypeMergeProviderFom;
   std::filesystem::path dataTypeMergeConflictingProviderFom;
+  std::filesystem::path variantAlternativeBaseFom;
+  std::filesystem::path variantAlternativeDisjointFom;
+  std::filesystem::path variantAlternativeOverlapFom;
   std::filesystem::path knownClassFom;
   std::filesystem::path knownClassDisabledFom;
   std::vector<std::filesystem::path> additionalFomModules;

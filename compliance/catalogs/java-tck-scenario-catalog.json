@@ -8340,6 +8340,24 @@
       "exclusion": "Configure the three hla.rti.tck.dataTypeMerge*Fom properties for a Java IEEE 1516.1-2025 provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-variant-alternative-overlap",
+      "category": "fom-composition",
+      "title": "Accept disjoint and reject overlapping named extendable-variant alternatives",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Standard Java API parity for bounded Annex C.3 variant-alternative overlap and federation-name reuse. The specific variant continuation remains clipped in the Requirements Lab (RL-319); this does not assert complete variant-record merging. API-only compilation required; Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-variant-alternative-overlap-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomVariantAlternativeOverlap",
+      "parity": "cpp-tck.fom-variant-alternative-overlap",
+      "default_status": "unsupported",
+      "exclusion": "Configure the three hla.rti.tck.variantAlternative*Fom properties for a Java IEEE 1516.1-2025 provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-standard-invalid-input-corpus",
       "category": "fom-lifecycle",
       "title": "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",

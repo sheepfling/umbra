@@ -245,6 +245,18 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(default_path("packages/hla-rti-cpp-tck/fom/data-type-merge-conflicting-provider-tck.xml")),
     )
     parser.add_argument(
+        "--variant-alternative-base-fom",
+        default=str(default_path("packages/hla-rti-cpp-tck/fom/variant-alternative-base-tck.xml")),
+    )
+    parser.add_argument(
+        "--variant-alternative-disjoint-fom",
+        default=str(default_path("packages/hla-rti-cpp-tck/fom/variant-alternative-disjoint-tck.xml")),
+    )
+    parser.add_argument(
+        "--variant-alternative-overlap-fom",
+        default=str(default_path("packages/hla-rti-cpp-tck/fom/variant-alternative-overlap-tck.xml")),
+    )
+    parser.add_argument(
         "--known-class-fom",
         default=str(
             default_path("packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml")
@@ -556,6 +568,21 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             must_exist=True,
             label="data-type merge conflicting provider FOM",
         ),
+        "variant_alternative_base_fom": resolve_path(
+            arguments.variant_alternative_base_fom,
+            must_exist=True,
+            label="variant-alternative base FOM",
+        ),
+        "variant_alternative_disjoint_fom": resolve_path(
+            arguments.variant_alternative_disjoint_fom,
+            must_exist=True,
+            label="variant-alternative disjoint FOM",
+        ),
+        "variant_alternative_overlap_fom": resolve_path(
+            arguments.variant_alternative_overlap_fom,
+            must_exist=True,
+            label="variant-alternative overlap FOM",
+        ),
         "known_class_fom": resolve_path(
             arguments.known_class_fom,
             must_exist=True,
@@ -634,6 +661,15 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         ],
         "HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_CONFLICTING_PROVIDER_FOM": inputs[
             "data_type_merge_conflicting_provider_fom"
+        ],
+        "HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_BASE_FOM": inputs[
+            "variant_alternative_base_fom"
+        ],
+        "HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_DISJOINT_FOM": inputs[
+            "variant_alternative_disjoint_fom"
+        ],
+        "HLA_RTI_TCK_ADAPTER_VARIANT_ALTERNATIVE_OVERLAP_FOM": inputs[
+            "variant_alternative_overlap_fom"
         ],
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM": inputs["known_class_fom"],
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM": inputs[
@@ -985,6 +1021,12 @@ def direct_arguments(
         str(inputs["data_type_merge_provider_fom"]),
         "--data-type-merge-conflicting-provider-fom",
         str(inputs["data_type_merge_conflicting_provider_fom"]),
+        "--variant-alternative-base-fom",
+        str(inputs["variant_alternative_base_fom"]),
+        "--variant-alternative-disjoint-fom",
+        str(inputs["variant_alternative_disjoint_fom"]),
+        "--variant-alternative-overlap-fom",
+        str(inputs["variant_alternative_overlap_fom"]),
         "--known-class-fom",
         str(inputs["known_class_fom"]),
         "--known-class-disabled-fom",

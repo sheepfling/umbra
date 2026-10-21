@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The portable scenario invokes only the official IEEE 1516.1-2025 Create/Destroy Federation Execution API with adapter-supplied IEEE 1516.2-2025 FOM modules. It accepts a disjoint named extendable-variant alternative, rejects an overlapping different named alternative as InconsistentFOM, and checks name reuse after rejection. The native public-API focused CTest passed 2/2 including duplicate registrations; installed-package CTest passed 4/4 and direct runner passed 4/4 in both callback models (out/mgw/variant-alternative-20261021.json). The specific Annex C.3 variant continuation is clipped in the Requirements Lab (RL-319); the direct mapping is to the intact general named-data-type conflict rule, not a complete type-specific requirement. Java compiles against the API-only JAR, but provider runtime remains unverified; no conformance, HLAother, or general variant merge claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-variant-alternative-overlap-annex-c3",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador Create Federation Execution vector overload",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_data_type_merge.cpp::scenarioFomVariantAlternativeOverlapContract"
+      ]
+    }
+  ]
+}
