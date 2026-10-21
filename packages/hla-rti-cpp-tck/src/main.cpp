@@ -19481,6 +19481,10 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.explicit-mim-creation-contract",
       "cpp-tck.federation-mom-current-fdd",
       "cpp-tck.federation-mom-current-fdd-contract",
+      "cpp-tck.fom-service-usage-merge",
+      "cpp-tck.fom-service-usage-merge-contract",
+      "cpp-tck.fom-note-collision-remap",
+      "cpp-tck.fom-note-collision-remap-contract",
       "cpp-tck.federation-mom-content-reports",
       "cpp-tck.federation-mom-content-reports-contract",
       "cpp-tck.federation-mom-synchronization-queries",
@@ -19524,8 +19528,6 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.service-report-timestamped-delete-object-instance-contract",
       "cpp-tck.service-report-interaction-failure",
       "cpp-tck.service-report-interlock",
-      "cpp-tck.fom-service-usage-merge",
-      "cpp-tck.fom-service-usage-merge-contract",
       "cpp-tck.service-report-interlock-contract",
       "cpp-tck.service-report-synchronization",
       "cpp-tck.service-report-synchronization-contract",
@@ -21164,6 +21166,18 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.federation-mom-current-fdd-contract") {
     return scenarioFederationMomCurrentFddContract;
   }
+  if (id == "cpp-tck.fom-service-usage-merge") {
+    return scenarioFomServiceUsageMerge;
+  }
+  if (id == "cpp-tck.fom-service-usage-merge-contract") {
+    return scenarioFomServiceUsageMergeContract;
+  }
+  if (id == "cpp-tck.fom-note-collision-remap") {
+    return scenarioFomNoteCollisionRemap;
+  }
+  if (id == "cpp-tck.fom-note-collision-remap-contract") {
+    return scenarioFomNoteCollisionRemapContract;
+  }
   if (id == "cpp-tck.federation-mom-fom-module-designator-list") {
     return scenarioFederationMomFomModuleDesignatorList;
   }
@@ -21208,12 +21222,6 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.service-report-interaction-dimensions") {
     return scenarioServiceReportInteractionDimensions;
-  }
-  if (id == "cpp-tck.fom-service-usage-merge") {
-    return scenarioFomServiceUsageMerge;
-  }
-  if (id == "cpp-tck.fom-service-usage-merge-contract") {
-    return scenarioFomServiceUsageMergeContract;
   }
   if (id == "cpp-tck.service-report-interaction-dimensions-contract") {
     return scenarioServiceReportInteractionDimensionsContract;
@@ -23886,6 +23894,20 @@ int run(Options const& options) {
                  options.additionalFomModules.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied extension FOM module";
+      } else if ((scenario == "cpp-tck.fom-service-usage-merge" ||
+                  scenario == "cpp-tck.fom-service-usage-merge-contract") &&
+                 (options.mimFom.empty() ||
+                  options.scenarioFoms.count("service-usage-first") == 0U ||
+                  options.scenarioFoms.count("service-usage-second") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied MIM and service-usage FOM modules";
+      } else if ((scenario == "cpp-tck.fom-note-collision-remap" ||
+                  scenario == "cpp-tck.fom-note-collision-remap-contract") &&
+                 (options.mimFom.empty() ||
+                  options.scenarioFoms.count("note-collision-first") == 0U ||
+                  options.scenarioFoms.count("note-collision-second") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied MIM and note-collision FOM modules";
       } else if ((scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&
                  options.mimFom.empty()) {
@@ -23937,13 +23959,6 @@ int run(Options const& options) {
             "requires an adapter-supplied multi-attribute ownership FOM";
       } else if (scenario == "cpp-tck.regional-three-dimensional-overlap" &&
                  options.threeDimensionalFom.empty()) {
-      } else if ((scenario == "cpp-tck.fom-service-usage-merge" ||
-                  scenario == "cpp-tck.fom-service-usage-merge-contract") &&
-                 (options.mimFom.empty() ||
-                  options.scenarioFoms.count("service-usage-first") == 0U ||
-                  options.scenarioFoms.count("service-usage-second") == 0U)) {
-        result.status = "skipped";
-        result.message = "requires adapter-supplied MIM and service-usage FOM modules";
         result.status = "skipped";
         result.message =
             "requires an adapter-supplied three-dimensional DDM FOM";

@@ -1,6 +1,7 @@
 #include "tck_federation_mom_content_scenarios.hpp"
 #include "tck_main_scenarios.hpp"
 #include <regex>
+#include <sstream>
 
 namespace hla_rti_cpp_tck::detail {
 
@@ -37,6 +38,117 @@ bool disconnectServiceUsed(std::wstring const& fdd) {
   return used;
 }
 
+std::wstring normalizedXmlText(std::wstring const& value) {
+  std::wistringstream words(value);
+  std::wstring token;
+  std::wstring result;
+  while (words >> token) {
+    if (!result.empty()) result += L' ';
+    result += token;
+  }
+  return result;
+}
+
+void requireDistinctReferencedNotes(std::wstring const& fdd) {
+  std::wregex const note(
+      LR"(<(?:[A-Za-z_][A-Za-z_0-9.-]*:)?note\b[^>]*>([\s\S]*?)</(?:[A-Za-z_][A-Za-z_0-9.-]*:)?note\s*>)");
+  std::wregex const label(
+      LR"(<(?:[A-Za-z_][A-Za-z_0-9.-]*:)?label\b[^>]*>([\s\S]*?)</(?:[A-Za-z_][A-Za-z_0-9.-]*:)?label\s*>)");
+  std::wregex const semantics(
+      LR"(<(?:[A-Za-z_][A-Za-z_0-9.-]*:)?semantics\b[^>]*>([\s\S]*?)</(?:[A-Za-z_][A-Za-z_0-9.-]*:)?semantics\s*>)");
+  std::map<std::wstring, std::wstring> labelsByMeaning;
+  for (std::wsregex_iterator item(fdd.begin(), fdd.end(), note), end;
+       item != end; ++item) {
+    std::wstring const body = (*item)[1].str();
+    std::wsmatch labelMatch;
+    std::wsmatch semanticsMatch;
+    if (!std::regex_search(body, labelMatch, label) ||
+        !std::regex_search(body, semanticsMatch, semantics)) continue;
+    auto const meaning = normalizedXmlText(semanticsMatch[1].str());
+    if (meaning == L"TCK first colliding note semantics." ||
+        meaning == L"TCK second colliding note semantics.") {
+      require(labelsByMeaning.emplace(meaning, normalizedXmlText(labelMatch[1].str())).second,
+              "current FDD duplicated a contributing note");
+    }
+  }
+  auto const first = labelsByMeaning.find(L"TCK first colliding note semantics.");
+  auto const second = labelsByMeaning.find(L"TCK second colliding note semantics.");
+  require(first != labelsByMeaning.end() && second != labelsByMeaning.end() &&
+              !first->second.empty() && !second->second.empty() &&
+              first->second != second->second,
+          "current FDD did not retain both notes with distinct labels");
+
+  std::wregex const disconnect(
+      LR"(<(?:[A-Za-z_][A-Za-z_0-9.-]*:)?disconnect\b[^>]*>)");
+  std::wregex const attribute(
+      LR"((section|isCallback|noteReferences)\s*=\s*(['"])([^'"]*)\2)");
+  bool found = false;
+  for (std::wsregex_iterator tag(fdd.begin(), fdd.end(), disconnect), end;
+       tag != end; ++tag) {
+    std::wstring const xml = tag->str();
+    std::map<std::wstring, std::wstring> attributes;
+    for (std::wsregex_iterator field(xml.begin(), xml.end(), attribute);
+         field != end; ++field) {
+      attributes[(*field)[1].str()] = (*field)[3].str();
+    }
+    if (attributes[L"section"] != L"4.3" ||
+        attributes[L"isCallback"] != L"false") continue;
+    require(!found, "current FDD duplicated the referenced disconnect row");
+    found = true;
+    std::wistringstream references(attributes[L"noteReferences"]);
+    std::set<std::wstring> referenceLabels;
+    std::wstring reference;
+    while (references >> reference) referenceLabels.insert(reference);
+    require(referenceLabels.count(first->second) == 1U &&
+                referenceLabels.count(second->second) == 1U,
+            "current FDD disconnect row did not reference both remapped notes");
+  }
+  require(found, "current FDD omitted the referenced disconnect row");
+}
+
+std::wstring composedCurrentFdd(Options const& options, rti::CallbackModel model,
+                                std::vector<std::wstring> const& modules,
+                                std::string const& suffix) {
+  Session creator(options, model, suffix + "-creator");
+  Session observer(options, model, suffix + "-observer");
+  auto const federation = federationName(options, suffix);
+  creator.connect();
+  observer.connect();
+  creator.rtiAmbassador().createFederationExecutionWithMIM(
+      federation, modules, options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  observer.join(options.memberFederateName, options.federateType, federation);
+  auto const federationClass = observer.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederation");
+  auto const currentFdd = observer.rtiAmbassador().getAttributeHandle(
+      federationClass, L"HLAcurrentFDD");
+  rti::AttributeHandleSet const attributes{currentFdd};
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      federationClass, attributes, true, L"");
+  waitFor(observer, [&] {
+    auto const discovery = observer.recorder().discovery();
+    return discovery.present && discovery.objectClass == federationClass &&
+        discovery.name == L"HLAfederation";
+  }, options, "the federation MOM object for composed FDD");
+  auto const object = observer.recorder().discovery().object;
+  observer.recorder().clearReflection();
+  observer.rtiAmbassador().requestAttributeValueUpdate(
+      object, attributes, rti::VariableLengthData{});
+  waitFor(observer, [&] {
+    auto const reflection = observer.recorder().reflection();
+    return reflection.present && reflection.object == object &&
+        reflection.values.count(currentFdd) == 1U;
+  }, options, "the composed current FDD");
+  rti::HLAunicodeString decoded;
+  decoded.decode(observer.recorder().reflection().values.at(currentFdd));
+  std::wstring value = decoded.get();
+  observer.resign(rti::NO_ACTION);
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  creator.disconnect();
+  return value;
+}
+
 }  // namespace
 
 void scenarioFomServiceUsageMerge(Options const& options,
@@ -49,58 +161,43 @@ void scenarioFomServiceUsageMerge(Options const& options,
               second != options.scenarioFoms.end(),
           "service-usage merge requires two adapter-supplied FOM modules");
 
-  Session creator(options, model, "service-usage-creator");
-  Session observer(options, model, "service-usage-observer");
-  auto const federation = federationName(options, "fom-service-usage-merge");
-  creator.connect();
-  observer.connect();
   auto const readUsage = [&](std::vector<std::wstring> const& modules,
                              bool expected) {
-    creator.rtiAmbassador().createFederationExecutionWithMIM(
-        federation, modules, options.mimFom.wstring(),
-        options.logicalTimeImplementationName);
-    observer.recorder().clearDiscovery();
-    observer.recorder().clearReflection();
-    observer.join(options.memberFederateName, options.federateType, federation);
-    auto const federationClass = observer.rtiAmbassador().getObjectClassHandle(
-        L"HLAobjectRoot.HLAmanager.HLAfederation");
-    auto const currentFdd = observer.rtiAmbassador().getAttributeHandle(
-        federationClass, L"HLAcurrentFDD");
-    rti::AttributeHandleSet const attributes{currentFdd};
-    observer.rtiAmbassador().subscribeObjectClassAttributes(
-        federationClass, attributes, true, L"");
-    waitFor(observer, [&] {
-      auto const discovery = observer.recorder().discovery();
-      return discovery.present && discovery.objectClass == federationClass &&
-          discovery.name == L"HLAfederation";
-    }, options, "the federation MOM object for service usage");
-    auto const object = observer.recorder().discovery().object;
-    observer.recorder().clearReflection();
-    observer.rtiAmbassador().requestAttributeValueUpdate(
-        object, attributes, rti::VariableLengthData{});
-    waitFor(observer, [&] {
-      auto const reflection = observer.recorder().reflection();
-      return reflection.present && reflection.object == object &&
-          reflection.values.count(currentFdd) == 1U;
-    }, options, "the composed current FDD for service usage");
-    rti::HLAunicodeString decoded;
-    decoded.decode(observer.recorder().reflection().values.at(currentFdd));
-    require(disconnectServiceUsed(decoded.get()) == expected,
+    require(disconnectServiceUsed(composedCurrentFdd(
+                options, model, modules, "fom-service-usage-merge")) == expected,
             "current FDD did not logically OR the disconnect service usage");
-    observer.resign(rti::NO_ACTION);
-    creator.rtiAmbassador().destroyFederationExecution(federation);
   };
   readUsage({first->second.wstring()}, false);
   readUsage({second->second.wstring()}, true);
   readUsage({first->second.wstring(), second->second.wstring()}, true);
   readUsage({second->second.wstring(), first->second.wstring()}, true);
-  observer.disconnect();
-  creator.disconnect();
 }
 
 void scenarioFomServiceUsageMergeContract(Options const& options,
                                           rti::CallbackModel model) {
   scenarioFomServiceUsageMerge(options, model);
+}
+
+void scenarioFomNoteCollisionRemap(Options const& options,
+                                   rti::CallbackModel model) {
+  require(!options.mimFom.empty(),
+          "note-remapping requires an adapter-supplied standard MIM");
+  auto const first = options.scenarioFoms.find("note-collision-first");
+  auto const second = options.scenarioFoms.find("note-collision-second");
+  require(first != options.scenarioFoms.end() &&
+              second != options.scenarioFoms.end(),
+          "note-remapping requires two adapter-supplied FOM modules");
+  requireDistinctReferencedNotes(composedCurrentFdd(
+      options, model, {first->second.wstring(), second->second.wstring()},
+      "fom-note-collision-remap"));
+  requireDistinctReferencedNotes(composedCurrentFdd(
+      options, model, {second->second.wstring(), first->second.wstring()},
+      "fom-note-collision-remap-reversed"));
+}
+
+void scenarioFomNoteCollisionRemapContract(Options const& options,
+                                           rti::CallbackModel model) {
+  scenarioFomNoteCollisionRemap(options, model);
 }
 
 void scenarioFederationMomCurrentFdd(

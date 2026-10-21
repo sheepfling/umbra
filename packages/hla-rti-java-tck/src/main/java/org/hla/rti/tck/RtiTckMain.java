@@ -156,6 +156,10 @@ public final class RtiTckMain {
       "hla.rti.tck.serviceUsageFirstFom";
    private static final String SERVICE_USAGE_SECOND_FOM_PROPERTY =
       "hla.rti.tck.serviceUsageSecondFom";
+   private static final String NOTE_COLLISION_FIRST_FOM_PROPERTY =
+      "hla.rti.tck.noteCollisionFirstFom";
+   private static final String NOTE_COLLISION_SECOND_FOM_PROPERTY =
+      "hla.rti.tck.noteCollisionSecondFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1836,6 +1840,12 @@ public final class RtiTckMain {
             "RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.subscribeObjectClassAttributes;RTIambassador.requestAttributeValueUpdate;FederateAmbassador.reflectAttributeValues",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomServiceUsageMerge);
+      run(new Scenario("java-tck.fom-note-collision-remap",
+            "Preserve distinct referenced notes after FOM label collision",
+            "fom-composition",
+            "RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.subscribeObjectClassAttributes;RTIambassador.requestAttributeValueUpdate;FederateAmbassador.reflectAttributeValues",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomNoteCollisionRemap);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11566,6 +11576,8 @@ public final class RtiTckMain {
             method = "fomAdvisorySwitchDuplicateOmitted"; break;
          case "java-tck.fom-service-usage-merge":
             method = "fomServiceUsageMerge"; break;
+         case "java-tck.fom-note-collision-remap":
+            method = "fomNoteCollisionRemap"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -13254,6 +13266,14 @@ public final class RtiTckMain {
       FederationMomCurrentFddTck.runServiceUsageMerge(factory(),
          requireAdapterFile(SERVICE_USAGE_FIRST_FOM_PROPERTY),
          requireAdapterFile(SERVICE_USAGE_SECOND_FOM_PROPERTY), requireMim(),
+         timeImplementation(), callbackModel(),
+         System.getProperty("hla.rti.tck.federateType", "tck-type"));
+   }
+
+   private static void fomNoteCollisionRemap() throws Exception {
+      FederationMomCurrentFddTck.runNoteCollisionRemap(factory(),
+         requireAdapterFile(NOTE_COLLISION_FIRST_FOM_PROPERTY),
+         requireAdapterFile(NOTE_COLLISION_SECOND_FOM_PROPERTY), requireMim(),
          timeImplementation(), callbackModel(),
          System.getProperty("hla.rti.tck.federateType", "tck-type"));
    }

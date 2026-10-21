@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "verified-focused-installed-package-not-conformance-evidence",
+  "notes": "Portable Annex C.9 note-label collision witness through standard federation MOM HLAcurrentFDD. The adapter supplies the provider package, standard MIM, both schema-valid FOM modules, endpoint, logical time, and callback model. Only distinct referenced labels and preserved note semantics are asserted; no provider-specific label spelling or private composer behavior is required. Java provider runtime and interoperability are unverified.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-note-collision-remap",
+      "language": "cpp",
+      "signature": "RTIambassador Create/Join, federation MOM HLAcurrentFDD subscription and request; FederateAmbassador discovery and reflection",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_mom_content_scenarios.cpp::scenarioFomNoteCollisionRemap",
+        "packages/hla-rti-cpp-tck/src/tck_federation_mom_content_scenarios.cpp::scenarioFomNoteCollisionRemapContract"
+      ]
+    }
+  ],
+  "requirement_mappings": [
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l66-11",
+      "standard_section": "hla-1516.2-2025:clause-C.9"
+    }
+  ]
+}

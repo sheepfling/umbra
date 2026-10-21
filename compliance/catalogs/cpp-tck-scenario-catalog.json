@@ -67338,6 +67338,42 @@
       "native_equivalent_runner_ids": ["umbra-cpp-fom-notes-service-usage-merge"],
       "default_status": "adapter-required",
       "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-note-collision-remap",
+      "category": "fom-composition",
+      "title": "Preserve distinct referenced notes after FOM label collision",
+      "api_methods": ["RTIambassador.createFederationExecutionWithMIM", "RTIambassador.joinFederationExecution", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.requestAttributeValueUpdate", "FederateAmbassador.reflectAttributeValues"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l66-11"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.9"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l66-11", "standard_section": "hla-1516.2-2025:clause-C.9"}],
+      "mapping_note": "Native C.9 case passed 16 assertions. Public HLAcurrentFDD checks that two colliding source labels yield distinct referenced notes with preserved semantics in both module orders. Installed-package focused CTest and direct runs passed 8/8 each across both callback models including the C.10 service-usage regression (out/mgw/note-collision-remap-20261021.json). No provider-selected label spelling is asserted.",
+      "contract_refs": ["standard-fom-note-collision-remap-contract.json"],
+      "cpp_test": "src/tck_federation_mom_content_scenarios.cpp#scenarioFomNoteCollisionRemap",
+      "runner_id": "cpp-tck.fom-note-collision-remap",
+      "parity": "java-tck.fom-note-collision-remap",
+      "native_equivalent_runner_ids": ["umbra-cpp-fom-notes-service-usage-merge"],
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-note-collision-remap-contract",
+      "category": "fom-composition",
+      "title": "Contract twin for FOM note-label collision remapping",
+      "api_methods": ["RTIambassador.createFederationExecutionWithMIM", "RTIambassador.joinFederationExecution", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.requestAttributeValueUpdate", "FederateAmbassador.reflectAttributeValues"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l66-11"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.9"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l66-11", "standard_section": "hla-1516.2-2025:clause-C.9"}],
+      "mapping_note": "Repeats the primary public current-FDD note-collision assertions; installed-package focused CTest and direct runs passed 8/8 each across both callback models with the C.10 regression.",
+      "contract_refs": ["standard-fom-note-collision-remap-contract.json"],
+      "cpp_test": "src/tck_federation_mom_content_scenarios.cpp#scenarioFomNoteCollisionRemapContract",
+      "runner_id": "cpp-tck.fom-note-collision-remap-contract",
+      "parity": "cpp-tck.fom-note-collision-remap",
+      "native_equivalent_runner_ids": ["umbra-cpp-fom-notes-service-usage-merge"],
+      "default_status": "adapter-required",
+      "promotion": "promoted"
     }
   ]
 }

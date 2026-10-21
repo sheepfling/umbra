@@ -772,6 +772,10 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/service-usage-first-tck.xml")),
             "service-usage-second="
             + str(default_path("packages/hla-rti-cpp-tck/fom/service-usage-second-tck.xml")),
+            "note-collision-first="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/note-collision-first-tck.xml")),
+            "note-collision-second="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/note-collision-second-tck.xml")),
         ]
     scenario_foms: list[str] = []
     seen_scenario_foms: set[str] = set()

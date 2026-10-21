@@ -8798,6 +8798,22 @@
       "exclusion": "Configure hla.rti.tck.serviceUsageFirstFom, hla.rti.tck.serviceUsageSecondFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-note-collision-remap",
+      "category": "fom-composition",
+      "title": "Preserve distinct referenced notes after FOM label collision",
+      "api_methods": ["RTIambassador.createFederationExecutionWithMIM", "RTIambassador.joinFederationExecution", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.requestAttributeValueUpdate", "FederateAmbassador.reflectAttributeValues"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l66-11"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.9"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l66-11", "standard_section": "hla-1516.2-2025:clause-C.9"}],
+      "mapping_note": "Java API and JDK DOM-parser parity for both FOM orders; label spelling is not asserted. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-note-collision-remap-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomNoteCollisionRemap",
+      "parity": "cpp-tck.fom-note-collision-remap",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.noteCollisionFirstFom, hla.rti.tck.noteCollisionSecondFom, and hla.rti.tck.mim for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-standard-invalid-input-corpus",
       "category": "fom-lifecycle",
       "title": "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",

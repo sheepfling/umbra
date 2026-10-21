@@ -23,6 +23,7 @@ import java.util.function.BooleanSupplier;
 import java.io.StringReader;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -37,7 +38,7 @@ final class FederationMomCurrentFddTck {
          String timeImplementation, CallbackModel callbackModel, String federateType,
          String baseDeclaration, String extensionDeclaration) throws Exception {
       runImpl(factory, fom, mim, additionalFom, timeImplementation, callbackModel,
-         federateType, baseDeclaration, extensionDeclaration, null);
+         federateType, baseDeclaration, extensionDeclaration, null, false);
    }
 
    static void runServiceUsageMerge(RtiFactory factory, String first, String second,
@@ -45,16 +46,27 @@ final class FederationMomCurrentFddTck {
          String federateType) throws Exception {
       runImpl(factory, first, mim, second, timeImplementation, callbackModel,
          federateType, "TCK first service usage note.",
-         "TCK second service usage note.", Boolean.FALSE);
+         "TCK second service usage note.", Boolean.FALSE, false);
       runImpl(factory, second, mim, first, timeImplementation, callbackModel,
          federateType, "TCK second service usage note.",
-         "TCK first service usage note.", Boolean.TRUE);
+         "TCK first service usage note.", Boolean.TRUE, false);
+   }
+
+   static void runNoteCollisionRemap(RtiFactory factory, String first, String second,
+         String mim, String timeImplementation, CallbackModel callbackModel,
+         String federateType) throws Exception {
+      runImpl(factory, first, mim, second, timeImplementation, callbackModel,
+         federateType, "TCK first colliding note semantics.",
+         "TCK second colliding note semantics.", null, true);
+      runImpl(factory, second, mim, first, timeImplementation, callbackModel,
+         federateType, "TCK second colliding note semantics.",
+         "TCK first colliding note semantics.", null, true);
    }
 
    private static void runImpl(RtiFactory factory, String fom, String mim,
          String additionalFom, String timeImplementation, CallbackModel callbackModel,
          String federateType, String baseDeclaration, String extensionDeclaration,
-         Boolean expectedBaseUsage) throws Exception {
+         Boolean expectedBaseUsage, boolean expectNoteRemap) throws Exception {
       check(baseDeclaration != null && !baseDeclaration.isEmpty()
             && extensionDeclaration != null && !extensionDeclaration.isEmpty(),
          "current-FDD declaration markers must be adapter-configured and non-empty");
@@ -151,6 +163,7 @@ final class FederationMomCurrentFddTck {
             check(disconnectServiceUsed(refreshedFdd),
                "composed current FDD did not logically OR disconnect service usage");
          }
+         if (expectNoteRemap) requireDistinctReferencedNotes(refreshedFdd);
 
          String requestedFdd = requestCurrentFdd(observer, observerRecorder, encoder,
             callbackModel, federationObject, currentFddAttribute, currentFddAttributes,
@@ -174,14 +187,7 @@ final class FederationMomCurrentFddTck {
    }
 
    private static boolean disconnectServiceUsed(String fdd) throws Exception {
-      DocumentBuilderFactory builder = DocumentBuilderFactory.newInstance();
-      builder.setNamespaceAware(true);
-      builder.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-      builder.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-      builder.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-      NodeList rows = builder.newDocumentBuilder()
-         .parse(new InputSource(new StringReader(fdd)))
-         .getElementsByTagNameNS("*", "disconnect");
+      NodeList rows = parseFdd(fdd).getElementsByTagNameNS("*", "disconnect");
       Boolean found = null;
       for (int index = 0; index < rows.getLength(); index++) {
          Element row = (Element) rows.item(index);
@@ -195,6 +201,55 @@ final class FederationMomCurrentFddTck {
       }
       check(found != null, "current FDD omitted the adapter disconnect service row");
       return found.booleanValue();
+   }
+
+   private static Document parseFdd(String fdd) throws Exception {
+      DocumentBuilderFactory builder = DocumentBuilderFactory.newInstance();
+      builder.setNamespaceAware(true);
+      builder.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+      builder.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+      builder.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+      return builder.newDocumentBuilder().parse(new InputSource(new StringReader(fdd)));
+   }
+
+   private static void requireDistinctReferencedNotes(String fdd) throws Exception {
+      Document document = parseFdd(fdd);
+      NodeList notes = document.getElementsByTagNameNS("*", "note");
+      Map<String, String> labels = new LinkedHashMap<>();
+      for (int index = 0; index < notes.getLength(); index++) {
+         Element note = (Element) notes.item(index);
+         NodeList label = note.getElementsByTagNameNS("*", "label");
+         NodeList semantics = note.getElementsByTagNameNS("*", "semantics");
+         if (label.getLength() != 1 || semantics.getLength() != 1) continue;
+         String meaning = semantics.item(0).getTextContent().trim().replaceAll("\\s+", " ");
+         if ("TCK first colliding note semantics.".equals(meaning)
+               || "TCK second colliding note semantics.".equals(meaning)) {
+            check(!labels.containsKey(meaning), "current FDD duplicated a contributing note");
+            labels.put(meaning, label.item(0).getTextContent().trim());
+         }
+      }
+      String first = labels.get("TCK first colliding note semantics.");
+      String second = labels.get("TCK second colliding note semantics.");
+      check(first != null && second != null && !first.isEmpty() && !second.isEmpty()
+            && !first.equals(second),
+         "current FDD did not retain both notes with distinct labels");
+      NodeList rows = document.getElementsByTagNameNS("*", "disconnect");
+      boolean found = false;
+      for (int index = 0; index < rows.getLength(); index++) {
+         Element row = (Element) rows.item(index);
+         if (!"4.3".equals(row.getAttribute("section"))
+               || !"false".equals(row.getAttribute("isCallback"))) continue;
+         check(!found, "current FDD duplicated the referenced disconnect row");
+         found = true;
+         String references = row.getAttribute("noteReferences");
+         java.util.Set<String> referenceLabels = new java.util.HashSet<>();
+         for (String reference : references.trim().split("\\s+")) {
+            referenceLabels.add(reference);
+         }
+         check(referenceLabels.contains(first) && referenceLabels.contains(second),
+            "current FDD disconnect row did not reference both remapped notes");
+      }
+      check(found, "current FDD omitted the referenced disconnect row");
    }
 
    private static String requestCurrentFdd(RTIambassador observer, Recorder recorder,
