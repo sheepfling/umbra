@@ -25,6 +25,9 @@ struct Options {
   std::filesystem::path interactionParameterBaseFom;
   std::filesystem::path interactionParameterDisjointFom;
   std::filesystem::path interactionParameterConflictFom;
+  std::filesystem::path objectAttributeBaseFom;
+  std::filesystem::path objectAttributeDisjointFom;
+  std::filesystem::path objectAttributeConflictFom;
   std::filesystem::path knownClassFom;
   std::filesystem::path knownClassDisabledFom;
   std::vector<std::filesystem::path> additionalFomModules;

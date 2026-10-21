@@ -68,6 +68,12 @@ public final class RtiTckMain {
       "hla.rti.tck.interactionParameterDisjointFom";
    private static final String INTERACTION_PARAMETER_CONFLICT_FOM_PROPERTY =
       "hla.rti.tck.interactionParameterConflictFom";
+   private static final String OBJECT_ATTRIBUTE_BASE_FOM_PROPERTY =
+      "hla.rti.tck.objectAttributeBaseFom";
+   private static final String OBJECT_ATTRIBUTE_DISJOINT_FOM_PROPERTY =
+      "hla.rti.tck.objectAttributeDisjointFom";
+   private static final String OBJECT_ATTRIBUTE_CONFLICT_FOM_PROPERTY =
+      "hla.rti.tck.objectAttributeConflictFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1592,6 +1598,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomInteractionParameterMergeConflict);
+      run(new Scenario("java-tck.fom-object-attribute-merge-conflict",
+            "Merge disjoint object attributes and reject conflicting semantics",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomObjectAttributeMergeConflict);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11270,6 +11282,8 @@ public final class RtiTckMain {
             method = "fomVariantAlternativeOverlap"; break;
          case "java-tck.fom-interaction-parameter-merge-conflict":
             method = "fomInteractionParameterMergeConflict"; break;
+         case "java-tck.fom-object-attribute-merge-conflict":
+            method = "fomObjectAttributeMergeConflict"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -12772,6 +12786,14 @@ public final class RtiTckMain {
          requireAdapterFile(INTERACTION_PARAMETER_BASE_FOM_PROPERTY),
          requireAdapterFile(INTERACTION_PARAMETER_DISJOINT_FOM_PROPERTY),
          requireAdapterFile(INTERACTION_PARAMETER_CONFLICT_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomObjectAttributeMergeConflict() throws Exception {
+      FomObjectAttributeMergeTck.run(factory(),
+         requireAdapterFile(OBJECT_ATTRIBUTE_BASE_FOM_PROPERTY),
+         requireAdapterFile(OBJECT_ATTRIBUTE_DISJOINT_FOM_PROPERTY),
+         requireAdapterFile(OBJECT_ATTRIBUTE_CONFLICT_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 

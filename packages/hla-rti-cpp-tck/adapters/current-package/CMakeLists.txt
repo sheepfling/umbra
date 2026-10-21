@@ -90,6 +90,15 @@ set(HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_DISJOINT_FOM
 set(HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_CONFLICT_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/interaction-parameter-merge-conflict-tck.xml"
   CACHE FILEPATH "Annex C.3 conflicting interaction-parameter FOM supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_BASE_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/object-attribute-merge-base-tck.xml"
+  CACHE FILEPATH "Annex C.3 object-attribute base FOM supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_DISJOINT_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/object-attribute-merge-disjoint-tck.xml"
+  CACHE FILEPATH "Annex C.3 disjoint object-attribute FOM supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_CONFLICT_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/object-attribute-merge-conflict-tck.xml"
+  CACHE FILEPATH "Annex C.3 conflicting object-attribute FOM supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"
   CACHE FILEPATH "Known-class advisory FOM supplied by this provider adapter")
@@ -455,6 +464,9 @@ set(_tck_common_arguments
   --interaction-parameter-base-fom "${HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_BASE_FOM}"
   --interaction-parameter-disjoint-fom "${HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_DISJOINT_FOM}"
   --interaction-parameter-conflict-fom "${HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_CONFLICT_FOM}"
+  --object-attribute-base-fom "${HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_BASE_FOM}"
+  --object-attribute-disjoint-fom "${HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_DISJOINT_FOM}"
+  --object-attribute-conflict-fom "${HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_CONFLICT_FOM}"
   --fom-custom-transportation "${HLA_RTI_TCK_ADAPTER_FOM_CUSTOM_TRANSPORTATION}"
   --fom-additional-transportation
     "${HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_TRANSPORTATION}"

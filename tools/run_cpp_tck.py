@@ -269,6 +269,18 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(default_path("packages/hla-rti-cpp-tck/fom/interaction-parameter-merge-conflict-tck.xml")),
     )
     parser.add_argument(
+        "--object-attribute-base-fom",
+        default=str(default_path("packages/hla-rti-cpp-tck/fom/object-attribute-merge-base-tck.xml")),
+    )
+    parser.add_argument(
+        "--object-attribute-disjoint-fom",
+        default=str(default_path("packages/hla-rti-cpp-tck/fom/object-attribute-merge-disjoint-tck.xml")),
+    )
+    parser.add_argument(
+        "--object-attribute-conflict-fom",
+        default=str(default_path("packages/hla-rti-cpp-tck/fom/object-attribute-merge-conflict-tck.xml")),
+    )
+    parser.add_argument(
         "--known-class-fom",
         default=str(
             default_path("packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml")
@@ -610,6 +622,21 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             must_exist=True,
             label="interaction-parameter conflict FOM",
         ),
+        "object_attribute_base_fom": resolve_path(
+            arguments.object_attribute_base_fom,
+            must_exist=True,
+            label="object-attribute base FOM",
+        ),
+        "object_attribute_disjoint_fom": resolve_path(
+            arguments.object_attribute_disjoint_fom,
+            must_exist=True,
+            label="object-attribute disjoint FOM",
+        ),
+        "object_attribute_conflict_fom": resolve_path(
+            arguments.object_attribute_conflict_fom,
+            must_exist=True,
+            label="object-attribute conflict FOM",
+        ),
         "known_class_fom": resolve_path(
             arguments.known_class_fom,
             must_exist=True,
@@ -706,6 +733,15 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         ],
         "HLA_RTI_TCK_ADAPTER_INTERACTION_PARAMETER_CONFLICT_FOM": inputs[
             "interaction_parameter_conflict_fom"
+        ],
+        "HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_BASE_FOM": inputs[
+            "object_attribute_base_fom"
+        ],
+        "HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_DISJOINT_FOM": inputs[
+            "object_attribute_disjoint_fom"
+        ],
+        "HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_CONFLICT_FOM": inputs[
+            "object_attribute_conflict_fom"
         ],
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM": inputs["known_class_fom"],
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM": inputs[
@@ -1069,6 +1105,12 @@ def direct_arguments(
         str(inputs["interaction_parameter_disjoint_fom"]),
         "--interaction-parameter-conflict-fom",
         str(inputs["interaction_parameter_conflict_fom"]),
+        "--object-attribute-base-fom",
+        str(inputs["object_attribute_base_fom"]),
+        "--object-attribute-disjoint-fom",
+        str(inputs["object_attribute_disjoint_fom"]),
+        "--object-attribute-conflict-fom",
+        str(inputs["object_attribute_conflict_fom"]),
         "--known-class-fom",
         str(inputs["known_class_fom"]),
         "--known-class-disabled-fom",

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <modelIdentification><name>TCK Attribute Merge Base</name><type>FOM</type></modelIdentification>
+  <objects><objectClass><name>HLAobjectRoot</name>
+    <objectClass><name>TckAttributeMergeObject</name><sharing>PublishSubscribe</sharing>
+      <semantics>Shared class declaration</semantics>
+      <attribute><name>FirstValue</name><dataType>HLAunicodeString</dataType>
+        <updateType>Static</updateType><updateCondition>NA</updateCondition>
+        <valueRequired>false</valueRequired><ownership>DivestAcquire</ownership>
+        <sharing>PublishSubscribe</sharing><transportation>HLAreliable</transportation>
+        <order>Receive</order><semantics>First value from the base module</semantics>
+      </attribute>
+    </objectClass>
+  </objectClass></objects>
+</objectModel>

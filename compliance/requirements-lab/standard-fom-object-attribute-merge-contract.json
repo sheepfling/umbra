@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable Annex C.3 object-attribute composition uses only official IEEE 1516.1-2025 RTIambassador and FederateAmbassador interfaces with adapter-owned FOM modules. It checks the positive disjoint attribute-set union through both handle lookups, rejects conflicting semantics for one same-named attribute as InconsistentFOM, and checks a valid federation-name retry. Native official-API and installed-package results are recorded in the roadmap handoff; Java provider runtime and interoperability are not verified. No other attribute sub-elements are claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-object-attribute-merge-annex-c3",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>), joinFederationExecution, getObjectClassHandle, getAttributeHandle, resignFederationExecution, and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and object-attribute lookup services",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_object_attribute_merge.cpp::scenarioFomObjectAttributeMergeConflictContract"
+      ]
+    }
+  ]
+}

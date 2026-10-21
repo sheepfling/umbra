@@ -11879,6 +11879,33 @@
       "next_action": "Keep this public interaction-parameter merge/conflict case green, then translate only its verified behavior to portable C++ and Java TCK cases with adapter-owned FOM modules."
     },
     {
+      "id": "umbra-cpp-annex-c-object-attribute-create-integration",
+      "primary_lane": "annex-c-object-attribute-public",
+      "focus_lane": "annex-c-object-attribute-public",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.createfederationexecution.b7555a12e578"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l18-4"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l18-4", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "test_case": "Embedded Create Federation Execution merges disjoint object attributes and rejects conflicting semantics",
+      "tags": [
+        "integration", "development-profile", "federation-management", "fom", "annex-c",
+        "annex-c-object-attribute-public", "rti.service.create-federation-execution",
+        "rti.service.get-object-class-handle", "rti.service.get-attribute-handle"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/fom_declaration_management_catch2.cpp:452",
+      "assertions": 15,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirements_lab_api_surface_status": "Official vector Create Federation Execution merges disjoint attributes of one named object class and a joined member resolves both attribute handles. Reusing one attribute name with different semantics raises InconsistentFOM; valid retry under the same federation name confirms rejected creation left no reservation. Only the positive set union and semantics-field conflict at page 110 line 18 are evidenced, not other attribute sub-elements, interoperability, or conformance.",
+      "next_action": "Keep this bounded official-API witness green; the matching portable C++ primary/contract IDs passed the installed-package gate in both callback models. Other object-attribute sub-elements need separate evidence."
+    },
+    {
       "id": "umbra-cpp-annex-c-extendable-variant-named-alternative-merge-unit",
       "primary_lane": "annex-c-variant-alternative-merge",
       "focus_lane": "annex-c-variant-alternative-merge",

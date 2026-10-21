@@ -8376,6 +8376,24 @@
       "exclusion": "Configure the three hla.rti.tck.interactionParameter*Fom properties for a Java IEEE 1516.1-2025 provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-object-attribute-merge-conflict",
+      "category": "fom-composition",
+      "title": "Merge disjoint object attributes and reject conflicting semantics",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l18-4"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l18-4", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Standard Java API parity for bounded Annex C.3 disjoint object-attribute union, semantics-field conflict, and federation-name retry. FOMs and callback model are adapter-owned. API-only compilation required; provider runtime unverified.",
+      "contract_refs": ["standard-fom-object-attribute-merge-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomObjectAttributeMergeConflict",
+      "parity": "cpp-tck.fom-object-attribute-merge-conflict",
+      "default_status": "unsupported",
+      "exclusion": "Configure the three hla.rti.tck.objectAttribute*Fom properties for a Java IEEE 1516.1-2025 provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-standard-invalid-input-corpus",
       "category": "fom-lifecycle",
       "title": "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",

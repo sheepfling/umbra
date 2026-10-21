@@ -55750,6 +55750,44 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.fom-object-attribute-merge-conflict",
+      "category": "fom-composition",
+      "title": "Merge disjoint object attributes and reject conflicting semantics",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l18-4"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l18-4", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Two modules declare disjoint attributes of one object class and a joined member resolves both via official handles. A repeated attribute name with conflicting semantics raises InconsistentFOM; a valid retry reuses the federation name. Bounded Annex C.3 evidence for the semantics field only. Native official-API CTest passed 1/1; installed-package CTest and direct runner passed 4/4 each in both callback models.",
+      "contract_refs": ["standard-fom-object-attribute-merge-contract.json"],
+      "cpp_test": "src/tck_fom_object_attribute_merge.cpp#scenarioFomObjectAttributeMergeConflict",
+      "runner_id": "cpp-tck.fom-object-attribute-merge-conflict",
+      "parity": "java-tck.fom-object-attribute-merge-conflict",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-object-attribute-merge-conflict-contract",
+      "category": "fom-composition",
+      "title": "Portable Annex C.3 object-attribute merge/conflict contract",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l18-4"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l18-4", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Repeats the primary official-API attribute union, semantics-field conflict, and federation-name retry assertions; installed-package CTest and direct runner passed 4/4 each in both callback models.",
+      "contract_refs": ["standard-fom-object-attribute-merge-contract.json"],
+      "cpp_test": "src/tck_fom_object_attribute_merge.cpp#scenarioFomObjectAttributeMergeConflictContract",
+      "runner_id": "cpp-tck.fom-object-attribute-merge-conflict-contract",
+      "parity": "cpp-tck.fom-object-attribute-merge-conflict",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.connection-loss-cleanup",
       "category": "connection",
       "title": "Report connection loss, enforce the disconnected service state, and keep the survivor usable",
