@@ -4088,6 +4088,13 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-08-time-management-page-208-l162-43",
                "requirement-candidate-content-clauses-08-time-management-page-209-l75-19"
             }, false), RtiTckMain::restoreDeferredLookahead);
+      run(new Scenario("java-tck.fqr-deferred-lookahead",
+            "Apply a pending lookahead decrease after an early Flush Queue grant",
+            "time-management",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.enableTimeRegulation;RTIambassador.modifyLookahead;RTIambassador.queryLookahead;RTIambassador.flushQueueRequest;RTIambassador.queryLogicalTime;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.flushQueueGrant",
+            new String[] {
+               "requirement-candidate-content-clauses-08-time-management-page-203-l47-12"
+            }, false), RtiTckMain::fqrDeferredLookahead);
       run(new Scenario("java-tck.restore-multi-pending-time-advance",
             "Restore independently pending time advances for two constrained members",
             "federation-save-restore",
@@ -10111,6 +10118,11 @@ public final class RtiTckMain {
          timeImplementation(), callbackModel());
    }
 
+   private static void fqrDeferredLookahead() throws Exception {
+      FqrDeferredLookaheadTck.run(factory(), requireFom(),
+         timeImplementation(), callbackModel());
+   }
+
    private static void restoreMultiPendingTimeAdvance() throws Exception {
       RestoreMultiPendingTimeAdvanceTck.run(factory(), requireFom(),
          timeImplementation(), callbackModel());
@@ -11485,6 +11497,8 @@ public final class RtiTckMain {
             method = "restoreTimeWindowState"; break;
          case "java-tck.restore-deferred-lookahead":
             method = "restoreDeferredLookahead"; break;
+         case "java-tck.fqr-deferred-lookahead":
+            method = "fqrDeferredLookahead"; break;
          case "java-tck.restore-multi-pending-time-advance":
             method = "restoreMultiPendingTimeAdvance"; break;
          case "java-tck.restore-pending-flush-queue-immediate":

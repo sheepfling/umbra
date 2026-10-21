@@ -65131,6 +65131,66 @@
       "cpp_test": "src/tck_timed_restore_regional_attribute_multi_recipient.cpp#scenarioTimedRestoreRegionalAttributeMultiRecipientContract",
       "runner_id": "cpp-tck.timed-restore-regional-attribute-multi-recipient-contract",
       "parity": "java-tck.timed-restore-regional-attribute-multi-recipient"
+    },
+    {
+      "id": "cpp-tck.fqr-deferred-lookahead",
+      "category": "time-management",
+      "title": "Apply a pending lookahead decrease after an early Flush Queue grant",
+      "requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-203-l47-12"],
+      "api_methods": [
+        "RTIambassador.connect", "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution", "RTIambassador.enableTimeRegulation",
+        "RTIambassador.modifyLookahead", "RTIambassador.queryLookahead",
+        "RTIambassador.flushQueueRequest", "RTIambassador.queryLogicalTime",
+        "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect", "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.flushQueueGrant"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-203-l47-12"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.13.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l47-12", "standard_section": "hla-1516.1-2025:clause-8.13.4"}
+      ],
+      "mapping_note": "Native HLA_EVOKED positive control passed. With requester actual lookahead 10 and peer boundary 5, Modify Lookahead(2) stays pending before FQR(10). The Flush Queue Grant reports actual time 5 and optimistic time 10, after which Query Lookahead is max(2, 10 - 5) = 5. Isolated installed-package CTest passed 2/2 and direct executions passed with both integer64 and float64 logical time. This tests one §8.13.4 arithmetic branch only; no other callback model, lookahead relationship, transport topology, or conformance is claimed.",
+      "callback_models": ["evoked"],
+      "callback_model_scope_note": "The native source verifies HLA_EVOKED only; HLA_IMMEDIATE is not claimed.",
+      "contract_refs": ["flush-queue-request-api-contract.json", "flush-queue-request-requirements-contract.json", "modify-lookahead-api-contract.json", "modify-lookahead-requirements-contract.json"],
+      "cpp_test": "src/tck_fqr_deferred_lookahead.cpp#scenarioFqrDeferredLookahead",
+      "runner_id": "cpp-tck.fqr-deferred-lookahead",
+      "parity": "java-tck.fqr-deferred-lookahead",
+      "native_equivalent_runner_ids": ["umbra-cpp-flush-queue-request-deferred-lookahead"],
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fqr-deferred-lookahead-contract",
+      "category": "time-management",
+      "title": "Portable contract for pending lookahead after an early Flush Queue grant",
+      "requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-203-l47-12"],
+      "api_methods": [
+        "RTIambassador.enableTimeRegulation", "RTIambassador.modifyLookahead",
+        "RTIambassador.queryLookahead", "RTIambassador.flushQueueRequest",
+        "RTIambassador.queryLogicalTime", "FederateAmbassador.flushQueueGrant"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-203-l47-12"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.13.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l47-12", "standard_section": "hla-1516.1-2025:clause-8.13.4"}
+      ],
+      "mapping_note": "The contract twin executes the same public-API FQR(10) early-grant and deferred lookahead max(2, 10 - 5) = 5 assertion. It is HLA_EVOKED-only. Isolated installed-package CTest passed 2/2 and direct executions passed with both integer64 and float64 logical time; no broader service or conformance claim is made.",
+      "callback_models": ["evoked"],
+      "callback_model_scope_note": "The native source verifies HLA_EVOKED only; HLA_IMMEDIATE is not claimed.",
+      "contract_refs": ["flush-queue-request-api-contract.json", "modify-lookahead-api-contract.json"],
+      "cpp_test": "src/tck_fqr_deferred_lookahead.cpp#scenarioFqrDeferredLookaheadContract",
+      "runner_id": "cpp-tck.fqr-deferred-lookahead-contract",
+      "parity": "cpp-tck.fqr-deferred-lookahead",
+      "native_equivalent_runner_ids": ["umbra-cpp-flush-queue-request-deferred-lookahead"],
+      "default_status": "adapter-required",
+      "promotion": "promoted"
     }
   ]
 }

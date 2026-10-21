@@ -38432,6 +38432,35 @@
       "parity": "cpp-tck.attribute-relevance-known-class-disabled",
       "default_status": "unsupported",
       "exclusion": "Requires adapter-supplied disabled-policy FOM and known/derived object-class and attribute names, plus a Java IEEE 1516.1-2025 provider and callback model. Provider runtime verification remains pending."
+    },
+    {
+      "id": "java-tck.fqr-deferred-lookahead",
+      "category": "time-management",
+      "title": "Apply a pending lookahead decrease after an early Flush Queue grant",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution",
+        "RTIambassador.enableTimeRegulation", "RTIambassador.modifyLookahead",
+        "RTIambassador.queryLookahead", "RTIambassador.flushQueueRequest",
+        "RTIambassador.queryLogicalTime", "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect",
+        "FederateAmbassador.timeRegulationEnabled", "FederateAmbassador.flushQueueGrant"
+      ],
+      "requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-203-l47-12"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-203-l47-12"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.13.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l47-12", "standard_section": "hla-1516.1-2025:clause-8.13.4"}
+      ],
+      "mapping_note": "API-only HLA_EVOKED parity for the one native-green §8.13.4 branch: Modify Lookahead(2) remains pending from actual 10 until FQR(10) grants at 5, after which Query Lookahead is max(2, 10 - 5) = 5. The provider, FOM, endpoint, callback model, and time implementation are adapter supplied. No Java provider-runtime or conformance claim is made.",
+      "contract_refs": ["flush-queue-request-api-contract.json", "modify-lookahead-api-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fqrDeferredLookahead",
+      "parity": "cpp-tck.fqr-deferred-lookahead",
+      "default_status": "unsupported",
+      "promotion": "candidate",
+      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, logical-time implementation, endpoint, and HLA_EVOKED callbacks; Java provider runtime has not been executed."
     }
   ],
   "exclusions": [

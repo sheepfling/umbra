@@ -83,6 +83,7 @@ void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
 #include "tck_restore_terminal_tso_directed_interaction.hpp"
 #include "tck_restore_time_window_state.hpp"
 #include "tck_restore_deferred_lookahead.hpp"
+#include "tck_fqr_deferred_lookahead.hpp"
 #include "tck_restore_multi_pending_time_advance.hpp"
 #include "tck_restore_pending_flush_queue_immediate.hpp"
 #include "tck_restore_object_snapshot_status.hpp"
@@ -1472,6 +1473,10 @@ constexpr char restoreDeferredLookaheadScenario[] =
     "cpp-tck.restore-deferred-lookahead";
 constexpr char restoreDeferredLookaheadContractId[] =
     "cpp-tck.restore-deferred-lookahead-contract";
+constexpr char fqrDeferredLookaheadScenario[] =
+    "cpp-tck.fqr-deferred-lookahead";
+constexpr char fqrDeferredLookaheadContractId[] =
+    "cpp-tck.fqr-deferred-lookahead-contract";
 constexpr char restoreMultiPendingTimeAdvanceScenario[] =
     "cpp-tck.restore-multi-pending-time-advance";
 constexpr char restoreMultiPendingTimeAdvanceContractId[] =
@@ -17542,6 +17547,14 @@ int runRestoreDeferredLookaheadScenarios(int argc, char** argv) {
       scenarioRestoreDeferredLookaheadContract, true);
 }
 
+int runFqrDeferredLookaheadScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, fqrDeferredLookaheadScenario,
+      fqrDeferredLookaheadContractId,
+      scenarioFqrDeferredLookahead,
+      scenarioFqrDeferredLookaheadContract, true);
+}
+
 int runRestoreMultiPendingTimeAdvanceScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc, argv, restoreMultiPendingTimeAdvanceScenario,
@@ -21589,6 +21602,16 @@ bool hasRestoreDeferredLookaheadScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == restoreDeferredLookaheadScenario ||
         scenario == restoreDeferredLookaheadContractId) return true;
+  }
+  return false;
+}
+
+bool hasFqrDeferredLookaheadScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == fqrDeferredLookaheadScenario ||
+        scenario == fqrDeferredLookaheadContractId) return true;
   }
   return false;
 }
@@ -26174,6 +26197,9 @@ int main(int argc, char** argv) {
     }
     if (hasRestoreDeferredLookaheadScenario(argc, argv)) {
       return runRestoreDeferredLookaheadScenarios(argc, argv);
+    }
+    if (hasFqrDeferredLookaheadScenario(argc, argv)) {
+      return runFqrDeferredLookaheadScenarios(argc, argv);
     }
     if (hasRestoreMultiPendingTimeAdvanceScenario(argc, argv)) {
       return runRestoreMultiPendingTimeAdvanceScenarios(argc, argv);
