@@ -8590,6 +8590,38 @@
       "exclusion": "Configure hla.rti.tck.dimensionDuplicateBaseFom and dimensionDuplicateConflictFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-synchronization-duplicate-equal",
+      "category": "fom-composition",
+      "title": "Accept identical same-label synchronization declarations",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l58-10"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.5"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l58-10", "standard_section": "hla-1516.2-2025:clause-C.5"}],
+      "mapping_note": "Standard Java API parity for same-label equal synchronization declarations. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-synchronization-duplicate-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomSynchronizationDuplicateEqual",
+      "parity": "cpp-tck.fom-synchronization-duplicate-equal",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.synchronizationDuplicateBaseFom and synchronizationDuplicateEqualFom for a 2025 Java provider; runtime unverified."
+    },
+    {
+      "id": "java-tck.fom-synchronization-duplicate-note-conflict",
+      "category": "fom-composition",
+      "title": "Reject a changed note reference on one synchronization declaration",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l54-9", "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l78-15"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.5"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l54-9", "standard_section": "hla-1516.2-2025:clause-C.5"}, {"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l78-15", "standard_section": "hla-1516.2-2025:clause-C.5"}],
+      "mapping_note": "Standard Java API parity for a referenced-note conflict and valid federation-name retry. Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-synchronization-duplicate-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomSynchronizationDuplicateNoteConflict",
+      "parity": "cpp-tck.fom-synchronization-duplicate-note-conflict",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.synchronizationDuplicateBaseFom and synchronizationDuplicateNoteConflictFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-standard-invalid-input-corpus",
       "category": "fom-lifecycle",
       "title": "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <modelIdentification><name>TCK Synchronization Duplicate Note Conflict</name><type>FOM</type></modelIdentification>
+  <synchronizations><synchronizationPoint noteReferences="TckSyncNote">
+    <label>TckMergeReady</label>
+    <dataType>HLAASCIIstring</dataType>
+    <capability>Achieve</capability>
+    <semantics>Ready for the same shared phase.</semantics>
+  </synchronizationPoint></synchronizations>
+  <notes><note><label>TckSyncNote</label><semantics>Additional note on this phase.</semantics></note></notes>
+</objectModel>

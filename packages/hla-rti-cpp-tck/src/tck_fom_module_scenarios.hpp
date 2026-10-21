@@ -66,5 +66,9 @@ void scenarioFomDimensionDuplicateUnion(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateUnionContract(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateConflict(Options const&, rti::CallbackModel);
 void scenarioFomDimensionDuplicateConflictContract(Options const&, rti::CallbackModel);
+void scenarioFomSynchronizationDuplicateEqual(Options const&, rti::CallbackModel);
+void scenarioFomSynchronizationDuplicateEqualContract(Options const&, rti::CallbackModel);
+void scenarioFomSynchronizationDuplicateNoteConflict(Options const&, rti::CallbackModel);
+void scenarioFomSynchronizationDuplicateNoteConflictContract(Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

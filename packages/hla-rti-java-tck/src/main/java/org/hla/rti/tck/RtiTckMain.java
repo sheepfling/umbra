@@ -118,6 +118,12 @@ public final class RtiTckMain {
       "hla.rti.tck.dimensionDuplicateEqualUniqueFom";
    private static final String DIMENSION_DUPLICATE_CONFLICT_FOM_PROPERTY =
       "hla.rti.tck.dimensionDuplicateConflictFom";
+   private static final String SYNCHRONIZATION_DUPLICATE_BASE_FOM_PROPERTY =
+      "hla.rti.tck.synchronizationDuplicateBaseFom";
+   private static final String SYNCHRONIZATION_DUPLICATE_EQUAL_FOM_PROPERTY =
+      "hla.rti.tck.synchronizationDuplicateEqualFom";
+   private static final String SYNCHRONIZATION_DUPLICATE_NOTE_CONFLICT_FOM_PROPERTY =
+      "hla.rti.tck.synchronizationDuplicateNoteConflictFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1720,6 +1726,18 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomDimensionDuplicateConflict);
+      run(new Scenario("java-tck.fom-synchronization-duplicate-equal",
+            "Accept identical same-label synchronization declarations",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomSynchronizationDuplicateEqual);
+      run(new Scenario("java-tck.fom-synchronization-duplicate-note-conflict",
+            "Reject a changed note reference on one synchronization declaration",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomSynchronizationDuplicateNoteConflict);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11424,6 +11442,10 @@ public final class RtiTckMain {
             method = "fomDimensionDuplicateUnion"; break;
          case "java-tck.fom-dimension-duplicate-conflict":
             method = "fomDimensionDuplicateConflict"; break;
+         case "java-tck.fom-synchronization-duplicate-equal":
+            method = "fomSynchronizationDuplicateEqual"; break;
+         case "java-tck.fom-synchronization-duplicate-note-conflict":
+            method = "fomSynchronizationDuplicateNoteConflict"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -13021,6 +13043,20 @@ public final class RtiTckMain {
       FomDimensionDuplicateTck.run(factory(),
          requireAdapterFile(DIMENSION_DUPLICATE_BASE_FOM_PROPERTY),
          requireAdapterFile(DIMENSION_DUPLICATE_CONFLICT_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), true);
+   }
+
+   private static void fomSynchronizationDuplicateEqual() throws Exception {
+      FomSynchronizationDuplicateTck.run(factory(),
+         requireAdapterFile(SYNCHRONIZATION_DUPLICATE_BASE_FOM_PROPERTY),
+         requireAdapterFile(SYNCHRONIZATION_DUPLICATE_EQUAL_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), false);
+   }
+
+   private static void fomSynchronizationDuplicateNoteConflict() throws Exception {
+      FomSynchronizationDuplicateTck.run(factory(),
+         requireAdapterFile(SYNCHRONIZATION_DUPLICATE_BASE_FOM_PROPERTY),
+         requireAdapterFile(SYNCHRONIZATION_DUPLICATE_NOTE_CONFLICT_FOM_PROPERTY),
          timeImplementation(), callbackModel(), true);
    }
 

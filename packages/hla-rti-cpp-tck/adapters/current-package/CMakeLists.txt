@@ -122,6 +122,9 @@ set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
   "dimension-duplicate-base=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml"
   "dimension-duplicate-equal-unique=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-duplicate-equal-unique-tck.xml"
   "dimension-duplicate-conflicting-upper-bound=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-duplicate-conflicting-upper-bound-tck.xml"
+  "synchronization-duplicate-base=${_repository_root}/packages/hla-rti-cpp-tck/fom/synchronization-duplicate-base-tck.xml"
+  "synchronization-duplicate-equal=${_repository_root}/packages/hla-rti-cpp-tck/fom/synchronization-duplicate-equal-tck.xml"
+  "synchronization-duplicate-note-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/synchronization-duplicate-note-conflict-tck.xml"
   CACHE STRING "Semicolon-separated NAME=FILE FOM bindings supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"

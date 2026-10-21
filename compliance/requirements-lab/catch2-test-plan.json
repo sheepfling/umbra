@@ -14407,7 +14407,7 @@
         "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l78-15"
       ],
       "test_case": "The FOM composition preflight applies the Annex C.5 synchronization duplicate rule",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:526",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:524",
       "tags": [
         "unit",
         "fom",

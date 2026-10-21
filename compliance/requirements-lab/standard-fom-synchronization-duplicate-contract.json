@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Separate native-green pure public-API Annex C.5 Create Federation Execution witnesses use three schema-valid, adapter-owned FOM modules. Equal same-label synchronization declarations compose; a declaration with the same label but an added note reference is rejected as InconsistentFOM, after which a valid Create reuses the name. Each module creates alone. Installed-package CTest and direct runner passed 8/8 each across both callback models. Java parity compiles against the API-only JAR but provider runtime is unverified. Public APIs do not expose the private synchronization table's row count. Other element conflicts, interoperability, and conformance are not claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-synchronization-duplicate-equal",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and destruction services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_synchronization_duplicate.cpp::scenarioFomSynchronizationDuplicateEqualContract"]
+    },
+    {
+      "id": "standard-cpp-fom-synchronization-duplicate-note-conflict",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and destruction services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_synchronization_duplicate.cpp::scenarioFomSynchronizationDuplicateNoteConflictContract"]
+    }
+  ]
+}

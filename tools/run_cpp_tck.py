@@ -734,6 +734,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-equal-unique-tck.xml")),
             "dimension-duplicate-conflicting-upper-bound="
             + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-conflicting-upper-bound-tck.xml")),
+            "synchronization-duplicate-base="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/synchronization-duplicate-base-tck.xml")),
+            "synchronization-duplicate-equal="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/synchronization-duplicate-equal-tck.xml")),
+            "synchronization-duplicate-note-conflict="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/synchronization-duplicate-note-conflict-tck.xml")),
         ]
     scenario_foms: list[str] = []
     seen_scenario_foms: set[str] = set()

@@ -176,6 +176,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_fom_enumerated_variant_conflicts.cpp
   src/tck_fom_array_cardinality.cpp
   src/tck_fom_dimension_duplicate.cpp
+  src/tck_fom_synchronization_duplicate.cpp
   src/tck_timestamped_attribute_scenarios.cpp
   src/tck_timestamped_attribute_reflect_region_snapshot.cpp
   src/tck_timestamped_attribute_update_time_advancing_cutoff.cpp
