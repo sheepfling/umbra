@@ -55826,6 +55826,44 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.fom-matching-data-types",
+      "category": "fom-composition",
+      "title": "Accept matching named declarations in eight data-type categories across FOM modules",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l82-18"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l82-18", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Each schema-valid module is accepted alone, then their matching declarations in eight data-type categories compose successfully in Create Federation Execution. Only public acceptance is asserted; structural catalog retention is native internal evidence. Native focused CTest passed 1/1; installed-package CTest and direct runner passed 4/4 each across both callback models. Java API-only compile passed; Java provider runtime, interoperability, and conformance remain unverified.",
+      "contract_refs": ["standard-fom-matching-data-types-contract.json"],
+      "cpp_test": "src/tck_fom_matching_data_types.cpp#scenarioFomMatchingDataTypes",
+      "runner_id": "cpp-tck.fom-matching-data-types",
+      "parity": "java-tck.fom-matching-data-types",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-matching-data-types-contract",
+      "category": "fom-composition",
+      "title": "Portable Annex C.3 matching named data-type declarations contract",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l82-18"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l82-18", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Repeats the primary official-API independent-module and combined matching-type acceptance assertions. Installed-package CTest and direct runner passed 4/4 each across both callback models. Only public acceptance is asserted.",
+      "contract_refs": ["standard-fom-matching-data-types-contract.json"],
+      "cpp_test": "src/tck_fom_matching_data_types.cpp#scenarioFomMatchingDataTypesContract",
+      "runner_id": "cpp-tck.fom-matching-data-types-contract",
+      "parity": "cpp-tck.fom-matching-data-types",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.connection-loss-cleanup",
       "category": "connection",
       "title": "Report connection loss, enforce the disconnected service state, and keep the survivor usable",

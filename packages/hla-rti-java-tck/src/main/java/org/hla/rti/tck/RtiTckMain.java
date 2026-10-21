@@ -76,6 +76,10 @@ public final class RtiTckMain {
       "hla.rti.tck.objectAttributeConflictFom";
    private static final String OBJECT_CLASS_SEMANTICS_CONFLICT_FOM_PROPERTY =
       "hla.rti.tck.objectClassSemanticsConflictFom";
+   private static final String MATCHING_DATA_TYPES_FIRST_FOM_PROPERTY =
+      "hla.rti.tck.matchingDataTypesFirstFom";
+   private static final String MATCHING_DATA_TYPES_SECOND_FOM_PROPERTY =
+      "hla.rti.tck.matchingDataTypesSecondFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1612,6 +1616,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomObjectClassSemanticsConflict);
+      run(new Scenario("java-tck.fom-matching-data-types",
+            "Accept matching named declarations in eight data-type categories across FOM modules",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomMatchingDataTypes);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11294,6 +11304,8 @@ public final class RtiTckMain {
             method = "fomObjectAttributeMergeConflict"; break;
          case "java-tck.fom-object-class-semantics-conflict":
             method = "fomObjectClassSemanticsConflict"; break;
+         case "java-tck.fom-matching-data-types":
+            method = "fomMatchingDataTypes"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -12812,6 +12824,13 @@ public final class RtiTckMain {
          requireAdapterFile(OBJECT_ATTRIBUTE_BASE_FOM_PROPERTY),
          requireAdapterFile(OBJECT_ATTRIBUTE_DISJOINT_FOM_PROPERTY),
          requireAdapterFile(OBJECT_CLASS_SEMANTICS_CONFLICT_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomMatchingDataTypes() throws Exception {
+      FomMatchingDataTypesTck.run(factory(),
+         requireAdapterFile(MATCHING_DATA_TYPES_FIRST_FOM_PROPERTY),
+         requireAdapterFile(MATCHING_DATA_TYPES_SECOND_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 

@@ -8412,6 +8412,24 @@
       "exclusion": "Configure hla.rti.tck.objectAttributeBaseFom, objectAttributeDisjointFom, and objectClassSemanticsConflictFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-matching-data-types",
+      "category": "fom-composition",
+      "title": "Accept matching named declarations in eight data-type categories across FOM modules",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l82-18"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l82-18", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Standard Java API parity for accepting two schema-valid modules alone and together when eight categories repeat matching named data-type declarations. The adapter owns FOM paths and callback model. API-only compilation required; Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-matching-data-types-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomMatchingDataTypes",
+      "parity": "cpp-tck.fom-matching-data-types",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.matchingDataTypesFirstFom and matchingDataTypesSecondFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-standard-invalid-input-corpus",
       "category": "fom-lifecycle",
       "title": "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",

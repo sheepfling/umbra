@@ -101,6 +101,8 @@ set(HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_CONFLICT_FOM
   CACHE FILEPATH "Annex C.3 conflicting object-attribute FOM supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
   "object-class-semantics-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/object-class-semantics-conflict-tck.xml"
+  "matching-data-types-first=${_repository_root}/packages/hla-rti-cpp-tck/fom/matching-data-types-first-tck.xml"
+  "matching-data-types-second=${_repository_root}/packages/hla-rti-cpp-tck/fom/matching-data-types-second-tck.xml"
   CACHE STRING "Semicolon-separated NAME=FILE FOM bindings supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"

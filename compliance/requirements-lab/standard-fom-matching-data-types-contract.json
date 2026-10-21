@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable 2025 public-API acceptance evidence for Annex C.3 matching named data-type declarations. Two adapter-owned, schema-valid DIF modules independently declare identical basic, simple, reference, enumerated, array, fixed-record, variant-record, and extendable-variant-record types. Each module is accepted alone, then the pair is accepted in one Create Federation Execution call. Native focused CTest passed 1/1; installed-package CTest and direct runner passed 4/4 each across both callback models; Java compiled against the API-only JAR. C++ and Java use only the official RTI ambassador APIs. The public API does not expose the merged private data-type catalog, so structural retention remains native internal evidence rather than a portable assertion. Java provider runtime, interoperability, and conformance are unverified.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-matching-data-types-annex-c3",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and destruction services",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_matching_data_types.cpp::scenarioFomMatchingDataTypesContract"
+      ]
+    }
+  ]
+}

@@ -19424,6 +19424,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-interaction-parameter-merge-conflict-contract",
       "cpp-tck.fom-object-attribute-merge-conflict-contract",
       "cpp-tck.fom-object-class-semantics-conflict-contract",
+      "cpp-tck.fom-matching-data-types-contract",
       "cpp-tck.service-report-interaction-contract",
       "cpp-tck.service-report-attribute-update-contract",
       "cpp-tck.service-report-register-object-instance-contract",
@@ -20117,6 +20118,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-interaction-parameter-merge-conflict",
       "cpp-tck.fom-object-attribute-merge-conflict",
       "cpp-tck.fom-object-class-semantics-conflict",
+      "cpp-tck.fom-matching-data-types",
       "cpp-tck.connection-loss-cleanup",
       "cpp-tck.connection-loss-cleanup-contract",
       "cpp-tck.connection-loss-automatic-unconditional-divestiture",
@@ -20924,6 +20926,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-object-class-semantics-conflict-contract") {
     return scenarioFomObjectClassSemanticsConflictContract;
+  }
+  if (id == "cpp-tck.fom-matching-data-types-contract") {
+    return scenarioFomMatchingDataTypesContract;
   }
   if (id == "cpp-tck.service-report-interaction-contract") {
     return scenarioServiceReportInteractionContract;
@@ -23138,6 +23143,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-object-class-semantics-conflict") {
     return scenarioFomObjectClassSemanticsConflict;
   }
+  if (id == "cpp-tck.fom-matching-data-types") {
+    return scenarioFomMatchingDataTypes;
+  }
   if (id == "cpp-tck.connection-loss-cleanup") return scenarioConnectionLoss;
   if (id == "cpp-tck.connection-loss-cleanup-contract") {
     return scenarioConnectionLossContract;
@@ -23546,6 +23554,12 @@ int run(Options const& options) {
                   options.scenarioFoms.count("object-class-semantics-conflict") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied object-class semantics FOM modules";
+      } else if ((scenario == "cpp-tck.fom-matching-data-types" ||
+                  scenario == "cpp-tck.fom-matching-data-types-contract") &&
+                 (options.scenarioFoms.count("matching-data-types-first") == 0U ||
+                  options.scenarioFoms.count("matching-data-types-second") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires two adapter-supplied matching data-type FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&

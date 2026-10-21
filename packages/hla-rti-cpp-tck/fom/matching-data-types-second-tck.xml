@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <modelIdentification><name>TCK Matching Data Types Second</name><type>FOM</type></modelIdentification>
+  <dataTypes>
+    <basicDataRepresentations>
+      <basicData><name>TckMatchingBasic</name><size>32</size>
+        <interpretation>Signed integer for matching data type merge</interpretation>
+        <endian>Big</endian><encoding>Two's complement</encoding>
+      </basicData>
+    </basicDataRepresentations>
+    <simpleDataTypes>
+      <simpleData><name>TckMatchingSimple</name><representation>HLAinteger32BE</representation>
+        <units>NA</units><resolution>1</resolution><accuracy>Perfect</accuracy>
+        <semantics>Matching simple data type</semantics>
+      </simpleData>
+    </simpleDataTypes>
+    <referenceDataTypes>
+      <referenceDataType><name>TckMatchingReference</name>
+        <representation>HLAtoken</representation>
+        <referenceClass>HLAobjectRoot</referenceClass>
+        <referencedAttribute>HLAprivilegeToDeleteObject</referencedAttribute>
+        <semantics>Matching reference data type</semantics>
+      </referenceDataType>
+    </referenceDataTypes>
+    <enumeratedDataTypes>
+      <enumeratedData><name>TckMatchingEnumeration</name>
+        <representation>HLAinteger32BE</representation>
+        <semantics>Matching enumerated data type</semantics>
+        <enumerator><name>TckMatchingChoice</name><value>1</value></enumerator>
+      </enumeratedData>
+    </enumeratedDataTypes>
+    <arrayDataTypes>
+      <arrayData><name>TckMatchingArray</name><dataType>TckMatchingSimple</dataType>
+        <cardinality>2</cardinality><encoding>HLAfixedArray</encoding>
+        <semantics>Matching array data type</semantics>
+      </arrayData>
+    </arrayDataTypes>
+    <fixedRecordDataTypes>
+      <fixedRecordData><name>TckMatchingFixedRecord</name>
+        <encoding>HLAfixedRecord</encoding><semantics>Matching fixed record</semantics>
+        <field><name>TckMatchingField</name><dataType>TckMatchingSimple</dataType>
+          <semantics>Matching fixed record field</semantics></field>
+      </fixedRecordData>
+    </fixedRecordDataTypes>
+    <variantRecordDataTypes>
+      <variantRecordData><name>TckMatchingVariantRecord</name>
+        <discriminant>TckMatchingEnumeration</discriminant>
+        <dataType>TckMatchingEnumeration</dataType>
+        <alternative><enumerator>TckMatchingChoice</enumerator>
+          <name>TckMatchingAlternative</name><dataType>HLAboolean</dataType>
+          <semantics>Matching variant alternative</semantics></alternative>
+        <encoding>HLAvariantRecord</encoding><semantics>Matching variant record</semantics>
+      </variantRecordData>
+      <variantRecordData><name>TckMatchingExtendableVariant</name>
+        <discriminant>TckMatchingEnumeration</discriminant>
+        <dataType>TckMatchingEnumeration</dataType>
+        <alternative><enumerator>TckMatchingChoice</enumerator>
+          <name>TckMatchingExtendableAlternative</name><dataType>HLAboolean</dataType>
+          <semantics>Matching extendable variant alternative</semantics></alternative>
+        <encoding>HLAextendableVariantRecord</encoding>
+        <semantics>Matching extendable variant record</semantics>
+      </variantRecordData>
+    </variantRecordDataTypes>
+  </dataTypes>
+</objectModel>

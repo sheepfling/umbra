@@ -44,5 +44,7 @@ void scenarioFomObjectAttributeMergeConflict(Options const&, rti::CallbackModel)
 void scenarioFomObjectAttributeMergeConflictContract(Options const&, rti::CallbackModel);
 void scenarioFomObjectClassSemanticsConflict(Options const&, rti::CallbackModel);
 void scenarioFomObjectClassSemanticsConflictContract(Options const&, rti::CallbackModel);
+void scenarioFomMatchingDataTypes(Options const&, rti::CallbackModel);
+void scenarioFomMatchingDataTypesContract(Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail
