@@ -24,6 +24,10 @@ void scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryContract(
     Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTaraStrictTimestampCutoff(
     Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTarStrictTimestampCutoff(
+    Options const&, rti::CallbackModel);
+void scenarioTimestampedInteractionTarStrictTimestampCutoffContract(
+    Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarEqualBoundary(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarEqualBoundaryContract(Options const&, rti::CallbackModel);
 void scenarioTimestampedInteractionTarPostGrantCutoff(Options const&, rti::CallbackModel);

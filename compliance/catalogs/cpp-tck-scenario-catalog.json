@@ -14912,6 +14912,76 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff",
+      "category": "timestamped-interaction-tar-strict-timestamp-cutoff",
+      "title": "Deliver queued TSO below and at TAR's target before its grant, then release later TSO on a later TAR",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-203-l68-19"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-203-l68-19"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.14.3"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l68-19", "standard_section": "hla-1516.1-2025:clause-8.14.3"}
+      ],
+      "mapping_note": "Direct §8.14.3 witness: TAR(6) delivers previously queued TSO(5) and TSO(6) before TAG(6), retains queued TSO(11), then TAR(12) delivers only TSO(11) before TAG(12). Callback order and the complete known message cohort rule out an additional below-target TSO after the first grant. This does not assert future transport arrivals, regional routing, or conformance.",
+      "contract_refs": [
+        "timestamped-interaction-api-contract.json",
+        "timestamped-interaction-requirements-contract.json",
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json"
+      ],
+      "cpp_test": "src/tck_timestamped_interaction_boundary_scenarios.cpp#scenarioTimestampedInteractionTarStrictTimestampCutoff",
+      "runner_id": "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff",
+      "parity": "java-tck.timestamped-interaction-tar-strict-timestamp-cutoff",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff-contract",
+      "category": "timestamped-interaction-tar-strict-timestamp-cutoff",
+      "title": "Pure standard API contract for TAR's strict queued timestamp cutoff",
+      "api_methods": [
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-203-l68-19"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-203-l68-19"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.14.3"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l68-19", "standard_section": "hla-1516.1-2025:clause-8.14.3"}
+      ],
+      "mapping_note": "Contract twin invoking the same §8.14.3 TAR cutoff observations as the primary case; it adds no broader conformance claim.",
+      "contract_refs": [
+        "timestamped-interaction-api-contract.json",
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json"
+      ],
+      "cpp_test": "src/tck_timestamped_interaction_boundary_scenarios.cpp#scenarioTimestampedInteractionTarStrictTimestampCutoffContract",
+      "runner_id": "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff-contract",
+      "parity": "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-interaction-flush-queue-future-input",
       "category": "timestamped-interaction-flush-queue-future-input",
       "title": "Deliver TSO beyond the FQR request, report OLT, and enforce the optimistic send floor",

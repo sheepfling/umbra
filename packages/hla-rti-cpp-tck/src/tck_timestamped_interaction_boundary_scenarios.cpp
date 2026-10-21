@@ -1131,6 +1131,187 @@ void scenarioTimestampedInteractionTaraStrictTimestampCutoff(
   publisher.disconnect();
 }
 
+void scenarioTimestampedInteractionTarStrictTimestampCutoff(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "TAR strict timestamp cutoff requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "tar-strict-cutoff-publisher");
+  Session receiver(options, model, "tar-strict-cutoff-receiver");
+  auto const federation = federationName(
+      options, "timestamped-interaction-tar-strict-timestamp-cutoff");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverInteraction = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction, options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction, options.parameterName);
+  require(
+      publisherInteraction.isValid() && receiverInteraction.isValid() &&
+          publisherParameter.isValid() && receiverParameter.isValid() &&
+          publisherInteraction == receiverInteraction &&
+          publisherParameter == receiverParameter,
+      "TAR strict timestamp cutoff adapter FOM did not resolve stable handles");
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction, rti::TIMESTAMP);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction, true);
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "TAR strict timestamp cutoff members selected different time factories");
+  requireTimeEquals(
+      *publisherTime.initial, *receiverTime.initial,
+      "TAR strict timestamp cutoff initial time");
+
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "TAR strict timestamp cutoff constrained callback");
+  auto const five = timeAfter(
+      *publisherTime.factory, *publisherTime.initial, *publisherTime.epsilon, 5U);
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "TAR strict timestamp cutoff regulation callback");
+
+  auto const six = timeAfter(
+      *receiverTime.factory, *receiverTime.initial, *receiverTime.epsilon, 6U);
+  auto const eleven = timeAfter(
+      *publisherTime.factory, *publisherTime.initial, *publisherTime.epsilon, 11U);
+  auto const twelve = timeAfter(
+      *receiverTime.factory, *receiverTime.initial, *receiverTime.epsilon, 12U);
+  require(*five < *six && *six < *eleven && *eleven < *twelve,
+          "TAR strict timestamp cutoff times were not ordered");
+
+  std::vector<std::uint8_t> const payload{0x54U, 0x41U, 0x52U};
+  std::vector<std::uint8_t> const tagBytes{'t', 'a', 'r'};
+  rti::ParameterHandleValueMap values;
+  values.emplace(
+      publisherParameter,
+      rti::VariableLengthData(payload.data(), payload.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  auto const first = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction, values, tag, *five);
+  auto const equal = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction, values, tag, *six);
+  auto const future = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction, values, tag, *eleven);
+  require(first.isValid() && equal.isValid() && future.isValid(),
+          "TAR strict timestamp cutoff sends returned invalid retraction handles");
+  require(receiver.recorder().timedInteractions().empty(),
+          "TAR strict timestamp cutoff delivered TSO before receiver TAR");
+
+  publisher.rtiAmbassador().timeAdvanceRequest(*six);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "TAR strict timestamp cutoff publisher first grant");
+  auto const callbacksBeforeTar = receiver.recorder().callbackOrder();
+  receiver.rtiAmbassador().timeAdvanceRequest(*six);
+  try {
+    waitFor(
+        receiver,
+        [&] {
+          return receiver.recorder().timedInteractions().size() >= 2U &&
+              receiver.recorder().timeAdvanceGrants().size() >= 1U;
+        },
+        options,
+        "TAR strict timestamp cutoff first receiver grant");
+  } catch (std::runtime_error const& error) {
+    throw std::runtime_error(
+        std::string(error.what()) + " (timestamped callbacks=" +
+        std::to_string(receiver.recorder().timedInteractions().size()) +
+        ", receive-order callbacks=" +
+        std::to_string(receiver.recorder().interactions().size()) +
+        ", grants=" +
+        std::to_string(receiver.recorder().timeAdvanceGrants().size()) + ")");
+  }
+  auto const firstDelivery = receiver.recorder().timedInteractions();
+  require(
+      firstDelivery.size() == 2U &&
+          firstDelivery.at(0U).time == encodeTime(*five) &&
+          firstDelivery.at(1U).time == encodeTime(*six),
+      "TAR(6) did not deliver timestamps five and six at its grant");
+  auto const firstGrantOrder = receiver.recorder().callbackOrder();
+  require(
+      firstGrantOrder.size() == callbacksBeforeTar.size() + 3U &&
+          std::equal(
+              callbacksBeforeTar.begin(), callbacksBeforeTar.end(),
+              firstGrantOrder.begin()) &&
+          firstGrantOrder.at(callbacksBeforeTar.size()) == "interaction" &&
+          firstGrantOrder.at(callbacksBeforeTar.size() + 1U) == "interaction" &&
+          firstGrantOrder.back() == "grant" &&
+          receiver.recorder().timeAdvanceGrants().front().encoded == encodeTime(*six) &&
+          receiver.recorder().timedInteractions().size() == 2U,
+      "TAR(6) grant did not follow both eligible TSO callbacks or leaked future TSO");
+
+  publisher.rtiAmbassador().timeAdvanceRequest(*twelve);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 2U; },
+      options,
+      "TAR strict timestamp cutoff publisher final advance");
+  receiver.rtiAmbassador().timeAdvanceRequest(*twelve);
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().timedInteractions().size() >= 3U &&
+            receiver.recorder().timeAdvanceGrants().size() >= 2U;
+      },
+      options,
+      "TAR strict timestamp cutoff second receiver grant");
+  auto const delivered = receiver.recorder().timedInteractions();
+  auto const callbackOrder = receiver.recorder().callbackOrder();
+  require(
+      delivered.size() == 3U &&
+          delivered.at(2U).time == encodeTime(*eleven) &&
+          callbackOrder.size() == firstGrantOrder.size() + 2U &&
+          callbackOrder.at(firstGrantOrder.size()) == "interaction" &&
+          callbackOrder.back() == "grant" &&
+          receiver.recorder().timeAdvanceGrants().at(1U).encoded ==
+              encodeTime(*twelve),
+      "TAR(12) did not release only the later TSO before its grant");
+  for (auto const& delivery : delivered) {
+    require(
+        delivery.interaction == receiverInteraction &&
+            delivery.parameters.size() == 1U &&
+            copyBytes(delivery.parameters.at(receiverParameter)) == payload &&
+            delivery.tag == tagBytes &&
+            delivery.producer == publisher.federateHandle() &&
+            delivery.sentOrder == rti::TIMESTAMP &&
+            delivery.receivedOrder == rti::TIMESTAMP,
+        "TAR strict timestamp cutoff changed interaction callback metadata");
+  }
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioTimestampedInteractionTarStrictTimestampCutoffContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionTarStrictTimestampCutoff(options, model);
+}
+
 void scenarioTimestampedInteractionTarEqualBoundary(
     Options const& options,
     rti::CallbackModel model) {

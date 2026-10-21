@@ -2794,6 +2794,14 @@ public final class RtiTckMain {
                "java-1516.1-interaction-declaration-and-delivery",
                "java-1516.1-time-advance-and-grant"
             }, false), RtiTckMain::tarQueuedTsoBeforeGrant);
+      run(new Scenario("java-tck.timestamped-interaction-tar-strict-timestamp-cutoff",
+            "deliver queued TSO below and at TAR's target before grant, then release later TSO on a later TAR",
+            "time",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.subscribeInteractionClass;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.sendInteraction(time);RTIambassador.timeAdvanceRequest;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeAdvanceGrant",
+            new String[] {
+               "java-1516.1-interaction-declaration-and-delivery",
+               "java-1516.1-time-advance-and-grant"
+            }, false), RtiTckMain::timestampedInteractionTarStrictTimestampCutoff);
        run(new Scenario("java-tck.timestamped-interaction-tso-designator-terminalization",
              "terminalize timestamped interaction retractions across standard advance services", "time",
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.publishInteractionClass;RTIambassador.changeInteractionOrderType;RTIambassador.subscribeInteractionClass;RTIambassador.sendInteraction(time);RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.timeAdvanceRequest;RTIambassador.timeAdvanceRequestAvailable;RTIambassador.nextMessageRequest;RTIambassador.nextMessageRequestAvailable;RTIambassador.flushQueueRequest;RTIambassador.retract;RTIambassador.queryLogicalTime;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeAdvanceGrant;FederateAmbassador.flushQueueGrant",
@@ -8977,6 +8985,11 @@ public final class RtiTckMain {
          timeImplementation(), interactionClassName(), parameterName(), callbackModel());
    }
 
+   private static void timestampedInteractionTarStrictTimestampCutoff() throws Exception {
+      TarQueuedTsoBeforeGrantTck.runStrictCutoff(factory(), requireFom(),
+         timeImplementation(), interactionClassName(), parameterName(), callbackModel());
+   }
+
    private static void timestampedInteractionTsoDesignatorTerminalization() throws Exception {
       TimestampedInteractionTsoDesignatorTerminalizationTck.run(factory(), requireFom(),
          timeImplementation(), interactionClassName(), parameterName(), callbackModel());
@@ -11292,6 +11305,8 @@ public final class RtiTckMain {
              method = "fqgPostgrantDeliveryCutoff"; break;
           case "java-tck.tar-queued-tso-before-grant":
              method = "tarQueuedTsoBeforeGrant"; break;
+          case "java-tck.timestamped-interaction-tar-strict-timestamp-cutoff":
+             method = "timestampedInteractionTarStrictTimestampCutoff"; break;
           case "java-tck.timestamped-interaction-tso-designator-terminalization":
              method = "timestampedInteractionTsoDesignatorTerminalization"; break;
           case "java-tck.timestamped-interaction-retraction":

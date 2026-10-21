@@ -160,6 +160,158 @@ final class TarQueuedTsoBeforeGrantTck {
       }
    }
 
+   /** TAR must finish its known below-target TSO cohort before granting. */
+   static void runStrictCutoff(RtiFactory factory, String fom, String timeImplementation,
+         String interactionName, String parameterName, CallbackModel callbackModel)
+         throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador receiver = factory.getRtiAmbassador();
+      Recorder publisherCallbacks = new Recorder();
+      Recorder receiverCallbacks = new Recorder();
+      String federation = "java-tck-tar-strict-cutoff-" + UUID.randomUUID();
+      boolean publisherConnected = false;
+      boolean receiverConnected = false;
+      boolean created = false;
+      boolean publisherJoined = false;
+      boolean receiverJoined = false;
+      try {
+         publisher.connect(publisherCallbacks.proxy(), callbackModel);
+         publisherConnected = true;
+         receiver.connect(receiverCallbacks.proxy(), callbackModel);
+         receiverConnected = true;
+         publisher.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         FederateHandle producer = publisher.joinFederationExecution(
+            "java-tck-tar-cutoff-publisher", federation);
+         publisherJoined = true;
+         receiver.joinFederationExecution("java-tck-tar-cutoff-receiver", federation);
+         receiverJoined = true;
+
+         InteractionClassHandle publisherClass =
+            publisher.getInteractionClassHandle(interactionName);
+         InteractionClassHandle receiverClass =
+            receiver.getInteractionClassHandle(interactionName);
+         ParameterHandle publisherParameter =
+            publisher.getParameterHandle(publisherClass, parameterName);
+         ParameterHandle receiverParameter =
+            receiver.getParameterHandle(receiverClass, parameterName);
+         JavaTckSupport.check(publisherClass.equals(receiverClass)
+               && publisherParameter.equals(receiverParameter),
+            "TAR cutoff adapter FOM did not resolve matching interaction handles");
+         publisher.publishInteractionClass(publisherClass);
+         publisher.changeInteractionOrderType(publisherClass, OrderType.TIMESTAMP);
+         receiver.subscribeInteractionClass(receiverClass);
+
+         LogicalTimeFactory<?, ?> publisherFactory = publisher.getTimeFactory();
+         LogicalTimeFactory<?, ?> receiverFactory = receiver.getTimeFactory();
+         JavaTckSupport.check(publisherFactory.getName().equals(receiverFactory.getName()),
+            "TAR cutoff members selected different logical-time factories");
+         LogicalTime<?, ?> publisherInitial = publisher.queryLogicalTime();
+         LogicalTime<?, ?> receiverInitial = receiver.queryLogicalTime();
+         JavaTckSupport.check(publisherInitial.equals(receiverInitial),
+            "TAR cutoff members began at different logical times");
+         LogicalTimeInterval publisherEpsilon =
+            (LogicalTimeInterval) publisherFactory.makeEpsilon();
+         LogicalTimeInterval receiverEpsilon =
+            (LogicalTimeInterval) receiverFactory.makeEpsilon();
+
+         receiver.enableTimeConstrained();
+         await(receiver, callbackModel,
+            () -> receiverCallbacks.timeConstrainedEnabled == 1,
+            "TAR cutoff receiver constrained callback");
+         publisher.enableTimeRegulation(publisherEpsilon);
+         await(publisher, callbackModel,
+            () -> publisherCallbacks.timeRegulationEnabled == 1,
+            "TAR cutoff publisher regulation callback");
+
+         LogicalTime<?, ?> five = offset(publisherInitial, publisherEpsilon, 5);
+         LogicalTime<?, ?> six = offset(receiverInitial, receiverEpsilon, 6);
+         LogicalTime<?, ?> eleven = offset(publisherInitial, publisherEpsilon, 11);
+         LogicalTime<?, ?> twelve = offset(receiverInitial, receiverEpsilon, 12);
+         byte[] payload = {0x54, 0x41, 0x52};
+         byte[] tag = {'t', 'a', 'r'};
+         ParameterHandleValueMap values =
+            oneParameter(publisher, publisherParameter, payload);
+         for (LogicalTime<?, ?> time : Arrays.asList(five, six, eleven)) {
+            MessageRetractionReturn retraction = publisher.sendInteraction(
+               publisherClass, values, tag.clone(), time);
+            JavaTckSupport.check(retraction != null && retraction.retractionHandleIsValid
+                  && retraction.handle != null,
+               "TAR cutoff send returned no valid retraction handle");
+         }
+         JavaTckSupport.check(receiverCallbacks.interactions.isEmpty(),
+            "TAR cutoff delivered TSO before the receiver advanced");
+
+         publisher.timeAdvanceRequest(six);
+         await(publisher, callbackModel,
+            () -> publisherCallbacks.grants.size() == 1,
+            "TAR cutoff publisher first grant");
+         receiver.timeAdvanceRequest(six);
+         await(receiver, callbackModel,
+            () -> receiverCallbacks.interactions.size() >= 2
+               && receiverCallbacks.grants.size() >= 1,
+            "TAR cutoff receiver first grant");
+         JavaTckSupport.check(receiverCallbacks.interactions.size() == 2
+               && receiverCallbacks.grants.size() == 1
+               && six.equals(receiverCallbacks.grants.get(0))
+               && receiverCallbacks.callbackOrder.equals(
+                  Arrays.asList("interaction", "interaction", "grant")),
+            "TAR(6) did not finish its known TSO cohort before the grant");
+         checkCutoffInteraction(receiverCallbacks.interactions.get(0), receiverClass,
+            receiverParameter, producer, payload, tag, five);
+         checkCutoffInteraction(receiverCallbacks.interactions.get(1), receiverClass,
+            receiverParameter, producer, payload, tag, six);
+
+         publisher.timeAdvanceRequest(twelve);
+         await(publisher, callbackModel,
+            () -> publisherCallbacks.grants.size() == 2,
+            "TAR cutoff publisher final grant");
+         receiver.timeAdvanceRequest(twelve);
+         await(receiver, callbackModel,
+            () -> receiverCallbacks.interactions.size() >= 3
+               && receiverCallbacks.grants.size() >= 2,
+            "TAR cutoff receiver second grant");
+         JavaTckSupport.check(receiverCallbacks.interactions.size() == 3
+               && receiverCallbacks.grants.size() == 2
+               && twelve.equals(receiverCallbacks.grants.get(1))
+               && receiverCallbacks.callbackOrder.equals(Arrays.asList(
+                  "interaction", "interaction", "grant", "interaction", "grant")),
+            "TAR(12) did not release only the later TSO before its grant");
+         checkCutoffInteraction(receiverCallbacks.interactions.get(2), receiverClass,
+            receiverParameter, producer, payload, tag, eleven);
+
+         receiver.resignFederationExecution(ResignAction.NO_ACTION);
+         receiverJoined = false;
+         publisher.resignFederationExecution(ResignAction.NO_ACTION);
+         publisherJoined = false;
+         publisher.destroyFederationExecution(federation);
+         created = false;
+      } finally {
+         if (receiverJoined) resign(receiver);
+         if (publisherJoined) resign(publisher);
+         if (created) {
+            try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (receiverConnected) disconnect(receiver);
+         if (publisherConnected) disconnect(publisher);
+      }
+   }
+
+   private static void checkCutoffInteraction(Interaction delivery,
+         InteractionClassHandle interaction, ParameterHandle parameter,
+         FederateHandle producer, byte[] payload, byte[] tag, LogicalTime<?, ?> time) {
+      JavaTckSupport.check(interaction.equals(delivery.interactionClass)
+            && delivery.parameters.size() == 1
+            && Arrays.equals(payload, delivery.parameters.get(parameter))
+            && Arrays.equals(tag, delivery.tag)
+            && producer.equals(delivery.producer)
+            && time.equals(delivery.time)
+            && delivery.sentOrder == OrderType.TIMESTAMP
+            && delivery.receivedOrder == OrderType.TIMESTAMP,
+         "TAR cutoff changed interaction callback content or metadata");
+   }
+
    private static ParameterHandleValueMap oneParameter(RTIambassador ambassador,
          ParameterHandle parameter, byte[] payload) throws Exception {
       ParameterHandleValueMap values = ambassador.getParameterHandleValueMapFactory().create(1);

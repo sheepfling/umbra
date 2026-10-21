@@ -19618,6 +19618,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-interaction-mixed-advances-contract",
       "cpp-tck.timestamped-interaction-tara-equal-boundary-contract",
       "cpp-tck.timestamped-interaction-tar-equal-boundary-contract",
+      "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff-contract",
       "cpp-tck.timestamped-interaction-tar-post-grant-cutoff-contract",
       "cpp-tck.timestamped-interaction-flush-queue-future-input-contract",
       "cpp-tck.fqr-postgrant-lower-tso-retraction-contract",
@@ -19651,6 +19652,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-interaction-tara-equal-boundary",
       "cpp-tck.timestamped-interaction-tara-strict-timestamp-cutoff",
       "cpp-tck.timestamped-interaction-tar-equal-boundary",
+      "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff",
       "cpp-tck.timestamped-interaction-tar-post-grant-cutoff",
       "cpp-tck.timestamped-interaction-flush-queue-future-input",
       "cpp-tck.fqr-postgrant-lower-tso-retraction",
@@ -21493,6 +21495,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.timestamped-interaction-tar-equal-boundary-contract") {
     return scenarioTimestampedInteractionTarEqualBoundaryContract;
   }
+  if (id == "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff-contract") {
+    return scenarioTimestampedInteractionTarStrictTimestampCutoffContract;
+  }
   if (id == "cpp-tck.timestamped-interaction-zero-lookahead-tar-send-boundary-contract") {
     return scenarioTimestampedInteractionZeroLookaheadTarSendBoundaryContract;
   }
@@ -21594,6 +21599,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.timestamped-interaction-tar-equal-boundary") {
     return scenarioTimestampedInteractionTarEqualBoundary;
+  }
+  if (id == "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff") {
+    return scenarioTimestampedInteractionTarStrictTimestampCutoff;
   }
   if (id == "cpp-tck.timestamped-interaction-zero-lookahead-tar-send-boundary") {
     return scenarioTimestampedInteractionZeroLookaheadTarSendBoundary;
@@ -23417,6 +23425,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-interaction-mixed-advances-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-tara-equal-boundary-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-tar-equal-boundary-contract" ||
+                  scenario == "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff-contract" ||
                   scenario == "cpp-tck.timestamped-interaction-flush-queue-future-input-contract" ||
                   scenario == "cpp-tck.fqr-postgrant-lower-tso-retraction-contract" ||
                   scenario == "cpp-tck.fqg-postgrant-delivery-cutoff-contract" ||

@@ -15847,12 +15847,16 @@
       ],
       "requirement_mappings": [
         {
-          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l68-19",
-          "standard_section": "hla-1516.1-2025:clause-8.14.3"
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l123-38",
+          "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l126-39",
+          "standard_section": "hla-1516.1-2025:clause-8"
         }
       ],
-      "standard_sections": ["hla-1516.1-2025:clause-8.14.3"],
-      "mapping_note": "Exact parity to the C++ source case's direct §8.14.3 mapping: a queued timestamp-5 interaction is delivered before the receiver's TAR(6) grant. Provider, FOM, logical-time implementation, endpoint, and callback model are adapter supplied; this scenario uses only the official Java API and JDK.",
+      "standard_sections": ["hla-1516.1-2025:clause-8"],
+      "mapping_note": "Exact parity to the C++ one-message case's direct Clause 8 mapping: a queued TSO(5) callback precedes TAG(6), and the grant equals the requested time. The earlier §8.14.3 link was too broad for a single-message case with no post-grant cohort check; that rule is covered by the separate TAR strict-cutoff scenario. Provider, FOM, logical-time implementation, endpoint, and callback model are adapter supplied; this scenario uses only the official Java API and JDK.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",
@@ -15863,6 +15867,55 @@
       "parity": "cpp-tck.tar-queued-tso-before-grant",
       "default_status": "unsupported",
       "exclusion": "Requires a provider capability profile and time-managed FOM with the selected interaction/time factory; execute through adapter-supplied provider configuration."
+    },
+    {
+      "id": "java-tck.timestamped-interaction-tar-strict-timestamp-cutoff",
+      "category": "time",
+      "title": "Deliver queued TSO below and at TAR's target before its grant, then release later TSO on a later TAR",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.makeEpsilon",
+        "LogicalTime.add",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeCallback",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-203-l68-19"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.14.3"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-203-l68-19", "standard_section": "hla-1516.1-2025:clause-8.14.3"}
+      ],
+      "mapping_note": "API-only parity to the installed-package-green C++ TAR strict-cutoff pair: TSO(5) and TSO(6) precede TAG(6); the queued TSO(11) follows only during TAR(12), before TAG(12). The known three-message cohort and callback order witness §8.14.3 for these queued messages, without claiming future transport arrivals or conformance. A Java provider run remains pending.",
+      "contract_refs": [
+        "timestamped-interaction-api-contract.json",
+        "timestamped-interaction-requirements-contract.json",
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#timestampedInteractionTarStrictTimestampCutoff",
+      "parity": "cpp-tck.timestamped-interaction-tar-strict-timestamp-cutoff",
+      "default_status": "unsupported",
+      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, logical-time implementation, and callback configuration; provider runtime evidence is not yet available."
     },
     {
       "id": "java-tck.timestamped-interaction-tso-designator-terminalization",
