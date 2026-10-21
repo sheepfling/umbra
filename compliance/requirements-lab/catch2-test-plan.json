@@ -14161,7 +14161,7 @@
         "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l38-8"
       ],
       "test_case": "The FOM composition preflight applies the Annex C.4 dimension duplicate rule",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:458",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:456",
       "tags": [
         "unit",
         "fom",

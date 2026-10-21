@@ -119,6 +119,9 @@ set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
   "array-cardinality-reversed-range=${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-array-cardinality-tck.xml"
   "array-cardinality-fixed-encoding-mismatch=${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-fixed-array-encoding-tck.xml"
   "array-cardinality-variable-encoding-mismatch=${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-variable-array-encoding-tck.xml"
+  "dimension-duplicate-base=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml"
+  "dimension-duplicate-equal-unique=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-duplicate-equal-unique-tck.xml"
+  "dimension-duplicate-conflicting-upper-bound=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-duplicate-conflicting-upper-bound-tck.xml"
   CACHE STRING "Semicolon-separated NAME=FILE FOM bindings supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"

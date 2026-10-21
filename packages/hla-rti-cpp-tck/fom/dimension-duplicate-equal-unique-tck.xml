@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <modelIdentification><name>TCK Dimension Duplicate and Unique</name><type>FOM</type></modelIdentification>
+  <dimensions>
+    <dimension>
+      <name>TckDuplicateDimension</name>
+      <inputDataTypes><dataType>HLAcount</dataType></inputDataTypes>
+      <inputDataDescription>Coordinate</inputDataDescription><upperBound>100</upperBound>
+      <normalization>Identity.</normalization>
+      <outputDataSemantics>Normalized coordinate.</outputDataSemantics>
+      <value>[0..100)</value>
+    </dimension>
+    <dimension>
+      <name>TckUniqueDimension</name>
+      <inputDataTypes><dataType>HLAcount</dataType></inputDataTypes>
+      <inputDataDescription>Coordinate</inputDataDescription><upperBound>200</upperBound>
+      <normalization>Identity.</normalization>
+      <outputDataSemantics>Normalized coordinate.</outputDataSemantics>
+      <value>[0..200)</value>
+    </dimension>
+  </dimensions>
+</objectModel>

@@ -112,6 +112,12 @@ public final class RtiTckMain {
       "hla.rti.tck.arrayCardinalityFixedMismatchFom";
    private static final String ARRAY_CARDINALITY_VARIABLE_MISMATCH_FOM_PROPERTY =
       "hla.rti.tck.arrayCardinalityVariableMismatchFom";
+   private static final String DIMENSION_DUPLICATE_BASE_FOM_PROPERTY =
+      "hla.rti.tck.dimensionDuplicateBaseFom";
+   private static final String DIMENSION_DUPLICATE_EQUAL_UNIQUE_FOM_PROPERTY =
+      "hla.rti.tck.dimensionDuplicateEqualUniqueFom";
+   private static final String DIMENSION_DUPLICATE_CONFLICT_FOM_PROPERTY =
+      "hla.rti.tck.dimensionDuplicateConflictFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1702,6 +1708,18 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomArrayCardinalityRejections);
+      run(new Scenario("java-tck.fom-dimension-duplicate-union",
+            "Accept an identical dimension duplicate and retain a new dimension",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;RTIambassador.getDimensionUpperBound;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomDimensionDuplicateUnion);
+      run(new Scenario("java-tck.fom-dimension-duplicate-conflict",
+            "Reject a conflicting upper bound on a same-named dimension",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomDimensionDuplicateConflict);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11402,6 +11420,10 @@ public final class RtiTckMain {
             method = "fomArrayCardinalityForms"; break;
          case "java-tck.fom-array-cardinality-rejections":
             method = "fomArrayCardinalityRejections"; break;
+         case "java-tck.fom-dimension-duplicate-union":
+            method = "fomDimensionDuplicateUnion"; break;
+         case "java-tck.fom-dimension-duplicate-conflict":
+            method = "fomDimensionDuplicateConflict"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -12986,6 +13008,20 @@ public final class RtiTckMain {
             requireAdapterFile(ARRAY_CARDINALITY_FIXED_MISMATCH_FOM_PROPERTY),
             requireAdapterFile(ARRAY_CARDINALITY_VARIABLE_MISMATCH_FOM_PROPERTY)
          }, timeImplementation(), callbackModel());
+   }
+
+   private static void fomDimensionDuplicateUnion() throws Exception {
+      FomDimensionDuplicateTck.run(factory(),
+         requireAdapterFile(DIMENSION_DUPLICATE_BASE_FOM_PROPERTY),
+         requireAdapterFile(DIMENSION_DUPLICATE_EQUAL_UNIQUE_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), false);
+   }
+
+   private static void fomDimensionDuplicateConflict() throws Exception {
+      FomDimensionDuplicateTck.run(factory(),
+         requireAdapterFile(DIMENSION_DUPLICATE_BASE_FOM_PROPERTY),
+         requireAdapterFile(DIMENSION_DUPLICATE_CONFLICT_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), true);
    }
 
    private static void fomStandardInvalidInputCorpus() throws Exception {

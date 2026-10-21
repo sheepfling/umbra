@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Separate native-green pure official-API Annex C.4 witnesses use schema-valid, adapter-owned FOM modules. One combines an identical same-named dimension with a unique dimension and queries both named handles and upper bounds after Join. The other combines one dimension with a declaration differing only in upperBound, expects InconsistentFOM, and retries a valid Create. Each module creates independently. Installed-package CTest and direct runner passed 8/8 each across both callback models. Java parity compiles against the API-only JAR but provider runtime is unverified. Note-content differences, other dimension sub-elements, interoperability, and conformance remain outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-dimension-duplicate-union",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>), joinFederationExecution, getDimensionHandle, getDimensionName, getDimensionUpperBound, resignFederationExecution, destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation and dimension lookup services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_dimension_duplicate.cpp::scenarioFomDimensionDuplicateUnionContract"]
+    },
+    {
+      "id": "standard-cpp-fom-dimension-duplicate-conflict",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and destruction services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_dimension_duplicate.cpp::scenarioFomDimensionDuplicateConflictContract"]
+    }
+  ]
+}

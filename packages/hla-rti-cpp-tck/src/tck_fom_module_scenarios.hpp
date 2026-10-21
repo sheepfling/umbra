@@ -62,5 +62,9 @@ void scenarioFomArrayCardinalityForms(Options const&, rti::CallbackModel);
 void scenarioFomArrayCardinalityFormsContract(Options const&, rti::CallbackModel);
 void scenarioFomArrayCardinalityRejections(Options const&, rti::CallbackModel);
 void scenarioFomArrayCardinalityRejectionsContract(Options const&, rti::CallbackModel);
+void scenarioFomDimensionDuplicateUnion(Options const&, rti::CallbackModel);
+void scenarioFomDimensionDuplicateUnionContract(Options const&, rti::CallbackModel);
+void scenarioFomDimensionDuplicateConflict(Options const&, rti::CallbackModel);
+void scenarioFomDimensionDuplicateConflictContract(Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

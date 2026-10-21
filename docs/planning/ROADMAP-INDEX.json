@@ -1,4 +1,18 @@
 {
+  "portable_tck_fom_dimension_duplicate_handoff_2026_10_21": {
+    "status": "verified-installed-package",
+    "scope": "Translate the native-green IEEE 1516.2-2025 Annex C.4 dimension duplicate/unique-insertion and changed-upperBound rejection branches into separate pure official-API C++ primary/contract cases with Java scenario parity.",
+    "sources": "cpp/tests/libxml2_fom_composer_catch2.cpp:456; packages/hla-rti-cpp-tck/src/tck_fom_dimension_duplicate.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomDimensionDuplicateTck.java",
+    "direct_mappings": [
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l14-2 -> IEEE 1516.2-2025 Annex C.4 duplicate ignore",
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l38-8 -> IEEE 1516.2-2025 Annex C.4 unique insertion",
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l18-3 -> IEEE 1516.2-2025 Annex C.4 duplicate equality",
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l26-5 -> IEEE 1516.2-2025 Annex C.4 sub-element comparison"
+    ],
+    "evidence": "Native focused CTest passed 1/1 and its stale plan pointer was corrected. Three adapter-owned DIF modules passed the official pinned XSD. Installed-package MinGW/Ninja CTest passed 8/8 and direct runner passed 8/8 across HLA_EVOKED and HLA_IMMEDIATE (out/mgw/dimension-duplicate-20261021.json). C++ and Java catalogs validate, parity audit passes, and Java compiles against the API-only JAR. Java provider runtime remains unverified.",
+    "scope_boundary": "The positive Create accepts an equal same-named dimension and a new dimension, and joined public lookups confirm both names and bounds. The negative Create rejects only a changed upperBound as InconsistentFOM and a valid retry reuses the name. Referenced-note equality, other sub-element conflicts, Java provider runtime, interoperability, and conformance are not claimed. Provider library, FOMs, endpoint, logical time, and callback model remain adapter-owned.",
+    "next": "Inspect the adjacent native-green Annex C.5 synchronization-point duplicate rule and its exact pinned mappings; choose a schema-valid public Create witness with Java API-only parity, then gate against the installed package. Keep note-content and other dimension sub-elements separate; do not resynchronize unchanged Lab inputs."
+  },
   "portable_tck_fom_array_cardinality_handoff_2026_10_21": {
     "status": "verified-installed-package",
     "scope": "Translate native-green IEEE 1516.2-2025 clause 4.14.6 array cardinality forms and predefined encoding compatibility into separate pure official-API positive and rejection C++ primary/contract cases with Java scenario parity.",

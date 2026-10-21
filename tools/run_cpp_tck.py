@@ -728,6 +728,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/invalid-fixed-array-encoding-tck.xml")),
             "array-cardinality-variable-encoding-mismatch="
             + str(default_path("packages/hla-rti-cpp-tck/fom/invalid-variable-array-encoding-tck.xml")),
+            "dimension-duplicate-base="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml")),
+            "dimension-duplicate-equal-unique="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-equal-unique-tck.xml")),
+            "dimension-duplicate-conflicting-upper-bound="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/dimension-duplicate-conflicting-upper-bound-tck.xml")),
         ]
     scenario_foms: list[str] = []
     seen_scenario_foms: set[str] = set()

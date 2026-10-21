@@ -19433,6 +19433,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-nonextendable-variant-alternative-conflict-contract",
       "cpp-tck.fom-array-cardinality-forms-contract",
       "cpp-tck.fom-array-cardinality-rejections-contract",
+      "cpp-tck.fom-dimension-duplicate-union-contract",
+      "cpp-tck.fom-dimension-duplicate-conflict-contract",
       "cpp-tck.service-report-interaction-contract",
       "cpp-tck.service-report-attribute-update-contract",
       "cpp-tck.service-report-register-object-instance-contract",
@@ -20135,6 +20137,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-nonextendable-variant-alternative-conflict",
       "cpp-tck.fom-array-cardinality-forms",
       "cpp-tck.fom-array-cardinality-rejections",
+      "cpp-tck.fom-dimension-duplicate-union",
+      "cpp-tck.fom-dimension-duplicate-conflict",
       "cpp-tck.connection-loss-cleanup",
       "cpp-tck.connection-loss-cleanup-contract",
       "cpp-tck.connection-loss-automatic-unconditional-divestiture",
@@ -20969,6 +20973,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-array-cardinality-rejections-contract") {
     return scenarioFomArrayCardinalityRejectionsContract;
+  }
+  if (id == "cpp-tck.fom-dimension-duplicate-union-contract") {
+    return scenarioFomDimensionDuplicateUnionContract;
+  }
+  if (id == "cpp-tck.fom-dimension-duplicate-conflict-contract") {
+    return scenarioFomDimensionDuplicateConflictContract;
   }
   if (id == "cpp-tck.service-report-interaction-contract") {
     return scenarioServiceReportInteractionContract;
@@ -23210,6 +23220,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-array-cardinality-rejections") {
     return scenarioFomArrayCardinalityRejections;
   }
+  if (id == "cpp-tck.fom-dimension-duplicate-union") {
+    return scenarioFomDimensionDuplicateUnion;
+  }
+  if (id == "cpp-tck.fom-dimension-duplicate-conflict") {
+    return scenarioFomDimensionDuplicateConflict;
+  }
   if (id == "cpp-tck.connection-loss-cleanup") return scenarioConnectionLoss;
   if (id == "cpp-tck.connection-loss-cleanup-contract") {
     return scenarioConnectionLossContract;
@@ -23672,6 +23688,19 @@ int run(Options const& options) {
                     options.scenarioFoms.count("array-cardinality-variable-encoding-mismatch") == 0U)))) {
         result.status = "skipped";
         result.message = "requires adapter-supplied array-cardinality FOM modules";
+      } else if ((scenario == "cpp-tck.fom-dimension-duplicate-union" ||
+                  scenario == "cpp-tck.fom-dimension-duplicate-union-contract" ||
+                  scenario == "cpp-tck.fom-dimension-duplicate-conflict" ||
+                  scenario == "cpp-tck.fom-dimension-duplicate-conflict-contract") &&
+                 (options.scenarioFoms.count("dimension-duplicate-base") == 0U ||
+                  ((scenario == "cpp-tck.fom-dimension-duplicate-union" ||
+                    scenario == "cpp-tck.fom-dimension-duplicate-union-contract") &&
+                   options.scenarioFoms.count("dimension-duplicate-equal-unique") == 0U) ||
+                  ((scenario == "cpp-tck.fom-dimension-duplicate-conflict" ||
+                    scenario == "cpp-tck.fom-dimension-duplicate-conflict-contract") &&
+                   options.scenarioFoms.count("dimension-duplicate-conflicting-upper-bound") == 0U))) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied dimension-duplicate FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&
