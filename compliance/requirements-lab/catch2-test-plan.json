@@ -34130,7 +34130,7 @@
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
       "requirements_lab_api_surface_status": "The official 2025 C++ Query Attribute Ownership service reports a federate owner through a configured process endpoint, then reports the same instance attribute unowned after a successful public Unconditional Attribute Ownership Divestiture call. This is one bounded development-profile state transition; it does not establish complete ownership arbitration or conformance.",
-      "next_action": "Keep the before/after query and divestiture transition green. Add acquisition to a second joined federate, mixed-set transitions, push-mode delivery, package/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
+      "next_action": "The native-green before/after ownership-query transition now has a promoted pure C++ TCK primary/contract pair and Java parity ID. Its installed-package pair passed 4/4 direct runs and 4/4 focused CTests across both callback models (out/mgw/ownership-transition-query-focused-20261021.json; out/mgw/cpp-tck-unregulated-timestamped-attribute-20261021). Java compiles against the official 2025 API JAR but has no provider runtime. Keep second-federate acquisition, mixed-set transitions, independent-provider interoperability, and conformance as separate evidence."
     },
     {
       "id": "umbra-cpp-process-ownership-query-after-second-federate-acquisition",

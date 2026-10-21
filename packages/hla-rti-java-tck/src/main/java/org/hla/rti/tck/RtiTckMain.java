@@ -4355,6 +4355,12 @@ public final class RtiTckMain {
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.attributeOwnershipReleaseDenied;RTIambassador.queryAttributeOwnership;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.attributeOwnershipUnavailable;FederateAmbassador.informAttributeOwnership",
              new String[] {"cpp-1516.1-ownership-management"}, false),
           RtiTckMain::ownershipDenialQuery);
+       run(new Scenario("java-tck.ownership-transition-query",
+             "query the attribute owner before and after unconditional divestiture",
+             "ownership",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.queryAttributeOwnership;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.informAttributeOwnership;FederateAmbassador.attributeIsNotOwned",
+             new String[] {"cpp-1516.1-ownership-management"}, false),
+          RtiTckMain::ownershipTransitionQuery);
        run(new Scenario("java-tck.attribute-ownership-query-owner-report",
              "query a published object's attribute owner and verify the standard ownership report",
              "ownership",
@@ -8126,6 +8132,11 @@ public final class RtiTckMain {
    private static void ownershipDenialQuery() throws Exception {
       OwnershipReleaseDeniedTck.runQueryAfterDenial(factory(), requireFom(),
          objectClassName(), attributeName(), callbackModel());
+   }
+
+   private static void ownershipTransitionQuery() throws Exception {
+      OwnershipTransitionQueryTck.run(factory(), requireFom(), objectClassName(),
+         attributeName(), callbackModel());
    }
 
    private static void attributeOwnershipQueryOwnerReport() throws Exception {
@@ -11968,6 +11979,8 @@ public final class RtiTckMain {
              method = "ownershipDenialIdle"; break;
           case "java-tck.ownership-denial-query":
              method = "ownershipDenialQuery"; break;
+          case "java-tck.ownership-transition-query":
+             method = "ownershipTransitionQuery"; break;
           case "java-tck.attribute-ownership-query-owner-report":
              method = "attributeOwnershipQueryOwnerReport"; break;
          case "java-tck.ownership-acquisition-if-available":

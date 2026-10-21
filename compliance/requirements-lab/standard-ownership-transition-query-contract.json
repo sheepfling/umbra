@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This bounded standard-API contract queries one newly registered attribute, verifies Inform Attribute Ownership names the registrant, unconditionally divests the attribute, and queries again for Attribute Is Not Owned with no owner or RTI-owned report. The native configured-process HLA_EVOKED case passed its focused CTest with host loopback access. The installed-package portable C++ primary/contract pair passed 4/4 direct runs (out/mgw/ownership-transition-query-focused-20261021.json) and 4/4 focused CTests across evoked/immediate callbacks (out/mgw/cpp-tck-unregulated-timestamped-attribute-20261021). Java source compiles against the official 2025 API JAR, but provider runtime has not run. Transport-specific behavior, broader ownership arbitration, independent-provider interoperability, and conformance are not claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ownership-transition-query",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador QueryAttributeOwnership, UnconditionalAttributeOwnershipDivestiture, and IsAttributeOwnedByFederate; FederateAmbassador InformAttributeOwnership and AttributeIsNotOwned",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_transition_query.cpp::scenarioOwnershipTransitionQuery",
+        "packages/hla-rti-cpp-tck/src/tck_ownership_transition_query.cpp::scenarioOwnershipTransitionQueryContract"
+      ]
+    }
+  ]
+}

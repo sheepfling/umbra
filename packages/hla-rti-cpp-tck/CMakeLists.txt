@@ -88,6 +88,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_ownership_cancellation_idle.cpp
   src/tck_ownership_denial_idle.cpp
   src/tck_ownership_denial_query.cpp
+  src/tck_ownership_transition_query.cpp
   src/tck_directed_interaction_no_applicable_subscription.cpp
   src/tck_directed_interaction_subscription_accumulation.cpp
   src/tck_federation_lifecycle_scenarios.cpp
