@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable Annex C.3 data-type composition cases invoke only the official IEEE 1516.1-2025 RTIambassador Create/Destroy Federation Execution overloads. The provider library, endpoint, callback model, logical-time implementation, and three schema-valid FOM modules are adapter-owned. One case checks a forward reference resolved by a later module; another checks incompatible definitions of one named simple data type and federation-name reuse after rejection. Native focused CTest passed 4/4 including duplicate registrations. Installed-package CTest passed 8/8 and the direct runner passed 8/8 in both callback models (out/mgw/fom-data-type-merge-20261021.json). Java compiles against the API-only JAR but provider runtime is pending; no general module-composition or interoperability claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-data-type-merge-annex-c3",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador Create Federation Execution vector overload",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_data_type_merge.cpp::scenarioFomDataTypeForwardReferenceContract",
+        "packages/hla-rti-cpp-tck/src/tck_fom_data_type_merge.cpp::scenarioFomDataTypeConflictingDefinitionContract"
+      ]
+    }
+  ]
+}

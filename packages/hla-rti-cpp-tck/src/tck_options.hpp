@@ -16,6 +16,9 @@ struct Options {
   std::filesystem::path mimFom;
   std::filesystem::path switchesFom;
   std::filesystem::path autoProvideFom;
+  std::filesystem::path dataTypeMergeConsumerFom;
+  std::filesystem::path dataTypeMergeProviderFom;
+  std::filesystem::path dataTypeMergeConflictingProviderFom;
   std::filesystem::path knownClassFom;
   std::filesystem::path knownClassDisabledFom;
   std::vector<std::filesystem::path> additionalFomModules;

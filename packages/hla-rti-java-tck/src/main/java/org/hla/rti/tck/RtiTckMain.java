@@ -50,6 +50,12 @@ public final class RtiTckMain {
    private static final String MODEL_FOM_PROPERTY = "hla.rti.tck.modelFom";
    private static final String SWITCHES_FOM_PROPERTY = "hla.rti.tck.switchesFom";
    private static final String AUTO_PROVIDE_FOM_PROPERTY = "hla.rti.tck.autoProvideFom";
+   private static final String DATA_TYPE_MERGE_CONSUMER_FOM_PROPERTY =
+      "hla.rti.tck.dataTypeMergeConsumerFom";
+   private static final String DATA_TYPE_MERGE_PROVIDER_FOM_PROPERTY =
+      "hla.rti.tck.dataTypeMergeProviderFom";
+   private static final String DATA_TYPE_MERGE_CONFLICTING_PROVIDER_FOM_PROPERTY =
+      "hla.rti.tck.dataTypeMergeConflictingProviderFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1550,6 +1556,18 @@ public final class RtiTckMain {
             new String[] {"cpp-1516.1-malformed-fom-input",
                "cpp-1516.1-federation-create-join-resign-destroy"}, false),
          RtiTckMain::fomEmptyModuleValidation);
+      run(new Scenario("java-tck.fom-data-type-forward-reference",
+            "Resolve an array element type supplied by a later FOM module",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomDataTypeForwardReference);
+      run(new Scenario("java-tck.fom-data-type-conflicting-definition",
+            "Reject incompatible definitions of one named data type across FOM modules",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomDataTypeConflictingDefinition);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11220,6 +11238,10 @@ public final class RtiTckMain {
             method = "fomEmptyMimCreateAtomicity"; break;
          case "java-tck.fom-empty-module-validation":
             method = "fomEmptyModuleValidation"; break;
+         case "java-tck.fom-data-type-forward-reference":
+            method = "fomDataTypeForwardReference"; break;
+         case "java-tck.fom-data-type-conflicting-definition":
+            method = "fomDataTypeConflictingDefinition"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -12692,6 +12714,21 @@ public final class RtiTckMain {
    private static void fomEmptyModuleValidation() throws Exception {
       FomEmptyModuleValidationTck.run(factory(), requireFom(), timeImplementation(),
          callbackModel());
+   }
+
+   private static void fomDataTypeForwardReference() throws Exception {
+      FomDataTypeMergeTck.forwardReference(factory(),
+         requireAdapterFile(DATA_TYPE_MERGE_CONSUMER_FOM_PROPERTY),
+         requireAdapterFile(DATA_TYPE_MERGE_PROVIDER_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomDataTypeConflictingDefinition() throws Exception {
+      FomDataTypeMergeTck.conflictingDefinition(factory(),
+         requireAdapterFile(DATA_TYPE_MERGE_CONSUMER_FOM_PROPERTY),
+         requireAdapterFile(DATA_TYPE_MERGE_PROVIDER_FOM_PROPERTY),
+         requireAdapterFile(DATA_TYPE_MERGE_CONFLICTING_PROVIDER_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
    }
 
    private static void fomStandardInvalidInputCorpus() throws Exception {

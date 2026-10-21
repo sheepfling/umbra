@@ -233,6 +233,18 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(default_path("packages/hla-rti-cpp-tck/fom/auto-provide-tck.xml")),
     )
     parser.add_argument(
+        "--data-type-merge-consumer-fom",
+        default=str(default_path("packages/hla-rti-cpp-tck/fom/data-type-merge-consumer-tck.xml")),
+    )
+    parser.add_argument(
+        "--data-type-merge-provider-fom",
+        default=str(default_path("packages/hla-rti-cpp-tck/fom/data-type-merge-provider-tck.xml")),
+    )
+    parser.add_argument(
+        "--data-type-merge-conflicting-provider-fom",
+        default=str(default_path("packages/hla-rti-cpp-tck/fom/data-type-merge-conflicting-provider-tck.xml")),
+    )
+    parser.add_argument(
         "--known-class-fom",
         default=str(
             default_path("packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml")
@@ -529,6 +541,21 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             must_exist=True,
             label="Auto Provide FOM",
         ),
+        "data_type_merge_consumer_fom": resolve_path(
+            arguments.data_type_merge_consumer_fom,
+            must_exist=True,
+            label="data-type merge consumer FOM",
+        ),
+        "data_type_merge_provider_fom": resolve_path(
+            arguments.data_type_merge_provider_fom,
+            must_exist=True,
+            label="data-type merge provider FOM",
+        ),
+        "data_type_merge_conflicting_provider_fom": resolve_path(
+            arguments.data_type_merge_conflicting_provider_fom,
+            must_exist=True,
+            label="data-type merge conflicting provider FOM",
+        ),
         "known_class_fom": resolve_path(
             arguments.known_class_fom,
             must_exist=True,
@@ -599,6 +626,15 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_MIM_FOM": inputs["mim_fom"],
         "HLA_RTI_TCK_ADAPTER_SWITCHES_FOM": inputs["switches_fom"],
         "HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FOM": inputs["auto_provide_fom"],
+        "HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_CONSUMER_FOM": inputs[
+            "data_type_merge_consumer_fom"
+        ],
+        "HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_PROVIDER_FOM": inputs[
+            "data_type_merge_provider_fom"
+        ],
+        "HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_CONFLICTING_PROVIDER_FOM": inputs[
+            "data_type_merge_conflicting_provider_fom"
+        ],
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM": inputs["known_class_fom"],
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM": inputs[
             "known_class_disabled_fom"
@@ -943,6 +979,12 @@ def direct_arguments(
         str(inputs["switches_fom"]),
         "--auto-provide-fom",
         str(inputs["auto_provide_fom"]),
+        "--data-type-merge-consumer-fom",
+        str(inputs["data_type_merge_consumer_fom"]),
+        "--data-type-merge-provider-fom",
+        str(inputs["data_type_merge_provider_fom"]),
+        "--data-type-merge-conflicting-provider-fom",
+        str(inputs["data_type_merge_conflicting_provider_fom"]),
         "--known-class-fom",
         str(inputs["known_class_fom"]),
         "--known-class-disabled-fom",

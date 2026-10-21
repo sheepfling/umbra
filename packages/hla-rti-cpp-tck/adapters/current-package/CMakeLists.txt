@@ -63,6 +63,15 @@ set(HLA_RTI_TCK_ADAPTER_SWITCHES_FOM
 set(HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/auto-provide-tck.xml"
   CACHE FILEPATH "Auto Provide FOM supplied by this provider adapter")
+set(HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_CONSUMER_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/data-type-merge-consumer-tck.xml"
+  CACHE FILEPATH "Annex C.3 forward-reference consumer FOM supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_PROVIDER_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/data-type-merge-provider-tck.xml"
+  CACHE FILEPATH "Annex C.3 named data-type provider FOM supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_CONFLICTING_PROVIDER_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/data-type-merge-conflicting-provider-tck.xml"
+  CACHE FILEPATH "Annex C.3 conflicting named data-type provider FOM supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"
   CACHE FILEPATH "Known-class advisory FOM supplied by this provider adapter")
@@ -263,6 +272,14 @@ if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FOM}" OR
   message(FATAL_ERROR
     "Adapter Auto Provide FOM does not exist: ${HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FOM}")
 endif()
+foreach(_merge_fom IN ITEMS
+    HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_CONSUMER_FOM
+    HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_PROVIDER_FOM
+    HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_CONFLICTING_PROVIDER_FOM)
+  if(NOT EXISTS "${${_merge_fom}}" OR IS_DIRECTORY "${${_merge_fom}}")
+    message(FATAL_ERROR "Adapter data-type merge FOM does not exist: ${${_merge_fom}}")
+  endif()
+endforeach()
 if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}" OR
    IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM}")
   message(FATAL_ERROR
@@ -394,6 +411,10 @@ endif()
 set(_tck_common_arguments
   --fom "${HLA_RTI_TCK_ADAPTER_FOM}"
   --model-fom "${HLA_RTI_TCK_ADAPTER_MODEL_FOM}"
+  --data-type-merge-consumer-fom "${HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_CONSUMER_FOM}"
+  --data-type-merge-provider-fom "${HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_PROVIDER_FOM}"
+  --data-type-merge-conflicting-provider-fom
+    "${HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_CONFLICTING_PROVIDER_FOM}"
   --fom-custom-transportation "${HLA_RTI_TCK_ADAPTER_FOM_CUSTOM_TRANSPORTATION}"
   --fom-additional-transportation
     "${HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_TRANSPORTATION}"

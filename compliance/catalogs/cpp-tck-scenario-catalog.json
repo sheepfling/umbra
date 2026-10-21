@@ -55903,6 +55903,82 @@
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.unsubscribeInteractionClassWithRegions",
         "RTIambassador.unpublishInteractionClass",
+    {
+      "id": "cpp-tck.fom-data-type-forward-reference",
+      "category": "fom-composition",
+      "title": "Resolve a data type supplied by a later FOM module during federation creation",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "The adapter supplies schema-valid consumer/provider modules. A consumer-only array element reference fails with InconsistentFOM; consumer followed by the provider creates successfully under the same federation name. Native public-API focused CTest passed 4/4 including duplicate registrations. Installed-package CTest passed 8/8 and direct runner passed 8/8 across this slice in both callback models; no general FOM merge or conformance claim.",
+      "contract_refs": ["standard-fom-data-type-merge-contract.json"],
+      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomDataTypeForwardReference",
+      "runner_id": "cpp-tck.fom-data-type-forward-reference",
+      "parity": "java-tck.fom-data-type-forward-reference",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-data-type-forward-reference-contract",
+      "category": "fom-composition",
+      "title": "Portable Annex C.3 forward-reference data-type merge contract",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Repeats the primary official-API Annex C.3 assertions; installed-package CTest and direct runner passed 8/8 each across this slice in both callback models.",
+      "contract_refs": ["standard-fom-data-type-merge-contract.json"],
+      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomDataTypeForwardReferenceContract",
+      "runner_id": "cpp-tck.fom-data-type-forward-reference-contract",
+      "parity": "cpp-tck.fom-data-type-forward-reference",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-data-type-conflicting-definition",
+      "category": "fom-composition",
+      "title": "Reject conflicting definitions of one named data type across FOM modules",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Each provider composes separately with the consumer; together they define one named simple data type with incompatible representations and must fail with InconsistentFOM. A subsequent valid create under the same federation name checks rejection atomicity. Native public-API focused CTest passed 4/4 including duplicate registrations. Installed-package CTest passed 8/8 and direct runner passed 8/8 across this slice in both callback models.",
+      "contract_refs": ["standard-fom-data-type-merge-contract.json"],
+      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomDataTypeConflictingDefinition",
+      "runner_id": "cpp-tck.fom-data-type-conflicting-definition",
+      "parity": "java-tck.fom-data-type-conflicting-definition",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-data-type-conflicting-definition-contract",
+      "category": "fom-composition",
+      "title": "Portable Annex C.3 named data-type conflict contract",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Repeats the primary official-API Annex C.3 conflict and federation-name reuse assertions; installed-package CTest and direct runner passed 8/8 each across this slice in both callback models.",
+      "contract_refs": ["standard-fom-data-type-merge-contract.json"],
+      "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomDataTypeConflictingDefinitionContract",
+      "runner_id": "cpp-tck.fom-data-type-conflicting-definition-contract",
+      "parity": "cpp-tck.fom-data-type-conflicting-definition",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
         "RTIambassador.deleteRegion",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",

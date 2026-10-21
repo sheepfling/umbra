@@ -32,5 +32,9 @@ void scenarioFomEmptyMimCreateAtomicity(Options const&, rti::CallbackModel);
 void scenarioFomEmptyMimCreateAtomicityContract(Options const&, rti::CallbackModel);
 void scenarioFomEmptyModuleValidation(Options const&, rti::CallbackModel);
 void scenarioFomEmptyModuleValidationContract(Options const&, rti::CallbackModel);
+void scenarioFomDataTypeForwardReference(Options const&, rti::CallbackModel);
+void scenarioFomDataTypeForwardReferenceContract(Options const&, rti::CallbackModel);
+void scenarioFomDataTypeConflictingDefinition(Options const&, rti::CallbackModel);
+void scenarioFomDataTypeConflictingDefinitionContract(Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

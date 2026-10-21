@@ -19418,6 +19418,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-invalid-composite-mim-create-atomicity-contract",
       "cpp-tck.fom-empty-mim-create-atomicity-contract",
       "cpp-tck.fom-empty-module-validation-contract",
+      "cpp-tck.fom-data-type-forward-reference-contract",
+      "cpp-tck.fom-data-type-conflicting-definition-contract",
       "cpp-tck.service-report-interaction-contract",
       "cpp-tck.service-report-attribute-update-contract",
       "cpp-tck.service-report-register-object-instance-contract",
@@ -20105,6 +20107,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-invalid-composite-mim-create-atomicity",
       "cpp-tck.fom-empty-mim-create-atomicity",
       "cpp-tck.fom-empty-module-validation",
+      "cpp-tck.fom-data-type-forward-reference",
+      "cpp-tck.fom-data-type-conflicting-definition",
       "cpp-tck.connection-loss-cleanup",
       "cpp-tck.connection-loss-cleanup-contract",
       "cpp-tck.connection-loss-automatic-unconditional-divestiture",
@@ -20144,6 +20148,9 @@ void printHelp() {
       "  --mim-fom FILE                Standard MIM supplied by the adapter\n"
       "  --switches-fom FILE           Switch-declaration FOM supplied by the adapter\n"
       "  --auto-provide-fom FILE       Auto Provide FOM supplied by the adapter\n"
+      "  --data-type-merge-consumer-fom FILE\n"
+      "  --data-type-merge-provider-fom FILE\n"
+      "  --data-type-merge-conflicting-provider-fom FILE\n"
       "  --known-class-fom FILE        Known-class advisory FOM supplied by the adapter\n"
       "  --known-class-disabled-fom FILE\n"
       "                                Known-class-disabled advisory FOM supplied by the adapter\n"
@@ -20288,6 +20295,15 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--auto-provide-fom") {
       requireValue(index, argc, argv, argument);
       options.autoProvideFom = argv[++index];
+    } else if (argument == "--data-type-merge-consumer-fom") {
+      requireValue(index, argc, argv, argument);
+      options.dataTypeMergeConsumerFom = argv[++index];
+    } else if (argument == "--data-type-merge-provider-fom") {
+      requireValue(index, argc, argv, argument);
+      options.dataTypeMergeProviderFom = argv[++index];
+    } else if (argument == "--data-type-merge-conflicting-provider-fom") {
+      requireValue(index, argc, argv, argument);
+      options.dataTypeMergeConflictingProviderFom = argv[++index];
     } else if (argument == "--known-class-fom") {
       requireValue(index, argc, argv, argument);
       options.knownClassFom = argv[++index];
@@ -20536,6 +20552,14 @@ Options parseOptions(int argc, char** argv) {
       !std::filesystem::is_regular_file(options.autoProvideFom)) {
     throw std::runtime_error(
         "Auto Provide FOM file does not exist: " + options.autoProvideFom.string());
+  }
+  for (auto const& mergeFom : {options.dataTypeMergeConsumerFom,
+                               options.dataTypeMergeProviderFom,
+                               options.dataTypeMergeConflictingProviderFom}) {
+    if (!mergeFom.empty() && !std::filesystem::is_regular_file(mergeFom)) {
+      throw std::runtime_error("Data-type merge FOM file does not exist: " +
+                               mergeFom.string());
+    }
   }
   if (!options.knownClassFom.empty() &&
       !std::filesystem::is_regular_file(options.knownClassFom)) {
@@ -20797,6 +20821,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-empty-module-validation-contract") {
     return scenarioFomEmptyModuleValidationContract;
+  }
+  if (id == "cpp-tck.fom-data-type-forward-reference-contract") {
+    return scenarioFomDataTypeForwardReferenceContract;
+  }
+  if (id == "cpp-tck.fom-data-type-conflicting-definition-contract") {
+    return scenarioFomDataTypeConflictingDefinitionContract;
   }
   if (id == "cpp-tck.service-report-interaction-contract") {
     return scenarioServiceReportInteractionContract;
@@ -22993,6 +23023,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-empty-module-validation") {
     return scenarioFomEmptyModuleValidation;
   }
+  if (id == "cpp-tck.fom-data-type-forward-reference") {
+    return scenarioFomDataTypeForwardReference;
+  }
+  if (id == "cpp-tck.fom-data-type-conflicting-definition") {
+    return scenarioFomDataTypeConflictingDefinition;
+  }
   if (id == "cpp-tck.connection-loss-cleanup") return scenarioConnectionLoss;
   if (id == "cpp-tck.connection-loss-cleanup-contract") {
     return scenarioConnectionLossContract;
@@ -23083,6 +23119,12 @@ void writeResults(
         << "  \"switches_fom\": \"" << jsonEscape(options.switchesFom.string()) << "\",\n"
         << "  \"auto_provide_fom\": \""
         << jsonEscape(options.autoProvideFom.string()) << "\",\n"
+        << "  \"data_type_merge_consumer_fom\": \""
+        << jsonEscape(options.dataTypeMergeConsumerFom.string()) << "\",\n"
+        << "  \"data_type_merge_provider_fom\": \""
+        << jsonEscape(options.dataTypeMergeProviderFom.string()) << "\",\n"
+        << "  \"data_type_merge_conflicting_provider_fom\": \""
+        << jsonEscape(options.dataTypeMergeConflictingProviderFom.string()) << "\",\n"
          << "  \"known_class_fom\": \""
          << jsonEscape(options.knownClassFom.string()) << "\",\n"
          << "  \"known_class_disabled_fom\": \""
@@ -23330,6 +23372,16 @@ int run(Options const& options) {
                  (options.fom.empty() || options.mimFom.empty())) {
         result.status = "skipped";
         result.message = "requires adapter-supplied base FOM and valid MIM";
+      } else if ((scenario == "cpp-tck.fom-data-type-forward-reference" ||
+                  scenario == "cpp-tck.fom-data-type-forward-reference-contract" ||
+                  scenario == "cpp-tck.fom-data-type-conflicting-definition" ||
+                  scenario == "cpp-tck.fom-data-type-conflicting-definition-contract") &&
+                 (options.dataTypeMergeConsumerFom.empty() ||
+                  options.dataTypeMergeProviderFom.empty() ||
+                  (scenario.find("conflicting-definition") != std::string::npos &&
+                   options.dataTypeMergeConflictingProviderFom.empty()))) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied Annex C.3 data-type FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&

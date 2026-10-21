@@ -1,4 +1,16 @@
 {
+  "portable_tck_fom_data_type_merge_handoff_2026_10_21": {
+    "status": "verified-installed-package",
+    "scope": "Translate the native-green IEEE 1516.2-2025 Annex C.3 forward-reference and conflicting named data-type Create Federation Execution cases into portable C++ primary/contract pairs with Java parity IDs.",
+    "sources": "packages/hla-rti-cpp-tck/src/tck_fom_data_type_merge.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomDataTypeMergeTck.java",
+    "direct_mappings": [
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8 -> IEEE 1516.2-2025 Annex C.3",
+      "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9 -> IEEE 1516.2-2025 Annex C.3"
+    ],
+    "evidence": "Native public-API focused CTest passed 4/4 including duplicate registrations. Installed-package MinGW/Ninja CTest passed 8/8 and direct runner passed 8/8 across primary/contract pairs and HLA_EVOKED/HLA_IMMEDIATE (out/mgw/fom-data-type-merge-20261021.json). The C++ and Java catalogs validate, parity audit passes, and Java compiles against the API-only JAR; Java provider runtime is unverified.",
+    "scope_boundary": "The three data-type FOM modules and all runtime configuration are adapter-owned. This slice does not prove complete Annex C.3 merging, Java provider runtime, or interoperability.",
+    "next": "Audit the native Annex C.3 overlapping variant-record alternative case for native-green evidence and distinct portable coverage, then translate only a verified official-API slice. Keep Java provider runtime and cross-provider interoperability as separate gates."
+  },
   "portable_tck_object_class_timestamped_provider_response_handoff_2026_10_21": {
     "status": "verified-installed-package",
     "scope": "Translate the native object-class Request Attribute Value Update and timestamped provider response case into official-API portable C++ primary/contract cases and Java scenario-ID parity.",

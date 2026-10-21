@@ -8304,6 +8304,42 @@
       "exclusion": "Requires an adapter-supplied valid FOM and Java IEEE 1516.1-2025 provider; configure hla.rti.tck.fom. Provider runtime verification remains pending."
     },
     {
+      "id": "java-tck.fom-data-type-forward-reference",
+      "category": "fom-composition",
+      "title": "Resolve a data type supplied by a later FOM module during federation creation",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l42-8", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Standard Java API parity for the Annex C.3 forward-reference create/reject behavior. Adapter owns the FOM paths; API-only compilation is required and Java provider runtime remains unverified.",
+      "contract_refs": ["standard-fom-data-type-merge-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomDataTypeForwardReference",
+      "parity": "cpp-tck.fom-data-type-forward-reference",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.dataTypeMergeConsumerFom and hla.rti.tck.dataTypeMergeProviderFom for a Java IEEE 1516.1-2025 provider; runtime unverified."
+    },
+    {
+      "id": "java-tck.fom-data-type-conflicting-definition",
+      "category": "fom-composition",
+      "title": "Reject incompatible definitions of one named data type across FOM modules",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l46-9", "standard_section": "hla-1516.2-2025:clause-C.3" }
+      ],
+      "mapping_note": "Standard Java API parity for the Annex C.3 named data-type conflict and federation-name reuse checks. Adapter owns the FOM paths; API-only compilation is required and Java provider runtime remains unverified.",
+      "contract_refs": ["standard-fom-data-type-merge-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomDataTypeConflictingDefinition",
+      "parity": "cpp-tck.fom-data-type-conflicting-definition",
+      "default_status": "unsupported",
+      "exclusion": "Configure the three hla.rti.tck.dataTypeMerge*Fom properties for a Java IEEE 1516.1-2025 provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-standard-invalid-input-corpus",
       "category": "fom-lifecycle",
       "title": "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
