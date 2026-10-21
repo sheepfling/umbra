@@ -81246,7 +81246,7 @@
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout$",
       "ctest_label": "timestamped-interaction-request-retraction-fanout",
-      "next_action": "Keep delivered directed-recipient notification separate from pending-recipient suppression and from the generic interaction and regional retraction lanes. The focused MinGW/Ninja CTest passed 1/1; do not promote this embedded-profile result as conformance."
+      "next_action": "Native focused MinGW CTest passed 1/1. The delivered-versus-queued phase now has portable C++ primary/contract and Java parity IDs; installed-package C++ passed 4/4 direct runs and 4/4 focused CTests. The later immediate-only phase and independent-provider conformance remain separate and unclaimed."
     },
     {
       "id": "umbra-cpp-mom-service-report-message-retraction-handle-unit",

@@ -17504,6 +17504,49 @@
       "exclusion": "Provider, FOM, logical-time implementation, endpoint, callback model, and timestamped-directed object/attribute/interaction/parameter names are adapter-supplied. The portable defaults target the P0 TckSecondaryObject/Value/TckSecondaryDirectedInteraction/SecondaryPayload declarations. Keep unsupported by default until executed against a Java IEEE 1516.1-2025 provider."
     },
     {
+      "id": "java-tck.directed-retraction-mixed-fanout",
+      "category": "time",
+      "title": "Notify a delivered directed recipient while suppressing its queued constrained peer",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle", "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.registerObjectInstance", "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.enableTimeRegulation", "RTIambassador.enableTimeConstrained",
+        "RTIambassador.sendDirectedInteraction(time)", "RTIambassador.retract",
+        "RTIambassador.timeAdvanceRequest", "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.receiveDirectedInteraction(time)",
+        "FederateAmbassador.requestRetraction", "FederateAmbassador.timeAdvanceGrant",
+        "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.23.3"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22", "standard_section": "hla-1516.1-2025:clause-8.23.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23", "standard_section": "hla-1516.1-2025:clause-8.23.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27", "standard_section": "hla-1516.1-2025:clause-8.23.3"}
+      ],
+      "mapping_note": "The Java peer checks a TIMESTAMP/RECEIVE directed callback and matching Request Retraction at the delivered nonconstrained recipient, while the queued constrained recipient gets neither callback through its Time Advance Grant. It uses adapter-supplied FOM, time implementation, endpoint, callback model, and provider JAR; Java provider runtime is not yet verified.",
+      "contract_refs": ["request-retraction-api-contract.json", "standard-directed-retraction-mixed-fanout-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#directedRetractionMixedFanout",
+      "parity": "cpp-tck.directed-retraction-mixed-fanout",
+      "default_status": "unsupported",
+      "exclusion": "Java provider runtime evidence is not available; official IEEE 1516.1-2025 API compilation and parity only. Provider JAR, FOM, endpoint, callback model, and logical-time implementation must come from the adapter."
+    },
+    {
       "id": "java-tck.timestamped-directed-interaction-source-resignation-fanout",
       "category": "time",
       "title": "Deliver a queued timestamped directed interaction independently to two receivers after producer resignation",

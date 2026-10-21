@@ -31474,6 +31474,79 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.directed-retraction-mixed-fanout",
+      "category": "interaction-management",
+      "title": "Notify a delivered directed recipient while suppressing its queued constrained peer",
+      "api_methods": [
+        "RTIambassador.connect", "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getInteractionClassHandle", "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.registerObjectInstance", "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.enableTimeRegulation", "RTIambassador.enableTimeConstrained",
+        "RTIambassador.sendDirectedInteraction(time)", "RTIambassador.retract",
+        "RTIambassador.timeAdvanceRequest", "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.receiveDirectedInteraction(time)",
+        "FederateAmbassador.requestRetraction", "FederateAmbassador.timeAdvanceGrant",
+        "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.23.3"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22", "standard_section": "hla-1516.1-2025:clause-8.23.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23", "standard_section": "hla-1516.1-2025:clause-8.23.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27", "standard_section": "hla-1516.1-2025:clause-8.23.3"}
+      ],
+      "mapping_note": "The directly mapped §8.23.3 mixed-recipient phase is independently green in the native official-API case. One timestamped directed copy is already delivered to a nonconstrained recipient with TIMESTAMP/RECEIVE order and a valid designator, while another is queued for a constrained recipient. Retract gives the delivered recipient exactly one matching Request Retraction and removes the queued peer without a callback through its grant. The native case's later immediate-only phase is not included or claimed. Installed-package C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests across both callback models; evidence: out/mgw/directed-retraction-mixed-fanout-configured-20261021.json. Java provider runtime remains unverified.",
+      "contract_refs": ["request-retraction-api-contract.json", "standard-directed-retraction-mixed-fanout-contract.json"],
+      "cpp_test": "src/tck_directed_retraction_mixed_fanout.cpp#scenarioDirectedRetractionMixedFanout",
+      "runner_id": "cpp-tck.directed-retraction-mixed-fanout",
+      "parity": "java-tck.directed-retraction-mixed-fanout",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.directed-retraction-mixed-fanout-contract",
+      "category": "interaction-management",
+      "title": "Portable contract for delivered-versus-queued directed retraction",
+      "api_methods": ["RTIambassador.sendDirectedInteraction(time)", "RTIambassador.retract", "FederateAmbassador.requestRetraction"],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.23.3"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22", "standard_section": "hla-1516.1-2025:clause-8.23.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23", "standard_section": "hla-1516.1-2025:clause-8.23.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27", "standard_section": "hla-1516.1-2025:clause-8.23.3"}
+      ],
+      "mapping_note": "Delegates to the same public-API delivered-versus-queued directed retraction case in the selected callback model; no immediate-only recipient or general retraction claim.",
+      "contract_refs": ["standard-directed-retraction-mixed-fanout-contract.json"],
+      "cpp_test": "src/tck_directed_retraction_mixed_fanout.cpp#scenarioDirectedRetractionMixedFanoutContract",
+      "runner_id": "cpp-tck.directed-retraction-mixed-fanout-contract",
+      "parity": "java-tck.directed-retraction-mixed-fanout",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-directed-interaction-retraction",
       "category": "timestamped-directed-interaction-retraction",
       "title": "Retract a queued timestamped directed interaction before delivery and preserve subsequent delivery",

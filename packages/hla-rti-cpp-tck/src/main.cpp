@@ -135,6 +135,7 @@ void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
 #include "tck_lookup_lifecycle_scenarios.hpp"
 #include "tck_fom_module_scenarios.hpp"
 #include "tck_inherited_derived_delivery_scenarios.hpp"
+#include "tck_directed_retraction_mixed_fanout.hpp"
 #include "tck_timestamped_interaction_boundary_scenarios.hpp"
 #include "tck_region_lifecycle_scenarios.hpp"
 #include "tck_data_encoding.hpp"
@@ -19365,6 +19366,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.directed-interaction-received-class-projection",
       "cpp-tck.directed-known-object-class-fallback",
       "cpp-tck.directed-known-object-class-fallback-contract",
+      "cpp-tck.directed-retraction-mixed-fanout",
+      "cpp-tck.directed-retraction-mixed-fanout-contract",
       "cpp-tck.directed-interaction-no-applicable-subscription",
       "cpp-tck.directed-interaction-subscription-accumulation",
       "cpp-tck.directed-interaction-derived-object-target-contract",
@@ -22789,6 +22792,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.directed-known-object-class-fallback-contract") {
     return scenarioDirectedKnownObjectClassFallbackContract;
+  }
+  if (id == "cpp-tck.directed-retraction-mixed-fanout") {
+    return scenarioDirectedRetractionMixedFanout;
+  }
+  if (id == "cpp-tck.directed-retraction-mixed-fanout-contract") {
+    return scenarioDirectedRetractionMixedFanoutContract;
   }
   if (id == "cpp-tck.directed-interaction-no-applicable-subscription") {
     return scenarioDirectedInteractionNoApplicableSubscription;

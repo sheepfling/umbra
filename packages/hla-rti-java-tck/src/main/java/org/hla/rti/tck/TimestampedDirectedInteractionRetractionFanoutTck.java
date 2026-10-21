@@ -186,6 +186,141 @@ final class TimestampedDirectedInteractionRetractionFanoutTck {
       }
    }
 
+   /** A delivered nonconstrained copy is retracted while a constrained copy remains queued. */
+   static void runMixed(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String attributeName, String interactionClassName,
+         String parameterName, CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador immediate = factory.getRtiAmbassador();
+      RTIambassador constrained = factory.getRtiAmbassador();
+      Recorder publisherRec = new Recorder();
+      Recorder immediateRec = new Recorder();
+      Recorder constrainedRec = new Recorder();
+      String federation = "java-tck-directed-mixed-retraction-" + UUID.randomUUID();
+      boolean publisherConnected = false, immediateConnected = false, constrainedConnected = false;
+      boolean created = false, publisherJoined = false, immediateJoined = false, constrainedJoined = false;
+      boolean constrainedTimeEnabled = false, publisherTimeEnabled = false;
+      try {
+         publisher.connect(publisherRec.proxy(), callbackModel); publisherConnected = true;
+         immediate.connect(immediateRec.proxy(), callbackModel); immediateConnected = true;
+         constrained.connect(constrainedRec.proxy(), callbackModel); constrainedConnected = true;
+         publisher.createFederationExecution(federation, fom, timeImplementation); created = true;
+         FederateHandle producer = publisher.joinFederationExecution(
+            "directed-mixed-retraction-publisher", federation); publisherJoined = true;
+         immediate.joinFederationExecution("directed-mixed-retraction-immediate", federation);
+         immediateJoined = true;
+         constrained.joinFederationExecution("directed-mixed-retraction-constrained", federation);
+         constrainedJoined = true;
+
+         ObjectClassHandle objectClass = publisher.getObjectClassHandle(objectClassName);
+         ObjectClassHandle immediateClass = immediate.getObjectClassHandle(objectClassName);
+         ObjectClassHandle constrainedClass = constrained.getObjectClassHandle(objectClassName);
+         AttributeHandle marker = publisher.getAttributeHandle(objectClass, attributeName);
+         InteractionClassHandle interaction = publisher.getInteractionClassHandle(interactionClassName);
+         InteractionClassHandle immediateInteraction = immediate.getInteractionClassHandle(interactionClassName);
+         InteractionClassHandle constrainedInteraction = constrained.getInteractionClassHandle(interactionClassName);
+         ParameterHandle parameter = publisher.getParameterHandle(interaction, parameterName);
+         ParameterHandle immediateParameter = immediate.getParameterHandle(
+            immediateInteraction, parameterName);
+         JavaTckSupport.check(objectClass.equals(immediateClass)
+               && objectClass.equals(constrainedClass)
+               && interaction.equals(immediateInteraction)
+               && interaction.equals(constrainedInteraction)
+               && parameter.equals(immediateParameter),
+            "directed mixed-fanout FOM member handles changed across federates");
+         publisher.publishObjectClassAttributes(objectClass,
+            JavaTckSupport.attributeSet(publisher, marker));
+         immediate.subscribeObjectClassAttributes(immediateClass,
+            JavaTckSupport.attributeSet(immediate,
+               immediate.getAttributeHandle(immediateClass, attributeName)));
+         constrained.subscribeObjectClassAttributes(constrainedClass,
+            JavaTckSupport.attributeSet(constrained,
+               constrained.getAttributeHandle(constrainedClass, attributeName)));
+         publisher.publishObjectClassDirectedInteractions(objectClass,
+            JavaTckSupport.interactionSet(publisher, interaction));
+         publisher.changeInteractionOrderType(interaction, OrderType.TIMESTAMP);
+         immediate.subscribeObjectClassDirectedInteractions(immediateClass,
+            JavaTckSupport.interactionSet(immediate, immediateInteraction));
+         constrained.subscribeObjectClassDirectedInteractions(constrainedClass,
+            JavaTckSupport.interactionSet(constrained, constrainedInteraction));
+         ObjectInstanceHandle target = publisher.registerObjectInstance(objectClass);
+         JavaTckSupport.drain(immediate); JavaTckSupport.drain(constrained);
+         JavaTckSupport.check(immediateRec.discoveries.contains(target)
+               && constrainedRec.discoveries.contains(target),
+            "both mixed-fanout recipients did not discover the target");
+
+         LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
+         JavaTckSupport.check(timeFactory.getName().equals(constrained.getTimeFactory().getName()),
+            "directed mixed-fanout members selected different time factories");
+         LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
+         LogicalTime initial = publisher.queryLogicalTime();
+         constrained.enableTimeConstrained(); constrainedTimeEnabled = true;
+         JavaTckSupport.drain(constrained);
+         JavaTckSupport.check(constrainedRec.timeConstrainedEnabled == 1,
+            "constrained mixed-fanout recipient did not enable Time Constrained");
+         publisher.enableTimeRegulation(epsilon); publisherTimeEnabled = true;
+         JavaTckSupport.drain(publisher);
+         JavaTckSupport.check(publisherRec.timeRegulationEnabled == 1,
+            "mixed-fanout publisher did not enable Time Regulation");
+         LogicalTime messageTime = offset(initial, epsilon, 2);
+         byte[] payload = new byte[] {0x4d, 0x58};
+         byte[] tag = new byte[] {0x52, 0x44, 0x49};
+         MessageRetractionReturn sent = send(publisher, interaction, parameter,
+            target, payload, tag, messageTime);
+         JavaTckSupport.check(sent != null && sent.retractionHandleIsValid && sent.handle != null,
+            "mixed-fanout directed send returned no valid retraction designator");
+         JavaTckSupport.drain(immediate);
+         JavaTckSupport.check(immediateRec.interactions.size() == 1
+               && constrainedRec.interactions.isEmpty(),
+            "mixed-fanout directed copy was not delivered only to the nonconstrained recipient");
+         Interaction delivered = immediateRec.interactions.get(0);
+         JavaTckSupport.check(interaction.equals(delivered.interactionClass)
+               && target.equals(delivered.object) && producer.equals(delivered.producer)
+               && delivered.parameters.size() == 1
+               && Arrays.equals(payload, delivered.parameters.get(immediateParameter))
+               && Arrays.equals(tag, delivered.tag) && messageTime.equals(delivered.time)
+               && delivered.sentOrder == OrderType.TIMESTAMP
+               && delivered.receivedOrder == OrderType.RECEIVE
+               && sent.handle.equals(delivered.retraction),
+            "nonconstrained directed callback changed the payload, order, or retraction metadata");
+
+         publisher.retract(sent.handle);
+         JavaTckSupport.drain(immediate);
+         JavaTckSupport.check(immediateRec.requestedRetractions.size() == 1
+               && sent.handle.equals(immediateRec.requestedRetractions.get(0))
+               && immediateRec.callbackOrder.equals(Arrays.asList(
+                  "receiveDirectedInteraction", "requestRetraction")),
+            "delivered directed recipient did not receive one matching Request Retraction");
+         JavaTckSupport.check(constrainedRec.interactions.isEmpty()
+               && constrainedRec.requestedRetractions.isEmpty(),
+            "pending directed recipient received a stale callback before advancing");
+         constrained.timeAdvanceRequest(messageTime);
+         publisher.timeAdvanceRequest(messageTime);
+         JavaTckSupport.drain(publisher); JavaTckSupport.drain(constrained);
+         JavaTckSupport.check(constrainedRec.grants.size() == 1
+               && messageTime.equals(constrainedRec.grants.get(0))
+               && constrainedRec.interactions.isEmpty()
+               && constrainedRec.requestedRetractions.isEmpty(),
+            "retracted pending directed copy escaped at its Time Advance Grant");
+      } finally {
+         if (constrainedTimeEnabled && constrainedJoined)
+            try { constrained.disableTimeConstrained(); } catch (Exception ignored) { }
+         if (publisherTimeEnabled && publisherJoined)
+            try { publisher.disableTimeRegulation(); } catch (Exception ignored) { }
+         if (constrainedJoined) try { constrained.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         if (immediateJoined) try { immediate.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         if (publisherJoined) try { publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
+            catch (Exception ignored) { }
+         if (created) try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         if (constrainedConnected) try { constrained.disconnect(); } catch (Exception ignored) { }
+         if (immediateConnected) try { immediate.disconnect(); } catch (Exception ignored) { }
+         if (publisherConnected) try { publisher.disconnect(); } catch (Exception ignored) { }
+      }
+   }
+
    private static MessageRetractionReturn send(RTIambassador publisher,
          InteractionClassHandle interaction, ParameterHandle parameter,
          ObjectInstanceHandle target, byte[] payload, byte[] tag, LogicalTime time) throws Exception {
@@ -260,6 +395,7 @@ final class TimestampedDirectedInteractionRetractionFanoutTck {
       private int timeRegulationEnabled;
       private int timeConstrainedEnabled;
       private int retractions;
+      private final List<MessageRetractionHandle> requestedRetractions = new ArrayList<>();
       private final List<ObjectInstanceHandle> discoveries = new ArrayList<>();
       private final List<Interaction> interactions = new ArrayList<>();
       private final List<String> callbackOrder = new ArrayList<>();
@@ -287,7 +423,11 @@ final class TimestampedDirectedInteractionRetractionFanoutTck {
                   interactions.add(event); callbackOrder.add(name);
                } else if ("timeAdvanceGrant".equals(name) && arguments != null && arguments.length == 1) {
                   grants.add((LogicalTime<?, ?>) arguments[0]); callbackOrder.add(name);
-               } else if ("requestRetraction".equals(name)) ++retractions;
+               } else if ("requestRetraction".equals(name)) {
+                  ++retractions;
+                  requestedRetractions.add((MessageRetractionHandle) arguments[0]);
+                  callbackOrder.add(name);
+               }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK directed retraction fanout callbacks";
                   if ("hashCode".equals(name)) return System.identityHashCode(proxy);
