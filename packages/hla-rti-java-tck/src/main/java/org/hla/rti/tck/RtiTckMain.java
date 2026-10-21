@@ -3130,6 +3130,13 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-federation-create-join-resign-destroy"
             }, false), RtiTckMain::regionalAttributeUpdateCallbackDdmRecheck);
+      run(new Scenario("java-tck.default-region-class-request-equivalence",
+            "match ordinary and broad explicit-region class attribute-value requests",
+            "regional-attribute-value-request",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getDimensionHandle;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.publishObjectClassAttributes;RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.commitRegionModifications;RTIambassador.registerObjectInstanceWithRegions;RTIambassador.registerObjectInstance;RTIambassador.requestAttributeValueUpdate;RTIambassador.requestAttributeValueUpdateWithRegions;RTIambassador.unassociateRegionsForUpdates;RTIambassador.unpublishObjectClassAttributes;RTIambassador.deleteRegion;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.provideAttributeValueUpdate",
+            new String[] {
+               "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l9-2"
+            }, false), RtiTckMain::defaultRegionClassRequestEquivalence);
       run(new Scenario("java-tck.regional-attribute-value-request-filtering",
             "filter regional attribute-value requests by source-region scope and validate request regions",
             "regional-attribute-value-request",
@@ -8737,6 +8744,13 @@ public final class RtiTckMain {
          requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY), callbackModel());
    }
 
+   private static void defaultRegionClassRequestEquivalence() throws Exception {
+      DefaultRegionClassRequestEquivalenceTck.run(factory(),
+         requireAdapterFile(DDM_FOM_PROPERTY), requireAdapterValue(DDM_OBJECT_CLASS_PROPERTY),
+         requireAdapterValue(DDM_ATTRIBUTE_PROPERTY), requireAdapterValue(DIMENSION_PROPERTY),
+         requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY), callbackModel());
+   }
+
    private static void regionalAttributeValueRequestFiltering() throws Exception {
       RegionalAttributeValueRequestFilteringTck.run(factory(),
          requireAdapterFile(DDM_FOM_PROPERTY), requireAdapterValue(DDM_OBJECT_CLASS_PROPERTY),
@@ -11517,6 +11531,7 @@ public final class RtiTckMain {
          case "java-tck.timestamped-default-region-attribute-regulation-reenable": method = "timestampedDefaultRegionAttributeRegulationReenable"; break;
          case "java-tck.timestamped-regional-attribute-source-resignation": method = "timestampedRegionalAttributeSourceResignation"; break;
          case "java-tck.regional-attribute-update-callback-ddm-recheck": method = "regionalAttributeUpdateCallbackDdmRecheck"; break;
+         case "java-tck.default-region-class-request-equivalence": method = "defaultRegionClassRequestEquivalence"; break;
          case "java-tck.regional-attribute-value-request-filtering": method = "regionalAttributeValueRequestFiltering"; break;
          case "java-tck.regional-attribute-value-update-response-recheck": method = "regionalAttributeValueUpdateResponseRecheck"; break;
          case "java-tck.regional-object-update": method = "regionalObjectUpdate"; break;

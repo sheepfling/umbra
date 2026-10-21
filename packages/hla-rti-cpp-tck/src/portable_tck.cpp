@@ -85,6 +85,7 @@ void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
 #include "tck_restore_deferred_lookahead.hpp"
 #include "tck_fqr_deferred_lookahead.hpp"
 #include "tck_fqr_undefined_galt_nrg.hpp"
+#include "tck_default_region_class_request_equivalence.hpp"
 #include "tck_restore_multi_pending_time_advance.hpp"
 #include "tck_restore_pending_flush_queue_immediate.hpp"
 #include "tck_restore_object_snapshot_status.hpp"
@@ -1482,6 +1483,10 @@ constexpr char fqrUndefinedGaltNrgScenario[] =
     "cpp-tck.fqr-undefined-galt-nrg";
 constexpr char fqrUndefinedGaltNrgContractId[] =
     "cpp-tck.fqr-undefined-galt-nrg-contract";
+constexpr char defaultRegionClassRequestEquivalenceScenario[] =
+    "cpp-tck.default-region-class-request-equivalence";
+constexpr char defaultRegionClassRequestEquivalenceContractId[] =
+    "cpp-tck.default-region-class-request-equivalence-contract";
 constexpr char restoreMultiPendingTimeAdvanceScenario[] =
     "cpp-tck.restore-multi-pending-time-advance";
 constexpr char restoreMultiPendingTimeAdvanceContractId[] =
@@ -17568,6 +17573,14 @@ int runFqrUndefinedGaltNrgScenarios(int argc, char** argv) {
       scenarioFqrUndefinedGaltNrgContract, true);
 }
 
+int runDefaultRegionClassRequestEquivalenceScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, defaultRegionClassRequestEquivalenceScenario,
+      defaultRegionClassRequestEquivalenceContractId,
+      scenarioDefaultRegionClassRequestEquivalence,
+      scenarioDefaultRegionClassRequestEquivalenceContract, true);
+}
+
 int runRestoreMultiPendingTimeAdvanceScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc, argv, restoreMultiPendingTimeAdvanceScenario,
@@ -21635,6 +21648,16 @@ bool hasFqrUndefinedGaltNrgScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == fqrUndefinedGaltNrgScenario ||
         scenario == fqrUndefinedGaltNrgContractId) return true;
+  }
+  return false;
+}
+
+bool hasDefaultRegionClassRequestEquivalenceScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == defaultRegionClassRequestEquivalenceScenario ||
+        scenario == defaultRegionClassRequestEquivalenceContractId) return true;
   }
   return false;
 }
@@ -26226,6 +26249,9 @@ int main(int argc, char** argv) {
     }
     if (hasFqrUndefinedGaltNrgScenario(argc, argv)) {
       return runFqrUndefinedGaltNrgScenarios(argc, argv);
+    }
+    if (hasDefaultRegionClassRequestEquivalenceScenario(argc, argv)) {
+      return runDefaultRegionClassRequestEquivalenceScenarios(argc, argv);
     }
     if (hasRestoreMultiPendingTimeAdvanceScenario(argc, argv)) {
       return runRestoreMultiPendingTimeAdvanceScenarios(argc, argv);

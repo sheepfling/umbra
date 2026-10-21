@@ -33347,6 +33347,15 @@
         "boundary": "No private API or embedded FOM path in portable scenario bodies. HLA_IMMEDIATE, Java provider runtime, alternate transport topologies, interoperability, validation, and conformance remain unverified. The separate delivered-callback-frontier native case has a callback-start cutoff not stated by pinned §8.13; it was not promoted.",
         "next": "Assess the native-green 34-assertion default-region class Request Attribute Value Update equivalence case at cpp/tests/ieee1516_2025_ddm_default_region_class_request_equivalence_catch2.cpp:5 (focused native CTest 1/1 on 2026-10-21); isolate only the standard default-region equivalence and owner Provide Attribute Value Update callback, then gate pure C++ and official-JAR Java parity against the installed package."
       },
+      "latest_verified_default_region_class_request_equivalence_slice": {
+        "status": "verified-2026-10-21",
+        "scope": "Official C++ and Java API class Request Attribute Value Update without regions versus a broad explicit-region class request, each reaching one region-associated and one default-region object with exact callback attribute sets and tags under HLA_EVOKED. Adapter supplies the dimensional FOM, class/attribute/dimension names, provider, endpoint, and callback model.",
+        "native_case": "umbra-cpp-ddm-class-request-default-region-equivalence-integration",
+        "direct_mapping": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l9-2 -> hla-1516.1-2025:clause-9.1.8",
+        "evidence": "Native 34-assertion focused CTest passed 1/1. Installed-package pure C++ primary/contract passed 2/2 direct runs (out/mgw/default-region-class-request-equivalence-20261021.json) and 2/2 focused CTests; C++ boundary/catalog, Java catalog, and parity audit passed. Java compiled against the official 2025 API-only JAR.",
+        "boundary": "Only the bounded default-region class request equivalence is claimed. HLA_IMMEDIATE, Java provider runtime, other DDM operations, interoperability, validation, and conformance remain unverified.",
+        "next": "Audit the native-green 43-assertion ordinary object-class Request Attribute Value Update subclass-owner case (umbra-cpp-object-class-attribute-value-update-request-integration, cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp:94) against existing portable TCK coverage. Translate only a distinct standard-API assertion with an exact 2025 mapping and gate it against the installed package."
+      },
       "restore_queued_ro_portability_audit_2026_10_21": {
         "status": "deferred-not-promoted",
         "native_case": "umbra-cpp-public-save-restore-queued-ro-interaction-discard",

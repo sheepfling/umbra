@@ -263,6 +263,7 @@
       "delivery_modes": ["class-request-default-region-equivalence", "regional-class-request"],
       "callback_gate_modes": [],
       "standard_sections": ["hla-1516.1-2025:clause-9.1.8"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l9-2", "standard_section": "hla-1516.1-2025:clause-9.1.8"}],
       "tags": [
         "integration",
         "development-profile",
@@ -275,7 +276,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "requirements_lab_api_surface_status": "This public C++ case compares class-form Request Attribute Value Update without a region argument against the corresponding regional overload using a region spanning the fixture dimension. It verifies both request forms reach the same explicit-region and default-region objects, preserving the requested attributes and tags. Direct mapping is limited to §9.1.8 default-region equivalence; this is embedded development-profile evidence, not conformance.",
-      "next_action": "Keep this class-form equivalence selector in the DDM lane; add other no-region overload parity only where an exact 2025 requirement remains uncovered."
+      "next_action": "Native focused CTest passed 1/1. The standard-only installed-package C++ TCK primary/contract pair passed 2/2 direct runs and 2/2 focused CTests under HLA_EVOKED; Java API-only parity compiled, without provider-runtime evidence. Keep other no-region overload parity separate and require an exact 2025 mapping."
     },
     {
       "id": "umbra-cpp-associate-regions-duplicate-association-idempotent-integration",

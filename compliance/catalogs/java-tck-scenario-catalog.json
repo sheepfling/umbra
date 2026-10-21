@@ -11610,6 +11610,25 @@
       "exclusion": "Requires an adapter-supplied dimensional FOM, object/attribute/two-dimension names, and installed IEEE 1516.1-2025 Java provider; runtime verification remains pending."
     },
     {
+      "id": "java-tck.default-region-class-request-equivalence",
+      "category": "regional-attribute-value-request",
+      "title": "Match ordinary and broad explicit-region class attribute-value requests",
+      "requirement_ids": ["requirement-candidate-content-clauses-09-data-distribution-management-page-225-l9-2"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-09-data-distribution-management-page-225-l9-2"],
+      "standard_sections": ["hla-1516.1-2025:clause-9.1.8"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l9-2", "standard_section": "hla-1516.1-2025:clause-9.1.8"}],
+      "api_methods": ["RTIambassador.connect(callback model supplied by adapter)", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.createRegion", "RTIambassador.setRangeBounds", "RTIambassador.commitRegionModifications", "RTIambassador.registerObjectInstanceWithRegions", "RTIambassador.registerObjectInstance", "RTIambassador.requestAttributeValueUpdate", "RTIambassador.requestAttributeValueUpdateWithRegions", "FederateAmbassador.provideAttributeValueUpdate"],
+      "mapping_note": "Official IEEE 1516.1-2025 API-only parity for the native-green evoked default-region class request comparison. Java provider runtime is not yet verified.",
+      "callback_models": ["evoked"],
+      "contract_refs": ["standard-default-region-class-request-equivalence-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#defaultRegionClassRequestEquivalence",
+      "parity": "cpp-tck.default-region-class-request-equivalence",
+      "default_status": "unsupported",
+      "promotion": "candidate",
+      "adapter_inputs": ["provider Java API JAR and service-loaded RtiFactory", "adapter dimensional IEEE 1516.2-2025 FOM with configured object class, attribute, and two dimensions", "HLA_EVOKED callback model"],
+      "exclusion": "Java provider runtime has not been executed; no provider-specific API, FOM path, or endpoint is embedded."
+    },
+    {
       "id": "java-tck.regional-attribute-value-request-filtering",
       "category": "regional-attribute-value-request",
       "title": "Filter regional Request Attribute Value Update solicitations by source-region scope",
