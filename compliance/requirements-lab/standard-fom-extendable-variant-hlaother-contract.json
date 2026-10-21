@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Pure 2025 public-API rejection evidence for the Annex C.3 prohibition on an HLAother alternative in HLAextendableVariantRecord. A schema-valid adapter FOM with an enumerated discriminant and ordinary alternative is accepted; an otherwise matching schema-valid module with an added HLAother alternative is rejected as InconsistentFOM, and the federation name remains reusable. The invalid module independently passed the official DIF XSD validator. Native focused CTest passed 1/1; installed-package CTest and direct runner passed 4/4 each across both callback models; Java compiled against the API-only JAR. The exact HLAother sentence is on pinned semantic page 111, continuing the clipped page-110 candidate recorded by RL-319. This case does not claim other variant conflicts, Java provider runtime, interoperability, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-extendable-variant-hlaother-rejection",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>) and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and destruction services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_extendable_variant_hlaother.cpp::scenarioFomExtendableVariantHlaOtherContract"]
+    }
+  ]
+}

@@ -52,5 +52,7 @@ void scenarioFomInteractionClassDimensionMerge(Options const&, rti::CallbackMode
 void scenarioFomInteractionClassDimensionMergeContract(Options const&, rti::CallbackModel);
 void scenarioFomNamedVariantAlternativeMerge(Options const&, rti::CallbackModel);
 void scenarioFomNamedVariantAlternativeMergeContract(Options const&, rti::CallbackModel);
+void scenarioFomExtendableVariantHlaOther(Options const&, rti::CallbackModel);
+void scenarioFomExtendableVariantHlaOtherContract(Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

@@ -1,4 +1,13 @@
 {
+  "portable_tck_fom_extendable_variant_hlaother_handoff_2026_10_21": {
+    "status": "verified-installed-package",
+    "scope": "Promote the native-green Annex C.3 HLAextendableVariantRecord HLAother prohibition into an isolated schema-valid public-API rejection and valid-retry pair with Java parity.",
+    "sources": "cpp/tests/libxml2_fom_composer_catch2.cpp:2182; packages/hla-rti-cpp-tck/src/tck_fom_extendable_variant_hlaother.cpp; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomExtendableVariantHlaOtherTck.java",
+    "direct_mapping": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1 -> IEEE 1516.2-2025 Annex C.3 continuation (RL-319)",
+    "evidence": "Native internal focused CTest passed 1/1. The invalid adapter FOM passed official DIF XSD validation. Installed-package MinGW/Ninja CTest passed 4/4 and direct runner passed 4/4 under HLA_EVOKED and HLA_IMMEDIATE (out/mgw/extendable-variant-hlaother-20261021.json). C++ and Java catalogs validate, parity audit passes, and Java compiles against the API-only JAR. Java provider runtime remains unverified.",
+    "scope_boundary": "Only the added HLAother alternative differs from the valid type declaration; public Create rejects it as InconsistentFOM and a valid module reuses the name. Other variant conflicts, Java provider runtime, interoperability, and conformance remain unverified. The Lab's clipped export remains an extraction issue; no resync was performed.",
+    "next": "Inspect the native-green enumerated value-collision and non-extendable variant cases in cpp/tests/libxml2_fom_composer_catch2.cpp:2182 against their exact intact Annex C.3 mappings, then select one isolated schema-valid public-API witness with Java parity. Keep the existing variant-overlap case separate."
+  },
   "portable_tck_fom_named_variant_alternative_merge_handoff_2026_10_21": {
     "status": "verified-installed-package",
     "scope": "Translate the native-green Annex C.3 positive same-named HLAextendableVariantRecord alternative union into pure public-API portable C++ primary/contract IDs with Java parity.",

@@ -708,6 +708,10 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/named-variant-alternative-first-tck.xml")),
             "named-variant-alternative-second="
             + str(default_path("packages/hla-rti-cpp-tck/fom/named-variant-alternative-second-tck.xml")),
+            "extendable-hlaother-valid="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/named-variant-alternative-first-tck.xml")),
+            "extendable-hlaother-invalid="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/extendable-variant-hlaother-tck.xml")),
         ]
     scenario_foms: list[str] = []
     seen_scenario_foms: set[str] = set()

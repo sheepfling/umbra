@@ -8478,6 +8478,22 @@
       "exclusion": "Configure hla.rti.tck.namedVariantAlternativeFirstFom and namedVariantAlternativeSecondFom for a 2025 Java provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-extendable-variant-hlaother",
+      "category": "fom-composition",
+      "title": "Reject HLAother in an extendable variant and allow a valid retry",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1"],
+      "standard_sections": ["hla-1516.2-2025:clause-C.3"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-111-l6-1", "standard_section": "hla-1516.2-2025:clause-C.3"}],
+      "mapping_note": "Standard Java API parity for HLAother rejection in an extendable variant and valid federation-name retry. Pinned page 111 continues C.3 (RL-319); Java provider runtime unverified.",
+      "contract_refs": ["standard-fom-extendable-variant-hlaother-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomExtendableVariantHlaOther",
+      "parity": "cpp-tck.fom-extendable-variant-hlaother",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.extendableHlaOtherValidFom and extendableHlaOtherInvalidFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-standard-invalid-input-corpus",
       "category": "fom-lifecycle",
       "title": "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
