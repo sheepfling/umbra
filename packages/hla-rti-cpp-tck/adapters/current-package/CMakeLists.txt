@@ -131,6 +131,10 @@ set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
   "update-rate-duplicate-base=${_repository_root}/packages/hla-rti-cpp-tck/fom/update-rate-duplicate-base-tck.xml"
   "update-rate-duplicate-equal=${_repository_root}/packages/hla-rti-cpp-tck/fom/update-rate-duplicate-equal-tck.xml"
   "update-rate-duplicate-note-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/update-rate-duplicate-note-conflict-tck.xml"
+  "switch-duplicate-disabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/switch-duplicate-disabled-tck.xml"
+  "switch-duplicate-equal=${_repository_root}/packages/hla-rti-cpp-tck/fom/switch-duplicate-equal-tck.xml"
+  "switch-duplicate-enabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/switch-duplicate-enabled-tck.xml"
+  "switch-duplicate-omitted=${_repository_root}/packages/hla-rti-cpp-tck/fom/switch-duplicate-omitted-tck.xml"
   CACHE STRING "Semicolon-separated NAME=FILE FOM bindings supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Pure public-API Annex C.8 and clause 4.13.3 witnesses use four schema-valid, adapter-owned FOM modules to compare equivalent, conflicting, and omitted Non-Regulated-Grant settings. The two native private preflight cases passed 2/2; the separate installed-package portable CTest/direct gate passed 12/12 each across both callback models. Java parity compiles against the API-only JAR but provider runtime is unverified. The portable cases check only publicly observable Create, joined getNonRegulatedGrantSwitch, Resign, and Destroy outcomes. Private warning text, unrelated switches, TAR policy, interoperability, and conformance are not claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-switch-duplicate-equal",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>), joinFederationExecution, getNonRegulatedGrantSwitch, resignFederationExecution, destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation and support-switch query services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_switch_duplicate.cpp::scenarioFomSwitchDuplicateEqualContract"]
+    },
+    {
+      "id": "standard-cpp-fom-switch-duplicate-order",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>), joinFederationExecution, getNonRegulatedGrantSwitch, resignFederationExecution, destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation and support-switch query services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_switch_duplicate.cpp::scenarioFomSwitchDuplicateOrderContract"]
+    },
+    {
+      "id": "standard-cpp-fom-switch-duplicate-omitted",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>), joinFederationExecution, getNonRegulatedGrantSwitch, resignFederationExecution, destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation and support-switch query services",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_switch_duplicate.cpp::scenarioFomSwitchDuplicateOmittedContract"]
+    }
+  ]
+}

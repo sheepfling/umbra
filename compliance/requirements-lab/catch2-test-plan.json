@@ -14237,7 +14237,7 @@
         "requirement-candidate-sections-semantic-clause-4b-page-067-l50-4"
       ],
       "test_case": "The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:884",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:911",
       "tags": [
         "unit",
         "fom",
@@ -14266,7 +14266,7 @@
       ],
       "assertions": 14,
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:948",
+      "source_location": "cpp/tests/libxml2_fom_composer_catch2.cpp:975",
       "next_action": "This private switch-default guard composes omitted and explicit-false 2025 switch settings in both equivalent module orders, requires the Disabled default, and proves no spurious Annex C.8 warning. Its selected Lab candidates resolve to IEEE 1516.2 clauses 4.13.3 and C.8; runtime switch mutation, broader Annex C merge behavior, JUnit/protected review, and conformance remain separate."
     },
     {

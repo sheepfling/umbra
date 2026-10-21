@@ -136,6 +136,14 @@ public final class RtiTckMain {
       "hla.rti.tck.updateRateDuplicateEqualFom";
    private static final String UPDATE_RATE_DUPLICATE_NOTE_CONFLICT_FOM_PROPERTY =
       "hla.rti.tck.updateRateDuplicateNoteConflictFom";
+   private static final String SWITCH_DUPLICATE_DISABLED_FOM_PROPERTY =
+      "hla.rti.tck.switchDuplicateDisabledFom";
+   private static final String SWITCH_DUPLICATE_EQUAL_FOM_PROPERTY =
+      "hla.rti.tck.switchDuplicateEqualFom";
+   private static final String SWITCH_DUPLICATE_ENABLED_FOM_PROPERTY =
+      "hla.rti.tck.switchDuplicateEnabledFom";
+   private static final String SWITCH_DUPLICATE_OMITTED_FOM_PROPERTY =
+      "hla.rti.tck.switchDuplicateOmittedFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1774,6 +1782,24 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomUpdateRateDuplicateNoteConflict);
+      run(new Scenario("java-tck.fom-switch-duplicate-equal",
+            "Accept equivalent duplicate support-switch declarations",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getNonRegulatedGrantSwitch;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomSwitchDuplicateEqual);
+      run(new Scenario("java-tck.fom-switch-duplicate-order",
+            "Expose the first declaration in conflicting support-switch module order",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getNonRegulatedGrantSwitch;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomSwitchDuplicateOrder);
+      run(new Scenario("java-tck.fom-switch-duplicate-omitted",
+            "Treat omitted switch isEnabled as Disabled in either module order",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getNonRegulatedGrantSwitch;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomSwitchDuplicateOmitted);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11490,6 +11516,12 @@ public final class RtiTckMain {
             method = "fomUpdateRateDuplicateEqual"; break;
          case "java-tck.fom-update-rate-duplicate-note-conflict":
             method = "fomUpdateRateDuplicateNoteConflict"; break;
+         case "java-tck.fom-switch-duplicate-equal":
+            method = "fomSwitchDuplicateEqual"; break;
+         case "java-tck.fom-switch-duplicate-order":
+            method = "fomSwitchDuplicateOrder"; break;
+         case "java-tck.fom-switch-duplicate-omitted":
+            method = "fomSwitchDuplicateOmitted"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -13130,6 +13162,27 @@ public final class RtiTckMain {
          requireAdapterFile(UPDATE_RATE_DUPLICATE_BASE_FOM_PROPERTY),
          requireAdapterFile(UPDATE_RATE_DUPLICATE_NOTE_CONFLICT_FOM_PROPERTY),
          timeImplementation(), callbackModel(), true);
+   }
+
+   private static void fomSwitchDuplicateEqual() throws Exception {
+      FomSwitchDuplicateTck.run(factory(),
+         requireAdapterFile(SWITCH_DUPLICATE_DISABLED_FOM_PROPERTY),
+         requireAdapterFile(SWITCH_DUPLICATE_EQUAL_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), false, false);
+   }
+
+   private static void fomSwitchDuplicateOrder() throws Exception {
+      FomSwitchDuplicateTck.run(factory(),
+         requireAdapterFile(SWITCH_DUPLICATE_DISABLED_FOM_PROPERTY),
+         requireAdapterFile(SWITCH_DUPLICATE_ENABLED_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), true, false);
+   }
+
+   private static void fomSwitchDuplicateOmitted() throws Exception {
+      FomSwitchDuplicateTck.run(factory(),
+         requireAdapterFile(SWITCH_DUPLICATE_DISABLED_FOM_PROPERTY),
+         requireAdapterFile(SWITCH_DUPLICATE_OMITTED_FOM_PROPERTY),
+         timeImplementation(), callbackModel(), false, true);
    }
 
    private static void fomStandardInvalidInputCorpus() throws Exception {

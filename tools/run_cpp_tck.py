@@ -752,6 +752,14 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
             + str(default_path("packages/hla-rti-cpp-tck/fom/update-rate-duplicate-equal-tck.xml")),
             "update-rate-duplicate-note-conflict="
             + str(default_path("packages/hla-rti-cpp-tck/fom/update-rate-duplicate-note-conflict-tck.xml")),
+            "switch-duplicate-disabled="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/switch-duplicate-disabled-tck.xml")),
+            "switch-duplicate-equal="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/switch-duplicate-equal-tck.xml")),
+            "switch-duplicate-enabled="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/switch-duplicate-enabled-tck.xml")),
+            "switch-duplicate-omitted="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/switch-duplicate-omitted-tck.xml")),
         ]
     scenario_foms: list[str] = []
     seen_scenario_foms: set[str] = set()
