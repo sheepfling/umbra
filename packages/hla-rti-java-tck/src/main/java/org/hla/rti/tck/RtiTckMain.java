@@ -797,6 +797,12 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-05-declaration-management-page-098-l146-43",
                "java-1516.1-object-registration-discovery"
             }, false), RtiTckMain::unsubscribeLastAttributeStopsDiscovery);
+      run(new Scenario("java-tck.attribute-unsubscribe-stops-reflection",
+            "suppress later ordinary attribute reflection after unsubscription", "declarations",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeMultipleCallbacks;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            new String[] {
+               "requirement-candidate-content-clauses-05-declaration-management-page-098-l155-46"
+            }, false), RtiTckMain::attributeUnsubscribeStopsReflection);
       run(new Scenario("java-tck.base-publication-rejects-derived-only-attribute",
             "reject a derived-only attribute in a base-class publication", "declarations",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
@@ -10777,6 +10783,8 @@ public final class RtiTckMain {
             method = "baseSubscriptionRejectsDerivedOnlyAttribute"; break;
          case "java-tck.unsubscribe-last-attribute-stops-discovery":
             method = "unsubscribeLastAttributeStopsDiscovery"; break;
+         case "java-tck.attribute-unsubscribe-stops-reflection":
+            method = "attributeUnsubscribeStopsReflection"; break;
          case "java-tck.base-publication-rejects-derived-only-attribute":
             method = "basePublicationRejectsDerivedOnlyAttribute"; break;
          case "java-tck.object-management": method = "objectRegistrationAndReflection"; break;
@@ -12506,6 +12514,12 @@ public final class RtiTckMain {
      private static void unsubscribeLastAttributeStopsDiscovery() throws Exception {
         UnsubscribeLastAttributeStopsDiscoveryTck.run(factory(), requireFom(),
            objectClassName(), attributeName(), callbackModel());
+     }
+
+     private static void attributeUnsubscribeStopsReflection() throws Exception {
+        AttributeUnsubscribeStopsReflectionTck.run(factory(), requireFom(),
+           timeImplementation(), objectClassName(), attributeName(), callbackModel(),
+           Long.getLong("hla.rti.tck.callbackTimeoutMillis", 5000L));
      }
 
     private static void basePublicationRejectsDerivedOnlyAttribute() throws Exception {

@@ -147,6 +147,8 @@ void scenarioBaseSubscriptionRejectsDerivedOnlyAttribute(Options const&, rti::Ca
 void scenarioBaseSubscriptionRejectsDerivedOnlyAttributeContract(Options const&, rti::CallbackModel);
 void scenarioBasePublicationRejectsDerivedOnlyAttribute(Options const&, rti::CallbackModel);
 void scenarioUnsubscribeLastAttributeStopsDiscovery(Options const&, rti::CallbackModel);
+void scenarioAttributeUnsubscribeStopsReflection(Options const&, rti::CallbackModel);
+void scenarioAttributeUnsubscribeStopsReflectionContract(Options const&, rti::CallbackModel);
 
 std::vector<std::wstring> fomModuleNames(
     std::vector<std::filesystem::path> const& paths) {
@@ -19310,6 +19312,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.declaration-management-contract",
       "cpp-tck.interaction-full-unpublication",
       "cpp-tck.unsubscribe-last-attribute-stops-discovery",
+      "cpp-tck.attribute-unsubscribe-stops-reflection",
+      "cpp-tck.attribute-unsubscribe-stops-reflection-contract",
       "cpp-tck.base-subscription-rejects-derived-only-attribute",
       "cpp-tck.base-subscription-rejects-derived-only-attribute-contract",
       "cpp-tck.base-publication-rejects-derived-only-attribute",
@@ -20591,6 +20595,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.unsubscribe-last-attribute-stops-discovery") {
     return scenarioUnsubscribeLastAttributeStopsDiscovery;
+  }
+  if (id == "cpp-tck.attribute-unsubscribe-stops-reflection") {
+    return scenarioAttributeUnsubscribeStopsReflection;
+  }
+  if (id == "cpp-tck.attribute-unsubscribe-stops-reflection-contract") {
+    return scenarioAttributeUnsubscribeStopsReflectionContract;
   }
   if (id == "cpp-tck.base-subscription-rejects-derived-only-attribute") {
     return scenarioBaseSubscriptionRejectsDerivedOnlyAttribute;

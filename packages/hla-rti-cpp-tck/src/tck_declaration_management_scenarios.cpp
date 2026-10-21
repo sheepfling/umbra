@@ -418,6 +418,82 @@ void scenarioUnsubscribeLastAttributeStopsDiscovery(
   owner.rtiAmbassador().destroyFederationExecution(federation);
 }
 
+void scenarioAttributeUnsubscribeStopsReflection(
+    Options const& options, rti::CallbackModel model) {
+  require(!options.fom.empty(),
+          "Attribute unsubscription requires an adapter-supplied FOM");
+  Session publisher(options, model, "owner");
+  Session subscriber(options, model, "subscriber");
+  auto const federation = federationName(
+      options, "attribute-unsubscribe-stops-reflection");
+  connectAndJoin(publisher, subscriber, options, federation, options.fom);
+
+  auto& publisherRti = publisher.rtiAmbassador();
+  auto& subscriberRti = subscriber.rtiAmbassador();
+  auto const publisherClass = publisherRti.getObjectClassHandle(options.objectClassName);
+  auto const subscriberClass = subscriberRti.getObjectClassHandle(options.objectClassName);
+  auto const publisherAttribute =
+      publisherRti.getAttributeHandle(publisherClass, options.attributeName);
+  auto const subscriberAttribute =
+      subscriberRti.getAttributeHandle(subscriberClass, options.attributeName);
+  require(publisherClass.isValid() && subscriberClass.isValid() &&
+              publisherAttribute.isValid() && subscriberAttribute.isValid(),
+          "Adapter FOM lacks the object class or attribute for unsubscription");
+  rti::AttributeHandleSet const published{publisherAttribute};
+  rti::AttributeHandleSet const subscribed{subscriberAttribute};
+  publisherRti.publishObjectClassAttributes(publisherClass, published);
+  subscriberRti.subscribeObjectClassAttributes(subscriberClass, subscribed);
+  auto const object = publisherRti.registerObjectInstance(publisherClass);
+  require(object.isValid(), "Attribute unsubscription registered no object");
+  waitFor(subscriber,
+          [&] { return subscriber.recorder().hasDiscovery(object); }, options,
+          "object discovery before attribute unsubscription");
+
+  auto send = [&](std::vector<std::uint8_t> const& value) {
+    rti::AttributeHandleValueMap const values{{
+        publisherAttribute,
+        rti::VariableLengthData(value.data(), value.size()),
+    }};
+    rti::VariableLengthData const tag;
+    publisherRti.updateAttributeValues(object, values, tag);
+  };
+  std::vector<std::uint8_t> const firstValue{0x11U, 0x22U};
+  send(firstValue);
+  waitFor(subscriber,
+          [&] { return subscriber.recorder().reflections().size() == 1U; },
+          options, "initial subscribed attribute reflection");
+  auto const initial = subscriber.recorder().reflections();
+  require(initial.size() == 1U && initial.front().object == object &&
+              initial.front().values.size() == 1U &&
+              initial.front().values.count(subscriberAttribute) == 1U &&
+              copyBytes(initial.front().values.at(subscriberAttribute)) == firstValue,
+          "Initial active subscription did not reflect the expected attribute");
+
+  subscriber.recorder().clearReflection();
+  subscriberRti.unsubscribeObjectClassAttributes(subscriberClass, subscribed);
+  send(std::vector<std::uint8_t>{0x33U, 0x44U});
+  auto const deadline = Clock::now() +
+      std::chrono::milliseconds(options.timeoutMilliseconds);
+  while (Clock::now() < deadline) {
+    publisher.pump();
+    subscriber.pump();
+    if (!subscriber.recorder().reflections().empty()) break;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  require(subscriber.recorder().reflections().empty(),
+          "An attribute update sent after unsubscription was reflected");
+
+  publisherRti.unpublishObjectClassAttributes(publisherClass, published);
+  subscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisherRti.destroyFederationExecution(federation);
+}
+
+void scenarioAttributeUnsubscribeStopsReflectionContract(
+    Options const& options, rti::CallbackModel model) {
+  scenarioAttributeUnsubscribeStopsReflection(options, model);
+}
+
 void scenarioBaseSubscriptionRejectsDerivedOnlyAttribute(
     Options const& options,
     rti::CallbackModel model) {

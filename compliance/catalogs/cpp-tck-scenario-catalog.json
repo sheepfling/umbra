@@ -8343,6 +8343,60 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.attribute-unsubscribe-stops-reflection",
+      "category": "declaration-management",
+      "title": "Suppress later ordinary attribute reflections after unsubscription",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": ["requirement-candidate-content-clauses-05-declaration-management-page-098-l155-46"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-05-declaration-management-page-098-l155-46"],
+      "standard_sections": ["hla-1516.1-2025:clause-5.9.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l155-46", "standard_section": "hla-1516.1-2025:clause-5.9.4"}
+      ],
+      "callback_models": ["evoked", "immediate"],
+      "mapping_note": "A positive ordinary reflection proves the active subscription, then an update sent only after attribute unsubscription must not invoke a later Reflect Attribute Values callback. Negative observation is bounded by the adapter timeout. Fresh native Catch2 passed 24 assertions; an isolated installed-package runner passed primary and contract under HLA_EVOKED and HLA_IMMEDIATE (4/4), with focused evidence validation at out/mgw/attribute-unsubscribe-isolated-20261021/results.json. Java provider runtime remains unverified.",
+      "native_equivalent_runner_ids": ["umbra-cpp-attribute-unsubscribe-stops-reflection"],
+      "contract_refs": ["standard-attribute-unsubscribe-reflection-boundary-contract.json"],
+      "cpp_test": "src/tck_declaration_management_scenarios.cpp#scenarioAttributeUnsubscribeStopsReflection",
+      "runner_id": "cpp-tck.attribute-unsubscribe-stops-reflection",
+      "parity": "java-tck.attribute-unsubscribe-stops-reflection",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.attribute-unsubscribe-stops-reflection-contract",
+      "category": "declaration-management",
+      "title": "Portable contract for suppressing post-unsubscription ordinary reflections",
+      "api_methods": [
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.updateAttributeValues",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": ["requirement-candidate-content-clauses-05-declaration-management-page-098-l155-46"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-05-declaration-management-page-098-l155-46"],
+      "standard_sections": ["hla-1516.1-2025:clause-5.9.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l155-46", "standard_section": "hla-1516.1-2025:clause-5.9.4"}
+      ],
+      "callback_models": ["evoked", "immediate"],
+      "mapping_note": "Shares the primary official-API scenario body and its bounded negative callback observation. The isolated installed-package runner passed under HLA_EVOKED and HLA_IMMEDIATE; focused evidence validation passed at out/mgw/attribute-unsubscribe-isolated-20261021/results.json.",
+      "native_equivalent_runner_ids": ["umbra-cpp-attribute-unsubscribe-stops-reflection"],
+      "contract_refs": ["standard-attribute-unsubscribe-reflection-boundary-contract.json"],
+      "cpp_test": "src/tck_declaration_management_scenarios.cpp#scenarioAttributeUnsubscribeStopsReflectionContract",
+      "runner_id": "cpp-tck.attribute-unsubscribe-stops-reflection-contract",
+      "parity": "java-tck.attribute-unsubscribe-stops-reflection",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "java-tck.object-management",
       "category": "object-management",
       "title": "Enforce object-management lifecycle boundaries, register, discover, request, delete, resolve identity, and enforce named object-instance boundaries",

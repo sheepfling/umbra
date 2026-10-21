@@ -3221,6 +3221,58 @@
       "exclusion": "Requires adapter-supplied provider, endpoint, FOM, object class, attribute, and callback configuration; Java provider runtime evidence is not yet available."
     },
     {
+      "id": "java-tck.attribute-unsubscribe-stops-reflection",
+      "category": "declarations",
+      "title": "Suppress later ordinary attribute reflections after unsubscribing the attribute",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeMultipleCallbacks",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-098-l155-46"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-098-l155-46"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.9.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l155-46",
+          "standard_section": "hla-1516.1-2025:clause-5.9.4"
+        }
+      ],
+      "mapping_note": "Native reference umbra-cpp-attribute-unsubscribe-stops-reflection (focused embedded case: 24 assertions). A first ordinary update and reflection are the positive control; after unsubscribing the sole selected attribute, a later update must not produce another reflection during the adapter-configured callback observation window. The paired portable C++ TCK primary and contract passed an isolated installed-package gate under both callback models; this Java API-only case has not been executed against a provider and is not Java conformance evidence.",
+      "contract_refs": [
+        "standard-attribute-unsubscribe-reflection-boundary-contract.json",
+        "standard-declaration-management-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "object-instance-registration-api-contract.json",
+        "receive-order-attribute-update-api-contract.json",
+        "federation-execution-api-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#attributeUnsubscribeStopsReflection",
+      "parity": "cpp-tck.attribute-unsubscribe-stops-reflection",
+      "default_status": "unsupported",
+      "exclusion": "Requires adapter-supplied provider, endpoint, FOM, object class, attribute, callback model, and callback timeout; Java provider runtime evidence is not yet available."
+    },
+    {
       "id": "java-tck.base-publication-rejects-derived-only-attribute",
       "category": "declarations",
       "title": "Reject a derived-only attribute when publishing the base object class",

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Ordinary attribute reflection is first observed under an active object-class attribute subscription. After unsubscribing that attribute, a later update to the same registered object must not invoke Reflect Attribute Values for that subscriber. The negative observation is bounded by the adapter timeout and is not an interoperability or conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-attribute-unsubscribe-reflection-boundary",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador publishObjectClassAttributes, subscribeObjectClassAttributes, registerObjectInstance, updateAttributeValues, unsubscribeObjectClassAttributes; FederateAmbassador discoverObjectInstance, reflectAttributeValues",
+      "source": "official IEEE 1516.1-2025 C++ API headers; adapter-selected IEEE 1516.2-2025 FOM and callback model",
+      "source_symbol": "IEEE 1516.1-2025 Declaration Management §5.9.4",
+      "tests": [
+        "cpp/tests/attribute_value_update_response_catch2.cpp::Embedded attribute unsubscription suppresses subsequent attribute reflections",
+        "packages/hla-rti-cpp-tck/src/tck_declaration_management_scenarios.cpp::scenarioAttributeUnsubscribeStopsReflection",
+        "packages/hla-rti-cpp-tck/src/tck_declaration_management_scenarios.cpp::scenarioAttributeUnsubscribeStopsReflectionContract"
+      ]
+    }
+  ]
+}
