@@ -499,4 +499,42 @@ TEST_CASE(
   REQUIRE_NOTHROW(creator->disconnect());
 }
 
+TEST_CASE(
+    "Embedded Create Federation Execution rejects conflicting object class semantics and allows a valid retry",
+    "[integration][development-profile][federation-management][fom]"
+    "[object-class-semantics-conflict-public][rti.service.create-federation-execution]"
+    "[rti.service.get-object-class-handle]") {
+  rti1516_2025::NullFederateAmbassador creatorFederate;
+  rti1516_2025::NullFederateAmbassador memberFederate;
+  auto creator = makeRti();
+  auto member = makeRti();
+  auto const federationName = nextFederationName();
+  auto const packageFom = [](char const* filename) {
+    return (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "packages" /
+            "hla-rti-cpp-tck" / "fom" / filename).wstring();
+  };
+  auto const base = packageFom("object-attribute-merge-base-tck.xml");
+  auto const disjoint = packageFom("object-attribute-merge-disjoint-tck.xml");
+  auto const conflict = packageFom("object-class-semantics-conflict-tck.xml");
+
+  REQUIRE_NOTHROW(creator->connect(creatorFederate, rti1516_2025::HLA_EVOKED));
+  REQUIRE_NOTHROW(member->connect(memberFederate, rti1516_2025::HLA_EVOKED));
+  REQUIRE_THROWS_AS(
+      creator->createFederationExecution(
+          federationName, std::vector<std::wstring>{base, conflict},
+          L"HLAinteger64Time"),
+      rti1516_2025::InconsistentFOM);
+  REQUIRE_NOTHROW(creator->createFederationExecution(
+      federationName, std::vector<std::wstring>{base, disjoint},
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(member->joinFederationExecution(
+      L"class-semantics-member", L"member", federationName));
+  REQUIRE(member->getObjectClassHandle(
+      L"HLAobjectRoot.TckAttributeMergeObject").isValid());
+  REQUIRE_NOTHROW(member->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(member->disconnect());
+  REQUIRE_NOTHROW(creator->disconnect());
+}
+
 }  // namespace

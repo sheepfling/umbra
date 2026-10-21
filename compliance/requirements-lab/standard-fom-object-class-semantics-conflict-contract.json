@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Pure 2025 public-API evidence for one Clause 7 object-class element-value conflict. Two adapter-owned, schema-valid FOM modules contain same-named object-class declarations that differ only in class semantics. The portable C++ and Java cases require InconsistentFOM from Create Federation Execution and prove a valid retry can reuse the federation name and expose the class to a member. The internal and public native cases passed, and installed-package C++ CTest/direct runs passed in both callback models; an explicit adapter-FOM override also passed. Java compiles against the API-only JAR, but provider runtime remains unverified. Other class fields, Annex C.3 data-type rules, interoperability, and conformance are not claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-object-class-semantics-conflict-clause-7",
+      "owner": "IEEE 1516.1 and 1516.2 C++ API and OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>), joinFederationExecution, getObjectClassHandle, resignFederationExecution, and destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and object-class lookup services",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_object_class_semantics_conflict.cpp::scenarioFomObjectClassSemanticsConflictContract"
+      ]
+    }
+  ]
+}

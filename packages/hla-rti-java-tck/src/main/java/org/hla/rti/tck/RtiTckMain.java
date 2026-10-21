@@ -74,6 +74,8 @@ public final class RtiTckMain {
       "hla.rti.tck.objectAttributeDisjointFom";
    private static final String OBJECT_ATTRIBUTE_CONFLICT_FOM_PROPERTY =
       "hla.rti.tck.objectAttributeConflictFom";
+   private static final String OBJECT_CLASS_SEMANTICS_CONFLICT_FOM_PROPERTY =
+      "hla.rti.tck.objectClassSemanticsConflictFom";
    private static final String AUTO_PROVIDE_OBJECT_CLASS_PROPERTY =
       "hla.rti.tck.autoProvideObjectClass";
    private static final String AUTO_PROVIDE_FIRST_ATTRIBUTE_PROPERTY =
@@ -1604,6 +1606,12 @@ public final class RtiTckMain {
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomObjectAttributeMergeConflict);
+      run(new Scenario("java-tck.fom-object-class-semantics-conflict",
+            "Reject conflicting semantics for one named object class and allow a valid retry",
+            "fom-composition",
+            "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+         RtiTckMain::fomObjectClassSemanticsConflict);
       run(new Scenario("java-tck.fom-standard-invalid-input-corpus",
             "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",
             "fom-lifecycle",
@@ -11284,6 +11292,8 @@ public final class RtiTckMain {
             method = "fomInteractionParameterMergeConflict"; break;
          case "java-tck.fom-object-attribute-merge-conflict":
             method = "fomObjectAttributeMergeConflict"; break;
+         case "java-tck.fom-object-class-semantics-conflict":
+            method = "fomObjectClassSemanticsConflict"; break;
          case "java-tck.fom-standard-invalid-input-corpus":
             method = "fomStandardInvalidInputCorpus"; break;
          case "java-tck.fom-dimension-handle-stability":
@@ -12794,6 +12804,14 @@ public final class RtiTckMain {
          requireAdapterFile(OBJECT_ATTRIBUTE_BASE_FOM_PROPERTY),
          requireAdapterFile(OBJECT_ATTRIBUTE_DISJOINT_FOM_PROPERTY),
          requireAdapterFile(OBJECT_ATTRIBUTE_CONFLICT_FOM_PROPERTY),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void fomObjectClassSemanticsConflict() throws Exception {
+      FomObjectClassSemanticsConflictTck.run(factory(),
+         requireAdapterFile(OBJECT_ATTRIBUTE_BASE_FOM_PROPERTY),
+         requireAdapterFile(OBJECT_ATTRIBUTE_DISJOINT_FOM_PROPERTY),
+         requireAdapterFile(OBJECT_CLASS_SEMANTICS_CONFLICT_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 

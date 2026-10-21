@@ -2450,6 +2450,12 @@ adapter-managed connection-loss fixture through explicit flags. A provider can
 therefore substitute an equivalent portable FOM corpus, standard MIM, DDM
 dimensions, endpoint, callback model, and compatible logical-time
 implementation without changing the reusable test source.
+For a new scenario-specific FOM, pass repeatable `--scenario-fom NAME=FILE`
+bindings to the Python runner (or set the adapter's
+`HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS` CMake cache list). Explicit Python bindings
+replace the runner's default list. The executable validates each supplied
+file and records the bindings in its result JSON; the portable scenarios read
+them without changing the shared options structure for each new FOM.
 The installed-package CMake adapter exposes
 `HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_MARKER` and
 `HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_SERVER_MANAGED` as adapter cache

@@ -19423,6 +19423,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-variant-alternative-overlap-contract",
       "cpp-tck.fom-interaction-parameter-merge-conflict-contract",
       "cpp-tck.fom-object-attribute-merge-conflict-contract",
+      "cpp-tck.fom-object-class-semantics-conflict-contract",
       "cpp-tck.service-report-interaction-contract",
       "cpp-tck.service-report-attribute-update-contract",
       "cpp-tck.service-report-register-object-instance-contract",
@@ -20115,6 +20116,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-variant-alternative-overlap",
       "cpp-tck.fom-interaction-parameter-merge-conflict",
       "cpp-tck.fom-object-attribute-merge-conflict",
+      "cpp-tck.fom-object-class-semantics-conflict",
       "cpp-tck.connection-loss-cleanup",
       "cpp-tck.connection-loss-cleanup-contract",
       "cpp-tck.connection-loss-automatic-unconditional-divestiture",
@@ -20166,6 +20168,7 @@ void printHelp() {
       "  --object-attribute-base-fom FILE\n"
       "  --object-attribute-disjoint-fom FILE\n"
       "  --object-attribute-conflict-fom FILE\n"
+      "  --scenario-fom NAME=FILE     Repeat; adapter-owned FOM for a named scenario\n"
       "  --known-class-fom FILE        Known-class advisory FOM supplied by the adapter\n"
       "  --known-class-disabled-fom FILE\n"
       "                                Known-class-disabled advisory FOM supplied by the adapter\n"
@@ -20346,6 +20349,16 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--object-attribute-conflict-fom") {
       requireValue(index, argc, argv, argument);
       options.objectAttributeConflictFom = argv[++index];
+    } else if (argument == "--scenario-fom") {
+      requireValue(index, argc, argv, argument);
+      std::string const binding = argv[++index];
+      auto const separator = binding.find('=');
+      if (separator == std::string::npos || separator == 0U ||
+          separator + 1U == binding.size() ||
+          !options.scenarioFoms.emplace(binding.substr(0U, separator),
+                                        binding.substr(separator + 1U)).second) {
+        throw std::runtime_error("--scenario-fom requires a unique NAME=FILE binding");
+      }
     } else if (argument == "--known-class-fom") {
       requireValue(index, argc, argv, argument);
       options.knownClassFom = argv[++index];
@@ -20627,6 +20640,12 @@ Options parseOptions(int argc, char** argv) {
                                attributeFom.string());
     }
   }
+  for (auto const& [name, path] : options.scenarioFoms) {
+    if (!std::filesystem::is_regular_file(path)) {
+      throw std::runtime_error("Scenario FOM file does not exist for " + name +
+                               ": " + path.string());
+    }
+  }
   if (!options.knownClassFom.empty() &&
       !std::filesystem::is_regular_file(options.knownClassFom)) {
     throw std::runtime_error(
@@ -20902,6 +20921,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.fom-object-attribute-merge-conflict-contract") {
     return scenarioFomObjectAttributeMergeConflictContract;
+  }
+  if (id == "cpp-tck.fom-object-class-semantics-conflict-contract") {
+    return scenarioFomObjectClassSemanticsConflictContract;
   }
   if (id == "cpp-tck.service-report-interaction-contract") {
     return scenarioServiceReportInteractionContract;
@@ -23113,6 +23135,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.fom-object-attribute-merge-conflict") {
     return scenarioFomObjectAttributeMergeConflict;
   }
+  if (id == "cpp-tck.fom-object-class-semantics-conflict") {
+    return scenarioFomObjectClassSemanticsConflict;
+  }
   if (id == "cpp-tck.connection-loss-cleanup") return scenarioConnectionLoss;
   if (id == "cpp-tck.connection-loss-cleanup-contract") {
     return scenarioConnectionLossContract;
@@ -23260,6 +23285,15 @@ void writeResults(
   writePaths(options.invalidFomModules);
   output << ",\n  \"standard_invalid_fom\": ";
   writePaths(options.standardInvalidFomModules);
+  output << ",\n  \"scenario_foms\": {";
+  bool firstScenarioFom = true;
+  for (auto const& [name, path] : options.scenarioFoms) {
+    if (!firstScenarioFom) output << ", ";
+    output << '"' << jsonEscape(name) << "\": \""
+           << jsonEscape(path.string()) << '"';
+    firstScenarioFom = false;
+  }
+  output << '}';
   output << ",\n  \"time_implementation\": \""
          << jsonEscape(toNarrow(options.logicalTimeImplementationName)) << "\",\n"
          << "  \"results\": [\n";
@@ -23505,6 +23539,13 @@ int run(Options const& options) {
                   options.objectAttributeConflictFom.empty())) {
         result.status = "skipped";
         result.message = "requires adapter-supplied Annex C.3 object-attribute FOM modules";
+      } else if ((scenario == "cpp-tck.fom-object-class-semantics-conflict" ||
+                  scenario == "cpp-tck.fom-object-class-semantics-conflict-contract") &&
+                 (options.objectAttributeBaseFom.empty() ||
+                  options.objectAttributeDisjointFom.empty() ||
+                  options.scenarioFoms.count("object-class-semantics-conflict") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied object-class semantics FOM modules";
       } else if ((scenario == "cpp-tck.fom-module-composition" ||
                   scenario == "cpp-tck.federation-mom-current-fdd" ||
                   scenario == "cpp-tck.federation-mom-current-fdd-contract") &&

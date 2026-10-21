@@ -281,6 +281,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(default_path("packages/hla-rti-cpp-tck/fom/object-attribute-merge-conflict-tck.xml")),
     )
     parser.add_argument(
+        "--scenario-fom",
+        action="append",
+        default=None,
+        metavar="NAME=FILE",
+        help="repeatable adapter-owned FOM binding; explicit bindings replace adapter defaults",
+    )
+    parser.add_argument(
         "--known-class-fom",
         default=str(
             default_path("packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml")
@@ -680,6 +687,22 @@ def resolve_inputs(arguments: argparse.Namespace) -> dict[str, Any]:
         DEFAULT_STANDARD_INVALID_FOM,
         "standard-invalid FOM",
     )
+    scenario_fom_bindings = arguments.scenario_fom
+    if scenario_fom_bindings is None:
+        scenario_fom_bindings = [
+            "object-class-semantics-conflict="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/object-class-semantics-conflict-tck.xml"))
+        ]
+    scenario_foms: list[str] = []
+    seen_scenario_foms: set[str] = set()
+    for binding in scenario_fom_bindings:
+        name, separator, file_name = binding.partition("=")
+        if not separator or not name or not file_name or name in seen_scenario_foms:
+            raise ValueError("--scenario-fom requires a unique NAME=FILE binding")
+        seen_scenario_foms.add(name)
+        path = resolve_path(file_name, must_exist=True, label=f"scenario FOM {name}")
+        scenario_foms.append(f"{name}={path}")
+    inputs["scenario_foms"] = scenario_foms
     return inputs
 
 
@@ -743,6 +766,7 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_CONFLICT_FOM": inputs[
             "object_attribute_conflict_fom"
         ],
+        "HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS": ";".join(inputs["scenario_foms"]),
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM": inputs["known_class_fom"],
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM": inputs[
             "known_class_disabled_fom"
@@ -1220,6 +1244,8 @@ def direct_arguments(
             command.extend([flag, value])
     for path in inputs["additional_fom"]:
         command.extend(["--additional-fom", str(path)])
+    for binding in inputs["scenario_foms"]:
+        command.extend(["--scenario-fom", binding])
     for dimension in inputs["ddm_dimensions"]:
         command.extend(["--ddm-dimension", dimension])
     for dimension in inputs["three_dimensions"]:

@@ -8394,6 +8394,24 @@
       "exclusion": "Configure the three hla.rti.tck.objectAttribute*Fom properties for a Java IEEE 1516.1-2025 provider; runtime unverified."
     },
     {
+      "id": "java-tck.fom-object-class-semantics-conflict",
+      "category": "fom-composition",
+      "title": "Reject conflicting semantics for one named object class and allow a valid retry",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l6-1"],
+      "standard_sections": ["hla-1516.2-2025:clause-7"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l6-1", "standard_section": "hla-1516.2-2025:clause-7" }
+      ],
+      "mapping_note": "Standard Java API parity for one named object-class semantics conflict, InconsistentFOM, and valid federation-name retry. Adapter owns all FOM paths and callback configuration. API-only compilation required; Java provider runtime remains unverified.",
+      "contract_refs": ["standard-fom-object-class-semantics-conflict-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fomObjectClassSemanticsConflict",
+      "parity": "cpp-tck.fom-object-class-semantics-conflict",
+      "default_status": "unsupported",
+      "exclusion": "Configure hla.rti.tck.objectAttributeBaseFom, objectAttributeDisjointFom, and objectClassSemanticsConflictFom for a 2025 Java provider; runtime unverified."
+    },
+    {
       "id": "java-tck.fom-standard-invalid-input-corpus",
       "category": "fom-lifecycle",
       "title": "Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable",

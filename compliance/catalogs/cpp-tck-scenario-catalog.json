@@ -55788,6 +55788,44 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.fom-object-class-semantics-conflict",
+      "category": "fom-composition",
+      "title": "Reject conflicting semantics for one named object class and allow a valid retry",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l6-1"],
+      "standard_sections": ["hla-1516.2-2025:clause-7"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l6-1", "standard_section": "hla-1516.2-2025:clause-7" }
+      ],
+      "mapping_note": "The same-named object-class declarations in two schema-valid modules differ only in class semantics. Create Federation Execution rejects the conflict as InconsistentFOM; a valid pair reuses the name and exposes the class to a joined member. Bounded Clause 7 evidence only. Native public-API CTest passed 1/1; installed-package CTest and direct runner passed 4/4 each across both callback models, plus explicit FOM-binding override passed 2/2 direct.",
+      "contract_refs": ["standard-fom-object-class-semantics-conflict-contract.json"],
+      "cpp_test": "src/tck_fom_object_class_semantics_conflict.cpp#scenarioFomObjectClassSemanticsConflict",
+      "runner_id": "cpp-tck.fom-object-class-semantics-conflict",
+      "parity": "java-tck.fom-object-class-semantics-conflict",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.fom-object-class-semantics-conflict-contract",
+      "category": "fom-composition",
+      "title": "Portable Clause 7 object-class semantics conflict contract",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution(fomModules)", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect"],
+      "requirement_ids": ["cpp-1516.2-fom-composition-and-reference-resolution"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l6-1"],
+      "standard_sections": ["hla-1516.2-2025:clause-7"],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l6-1", "standard_section": "hla-1516.2-2025:clause-7" }
+      ],
+      "mapping_note": "Repeats the primary official-API class semantics rejection, valid retry, and handle-lookup assertions; installed-package CTest and direct runner passed 4/4 each across both callback models.",
+      "contract_refs": ["standard-fom-object-class-semantics-conflict-contract.json"],
+      "cpp_test": "src/tck_fom_object_class_semantics_conflict.cpp#scenarioFomObjectClassSemanticsConflictContract",
+      "runner_id": "cpp-tck.fom-object-class-semantics-conflict-contract",
+      "parity": "cpp-tck.fom-object-class-semantics-conflict",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.connection-loss-cleanup",
       "category": "connection",
       "title": "Report connection loss, enforce the disconnected service state, and keep the survivor usable",

@@ -99,6 +99,9 @@ set(HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_DISJOINT_FOM
 set(HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_CONFLICT_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/object-attribute-merge-conflict-tck.xml"
   CACHE FILEPATH "Annex C.3 conflicting object-attribute FOM supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+  "object-class-semantics-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/object-class-semantics-conflict-tck.xml"
+  CACHE STRING "Semicolon-separated NAME=FILE FOM bindings supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"
   CACHE FILEPATH "Known-class advisory FOM supplied by this provider adapter")
@@ -542,6 +545,9 @@ list(APPEND _tck_common_arguments
   --service-report-directory "${HLA_RTI_TCK_ADAPTER_SERVICE_REPORT_DIRECTORY}")
 foreach(_additional_fom IN LISTS HLA_RTI_TCK_ADAPTER_ADDITIONAL_FOM_MODULES)
   list(APPEND _tck_common_arguments --additional-fom "${_additional_fom}")
+endforeach()
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  list(APPEND _tck_common_arguments --scenario-fom "${_scenario_fom}")
 endforeach()
 foreach(_ddm_dimension IN LISTS HLA_RTI_TCK_ADAPTER_DDM_DIMENSIONS)
   list(APPEND _tck_common_arguments --ddm-dimension "${_ddm_dimension}")

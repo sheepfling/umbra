@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -28,6 +29,7 @@ struct Options {
   std::filesystem::path objectAttributeBaseFom;
   std::filesystem::path objectAttributeDisjointFom;
   std::filesystem::path objectAttributeConflictFom;
+  std::map<std::string, std::filesystem::path> scenarioFoms;
   std::filesystem::path knownClassFom;
   std::filesystem::path knownClassDisabledFom;
   std::vector<std::filesystem::path> additionalFomModules;

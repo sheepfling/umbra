@@ -11906,6 +11906,33 @@
       "next_action": "Keep this bounded official-API witness green; the matching portable C++ primary/contract IDs passed the installed-package gate in both callback models. Other object-attribute sub-elements need separate evidence."
     },
     {
+      "id": "umbra-cpp-object-class-semantics-conflict-create-integration",
+      "primary_lane": "object-class-semantics-conflict-public",
+      "focus_lane": "object-class-semantics-conflict-public",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.createfederationexecution.b7555a12e578"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l6-1"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l6-1", "standard_section": "hla-1516.2-2025:clause-7" }
+      ],
+      "test_case": "Embedded Create Federation Execution rejects conflicting object class semantics and allows a valid retry",
+      "tags": [
+        "integration", "development-profile", "federation-management", "fom",
+        "object-class-semantics-conflict-public", "rti.service.create-federation-execution",
+        "rti.service.get-object-class-handle"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/fom_declaration_management_catch2.cpp:502",
+      "assertions": 10,
+      "callback_models": ["HLA_EVOKED"],
+      "standard_sections": ["hla-1516.2-2025:clause-7"],
+      "requirements_lab_api_surface_status": "Two schema-valid modules declare one named object class with identical metadata except conflicting class semantics. Official vector Create Federation Execution raises InconsistentFOM; a valid pair subsequently creates under the same federation name and exposes the class through the official lookup service. This is bounded public-API evidence for the Clause 7 object-class element-value conflict, not other elements, Annex C.3 data-type rules, interoperability, or conformance.",
+      "next_action": "Keep this bounded public-API witness green. The pure portable C++ primary/contract pair passed the installed-package gate in both callback models; Java provider runtime and other class elements remain separate."
+    },
+    {
       "id": "umbra-cpp-annex-c-extendable-variant-named-alternative-merge-unit",
       "primary_lane": "annex-c-variant-alternative-merge",
       "focus_lane": "annex-c-variant-alternative-merge",
