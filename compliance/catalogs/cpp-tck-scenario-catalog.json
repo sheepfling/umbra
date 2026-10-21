@@ -24820,8 +24820,12 @@
         "cpp-1516.1-time-bounds-pending-advance"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-206-l26-3",
         "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
-        "requirement-candidate-content-clauses-08-time-management-page-207-l112-28"
+        "requirement-candidate-content-clauses-08-time-management-page-206-l32-5",
+        "requirement-candidate-content-clauses-08-time-management-page-207-l109-27",
+        "requirement-candidate-content-clauses-08-time-management-page-207-l112-28",
+        "requirement-candidate-content-clauses-08-time-management-page-207-l115-29"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.18.1",
@@ -24829,15 +24833,31 @@
       ],
       "requirement_mappings": [
         {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l26-3",
+          "standard_section": "hla-1516.1-2025:clause-8.18.1"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
           "standard_section": "hla-1516.1-2025:clause-8.18.1"
         },
         {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l32-5",
+          "standard_section": "hla-1516.1-2025:clause-8.18.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-207-l109-27",
+          "standard_section": "hla-1516.1-2025:clause-8.19.3"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-207-l112-28",
+          "standard_section": "hla-1516.1-2025:clause-8.19.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-207-l115-29",
           "standard_section": "hla-1516.1-2025:clause-8.19.3"
         }
       ],
-      "mapping_note": "Direct mappings: time-management page-206-l29-4 -> §8.18.1 for Query GALT, and page-207-l112-28 -> §8.19.3 for Query LITS. The scenario checks undefined bounds without other active regulators, the minimum bounds with active regulators and pending advances, and undefined bounds after regulation ends.",
+      "mapping_note": "Direct §8.18.1 mappings page-206-l26-3/l29-4/l32-5 and §8.19.3 mappings page-207-l109-27/l112-28/l115-29: the joined observer invokes both queries, checks their undefined results without active regulators, then checks defined results and exact minimum bounds with active regulators and pending advances. It also checks undefined results after regulation ends. This witnesses the query/optional-return behavior, not every possible time-bound topology.",
       "contract_refs": [
         "time-bounds-api-contract.json",
         "time-bounds-requirements-contract.json",
@@ -24871,8 +24891,12 @@
         "cpp-1516.1-time-bounds-pending-advance"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-206-l26-3",
         "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
-        "requirement-candidate-content-clauses-08-time-management-page-207-l112-28"
+        "requirement-candidate-content-clauses-08-time-management-page-206-l32-5",
+        "requirement-candidate-content-clauses-08-time-management-page-207-l109-27",
+        "requirement-candidate-content-clauses-08-time-management-page-207-l112-28",
+        "requirement-candidate-content-clauses-08-time-management-page-207-l115-29"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.18.1",
@@ -24880,15 +24904,31 @@
       ],
       "requirement_mappings": [
         {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l26-3",
+          "standard_section": "hla-1516.1-2025:clause-8.18.1"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
           "standard_section": "hla-1516.1-2025:clause-8.18.1"
         },
         {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-206-l32-5",
+          "standard_section": "hla-1516.1-2025:clause-8.18.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-207-l109-27",
+          "standard_section": "hla-1516.1-2025:clause-8.19.3"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-207-l112-28",
+          "standard_section": "hla-1516.1-2025:clause-8.19.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-207-l115-29",
           "standard_section": "hla-1516.1-2025:clause-8.19.3"
         }
       ],
-      "mapping_note": "Direct mappings: time-management page-206-l29-4 -> §8.18.1 for Query GALT, and page-207-l112-28 -> §8.19.3 for Query LITS. The contract twin executes the complete shared query-bound lifecycle scenario.",
+      "mapping_note": "The standard contract twin executes the complete shared query-bound lifecycle scenario. Its direct §8.18.1 mappings are page-206-l26-3/l29-4/l32-5 and direct §8.19.3 mappings are page-207-l109-27/l112-28/l115-29, scoped to query invocation and observed undefined/defined optional-return boundaries.",
       "contract_refs": [
         "standard-time-bounds-queries-contract.json"
       ],
