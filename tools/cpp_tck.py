@@ -88,6 +88,7 @@ LOCAL_TCK_HEADERS = {
     "tck_ownership_transition_query.hpp",
     "tck_ownership_reacquisition_query.hpp",
     "tck_ownership_competing_if_available.hpp",
+    "tck_ownership_mixed_if_available.hpp",
     "tck_restore_mixed_pending_time_role_callbacks.hpp",
     "tck_timed_restore_regional_attribute_multi_recipient.hpp",
     "tck_data_encoding.hpp",

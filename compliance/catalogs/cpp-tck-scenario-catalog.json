@@ -65977,6 +65977,62 @@
       "native_equivalent_runner_ids": ["umbra-cpp-process-competing-ownership-if-available-query", "umbra-cpp-process-competing-ownership-if-available-push"],
       "default_status": "adapter-required",
       "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-mixed-if-available-query",
+      "category": "ownership-management",
+      "title": "Partition one If Available request between unowned and held attributes",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.publishObjectClassAttributes", "RTIambassador.registerObjectInstance", "RTIambassador.unconditionalAttributeOwnershipDivestiture", "RTIambassador.queryAttributeOwnership", "RTIambassador.attributeOwnershipAcquisitionIfAvailable", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.discoverObjectInstance", "FederateAmbassador.attributeIsNotOwned", "FederateAmbassador.attributeOwnershipAcquisitionNotification", "FederateAmbassador.attributeOwnershipUnavailable", "FederateAmbassador.requestAttributeOwnershipRelease", "FederateAmbassador.informAttributeOwnership"],
+      "requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36", "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27", "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31", "requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34", "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1", "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36", "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27", "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31", "requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34", "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1", "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.2", "hla-1516.1-2025:clause-7.7.3", "hla-1516.1-2025:clause-7.9.1", "hla-1516.1-2025:clause-7.10", "hla-1516.1-2025:clause-7.17.5", "hla-1516.1-2025:clause-7.18.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36", "standard_section": "hla-1516.1-2025:clause-7.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27", "standard_section": "hla-1516.1-2025:clause-7.7.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31", "standard_section": "hla-1516.1-2025:clause-7.9.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34", "standard_section": "hla-1516.1-2025:clause-7.9.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1", "standard_section": "hla-1516.1-2025:clause-7.10"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
+      ],
+      "mapping_note": "The native configured-process evoked and pushed cases passed 2/2 focused CTests with host loopback access. The portable case asks for one unowned and one still-held attribute in one If Available request, checks per-attribute callbacks and tags without ordering assumptions, checks no owner-release request, and queries both owners. The nine direct pairs reproduce the native crosswalk. Installed-package C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/ownership-mixed-if-available-candidate-20261021.json). Java provider runtime, interoperability, and conformance remain unverified.",
+      "parity": "java-tck.ownership-mixed-if-available-query",
+      "contract_refs": ["standard-ownership-mixed-if-available-contract.json"],
+      "native_equivalent_runner_ids": ["umbra-cpp-process-mixed-ownership-if-available-query", "umbra-cpp-process-mixed-ownership-if-available-push"],
+      "cpp_test": "src/tck_ownership_mixed_if_available.cpp#scenarioOwnershipMixedIfAvailable",
+      "runner_id": "cpp-tck.ownership-mixed-if-available-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-mixed-if-available-query-contract",
+      "category": "ownership-management",
+      "title": "Contract twin for mixed-attribute If Available ownership outcomes",
+      "api_methods": ["RTIambassador.unconditionalAttributeOwnershipDivestiture", "RTIambassador.queryAttributeOwnership", "RTIambassador.attributeOwnershipAcquisitionIfAvailable", "FederateAmbassador.attributeIsNotOwned", "FederateAmbassador.attributeOwnershipAcquisitionNotification", "FederateAmbassador.attributeOwnershipUnavailable", "FederateAmbassador.requestAttributeOwnershipRelease", "FederateAmbassador.informAttributeOwnership"],
+      "requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36", "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27", "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31", "requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34", "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1", "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36", "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27", "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31", "requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34", "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1", "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.2", "hla-1516.1-2025:clause-7.7.3", "hla-1516.1-2025:clause-7.9.1", "hla-1516.1-2025:clause-7.10", "hla-1516.1-2025:clause-7.17.5", "hla-1516.1-2025:clause-7.18.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36", "standard_section": "hla-1516.1-2025:clause-7.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27", "standard_section": "hla-1516.1-2025:clause-7.7.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31", "standard_section": "hla-1516.1-2025:clause-7.9.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34", "standard_section": "hla-1516.1-2025:clause-7.9.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1", "standard_section": "hla-1516.1-2025:clause-7.10"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
+      ],
+      "mapping_note": "This contract twin runs the same bounded mixed-attribute If Available case under the adapter callback model. Native evoked/pushed baselines passed 2/2 focused CTests; installed-package C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/ownership-mixed-if-available-candidate-20261021.json). Java provider runtime and conformance remain unverified.",
+      "contract_refs": ["standard-ownership-mixed-if-available-contract.json"],
+      "cpp_test": "src/tck_ownership_mixed_if_available.cpp#scenarioOwnershipMixedIfAvailableContract",
+      "runner_id": "cpp-tck.ownership-mixed-if-available-query-contract",
+      "parity": "cpp-tck.ownership-mixed-if-available-query",
+      "native_equivalent_runner_ids": ["umbra-cpp-process-mixed-ownership-if-available-query", "umbra-cpp-process-mixed-ownership-if-available-push"],
+      "default_status": "adapter-required",
+      "promotion": "promoted"
     }
   ]
 }

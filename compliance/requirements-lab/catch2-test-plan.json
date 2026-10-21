@@ -34396,7 +34396,7 @@
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
       "requirements_lab_api_surface_status": "One official 2025 C++ If Available request names two attributes of a discovered object across a configured process endpoint. The original owner has divested one attribute and still holds the other. The evoked requester receives a notification only for the unowned attribute and an unavailable report only for the held attribute, without an owner-release request. Separate public queries preserve the two distinct owners. This is bounded development-profile evidence, not complete ownership arbitration or conformance.",
-      "next_action": "Keep both evoked and pushed mixed-set per-attribute outcomes and owner queries green. Add more acquisition/divestiture and resignation races, package/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
+      "next_action": "Native evoked/pushed cases passed 2/2 focused CTests. The pure C++ TCK primary/contract pair passed 4/4 direct installed-package runs and 4/4 focused CTests under both callback models (out/mgw/ownership-mixed-if-available-candidate-20261021.json); Java parity compiles against the official 2025 API JAR without provider-runtime execution. Keep further acquisition/divestiture races, interoperability, Lab validation, and conformance separate."
     },
     {
       "id": "umbra-cpp-process-mixed-ownership-if-available-push",
@@ -34464,7 +34464,7 @@
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
       "requirements_lab_api_surface_status": "One official 2025 C++ If Available request names two attributes of a discovered object across a configured process endpoint with pushed receive-order callbacks under HLA_IMMEDIATE. The original owner has divested one attribute and still holds the other. The requester receives a notification only for the unowned attribute and an unavailable report only for the held attribute without calling Evoke or eliciting an owner-release request. Separate public queries preserve the two distinct owners. This is bounded development-profile evidence, not complete ownership arbitration or conformance.",
-      "next_action": "Keep both evoked and pushed mixed-set outcomes and queries green. Add additional ownership races, package/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
+      "next_action": "Native evoked/pushed cases passed 2/2 focused CTests. The pure C++ TCK primary/contract pair passed 4/4 direct installed-package runs and 4/4 focused CTests under both callback models (out/mgw/ownership-mixed-if-available-candidate-20261021.json); Java parity compiles against the official 2025 API JAR without provider-runtime execution. Keep additional ownership races, interoperability, Lab validation, and conformance separate."
     },
     {
       "id": "umbra-cpp-attribute-ownership-divestiture-if-wanted-return-set",
