@@ -33338,6 +33338,15 @@
         "boundary": "No private implementation in portable scenario bodies; no callback-order assumption, regular-acquisition arbitration, interoperability, or conformance claim.",
         "next": "Select a distinct independently native-green standard-API ownership or ordinary service case, then gate its pure C++ pair against the installed package and compile Java parity against the official 2025 API JAR; avoid provider rebuild and unchanged Lab resync."
       },
+      "latest_verified_fqr_undefined_galt_nrg_slice": {
+        "status": "verified-2026-10-21",
+        "scope": "Official C++ and Java API undefined-GALT Flush Queue Request under adapter FOM non-regulated grant enabled and disabled settings; each run covers empty and queued timestamped interaction input with HLA_EVOKED callbacks.",
+        "native_case": "umbra-cpp-fqr-undefined-galt-nrg-integration",
+        "direct_mappings": ["page-185-l17 -> §8.1.6", "page-202-l107 -> §8.13 (RL-349 local crosswalk)"],
+        "evidence": "Native focused CTest passed 1/1 (102 assertions). Installed-package pure C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across adapter-supplied NRG-enabled and NRG-disabled FOMs (out/mgw/fqr-undefined-galt-nrg-enabled-final-20261021.json; out/mgw/fqr-undefined-galt-nrg-disabled-final-20261021.json). Java parity compiled against the official 2025 API-only JAR; catalog, source boundary, and parity audit passed.",
+        "boundary": "No private API or embedded FOM path in portable scenario bodies. HLA_IMMEDIATE, Java provider runtime, alternate transport topologies, interoperability, validation, and conformance remain unverified. The separate delivered-callback-frontier native case has a callback-start cutoff not stated by pinned §8.13; it was not promoted.",
+        "next": "Assess the native-green 34-assertion default-region class Request Attribute Value Update equivalence case at cpp/tests/ieee1516_2025_ddm_default_region_class_request_equivalence_catch2.cpp:5 (focused native CTest 1/1 on 2026-10-21); isolate only the standard default-region equivalence and owner Provide Attribute Value Update callback, then gate pure C++ and official-JAR Java parity against the installed package."
+      },
       "restore_queued_ro_portability_audit_2026_10_21": {
         "status": "deferred-not-promoted",
         "native_case": "umbra-cpp-public-save-restore-queued-ro-interaction-discard",

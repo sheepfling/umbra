@@ -114,11 +114,14 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.1.6",
-        "hla-1516.1-2025:clause-8.13",
-        "hla-1516.1-2025:clause-8.13.3"
+        "hla-1516.1-2025:clause-8.13"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "standard_section": "hla-1516.1-2025:clause-8.1.6"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-202-l107-29", "standard_section": "hla-1516.1-2025:clause-8.13"}
       ],
       "requirements_lab_api_surface_status": "The official public C++ case runs FQR(10) for a time-constrained requester with undefined Query GALT, under both NRG settings and both empty/queued-TSO conditions. With NRG disabled, actual FQG time remains at current time 0; with NRG enabled it advances to request time 10 when no TSO is queued, or the TSO frontier 5 when one is queued. OLT remains 10 or 5 respectively and TSO callback precedes FQG. Direct mappings are limited to page-185 l17-5 -> §8.1.6 and page-202 l107-29 -> §8.13. These are bounded embedded development-profile results, not general scheduling, interoperability, validation, or conformance claims.",
-      "next_action": "Verified 2026-10-21: the focused MinGW public C++ case passes all 102 assertions across NRG enabled/disabled and empty/queued TSO combinations. With undefined GALT and NRG disabled, actual grant stays at current time while OLT remains the request/queued frontier. This closes the bounded GitHub #2 acceptance slice; broader scheduling/conformance is not inferred."
+      "next_action": "Verified 2026-10-21: the focused native C++ case passes all 102 assertions across NRG enabled/disabled and empty/queued TSO combinations. Pure official-header C++ TCK primary/contract passed 4/4 focused installed-package CTests and 4/4 direct runs across adapter-supplied enabled and disabled NRG FOMs (out/mgw/fqr-undefined-galt-nrg-enabled-final-20261021.json and disabled-final-20261021.json). Java parity compiles against the official API-only JAR; provider runtime is pending. RL-349 crosswalks the page-202 candidate to §8.13, not §8.13.3. This closes the bounded public-API translation slice, not broader scheduling, interoperability, or conformance."
     },
     {
       "id": "umbra-cpp-delete-object-instance-preferred-order-type-integration",

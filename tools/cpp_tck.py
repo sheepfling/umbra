@@ -176,6 +176,7 @@ LOCAL_TCK_HEADERS = {
     "tck_restore_time_window_state.hpp",
     "tck_restore_deferred_lookahead.hpp",
     "tck_fqr_deferred_lookahead.hpp",
+    "tck_fqr_undefined_galt_nrg.hpp",
     "tck_restore_multi_pending_time_advance.hpp",
     "tck_restore_pending_flush_queue_immediate.hpp",
     "tck_restore_object_snapshot_status.hpp",

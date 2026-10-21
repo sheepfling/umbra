@@ -84,6 +84,7 @@ void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
 #include "tck_restore_time_window_state.hpp"
 #include "tck_restore_deferred_lookahead.hpp"
 #include "tck_fqr_deferred_lookahead.hpp"
+#include "tck_fqr_undefined_galt_nrg.hpp"
 #include "tck_restore_multi_pending_time_advance.hpp"
 #include "tck_restore_pending_flush_queue_immediate.hpp"
 #include "tck_restore_object_snapshot_status.hpp"
@@ -1477,6 +1478,10 @@ constexpr char fqrDeferredLookaheadScenario[] =
     "cpp-tck.fqr-deferred-lookahead";
 constexpr char fqrDeferredLookaheadContractId[] =
     "cpp-tck.fqr-deferred-lookahead-contract";
+constexpr char fqrUndefinedGaltNrgScenario[] =
+    "cpp-tck.fqr-undefined-galt-nrg";
+constexpr char fqrUndefinedGaltNrgContractId[] =
+    "cpp-tck.fqr-undefined-galt-nrg-contract";
 constexpr char restoreMultiPendingTimeAdvanceScenario[] =
     "cpp-tck.restore-multi-pending-time-advance";
 constexpr char restoreMultiPendingTimeAdvanceContractId[] =
@@ -17555,6 +17560,14 @@ int runFqrDeferredLookaheadScenarios(int argc, char** argv) {
       scenarioFqrDeferredLookaheadContract, true);
 }
 
+int runFqrUndefinedGaltNrgScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, fqrUndefinedGaltNrgScenario,
+      fqrUndefinedGaltNrgContractId,
+      scenarioFqrUndefinedGaltNrg,
+      scenarioFqrUndefinedGaltNrgContract, true);
+}
+
 int runRestoreMultiPendingTimeAdvanceScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc, argv, restoreMultiPendingTimeAdvanceScenario,
@@ -21612,6 +21625,16 @@ bool hasFqrDeferredLookaheadScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == fqrDeferredLookaheadScenario ||
         scenario == fqrDeferredLookaheadContractId) return true;
+  }
+  return false;
+}
+
+bool hasFqrUndefinedGaltNrgScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == fqrUndefinedGaltNrgScenario ||
+        scenario == fqrUndefinedGaltNrgContractId) return true;
   }
   return false;
 }
@@ -26200,6 +26223,9 @@ int main(int argc, char** argv) {
     }
     if (hasFqrDeferredLookaheadScenario(argc, argv)) {
       return runFqrDeferredLookaheadScenarios(argc, argv);
+    }
+    if (hasFqrUndefinedGaltNrgScenario(argc, argv)) {
+      return runFqrUndefinedGaltNrgScenarios(argc, argv);
     }
     if (hasRestoreMultiPendingTimeAdvanceScenario(argc, argv)) {
       return runRestoreMultiPendingTimeAdvanceScenarios(argc, argv);

@@ -2706,7 +2706,14 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-08-time-management-page-195-l137-40",
                "requirement-candidate-content-clauses-08-time-management-page-195-l164-49"},
             false), RtiTckMain::timestampedInteractionTaraQueuedEqualBoundary);
-      run(new Scenario("java-tck.flush-queue-grant-optimistic-time-equal-when-galt-nonlimiting",
+       run(new Scenario("java-tck.fqr-undefined-galt-nrg",
+             "Flush Queue grant with undefined GALT under the adapter FOM non-regulated grant switch",
+             "time",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getNonRegulatedGrantSwitch;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.disableTimeRegulation;RTIambassador.queryGALT;RTIambassador.flushQueueRequest;RTIambassador.sendInteraction;RTIambassador.queryLogicalTime;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;FederateAmbassador.flushQueueGrant",
+             new String[] {"requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+                "requirement-candidate-content-clauses-08-time-management-page-202-l107-29"},
+             false), RtiTckMain::fqrUndefinedGaltNrg);
+       run(new Scenario("java-tck.flush-queue-grant-optimistic-time-equal-when-galt-nonlimiting",
             "match actual and optimistic Flush Queue Grant times when GALT exceeds the request",
             "time",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.queryLogicalTime;RTIambassador.enableTimeRegulation;RTIambassador.timeAdvanceRequest;RTIambassador.enableTimeConstrained;RTIambassador.queryGALT;RTIambassador.flushQueueRequest;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeAdvanceGrant;FederateAmbassador.flushQueueGrant",
@@ -9045,7 +9052,12 @@ public final class RtiTckMain {
          timeImplementation(), interactionClassName(), parameterName(), callbackModel());
    }
 
-   private static void flushQueueGrantNonlimitingGalt() throws Exception {
+    private static void fqrUndefinedGaltNrg() throws Exception {
+       FqrUndefinedGaltNrgTck.run(factory(), requireFom(), timeImplementation(),
+          interactionClassName(), parameterName(), callbackModel());
+    }
+
+    private static void flushQueueGrantNonlimitingGalt() throws Exception {
       FlushQueueNonlimitingGaltTck.run(factory(), requireFom(),
          timeImplementation(), callbackModel());
    }
@@ -11423,7 +11435,9 @@ public final class RtiTckMain {
             method = "timestampedInteractionZeroLookaheadTarSendBoundary"; break;
          case "java-tck.timestamped-interaction-tara-queued-equal-boundary":
             method = "timestampedInteractionTaraQueuedEqualBoundary"; break;
-         case "java-tck.flush-queue-grant-optimistic-time-equal-when-galt-nonlimiting":
+          case "java-tck.fqr-undefined-galt-nrg":
+             method = "fqrUndefinedGaltNrg"; break;
+          case "java-tck.flush-queue-grant-optimistic-time-equal-when-galt-nonlimiting":
             method = "flushQueueGrantNonlimitingGalt"; break;
          case "java-tck.nrg-regulator-resignation-releases-constrained-tar":
             method = "nrgRegulatorResignation"; break;

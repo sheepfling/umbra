@@ -38682,6 +38682,25 @@
       "exclusion": "Requires adapter-supplied disabled-policy FOM and known/derived object-class and attribute names, plus a Java IEEE 1516.1-2025 provider and callback model. Provider runtime verification remains pending."
     },
     {
+      "id": "java-tck.fqr-undefined-galt-nrg",
+      "category": "time-management",
+      "title": "Flush Queue grant with undefined GALT under the adapter FOM non-regulated grant switch",
+      "api_methods": ["RTIambassador.connect(callback model supplied by adapter)", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getNonRegulatedGrantSwitch", "RTIambassador.enableTimeConstrained", "RTIambassador.enableTimeRegulation", "RTIambassador.disableTimeRegulation", "RTIambassador.queryGALT", "RTIambassador.flushQueueRequest", "RTIambassador.sendInteraction", "RTIambassador.queryLogicalTime", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.receiveInteraction", "FederateAmbassador.flushQueueGrant"],
+      "requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "requirement-candidate-content-clauses-08-time-management-page-202-l107-29"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "requirement-candidate-content-clauses-08-time-management-page-202-l107-29"],
+      "standard_sections": ["hla-1516.1-2025:clause-8.1.6", "hla-1516.1-2025:clause-8.13"],
+      "requirement_mappings": [{"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "standard_section": "hla-1516.1-2025:clause-8.1.6"}, {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-202-l107-29", "standard_section": "hla-1516.1-2025:clause-8.13"}],
+      "mapping_note": "Official IEEE 1516.1-2025 API-only parity for the native- and installed-package-green evoked undefined-GALT FQR matrix. RL-349 crosswalks the page-202 OLT result to §8.13. Java compiles against the official API-only JAR; provider runtime pending.",
+      "callback_models": ["evoked"],
+      "contract_refs": ["standard-fqr-undefined-galt-nrg-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#fqrUndefinedGaltNrg",
+      "parity": "cpp-tck.fqr-undefined-galt-nrg",
+      "default_status": "unsupported",
+      "promotion": "candidate",
+      "adapter_inputs": ["provider Java API JAR and service-loaded RtiFactory", "adapter FOM with NRG enabled or disabled and an ordinary interaction/parameter", "provider-supported logical-time implementation and HLA_EVOKED callback model"],
+      "exclusion": "Java provider runtime has not been executed; no implementation-specific API or FOM path is embedded."
+    },
+    {
       "id": "java-tck.fqr-deferred-lookahead",
       "category": "time-management",
       "title": "Apply a pending lookahead decrease after an early Flush Queue grant",
