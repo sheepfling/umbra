@@ -65867,6 +65867,58 @@
       "native_equivalent_runner_ids": ["umbra-cpp-process-ownership-query-after-unconditional-divestiture"],
       "default_status": "adapter-required",
       "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-reacquisition-query",
+      "category": "ownership-management",
+      "title": "Query the original, unowned, and new-owner attribute states",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.publishObjectClassAttributes", "RTIambassador.registerObjectInstance", "RTIambassador.queryAttributeOwnership", "RTIambassador.unconditionalAttributeOwnershipDivestiture", "RTIambassador.attributeOwnershipAcquisition", "RTIambassador.isAttributeOwnedByFederate", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.discoverObjectInstance", "FederateAmbassador.informAttributeOwnership", "FederateAmbassador.attributeIsNotOwned", "FederateAmbassador.attributeOwnershipAcquisitionNotification"],
+      "requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36", "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27", "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36", "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27", "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.2", "hla-1516.1-2025:clause-7.7.3", "hla-1516.1-2025:clause-7.8", "hla-1516.1-2025:clause-7.17.5", "hla-1516.1-2025:clause-7.18.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36", "standard_section": "hla-1516.1-2025:clause-7.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27", "standard_section": "hla-1516.1-2025:clause-7.7.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
+      ],
+      "mapping_note": "The native configured-process public-API case passed its focused CTest with host loopback access. The installed-package portable primary/contract pair passed 4/4 direct runs (out/mgw/ownership-reacquisition-query-candidate-20261021.json) and 4/4 focused CTests across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/cpp-tck-unregulated-timestamped-attribute-20261021). Standard APIs query original-owner, unowned, and second-owner states using adapter-supplied inputs. Seven direct pairs reproduce the native crosswalk; competing acquisition arbitration, Java provider runtime, and conformance are not claimed.",
+      "parity": "java-tck.ownership-reacquisition-query",
+      "contract_refs": ["standard-ownership-reacquisition-query-contract.json"],
+      "native_equivalent_runner_ids": ["umbra-cpp-process-ownership-query-after-second-federate-acquisition"],
+      "cpp_test": "src/tck_ownership_reacquisition_query.cpp#scenarioOwnershipReacquisitionQuery",
+      "runner_id": "cpp-tck.ownership-reacquisition-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-reacquisition-query-contract",
+      "category": "ownership-management",
+      "title": "Contract twin for querying a divested and reacquired attribute",
+      "api_methods": ["RTIambassador.queryAttributeOwnership", "RTIambassador.unconditionalAttributeOwnershipDivestiture", "RTIambassador.attributeOwnershipAcquisition", "RTIambassador.isAttributeOwnedByFederate", "FederateAmbassador.informAttributeOwnership", "FederateAmbassador.attributeIsNotOwned", "FederateAmbassador.attributeOwnershipAcquisitionNotification"],
+      "requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36", "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27", "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36", "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27", "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14", "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.2", "hla-1516.1-2025:clause-7.7.3", "hla-1516.1-2025:clause-7.8", "hla-1516.1-2025:clause-7.17.5", "hla-1516.1-2025:clause-7.18.4"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36", "standard_section": "hla-1516.1-2025:clause-7.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27", "standard_section": "hla-1516.1-2025:clause-7.7.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14", "standard_section": "hla-1516.1-2025:clause-7.18.4"}
+      ],
+      "mapping_note": "The contract twin runs the same three-state standard ownership-query sequence under the adapter callback model. The installed-package pair passed 4/4 direct runs (out/mgw/ownership-reacquisition-query-candidate-20261021.json) and 4/4 focused CTests across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/cpp-tck-unregulated-timestamped-attribute-20261021). No broader arbitration or conformance claim is made.",
+      "contract_refs": ["standard-ownership-reacquisition-query-contract.json"],
+      "cpp_test": "src/tck_ownership_reacquisition_query.cpp#scenarioOwnershipReacquisitionQueryContract",
+      "runner_id": "cpp-tck.ownership-reacquisition-query-contract",
+      "parity": "cpp-tck.ownership-reacquisition-query",
+      "native_equivalent_runner_ids": ["umbra-cpp-process-ownership-query-after-second-federate-acquisition"],
+      "default_status": "adapter-required",
+      "promotion": "promoted"
     }
   ]
 }

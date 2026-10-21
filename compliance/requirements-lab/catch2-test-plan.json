@@ -34192,7 +34192,7 @@
       ],
       "status": "implemented-public-foundation-not-conformance-evidence",
       "requirements_lab_api_surface_status": "The official 2025 C++ process profile reports the original owner, then reports the same attribute unowned after public Unconditional Attribute Ownership Divestiture. A second joined federate acquires that known object attribute and receives Attribute Ownership Acquisition Notification; a further public ownership query reports the second federate's handle. This bounded one-attribute transition is development-profile evidence, not complete acquisition arbitration or conformance.",
-      "next_action": "Keep the three ownership-query states and the second federate notification green. Add mixed-set and competing acquisition transitions, push-mode delivery, package/JUnit/protected-review, interoperability, Lab validation, and conformance evidence separately."
+      "next_action": "The native-green three-state ownership query now has a promoted pure C++ TCK primary/contract pair and Java parity ID. The installed-package pair passed 4/4 direct runs and 4/4 focused CTests under both callback models (out/mgw/ownership-reacquisition-query-candidate-20261021.json; out/mgw/cpp-tck-unregulated-timestamped-attribute-20261021). Java source compiles against the official 2025 API JAR but has no provider runtime. Keep mixed-set and competing-acquirer transitions, push-mode transport evidence, independent-provider interoperability, and conformance separate."
     },
     {
       "id": "umbra-cpp-process-competing-ownership-if-available-query",

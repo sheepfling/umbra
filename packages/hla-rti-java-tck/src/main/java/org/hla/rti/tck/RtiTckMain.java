@@ -4361,6 +4361,12 @@ public final class RtiTckMain {
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.queryAttributeOwnership;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.informAttributeOwnership;FederateAmbassador.attributeIsNotOwned",
              new String[] {"cpp-1516.1-ownership-management"}, false),
           RtiTckMain::ownershipTransitionQuery);
+       run(new Scenario("java-tck.ownership-reacquisition-query",
+             "query the original owner, unowned state, and second federate owner",
+             "ownership",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.queryAttributeOwnership;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.attributeOwnershipAcquisition;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.informAttributeOwnership;FederateAmbassador.attributeIsNotOwned;FederateAmbassador.attributeOwnershipAcquisitionNotification",
+             new String[] {"cpp-1516.1-ownership-management"}, false),
+          RtiTckMain::ownershipReacquisitionQuery);
        run(new Scenario("java-tck.attribute-ownership-query-owner-report",
              "query a published object's attribute owner and verify the standard ownership report",
              "ownership",
@@ -8136,6 +8142,11 @@ public final class RtiTckMain {
 
    private static void ownershipTransitionQuery() throws Exception {
       OwnershipTransitionQueryTck.run(factory(), requireFom(), objectClassName(),
+         attributeName(), callbackModel());
+   }
+
+   private static void ownershipReacquisitionQuery() throws Exception {
+      OwnershipReacquisitionQueryTck.run(factory(), requireFom(), objectClassName(),
          attributeName(), callbackModel());
    }
 
@@ -11981,6 +11992,8 @@ public final class RtiTckMain {
              method = "ownershipDenialQuery"; break;
           case "java-tck.ownership-transition-query":
              method = "ownershipTransitionQuery"; break;
+          case "java-tck.ownership-reacquisition-query":
+             method = "ownershipReacquisitionQuery"; break;
           case "java-tck.attribute-ownership-query-owner-report":
              method = "attributeOwnershipQueryOwnerReport"; break;
          case "java-tck.ownership-acquisition-if-available":
