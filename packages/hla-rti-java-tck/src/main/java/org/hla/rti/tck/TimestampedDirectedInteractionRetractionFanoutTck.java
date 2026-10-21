@@ -321,6 +321,113 @@ final class TimestampedDirectedInteractionRetractionFanoutTck {
       }
    }
 
+   /** A timestamped directed send retains a retraction recipient without any constrained peer. */
+   static void runImmediateOnly(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String attributeName, String interactionClassName,
+         String parameterName, CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador receiver = factory.getRtiAmbassador();
+      Recorder publisherRec = new Recorder();
+      Recorder receiverRec = new Recorder();
+      String federation = "java-tck-directed-immediate-retraction-" + UUID.randomUUID();
+      boolean publisherConnected = false, receiverConnected = false;
+      boolean created = false, publisherJoined = false, receiverJoined = false;
+      boolean publisherRegulating = false;
+      try {
+         publisher.connect(publisherRec.proxy(), callbackModel); publisherConnected = true;
+         receiver.connect(receiverRec.proxy(), callbackModel); receiverConnected = true;
+         publisher.createFederationExecution(federation, fom, timeImplementation); created = true;
+         FederateHandle producer = publisher.joinFederationExecution(
+            "directed-immediate-retraction-publisher", federation); publisherJoined = true;
+         receiver.joinFederationExecution("directed-immediate-retraction-receiver", federation);
+         receiverJoined = true;
+
+         ObjectClassHandle objectClass = publisher.getObjectClassHandle(objectClassName);
+         ObjectClassHandle receiverClass = receiver.getObjectClassHandle(objectClassName);
+         AttributeHandle marker = publisher.getAttributeHandle(objectClass, attributeName);
+         AttributeHandle receiverMarker = receiver.getAttributeHandle(receiverClass, attributeName);
+         InteractionClassHandle interaction = publisher.getInteractionClassHandle(interactionClassName);
+         InteractionClassHandle receiverInteraction = receiver.getInteractionClassHandle(interactionClassName);
+         ParameterHandle parameter = publisher.getParameterHandle(interaction, parameterName);
+         ParameterHandle receiverParameter = receiver.getParameterHandle(receiverInteraction, parameterName);
+         JavaTckSupport.check(objectClass.equals(receiverClass) && marker.equals(receiverMarker)
+               && interaction.equals(receiverInteraction) && parameter.equals(receiverParameter),
+            "directed immediate-only FOM handles changed across federates");
+         publisher.publishObjectClassAttributes(objectClass,
+            JavaTckSupport.attributeSet(publisher, marker));
+         receiver.subscribeObjectClassAttributes(receiverClass,
+            JavaTckSupport.attributeSet(receiver, receiverMarker));
+         publisher.publishObjectClassDirectedInteractions(objectClass,
+            JavaTckSupport.interactionSet(publisher, interaction));
+         publisher.changeInteractionOrderType(interaction, OrderType.TIMESTAMP);
+         receiver.subscribeObjectClassDirectedInteractions(receiverClass,
+            JavaTckSupport.interactionSet(receiver, receiverInteraction));
+         ObjectInstanceHandle target = publisher.registerObjectInstance(objectClass);
+         JavaTckSupport.drain(receiver);
+         JavaTckSupport.check(receiverRec.discoveries.size() == 1
+               && receiverRec.discoveries.contains(target),
+            "immediate-only directed recipient did not discover the target once");
+
+         LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
+         LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
+         LogicalTime initial = publisher.queryLogicalTime();
+         publisher.enableTimeRegulation(epsilon); publisherRegulating = true;
+         JavaTckSupport.drain(publisher);
+         JavaTckSupport.check(publisherRec.timeRegulationEnabled == 1,
+            "immediate-only publisher did not enable Time Regulation");
+         LogicalTime grantTime = offset(initial, epsilon, 2);
+         LogicalTime messageTime = offset(initial, epsilon, 4);
+         publisher.timeAdvanceRequest(grantTime);
+         JavaTckSupport.drain(publisher);
+         JavaTckSupport.check(publisherRec.grants.size() == 1
+               && grantTime.equals(publisherRec.grants.get(0)),
+            "immediate-only publisher did not receive its requested grant");
+         JavaTckSupport.check(receiverRec.timeConstrainedEnabled == 0,
+            "immediate-only recipient unexpectedly enabled Time Constrained");
+
+         byte[] payload = new byte[] {0x49, 0x4f};
+         byte[] tag = new byte[] {0x52, 0x44, 0x49};
+         MessageRetractionReturn sent = send(publisher, interaction, parameter,
+            target, payload, tag, messageTime);
+         JavaTckSupport.check(sent != null && sent.retractionHandleIsValid && sent.handle != null,
+            "immediate-only directed send returned no valid retraction designator");
+         JavaTckSupport.drain(receiver);
+         JavaTckSupport.check(receiverRec.interactions.size() == 1,
+            "immediate-only directed recipient did not receive exactly one callback");
+         Interaction delivered = receiverRec.interactions.get(0);
+         JavaTckSupport.check(interaction.equals(delivered.interactionClass)
+               && target.equals(delivered.object) && producer.equals(delivered.producer)
+               && delivered.parameters.size() == 1
+               && Arrays.equals(payload, delivered.parameters.get(receiverParameter))
+               && Arrays.equals(tag, delivered.tag) && messageTime.equals(delivered.time)
+               && delivered.sentOrder == OrderType.TIMESTAMP
+               && delivered.receivedOrder == OrderType.RECEIVE
+               && sent.handle.equals(delivered.retraction),
+            "immediate-only directed callback changed payload, order, or retraction metadata");
+
+         publisher.retract(sent.handle);
+         JavaTckSupport.drain(receiver);
+         JavaTckSupport.drain(receiver);
+         JavaTckSupport.check(receiverRec.interactions.size() == 1
+               && receiverRec.requestedRetractions.size() == 1
+               && sent.handle.equals(receiverRec.requestedRetractions.get(0))
+               && receiverRec.callbackOrder.equals(Arrays.asList(
+                  "receiveDirectedInteraction", "requestRetraction")),
+            "immediate-only directed recipient did not receive one matching Request Retraction");
+      } finally {
+         if (publisherRegulating && publisherJoined)
+            try { publisher.disableTimeRegulation(); } catch (Exception ignored) { }
+         if (receiverJoined) try { receiver.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         if (publisherJoined) try { publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
+            catch (Exception ignored) { }
+         if (created) try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         if (receiverConnected) try { receiver.disconnect(); } catch (Exception ignored) { }
+         if (publisherConnected) try { publisher.disconnect(); } catch (Exception ignored) { }
+      }
+   }
+
    private static MessageRetractionReturn send(RTIambassador publisher,
          InteractionClassHandle interaction, ParameterHandle parameter,
          ObjectInstanceHandle target, byte[] payload, byte[] tag, LogicalTime time) throws Exception {

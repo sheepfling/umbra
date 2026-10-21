@@ -2965,6 +2965,14 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
                "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
             }, false), RtiTckMain::directedRetractionMixedFanout);
+      run(new Scenario("java-tck.directed-retraction-immediate-only",
+            "retain a delivered directed retraction designator with no constrained recipient",
+            "time",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getInteractionClassHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassDirectedInteractions;RTIambassador.registerObjectInstance;RTIambassador.changeInteractionOrderType;RTIambassador.enableTimeRegulation;RTIambassador.timeAdvanceRequest;RTIambassador.sendDirectedInteraction(time);RTIambassador.retract;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction(time);FederateAmbassador.requestRetraction;FederateAmbassador.timeAdvanceGrant",
+            new String[] {
+               "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+               "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
+            }, false), RtiTckMain::directedRetractionImmediateOnly);
       run(new Scenario("java-tck.timestamped-directed-interaction-retraction",
             "retract a queued timestamped directed interaction before delivery and preserve subsequent delivery",
             "time",
@@ -9130,6 +9138,13 @@ public final class RtiTckMain {
            timestampedDirectedParameterName(), callbackModel());
      }
 
+     private static void directedRetractionImmediateOnly() throws Exception {
+        TimestampedDirectedInteractionRetractionFanoutTck.runImmediateOnly(factory(), requireFom(),
+           timeImplementation(), timestampedDirectedObjectClassName(),
+           timestampedDirectedAttributeName(), timestampedDirectedInteractionClassName(),
+           timestampedDirectedParameterName(), callbackModel());
+     }
+
      private static void timestampedDirectedInteractionRetraction() throws Exception {
         TimestampedDirectedInteractionRetractionTck.run(factory(), requireFom(),
            timeImplementation(), timestampedDirectedObjectClassName(),
@@ -11378,6 +11393,8 @@ public final class RtiTckMain {
               method = "timestampedDirectedInteractionRetractionFanout"; break;
            case "java-tck.directed-retraction-mixed-fanout":
               method = "directedRetractionMixedFanout"; break;
+           case "java-tck.directed-retraction-immediate-only":
+              method = "directedRetractionImmediateOnly"; break;
            case "java-tck.timestamped-directed-interaction-retraction":
               method = "timestampedDirectedInteractionRetraction"; break;
            case "java-tck.timestamped-directed-interactions":

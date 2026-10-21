@@ -6,5 +6,7 @@ namespace hla_rti_cpp_tck::detail {
 
 void scenarioDirectedRetractionMixedFanout(Options const&, rti::CallbackModel);
 void scenarioDirectedRetractionMixedFanoutContract(Options const&, rti::CallbackModel);
+void scenarioDirectedRetractionImmediateOnly(Options const&, rti::CallbackModel);
+void scenarioDirectedRetractionImmediateOnlyContract(Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

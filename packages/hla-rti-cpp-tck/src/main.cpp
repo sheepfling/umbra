@@ -19368,6 +19368,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.directed-known-object-class-fallback-contract",
       "cpp-tck.directed-retraction-mixed-fanout",
       "cpp-tck.directed-retraction-mixed-fanout-contract",
+      "cpp-tck.directed-retraction-immediate-only",
+      "cpp-tck.directed-retraction-immediate-only-contract",
       "cpp-tck.directed-interaction-no-applicable-subscription",
       "cpp-tck.directed-interaction-subscription-accumulation",
       "cpp-tck.directed-interaction-derived-object-target-contract",
@@ -22798,6 +22800,12 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.directed-retraction-mixed-fanout-contract") {
     return scenarioDirectedRetractionMixedFanoutContract;
+  }
+  if (id == "cpp-tck.directed-retraction-immediate-only") {
+    return scenarioDirectedRetractionImmediateOnly;
+  }
+  if (id == "cpp-tck.directed-retraction-immediate-only-contract") {
+    return scenarioDirectedRetractionImmediateOnlyContract;
   }
   if (id == "cpp-tck.directed-interaction-no-applicable-subscription") {
     return scenarioDirectedInteractionNoApplicableSubscription;

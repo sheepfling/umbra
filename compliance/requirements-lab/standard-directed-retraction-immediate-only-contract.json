@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Portable C++ primary/contract and Java parity use only IEEE 1516.1-2025 RTIambassador and FederateAmbassador surfaces. The adapter supplies the provider package or JAR, FOM, endpoint, callback model, and logical-time implementation. After a publisher time-advance grant, one timestamped directed interaction reaches a non-Time-Constrained subscriber with sent TIMESTAMP and received RECEIVE order. No constrained subscriber or pending temporal fanout exists. The valid returned retraction designator is preserved on the receive callback, and Retract produces exactly one matching Request Retraction callback. Queued-recipient suppression, alternate advances, independent-provider interoperability, and conformance remain separate.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-directed-retraction-immediate-only",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador sendDirectedInteraction(time), retract, timeAdvanceRequest; FederateAmbassador receiveDirectedInteraction(time), requestRetraction, timeAdvanceGrant",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 timestamped directed interaction and retraction surfaces",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_directed_retraction_mixed_fanout.cpp::scenarioDirectedRetractionImmediateOnlyContract"
+      ]
+    }
+  ]
+}

@@ -31547,6 +31547,73 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.directed-retraction-immediate-only",
+      "category": "interaction-management",
+      "title": "Retain Request Retraction for an immediate-only directed recipient after publisher advance",
+      "api_methods": [
+        "RTIambassador.connect", "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getInteractionClassHandle", "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.registerObjectInstance", "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.enableTimeRegulation", "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.sendDirectedInteraction(time)", "RTIambassador.retract",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.receiveDirectedInteraction(time)",
+        "FederateAmbassador.requestRetraction", "FederateAmbassador.timeAdvanceGrant",
+        "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.23.3"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22", "standard_section": "hla-1516.1-2025:clause-8.23.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27", "standard_section": "hla-1516.1-2025:clause-8.23.3"}
+      ],
+      "mapping_note": "This independently selected second phase of the native-green directed retraction case has no Time-Constrained recipient or queued temporal fanout. A regulating publisher advances, sends a timestamped directed interaction to the nonconstrained recipient, and obtains a valid designator. The callback reports TIMESTAMP/RECEIVE order and that designator; Retract produces one matching Request Retraction. Direct §8.23.3 mapping is limited to delivered-recipient notification and nonconstrained-recipient coverage. Installed-package C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests across both callback models; evidence: out/mgw/directed-retraction-immediate-only-configured-20261021.json. Java provider runtime remains unverified.",
+      "contract_refs": ["request-retraction-api-contract.json", "standard-directed-retraction-immediate-only-contract.json"],
+      "cpp_test": "src/tck_directed_retraction_mixed_fanout.cpp#scenarioDirectedRetractionImmediateOnly",
+      "runner_id": "cpp-tck.directed-retraction-immediate-only",
+      "parity": "java-tck.directed-retraction-immediate-only",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.directed-retraction-immediate-only-contract",
+      "category": "interaction-management",
+      "title": "Portable contract for immediate-only directed retraction",
+      "api_methods": ["RTIambassador.sendDirectedInteraction(time)", "RTIambassador.retract", "FederateAmbassador.requestRetraction"],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-8.23.3"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22", "standard_section": "hla-1516.1-2025:clause-8.23.3"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27", "standard_section": "hla-1516.1-2025:clause-8.23.3"}
+      ],
+      "mapping_note": "Runs the same public-API immediate-only directed retraction assertions under the adapter callback model; it makes no queued-peer suppression or general conformance claim.",
+      "contract_refs": ["standard-directed-retraction-immediate-only-contract.json"],
+      "cpp_test": "src/tck_directed_retraction_mixed_fanout.cpp#scenarioDirectedRetractionImmediateOnlyContract",
+      "runner_id": "cpp-tck.directed-retraction-immediate-only-contract",
+      "parity": "java-tck.directed-retraction-immediate-only",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-directed-interaction-retraction",
       "category": "timestamped-directed-interaction-retraction",
       "title": "Retract a queued timestamped directed interaction before delivery and preserve subsequent delivery",
