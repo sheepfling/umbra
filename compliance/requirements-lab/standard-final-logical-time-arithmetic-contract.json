@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The pinned IEEE 1516.1-2025 clause-7 requirement candidate states that adding or subtracting a logical-time interval to or from final logical time yields final logical time. This contract exercises the standard C++ value classes against the installed provider library; it does not inspect private provider state or assert behavior for other arithmetic boundaries.",
+  "api_surfaces": [
+    {
+      "id": "standard-final-logical-time-arithmetic",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "HLAinteger64Time and HLAfloat64Time setFinal, isFinal, operator+=, operator-= with their standard epsilon intervals",
+      "source": "official IEEE 1516.1-2025 C++ API time headers; requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42",
+      "source_symbol": "IEEE 1516.1-2025 clause 7 final-logical-time arithmetic",
+      "tests": [
+        "cpp/tests/ieee1516_2025_time_catch2.cpp::Logical time arithmetic preserves the final value when adding or subtracting intervals",
+        "packages/hla-rti-cpp-tck/src/tck_logical_time.cpp::scenarioLogicalTimePortable"
+      ]
+    },
+    {
+      "id": "standard-java-final-logical-time-arithmetic",
+      "owner": "IEEE 1516.1 Java API",
+      "language": "java",
+      "signature": "LogicalTime.add(LogicalTimeInterval), LogicalTime.subtract(LogicalTimeInterval), LogicalTime.isFinal",
+      "source": "official IEEE 1516.1-2025 Java API; requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42",
+      "source_symbol": "IEEE 1516.1-2025 clause 7 final-logical-time arithmetic",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/LogicalTimeValueTck.java::verify"
+      ]
+    }
+  ]
+}

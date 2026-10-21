@@ -769,11 +769,13 @@ void scenarioLogicalTimeFactory(Options const& options, rti::CallbackModel model
       [&] { *underflow -= *time.epsilon; },
       L"IllegalTimeArithmetic",
       "logical-time subtraction before initial");
-  auto overflow = time.factory->makeFinal();
-  requireException(
-      [&] { *overflow += *time.epsilon; },
-      L"IllegalTimeArithmetic",
-      "logical-time addition after final");
+  auto finalBoundary = time.factory->makeFinal();
+  *finalBoundary += *time.epsilon;
+  require(finalBoundary->isFinal(),
+          "logical-time addition to final did not preserve final");
+  *finalBoundary -= *time.epsilon;
+  require(finalBoundary->isFinal(),
+          "logical-time subtraction from final did not preserve final");
 
   requireException(
       [&] { static_cast<void>(time.factory->decodeLogicalTime(rti::VariableLengthData{})); },

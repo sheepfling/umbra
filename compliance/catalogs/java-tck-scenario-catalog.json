@@ -3094,21 +3094,32 @@
       ],
       "requirement_ids": [
         "java-1516.1-logical-time-factory-values",
-        "requirement-candidate-content-clauses-07-ownership-management-page-175-l131-40"
+        "requirement-candidate-content-clauses-07-ownership-management-page-175-l131-40",
+        "requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-175-l131-40",
+        "requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-8"
+        "hla-1516.1-2025:clause-8",
+        "hla-1516.1-2025:clause-7"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-175-l131-40",
           "standard_section": "hla-1516.1-2025:clause-8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42",
+          "standard_section": "hla-1516.1-2025:clause-7"
         }
       ],
-      "mapping_note": "Direct mapping is limited to the clause-8 requirement that the time representation be specified to the RTI: federation creation receives the configured representation and RTIambassador.getTimeFactory().getName() must return that same name. The FDD time-representation-table documentation recommendation is not inspected by this API scenario.",
+      "mapping_note": "For clause 8, federation creation receives the configured time representation and getTimeFactory().getName() returns it; FDD documentation is not inspected. For the pinned clause-7 final-time rule, LogicalTimeValueTck verifies that adding and subtracting epsilon from final logical time each return final. Other time arithmetic boundaries remain separate. The paired C++ value/factory cases passed an isolated installed-package gate under both callback models and both standard time implementations; Java provider-runtime evidence for the corrected assertion is not yet available.",
       "contract_refs": [
         "reference-time-requirements-contract.json",
-        "logical-time-encoding-requirements-contract.json"
+        "logical-time-encoding-requirements-contract.json",
+        "standard-final-logical-time-arithmetic-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#logicalTimeFactory",
       "parity": "cpp-tck.logical-time-contract",

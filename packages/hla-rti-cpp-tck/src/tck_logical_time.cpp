@@ -367,10 +367,16 @@ void verifyReferenceTimeTypes() {
       [&] { integerInitial -= integerEpsilon; },
       L"IllegalTimeArithmetic",
       "HLAinteger64Time subtraction before initial");
-  requireException(
-      [&] { integerFinal += integerEpsilon; },
-      L"IllegalTimeArithmetic",
-      "HLAinteger64Time addition after final");
+  integerFinal += integerEpsilon;
+  require(
+      integerFinal.isFinal() &&
+          integerFinal.getTime() == std::numeric_limits<rti::Integer64>::max(),
+      "HLAinteger64Time addition to final did not preserve final");
+  integerFinal -= integerEpsilon;
+  require(
+      integerFinal.isFinal() &&
+          integerFinal.getTime() == std::numeric_limits<rti::Integer64>::max(),
+      "HLAinteger64Time subtraction from final did not preserve final");
   requireException(
       [&] { static_cast<void>(rti::HLAinteger64Time(-1)); },
       L"InvalidLogicalTime",
@@ -409,6 +415,12 @@ void verifyReferenceTimeTypes() {
           floatEpsilon.getInterval() == floatEpsilonValue &&
           floatFinal.implementationName() == L"HLAfloat64Time",
       "HLAfloat64Time did not preserve its standard boundaries and epsilon");
+  floatFinal += floatEpsilon;
+  require(floatFinal.isFinal() && floatFinal.getTime() == floatFinalValue,
+          "HLAfloat64Time addition to final did not preserve final");
+  floatFinal -= floatEpsilon;
+  require(floatFinal.isFinal() && floatFinal.getTime() == floatFinalValue,
+          "HLAfloat64Time subtraction from final did not preserve final");
   rti::HLAfloat64Time floatLarge(floatFinalValue / 2.0);
   auto const floatBefore = floatLarge.getTime();
   floatLarge += floatEpsilon;
@@ -467,10 +479,6 @@ void verifyReferenceTimeTypes() {
   require(
       floatDifference.getInterval() == 3.0,
       "HLAfloat64Interval difference was incorrect");
-  requireException(
-      [&] { floatFinal += floatEpsilon; },
-      L"IllegalTimeArithmetic",
-      "HLAfloat64Time addition after final");
   requireException(
       [&] {
         static_cast<void>(
@@ -868,11 +876,13 @@ void scenarioLogicalTimeFactoryPortable(
       [&] { *underflow -= *time.epsilon; },
       L"IllegalTimeArithmetic",
       "logical-time subtraction before initial");
-  auto overflow = time.factory->makeFinal();
-  requireException(
-      [&] { *overflow += *time.epsilon; },
-      L"IllegalTimeArithmetic",
-      "logical-time addition after final");
+  auto finalBoundary = time.factory->makeFinal();
+  *finalBoundary += *time.epsilon;
+  require(finalBoundary->isFinal(),
+          "logical-time addition to final did not preserve final");
+  *finalBoundary -= *time.epsilon;
+  require(finalBoundary->isFinal(),
+          "logical-time subtraction from final did not preserve final");
 
   requireException(
       [&] { static_cast<void>(time.factory->decodeLogicalTime(rti::VariableLengthData{})); },

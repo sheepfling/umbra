@@ -106,11 +106,24 @@
         "HLAlogicalTimeFactoryFactory"
       ],
       "requirement_ids": [
-        "cpp-1516.1-logical-time-factory-values"
+        "cpp-1516.1-logical-time-factory-values",
+        "requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42", "standard_section": "hla-1516.1-2025:clause-7"}
+      ],
+      "mapping_note": "The pinned 2025 clause-7 statement explicitly requires adding or subtracting any logical-time interval from final logical time to yield final logical time. This portable official-API value-class scenario asserts both operations for HLAinteger64Time and HLAfloat64Time with epsilon; other arithmetic boundaries remain separate. Native focused Catch2 passed 8 assertions. An isolated installed-package runner passed this value contract under both callback models and the factory-backed companion under both models with both standard time implementations (out/mgw/final-time-arithmetic-20261021/results.json); focused evidence validation passed. The full TCK executable was not rebuilt for this correction.",
+      "native_equivalent_runner_ids": ["umbra-cpp-logical-time-final-value-arithmetic"],
       "contract_refs": [
         "get-time-factory-api-contract.json",
-        "logical-time-encoding-requirements-contract.json"
+        "logical-time-encoding-requirements-contract.json",
+        "standard-final-logical-time-arithmetic-contract.json"
       ],
       "cpp_test": "src/tck_logical_time.cpp#scenarioLogicalTimePortable",
       "runner_id": "cpp-tck.logical-time-contract",
