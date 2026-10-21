@@ -66033,6 +66033,48 @@
       "native_equivalent_runner_ids": ["umbra-cpp-process-mixed-ownership-if-available-query", "umbra-cpp-process-mixed-ownership-if-available-push"],
       "default_status": "adapter-required",
       "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-unpublish-owned",
+      "category": "ownership-management",
+      "title": "Unpublishing one owned class attribute releases only that instance attribute",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.registerObjectInstance", "RTIambassador.getKnownObjectClassHandle", "RTIambassador.isAttributeOwnedByFederate", "RTIambassador.unpublishObjectClassAttributes", "RTIambassador.queryAttributeOwnership", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.discoverObjectInstance", "FederateAmbassador.informAttributeOwnership", "FederateAmbassador.attributeIsNotOwned"],
+      "requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-150-l53-16", "requirement-candidate-content-clauses-07-ownership-management-page-151-l84-27"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-150-l53-16", "requirement-candidate-content-clauses-07-ownership-management-page-151-l84-27"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.1.1", "hla-1516.1-2025:clause-7.1.2.1"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-150-l53-16", "standard_section": "hla-1516.1-2025:clause-7.1.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-151-l84-27", "standard_section": "hla-1516.1-2025:clause-7.1.2.1"}
+      ],
+      "mapping_note": "The native official-API 31-assertion baseline passed its focused CTest. The portable case starts with two owned instance attributes, unpublishes only one class attribute, immediately checks the ownership split, then asks a separate observer to query both attributes and checks the unowned and original-owner callbacks. The two direct pairs reproduce the native crosswalk. Installed-package C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/ownership-unpublish-owned-candidate-20261021.json). Java provider runtime, other unpublication transitions, and conformance remain unverified.",
+      "parity": "java-tck.ownership-unpublish-owned",
+      "contract_refs": ["standard-ownership-unpublish-owned-contract.json"],
+      "native_equivalent_runner_ids": ["umbra-cpp-ownership-unpublish-owned-immediate-unowned"],
+      "cpp_test": "src/tck_ownership_unpublish_owned.cpp#scenarioOwnershipUnpublishOwned",
+      "runner_id": "cpp-tck.ownership-unpublish-owned",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-unpublish-owned-contract",
+      "category": "ownership-management",
+      "title": "Contract twin for selective owned-attribute unpublication",
+      "api_methods": ["RTIambassador.unpublishObjectClassAttributes", "RTIambassador.isAttributeOwnedByFederate", "RTIambassador.queryAttributeOwnership", "FederateAmbassador.informAttributeOwnership", "FederateAmbassador.attributeIsNotOwned"],
+      "requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-150-l53-16", "requirement-candidate-content-clauses-07-ownership-management-page-151-l84-27"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-150-l53-16", "requirement-candidate-content-clauses-07-ownership-management-page-151-l84-27"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.1.1", "hla-1516.1-2025:clause-7.1.2.1"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-150-l53-16", "standard_section": "hla-1516.1-2025:clause-7.1.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-151-l84-27", "standard_section": "hla-1516.1-2025:clause-7.1.2.1"}
+      ],
+      "mapping_note": "This contract twin executes the same bounded standard-API selective-unpublication body under the adapter callback model. Native baseline passed its focused CTest; installed-package C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/ownership-unpublish-owned-candidate-20261021.json). Java provider runtime and conformance remain unverified.",
+      "contract_refs": ["standard-ownership-unpublish-owned-contract.json"],
+      "cpp_test": "src/tck_ownership_unpublish_owned.cpp#scenarioOwnershipUnpublishOwnedContract",
+      "runner_id": "cpp-tck.ownership-unpublish-owned-contract",
+      "parity": "cpp-tck.ownership-unpublish-owned",
+      "native_equivalent_runner_ids": ["umbra-cpp-ownership-unpublish-owned-immediate-unowned"],
+      "default_status": "adapter-required",
+      "promotion": "promoted"
     }
   ]
 }

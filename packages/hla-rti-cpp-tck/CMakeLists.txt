@@ -92,6 +92,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_ownership_reacquisition_query.cpp
   src/tck_ownership_competing_if_available.cpp
   src/tck_ownership_mixed_if_available.cpp
+  src/tck_ownership_unpublish_owned.cpp
   src/tck_directed_interaction_no_applicable_subscription.cpp
   src/tck_directed_interaction_subscription_accumulation.cpp
   src/tck_federation_lifecycle_scenarios.cpp

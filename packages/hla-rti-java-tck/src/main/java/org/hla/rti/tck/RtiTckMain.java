@@ -4379,6 +4379,12 @@ public final class RtiTckMain {
              "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.queryAttributeOwnership;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.attributeIsNotOwned;FederateAmbassador.informAttributeOwnership;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.attributeOwnershipUnavailable;FederateAmbassador.requestAttributeOwnershipRelease",
              new String[] {"cpp-1516.1-ownership-management"}, false),
           RtiTckMain::ownershipMixedIfAvailableQuery);
+       run(new Scenario("java-tck.ownership-unpublish-owned",
+             "unpublishing one owned class attribute releases only its instance attribute",
+             "ownership",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getKnownObjectClassHandle;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unpublishObjectClassAttributes;RTIambassador.queryAttributeOwnership;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.informAttributeOwnership;FederateAmbassador.attributeIsNotOwned",
+             new String[] {"cpp-1516.1-ownership-management"}, false),
+          RtiTckMain::ownershipUnpublishOwned);
        run(new Scenario("java-tck.attribute-ownership-query-owner-report",
              "query a published object's attribute owner and verify the standard ownership report",
              "ownership",
@@ -8169,6 +8175,11 @@ public final class RtiTckMain {
 
    private static void ownershipMixedIfAvailableQuery() throws Exception {
       OwnershipMixedIfAvailableTck.run(factory(), requireFom(), objectClassName(),
+         attributeName(), objectClassSecondAttributeName(), callbackModel());
+   }
+
+   private static void ownershipUnpublishOwned() throws Exception {
+      OwnershipUnpublishOwnedTck.run(factory(), requireFom(), objectClassName(),
          attributeName(), objectClassSecondAttributeName(), callbackModel());
    }
 
@@ -12020,6 +12031,8 @@ public final class RtiTckMain {
              method = "ownershipCompetingIfAvailableQuery"; break;
           case "java-tck.ownership-mixed-if-available-query":
              method = "ownershipMixedIfAvailableQuery"; break;
+          case "java-tck.ownership-unpublish-owned":
+             method = "ownershipUnpublishOwned"; break;
           case "java-tck.attribute-ownership-query-owner-report":
              method = "attributeOwnershipQueryOwnerReport"; break;
          case "java-tck.ownership-acquisition-if-available":
