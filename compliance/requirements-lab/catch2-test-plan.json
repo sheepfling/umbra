@@ -5026,9 +5026,10 @@
         "callback-immediate"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This public C++ integration case saves a pending Enable Time Regulation request and restores it through both HLA_EVOKED and HLA_IMMEDIATE callback models, proving stale queued work is fenced and exactly one freshly rebound Time Regulation Enabled callback is delivered. Pending constrained-role coverage, broader multi-member ordering, process-restart rehydration, transport, package/JUnit/protected-review evidence, and conformance remain open.",
+      "next_action": "Fresh exact native selector passed 38 assertions across HLA_EVOKED and HLA_IMMEDIATE. The official-header-only C++ primary/contract restore-pending-time-regulation-callback scenario passed eight isolated installed-package runs across both callback models and integer64/float64 time. Java parity compiles against the official API-only JAR; provider runtime is pending. This focused slice proves one rebound Time Regulation Enabled callback and one Saved/Restored completion after a gated pre-restore queue. Pending constrained role, mixed-member ordering, process-restart durability, full runner CTest, Java provider runtime, interoperability, and conformance remain open.",
       "source_location": "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp:3",
-      "assertions": 20,
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded federation restore rebinds pending time-role callbacks through public callback models$",
+      "assertions": 38,
       "callback_models": [
         "HLA_EVOKED",
         "HLA_IMMEDIATE"
@@ -70158,7 +70159,7 @@
         "federate.callback.flush-queue-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This focused three-member timed recovery case schedules one logical-time-8 overlap-qualified explicit-source Update Attribute Values passel to two constrained regional recipients, saves at logical time 6, crosses the boundary for both recipients and the non-constrained regulator, terminalizes the post-save designator, restores both recipient-local ledgers and the committed source RegionHandle, then proves independent Flush Queue reflection at actual time 7 with optimistic time 8 before Request Retraction reaches both recipients. It does not claim durable persistence, alternate advances beyond this FQR boundary, region mutation, passive/relaxed-DDM variants, changed membership/ownership, remote transport, package/JUnit/protected-review evidence, or conformance; the r15 Requirements Lab re-sync found no renumbering or source change, RL-176 is the latest recorded go-back, RL-177 records the separate source-artifact tension, and RL-178 is reserved for a future reproduced recurrence.",
+      "next_action": "Fresh 2026-10-21 exact native HLA_EVOKED runs failed twice at cpp/tests/timed_restore_live_tso_regional_attribute_update_multi_recipient_catch2.cpp:464: 106 assertions passed before reflection.sentRegions differed from RegionHandleSet{publisherRegion} after the timed restore. The historical 157-assertion green plan entry is not current green evidence. Do not promote or translate this explicit-source timed regional-attribute case until the source-region identity discrepancy is diagnosed and a fresh native run passes; do not weaken the assertion without a standard basis. The earlier ordinary regional-interaction restore and the independent pending time-regulation callback restore remain separate green portable slices. Durable/process-boundary restore, alternate advances, Java provider runtime, interoperability, and conformance are unverified.",
       "source_location": "cpp/tests/timed_restore_live_tso_regional_attribute_update_multi_recipient_catch2.cpp:190",
       "assertions": 157,
       "callback_models": [
@@ -82419,9 +82420,10 @@
         "callback-immediate"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This public C++ integration case saves a pending Enable Time Constrained request and restores it through both HLA_EVOKED and HLA_IMMEDIATE callback models, proving stale queued work is fenced and exactly one freshly rebound Time Constrained Enabled callback is delivered. Broader multi-member role ordering, remaining pending application ledgers, process-restart rehydration, transport, package/JUnit/protected-review evidence, and conformance remain open.",
+      "next_action": "Fresh exact native selector passed 38 assertions across HLA_EVOKED and HLA_IMMEDIATE. The official-header-only C++ primary/contract restore-pending-time-constrained-callback scenario passed eight isolated installed-package runs across both callback models and integer64/float64 time. Java parity compiles against the official API-only JAR; provider runtime is pending. This focused slice proves one rebound Time Constrained Enabled callback and one Saved/Restored completion after a gated pre-restore queue. Mixed-member role ordering, remaining pending application ledgers, process-restart durability, full runner CTest, Java provider runtime, interoperability, and conformance remain open.",
       "source_location": "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp:80",
-      "assertions": 20,
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded federation restore rebinds pending time-constrained callbacks through public callback models$",
+      "assertions": 38,
       "callback_models": [
         "HLA_EVOKED",
         "HLA_IMMEDIATE"
@@ -82471,6 +82473,7 @@
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This public C++ multi-member case saves one pending regulation and one pending constrained request, restores both callback routes under HLA_EVOKED and HLA_IMMEDIATE, and proves independent delivery and stale-work fencing. Remaining pending application ledgers, process-restart rehydration, transport, package/JUnit/protected-review evidence, and conformance remain open.",
       "source_location": "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp:149",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded federation restore rebinds mixed pending time-role callbacks per member$",
       "assertions": 36,
       "callback_models": [
         "HLA_EVOKED",

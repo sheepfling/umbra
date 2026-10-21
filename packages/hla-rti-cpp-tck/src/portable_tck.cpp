@@ -71,6 +71,7 @@ void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
 #include "tck_restore_pending_flush_queue_request.hpp"
 #include "tck_restore_resignation_callback_lifetime.hpp"
 #include "tck_restore_pending_time_advance.hpp"
+#include "tck_restore_pending_time_regulation_callback.hpp"
 #include "tck_restore_pending_advance_modes.hpp"
 #include "tck_restore_pending_tso_nmr.hpp"
 #include "tck_restore_pending_tso_nmra_attribute.hpp"
@@ -1369,6 +1370,14 @@ constexpr char restorePendingTimeAdvanceScenario[] =
     "cpp-tck.restore-pending-time-advance";
 constexpr char restorePendingTimeAdvanceContractId[] =
     "cpp-tck.restore-pending-time-advance-contract";
+constexpr char restorePendingTimeRegulationCallbackScenario[] =
+    "cpp-tck.restore-pending-time-regulation-callback";
+constexpr char restorePendingTimeRegulationCallbackContractId[] =
+    "cpp-tck.restore-pending-time-regulation-callback-contract";
+constexpr char restorePendingTimeConstrainedCallbackScenario[] =
+    "cpp-tck.restore-pending-time-constrained-callback";
+constexpr char restorePendingTimeConstrainedCallbackContractId[] =
+    "cpp-tck.restore-pending-time-constrained-callback-contract";
 constexpr char restorePendingTimeAdvanceImmediateScenario[] =
     "cpp-tck.restore-pending-time-advance-immediate";
 constexpr char restorePendingTimeAdvanceImmediateContractId[] =
@@ -17286,6 +17295,22 @@ int runRestorePendingTimeAdvanceScenarios(int argc, char** argv) {
       scenarioRestorePendingTimeAdvanceContract, true);
 }
 
+int runRestorePendingTimeRegulationCallbackScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restorePendingTimeRegulationCallbackScenario,
+      restorePendingTimeRegulationCallbackContractId,
+      scenarioRestorePendingTimeRegulationCallback,
+      scenarioRestorePendingTimeRegulationCallbackContract);
+}
+
+int runRestorePendingTimeConstrainedCallbackScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restorePendingTimeConstrainedCallbackScenario,
+      restorePendingTimeConstrainedCallbackContractId,
+      scenarioRestorePendingTimeConstrainedCallback,
+      scenarioRestorePendingTimeConstrainedCallbackContract);
+}
+
 int runRestorePendingTimeAdvanceImmediateScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc, argv, restorePendingTimeAdvanceImmediateScenario,
@@ -21225,6 +21250,26 @@ bool hasRestorePendingTimeAdvanceScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == restorePendingTimeAdvanceScenario ||
         scenario == restorePendingTimeAdvanceContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestorePendingTimeRegulationCallbackScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restorePendingTimeRegulationCallbackScenario ||
+        scenario == restorePendingTimeRegulationCallbackContractId) return true;
+  }
+  return false;
+}
+
+bool hasRestorePendingTimeConstrainedCallbackScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restorePendingTimeConstrainedCallbackScenario ||
+        scenario == restorePendingTimeConstrainedCallbackContractId) return true;
   }
   return false;
 }
@@ -25920,6 +25965,12 @@ int main(int argc, char** argv) {
     }
     if (hasRestorePendingTimeAdvanceScenario(argc, argv)) {
       return runRestorePendingTimeAdvanceScenarios(argc, argv);
+    }
+    if (hasRestorePendingTimeRegulationCallbackScenario(argc, argv)) {
+      return runRestorePendingTimeRegulationCallbackScenarios(argc, argv);
+    }
+    if (hasRestorePendingTimeConstrainedCallbackScenario(argc, argv)) {
+      return runRestorePendingTimeConstrainedCallbackScenarios(argc, argv);
     }
     if (hasRestorePendingTimeAdvanceImmediateScenario(argc, argv)) {
       return runRestorePendingTimeAdvanceImmediateScenarios(argc, argv);

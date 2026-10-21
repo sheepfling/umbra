@@ -56,6 +56,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_restore_pending_flush_queue_request.cpp
   src/tck_restore_resignation_callback_lifetime.cpp
   src/tck_restore_pending_time_advance.cpp
+  src/tck_restore_pending_time_regulation_callback.cpp
   src/tck_restore_pending_advance_modes.cpp
   src/tck_restore_pending_tso_nmr.cpp
   src/tck_restore_pending_tso_nmra_attribute.cpp

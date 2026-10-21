@@ -30472,6 +30472,166 @@
       "exclusion": "Provider runtime verification is pending; no implementation-specific API or FOM path is embedded."
     },
     {
+      "id": "java-tck.restore-pending-time-regulation-callback",
+      "title": "Restore a gated pending time-regulation callback exactly once",
+      "category": "federation-save-restore",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.requestFederationSave",
+        "RTIambassador.federateSaveBegun",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.requestFederationRestore",
+        "RTIambassador.federateRestoreComplete",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.federationSaved",
+        "FederateAmbassador.federationRestored"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+        "requirement-candidate-content-clauses-08-time-management-page-189-l162-44"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.3.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+          "standard_section": "hla-1516.1-2025:clause-4.27"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+          "standard_section": "hla-1516.1-2025:clause-4.32"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+          "standard_section": "hla-1516.1-2025:clause-8.3.1"
+        }
+      ],
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "contract_refs": [
+        "standard-restore-pending-time-regulation-callback-contract.json"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+        "requirement-candidate-content-clauses-08-time-management-page-189-l162-44"
+      ],
+      "mapping_note": "Official IEEE 1516.1-2025 API-only parity for native- and installed-package-green pending time-regulation callback restore. Compiles against official API-only JAR; Java provider runtime unverified.",
+      "java_test": "org.hla.rti.tck.RtiTckMain#restorePendingTimeRegulationCallback",
+      "parity": "cpp-tck.restore-pending-time-regulation-callback",
+      "default_status": "unsupported",
+      "adapter_inputs": [
+        "provider Java API JAR and service-loaded RtiFactory",
+        "adapter-supplied IEEE 1516.2-2025 FOM and provider-supported logical-time implementation",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model supplied by adapter"
+      ],
+      "exclusion": "Provider runtime verification is pending; no implementation-specific API or FOM path is embedded."
+    },
+    {
+      "id": "java-tck.restore-pending-time-constrained-callback",
+      "title": "Restore a gated pending time-constrained callback exactly once",
+      "category": "federation-save-restore",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.requestFederationSave",
+        "RTIambassador.federateSaveBegun",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.requestFederationRestore",
+        "RTIambassador.federateRestoreComplete",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.federationSaved",
+        "FederateAmbassador.federationRestored"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+        "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l63-17"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-8.5.5",
+        "hla-1516.1-2025:clause-8.6.3"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+          "standard_section": "hla-1516.1-2025:clause-4.27"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+          "standard_section": "hla-1516.1-2025:clause-4.32"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+          "standard_section": "hla-1516.1-2025:clause-8.5.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l63-17",
+          "standard_section": "hla-1516.1-2025:clause-8.6.3"
+        }
+      ],
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "contract_refs": [
+        "standard-restore-pending-time-constrained-callback-contract.json"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+        "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l63-17"
+      ],
+      "mapping_note": "Official IEEE 1516.1-2025 API-only parity for native- and installed-package-green pending time-constrained callback restore. Compiles against official API-only JAR; Java provider runtime unverified.",
+      "java_test": "org.hla.rti.tck.RtiTckMain#restorePendingTimeConstrainedCallback",
+      "parity": "cpp-tck.restore-pending-time-constrained-callback",
+      "default_status": "unsupported",
+      "adapter_inputs": [
+        "provider Java API JAR and service-loaded RtiFactory",
+        "adapter-supplied IEEE 1516.2-2025 FOM and provider-supported logical-time implementation",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model supplied by adapter"
+      ],
+      "exclusion": "Provider runtime verification is pending; no implementation-specific API or FOM path is embedded."
+    },
+    {
       "id": "java-tck.restore-pending-time-advance-immediate",
       "category": "federation-save-restore",
       "title": "Restore a saved pending ordinary time advance under direct immediate callbacks",

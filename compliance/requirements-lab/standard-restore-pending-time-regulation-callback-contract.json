@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "A public-API translation of the native-green 38-assertion pending time-regulation callback restore case. The federate saves and restores while an Enable Time Regulation callback remains gated: HLA_EVOKED uses the callback-service gate, and HLA_IMMEDIATE uses Disable/Enable Callbacks. After restore, exactly one Time Regulation Enabled callback and one Federation Saved/Restored completion are observed, without replaying stale pre-restore work. Isolated C++ primary/contract passed against installed 2026-10-20 package libraries under evoked/immediate callback models and integer64/float64 time (eight runs). The adapter supplies provider libraries, endpoint, IEEE 1516.2-2025 FOM, logical-time implementation, and callback model. Java parity compiles against the official API-only JAR; Java provider runtime, process-restart durability, interoperability, and conformance remain unverified. The separately investigated timed regional-attribute restore case is not promoted because its fresh native run fails at restored source-region identity.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-pending-time-regulation-callback",
+      "owner": "IEEE 1516.1 C++ and Java APIs",
+      "language": "cpp-and-java",
+      "signature": "RTIambassador disableCallbacks, enableTimeRegulation, requestFederationSave, federateSaveBegun, federateSaveComplete, requestFederationRestore, federateRestoreComplete, enableCallbacks, evokeCallback; FederateAmbassador timeRegulationEnabled, federationSaved, federationRestored",
+      "source": "official IEEE 1516.1-2025 C++ headers and hla.rti1516_2025 Java API; adapter-selected IEEE 1516.2-2025 FOM",
+      "source_symbol": "IEEE 1516.1-2025 pending time-regulation enablement and federation save/restore callback interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp::Embedded federation restore rebinds pending time-role callbacks through public callback models",
+        "packages/hla-rti-cpp-tck/src/tck_restore_pending_time_regulation_callback.cpp::scenarioRestorePendingTimeRegulationCallback",
+        "packages/hla-rti-cpp-tck/src/tck_restore_pending_time_regulation_callback.cpp::scenarioRestorePendingTimeRegulationCallbackContract",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestorePendingTimeRegulationCallbackTck.java::run"
+      ]
+    }
+  ]
+}

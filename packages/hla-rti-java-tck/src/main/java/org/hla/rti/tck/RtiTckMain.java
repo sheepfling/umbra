@@ -3634,6 +3634,26 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
                "requirement-candidate-content-clauses-08-time-management-page-206-l149-37"},
             false), RtiTckMain::restorePendingTimeAdvance);
+      run(new Scenario("java-tck.restore-pending-time-regulation-callback",
+            "Restore one gated time-regulation enablement callback in either callback model",
+            "federation-save-restore",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.disableCallbacks;RTIambassador.enableTimeRegulation;RTIambassador.requestFederationSave;RTIambassador.federateSaveBegun;RTIambassador.federateSaveComplete;RTIambassador.requestFederationRestore;RTIambassador.federateRestoreComplete;RTIambassador.enableCallbacks;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.federationSaved;FederateAmbassador.federationRestored",
+            new String[] {
+               "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+               "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+               "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+               "requirement-candidate-content-clauses-08-time-management-page-189-l162-44"
+            }, false), RtiTckMain::restorePendingTimeRegulationCallback);
+      run(new Scenario("java-tck.restore-pending-time-constrained-callback",
+            "Restore one gated time-constrained enablement callback in either callback model",
+            "federation-save-restore",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.disableCallbacks;RTIambassador.enableTimeConstrained;RTIambassador.requestFederationSave;RTIambassador.federateSaveBegun;RTIambassador.federateSaveComplete;RTIambassador.requestFederationRestore;RTIambassador.federateRestoreComplete;RTIambassador.enableCallbacks;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.federationSaved;FederateAmbassador.federationRestored",
+            new String[] {
+               "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+               "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+               "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+               "requirement-candidate-content-clauses-08-time-management-page-192-l63-17"
+            }, false), RtiTckMain::restorePendingTimeConstrainedCallback);
       run(new Scenario("java-tck.restore-pending-time-advance-immediate",
             "restore a saved pending ordinary advance under direct immediate callbacks",
             "federation-save-restore",
@@ -9871,6 +9891,16 @@ public final class RtiTckMain {
          timeImplementation(), callbackModel());
    }
 
+   private static void restorePendingTimeRegulationCallback() throws Exception {
+      RestorePendingTimeRegulationCallbackTck.run(factory(), requireFom(),
+         timeImplementation(), callbackModel());
+   }
+
+   private static void restorePendingTimeConstrainedCallback() throws Exception {
+      RestorePendingTimeRegulationCallbackTck.runConstrained(factory(), requireFom(),
+         timeImplementation(), callbackModel());
+   }
+
    private static void restorePendingTimeAdvanceImmediate() throws Exception {
       RestorePendingTimeAdvanceTck.runImmediate(factory(), requireFom(),
          timeImplementation(), callbackModel());
@@ -11305,6 +11335,10 @@ public final class RtiTckMain {
             method = "restoreResignationCallbackLifetime"; break;
          case "java-tck.restore-pending-time-advance":
             method = "restorePendingTimeAdvance"; break;
+         case "java-tck.restore-pending-time-regulation-callback":
+            method = "restorePendingTimeRegulationCallback"; break;
+         case "java-tck.restore-pending-time-constrained-callback":
+            method = "restorePendingTimeConstrainedCallback"; break;
          case "java-tck.restore-pending-time-advance-immediate":
             method = "restorePendingTimeAdvanceImmediate"; break;
          case "java-tck.restore-pending-advance-modes":

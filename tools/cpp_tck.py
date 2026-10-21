@@ -153,6 +153,7 @@ LOCAL_TCK_HEADERS = {
     "tck_restore_pending_flush_queue_request.hpp",
     "tck_restore_resignation_callback_lifetime.hpp",
     "tck_restore_pending_time_advance.hpp",
+    "tck_restore_pending_time_regulation_callback.hpp",
     "tck_restore_pending_advance_modes.hpp",
     "tck_restore_pending_tso_nmr.hpp",
     "tck_restore_pending_tso_nmra_attribute.hpp",

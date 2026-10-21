@@ -41115,6 +41115,310 @@
       "parity": "cpp-tck.restore-pending-time-advance"
     },
     {
+      "id": "cpp-tck.restore-pending-time-regulation-callback",
+      "title": "Restore a gated pending time-regulation callback exactly once",
+      "category": "federation-save-restore",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.requestFederationSave",
+        "RTIambassador.federateSaveBegun",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.requestFederationRestore",
+        "RTIambassador.federateRestoreComplete",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.federationSaved",
+        "FederateAmbassador.federationRestored"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+        "requirement-candidate-content-clauses-08-time-management-page-189-l162-44"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.3.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+          "standard_section": "hla-1516.1-2025:clause-4.27"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+          "standard_section": "hla-1516.1-2025:clause-4.32"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+          "standard_section": "hla-1516.1-2025:clause-8.3.1"
+        }
+      ],
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "contract_refs": [
+        "standard-restore-pending-time-regulation-callback-contract.json"
+      ],
+      "mapping_note": "Native public-API case passed 38 assertions across evoked and immediate sections. Isolated installed-package C++ primary/contract passed with both callback models and integer64/float64 time (eight runs); Java compiles against the official API-only JAR, provider runtime pending.",
+      "requirement_ids": [
+        "cpp-1516.1-federation-save-lifecycle"
+      ],
+      "default_status": "adapter-required",
+      "promotion": "promoted",
+      "native_equivalent_runner_ids": [
+        "umbra-cpp-federation-restore-pending-time-role-public-integration"
+      ],
+      "cpp_test": "src/tck_restore_pending_time_regulation_callback.cpp#scenarioRestorePendingTimeRegulationCallback",
+      "runner_id": "cpp-tck.restore-pending-time-regulation-callback",
+      "parity": "java-tck.restore-pending-time-regulation-callback"
+    },
+    {
+      "id": "cpp-tck.restore-pending-time-regulation-callback-contract",
+      "title": "Portable contract for pending time-role callback rebound after restore",
+      "category": "federation-save-restore",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.requestFederationSave",
+        "RTIambassador.federateSaveBegun",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.requestFederationRestore",
+        "RTIambassador.federateRestoreComplete",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.federationSaved",
+        "FederateAmbassador.federationRestored"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+        "requirement-candidate-content-clauses-08-time-management-page-189-l162-44"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.3.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+          "standard_section": "hla-1516.1-2025:clause-4.27"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+          "standard_section": "hla-1516.1-2025:clause-4.32"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+          "standard_section": "hla-1516.1-2025:clause-8.3.1"
+        }
+      ],
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "contract_refs": [
+        "standard-restore-pending-time-regulation-callback-contract.json"
+      ],
+      "mapping_note": "Shares the independently green native and installed-package-green public API body; asserts one role-enable callback and one saved/restored completion after the gated pre-restore queue is rebound.",
+      "requirement_ids": [
+        "cpp-1516.1-federation-save-lifecycle"
+      ],
+      "default_status": "adapter-required",
+      "promotion": "promoted",
+      "native_equivalent_runner_ids": [
+        "umbra-cpp-federation-restore-pending-time-role-public-integration"
+      ],
+      "cpp_test": "src/tck_restore_pending_time_regulation_callback.cpp#scenarioRestorePendingTimeRegulationCallbackContract",
+      "runner_id": "cpp-tck.restore-pending-time-regulation-callback-contract",
+      "parity": "cpp-tck.restore-pending-time-regulation-callback"
+    },
+    {
+      "id": "cpp-tck.restore-pending-time-constrained-callback",
+      "title": "Restore a gated pending time-constrained callback exactly once",
+      "category": "federation-save-restore",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.requestFederationSave",
+        "RTIambassador.federateSaveBegun",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.requestFederationRestore",
+        "RTIambassador.federateRestoreComplete",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.federationSaved",
+        "FederateAmbassador.federationRestored"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+        "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l63-17"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-8.5.5",
+        "hla-1516.1-2025:clause-8.6.3"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+          "standard_section": "hla-1516.1-2025:clause-4.27"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+          "standard_section": "hla-1516.1-2025:clause-4.32"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+          "standard_section": "hla-1516.1-2025:clause-8.5.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l63-17",
+          "standard_section": "hla-1516.1-2025:clause-8.6.3"
+        }
+      ],
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "contract_refs": [
+        "standard-restore-pending-time-constrained-callback-contract.json"
+      ],
+      "mapping_note": "Native public-API case passed 38 assertions across evoked and immediate sections. Isolated installed-package C++ primary/contract passed with both callback models and integer64/float64 time (eight runs); Java compiles against official API-only JAR, provider runtime pending.",
+      "requirement_ids": [
+        "cpp-1516.1-federation-save-lifecycle"
+      ],
+      "default_status": "adapter-required",
+      "promotion": "promoted",
+      "native_equivalent_runner_ids": [
+        "umbra-cpp-federation-restore-pending-time-constrained-public-integration"
+      ],
+      "cpp_test": "src/tck_restore_pending_time_regulation_callback.cpp#scenarioRestorePendingTimeConstrainedCallback",
+      "runner_id": "cpp-tck.restore-pending-time-constrained-callback",
+      "parity": "java-tck.restore-pending-time-constrained-callback"
+    },
+    {
+      "id": "cpp-tck.restore-pending-time-constrained-callback-contract",
+      "title": "Portable contract for pending time-constrained callback rebound after restore",
+      "category": "federation-save-restore",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.requestFederationSave",
+        "RTIambassador.federateSaveBegun",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.requestFederationRestore",
+        "RTIambassador.federateRestoreComplete",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.federationSaved",
+        "FederateAmbassador.federationRestored"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+        "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l63-17"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-8.5.5",
+        "hla-1516.1-2025:clause-8.6.3"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+          "standard_section": "hla-1516.1-2025:clause-4.27"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+          "standard_section": "hla-1516.1-2025:clause-4.32"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+          "standard_section": "hla-1516.1-2025:clause-8.5.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l63-17",
+          "standard_section": "hla-1516.1-2025:clause-8.6.3"
+        }
+      ],
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "contract_refs": [
+        "standard-restore-pending-time-constrained-callback-contract.json"
+      ],
+      "mapping_note": "Shares the independently green native and installed-package-green public API body; asserts one constrained-role callback and one saved/restored completion after the gated pre-restore queue is rebound.",
+      "requirement_ids": [
+        "cpp-1516.1-federation-save-lifecycle"
+      ],
+      "default_status": "adapter-required",
+      "promotion": "promoted",
+      "native_equivalent_runner_ids": [
+        "umbra-cpp-federation-restore-pending-time-constrained-public-integration"
+      ],
+      "cpp_test": "src/tck_restore_pending_time_regulation_callback.cpp#scenarioRestorePendingTimeConstrainedCallbackContract",
+      "runner_id": "cpp-tck.restore-pending-time-constrained-callback-contract",
+      "parity": "cpp-tck.restore-pending-time-constrained-callback"
+    },
+    {
       "id": "cpp-tck.restore-pending-time-advance-immediate",
       "category": "federation-save-restore",
       "api_methods": [
