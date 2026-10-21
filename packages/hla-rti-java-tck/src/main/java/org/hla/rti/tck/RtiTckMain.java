@@ -4328,6 +4328,12 @@ public final class RtiTckMain {
                 "cpp-1516.1-ownership-management",
                 "cpp-1516.1-federation-create-join-resign-destroy"
              }, false), RtiTckMain::attributeOwnershipAcquisitionCancellation);
+       run(new Scenario("java-tck.ownership-cancellation-idle",
+             "confirm an ordinary ownership cancellation without requester-side RTI servicing in immediate mode",
+             "ownership",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation",
+             new String[] {"cpp-1516.1-ownership-management"}, false),
+          RtiTckMain::ownershipCancellationIdle);
        run(new Scenario("java-tck.attribute-ownership-release-denied",
              "deny an ordinary ownership request, verify callbacks, and preserve the current owner",
              "ownership",
@@ -8088,6 +8094,11 @@ public final class RtiTckMain {
       OwnershipAcquisitionCancellationTck.run(factory(), requireFom(),
          typedObjectClassName(), typedIdentityAttributeName(),
          typedIntegerAttributeName(), callbackModel());
+   }
+
+   private static void ownershipCancellationIdle() throws Exception {
+      OwnershipAcquisitionCancellationTck.runIdle(factory(), requireFom(),
+         typedObjectClassName(), typedIdentityAttributeName(), callbackModel());
    }
 
    private static void attributeOwnershipReleaseDenied() throws Exception {
@@ -11927,6 +11938,8 @@ public final class RtiTckMain {
             method = "selectiveUnpublicationPendingAcquisition"; break;
           case "java-tck.attribute-ownership-acquisition-cancellation":
              method = "attributeOwnershipAcquisitionCancellation"; break;
+          case "java-tck.ownership-cancellation-idle":
+             method = "ownershipCancellationIdle"; break;
           case "java-tck.attribute-ownership-release-denied":
              method = "attributeOwnershipReleaseDenied"; break;
           case "java-tck.attribute-ownership-query-owner-report":

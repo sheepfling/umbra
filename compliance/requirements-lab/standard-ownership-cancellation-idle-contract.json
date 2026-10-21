@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "A separate ordinary ownership-acquisition cancellation case observes the owner's one release request, cancels the request, and observes one matching confirmation while the requester is otherwise idle in HLA_IMMEDIATE mode. The HLA_EVOKED counterpart uses ordinary callback servicing. The post-cancel immediate wait calls no requester RTI service; the callback recorder is thread-safe. Both paths verify that ownership stays with the original owner. The adapter supplies the provider, model FOM, endpoint, and callback model. Direct pinned mappings are page-161-l137-40 to §7.8, page-170-l13-1 to §7.15, and page-171-l52-13 to §7.16. Idle push timing is a bounded public-API observation without a separate pinned Requirements Lab mapping. This is not process-transport interoperability or conformance evidence.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ownership-cancellation-idle",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador attributeOwnershipAcquisition and cancelAttributeOwnershipAcquisition; FederateAmbassador requestAttributeOwnershipRelease and confirmAttributeOwnershipAcquisitionCancellation",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_cancellation_idle.cpp::scenarioOwnershipCancellationIdleContract"
+      ]
+    }
+  ]
+}

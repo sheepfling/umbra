@@ -65619,6 +65619,50 @@
       "native_equivalent_runner_ids": ["umbra-cpp-flush-queue-request-deferred-lookahead"],
       "default_status": "adapter-required",
       "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-cancellation-idle",
+      "category": "ownership-management",
+      "title": "Confirm ordinary ownership cancellation while the immediate requester makes no further RTI call",
+      "api_methods": ["RTIambassador.connect", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.registerObjectInstance", "RTIambassador.attributeOwnershipAcquisition", "RTIambassador.cancelAttributeOwnershipAcquisition", "RTIambassador.isAttributeOwnedByFederate", "RTIambassador.evokeCallback", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.discoverObjectInstance", "FederateAmbassador.requestAttributeOwnershipRelease", "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation"],
+      "requirement_ids": ["cpp-1516.1-ownership-management"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1", "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.8", "hla-1516.1-2025:clause-7.15", "hla-1516.1-2025:clause-7.16"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1", "standard_section": "hla-1516.1-2025:clause-7.15"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13", "standard_section": "hla-1516.1-2025:clause-7.16"}
+      ],
+      "mapping_note": "Direct clauses cover the observed owner release request, ordinary cancellation, and one matching confirmation. HLA_IMMEDIATE requester-side idle push is an additional API observation, not a separately mapped pinned requirement. The installed-package pair passed 4/4 direct runs and 4/4 focused CTests under both callback models (out/mgw/ownership-cancellation-idle-configured-20261021.json). Java provider runtime remains unverified.",
+      "contract_refs": ["standard-ownership-cancellation-idle-contract.json"],
+      "cpp_test": "src/tck_ownership_cancellation_idle.cpp#scenarioOwnershipCancellationIdle",
+      "runner_id": "cpp-tck.ownership-cancellation-idle",
+      "parity": "java-tck.ownership-cancellation-idle",
+      "native_equivalent_runner_ids": ["umbra-cpp-attribute-ownership-acquisition-cancellation-process-idle-push-integration"],
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-cancellation-idle-contract",
+      "category": "ownership-management",
+      "title": "Portable contract for idle immediate ownership-acquisition cancellation confirmation",
+      "api_methods": ["RTIambassador.attributeOwnershipAcquisition", "RTIambassador.cancelAttributeOwnershipAcquisition", "RTIambassador.isAttributeOwnedByFederate", "FederateAmbassador.requestAttributeOwnershipRelease", "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation"],
+      "requirement_ids": ["cpp-1516.1-ownership-management"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1", "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.8", "hla-1516.1-2025:clause-7.15", "hla-1516.1-2025:clause-7.16"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1", "standard_section": "hla-1516.1-2025:clause-7.15"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13", "standard_section": "hla-1516.1-2025:clause-7.16"}
+      ],
+      "mapping_note": "Contract twin executes the same distinct public-API body. The installed-package pair passed 4/4 direct runs and 4/4 focused CTests under both callback models (out/mgw/ownership-cancellation-idle-configured-20261021.json); no provider-independent or Java runtime claim.",
+      "contract_refs": ["standard-ownership-cancellation-idle-contract.json"],
+      "cpp_test": "src/tck_ownership_cancellation_idle.cpp#scenarioOwnershipCancellationIdleContract",
+      "runner_id": "cpp-tck.ownership-cancellation-idle-contract",
+      "parity": "cpp-tck.ownership-cancellation-idle",
+      "native_equivalent_runner_ids": ["umbra-cpp-attribute-ownership-acquisition-cancellation-process-idle-push-integration"],
+      "default_status": "adapter-required",
+      "promotion": "promoted"
     }
   ]
 }

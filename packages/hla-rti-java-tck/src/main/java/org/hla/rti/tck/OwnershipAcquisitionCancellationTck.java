@@ -21,6 +21,98 @@ final class OwnershipAcquisitionCancellationTck {
 
    private OwnershipAcquisitionCancellationTck() { }
 
+   static void runIdle(RtiFactory factory, String fom, String objectClassName,
+         String attributeName, CallbackModel callbackModel) throws Exception {
+      RTIambassador owner = factory.getRtiAmbassador();
+      RTIambassador requester = factory.getRtiAmbassador();
+      Recorder ownerRecorder = new Recorder();
+      Recorder requesterRecorder = new Recorder();
+      String federation = "java-tck-ownership-cancellation-idle-" + UUID.randomUUID();
+      boolean ownerConnected = false;
+      boolean requesterConnected = false;
+      boolean created = false;
+      boolean ownerJoined = false;
+      boolean requesterJoined = false;
+      try {
+         owner.connect(ownerRecorder.proxy(), callbackModel);
+         ownerConnected = true;
+         requester.connect(requesterRecorder.proxy(), callbackModel);
+         requesterConnected = true;
+         owner.createFederationExecution(federation, fom);
+         created = true;
+         owner.joinFederationExecution("java-tck-idle-cancellation-owner", federation);
+         ownerJoined = true;
+         requester.joinFederationExecution("java-tck-idle-cancellation-requester", federation);
+         requesterJoined = true;
+
+         ObjectClassHandle ownerClass = owner.getObjectClassHandle(objectClassName);
+         ObjectClassHandle requesterClass = requester.getObjectClassHandle(objectClassName);
+         AttributeHandle ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName);
+         AttributeHandle requesterAttribute = requester.getAttributeHandle(
+            requesterClass, attributeName);
+         JavaTckSupport.check(ownerClass.equals(requesterClass)
+               && ownerAttribute.equals(requesterAttribute),
+            "idle cancellation fixture did not resolve the same standard handles");
+         AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
+         AttributeHandleSet requesterAttributes = JavaTckSupport.attributeSet(
+            requester, requesterAttribute);
+         requester.subscribeObjectClassAttributes(requesterClass, requesterAttributes);
+         owner.publishObjectClassAttributes(ownerClass, ownerAttributes);
+         ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
+         await(requester, callbackModel,
+            () -> requesterRecorder.discoveries.contains(object),
+            "idle ownership-cancellation discovery");
+         requester.publishObjectClassAttributes(requesterClass, requesterAttributes);
+
+         ownerRecorder.clearOwnershipEvents();
+         requesterRecorder.clearOwnershipEvents();
+         byte[] tag = new byte[] {(byte) 0xC2, 0x11, 0x6D, 0x09};
+         requester.attributeOwnershipAcquisition(object, requesterAttributes, tag);
+         await(owner, callbackModel,
+            () -> !ownerRecorder.releaseRequests.isEmpty(),
+            "idle ownership-cancellation release request");
+         JavaTckSupport.check(ownerRecorder.releaseRequests.size() == 1,
+            "idle ownership cancellation produced duplicate release requests");
+         OwnershipEvent release = ownerRecorder.releaseRequests.get(0);
+         JavaTckSupport.check(object.equals(release.object)
+               && ownerAttributes.equals(release.attributes),
+            "idle ownership cancellation release request lost the object or attribute");
+
+         requester.cancelAttributeOwnershipAcquisition(object, requesterAttributes);
+         // In immediate mode, await only observes a thread-safe callback list; it
+         // does not call any requester RTI service after cancellation.
+         await(requester, callbackModel,
+            () -> !requesterRecorder.cancellations.isEmpty(),
+            "idle ownership-cancellation confirmation");
+         JavaTckSupport.check(requesterRecorder.cancellations.size() == 1
+               && requesterRecorder.acquisitions.isEmpty(),
+            "idle ownership cancellation duplicated confirmation or acquired ownership");
+         OwnershipEvent confirmation = requesterRecorder.cancellations.get(0);
+         JavaTckSupport.check(object.equals(confirmation.object)
+               && requesterAttributes.equals(confirmation.attributes),
+            "idle ownership cancellation did not return the requested object and attribute");
+         JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerAttribute)
+               && !requester.isAttributeOwnedByFederate(object, requesterAttribute),
+            "idle ownership cancellation changed the owner");
+      } finally {
+         if (requesterJoined) {
+            try { requester.resignFederationExecution(
+               ResignAction.CANCEL_PENDING_OWNERSHIP_ACQUISITIONS); }
+            catch (Exception ignored) { }
+         }
+         if (ownerJoined) {
+            try { owner.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST); }
+            catch (Exception ignored) { }
+         }
+         if (created) {
+            try { owner.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (requesterConnected) { try { requester.disconnect(); } catch (Exception ignored) { } }
+         if (ownerConnected) { try { owner.disconnect(); } catch (Exception ignored) { } }
+      }
+   }
+
    static void run(RtiFactory factory, String fom, String objectClassName,
          String attributeName, String secondAttributeName,
          CallbackModel callbackModel) throws Exception {

@@ -85,6 +85,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_timestamped_directed_zero_lookahead_tar_boundary.cpp
   src/tck_directed_interaction_received_class_projection.cpp
   src/tck_directed_retraction_mixed_fanout.cpp
+  src/tck_ownership_cancellation_idle.cpp
   src/tck_directed_interaction_no_applicable_subscription.cpp
   src/tck_directed_interaction_subscription_accumulation.cpp
   src/tck_federation_lifecycle_scenarios.cpp

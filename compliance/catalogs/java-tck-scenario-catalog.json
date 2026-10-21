@@ -38709,6 +38709,27 @@
       "default_status": "unsupported",
       "promotion": "candidate",
       "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, logical-time implementation, endpoint, and HLA_EVOKED callbacks; Java provider runtime has not been executed."
+    },
+    {
+      "id": "java-tck.ownership-cancellation-idle",
+      "category": "ownership",
+      "title": "Confirm ordinary ownership cancellation while the immediate requester makes no further RTI call",
+      "api_methods": ["RTIambassador.connect(callback model supplied by adapter)", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution", "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.publishObjectClassAttributes", "RTIambassador.subscribeObjectClassAttributes", "RTIambassador.registerObjectInstance", "RTIambassador.attributeOwnershipAcquisition", "RTIambassador.cancelAttributeOwnershipAcquisition", "RTIambassador.isAttributeOwnedByFederate", "RTIambassador.evokeCallback", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution", "RTIambassador.disconnect", "FederateAmbassador.discoverObjectInstance", "FederateAmbassador.requestAttributeOwnershipRelease", "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation"],
+      "requirement_ids": ["cpp-1516.1-ownership-management"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1", "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13"],
+      "standard_sections": ["hla-1516.1-2025:clause-7.8", "hla-1516.1-2025:clause-7.15", "hla-1516.1-2025:clause-7.16"],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40", "standard_section": "hla-1516.1-2025:clause-7.8"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1", "standard_section": "hla-1516.1-2025:clause-7.15"},
+        {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13", "standard_section": "hla-1516.1-2025:clause-7.16"}
+      ],
+      "mapping_note": "The Java peer observes the same owner release, ordinary cancellation, one confirmation, and retained owner. In immediate mode it makes no requester RTI call between cancellation and callback observation. Official-API compilation passed; Java provider runtime has not run.",
+      "contract_refs": ["standard-ownership-cancellation-idle-contract.json"],
+      "java_test": "org.hla.rti.tck.RtiTckMain#ownershipCancellationIdle",
+      "parity": "cpp-tck.ownership-cancellation-idle",
+      "default_status": "unsupported",
+      "promotion": "candidate",
+      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider, FOM, endpoint, and callback model; provider runtime has not been executed."
     }
   ],
   "exclusions": [
