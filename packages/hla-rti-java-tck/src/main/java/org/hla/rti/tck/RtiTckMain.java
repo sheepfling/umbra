@@ -3654,6 +3654,18 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
                "requirement-candidate-content-clauses-08-time-management-page-192-l63-17"
             }, false), RtiTckMain::restorePendingTimeConstrainedCallback);
+      run(new Scenario("java-tck.restore-mixed-pending-time-role-callbacks",
+            "Restore distinct pending regulation and constrained callbacks to their own federates",
+            "federation-save-restore",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.disableCallbacks;RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.requestFederationSave;RTIambassador.federateSaveBegun;RTIambassador.federateSaveComplete;RTIambassador.requestFederationRestore;RTIambassador.federateRestoreComplete;RTIambassador.enableCallbacks;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.federationSaved;FederateAmbassador.federationRestored",
+            new String[] {
+               "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+               "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+               "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+               "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+               "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+               "requirement-candidate-content-clauses-08-time-management-page-192-l63-17"
+            }, false), RtiTckMain::restoreMixedPendingTimeRoleCallbacks);
       run(new Scenario("java-tck.restore-pending-time-advance-immediate",
             "restore a saved pending ordinary advance under direct immediate callbacks",
             "federation-save-restore",
@@ -3972,6 +3984,35 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l63-19",
                "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43"
             }, false), RtiTckMain::restoreDefaultRegionAttributeMultiRecipient);
+      run(new Scenario("java-tck.timed-restore-regional-attribute-multi-recipient",
+            "Restore a timed explicit-source regional attribute update to two recipients",
+            "federation-save-restore",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getDimensionHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.changeDefaultAttributeOrderType;RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.commitRegionModifications;RTIambassador.subscribeObjectClassAttributesWithRegions;RTIambassador.setConveyRegionDesignatorSetsSwitch;RTIambassador.registerObjectInstanceWithRegions;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.updateAttributeValues;RTIambassador.timeAdvanceRequest;RTIambassador.requestFederationSave;RTIambassador.federateSaveBegun;RTIambassador.federateSaveComplete;RTIambassador.retract;RTIambassador.unassociateRegionsForUpdates;RTIambassador.requestFederationRestore;RTIambassador.federateRestoreComplete;RTIambassador.flushQueueRequest;RTIambassador.getDimensionHandleSet;RTIambassador.getRangeBounds;RTIambassador.evokeCallback;RTIambassador.unsubscribeObjectClassAttributesWithRegions;RTIambassador.deleteRegion;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;FederateAmbassador.flushQueueGrant;FederateAmbassador.requestRetraction",
+            new String[] {
+               "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24",
+               "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25",
+               "requirement-candidate-content-clauses-04-federation-management-page-065-l109-26",
+               "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
+               "requirement-candidate-content-clauses-04-federation-management-page-067-l40-9",
+               "requirement-candidate-content-clauses-04-federation-management-page-067-l142-36",
+               "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17",
+               "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+               "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+               "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+               "requirement-candidate-content-clauses-06-object-management-page-121-l36-10",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l103-31",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
+               "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+               "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+               "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+               "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
+               "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
+               "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l152-41",
+               "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43"
+            }, false), RtiTckMain::timedRestoreRegionalAttributeMultiRecipient);
       run(new Scenario("java-tck.restore-regional-interaction-multi-recipient",
             "Restore one explicit-source timestamped regional interaction to two subscribers",
             "federation-save-restore",
@@ -9901,6 +9942,11 @@ public final class RtiTckMain {
          timeImplementation(), callbackModel());
    }
 
+   private static void restoreMixedPendingTimeRoleCallbacks() throws Exception {
+      RestoreMixedPendingTimeRoleCallbacksTck.run(factory(), requireFom(),
+         timeImplementation(), callbackModel());
+   }
+
    private static void restorePendingTimeAdvanceImmediate() throws Exception {
       RestorePendingTimeAdvanceTck.runImmediate(factory(), requireFom(),
          timeImplementation(), callbackModel());
@@ -9995,6 +10041,20 @@ public final class RtiTckMain {
          requireAdapterValue(DDM_ATTRIBUTE_PROPERTY),
          requireAdapterValue(DIMENSION_PROPERTY),
          requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY), callbackModel());
+   }
+
+   private static void timedRestoreRegionalAttributeMultiRecipient() throws Exception {
+      CallbackModel model = callbackModel();
+      if (model != CallbackModel.HLA_EVOKED) {
+         throw new UnsupportedPortableScenario(
+            "timed regional attribute restore is verified only with HLA_EVOKED callbacks");
+      }
+      TimedRestoreRegionalAttributeMultiRecipientTck.run(factory(),
+         requireAdapterFile(DDM_FOM_PROPERTY), timeImplementation(),
+         requireAdapterValue(DDM_OBJECT_CLASS_PROPERTY),
+         requireAdapterValue(DDM_ATTRIBUTE_PROPERTY),
+         requireAdapterValue(DIMENSION_PROPERTY),
+         requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY), model);
    }
 
    private static void restoreRegionalInteractionMultiRecipient() throws Exception {
@@ -11339,6 +11399,8 @@ public final class RtiTckMain {
             method = "restorePendingTimeRegulationCallback"; break;
          case "java-tck.restore-pending-time-constrained-callback":
             method = "restorePendingTimeConstrainedCallback"; break;
+         case "java-tck.restore-mixed-pending-time-role-callbacks":
+            method = "restoreMixedPendingTimeRoleCallbacks"; break;
          case "java-tck.restore-pending-time-advance-immediate":
             method = "restorePendingTimeAdvanceImmediate"; break;
          case "java-tck.restore-pending-advance-modes":
@@ -11373,6 +11435,8 @@ public final class RtiTckMain {
             method = "restoreLiveTsoAttributeMultiRecipient"; break;
          case "java-tck.restore-default-region-attribute-multi-recipient":
             method = "restoreDefaultRegionAttributeMultiRecipient"; break;
+         case "java-tck.timed-restore-regional-attribute-multi-recipient":
+            method = "timedRestoreRegionalAttributeMultiRecipient"; break;
          case "java-tck.restore-regional-interaction-multi-recipient":
             method = "restoreRegionalInteractionMultiRecipient"; break;
          case "java-tck.restore-time-window-state":

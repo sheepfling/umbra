@@ -10,7 +10,9 @@
 
 #include <atomic>
 #include <filesystem>
+#include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -27,6 +29,8 @@ using rti1516_2025::AttributeHandle;
 using rti1516_2025::AttributeHandleSet;
 using rti1516_2025::AttributeHandleSetRegionHandleSetPairVector;
 using rti1516_2025::AttributeHandleValueMap;
+using rti1516_2025::DimensionHandle;
+using rti1516_2025::DimensionHandleSet;
 using rti1516_2025::FederateHandle;
 using rti1516_2025::HLA_EVOKED;
 using rti1516_2025::ObjectClassHandle;
@@ -41,6 +45,14 @@ using rti1516_2025::RTIambassadorFactory;
 using rti1516_2025::TIMESTAMP;
 using rti1516_2025::TransportationTypeHandle;
 using rti1516_2025::VariableLengthData;
+
+struct RegionDesignatorSnapshot final {
+  std::optional<DimensionHandleSet> dimensions;
+  unsigned long lowerBound = 0UL;
+  unsigned long upperBound = 0UL;
+  bool queried = false;
+  std::string error;
+};
 
 std::vector<unsigned char> variableLengthDataBytes(
     VariableLengthData const& value) {
@@ -132,6 +144,9 @@ class ReportingFederateAmbassador final
       OrderType sentOrderType,
       OrderType receivedOrderType,
       rti1516_2025::MessageRetractionHandle const* optionalRetraction) override {
+    if (inspectSentRegions) {
+      inspectSentRegions(optionalSentRegions);
+    }
     reflections.push_back({
         objectInstance,
         attributeValues,
@@ -170,6 +185,7 @@ class ReportingFederateAmbassador final
   }
 
   std::vector<ReflectionReport> reflections;
+  std::function<void(RegionHandleSet const*)> inspectSentRegions;
   std::vector<RequestRetractionReport> requestRetractions;
   std::vector<FlushQueueGrantReport> flushGrants;
   std::vector<TimeAdvanceGrantReport> timeAdvanceGrants;
@@ -284,6 +300,40 @@ TEST_CASE(
   REQUIRE(secondReceiverSoda.isValid());
   REQUIRE(secondReceiverFlavor.isValid());
   REQUIRE(secondReceiverSodaFlavor.isValid());
+  RegionDesignatorSnapshot firstSourceRegionSnapshot;
+  RegionDesignatorSnapshot secondSourceRegionSnapshot;
+  auto const captureSourceRegion = [](
+      RTIambassador& receiver,
+      DimensionHandle const& dimension,
+      RegionDesignatorSnapshot& snapshot,
+      RegionHandleSet const* regions) {
+    try {
+      if (regions == nullptr || regions->size() != 1U) {
+        snapshot.error = "expected one callback-scoped source-region designator";
+        return;
+      }
+      auto const callbackRegion = *regions->begin();
+      snapshot.dimensions = receiver.getDimensionHandleSet(callbackRegion);
+      auto const bounds = receiver.getRangeBounds(callbackRegion, dimension);
+      snapshot.lowerBound = bounds.getLowerBound();
+      snapshot.upperBound = bounds.getUpperBound();
+      snapshot.queried = true;
+    } catch (std::exception const& error) {
+      snapshot.error = error.what();
+    } catch (...) {
+      snapshot.error = "unknown callback-scoped region query failure";
+    }
+  };
+  firstReceiverReports.inspectSentRegions =
+      [&](RegionHandleSet const* regions) {
+        captureSourceRegion(*firstReceiver, firstReceiverSodaFlavor,
+                            firstSourceRegionSnapshot, regions);
+      };
+  secondReceiverReports.inspectSentRegions =
+      [&](RegionHandleSet const* regions) {
+        captureSourceRegion(*secondReceiver, secondReceiverSodaFlavor,
+                            secondSourceRegionSnapshot, regions);
+      };
   AttributeHandleSet const flavorOnly{flavor};
   AttributeHandleSet const firstReceiverFlavorOnly{firstReceiverFlavor};
   AttributeHandleSet const secondReceiverFlavorOnly{secondReceiverFlavor};
@@ -441,7 +491,8 @@ TEST_CASE(
 
   auto const verifyReflection = [&](ReportingFederateAmbassador const& reports,
                                     AttributeHandle receiverFlavor,
-                                    RegionHandle receiverRegion) {
+                                    DimensionHandle receiverDimension,
+                                    RegionDesignatorSnapshot const& sourceSnapshot) {
     REQUIRE(reports.reflections.size() == 1U);
     REQUIRE(reports.flushGrants.size() == 1U);
     auto const& reflection = reports.reflections.front();
@@ -461,14 +512,18 @@ TEST_CASE(
     REQUIRE(reflection.sentOrderType == TIMESTAMP);
     REQUIRE(reflection.receivedOrderType == TIMESTAMP);
     REQUIRE(reflection.sentRegionsSupplied);
-    REQUIRE(reflection.sentRegions == RegionHandleSet{publisherRegion});
+    REQUIRE(reflection.sentRegions.size() == 1U);
+    INFO(sourceSnapshot.error);
+    REQUIRE(sourceSnapshot.queried);
+    REQUIRE(sourceSnapshot.dimensions == DimensionHandleSet{receiverDimension});
+    REQUIRE(sourceSnapshot.lowerBound == 0UL);
+    REQUIRE(sourceSnapshot.upperBound == 2UL);
     REQUIRE(reflection.retractionSupplied);
     REQUIRE(reflection.retractionValid);
     REQUIRE(reports.flushGrants.front().timeImplementationName ==
             standard_hla::mom::integer64_time);
     REQUIRE(reports.flushGrants.front().value == L"7");
     REQUIRE(reports.flushGrants.front().optimisticValue == L"8");
-    (void)receiverRegion;
   };
 
   firstReceiverReports.callbackOrder.clear();
@@ -484,9 +539,10 @@ TEST_CASE(
   REQUIRE_NOTHROW(secondReceiver->flushQueueRequest(
       rti1516_2025::HLAinteger64Time(10)));
   REQUIRE_FALSE(secondReceiver->evokeCallback(0.0));
-  verifyReflection(firstReceiverReports, firstReceiverFlavor, firstReceiverRegion);
-  verifyReflection(
-      secondReceiverReports, secondReceiverFlavor, secondReceiverRegion);
+  verifyReflection(firstReceiverReports, firstReceiverFlavor,
+                   firstReceiverSodaFlavor, firstSourceRegionSnapshot);
+  verifyReflection(secondReceiverReports, secondReceiverFlavor,
+                   secondReceiverSodaFlavor, secondSourceRegionSnapshot);
   REQUIRE(firstReceiverReports.callbackOrder ==
           std::vector<std::string>{"reflect", "flush-grant"});
   REQUIRE(secondReceiverReports.callbackOrder ==

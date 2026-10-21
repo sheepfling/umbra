@@ -30632,6 +30632,79 @@
       "exclusion": "Provider runtime verification is pending; no implementation-specific API or FOM path is embedded."
     },
     {
+      "id": "java-tck.restore-mixed-pending-time-role-callbacks",
+      "title": "Restore pending regulation and constrained callbacks to their own federates",
+      "category": "federation-save-restore",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.requestFederationSave",
+        "RTIambassador.federateSaveBegun",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.requestFederationRestore",
+        "RTIambassador.federateRestoreComplete",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.federationSaved",
+        "FederateAmbassador.federationRestored"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+        "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+        "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l63-17"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.3.1",
+        "hla-1516.1-2025:clause-8.5.5",
+        "hla-1516.1-2025:clause-8.6.3"
+      ],
+      "requirement_mappings": [
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32", "standard_section": "hla-1516.1-2025:clause-4.27"},
+        {"requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43", "standard_section": "hla-1516.1-2025:clause-4.32"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26", "standard_section": "hla-1516.1-2025:clause-8.2"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-189-l162-44", "standard_section": "hla-1516.1-2025:clause-8.3.1"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-191-l73-17", "standard_section": "hla-1516.1-2025:clause-8.5.5"},
+        {"requirement_id": "requirement-candidate-content-clauses-08-time-management-page-192-l63-17", "standard_section": "hla-1516.1-2025:clause-8.6.3"}
+      ],
+      "callback_models": ["evoked", "immediate"],
+      "contract_refs": ["standard-restore-mixed-pending-time-role-callbacks-contract.json"],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+        "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+        "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l63-17"
+      ],
+      "mapping_note": "Standard API-only Java parity for a native-green, installed-package candidate. Java compilation must use the official API-only JAR; Java provider execution is not yet verified.",
+      "java_test": "org.hla.rti.tck.RtiTckMain#restoreMixedPendingTimeRoleCallbacks",
+      "parity": "cpp-tck.restore-mixed-pending-time-role-callbacks",
+      "default_status": "unsupported",
+      "adapter_inputs": [
+        "provider Java API JAR and service-loaded RtiFactory",
+        "adapter-supplied IEEE 1516.2-2025 FOM and provider-supported logical-time implementation",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model supplied by adapter"
+      ],
+      "exclusion": "Provider runtime verification is pending; no implementation-specific API or FOM path is embedded."
+    },
+    {
       "id": "java-tck.restore-pending-time-advance-immediate",
       "category": "federation-save-restore",
       "title": "Restore a saved pending ordinary time advance under direct immediate callbacks",
@@ -32288,6 +32361,67 @@
       "default_status": "unsupported",
       "adapter_inputs": ["provider Java API JAR and service-loaded RtiFactory", "adapter-supplied IEEE 1516.2-2025 object FOM and attribute", "provider-supported logical-time implementation and HLA_EVOKED callback model"],
       "exclusion": "Provider runtime verification is pending; no implementation-specific API or FOM path is embedded."
+    },
+    {
+      "id": "java-tck.timed-restore-regional-attribute-multi-recipient",
+      "category": "federation-save-restore",
+      "title": "Restore a timed explicit-source regional attribute update to two recipients",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)", "RTIambassador.createFederationExecution", "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle", "RTIambassador.getAttributeHandle", "RTIambassador.getDimensionHandle",
+        "RTIambassador.publishObjectClassAttributes", "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.createRegion", "RTIambassador.setRangeBounds", "RTIambassador.commitRegionModifications",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions", "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.registerObjectInstanceWithRegions", "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableTimeRegulation", "RTIambassador.updateAttributeValues", "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.requestFederationSave", "RTIambassador.federateSaveBegun", "RTIambassador.federateSaveComplete",
+        "RTIambassador.retract", "RTIambassador.unassociateRegionsForUpdates", "RTIambassador.requestFederationRestore",
+        "RTIambassador.federateRestoreComplete", "RTIambassador.flushQueueRequest", "RTIambassador.getDimensionHandleSet",
+        "RTIambassador.getRangeBounds", "RTIambassador.evokeCallback", "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.deleteRegion", "RTIambassador.resignFederationExecution", "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect", "FederateAmbassador.discoverObjectInstance", "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.flushQueueGrant", "FederateAmbassador.requestRetraction"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24", "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25", "requirement-candidate-content-clauses-04-federation-management-page-065-l109-26",
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8", "requirement-candidate-content-clauses-04-federation-management-page-067-l40-9", "requirement-candidate-content-clauses-04-federation-management-page-067-l142-36",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17", "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32", "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "requirement-candidate-content-clauses-06-object-management-page-121-l36-10", "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l85-25", "requirement-candidate-content-clauses-06-object-management-page-122-l97-29", "requirement-candidate-content-clauses-06-object-management-page-122-l103-31", "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
+        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26", "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22", "requirement-candidate-content-clauses-08-time-management-page-211-l89-23", "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l152-41", "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-4.19", "hla-1516.1-2025:clause-4.20", "hla-1516.1-2025:clause-4.21.1", "hla-1516.1-2025:clause-4.23", "hla-1516.1-2025:clause-4.27", "hla-1516.1-2025:clause-4.32", "hla-1516.1-2025:clause-6.10", "hla-1516.1-2025:clause-6.10.5", "hla-1516.1-2025:clause-6.11", "hla-1516.1-2025:clause-6.11.1", "hla-1516.1-2025:clause-8.1.5", "hla-1516.1-2025:clause-8.1.6", "hla-1516.1-2025:clause-8.22.3", "hla-1516.1-2025:clause-8.23.3", "hla-1516.1-2025:clause-9.5", "hla-1516.1-2025:clause-9.6"],
+      "requirement_mappings": [
+        {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-065-l96-24","standard_section":"hla-1516.1-2025:clause-4.19"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-065-l100-25","standard_section":"hla-1516.1-2025:clause-4.19"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-065-l109-26","standard_section":"hla-1516.1-2025:clause-4.19"},
+        {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-067-l37-8","standard_section":"hla-1516.1-2025:clause-4.20"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-067-l40-9","standard_section":"hla-1516.1-2025:clause-4.20"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-067-l142-36","standard_section":"hla-1516.1-2025:clause-4.21.1"},
+        {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-069-l70-17","standard_section":"hla-1516.1-2025:clause-4.23"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-072-l131-32","standard_section":"hla-1516.1-2025:clause-4.27"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-076-l18-2","standard_section":"hla-1516.1-2025:clause-4.32"},
+        {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-120-l83-22","standard_section":"hla-1516.1-2025:clause-6.10"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-121-l36-10","standard_section":"hla-1516.1-2025:clause-6.10.5"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l61-17","standard_section":"hla-1516.1-2025:clause-6.11"},
+        {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l85-25","standard_section":"hla-1516.1-2025:clause-6.11.1"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l97-29","standard_section":"hla-1516.1-2025:clause-6.11.1"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l103-31","standard_section":"hla-1516.1-2025:clause-6.11.1"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l121-37","standard_section":"hla-1516.1-2025:clause-6.11.1"},
+        {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-184-l91-26","standard_section":"hla-1516.1-2025:clause-8.1.5"}, {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-185-l17-5","standard_section":"hla-1516.1-2025:clause-8.1.6"}, {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-210-l21-3","standard_section":"hla-1516.1-2025:clause-8.22.3"},
+        {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-211-l86-22","standard_section":"hla-1516.1-2025:clause-8.23.3"}, {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-211-l89-23","standard_section":"hla-1516.1-2025:clause-8.23.3"}, {"requirement_id":"requirement-candidate-content-clauses-09-data-distribution-management-page-228-l152-41","standard_section":"hla-1516.1-2025:clause-9.5"}, {"requirement_id":"requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43","standard_section":"hla-1516.1-2025:clause-9.6"}
+      ],
+      "callback_models": ["evoked"],
+      "contract_refs": ["standard-timed-restore-regional-attribute-multi-recipient-contract.json"],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24", "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25", "requirement-candidate-content-clauses-04-federation-management-page-065-l109-26",
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8", "requirement-candidate-content-clauses-04-federation-management-page-067-l40-9", "requirement-candidate-content-clauses-04-federation-management-page-067-l142-36",
+        "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17", "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32", "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
+        "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "requirement-candidate-content-clauses-06-object-management-page-121-l36-10", "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
+        "requirement-candidate-content-clauses-06-object-management-page-122-l85-25", "requirement-candidate-content-clauses-06-object-management-page-122-l97-29", "requirement-candidate-content-clauses-06-object-management-page-122-l103-31", "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
+        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26", "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+        "requirement-candidate-content-clauses-08-time-management-page-211-l86-22", "requirement-candidate-content-clauses-08-time-management-page-211-l89-23", "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l152-41", "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43"
+      ],
+      "mapping_note": "Exact 23 direct requirement-to-2025-section pairs from the evoked-only C++ primary catalog. The Java callback queries receiver-scoped copied source-region dimensions and bounds during reflection; official API-only compilation is verified, but Java provider runtime remains unverified.",
+      "java_test": "org.hla.rti.tck.RtiTckMain#timedRestoreRegionalAttributeMultiRecipient",
+      "parity": "cpp-tck.timed-restore-regional-attribute-multi-recipient",
+      "default_status": "unsupported",
+      "adapter_inputs": [
+        "provider Java API JAR and service-loaded RtiFactory",
+        "adapter-supplied DDM FOM, object class, attribute, two dimension names, and logical-time implementation",
+        "HLA_EVOKED callback model supplied by adapter; HLA_IMMEDIATE is outside native evidence"
+      ],
+      "exclusion": "Provider runtime verification is pending; no immediate-model claim, provider-specific API, or embedded FOM path."
     },
     {
       "id": "java-tck.restore-default-region-attribute-multi-recipient",

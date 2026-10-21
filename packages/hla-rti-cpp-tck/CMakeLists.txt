@@ -57,6 +57,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_restore_resignation_callback_lifetime.cpp
   src/tck_restore_pending_time_advance.cpp
   src/tck_restore_pending_time_regulation_callback.cpp
+  src/tck_restore_mixed_pending_time_role_callbacks.cpp
   src/tck_restore_pending_advance_modes.cpp
   src/tck_restore_pending_tso_nmr.cpp
   src/tck_restore_pending_tso_nmra_attribute.cpp
@@ -78,6 +79,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_restore_live_tso_attribute_multi_recipient.cpp
   src/tck_restore_default_region_attribute_multi_recipient.cpp
   src/tck_restore_regional_interaction_multi_recipient.cpp
+  src/tck_timed_restore_regional_attribute_multi_recipient.cpp
   src/tck_timestamped_directed_interaction_subscription_kind.cpp
   src/tck_timestamped_directed_zero_lookahead_tar_boundary.cpp
   src/tck_directed_interaction_received_class_projection.cpp
@@ -334,6 +336,8 @@ if(BUILD_TESTING)
          _tck_scenario STREQUAL "cpp-tck.restore-default-region-attribute-multi-recipient-contract" OR
          _tck_scenario STREQUAL "cpp-tck.restore-regional-interaction-multi-recipient" OR
          _tck_scenario STREQUAL "cpp-tck.restore-regional-interaction-multi-recipient-contract" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-restore-regional-attribute-multi-recipient" OR
+         _tck_scenario STREQUAL "cpp-tck.timed-restore-regional-attribute-multi-recipient-contract" OR
          _tck_scenario STREQUAL "cpp-tck.restore-time-window-state" OR
          _tck_scenario STREQUAL "cpp-tck.restore-time-window-state-contract" OR
          _tck_scenario STREQUAL "cpp-tck.restore-deferred-lookahead" OR

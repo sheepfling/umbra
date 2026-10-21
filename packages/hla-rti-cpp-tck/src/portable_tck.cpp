@@ -72,6 +72,7 @@ void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
 #include "tck_restore_resignation_callback_lifetime.hpp"
 #include "tck_restore_pending_time_advance.hpp"
 #include "tck_restore_pending_time_regulation_callback.hpp"
+#include "tck_restore_mixed_pending_time_role_callbacks.hpp"
 #include "tck_restore_pending_advance_modes.hpp"
 #include "tck_restore_pending_tso_nmr.hpp"
 #include "tck_restore_pending_tso_nmra_attribute.hpp"
@@ -93,6 +94,7 @@ void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
 #include "tck_restore_live_tso_attribute_multi_recipient.hpp"
 #include "tck_restore_default_region_attribute_multi_recipient.hpp"
 #include "tck_restore_regional_interaction_multi_recipient.hpp"
+#include "tck_timed_restore_regional_attribute_multi_recipient.hpp"
 #include "tck_joined_federate_mom_updates_sent_mim_attribute.hpp"
 #include "tck_joined_federate_mom_object_instances_updated_mim_attribute.hpp"
 #include "tck_joined_federate_mom_object_instances_reflected_mim_attribute.hpp"
@@ -1378,6 +1380,10 @@ constexpr char restorePendingTimeConstrainedCallbackScenario[] =
     "cpp-tck.restore-pending-time-constrained-callback";
 constexpr char restorePendingTimeConstrainedCallbackContractId[] =
     "cpp-tck.restore-pending-time-constrained-callback-contract";
+constexpr char restoreMixedPendingTimeRoleCallbacksScenario[] =
+    "cpp-tck.restore-mixed-pending-time-role-callbacks";
+constexpr char restoreMixedPendingTimeRoleCallbacksContractId[] =
+    "cpp-tck.restore-mixed-pending-time-role-callbacks-contract";
 constexpr char restorePendingTimeAdvanceImmediateScenario[] =
     "cpp-tck.restore-pending-time-advance-immediate";
 constexpr char restorePendingTimeAdvanceImmediateContractId[] =
@@ -1450,6 +1456,10 @@ constexpr char restoreRegionalInteractionMultiRecipientScenario[] =
     "cpp-tck.restore-regional-interaction-multi-recipient";
 constexpr char restoreRegionalInteractionMultiRecipientContractId[] =
     "cpp-tck.restore-regional-interaction-multi-recipient-contract";
+constexpr char timedRestoreRegionalAttributeMultiRecipientScenario[] =
+    "cpp-tck.timed-restore-regional-attribute-multi-recipient";
+constexpr char timedRestoreRegionalAttributeMultiRecipientContractId[] =
+    "cpp-tck.timed-restore-regional-attribute-multi-recipient-contract";
 constexpr char restoreTimeWindowStateScenario[] =
     "cpp-tck.restore-time-window-state";
 constexpr char restoreTimeWindowStateContractId[] =
@@ -17311,6 +17321,14 @@ int runRestorePendingTimeConstrainedCallbackScenarios(int argc, char** argv) {
       scenarioRestorePendingTimeConstrainedCallbackContract);
 }
 
+int runRestoreMixedPendingTimeRoleCallbacksScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, restoreMixedPendingTimeRoleCallbacksScenario,
+      restoreMixedPendingTimeRoleCallbacksContractId,
+      scenarioRestoreMixedPendingTimeRoleCallbacks,
+      scenarioRestoreMixedPendingTimeRoleCallbacksContract);
+}
+
 int runRestorePendingTimeAdvanceImmediateScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc, argv, restorePendingTimeAdvanceImmediateScenario,
@@ -17454,6 +17472,14 @@ int runRestoreRegionalInteractionMultiRecipientScenarios(int argc, char** argv) 
       restoreRegionalInteractionMultiRecipientContractId,
       scenarioRestoreRegionalInteractionMultiRecipient,
       scenarioRestoreRegionalInteractionMultiRecipientContract, true);
+}
+
+int runTimedRestoreRegionalAttributeMultiRecipientScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, timedRestoreRegionalAttributeMultiRecipientScenario,
+      timedRestoreRegionalAttributeMultiRecipientContractId,
+      scenarioTimedRestoreRegionalAttributeMultiRecipient,
+      scenarioTimedRestoreRegionalAttributeMultiRecipientContract, true);
 }
 
 int runRestoreTimeWindowStateScenarios(int argc, char** argv) {
@@ -21274,6 +21300,16 @@ bool hasRestorePendingTimeConstrainedCallbackScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasRestoreMixedPendingTimeRoleCallbacksScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == restoreMixedPendingTimeRoleCallbacksScenario ||
+        scenario == restoreMixedPendingTimeRoleCallbacksContractId) return true;
+  }
+  return false;
+}
+
 bool hasRestorePendingTimeAdvanceImmediateScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") continue;
@@ -21451,6 +21487,16 @@ bool hasRestoreRegionalInteractionMultiRecipientScenario(int argc, char** argv) 
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == restoreRegionalInteractionMultiRecipientScenario ||
         scenario == restoreRegionalInteractionMultiRecipientContractId) return true;
+  }
+  return false;
+}
+
+bool hasTimedRestoreRegionalAttributeMultiRecipientScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timedRestoreRegionalAttributeMultiRecipientScenario ||
+        scenario == timedRestoreRegionalAttributeMultiRecipientContractId) return true;
   }
   return false;
 }
@@ -25972,6 +26018,9 @@ int main(int argc, char** argv) {
     if (hasRestorePendingTimeConstrainedCallbackScenario(argc, argv)) {
       return runRestorePendingTimeConstrainedCallbackScenarios(argc, argv);
     }
+    if (hasRestoreMixedPendingTimeRoleCallbacksScenario(argc, argv)) {
+      return runRestoreMixedPendingTimeRoleCallbacksScenarios(argc, argv);
+    }
     if (hasRestorePendingTimeAdvanceImmediateScenario(argc, argv)) {
       return runRestorePendingTimeAdvanceImmediateScenarios(argc, argv);
     }
@@ -26025,6 +26074,9 @@ int main(int argc, char** argv) {
     }
     if (hasRestoreRegionalInteractionMultiRecipientScenario(argc, argv)) {
       return runRestoreRegionalInteractionMultiRecipientScenarios(argc, argv);
+    }
+    if (hasTimedRestoreRegionalAttributeMultiRecipientScenario(argc, argv)) {
+      return runTimedRestoreRegionalAttributeMultiRecipientScenarios(argc, argv);
     }
     if (hasRestoreTimeWindowStateScenario(argc, argv)) {
       return runRestoreTimeWindowStateScenarios(argc, argv);

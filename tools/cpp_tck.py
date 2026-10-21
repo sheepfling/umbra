@@ -81,6 +81,8 @@ LOCAL_TCK_HEADERS = {
     "pending_negotiated_restore_tck.hpp",
     "service_report_creation_failure_tck.hpp",
     "tck_harness.hpp",
+    "tck_restore_mixed_pending_time_role_callbacks.hpp",
+    "tck_timed_restore_regional_attribute_multi_recipient.hpp",
     "tck_data_encoding.hpp",
     "tck_api_foundation.hpp",
     "tck_configuration_authorization.hpp",

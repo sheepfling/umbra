@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Two federates enter a single federation save/restore with different pending time roles: one regulator has Enable Time Regulation pending and one member has Enable Time Constrained pending. Both callbacks remain gated until after restore. The test proves that each callback is delivered exactly once to its originating federate ambassador, that pumping one evoked ambassador does not deliver the other member's callback, and that each member receives its own Federation Saved and Federation Restored callbacks. Installed-package C++ candidate primary/contract passed under HLA_EVOKED and HLA_IMMEDIATE with both HLAinteger64Time and HLAfloat64Time. This candidate does not establish process-restart persistence, transport interoperability, Java provider behavior, the full logical-time matrix, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-restore-mixed-pending-time-role-callbacks",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador enableTimeRegulation, enableTimeConstrained, requestFederationSave, federateSaveBegun, federateSaveComplete, requestFederationRestore, federateRestoreComplete, enableCallbacks, evokeCallback; FederateAmbassador timeRegulationEnabled, timeConstrainedEnabled, federationSaved, federationRestored",
+      "source": "official IEEE 1516.1-2025 C++ API headers; adapter-selected IEEE 1516.2-2025 FOM and logical-time implementation",
+      "source_symbol": "IEEE 1516.1-2025 time management and federation save/restore callback interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp::Embedded federation restore rebinds mixed pending time-role callbacks per member",
+        "packages/hla-rti-cpp-tck/src/tck_restore_mixed_pending_time_role_callbacks.cpp::scenarioRestoreMixedPendingTimeRoleCallbacks",
+        "packages/hla-rti-cpp-tck/src/tck_restore_mixed_pending_time_role_callbacks.cpp::scenarioRestoreMixedPendingTimeRoleCallbacksContract"
+      ]
+    }
+  ]
+}

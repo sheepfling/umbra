@@ -70159,9 +70159,9 @@
         "federate.callback.flush-queue-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "Fresh 2026-10-21 exact native HLA_EVOKED runs failed twice at cpp/tests/timed_restore_live_tso_regional_attribute_update_multi_recipient_catch2.cpp:464: 106 assertions passed before reflection.sentRegions differed from RegionHandleSet{publisherRegion} after the timed restore. The historical 157-assertion green plan entry is not current green evidence. Do not promote or translate this explicit-source timed regional-attribute case until the source-region identity discrepancy is diagnosed and a fresh native run passes; do not weaken the assertion without a standard basis. The earlier ordinary regional-interaction restore and the independent pending time-regulation callback restore remain separate green portable slices. Durable/process-boundary restore, alternate advances, Java provider runtime, interoperability, and conformance are unverified.",
-      "source_location": "cpp/tests/timed_restore_live_tso_regional_attribute_update_multi_recipient_catch2.cpp:190",
-      "assertions": 157,
+      "next_action": "Verified 2026-10-21: Fresh MinGW build and exact native HLA_EVOKED selector passed 165 assertions. The old failure compared receiver-visible callback region-copy identity with the publisher source handle; §6.11.1 requires a copy of the update-region realization, so the test now queries the callback-scoped copy during Reflect Attribute Values and verifies its dimension set and original [0,2] source bounds. The C++ portable primary/contract pair passed under HLA_EVOKED using HLAinteger64Time and HLAfloat64Time, with separate result validation. Direct mappings remain 23 requirements across 16 canonical subsections. Java regional-attribute parity now compiles against the official API-only JAR, but Java provider runtime, process-restart persistence, alternate advance modes, interoperability, and conformance remain unverified.",
+      "source_location": "cpp/tests/timed_restore_live_tso_regional_attribute_update_multi_recipient_catch2.cpp:206",
+      "assertions": 165,
       "callback_models": [
         "HLA_EVOKED"
       ],

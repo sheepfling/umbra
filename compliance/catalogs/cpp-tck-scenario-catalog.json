@@ -64666,6 +64666,178 @@
       "parity": "java-tck.directed-interaction-subscription-accumulation",
       "default_status": "adapter-required",
       "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.restore-mixed-pending-time-role-callbacks",
+      "title": "Restore distinct pending regulation and constrained callbacks for separate federates",
+      "category": "federation-save-restore",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.disableCallbacks",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.requestFederationSave",
+        "RTIambassador.federateSaveBegun",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.requestFederationRestore",
+        "RTIambassador.federateRestoreComplete",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.federationSaved",
+        "FederateAmbassador.federationRestored"
+      ],
+      "requirement_ids": ["cpp-1516.1-federation-save-lifecycle"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+        "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+        "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l63-17"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.3.1",
+        "hla-1516.1-2025:clause-8.5.5",
+        "hla-1516.1-2025:clause-8.6.3"
+      ],
+      "requirement_mappings": [
+        {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-072-l131-32","standard_section":"hla-1516.1-2025:clause-4.27"},
+        {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-076-l162-43","standard_section":"hla-1516.1-2025:clause-4.32"},
+        {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-188-l87-26","standard_section":"hla-1516.1-2025:clause-8.2"},
+        {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-189-l162-44","standard_section":"hla-1516.1-2025:clause-8.3.1"},
+        {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-191-l73-17","standard_section":"hla-1516.1-2025:clause-8.5.5"},
+        {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-192-l63-17","standard_section":"hla-1516.1-2025:clause-8.6.3"}
+      ],
+      "callback_models": ["evoked", "immediate"],
+      "contract_refs": ["standard-restore-mixed-pending-time-role-callbacks-contract.json"],
+      "mapping_note": "Two joined federates hold distinct pending role-enable callback generations across one public save/restore. Each callback is drained only through its own ambassador, and each member receives exactly its own role callback and one saved/restored completion. Candidate only: isolated installed-package C++ primary/contract passed four runs for each callback model using HLAinteger64Time and HLAfloat64Time; Java source compiles against the official API-only JAR, while Java provider runtime remains unverified.",
+      "native_equivalent_runner_ids": ["umbra-cpp-federation-restore-mixed-time-role-multi-member-integration"],
+      "default_status": "adapter-required",
+      "promotion": "candidate",
+      "cpp_test": "src/tck_restore_mixed_pending_time_role_callbacks.cpp#scenarioRestoreMixedPendingTimeRoleCallbacks",
+      "runner_id": "cpp-tck.restore-mixed-pending-time-role-callbacks",
+      "parity": "java-tck.restore-mixed-pending-time-role-callbacks"
+    },
+    {
+      "id": "cpp-tck.restore-mixed-pending-time-role-callbacks-contract",
+      "title": "Portable contract for member-isolated pending time-role callback restore",
+      "category": "federation-save-restore",
+      "api_methods": [
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.requestFederationSave",
+        "RTIambassador.federateSaveBegun",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.requestFederationRestore",
+        "RTIambassador.federateRestoreComplete",
+        "RTIambassador.enableCallbacks",
+        "RTIambassador.evokeCallback",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.federationSaved",
+        "FederateAmbassador.federationRestored"
+      ],
+      "requirement_ids": ["cpp-1516.1-federation-save-lifecycle"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32",
+        "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+        "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+        "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
+        "requirement-candidate-content-clauses-08-time-management-page-192-l63-17"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.3.1",
+        "hla-1516.1-2025:clause-8.5.5",
+        "hla-1516.1-2025:clause-8.6.3"
+      ],
+      "requirement_mappings": [
+        {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-072-l131-32","standard_section":"hla-1516.1-2025:clause-4.27"},
+        {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-076-l162-43","standard_section":"hla-1516.1-2025:clause-4.32"},
+        {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-188-l87-26","standard_section":"hla-1516.1-2025:clause-8.2"},
+        {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-189-l162-44","standard_section":"hla-1516.1-2025:clause-8.3.1"},
+        {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-191-l73-17","standard_section":"hla-1516.1-2025:clause-8.5.5"},
+        {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-192-l63-17","standard_section":"hla-1516.1-2025:clause-8.6.3"}
+      ],
+      "callback_models": ["evoked", "immediate"],
+      "contract_refs": ["standard-restore-mixed-pending-time-role-callbacks-contract.json"],
+      "mapping_note": "Shares the installed-package-green public-API body with the primary scenario. Focuses on exact-once, correct-member callback restoration and independent callback queue admission.",
+      "native_equivalent_runner_ids": ["umbra-cpp-federation-restore-mixed-time-role-multi-member-integration"],
+      "default_status": "adapter-required",
+      "promotion": "candidate",
+      "cpp_test": "src/tck_restore_mixed_pending_time_role_callbacks.cpp#scenarioRestoreMixedPendingTimeRoleCallbacksContract",
+      "runner_id": "cpp-tck.restore-mixed-pending-time-role-callbacks-contract",
+      "parity": "java-tck.restore-mixed-pending-time-role-callbacks"
+    },
+    {
+      "id": "cpp-tck.timed-restore-regional-attribute-multi-recipient",
+      "title": "Timed restore of explicit-source regional attribute update to two recipients",
+      "category": "federation-save-restore",
+      "api_methods": ["RTIambassador requestFederationSave", "RTIambassador federateSaveBegun", "RTIambassador federateSaveComplete", "RTIambassador requestFederationRestore", "RTIambassador federateRestoreComplete", "RTIambassador registerObjectInstanceWithRegions", "RTIambassador setRangeBounds", "RTIambassador commitRegionModifications", "RTIambassador subscribeObjectClassAttributesWithRegions", "RTIambassador associateRegionsForUpdates", "RTIambassador enableTimeRegulation", "RTIambassador enableTimeConstrained", "RTIambassador timeAdvanceRequest", "RTIambassador updateAttributeValues", "RTIambassador flushQueueRequest", "RTIambassador retract", "RTIambassador unassociateRegionsForUpdates", "FederateAmbassador reflectAttributeValues", "FederateAmbassador requestRetraction", "FederateAmbassador flushQueueGrant"],
+      "requirement_ids": ["cpp-1516.1-federation-save-lifecycle", "cpp-1516.1-time-management", "cpp-1516.1-ddm"],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24", "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25", "requirement-candidate-content-clauses-04-federation-management-page-065-l109-26", "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8", "requirement-candidate-content-clauses-04-federation-management-page-067-l40-9", "requirement-candidate-content-clauses-04-federation-management-page-067-l142-36", "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17", "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32", "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2", "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "requirement-candidate-content-clauses-06-object-management-page-121-l36-10", "requirement-candidate-content-clauses-06-object-management-page-122-l61-17", "requirement-candidate-content-clauses-06-object-management-page-122-l85-25", "requirement-candidate-content-clauses-06-object-management-page-122-l97-29", "requirement-candidate-content-clauses-06-object-management-page-122-l103-31", "requirement-candidate-content-clauses-06-object-management-page-122-l121-37", "requirement-candidate-content-clauses-08-time-management-page-184-l91-26", "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "requirement-candidate-content-clauses-08-time-management-page-210-l21-3", "requirement-candidate-content-clauses-08-time-management-page-211-l86-22", "requirement-candidate-content-clauses-08-time-management-page-211-l89-23", "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l152-41", "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43"
+      ],
+      "standard_sections": ["hla-1516.1-2025:clause-4.19", "hla-1516.1-2025:clause-4.20", "hla-1516.1-2025:clause-4.21.1", "hla-1516.1-2025:clause-4.23", "hla-1516.1-2025:clause-4.27", "hla-1516.1-2025:clause-4.32", "hla-1516.1-2025:clause-6.10", "hla-1516.1-2025:clause-6.10.5", "hla-1516.1-2025:clause-6.11", "hla-1516.1-2025:clause-6.11.1", "hla-1516.1-2025:clause-8.1.5", "hla-1516.1-2025:clause-8.1.6", "hla-1516.1-2025:clause-8.22.3", "hla-1516.1-2025:clause-8.23.3", "hla-1516.1-2025:clause-9.5", "hla-1516.1-2025:clause-9.6"],
+      "requirement_mappings": [
+        {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-065-l96-24","standard_section":"hla-1516.1-2025:clause-4.19"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-065-l100-25","standard_section":"hla-1516.1-2025:clause-4.19"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-065-l109-26","standard_section":"hla-1516.1-2025:clause-4.19"},
+        {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-067-l37-8","standard_section":"hla-1516.1-2025:clause-4.20"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-067-l40-9","standard_section":"hla-1516.1-2025:clause-4.20"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-067-l142-36","standard_section":"hla-1516.1-2025:clause-4.21.1"},
+        {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-069-l70-17","standard_section":"hla-1516.1-2025:clause-4.23"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-072-l131-32","standard_section":"hla-1516.1-2025:clause-4.27"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-076-l18-2","standard_section":"hla-1516.1-2025:clause-4.32"},
+        {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-120-l83-22","standard_section":"hla-1516.1-2025:clause-6.10"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-121-l36-10","standard_section":"hla-1516.1-2025:clause-6.10.5"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l61-17","standard_section":"hla-1516.1-2025:clause-6.11"},
+        {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l85-25","standard_section":"hla-1516.1-2025:clause-6.11.1"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l97-29","standard_section":"hla-1516.1-2025:clause-6.11.1"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l103-31","standard_section":"hla-1516.1-2025:clause-6.11.1"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l121-37","standard_section":"hla-1516.1-2025:clause-6.11.1"},
+        {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-184-l91-26","standard_section":"hla-1516.1-2025:clause-8.1.5"}, {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-185-l17-5","standard_section":"hla-1516.1-2025:clause-8.1.6"}, {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-210-l21-3","standard_section":"hla-1516.1-2025:clause-8.22.3"},
+        {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-211-l86-22","standard_section":"hla-1516.1-2025:clause-8.23.3"}, {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-211-l89-23","standard_section":"hla-1516.1-2025:clause-8.23.3"}, {"requirement_id":"requirement-candidate-content-clauses-09-data-distribution-management-page-228-l152-41","standard_section":"hla-1516.1-2025:clause-9.5"}, {"requirement_id":"requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43","standard_section":"hla-1516.1-2025:clause-9.6"}
+      ],
+      "callback_models": ["evoked"],
+      "callback_model_scope_note": "Native and installed-package evidence cover HLA_EVOKED only; HLA_IMMEDIATE is explicitly skipped and is not claimed by this promoted evoked-only slice.",
+      "contract_refs": ["standard-timed-restore-regional-attribute-multi-recipient-contract.json"],
+      "mapping_note": "The fresh native Catch2 selector now passes 165 assertions. Clause 6.11.1 requires a copy of the update-region realization; the test queries the receiver-visible callback copy during reflection and verifies the original source dimensions/bounds instead of requiring sender-handle identity. The installed-package public-API primary/contract pair also passed under HLA_EVOKED with HLAinteger64Time and HLAfloat64Time; direct results validate separately for each time implementation. Java provider runtime and conformance remain unverified.",
+      "native_equivalent_runner_ids": ["umbra-cpp-timed-restore-live-tso-explicit-regional-attribute-update-multi-recipient-integration"],
+      "default_status": "adapter-required",
+      "promotion": "promoted",
+      "cpp_test": "src/tck_timed_restore_regional_attribute_multi_recipient.cpp#scenarioTimedRestoreRegionalAttributeMultiRecipient",
+      "runner_id": "cpp-tck.timed-restore-regional-attribute-multi-recipient",
+      "parity": "java-tck.timed-restore-regional-attribute-multi-recipient"
+    },
+    {
+      "id": "cpp-tck.timed-restore-regional-attribute-multi-recipient-contract",
+      "title": "Portable contract for restored explicit-source regional attribute fanout",
+      "category": "federation-save-restore",
+      "api_methods": ["RTIambassador updateAttributeValues(timestamped)", "RTIambassador flushQueueRequest", "RTIambassador retract", "FederateAmbassador reflectAttributeValues(timestamped)", "FederateAmbassador requestRetraction", "FederateAmbassador flushQueueGrant"],
+      "requirement_ids": ["cpp-1516.1-federation-save-lifecycle", "cpp-1516.1-time-management", "cpp-1516.1-ddm"],
+      "selected_requirements_lab_requirement_ids": ["requirement-candidate-content-clauses-04-federation-management-page-065-l96-24", "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25", "requirement-candidate-content-clauses-04-federation-management-page-065-l109-26", "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8", "requirement-candidate-content-clauses-04-federation-management-page-067-l40-9", "requirement-candidate-content-clauses-04-federation-management-page-067-l142-36", "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17", "requirement-candidate-content-clauses-04-federation-management-page-072-l131-32", "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2", "requirement-candidate-content-clauses-06-object-management-page-120-l83-22", "requirement-candidate-content-clauses-06-object-management-page-121-l36-10", "requirement-candidate-content-clauses-06-object-management-page-122-l61-17", "requirement-candidate-content-clauses-06-object-management-page-122-l85-25", "requirement-candidate-content-clauses-06-object-management-page-122-l97-29", "requirement-candidate-content-clauses-06-object-management-page-122-l103-31", "requirement-candidate-content-clauses-06-object-management-page-122-l121-37", "requirement-candidate-content-clauses-08-time-management-page-184-l91-26", "requirement-candidate-content-clauses-08-time-management-page-185-l17-5", "requirement-candidate-content-clauses-08-time-management-page-210-l21-3", "requirement-candidate-content-clauses-08-time-management-page-211-l86-22", "requirement-candidate-content-clauses-08-time-management-page-211-l89-23", "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l152-41", "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43"],
+      "standard_sections": ["hla-1516.1-2025:clause-4.19", "hla-1516.1-2025:clause-4.20", "hla-1516.1-2025:clause-4.21.1", "hla-1516.1-2025:clause-4.23", "hla-1516.1-2025:clause-4.27", "hla-1516.1-2025:clause-4.32", "hla-1516.1-2025:clause-6.10", "hla-1516.1-2025:clause-6.10.5", "hla-1516.1-2025:clause-6.11", "hla-1516.1-2025:clause-6.11.1", "hla-1516.1-2025:clause-8.1.5", "hla-1516.1-2025:clause-8.1.6", "hla-1516.1-2025:clause-8.22.3", "hla-1516.1-2025:clause-8.23.3", "hla-1516.1-2025:clause-9.5", "hla-1516.1-2025:clause-9.6"],
+      "requirement_mappings": [
+        {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-065-l96-24","standard_section":"hla-1516.1-2025:clause-4.19"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-065-l100-25","standard_section":"hla-1516.1-2025:clause-4.19"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-065-l109-26","standard_section":"hla-1516.1-2025:clause-4.19"},
+        {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-067-l37-8","standard_section":"hla-1516.1-2025:clause-4.20"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-067-l40-9","standard_section":"hla-1516.1-2025:clause-4.20"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-067-l142-36","standard_section":"hla-1516.1-2025:clause-4.21.1"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-069-l70-17","standard_section":"hla-1516.1-2025:clause-4.23"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-072-l131-32","standard_section":"hla-1516.1-2025:clause-4.27"}, {"requirement_id":"requirement-candidate-content-clauses-04-federation-management-page-076-l18-2","standard_section":"hla-1516.1-2025:clause-4.32"},
+        {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-120-l83-22","standard_section":"hla-1516.1-2025:clause-6.10"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-121-l36-10","standard_section":"hla-1516.1-2025:clause-6.10.5"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l61-17","standard_section":"hla-1516.1-2025:clause-6.11"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l85-25","standard_section":"hla-1516.1-2025:clause-6.11.1"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l97-29","standard_section":"hla-1516.1-2025:clause-6.11.1"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l103-31","standard_section":"hla-1516.1-2025:clause-6.11.1"}, {"requirement_id":"requirement-candidate-content-clauses-06-object-management-page-122-l121-37","standard_section":"hla-1516.1-2025:clause-6.11.1"},
+        {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-184-l91-26","standard_section":"hla-1516.1-2025:clause-8.1.5"}, {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-185-l17-5","standard_section":"hla-1516.1-2025:clause-8.1.6"}, {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-210-l21-3","standard_section":"hla-1516.1-2025:clause-8.22.3"}, {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-211-l86-22","standard_section":"hla-1516.1-2025:clause-8.23.3"}, {"requirement_id":"requirement-candidate-content-clauses-08-time-management-page-211-l89-23","standard_section":"hla-1516.1-2025:clause-8.23.3"}, {"requirement_id":"requirement-candidate-content-clauses-09-data-distribution-management-page-228-l152-41","standard_section":"hla-1516.1-2025:clause-9.5"}, {"requirement_id":"requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43","standard_section":"hla-1516.1-2025:clause-9.6"}
+      ],
+      "callback_models": ["evoked"],
+      "callback_model_scope_note": "Native and installed-package evidence cover HLA_EVOKED only; HLA_IMMEDIATE is explicitly skipped and is not claimed by this promoted evoked-only companion.",
+      "contract_refs": ["standard-timed-restore-regional-attribute-multi-recipient-contract.json"],
+      "mapping_note": "The contract shares the public-API scenario body. The native test verifies the source-region realization through the callback-scoped receiver copy, consistent with the standard copy requirement; Java provider runtime and conformance remain unverified.",
+      "native_equivalent_runner_ids": ["umbra-cpp-timed-restore-live-tso-explicit-regional-attribute-update-multi-recipient-integration"],
+      "default_status": "adapter-required",
+      "promotion": "promoted",
+      "cpp_test": "src/tck_timed_restore_regional_attribute_multi_recipient.cpp#scenarioTimedRestoreRegionalAttributeMultiRecipientContract",
+      "runner_id": "cpp-tck.timed-restore-regional-attribute-multi-recipient-contract",
+      "parity": "java-tck.timed-restore-regional-attribute-multi-recipient"
     }
   ]
 }

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Public-API coverage for a timed federation save at logical time 6, a queued timestamp-8 explicit-source regional attribute update, restore, independent Flush Queue Requests at two subscribers, and post-restore retraction fanout. A fresh MinGW build and native HLA_EVOKED Catch2 run pass 165 assertions. The Reflect Attribute Values region designator is a copy of the update-region realization; the test therefore queries the callback-scoped receiver copy during the callback and verifies its dimensions and original source bounds instead of requiring its handle to equal the publisher's source handle. Installed-package C++ primary/contract scenarios passed under HLA_EVOKED with HLAinteger64Time and HLAfloat64Time. Java provider runtime, process-restart interoperability, and formal conformance remain unverified.",
+  "api_surfaces": [
+    {
+      "id": "standard-timed-restore-regional-attribute-multi-recipient",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador requestFederationSave, federateSaveBegun, federateSaveComplete, requestFederationRestore, federateRestoreComplete, registerObjectInstanceWithRegions, setRangeBounds, commitRegionModifications, subscribeObjectClassAttributesWithRegions, associateRegionsForUpdates, enableTimeRegulation, enableTimeConstrained, timeAdvanceRequest, updateAttributeValues, flushQueueRequest, retract, unassociateRegionsForUpdates; FederateAmbassador federationSaved, federationRestored, reflectAttributeValues, requestRetraction, flushQueueGrant",
+      "source": "official IEEE 1516.1-2025 C++ API headers; adapter-selected IEEE 1516.2-2025 DDM FOM and logical-time implementation",
+      "source_symbol": "IEEE 1516.1-2025 regional object management, DDM routing, time management, and save/restore APIs",
+      "tests": [
+        "cpp/tests/timed_restore_live_tso_regional_attribute_update_multi_recipient_catch2.cpp::Embedded timed federation restore restores one queued explicit-source regional timestamped attribute update to multiple recipients",
+        "packages/hla-rti-cpp-tck/src/tck_timed_restore_regional_attribute_multi_recipient.cpp::scenarioTimedRestoreRegionalAttributeMultiRecipient",
+        "packages/hla-rti-cpp-tck/src/tck_timed_restore_regional_attribute_multi_recipient.cpp::scenarioTimedRestoreRegionalAttributeMultiRecipientContract"
+      ]
+    }
+  ]
+}
